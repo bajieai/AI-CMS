@@ -1,0 +1,40 @@
+{
+    "name": "aicms/backend",
+    "description": "AI-CMS Backend based on ThinkPHP 8.1",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.4",
+        "topthink/framework": "^8.1",
+        "firebase/php-jwt": "^6.10",
+        "guzzlehttp/guzzle": "^7.8",
+        "predis/predis": "^2.2",
+        "ext-json": "*",
+        "ext-pdo": "*"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^6.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/"
+        },
+        "files": [
+            "app/helper.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {
+            "topthink/think-installer": true
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "php think clear"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
