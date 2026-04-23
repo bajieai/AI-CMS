@@ -41,6 +41,9 @@ COPY www.conf /usr/local/etc/php-fpm.d/zzz-custom.conf
 # 设置工作目录
 WORKDIR /var/www/html
 
+# 确保 runtime 目录有正确的写入权限
+RUN mkdir -p runtime/session runtime/admin/log && chmod -R 777 runtime
+
 # 设置时区
 RUN echo "Asia/Shanghai" > /etc/timezone \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

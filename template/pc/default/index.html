@@ -1,0 +1,88 @@
+{extend name="layout" /}
+
+{block name="title"}{$site_name} - 首页{/block}
+
+{block name="content"}
+<!-- Hero区域 -->
+<section class="hero">
+    <div class="container text-center">
+        <h1 class="display-5">AI 驱动的企业信息管理</h1>
+        <p class="lead opacity-75 mt-3">高效管理产品、案例、新闻等多类型内容，AI智能写作助力企业数字化升级</p>
+        <a href="/product" class="btn btn-primary btn-lg mt-3"><i class="bi bi-arrow-right me-1"></i>了解更多</a>
+    </div>
+</section>
+
+<!-- 产品展示 -->
+<section class="py-5">
+    <div class="container">
+        <h3 class="section-title"><i class="bi bi-box-seam me-2"></i>产品中心</h3>
+        <div class="row g-3 mt-2">
+            {i8j:infolist type="product" limit="6"}
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    {if condition="$field.cover"}
+                    <img src="{$field.cover}" class="card-img-top" alt="{$field.title}" onerror="this.src='https://placehold.co/400x200/e9ecef/6c757d?text=Product'">
+                    {else/}
+                    <img src="https://placehold.co/400x200/e9ecef/6c757d?text=Product" class="card-img-top" alt="{$field.title}">
+                    {/if}
+                    <div class="card-body p-2">
+                        <h6 class="card-title mb-1"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a></h6>
+                        <small class="text-muted">{$field.create_time|date='Y-m-d'}</small>
+                    </div>
+                </div>
+            </div>
+            {/i8j:infolist}
+        </div>
+        <div class="text-end mt-3">
+            <a href="/product" class="btn btn-outline-primary btn-sm">查看全部产品 <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- 案例展示 -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h3 class="section-title"><i class="bi bi-trophy me-2"></i>成功案例</h3>
+        <div class="row g-3 mt-2">
+            {i8j:infolist type="case" limit="4"}
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    {if condition="$field.cover"}
+                    <img src="{$field.cover}" class="card-img-top" alt="{$field.title}" onerror="this.src='https://placehold.co/400x200/e9ecef/6c757d?text=Case'">
+                    {else/}
+                    <img src="https://placehold.co/400x200/e9ecef/6c757d?text=Case" class="card-img-top" alt="{$field.title}">
+                    {/if}
+                    <div class="card-body">
+                        <h6 class="card-title"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a></h6>
+                        <p class="card-text small text-muted">{$field.excerpt|msubstr=0,60}</p>
+                    </div>
+                </div>
+            </div>
+            {/i8j:infolist}
+        </div>
+    </div>
+</section>
+
+<!-- 新闻动态 -->
+<section class="py-5">
+    <div class="container">
+        <h3 class="section-title"><i class="bi bi-newspaper me-2"></i>新闻动态</h3>
+        <div class="row g-3 mt-2">
+            {i8j:infolist type="news" limit="8"}
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <small class="text-muted">{$field.create_time|date='Y-m-d'}</small>
+                        <h6 class="card-title mt-1"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a></h6>
+                        <p class="card-text small text-muted">{$field.excerpt|msubstr=0,80}</p>
+                    </div>
+                </div>
+            </div>
+            {/i8j:infolist}
+        </div>
+        <div class="text-end mt-3">
+            <a href="/news" class="btn btn-outline-primary btn-sm">查看全部新闻 <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+{/block}

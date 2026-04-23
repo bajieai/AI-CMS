@@ -1,0 +1,156 @@
+{extend name="layout" /}
+
+{block name="title"}仪表盘{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item active">仪表盘</li>
+{/block}
+
+{block name="content"}
+<style>
+.trend-wrap { display:flex; align-items:flex-end; height:180px; gap:10px; padding-bottom:24px; position:relative; }
+.trend-bar-wrap { flex:1; text-align:center; position:relative; }
+.trend-bar { width:100%; background:linear-gradient(to top, var(--primary), #60a5fa); border-radius:4px 4px 0 0; min-height:4px; transition:height .5s ease; }
+.trend-label { position:absolute; bottom:-22px; left:0; right:0; font-size:.72rem; color:#94a3b8; white-space:nowrap; }
+.trend-num { position:absolute; top:-18px; left:0; right:0; font-size:.72rem; font-weight:600; color:var(--primary); }
+</style>
+
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-primary"><i class="bi bi-file-text"></i></div>
+            <div class="stat-num text-primary">{$content_count}</div>
+            <div class="stat-label">内容总数</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-success"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-num text-success">{$published_count}</div>
+            <div class="stat-label">已发布</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-warning"><i class="bi bi-pencil"></i></div>
+            <div class="stat-num text-warning">{$draft_count}</div>
+            <div class="stat-label">草稿/待处理</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-info"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-num text-info">{$today_count}</div>
+            <div class="stat-label">今日发布</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-secondary"><i class="bi bi-people"></i></div>
+            <div class="stat-num text-secondary">{$user_count}</div>
+            <div class="stat-label">用户数</div>
+        </div>
+    </div>
+</div>
+
+<!-- 趋势图 + 最新日志 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-bar-chart-line me-1" style="color:var(--primary)"></i>最近7天发布趋势
+            </div>
+            <div class="card-body">
+                <div class="trend-wrap">
+                    {volist name="trend" id="item"}
+                    <div class="trend-bar-wrap">
+                        <div class="trend-num">{$item.count}</div>
+                        <div class="trend-bar" style="height:{$item.count / $trend_max * 100}%"></div>
+                        <div class="trend-label">{$item.date}</div>
+                    </div>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-journal-text me-1" style="color:var(--primary)"></i>最新操作日志
+            </div>
+            <div class="list-group list-group-flush">
+                {volist name="latest_logs" id="log"}
+                <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                    <div class="small text-truncate" style="max-width:68%">
+                        <span class="badge bg-light text-dark border me-1">{$log.module}</span>
+                        <span class="text-muted">{$log.action}</span>
+                    </div>
+                    <small class="text-muted" style="font-size:.7rem">{$log.create_time|date='m-d H:i'}</small>
+                </div>
+                {/volist}
+                {empty name="latest_logs"}
+                <div class="list-group-item text-muted small py-3">暂无操作记录</div>
+                {/empty}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快捷操作 + 系统信息 -->
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-lightning-fill me-1" style="color:var(--primary)"></i>快捷操作</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/content/add" class="btn btn-outline-primary w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-plus-circle d-block fs-4 mb-1"></i>添加内容
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/content/index" class="btn btn-outline-success w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-list-ul d-block fs-4 mb-1"></i>内容列表
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/cate/index" class="btn btn-outline-info w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-folder2 d-block fs-4 mb-1"></i>分类管理
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/system/config" class="btn btn-outline-secondary w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-gear d-block fs-4 mb-1"></i>系统设置
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-1" style="color:var(--primary)"></i>系统信息
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">V2.0</td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">框架版本</td><td class="text-end pe-3" style="font-weight:600">ThinkPHP 8.1</td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">PHP版本</td><td class="text-end pe-3" style="font-weight:600"><?php echo PHP_VERSION; ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">当前用户</td><td class="text-end pe-3" style="font-weight:600"><?php echo session('nickname') ?: 'Admin'; ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">用户角色</td><td class="text-end pe-3" style="font-weight:600">
+                            <?php if(session('role_id') == 1): ?>超级管理员<?php endif; ?>
+                            <?php if(session('role_id') == 2): ?>管理员<?php endif; ?>
+                            <?php if(session('role_id') == 3): ?>编辑<?php endif; ?>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

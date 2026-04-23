@@ -1,0 +1,347 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑内容{else/}添加内容{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑内容{else/}添加内容{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑内容{else/}添加内容{/if}
+    </div>
+    <div class="card-body">
+        <form id="contentForm" method="post" action="{if condition="$info"}/admin/content/edit/{$info.id}{else/}/admin/content/add{/if}">
+            <div class="row">
+                <!-- 左侧主内容 -->
+                <div class="col-lg-8">
+                    <div class="mb-3">
+                        <label class="form-label">标题 <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" value="{$info.title ?? ''}" required placeholder="请输入标题">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">内容</label>
+                        <textarea name="content" id="editor" class="form-control" rows="15"><?php echo $info['content'] ?? ''; ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">摘要</label>
+                        <textarea name="excerpt" class="form-control" rows="3" placeholder="留空则自动截取内容前200字">{$info.excerpt ?? ''}</textarea>
+                    </div>
+                </div>
+                <!-- 右侧属性 -->
+                <div class="col-lg-4">
+                    <div class="mb-3">
+                        <label class="form-label">类型 <span class="text-danger">*</span></label>
+                        <select name="type" class="form-select" id="typeSelect">
+                            <option value="1" {if condition="($info.type ?? 1) == 1"}selected{/if}>产品</option>
+                            <option value="2" {if condition="($info.type ?? 1) == 2"}selected{/if}>案例</option>
+                            <option value="3" {if condition="($info.type ?? 1) == 3"}selected{/if}>新闻</option>
+                            <option value="4" {if condition="($info.type ?? 1) == 4"}selected{/if}>下载</option>
+                            <option value="5" {if condition="($info.type ?? 1) == 5"}selected{/if}>招聘</option>
+                            <option value="6" {if condition="($info.type ?? 1) == 6"}selected{/if}>单页</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">分类</label>
+                        <select name="cate_id" class="form-select" id="cateSelect">
+                            <option value="0">请选择分类</option>
+                            {volist name="cates" id="cate"}
+                            <option value="{$cate.id}" {if condition="($info.cate_id ?? 0) == $cate.id"}selected{/if}>{$cate.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">封面图</label>
+                        <div class="input-group">
+                            <input type="text" name="cover" id="coverInput" class="form-control" value="{$info.cover ?? ''}" placeholder="图片URL">
+                            <button type="button" class="btn btn-outline-secondary" onclick="uploadCover()"><i class="bi bi-upload"></i></button>
+                        </div>
+                        <div id="coverPreview" class="mt-2" {if condition="!($info.cover ?? '')"}style="display:none"{/if}>
+                            <img src="{$info.cover ?? ''}" class="img-thumbnail" style="max-height:120px">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="0" {if condition="($info.status ?? 0) == 0"}selected{/if}>草稿</option>
+                            <option value="2" {if condition="($info.status ?? 0) == 2"}selected{/if}>发布</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_top" value="1" id="isTop" {if condition="($info.is_top ?? 0) == 1"}checked{/if}>
+                            <label class="form-check-label" for="isTop">置顶</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">标签</label>
+                        <div id="tagList">
+                            {volist name="tags" id="tag"}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="tag_ids[]" value="{$tag.id}" id="tag_{$tag.id}"
+                                    {if condition="in_array($tag.id, $selected_tags ?? [])"}checked{/if}>
+                                <label class="form-check-label small" for="tag_{$tag.id}">{$tag.name}</label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+
+                    <!-- 扩展字段 -->
+                    {notempty name="ext_fields"}
+                    <div class="card border-info mb-3" id="extFieldsCard">
+                        <div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>扩展字段</div>
+                        <div class="card-body py-2">
+                            {volist name="ext_fields" id="field"}
+                            <div class="mb-2">
+                                <label class="form-label small">{$field.title} {if condition="$field.required"}<span class="text-danger">*</span>{/if}</label>
+                                {switch field.type}
+                                    {case value="text"}
+                                    <input type="text" name="ext[{$field.name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.name] ?? ''}"
+                                        placeholder="{$field.placeholder ?? ''}"
+                                        {if condition="$field.required"}required{/if}>
+                                    {/case}
+                                    {case value="number"}
+                                    <input type="number" name="ext[{$field.name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.name] ?? ''}"
+                                        placeholder="{$field.placeholder ?? ''}"
+                                        {if condition="$field.required"}required{/if}>
+                                    {/case}
+                                    {case value="textarea"}
+                                    <textarea name="ext[{$field.name}]" class="form-control form-control-sm" rows="3"
+                                        placeholder="{$field.placeholder ?? ''}"
+                                        {if condition="$field.required"}required{/if}>{$ext_data[$field.name] ?? ''}</textarea>
+                                    {/case}
+                                    {default /}
+                                    <input type="text" name="ext[{$field.name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.name] ?? ''}"
+                                        placeholder="{$field.placeholder ?? ''}">
+                                {/switch}
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                    {/notempty}
+
+                    <!-- AI辅助写作 -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-header py-2"><i class="bi bi-robot me-1"></i>AI 辅助</div>
+                        <div class="card-body py-2">
+                            <div class="mb-2">
+                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="aiGenerate()" id="btnAi">
+                                <i class="bi bi-magic me-1"></i>AI 生成内容
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        <a href="/admin/content/index" class="btn btn-outline-secondary">取消返回</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="css"}
+<!-- TinyMCE -->
+<script src="/assets/js/tinymce/tinymce.min.js"></script>
+{/block}
+
+{block name="js"}
+<script>
+// TinyMCE编辑器（完全本地化）
+tinymce.init({
+    selector: '#editor',
+    height: 400,
+    language: 'zh-Hans',
+    menubar: 'edit view insert format table',
+    plugins: 'link image table code fullscreen',
+    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+    relative_urls: false,
+    convert_urls: false,
+    promotion: false,
+    branding: false,
+    // 图片上传
+    images_upload_url: '/api/upload/image',
+    images_upload_handler: function(blobInfo, success, failure) {
+        var formData = new FormData();
+        formData.append('file', blobInfo.blob(), blobInfo.filename());
+        $.ajax({
+            url: '/api/upload/image',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                if (res.code === 0 && res.data && res.data.url) {
+                    success(res.data.url);
+                } else {
+                    failure(res.msg || '上传失败');
+                }
+            },
+            error: function() { failure('上传失败'); }
+        });
+    }
+});
+
+// 扩展字段动态渲染
+var extData = {:json_encode($ext_data ?? [], JSON_UNESCAPED_UNICODE)};
+
+function renderExtFields(fields) {
+    var $card = $('#extFieldsCard');
+    if ($card.length === 0) {
+        var $tagWrap = $('#tagList').closest('.mb-3');
+        $tagWrap.after(
+            '<div class="card border-info mb-3" id="extFieldsCard" style="display:none;">' +
+            '<div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>扩展字段</div>' +
+            '<div class="card-body py-2"></div></div>'
+        );
+        $card = $('#extFieldsCard');
+    }
+    var html = '';
+    if (fields && fields.length > 0) {
+        html += '<div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>扩展字段</div>';
+        html += '<div class="card-body py-2">';
+        for (var i = 0; i < fields.length; i++) {
+            var f = fields[i];
+            var val = extData[f.name] || '';
+            html += '<div class="mb-2">';
+            html += '<label class="form-label small">' + f.title + (f.required ? ' <span class="text-danger">*</span>' : '') + '</label>';
+            if (f.type === 'textarea') {
+                html += '<textarea name="ext[' + f.name + ']" class="form-control form-control-sm" rows="3" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>' + val + '</textarea>';
+            } else if (f.type === 'number') {
+                html += '<input type="number" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + val + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
+            } else {
+                html += '<input type="text" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + val + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        $card.html(html).show();
+    } else {
+        $card.hide();
+    }
+}
+
+$('#typeSelect').on('change', function() {
+    var type = $(this).val();
+    // 更新扩展字段
+    $.ajax({
+        url: '/admin/content/getExtFields',
+        type: 'GET',
+        data: { type: type },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0) {
+                renderExtFields(res.data.fields);
+            }
+        }
+    });
+    // 更新分类列表
+    $.ajax({
+        url: '/admin/content/getCates',
+        type: 'GET',
+        data: { type: type },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0) {
+                var options = '<option value="0">请选择分类</option>';
+                for (var id in res.data.cates) {
+                    options += '<option value="' + id + '">' + res.data.cates[id] + '</option>';
+                }
+                $('#cateSelect').html(options);
+            }
+        }
+    });
+});
+
+// 封面上传
+function uploadCover() {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var formData = new FormData();
+        formData.append('file', file);
+        $.ajax({
+            url: '/api/upload/image',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                if (res.code === 0 && res.data && res.data.url) {
+                    $('#coverInput').val(res.data.url);
+                    $('#coverPreview img').attr('src', res.data.url);
+                    $('#coverPreview').show();
+                } else {
+                    showToast(res.msg || '上传失败', 'danger');
+                }
+            }
+        });
+    };
+    input.click();
+}
+
+// 封面预览
+$('#coverInput').on('change', function() {
+    var url = $(this).val();
+    if (url) {
+        $('#coverPreview img').attr('src', url);
+        $('#coverPreview').show();
+    } else {
+        $('#coverPreview').hide();
+    }
+});
+
+// AI生成
+function aiGenerate() {
+    var prompt = $('#aiPrompt').val().trim();
+    if (!prompt) { showToast('请输入AI写作提示', 'warning'); return; }
+    var $btn = $('#btnAi');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>生成中...');
+    $.ajax({
+        url: '/api/ai/generate',
+        type: 'POST',
+        data: { prompt: prompt },
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>AI 生成内容');
+            if (res.code === 0 && res.data && res.data.content) {
+                tinymce.activeEditor.setContent(res.data.content);
+                showToast('AI内容生成成功', 'success');
+            } else {
+                showToast(res.msg || '生成失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>AI 生成内容');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+// 表单提交
+$('#contentForm').on('submit', function(e) {
+    e.preventDefault();
+    // 同步TinyMCE内容到textarea
+    tinymce.triggerSave();
+    var formData = $(this).serialize();
+    ajaxPost($(this).attr('action'), formData);
+});
+</script>
+{/block}

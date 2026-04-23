@@ -8,13 +8,12 @@ services:
       - "3000:80"
       - "443:443"
     volumes:
-      - ./backend:/var/www/html
+      - ./:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
       - ./docker/nginx/ssl:/etc/nginx/ssl
     depends_on:
       - php
       - mysql
-      - redis
     networks:
       - aicms_network
 
@@ -22,12 +21,10 @@ services:
     build: ./docker/php
     container_name: aicms_php
     volumes:
-      - ./backend:/var/www/html
+      - ./:/var/www/html
     depends_on:
       mysql:
         condition: service_healthy
-      redis:
-        condition: service_started
     environment:
       - PHP_MEMORY_LIMIT=256M
       - PHP_MAX_EXECUTION_TIME=300
@@ -41,13 +38,12 @@ services:
     container_name: aicms_mysql
     environment:
       MYSQL_ROOT_PASSWORD: root123456
-      MYSQL_DATABASE: ai_cms
+      MYSQL_DATABASE: aicms_v2
       MYSQL_USER: aicms
       MYSQL_PASSWORD: aicms123456
       TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./database/migrations:/docker-entrypoint-initdb.d
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     ports:
       - "3307:3306"

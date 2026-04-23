@@ -1,96 +1,205 @@
-# 八界AI-CMS
+# 八界AI-CMS V2.0
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![PHP](https://img.shields.io/badge/PHP-8.4+-purple)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
-![Vue.js](https://img.shields.io/badge/Vue.js-3-orange)
 
 ## 项目简介
 
-八界AI-CMS 是一款基于 ThinkPHP + Vue.js 构建的新一代智能内容管理系统，集成了先进的人工智能技术（DeepSeek API），为内容创作者提供更智能、更高效的内容创作体验。
+八界AI-CMS V2.0 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek AI 接口，为内容创作提供智能辅助。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
 
 ### 核心特性
 
-- **AI智能助手** - 内置AI写作助手，支持文章摘要、标签生成、内容优化等功能
-- **可视化编辑** - 强大的富文本编辑器，支持 Markdown 和富文本切换
-- **灵活的权限管理** - 基于RBAC的完善权限系统
-- **强大的SEO优化** - 内置SEO优化功能，支持自定义TDK
-- **媒体库管理** - 支持图片、视频、文档等多种文件类型
-- **操作日志审计** - 完整的操作日志记录和审计功能
+- **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式（DeepSeek API）
+- **6种内容类型** - 产品/案例/新闻/下载/招聘/单页，支持扩展字段
+- **简化RBAC** - 3级角色（超管/管理员/编辑），配置文件权限控制
+- **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`，灵活调用数据
+- **安装向导** - Web端5步安装，自动建表、创建管理员
+- **富文本编辑** - TinyMCE 6+ 编辑器，支持图片上传和AI辅助
 
 ## 技术栈
 
-### 后端
-
-- **框架**: ThinkPHP 8.1
-- **语言**: PHP 8.4+
-- **数据库**: MySQL 8.0
-- **缓存**: Redis 7
-- **队列**: Redis Queue / AI任务队列
-
-### 前端
-
-- **框架**: Vue 3 (Composition API)
-- **构建工具**: Vite
-- **UI框架**: Element Plus
-- **状态管理**: Pinia
-- **HTTP客户端**: Axios
-
-### 基础设施
-
-- **Web服务器**: Nginx
-- **容器化**: Docker / Docker Compose
-- **PHP运行时**: PHP-FPM 8.4+
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
+| 语言 | PHP 8.2+ | 严格类型声明 |
+| 数据库 | MySQL 8.0 | 8张MVP表，前缀 i8j_ |
+| 缓存 | 文件缓存（Redis可选） | 带标签的缓存管理 |
+| Session | PHP原生文件Session | 24小时过期 |
+| AI接口 | DeepSeek API (GuzzleHTTP) | 直连，无需Python中间层 |
+| 前端UI | Bootstrap 5.3 + jQuery 3.7 | CDN加载 |
+| 富文本 | TinyMCE 6+ | CDN加载 |
+| 部署 | Docker / Nginx+PHP-FPM | 多入口模式 |
 
 ## 快速开始
 
-> **推荐使用 Docker 部署，一条命令即可完成所有环境配置，无需手动安装 PHP/MySQL/Redis/Nginx 等依赖。**
+### 方式一：Docker 部署（推荐）
 
-### 方式一：Docker 部署（推荐，适合所有用户）
-
-**前置条件：仅需安装 [Docker Desktop](https://docs.docker.com/get-docker/)**
-
-| 操作系统 | 安装方式 | 预计耗时 |
-|---------|---------|---------|
-| Windows | 下载 Docker Desktop 安装包，双击安装 | 5 分钟 |
-| macOS | 同上 | 5 分钟 |
-| Linux | `curl -fsSL https://get.docker.com \| sh` | 3 分钟 |
-
-**一键启动（3 步搞定）：**
+**前置条件：[Docker Desktop](https://docs.docker.com/get-docker/)**
 
 ```bash
-# 步骤1: 克隆项目
+# 1. 克隆项目
 git clone https://github.com/your-repo/AI-CMS.git
 cd AI-CMS
 
-# 步骤2: 一键部署（自动完成：构建镜像→创建容器→初始化数据库）
-./install.sh --docker        # Linux / macOS
-# 或 Windows:
-install.bat --docker
+# 2. 一键启动
+./install.sh --docker          # Linux/macOS
+install.bat --docker           # Windows
 
-# 步骤3: 访问系统 ✅
-# 前台地址: http://localhost
-# 后台地址: http://localhost/admin   默认账号: admin / Admin@2026
+# 3. 访问安装向导
+# http://localhost:3000/install
 ```
 
-**Docker 内部自动完成的工作：**
-- 构建 PHP 8.4-FPM 镜像（含 pdo_mysql、redis、gd、bcmath 等 12 个扩展）
-- 启动 MySQL 8.0 并自动建库导入 17 张表结构
-- 启动 Redis 7 并加载缓存配置
-- 配置 Nginx 反向代理 + URL 重写 + 静态资源缓存 + 安全头
-- 可选导入示例数据
+### 方式二：原生部署
 
-**常用运维命令：**
+```bash
+# 1. 确保已安装 PHP 8.2+, MySQL 8.0+, Composer
+# 2. 克隆项目并安装依赖
+git clone https://github.com/your-repo/AI-CMS.git
+cd AI-CMS
+composer install --no-dev --optimize-autoloader
+
+# 3. 编辑 .env 配置数据库信息
+
+# 4. 启动开发服务器
+php think run --port=8080
+
+# 5. 访问安装向导
+# http://localhost:8080/install
+```
+
+## 目录结构
+
+```
+AI-CMS/
+├── app/                        # 应用目录 (PSR-4: app\)
+│   ├── admin/                  # 后台应用
+│   │   ├── controller/         #   控制器(Login/Index/Content/Cate/Tag/User/System/Log)
+│   │   ├── middleware.php      #   中间件注册(AdminAuth+AdminPermission)
+│   │   └── config/view.php    #   视图路径映射
+│   ├── home/                   # 前台应用
+│   │   ├── controller/         #   控制器(Index/Content/Cate/Search)
+│   │   └── config/view.php    #   视图路径映射
+│   ├── api/                    # API应用
+│   │   └── controller/         #   控制器(Ai/Upload/Cache)
+│   ├── install/                # 安装向导应用
+│   │   ├── controller/         #   控制器(Index - 5步安装)
+│   │   └── view/               #   安装页面模板
+│   └── common/                 # 公共模块
+│       ├── controller/         #   基类(AdminBaseController/FrontBaseController)
+│       ├── middleware/         #   中间件(AdminAuth/AdminPermission/InstallCheck)
+│       ├── model/              #   数据模型(Content/ContentExt/Cate/Tag/ContentTag/User/Config/Log)
+│       ├── service/            #   业务服务(ContentService/CateService/AiService/CacheService/UploadService)
+│       ├── taglib/             #   模板标签引擎(I8j)
+│       └── helper.php          #   全局助手函数
+├── config/                     # 框架配置
+│   ├── app.php                 #   多应用配置
+│   ├── database.php            #   数据库配置
+│   ├── template.php            #   模板引擎配置(含I8j标签库)
+│   ├── session.php             #   Session配置
+│   ├── cache.php               #   缓存配置
+│   ├── menu.php                #   后台菜单配置
+│   ├── permission.php          #   RBAC权限配置
+│   ├── ai.php                  #   AI服务配置
+│   └── info_type_fields.php   #   扩展字段定义
+├── route/                      # 路由定义
+│   ├── admin.php               #   后台CRUD路由
+│   ├── home.php                #   前台路由(6种内容类型)
+│   └── api.php                 #   API路由(3个接口)
+├── template/                   # 模板目录
+│   ├── admin/default/          #   后台模板(layout/login/dashboard/content/cate/tag/user/system/log)
+│   └── pc/default/             #   前台模板(layout/index/list/detail/search)
+├── public/                     # Web根目录
+│   ├── index.php               #   前台入口
+│   ├── admin.php               #   后台入口
+│   ├── install.php             #   安装入口
+│   ├── static/                 #   静态资源
+│   └── uploads/                #   上传目录
+├── database/
+│   └── migrations/
+│       └── install.sql         #   建表SQL(8张表+初始数据)
+├── docker/                     # Docker配置
+│   ├── php/                    #   PHP-FPM Dockerfile
+│   ├── nginx/                  #   Nginx配置
+│   ├── mysql/                  #   MySQL配置
+│   └── redis/                  #   Redis配置
+├── deploy/                     # 生产部署配置
+│   └── nginx/aicms.conf       #   Nginx生产配置模板
+├── .env                        #   环境配置(不入库)
+├── composer.json               #   Composer依赖
+├── docker-compose.yml          #   Docker Compose编排
+├── install.sh                  #   Linux/macOS安装脚本
+├── install.bat                 #   Windows安装脚本
+└── README.md
+```
+
+## 数据库设计 (8张MVP表)
+
+| 表名 | 说明 | 主要字段 |
+|------|------|----------|
+| i8j_content | 内容主表 | id,title,content,excerpt,type,status,cate_id,user_id,cover,sort,is_top,views |
+| i8j_content_ext | 内容扩展表 | id,content_id,type,data(JSON) |
+| i8j_cate | 分类表 | id,name,type,parent_id,sort,status |
+| i8j_tag | 标签表 | id,name,sort |
+| i8j_content_tag | 内容标签关联 | content_id,tag_id |
+| i8j_user | 用户表 | id,username,email,password,nickname,avatar,role_id,status |
+| i8j_config | 系统配置表 | id,group,name,value,type,options,sort,remark |
+| i8j_log | 操作日志表 | id,user_id,module,action,target,ip,data |
+
+**命名规范(Plan B)**：删除字段前缀，简化表名，主键统一为 `id`
+
+## 3种角色权限
+
+| 角色 | role_id | 权限范围 |
+|------|---------|----------|
+| 超级管理员 | 1 | 全部权限，跳过权限检查 |
+| 管理员 | 2 | 内容管理+分类+标签+部分系统功能 |
+| 编辑 | 3 | 内容管理（含发布）+ 分类查看 |
+
+## 3个API接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/ai/generate | AI内容生成（Session认证） |
+| POST | /api/upload/image | 图片上传 |
+| POST | /api/cache/clear | 清除缓存（超管专用） |
+
+## I8j模板标签
+
+```html
+<!-- 内容列表 -->
+{i8j:infolist type="news" limit="10" order="create_time desc"}
+  <div>
+    <h3>{$field.title}</h3>
+    <a href="{$field.url}">查看详情</a>
+  </div>
+{/i8j:infolist}
+
+<!-- 分类列表 -->
+{i8j:catelist type="1" limit="10" parent="0"}
+  <a href="{$field.url}">{$field.name}</a>
+{/i8j:catelist}
+```
+
+## 默认账户
+
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 超级管理员 | admin | admin123 |
+
+> **安全提示**: 首次登录后请立即修改默认密码！
+
+## 常用Docker命令
+
 ```bash
 # 查看服务状态
 docker-compose ps
 
-# 查看日志 (排查问题时用)
-docker-compose logs -f nginx    # 前端/Nginx日志
-docker-compose logs -f php      # 后端PHP错误日志
-docker-compose logs -f mysql    # 数据库日志
+# 查看日志
+docker-compose logs -f nginx
+docker-compose logs -f php
 
 # 重启服务
 docker-compose restart
@@ -98,268 +207,10 @@ docker-compose restart
 # 停止并删除容器（保留数据）
 docker-compose down
 
-# 完全清除（含数据库数据）⚠️
+# 完全清除（含数据库数据）
 docker-compose down -v
 ```
 
----
-
-### 方式二：原生部署（高级选项）
-
-> ⚠️ **此方式需要手动安装和配置多个软件组件，建议仅在有 Linux 运维经验时选择。**
-
-#### 为什么推荐 Docker 而非原生部署？
-
-| 对比维度 | Docker 部署 | 原生部署 |
-|---------|------------|---------|
-| **前置条件** | 仅安装 Docker | PHP 8.4+、MySQL 8.0+、Redis 7+、Composer、Node.js、Nginx |
-| **操作步骤数** | 3 步 | 16-20 步 |
-| **PHP 扩展安装** | 自动编译安装 | 手动逐个安装（不同系统命令不同） |
-| **环境冲突风险** | 无（容器隔离） | 高（版本冲突、路径冲突等） |
-| **预估耗时** | 10 分钟 | 30-120 分钟 |
-| **出错概率** | 极低 | 中高（扩展缺失/权限/Nginx配置等问题） |
-| **适合人群** | 所有用户 | 有运维经验的开发者 |
-
-#### 如果仍需原生部署，环境要求：
-
-```bash
-# 必须安装的组件及版本：
-PHP >= 8.0.5 （推荐 8.4），必须包含以下扩展：
-  pdo_mysql, redis, gd, bcmath, mbstring, xml, zip, opcache, json
-MySQL >= 8.0
-Redis >= 7
-Composer >= 2.x
-Node.js >= 18 （前端构建需要）
-Nginx 或 Apache （Web服务器）
-```
-
-#### 原生部署步骤：
-
-```bash
-# 1. 克隆项目
-git clone https://github.com/your-repo/AI-CMS.git
-cd AI-CMS
-
-# 2. 一键脚本（会引导检查环境和执行各步骤）
-./install.sh --native          # Linux/macOS
-install.bat --native           # Windows
-
-# 3. 编辑 backend/.env 配置数据库连接信息
-
-# 4. 启动服务后访问
-cd backend && php think run --port=8080
-# 或配置 Nginx 反向代理（参考 deploy/nginx/aicms.conf）
-```
-
-生产环境的 Nginx 配置模板已提供在 `deploy/nginx/aicms.conf`，可直接复制到 `/etc/nginx/sites-available/` 使用。
-
----
-
-### 部署方案选择指南
-
-```
-你是哪种用户？
-│
-├─ 我只是想快速试用 / 本地开发
-│  └─ 👉 用 Docker！3步搞定，10分钟内跑起来
-│
-├─ 我想部署到云服务器上
-│  ├─ 服务器支持Docker？ → 👉 用 Docker（最省心）
-│  └─ 不支持/不想用Docker？ → 👉 用原生模式（需有Linux基础）
-│
-├─ 我是运维工程师，要深度定制
-│  └─ 👉 用原生模式，完全掌控每个组件的配置
-│
-└─ 我想做二次开发
-   └─ 👉 Docker模式更方便，代码热更新通过volume映射实时生效
-```
-
-## 目录结构
-
-```
-AI-CMS/
-├── backend/                 # 后端项目 (ThinkPHP 8.1)
-│   ├── app/
-│   │   ├── controller/api/ # API控制器
-│   │   ├── model/          # 数据模型
-│   │   ├── service/        # 业务服务层
-│   │   ├── middleware/      # 中间件
-│   │   ├── exception/       # 异常处理
-│   │   ├── config/          # 配置文件
-│   │   └── helper.php      # 助手函数
-│   ├── route/              # 路由定义
-│   ├── config/             # 框架配置
-│   ├── runtime/            # 运行时缓存/日志
-│   ├── public/             # Web根目录
-│   └── composer.json
-├── frontend/                # 前端项目 (Vue 3 + Vite)
-│   ├── src/
-│   │   ├── api/            # API请求封装
-│   │   ├── components/     # 公共组件
-│   │   ├── views/          # 页面组件
-│   │   ├── router/         # Vue Router
-│   │   ├── stores/         # Pinia状态管理
-│   │   ├── types/          # TypeScript类型定义
-│   │   └── assets/         # 静态资源
-│   └── package.json
-├── deploy/                  # 生产部署辅助文件（原生部署使用）
-│   └── nginx/
-│       └── aicms.conf      # Nginx生产环境配置模板
-├── docker/                  # Docker配置
-│   ├── php/               # PHP Dockerfile (含12个扩展)
-│   ├── nginx/             # Docker内Nginx配置
-│   ├── mysql/             # MySQL自定义配置
-│   └── redis/             # Redis自定义配置
-├── database/                # 数据库脚本
-│   ├── migrations/        # 建表SQL (17张表)
-│   └── seeds/             # 示例数据
-├── docker-compose.yml        # Docker Compose编排 (4个服务)
-├── install.sh                # Linux/macOS 一键安装脚本 v2.0
-├── install.bat               # Windows 一键安装脚本 v2.0
-├── 产品文档/                 # 产品设计文档
-└── README.md                # 项目说明
-```
-
-## 主要功能
-
-### 内容管理
-
-- [x] 文章 CRUD 操作
-- [x] 分类管理（支持多级分类）
-- [x] 标签管理
-- [x] 文章审核工作流
-- [x] 草稿箱
-- [x] 回收站
-
-### AI功能
-
-- [x] AI文章摘要生成
-- [x] AI标签智能推荐
-- [x] AI内容优化建议
-- [x] AI文章续写
-- [x] AI对话助手
-- [x] AI提示词模板管理
-- [x] AI模型配置管理
-- [x] AI使用统计
-
-### 用户权限
-
-- [x] 用户管理
-- [x] 角色管理
-- [x] 权限管理
-- [x] 登录日志
-- [x] 操作日志
-
-### 系统设置
-
-- [x] 基础设置
-- [x] 上传设置
-- [x] AI设置
-- [x] 邮件设置
-
-### 媒体管理
-
-- [x] 本地上传
-- [x] 图片预览
-- [x] 文件管理
-- [x] 缩略图生成
-
-## API接口说明
-
-### 认证接口
-
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| POST | /api/auth/login | 用户登录 |
-| POST | /api/auth/logout | 用户登出 |
-| GET | /api/auth/user | 获取当前用户信息 |
-
-### 文章接口
-
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| GET | /api/articles | 获取文章列表 |
-| GET | /api/articles/{id} | 获取文章详情 |
-| POST | /api/articles | 创建文章 |
-| PUT | /api/articles/{id} | 更新文章 |
-| DELETE | /api/articles/{id} | 删除文章 |
-
-### AI接口
-
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| POST | /api/ai/summarize | 文章摘要 |
-| POST | /api/ai/generate-tags | 生成标签 |
-| POST | /api/ai/chat | AI对话 |
-
-### 完整API文档
-
-启动服务后访问 `/api/docs` 查看完整API文档。
-
-## 配置说明
-
-### .env 配置文件
-
-```env
-# 应用配置
-APP_NAME="AI-CMS"
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost
-
-# 数据库配置
-DB_CONNECTION=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_DATABASE=ai_cms
-DB_USERNAME=root
-DB_PASSWORD=your_password
-
-# Redis配置
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=null
-
-# AI配置
-AI_PROVIDER=deepseek
-AI_API_KEY=your-api-key
-AI_MODEL=deepseek-chat
-```
-
-### AI模型配置
-
-系统支持多种AI模型，通过后台配置或数据库配置：
-
-| 提供商 | 模型 | 说明 |
-|--------|------|------|
-| DeepSeek | deepseek-chat | 通用对话 |
-| DeepSeek | deepseek-coder | 代码生成 |
-| OpenAI | gpt-4 | GPT-4模型 |
-| 百度 | ernie-bot | 文心一言 |
-
-## 默认账户
-
-| 角色 | 用户名 | 密码 |
-|------|--------|------|
-| 超级管理员 | admin | Admin@2026 |
-
-> ⚠️ **安全提示**: 首次登录后请立即修改默认密码！
-
-## 开发团队
-
-- **项目负责人**: AI Team
-- **技术栈**: ThinkPHP / Vue.js / Docker
-- **版本**: v1.0.0
-
 ## 许可证
 
-本项目采用 [MIT 许可证](LICENSE) 开源。
-
-## 反馈与支持
-
-- **问题反馈**: [GitHub Issues](https://github.com/your-repo/AI-CMS/issues)
-- **功能建议**: [GitHub Discussions](https://github.com/your-repo/AI-CMS/discussions)
-
----
-
-<p align="center">Built with ❤️ by AI-CMS Team</p>
+MIT License

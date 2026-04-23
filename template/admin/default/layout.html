@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{block name="title"}AI-CMS{/block} - 后台管理</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        /* ========== 主题变量 ========== */
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 60px;
+            /* 品牌蓝（仅用于按钮/链接/active高亮） */
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --primary-glow: rgba(37,99,235,.35);
+            /* 内容区 - 暖灰紫调 */
+            --body-bg: #f5f6fa;
+            --card-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.03);
+            --card-hover-shadow: 0 10px 25px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+            --border-color: #e2e6ef;
+            --text-secondary: #64748b;
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+
+        body {
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+            font-size: 14px;
+            color: #334155;
+            background: var(--body-bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ==================== 侧边栏（石墨深灰） ==================== */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 1040;
+            /* 石墨深灰渐变，沉稳专业 */
+            background: linear-gradient(180deg, #1e293b 0%, #1a2332 60%, #151d2b 100%);
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: transform .3s cubic-bezier(.4,0,.2,1);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,.2) transparent;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.25); border-radius: 4px; }
+
+        /* 品牌 Logo 栏 */
+        .sidebar-brand {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 1.25rem;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: .02em;
+            text-decoration: none;
+            position: relative;
+            border-bottom: 1px solid rgba(255,255,255,.10);
+            /* Logo 区加深一层，形成层次 */
+            background: rgba(0,0,0,.15);
+        }
+        .sidebar-brand::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 20%; right: 20%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+            opacity: .7;
+        }
+        .sidebar-brand i {
+            font-size: 1.5rem;
+            margin-right: .65rem;
+            color: #fff;
+            filter: drop-shadow(0 0 6px rgba(255,255,255,.3));
+        }
+
+        /* 导航项基础样式 */
+        .sidebar-nav { padding: .5rem 0; }
+        .sidebar-nav .nav-item {
+            margin: 1.5px .75rem 0;
+        }
+        .sidebar-nav .nav-link {
+            color: rgba(255,255,255,.65);
+            padding: .62rem 1rem .62rem 1.15rem;
+            font-size: .88rem;
+            border-radius: var(--radius-sm);
+            transition: all .22s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar-nav .nav-link i {
+            width: 22px; text-align: center;
+            margin-right: .55rem;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Hover 状态：白色半透明底 */
+        .sidebar-nav .nav-link:hover {
+            color: #fff;
+            background: rgba(255,255,255,.10);
+        }
+
+        /* Active 高亮（当前选中）—— 品牌蓝竖条 + 浅白底 + 文字加粗 */
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,.10);
+            border-left: 3.5px solid var(--primary);
+            padding-left: calc(1.15rem - 3.5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,.20), inset 0 0 12px rgba(37,99,235,.06);
+            font-weight: 600;
+        }
+
+        /* 分组标题 */
+        .sidebar-nav .nav-section {
+            color: rgba(255,255,255,.48);
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            padding: 1.1rem 1.25rem .35rem;
+        }
+
+        /* 子菜单 */
+        .sidebar-nav .submenu .nav-link { padding-left: 2.6rem; font-size: .84rem; }
+
+        /* ==================== 主内容区 ==================== */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            background: var(--body-bg);
+            transition: margin-left .3s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* ==================== 顶部栏 ==================== */
+        .top-header {
+            height: var(--header-height);
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1.75rem;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            box-shadow: 0 1px 3px rgba(0,0,0,.03);
+        }
+        .top-header .breadcrumb {
+            margin-bottom: 0;
+            font-size: .84rem;
+            color: var(--text-secondary);
+        }
+        .top-header .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .top-header .breadcrumb a:hover { color: var(--primary); }
+        .top-header .breadcrumb-item + .breadcrumb-item::before { color: #cbd5e1; }
+
+        /* 用户下拉 */
+        .top-header .dropdown-toggle {
+            color: #475569;
+            font-size: .88rem;
+        }
+        .top-header .dropdown-toggle:hover { color: var(--primary); }
+        .top-header .dropdown-menu { box-shadow: var(--card-hover-shadow); border: 1px solid var(--border-color); border-radius: var(--radius-sm); }
+
+        /* ==================== 内容区域 ==================== */
+        .main-content { padding: 1.5rem; max-width: 1440px; }
+
+        /* ==================== 卡片组件 ==================== */
+        .card {
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: box-shadow .25s ease;
+        }
+        .card:hover { box-shadow: var(--card-hover-shadow); }
+        .card-header {
+            background: linear-gradient(to right, #fafbfc, #fff);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: .94rem;
+            color: #1e293b;
+            padding: .85rem 1.25rem;
+            letter-spacing: .01em;
+        }
+        .card-body { padding: 1.25rem; }
+        .card-footer { background: #fafbfc; border-top: 1px solid var(--border-color); }
+
+        /* ==================== 统计卡片（仪表盘） ==================== */
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border-radius: var(--radius);
+            background: #fff;
+            border: 1px solid var(--border-color);
+            transition: transform .25s ease, box-shadow .25s ease;
+            cursor: default;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-hover-shadow);
+        }
+        .stat-card .stat-icon {
+            font-size: 2.2rem;
+            margin-bottom: .6rem;
+            display: inline-block;
+            padding: .7rem;
+            border-radius: 50%;
+        }
+        /* 为不同颜色统计卡设置图标背景 */
+        .stat-card .stat-icon.text-primary { background: #eff6ff; }
+        .stat-card .stat-icon.text-success { background: #f0fdf4; }
+        .stat-card .stat-icon.text-warning { background: #fefce8; }
+        .stat-card .stat-icon.text-info { background: #f0f9ff; }
+        .stat-card .stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+        .stat-card .stat-label {
+            color: var(--text-secondary);
+            font-size: .82rem;
+            margin-top: .25rem;
+            font-weight: 500;
+        }
+
+        /* ==================== 表格增强 ==================== */
+        .table > :not(caption) > * > * {
+            padding: .72rem .85rem;
+        }
+        .table thead th {
+            font-size: .78rem;
+            font-weight: 650;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: #64748b;
+            border-bottom-width: 1.5px;
+            background: #f8fafc;
+        }
+        .table-hover > tbody > tr:hover {
+            background-color: #f0f2f7;
+        }
+        .table-responsive { border-radius: var(--radius); overflow: hidden; }
+
+        /* ==================== 表单控件微调 ==================== */
+        .form-control, .form-select {
+            border-color: #d1d5db;
+            border-radius: var(--radius-sm);
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+        }
+        .form-label {
+            font-weight: 550;
+            font-size: .87rem;
+            color: #374151;
+            margin-bottom: .35rem;
+        }
+
+        /* ==================== 按钮微调 ==================== */
+        .btn { border-radius: var(--radius-sm); font-weight: 500; letter-spacing: .01em; transition: all .2s; }
+        .btn-primary { background: var(--primary); border-color: var(--primary); }
+        .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+        .btn-outline-primary { color: var(--primary); border-color: var(--primary); }
+        .btn-outline-primary:hover { background: var(--primary); border-color: var(--primary); }
+
+        /* ==================== 徽标 Badge ==================== */
+        .badge { font-weight: 500; font-size: .73rem; letter-spacing: .02em; padding: .35em .6em; }
+
+        /* ==================== 搜索栏卡片 ==================== */
+        .mb-3 > .card.bg-transparent, [class*=" mb-3"] > .card:first-child {
+            border-style: dashed;
+            border-color: #dde2ea;
+            background: rgba(255,255,255,.5);
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-wrapper { margin-left: 0; }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,.45);
+                backdrop-filter: blur(4px);
+                z-index: 1035;
+            }
+            .sidebar-overlay.show { display: block; }
+        }
+
+        /* ==================== 页脚信息表（系统信息卡片） ==================== */
+        .card-body.p-0 table tr td:last-child { font-weight: 550; }
+
+        /* ==================== TinyMCE 推广与品牌隐藏（兜底） ==================== */
+        .tox-promotion,
+        .tox-statusbar__branding {
+            display: none !important;
+        }
+    </style>
+    {block name="css"}{/block}
+</head>
+<body>
+    <!-- 侧边栏遮罩（移动端） -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- 侧边栏 -->
+    <nav class="sidebar" id="sidebar">
+        <a href="/admin" class="sidebar-brand">
+            <i class="bi bi-robot"></i> AI-CMS
+        </a>
+        <ul class="nav sidebar-nav flex-column py-2">
+            <li class="nav-section">导航</li>
+            <li class="nav-item">
+                <a class="nav-link {if condition="$menuActive == 'dashboard'"}active{/if}" href="/admin">
+                    <i class="bi bi-speedometer2"></i> 仪表盘
+                </a>
+            </li>
+            {volist name="sidebarMenus" id="group"}
+            <li class="nav-section">{$group.name}</li>
+            {volist name="group.children" id="item"}
+            <li class="nav-item">
+                <a class="nav-link {if condition="$menuActive == $item.active"}active{/if}" href="{$item.url}">
+                    <i class="{$item.icon|default='bi bi-circle'}"></i> {$item.name}
+                </a>
+            </li>
+            {/volist}
+            {/volist}
+        </ul>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="main-wrapper">
+        <!-- 顶部栏 -->
+        <header class="top-header">
+            <button class="btn btn-sm btn-light d-lg-none me-2" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            <nav aria-label="breadcrumb" class="me-auto">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/admin"><i class="bi bi-house"></i></a></li>
+                    {block name="breadcrumb"}{/block}
+                </ol>
+            </nav>
+            <!-- 快捷操作栏 -->
+            <div class="d-flex align-items-center gap-1 gap-sm-2 me-2 me-sm-3">
+                <a href="/" target="_blank" class="btn btn-sm btn-light text-secondary" title="网站首页">
+                    <i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1">网站首页</span>
+                </a>
+                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="clearCache()" title="清除缓存">
+                    <i class="bi bi-trash3"></i><span class="d-none d-md-inline ms-1">清除缓存</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="showToast('请联系官方获取授权', 'info')" title="购买授权">
+                    <i class="bi bi-key"></i><span class="d-none d-md-inline ms-1">购买授权</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="showToast('当前已是最新版本 v2.0', 'info')" title="系统更新">
+                    <i class="bi bi-arrow-up-circle"></i><span class="d-none d-md-inline ms-1">系统更新</span>
+                </button>
+            </div>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle fs-4 me-1"></i>
+                    <span class="d-none d-sm-inline"><?php echo session('nickname') ?: 'Admin'; ?></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text small text-muted"><?php echo session('username') ?: ''; ?></span></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/admin/logout" onclick="return confirm('确定退出登录？')"><i class="bi bi-box-arrow-right me-1"></i>退出登录</a></li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- 页面内容 -->
+        <main class="main-content">
+            {block name="content"}{/block}
+        </main>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="/assets/js/jquery.min.js"></script>
+    <script>
+        // 侧边栏切换（移动端）
+        $('#sidebarToggle').on('click', function() {
+            $('#sidebar').toggleClass('show');
+            $('#sidebarOverlay').toggleClass('show');
+        });
+        $('#sidebarOverlay').on('click', function() {
+            $('#sidebar').removeClass('show');
+            $(this).removeClass('show');
+        });
+
+        // 通用AJAX封装
+        window.ajaxPost = function(url, data, callback) {
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function(res) {
+                    if (res.code === 0) {
+                        if (typeof callback === 'function') {
+                            callback(res);
+                        } else {
+                            showToast(res.msg || '操作成功', 'success');
+                            setTimeout(function() {
+                                if (res.data && res.data.redirect) {
+                                    location.href = res.data.redirect;
+                                } else {
+                                    location.reload();
+                                }
+                            }, 800);
+                        }
+                    } else {
+                        showToast(res.msg || '操作失败', 'danger');
+                    }
+                },
+                error: function() {
+                    showToast('网络错误，请重试', 'danger');
+                }
+            });
+        };
+
+        // Toast提示
+        window.showToast = function(msg, type) {
+            type = type || 'success';
+            var html = '<div class="toast align-items-center text-bg-' + type + ' border-0 position-fixed top-0 end-0 m-3" role="alert" style="z-index:9999">' +
+                '<div class="d-flex"><div class="toast-body">' + msg + '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
+            $('body').append(html);
+            var $toast = $('body .toast').last();
+            var toast = new bootstrap.Toast($toast[0], { delay: 2000 });
+            toast.show();
+            $toast.on('hidden.bs.toast', function() { $(this).remove(); });
+        };
+
+        // 确认删除
+        window.confirmDelete = function(url) {
+            if (confirm('确定要删除吗？此操作不可恢复！')) {
+                ajaxPost(url, {});
+            }
+        };
+
+        // 清除全站缓存
+        window.clearCache = function() {
+            if (!confirm('确定要清除全部缓存吗？')) return;
+            $.ajax({
+                url: '/api/cache/clear',
+                type: 'POST',
+                dataType: 'json',
+                success: function(res) {
+                    if (res.code === 0) {
+                        showToast(res.msg, 'success');
+                    } else {
+                        showToast(res.msg || '缓存清理失败', 'warning');
+                    }
+                },
+                error: function() {
+                    showToast('网络错误，请重试', 'danger');
+                }
+            });
+        };
+    </script>
+    {block name="js"}{/block}
+</body>
+</html>

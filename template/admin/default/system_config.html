@@ -1,0 +1,97 @@
+{extend name="layout" /}
+
+{block name="title"}系统配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">系统配置</li>
+{/block}
+
+{block name="content"}
+<form id="configForm" method="post" action="/admin/system/config">
+    {volist name="groups" id="group" key="groupName"}
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-{switch name="$groupName" case="basic|基本" value="gear" case="upload" value="cloud-upload" case="ai" value="robot" default="sliders" /} me-1"></i>
+            {switch name="$groupName"}
+            {case value="basic"}基本设置{/case}
+            {case value="upload"}上传设置{/case}
+            {case value="ai"}AI设置{/case}
+            {default /}{$groupName}
+            {/switch}
+        </div>
+        <div class="card-body">
+            {volist name="group" id="item"}
+            <div class="row mb-3 align-items-center">
+                <label class="col-sm-3 col-form-label text-end">{$item.remark ?: $item.name}</label>
+                <div class="col-sm-6">
+                    {if condition="$item.type == 'text'"}
+                    <input type="text" name="{$item.name}" class="form-control" value="{$item.value}">
+                    {/if}
+
+                    {if condition="$item.type == 'textarea'"}
+                    <textarea name="{$item.name}" class="form-control" rows="3">{$item.value}</textarea>
+                    {/if}
+
+                    {if condition="$item.type == 'number'"}
+                    <input type="number" name="{$item.name}" class="form-control" value="{$item.value}">
+                    {/if}
+
+                    {if condition="$item.type == 'switch'"}
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="{$item.name}" value="1" id="cfg_{$item.name}" {if condition="$item.value == 1"}checked{/if}>
+                        <label class="form-check-label" for="cfg_{$item.name}">启用</label>
+                    </div>
+                    {/if}
+
+                    {if condition="$item.type == 'select'"}
+                    <select name="{$item.name}" class="form-select">
+                        {$item.options|raw}
+                    </select>
+                    {/if}
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+    {/volist}
+
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+    </div>
+</form>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-trash3 me-1"></i>缓存管理</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">清除系统缓存，当数据更新但前台未显示最新内容时使用。</p>
+        <button type="button" class="btn btn-warning" onclick="clearCache()">
+            <i class="bi bi-arrow-clockwise me-1"></i>清除缓存
+        </button>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    // 处理switch未勾选时不会提交的问题
+    $(this).find('.form-check-input:not(:checked)').each(function() {
+        var name = $(this).attr('name');
+        if (name && !$('[name="' + name + '"][type="hidden"]').length) {
+            $(this).after('<input type="hidden" name="' + name + '" value="0">');
+        }
+    });
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+
+function clearCache() {
+    if (confirm('确定要清除所有缓存吗？')) {
+        ajaxPost('/api/cache/clear', {});
+    }
+}
+</script>
+{/block}

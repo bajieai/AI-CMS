@@ -1,0 +1,81 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.title} - {$site_name}{/block}
+
+{block name="keywords"}{volist name="info.tags" id="tag"}{$tag.name},{/volist}{$site_keywords}{/block}
+
+{block name="description"}{$info.excerpt|default=$info.title|msubstr=0,120}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item">
+                    <a href="{$type_url}">
+                        {if condition="$info.type == 1"}产品中心{/if}
+                        {if condition="$info.type == 2"}成功案例{/if}
+                        {if condition="$info.type == 3"}新闻动态{/if}
+                        {if condition="$info.type == 4"}资料下载{/if}
+                        {if condition="$info.type == 5"}人才招聘{/if}
+                        {if condition="$info.type == 6"}单页{/if}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">{$info.title}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-9">
+                <article>
+                    <h1 class="mb-3">{$info.title}</h1>
+                    <div class="text-muted mb-4">
+                        <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
+                        <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>
+                        {if condition="$info.cate"}
+                        <span class="ms-3"><i class="bi bi-folder2 me-1"></i>{$info.cate.name}</span>
+                        {/if}
+                    </div>
+
+                    {if condition="$info.cover"}
+                    <div class="mb-4">
+                        <img src="{$info.cover}" class="img-fluid rounded" alt="{$info.title}" onerror="this.style.display='none'">
+                    </div>
+                    {/if}
+
+                    <div class="content-body">
+                        {$info.content|raw}
+                    </div>
+                </article>
+            </div>
+
+            <!-- 侧边栏 -->
+            <div class="col-lg-3">
+                <div class="card mb-3">
+                    <div class="card-header"><i class="bi bi-lightning me-1"></i>相关内容</div>
+                    <div class="list-group list-group-flush">
+                        {volist name="related" id="vo"}
+                        <a href="{$vo.url}" class="list-group-item list-group-item-action">
+                            <small class="text-muted">{$vo.create_time|date='m-d'}</small><br>
+                            {$vo.title}
+                        </a>
+                        {/volist}
+                        {empty name="related"}
+                        <div class="list-group-item text-muted small">暂无相关内容</div>
+                        {/empty}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}
+
+{block name="css"}
+<style>
+.content-body img { max-width: 100%; height: auto; }
+.content-body table { width: 100%; margin-bottom: 1rem; }
+.content-body a { color: var(--primary); }
+</style>
+{/block}

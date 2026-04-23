@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{block name="title"}{$site_name|default='AI-CMS'}{/block}</title>
+    <meta name="keywords" content="{block name='keywords'}{$site_keywords|default='AI,CMS,内容管理'}{/block}">
+    <meta name="description" content="{block name='description'}{$site_description|default='AI驱动的企业信息管理系统'}{/block}">
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #0d6efd; --dark: #1a1d21; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; color: #333; }
+        .navbar-brand { font-weight: 700; font-size: 1.3rem; }
+        .navbar-brand i { color: var(--primary); }
+        .hero { background: linear-gradient(135deg, var(--dark) 0%, #2d3748 100%); color: #fff; padding: 4rem 0; }
+        .hero h1 { font-weight: 800; }
+        .section-title { font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--primary); display: inline-block; }
+        .card { transition: transform 0.2s, box-shadow 0.2s; border: none; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1); }
+        .card-img-top { height: 200px; object-fit: cover; }
+        footer { background: var(--dark); color: rgba(255,255,255,0.6); padding: 2rem 0; }
+        footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+        footer a:hover { color: #fff; }
+        .breadcrumb { background: transparent; padding: 0; }
+    </style>
+    {block name="css"}{/block}
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-robot me-1"></i>AI-CMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/product">产品中心</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/case">成功案例</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/news">新闻动态</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/download">资料下载</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/job">人才招聘</a></li>
+                </ul>
+                <form class="d-flex ms-3" action="/search" method="get">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="keyword" class="form-control" placeholder="搜索...">
+                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 内容 -->
+    {block name="content"}{/block}
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-white mb-2"><i class="bi bi-robot me-1"></i>AI-CMS</h6>
+                    <p class="small mb-0">AI驱动的企业信息管理系统</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="small mb-0">&copy; 2025 AI-CMS V2.0. All Rights Reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    {block name="js"}{/block}
+</body>
+</html>

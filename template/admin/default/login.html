@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - AI-CMS</title>
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+        }
+        html, body { height: 100%; }
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 与侧边栏同族深灰色系 */
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1a2332 100%);
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.2);
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+            padding: 2.5rem 1.75rem 2rem;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        /* 装饰性背景光晕 */
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -30px;
+            width: 120px; height: 120px;
+            background: rgba(255,255,255,.08);
+            border-radius: 50%;
+        }
+        .login-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px; left: 10%;
+            width: 80px; height: 80px;
+            background: rgba(96,165,250,.12);
+            border-radius: 50%;
+        }
+        .login-header i {
+            font-size: 2.6rem;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,.15));
+        }
+        .login-header h4 {
+            margin-top: .85rem;
+            margin-bottom: .3rem;
+            font-weight: 750;
+            letter-spacing: .03em;
+            position: relative;
+            z-index: 1;
+        }
+        .login-header p { opacity: .82; font-size: .84rem; margin-bottom: 0; letter-spacing: .02em; position: relative; z-index: 1; }
+        .login-body { padding: 2.2rem 1.75rem; background: #fff; }
+        .form-floating { margin-bottom: 1.1rem; }
+        .form-floating .form-control {
+            border-radius: 9px;
+            border-color: #d1d5db;
+            padding-top: .95rem;
+            padding-bottom: .95rem;
+            transition: all .2s;
+        }
+        .form-floating .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+        }
+        .btn-login {
+            width: 100%;
+            padding: .78rem;
+            font-weight: 650;
+            font-size: .94rem;
+            border-radius: 9px;
+            letter-spacing: .05em;
+            background: var(--primary);
+            border-color: var(--primary);
+            transition: all .25s;
+        }
+        .btn-login:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(37,99,235,.35);
+        }
+        .login-footer {
+            text-align: center;
+            padding: 1.1rem 1.5rem;
+            background: #f5f6fa;
+            font-size: .78rem;
+            color: #64748b;
+            border-top: 1px solid #e2e6ef;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-robot"></i>
+            <h4>AI-CMS</h4>
+            <p>AI驱动的企业信息管理系统</p>
+        </div>
+        <div class="login-body">
+            <form id="loginForm" method="post" action="/admin/login">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" name="username" placeholder="用户名" required autofocus>
+                    <label for="username"><i class="bi bi-person me-1"></i>用户名</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="密码" required>
+                    <label for="password"><i class="bi bi-lock me-1"></i>密码</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-login" id="btnLogin">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>登 录
+                </button>
+            </form>
+        </div>
+        <div class="login-footer">
+            AI-CMS V2.0 &copy; 2025
+        </div>
+    </div>
+
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script>
+        $('#loginForm').on('submit', function(e) {
+            e.preventDefault();
+            var $btn = $('#btnLogin');
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>登录中...');
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function(res) {
+                    if (res.code === 0) {
+                        $btn.html('<i class="bi bi-check-lg me-1"></i>登录成功');
+                        setTimeout(function() {
+                            location.href = res.data.redirect || '/admin';
+                        }, 500);
+                    } else {
+                        alert(res.msg || '登录失败');
+                        $btn.prop('disabled', false).html('<i class="bi bi-box-arrow-in-right me-1"></i>登 录');
+                    }
+                },
+                error: function() {
+                    alert('网络错误，请重试');
+                    $btn.prop('disabled', false).html('<i class="bi bi-box-arrow-in-right me-1"></i>登 录');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

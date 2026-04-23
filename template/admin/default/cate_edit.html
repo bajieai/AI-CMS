@@ -1,0 +1,75 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑分类{else/}添加分类{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/cate/index">分类管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑分类{else/}添加分类{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑分类{else/}添加分类{/if}
+    </div>
+    <div class="card-body">
+        <form id="cateForm" method="post" action="{if condition="$info"}/admin/cate/edit/{$info.id}{else/}/admin/cate/add{/if}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">分类名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="请输入分类名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">分类类型</label>
+                        <select name="type" class="form-select">
+                            <option value="1" {if condition="($info.type ?? 1) == 1"}selected{/if}>产品</option>
+                            <option value="2" {if condition="($info.type ?? 1) == 2"}selected{/if}>案例</option>
+                            <option value="3" {if condition="($info.type ?? 1) == 3"}selected{/if}>新闻</option>
+                            <option value="4" {if condition="($info.type ?? 1) == 4"}selected{/if}>下载</option>
+                            <option value="5" {if condition="($info.type ?? 1) == 5"}selected{/if}>招聘</option>
+                            <option value="6" {if condition="($info.type ?? 1) == 6"}selected{/if}>单页</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">上级分类</label>
+                        <select name="parent_id" class="form-select">
+                            <option value="0">顶级分类</option>
+                            {volist name="cates" id="cate"}
+                            <option value="{$cate.id}" {if condition="($info.parent_id ?? 0) == $cate.id"}selected{/if}>
+                                {if condition="$cate.level > 0"}{:str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $cate['level'])}└ {/if}{$cate.name}
+                            </option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}" placeholder="数字越小越靠前">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                            <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                        </select>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        <a href="/admin/cate/index" class="btn btn-outline-secondary">取消返回</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#cateForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+</script>
+{/block}
