@@ -92,4 +92,40 @@ class UserController extends AdminBaseController
         }
         return $this->error('删除失败');
     }
+
+    /**
+     * 个人资料
+     */
+    public function profile()
+    {
+        $userId = session('user_id');
+        $info = User::find($userId);
+        if (empty($info)) {
+            return $this->error('用户不存在');
+        }
+
+        if ($this->request->isGet()) {
+            $this->app->view->assign('menuActive', 'user');
+            $this->assign(['info' => $info]);
+            return $this->view('/user_profile');
+        }
+
+        $data = $this->request->post();
+        // 禁止修改用户名和角色
+        unset($data['username'], $data['role_id']);
+
+        // 如果提交了新密码则更新
+        if (!empty($data['new_password'])) {
+            $data['password'] = password_hash($data['new_password'], PASSWORD_DEFAULT);
+        }
+        unset($data['new_password']);
+
+        if ($info->save($data)) {
+            // 更新session中的昵称
+            session('nickname', $info->nickname);
+            $this->recordLog('更新个人资料', $info->username ?? '', $data);
+            return $this->success('更新成功');
+        }
+        return $this->error('更新失败');
+    }
 }

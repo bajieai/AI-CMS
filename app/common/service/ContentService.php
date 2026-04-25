@@ -7,6 +7,7 @@ use app\common\model\Content;
 use app\common\model\ContentExt;
 use app\common\model\ContentTag;
 use app\common\service\CacheService;
+use think\facade\Cache;
 use think\facade\Config;
 
 /**
@@ -20,7 +21,12 @@ class ContentService
      */
     public function getList(array $params = [], int $pageSize = 20)
     {
-        $query = Content::with('cate')->where('status', '>=', -1);
+        // 默认只查询正常内容（status >= 0），回收站模式查询 status = -1
+        if (!empty($params['recycle'])) {
+            $query = Content::with('cate')->where('status', -1);
+        } else {
+            $query = Content::with('cate')->where('status', '>=', 0);
+        }
 
         if (!empty($params['type'])) {
             $query->where('type', (int) $params['type']);
@@ -49,6 +55,14 @@ class ContentService
      */
     public function getInfolist(string $type = '', int $limit = 10, string $order = 'id desc', int $page = 0, int $pageSize = 10)
     {
+        $cacheKey = 'info_list_' . md5($type . '_' . $limit . '_' . $order . '_' . $page . '_' . $pageSize);
+        $cacheTag = Config::get('cache.tag.content', 'i8j_content');
+
+        $result = Cache::tag($cacheTag)->get($cacheKey);
+        if ($result !== null) {
+            return $result;
+        }
+
         $typeMap = [
             'product' => 1,
             'case' => 2,
@@ -65,10 +79,13 @@ class ContentService
         }
 
         if ($page > 0) {
-            return $query->order($order)->paginate($pageSize, false, ['page' => $page]);
+            $result = $query->order($order)->paginate($pageSize, false, ['page' => $page]);
+        } else {
+            $result = $query->order($order)->limit($limit)->select();
         }
 
-        return $query->order($order)->limit($limit)->select();
+        Cache::tag($cacheTag)->set($cacheKey, $result, 3600);
+        return $result;
     }
 
     /**
@@ -126,6 +143,9 @@ class ContentService
             return false;
         }
 
+        // 保存版本历史（编辑前自动备份）
+        $this->saveVersion($content);
+
         // 处理扩展字段
         $extData = $data['ext'] ?? [];
         unset($data['ext']);
@@ -165,6 +185,103 @@ class ContentService
         $cacheService->clearByTag(Config::get('cache.tag.content', 'i8j_content'));
 
         return true;
+    }
+
+    /**
+     * 保存内容版本历史
+     */
+    protected function saveVersion(Content $content): void
+    {
+        try {
+            $ext = ContentExt::where('content_id', $content->id)->where('type', $content->type)->find();
+            $tagIds = ContentTag::where('content_id', $content->id)->column('tag_id');
+
+            $version = new \app\common\model\ContentVersion();
+            $version->content_id = $content->id;
+            $version->title = $content->title;
+            $version->content = $content->content;
+            $version->excerpt = $content->excerpt;
+            $version->cover = $content->cover;
+            $version->cate_id = $content->cate_id;
+            $version->status = $content->status;
+            $version->ext_data = $ext ? json_encode($ext->data, JSON_UNESCAPED_UNICODE) : '';
+            $version->tag_ids = implode(',', $tagIds);
+            $version->user_id = session('user_id') ?: 0;
+            $version->create_time = time();
+            $version->save();
+
+            // 保留策略：每个内容最多保留20个版本
+            $this->pruneVersions($content->id);
+        } catch (\Throwable $e) {
+            // 版本保存失败不应阻断主流程
+            error_log('[VERSION_SAVE_FAIL] content_id=' . $content->id . ' error=' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 清理旧版本，保留最近20个
+     */
+    protected function pruneVersions(int $contentId): void
+    {
+        $keep = 20;
+        $versions = \app\common\model\ContentVersion::where('content_id', $contentId)
+            ->order('id', 'desc')
+            ->column('id');
+
+        if (count($versions) > $keep) {
+            $deleteIds = array_slice($versions, $keep);
+            \app\common\model\ContentVersion::whereIn('id', $deleteIds)->delete();
+        }
+    }
+
+    /**
+     * 复制内容
+     */
+    public function copy(int $id): ?int
+    {
+        $origin = Content::find($id);
+        if (empty($origin)) {
+            return null;
+        }
+
+        // 复制主记录
+        $data = $origin->toArray();
+        unset($data['id'], $data['create_time'], $data['update_time']);
+        $data['title'] = $data['title'] . ' (副本)';
+        $data['status'] = 0; // 副本默认为草稿
+        $data['views'] = 0;
+        $data['create_time'] = time();
+        $data['update_time'] = time();
+        $data['user_id'] = session('user_id') ?: 0;
+
+        $newContent = new Content();
+        if (!$newContent->save($data)) {
+            return null;
+        }
+
+        $newId = $newContent->id;
+
+        // 复制扩展数据
+        $ext = ContentExt::where('content_id', $id)->where('type', $origin->type)->find();
+        if ($ext) {
+            $newExt = new ContentExt();
+            $newExt->content_id = $newId;
+            $newExt->type = $origin->type;
+            $newExt->data = $ext->data;
+            $newExt->save();
+        }
+
+        // 复制标签关联
+        $tagIds = ContentTag::where('content_id', $id)->column('tag_id');
+        if (!empty($tagIds)) {
+            $this->syncTags($newId, $tagIds);
+        }
+
+        // 清除缓存
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(Config::get('cache.tag.content', 'i8j_content'));
+
+        return $newId;
     }
 
     /**

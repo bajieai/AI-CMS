@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\Cate;
+use think\facade\Cache;
+use think\facade\Config;
 
 /**
  * 分类服务
@@ -31,6 +33,14 @@ class CateService
      */
     public function getCatelist(string $type = '', int $limit = 100, int $parentId = 0)
     {
+        $cacheKey = 'cate_list_' . md5($type . '_' . $limit . '_' . $parentId);
+        $cacheTag = Config::get('cache.tag.cate', 'i8j_cate');
+
+        $result = Cache::tag($cacheTag)->get($cacheKey);
+        if ($result !== null) {
+            return $result;
+        }
+
         $typeMap = [
             'product' => 1,
             'case' => 2,
@@ -50,6 +60,8 @@ class CateService
             $query->where('parent_id', $parentId);
         }
 
-        return $query->order('sort', 'asc')->order('id', 'asc')->limit($limit)->select();
+        $result = $query->order('sort', 'asc')->order('id', 'asc')->limit($limit)->select();
+        Cache::tag($cacheTag)->set($cacheKey, $result, 3600);
+        return $result;
     }
 }

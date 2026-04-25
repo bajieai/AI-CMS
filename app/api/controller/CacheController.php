@@ -16,10 +16,7 @@ class CacheController
      */
     public function clear()
     {
-        if (empty(session('user_id'))) {
-            return json(['code' => 2, 'msg' => '请先登录', 'data' => null]);
-        }
-
+        // AdminAuth 中间件已确保登录，此处只需检查权限
         if ((int) session('role_id') !== 1) {
             return json(['code' => 3, 'msg' => '仅超级管理员可操作', 'data' => null]);
         }

@@ -29,4 +29,12 @@ class Tag extends Model
     {
         return $this->belongsToMany(Content::class, ContentTag::class, 'content_id', 'tag_id');
     }
+
+    /**
+     * 获取内容数量
+     */
+    public function getContentCountAttr($value, $data): int
+    {
+        return ContentTag::where('tag_id', $data['id'])->count();
+    }
 }

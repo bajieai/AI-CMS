@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS `{prefix}cate` (
   `parent_id` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '父级ID',
   `sort` int NOT NULL DEFAULT 0 COMMENT '排序',
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态:0禁用/1启用',
+  `seo_title` varchar(255) NOT NULL DEFAULT '' COMMENT 'SEO标题',
+  `seo_keywords` varchar(255) NOT NULL DEFAULT '' COMMENT 'SEO关键词',
+  `seo_description` varchar(500) NOT NULL DEFAULT '' COMMENT 'SEO描述',
   `create_time` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_time` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -137,6 +140,27 @@ CREATE TABLE IF NOT EXISTS `{prefix}log` (
   KEY `idx_user` (`user_id`),
   KEY `idx_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作日志表';
+
+-- -----------------------------------------------------------
+-- 8. 内容版本历史表
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `{prefix}content_version` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `content_id` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '内容ID',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT '标题',
+  `content` longtext COMMENT '正文内容',
+  `excerpt` text COMMENT '摘要',
+  `cover` varchar(255) DEFAULT '' COMMENT '封面图',
+  `cate_id` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '分类ID',
+  `status` tinyint NOT NULL DEFAULT 0 COMMENT '状态',
+  `ext_data` text COMMENT '扩展字段数据(JSON)',
+  `tag_ids` varchar(255) DEFAULT '' COMMENT '标签ID集合',
+  `user_id` bigint UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作人ID',
+  `create_time` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '版本创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_content_id` (`content_id`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内容版本历史表';
 
 -- -----------------------------------------------------------
 -- 初始数据

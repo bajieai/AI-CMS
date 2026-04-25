@@ -15,3 +15,6 @@ Route::get(':type/:id', '\app\home\controller\ContentController@detail')
 
 // 搜索页
 Route::get('search', '\app\home\controller\SearchController@index');
+
+// 用户中心
+Route::get('user', '\app\home\controller\UserController@index');

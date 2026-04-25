@@ -75,6 +75,23 @@
 
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/jquery.min.js"></script>
+    <script>
+    // 分类树折叠展开
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('.cate-toggle');
+        if (!el) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var targetId = el.getAttribute('data-target');
+        var target = document.getElementById(targetId);
+        if (target) {
+            var isHidden = target.style.display === 'none';
+            target.style.display = isHidden ? 'block' : 'none';
+            el.classList.toggle('bi-chevron-right', !isHidden);
+            el.classList.toggle('bi-chevron-down', isHidden);
+        }
+    });
+    </script>
     {block name="js"}{/block}
 </body>
 </html>

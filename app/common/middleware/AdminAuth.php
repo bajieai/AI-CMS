@@ -59,9 +59,15 @@ class AdminAuth
     {
         $session = app('session');
         
-        // 如果 session 已经初始化过，跳过
-        if ($session->all()) {
-            return;
+        // 如果 session 已经初始化过（有数据），跳过
+        // 注意：不能用 isStarted()，ThinkPHP 8 的 Store 没有此方法
+        try {
+            $all = $session->all();
+            if (!empty($all)) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            // session 未初始化，继续初始化
         }
 
         // 从 cookie 获取 session ID

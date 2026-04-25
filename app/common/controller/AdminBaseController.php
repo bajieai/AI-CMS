@@ -5,7 +5,6 @@ namespace app\common\controller;
 
 use app\common\model\Log as LogModel;
 use think\App;
-use think\exception\HttpException;
 use think\facade\Config;
 
 /**
@@ -29,6 +28,20 @@ abstract class AdminBaseController extends \think\BaseController
      */
     protected array $noNeedPermission = [];
 
+    /**
+     * 菜单高亮映射（静态缓存，避免每次实例化都重建）
+     */
+    protected static array $menuMap = [
+        'index'    => 'dashboard',
+        'content'  => 'content',
+        'cate'     => 'cate',
+        'tag'      => 'tag',
+        'user'     => 'user',
+        'system'   => 'system',
+        'log'      => 'log',
+        'recycle'  => 'recycle',
+    ];
+
     public function __construct(App $app)
     {
         parent::__construct($app);
@@ -43,26 +56,43 @@ abstract class AdminBaseController extends \think\BaseController
 
         // 自动注入当前菜单高亮标识
         $controller = strtolower(str_replace('Controller', '', $this->request->controller()));
-        $menuMap = [
-            'index'    => 'dashboard',
-            'content'  => 'content',
-            'cate'     => 'cate',
-            'tag'      => 'tag',
-            'user'     => 'user',
-            'system'   => 'system',
-            'log'      => 'log',
-        ];
-        $this->app->view->assign('menuActive', $menuMap[$controller] ?? '');
+        $this->app->view->assign('menuActive', self::$menuMap[$controller] ?? '');
 
-        // 根据角色权限过滤菜单并注入视图
+        // 根据角色权限过滤菜单并注入视图（使用静态缓存避免同一请求重复计算）
+        $filteredMenus = $this->getFilteredMenus($roleId);
+        $this->app->view->assign('sidebarMenus', $filteredMenus);
+    }
+
+    /**
+     * 获取已过滤的菜单（带静态缓存）
+     */
+    protected function getFilteredMenus(int $roleId): array
+    {
+        // 超级管理员直接返回完整菜单，无需过滤
+        if ($roleId === 1) {
+            static $superAdminMenus = null;
+            if ($superAdminMenus === null) {
+                $superAdminMenus = Config::get('menu', []);
+            }
+            return $superAdminMenus;
+        }
+
+        // 按角色缓存过滤后的菜单（同一请求内）
+        static $filteredCache = [];
+        if (isset($filteredCache[$roleId])) {
+            return $filteredCache[$roleId];
+        }
+
         $menus = Config::get('menu', []);
         $permissions = Config::get('permission.roles.' . $roleId . '.permissions', []);
+
         if ($permissions === '*') {
-            $filteredMenus = $menus;
+            $filteredCache[$roleId] = $menus;
         } else {
-            $filteredMenus = $this->filterMenu($menus, (array) $permissions);
+            $filteredCache[$roleId] = $this->filterMenu($menus, (array) $permissions);
         }
-        $this->app->view->assign('sidebarMenus', $filteredMenus);
+
+        return $filteredCache[$roleId];
     }
 
     /**
@@ -257,8 +287,16 @@ abstract class AdminBaseController extends \think\BaseController
                 'ip'      => $this->request->ip(),
                 'data'    => !empty($data) ? json_encode($data, JSON_UNESCAPED_UNICODE) : '',
             ]);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             // 日志记录失败不应影响主业务流程
+            // 降级方案：写入PHP错误日志，确保操作可追溯
+            error_log(
+                '[LOG_FALLBACK] ' . date('Y-m-d H:i:s') . ' | '
+                . ($user['username'] ?? 'guest') . ' | '
+                . $this->request->controller() . '.' . $action . ' | '
+                . $desc . ' | Error: ' . $e->getMessage(),
+                0
+            );
         }
     }
 }

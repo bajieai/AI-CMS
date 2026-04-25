@@ -54,11 +54,31 @@
                             <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
                         </select>
                     </div>
-                    <div class="d-grid gap-2 d-md-flex">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
-                        <a href="/admin/cate/index" class="btn btn-outline-secondary">取消返回</a>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-header py-2"><i class="bi bi-globe me-1"></i>SEO 设置</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">SEO标题</label>
+                                <input type="text" name="seo_title" class="form-control" value="{$info.seo_title ?? ''}" placeholder="留空则使用分类名称">
+                                <small class="text-muted">用于&lt;title&gt;标签，建议不超过60字符</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SEO关键词</label>
+                                <input type="text" name="seo_keywords" class="form-control" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用逗号分隔">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SEO描述</label>
+                                <textarea name="seo_description" class="form-control" rows="3" placeholder="建议100-200字">{$info.seo_description ?? ''}</textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/cate/index" class="btn btn-outline-secondary">取消返回</a>
             </div>
         </form>
     </div>

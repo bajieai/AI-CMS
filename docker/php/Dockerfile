@@ -32,8 +32,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # 安装Redis扩展
 RUN pecl install redis && docker-php-ext-enable redis
 
-# 安装Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# 安装Composer（避免依赖composer镜像，直接下载）
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 # 配置PHP-FPM（覆盖默认配置以支持Docker网络）
 COPY www.conf /usr/local/etc/php-fpm.d/zzz-custom.conf

@@ -11,11 +11,12 @@ return [
     
     // 权限映射（permission key => 控制器方法映射）
     'map' => [
-        'content.*' => ['admin/content/index', 'admin/content/add', 'admin/content/edit', 'admin/content/delete'],
+        'content.*' => ['admin/content/index', 'admin/content/add', 'admin/content/edit', 'admin/content/delete', 'admin/content/recycleBin', 'admin/content/restore', 'admin/content/forceDelete'],
         'content.list' => ['admin/content/index'],
         'content.add' => ['admin/content/add'],
         'content.edit' => ['admin/content/edit'],
         'content.delete' => ['admin/content/delete'],
+        'content.recycle' => ['admin/content/recycleBin', 'admin/content/restore', 'admin/content/forceDelete'],
         'cate.*' => ['admin/cate/index', 'admin/cate/add', 'admin/cate/edit', 'admin/cate/delete'],
         'cate.list' => ['admin/cate/index'],
         'tag.*' => ['admin/tag/index', 'admin/tag/add', 'admin/tag/edit', 'admin/tag/delete'],

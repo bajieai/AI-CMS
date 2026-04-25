@@ -1,13 +1,25 @@
 {extend name="layout" /}
 
 {block name="title"}
-{if condition="$type == 1"}产品中心
-{elseif condition="$type == 2"/}成功案例
-{elseif condition="$type == 3"/}新闻动态
-{elseif condition="$type == 4"/}资料下载
-{elseif condition="$type == 5"/}人才招聘
-{else /}单页
-{/if} - {$site_name}
+{if condition="$current_cate"}
+    {$current_cate.seo_title ?: $current_cate.name} - {$site_name}
+{else /}
+    {if condition="$type == 1"}产品中心
+    {elseif condition="$type == 2"/}成功案例
+    {elseif condition="$type == 3"/}新闻动态
+    {elseif condition="$type == 4"/}资料下载
+    {elseif condition="$type == 5"/}人才招聘
+    {else /}单页
+    {/if} - {$site_name}
+{/if}
+{/block}
+
+{block name="keywords"}
+{if condition="$current_cate && $current_cate.seo_keywords"}{$current_cate.seo_keywords}{else}{$site_keywords}{/if}
+{/block}
+
+{block name="description"}
+{if condition="$current_cate && $current_cate.seo_description"}{$current_cate.seo_description}{else}{$site_description}{/if}
 {/block}
 
 {block name="content"}
@@ -32,11 +44,9 @@
             <div class="col-lg-3 mb-3">
                 <div class="card">
                     <div class="card-header bg-primary text-white"><i class="bi bi-folder2 me-1"></i>分类</div>
-                    <div class="list-group list-group-flush">
+                    <div class="list-group list-group-flush" id="cateTree">
                         {volist name="cates" id="cate"}
-                        <a href="/{$type_slug}?cate_id={$cate.id}" class="list-group-item list-group-item-action {if condition="$cate_id == $cate.id"}active{/if}">
-                            {$cate.name}
-                        </a>
+                        {include file="cate_tree_item" /}
                         {/volist}
                     </div>
                 </div>

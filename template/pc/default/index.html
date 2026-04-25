@@ -48,9 +48,9 @@
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100">
                     {if condition="$field.cover"}
-                    <img src="{$field.cover}" class="card-img-top" alt="{$field.title}" onerror="this.src='https://placehold.co/400x200/e9ecef/6c757d?text=Case'">
+                    <img src="{$field.cover}" class="card-img-top" alt="{$field.title}" onerror="this.src='/assets/images/placeholder-case.svg'">
                     {else/}
-                    <img src="https://placehold.co/400x200/e9ecef/6c757d?text=Case" class="card-img-top" alt="{$field.title}">
+                    <img src="/assets/images/placeholder-case.svg" class="card-img-top" alt="{$field.title}">
                     {/if}
                     <div class="card-body">
                         <h6 class="card-title"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a></h6>

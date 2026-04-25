@@ -130,16 +130,38 @@
                     </div>
                     {/notempty}
 
+                    {if condition="$info"}
+                    <div class="d-grid mb-2">
+                        <a href="/admin/content/versions/{$info.id}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history me-1"></i>版本历史</a>
+                    </div>
+                    {/if}
                     <!-- AI辅助写作 -->
                     <div class="card bg-light mb-3">
                         <div class="card-header py-2"><i class="bi bi-robot me-1"></i>AI 辅助</div>
                         <div class="card-body py-2">
                             <div class="mb-2">
-                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿"></textarea>
+                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿&#10;快捷键：Ctrl+Shift+C续写 / R改写 / E扩写 / U总结"></textarea>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="aiGenerate()" id="btnAi">
-                                <i class="bi bi-magic me-1"></i>AI 生成内容
-                            </button>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="aiGenerate('replace')" id="btnAi">
+                                    <i class="bi bi-magic me-1"></i>AI 生成内容
+                                </button>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="aiGenerate('append')" title="追加到内容末尾">
+                                        <i class="bi bi-arrow-down-circle me-1"></i>追加
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="aiGenerate('insert')" title="插入到光标位置">
+                                        <i class="bi bi-cursor me-1"></i>插入
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2 small text-muted">
+                                <i class="bi bi-keyboard me-1"></i>编辑器内快捷键：
+                                <span class="badge bg-light text-dark border">Ctrl+Shift+C</span> 续写
+                                <span class="badge bg-light text-dark border">X</span> 改写
+                                <span class="badge bg-light text-dark border">E</span> 扩写
+                                <span class="badge bg-light text-dark border">U</span> 总结
+                            </div>
                         </div>
                     </div>
 
@@ -173,12 +195,42 @@ tinymce.init({
     convert_urls: false,
     promotion: false,
     branding: false,
+    setup: function(editor) {
+        // AI快捷键：Ctrl+Shift+C 续写
+        editor.addShortcut('ctrl+shift+c', 'AI续写', function() {
+            var selected = editor.selection.getContent({format: 'text'});
+            var text = selected || editor.getContent({format: 'text'}).substring(0, 500);
+            $('#aiPrompt').val('请续写以下内容：\n' + text);
+            aiGenerate('append');
+        });
+        // AI快捷键：Ctrl+Shift+X 改写（避免与Ctrl+Shift+R强制刷新冲突）
+        editor.addShortcut('ctrl+shift+x', 'AI改写', function() {
+            var selected = editor.selection.getContent({format: 'text'});
+            var text = selected || editor.getContent({format: 'text'}).substring(0, 500);
+            $('#aiPrompt').val('请改写以下内容，保持原意但使用不同的表达方式：\n' + text);
+            aiGenerate(selected ? 'insert' : 'replace');
+        });
+        // AI快捷键：Ctrl+Shift+E 扩写
+        editor.addShortcut('ctrl+shift+e', 'AI扩写', function() {
+            var selected = editor.selection.getContent({format: 'text'});
+            var text = selected || editor.getContent({format: 'text'}).substring(0, 500);
+            $('#aiPrompt').val('请扩写以下内容，增加更多细节和描述：\n' + text);
+            aiGenerate(selected ? 'insert' : 'append');
+        });
+        // AI快捷键：Ctrl+Shift+U 总结（避免与Ctrl+S冲突）
+        editor.addShortcut('ctrl+shift+u', 'AI总结', function() {
+            var text = editor.getContent({format: 'text'}).substring(0, 1000);
+            $('#aiPrompt').val('请总结以下内容的要点：\n' + text);
+            aiGenerate('append');
+        });
+    },
     // 图片上传
     images_upload_url: '/api/upload/image',
     images_upload_handler: function(blobInfo, success, failure) {
         var formData = new FormData();
         formData.append('file', blobInfo.blob(), blobInfo.filename());
-        $.ajax({
+        var csrfToken = $('input[name="__token__"]').val();
+        var ajaxOpts = {
             url: '/api/upload/image',
             type: 'POST',
             data: formData,
@@ -192,7 +244,11 @@ tinymce.init({
                 }
             },
             error: function() { failure('上传失败'); }
-        });
+        };
+        if (csrfToken) {
+            ajaxOpts.headers = { 'X-CSRF-TOKEN': csrfToken };
+        }
+        $.ajax(ajaxOpts);
     }
 });
 
@@ -277,7 +333,8 @@ function uploadCover() {
         if (!file) return;
         var formData = new FormData();
         formData.append('file', file);
-        $.ajax({
+        var csrfToken = $('input[name="__token__"]').val();
+        var ajaxOpts = {
             url: '/api/upload/image',
             type: 'POST',
             data: formData,
@@ -292,7 +349,11 @@ function uploadCover() {
                     showToast(res.msg || '上传失败', 'danger');
                 }
             }
-        });
+        };
+        if (csrfToken) {
+            ajaxOpts.headers = { 'X-CSRF-TOKEN': csrfToken };
+        }
+        $.ajax(ajaxOpts);
     };
     input.click();
 }
@@ -309,21 +370,34 @@ $('#coverInput').on('change', function() {
 });
 
 // AI生成
-function aiGenerate() {
+function aiGenerate(mode) {
+    mode = mode || 'replace';
     var prompt = $('#aiPrompt').val().trim();
     if (!prompt) { showToast('请输入AI写作提示', 'warning'); return; }
     var $btn = $('#btnAi');
     $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>生成中...');
-    $.ajax({
+    var csrfToken = $('input[name="__token__"]').val();
+    var ajaxOpts = {
         url: '/api/ai/generate',
         type: 'POST',
-        data: { prompt: prompt },
+        data: { prompt: prompt, template: 'continue' },
         dataType: 'json',
         success: function(res) {
             $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>AI 生成内容');
             if (res.code === 0 && res.data && res.data.content) {
-                tinymce.activeEditor.setContent(res.data.content);
-                showToast('AI内容生成成功', 'success');
+                var editor = tinymce.activeEditor;
+                var content = res.data.content;
+                if (mode === 'replace') {
+                    editor.setContent(content);
+                    showToast('AI内容已替换', 'success');
+                } else if (mode === 'append') {
+                    var current = editor.getContent();
+                    editor.setContent(current + (current ? '<p></p>' : '') + content);
+                    showToast('AI内容已追加到末尾', 'success');
+                } else if (mode === 'insert') {
+                    editor.insertContent(content);
+                    showToast('AI内容已插入到光标位置', 'success');
+                }
             } else {
                 showToast(res.msg || '生成失败', 'danger');
             }
@@ -332,7 +406,11 @@ function aiGenerate() {
             $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>AI 生成内容');
             showToast('网络错误', 'danger');
         }
-    });
+    };
+    if (csrfToken) {
+        ajaxOpts.headers = { 'X-CSRF-TOKEN': csrfToken };
+    }
+    $.ajax(ajaxOpts);
 }
 
 // 表单提交

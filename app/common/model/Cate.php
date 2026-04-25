@@ -26,6 +26,9 @@ class Cate extends Model
         'status' => 'integer',
     ];
 
+    // 允许批量赋值的SEO字段
+    protected $field = ['name', 'type', 'parent_id', 'sort', 'status', 'seo_title', 'seo_keywords', 'seo_description'];
+
     /**
      * 获取URL（模型获取器）
      */

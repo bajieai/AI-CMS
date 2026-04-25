@@ -5,6 +5,9 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\model\Content;
+use app\common\model\ContentExt;
+use app\common\model\ContentTag;
+use app\common\model\ContentVersion;
 use app\common\model\Cate;
 use app\common\model\Tag;
 use app\common\service\CacheService;
@@ -135,7 +138,7 @@ class ContentController extends AdminBaseController
     }
 
     /**
-     * 删除内容
+     * 删除内容（移入回收站）
      */
     public function delete(int $id)
     {
@@ -144,15 +147,18 @@ class ContentController extends AdminBaseController
             return $this->error('内容不存在');
         }
 
+        // 记录原始状态，用于还原
+        $originalStatus = $info->status;
+
         // 软删除：将status设为-1
         $info->status = -1;
         if ($info->save()) {
-            $this->recordLog('删除内容', $info->title ?? '');
+            $this->recordLog('移入回收站', $info->title ?? '', ['original_status' => $originalStatus]);
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
-            return $this->success('删除成功');
+            return $this->success('已移入回收站');
         }
-        return $this->error('删除失败');
+        return $this->error('操作失败');
     }
 
     /**
@@ -173,5 +179,238 @@ class ContentController extends AdminBaseController
             return $this->success('发布成功');
         }
         return $this->error('发布失败');
+    }
+
+    /**
+     * 回收站列表
+     */
+    public function recycleBin()
+    {
+        $params = $this->request->param();
+        $params['recycle'] = 1;
+        $service = new ContentService();
+        $list = $service->getList($params);
+
+        $cates = Cate::where('status', 1)->select();
+
+        $this->app->view->assign('menuActive', 'recycle');
+        $this->assign([
+            'list' => $list,
+            'cates' => $cates,
+            'params' => $params,
+        ]);
+
+        return $this->view('/recycle_list');
+    }
+
+    /**
+     * 还原内容
+     */
+    public function restore(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        if ($info->status != -1) {
+            return $this->error('该内容不在回收站中');
+        }
+
+        // 还原为草稿状态（status=0），避免直接发布未审核内容
+        $info->status = 0;
+        if ($info->save()) {
+            $this->recordLog('还原内容', $info->title ?? '');
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+            return $this->success('还原成功');
+        }
+        return $this->error('还原失败');
+    }
+
+    /**
+     * 彻底删除内容
+     */
+    public function forceDelete(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        if ($info->status != -1) {
+            return $this->error('只能彻底删除回收站中的内容');
+        }
+
+        $title = $info->title ?? '';
+
+        // 删除扩展数据
+        ContentExt::where('content_id', $id)->delete();
+        // 删除标签关联
+        ContentTag::where('content_id', $id)->delete();
+        // 删除主记录
+        $info->delete();
+
+        $this->recordLog('彻底删除', $title);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+        return $this->success('彻底删除成功');
+    }
+
+    /**
+     * 复制内容
+     */
+    public function copy(int $id)
+    {
+        $service = new ContentService();
+        $newId = $service->copy($id);
+
+        if ($newId) {
+            $this->recordLog('复制内容', '原ID:' . $id . ' => 新ID:' . $newId);
+            return $this->success('复制成功', ['redirect' => '/admin/content/edit/' . $newId]);
+        }
+        return $this->error('复制失败');
+    }
+
+    /**
+     * 批量发布
+     */
+    public function batchPublish()
+    {
+        $ids = $this->request->post('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $count = Content::whereIn('id', $ids)->where('status', '<>', 2)->update(['status' => 2, 'update_time' => time()]);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+        $this->recordLog('批量发布', '共' . $count . '条');
+        return $this->success('批量发布成功，共 ' . $count . ' 条');
+    }
+
+    /**
+     * 批量移入回收站
+     */
+    public function batchDelete()
+    {
+        $ids = $this->request->post('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $count = Content::whereIn('id', $ids)->where('status', '>=', 0)->update(['status' => -1, 'update_time' => time()]);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+        $this->recordLog('批量移入回收站', '共' . $count . '条');
+        return $this->success('批量移入回收站成功，共 ' . $count . ' 条');
+    }
+
+    /**
+     * 批量移动分类
+     */
+    public function batchMoveCate()
+    {
+        $ids = $this->request->post('ids', []);
+        $cateId = (int) $this->request->post('cate_id', 0);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $count = Content::whereIn('id', $ids)->update(['cate_id' => $cateId, 'update_time' => time()]);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+        $this->recordLog('批量移动分类', '分类ID:' . $cateId . ', 共' . $count . '条');
+        return $this->success('批量移动分类成功，共 ' . $count . ' 条');
+    }
+
+    /**
+     * 版本历史列表
+     */
+    public function versions(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        $list = ContentVersion::where('content_id', $id)->order('id', 'desc')->paginate(20);
+
+        $this->assign([
+            'info' => $info,
+            'list' => $list,
+        ]);
+        return $this->view('/content_versions');
+    }
+
+    /**
+     * 回滚到指定版本
+     */
+    public function rollback(int $versionId)
+    {
+        $version = ContentVersion::find($versionId);
+        if (empty($version)) {
+            return $this->error('版本不存在');
+        }
+
+        $content = Content::find($version->content_id);
+        if (empty($content)) {
+            return $this->error('内容不存在');
+        }
+
+        // 先保存当前状态为一个新版本
+        $service = new ContentService();
+        $service->update($content->id, [
+            'title' => $content->title,
+            'content' => $content->content,
+            'excerpt' => $content->excerpt,
+            'cover' => $content->cover,
+            'cate_id' => $content->cate_id,
+            'status' => $content->status,
+        ]);
+
+        // 回滚到指定版本
+        $content->title = $version->title;
+        $content->content = $version->content;
+        $content->excerpt = $version->excerpt;
+        $content->cover = $version->cover;
+        $content->cate_id = $version->cate_id;
+        $content->status = $version->status;
+        $content->update_time = time();
+        $content->save();
+
+        // 恢复扩展数据
+        if (!empty($version->ext_data)) {
+            $extData = json_decode($version->ext_data, true);
+            $ext = ContentExt::where('content_id', $content->id)->where('type', $content->type)->find();
+            if ($ext) {
+                $ext->data = $extData;
+                $ext->save();
+            } else {
+                $ext = new ContentExt();
+                $ext->content_id = $content->id;
+                $ext->type = $content->type;
+                $ext->data = $extData;
+                $ext->save();
+            }
+        }
+
+        // 恢复标签关联
+        if (!empty($version->tag_ids)) {
+            $tagIds = array_filter(explode(',', $version->tag_ids));
+            ContentTag::where('content_id', $content->id)->delete();
+            $data = [];
+            foreach ($tagIds as $tagId) {
+                $data[] = ['content_id' => $content->id, 'tag_id' => (int) $tagId];
+            }
+            if (!empty($data)) {
+                (new ContentTag())->saveAll($data);
+            }
+        }
+
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+        $this->recordLog('版本回滚', $content->title . ' => 版本#' . $versionId);
+        return $this->success('回滚成功', ['redirect' => '/admin/content/edit/' . $content->id]);
     }
 }

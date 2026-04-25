@@ -19,6 +19,15 @@ Route::post('content/delete/:id$', '\app\admin\controller\ContentController@dele
 Route::post('content/publish/:id$', '\app\admin\controller\ContentController@publish');
 Route::get('content/getExtFields$', '\app\admin\controller\ContentController@getExtFields');
 Route::get('content/getCates$', '\app\admin\controller\ContentController@getCates');
+Route::get('content/recycleBin$', '\app\admin\controller\ContentController@recycleBin');
+Route::post('content/restore/:id$', '\app\admin\controller\ContentController@restore');
+Route::post('content/forceDelete/:id$', '\app\admin\controller\ContentController@forceDelete');
+Route::post('content/copy/:id$', '\app\admin\controller\ContentController@copy');
+Route::post('content/batchPublish$', '\app\admin\controller\ContentController@batchPublish');
+Route::post('content/batchDelete$', '\app\admin\controller\ContentController@batchDelete');
+Route::post('content/batchMoveCate$', '\app\admin\controller\ContentController@batchMoveCate');
+Route::get('content/versions/:id$', '\app\admin\controller\ContentController@versions');
+Route::post('content/rollback/:versionId$', '\app\admin\controller\ContentController@rollback');
 
 // 分类管理
 Route::rule('cate/index$', '\app\admin\controller\CateController@index', 'GET');
@@ -37,6 +46,7 @@ Route::rule('user/index$', '\app\admin\controller\UserController@index', 'GET');
 Route::rule('user/add$', '\app\admin\controller\UserController@add', 'GET|POST');
 Route::rule('user/edit/:id$', '\app\admin\controller\UserController@edit', 'GET|POST');
 Route::post('user/delete/:id$', '\app\admin\controller\UserController@delete');
+Route::rule('user/profile$', '\app\admin\controller\UserController@profile', 'GET|POST');
 
 // 系统设置
 Route::rule('system/config$', '\app\admin\controller\SystemController@config', 'GET|POST');
