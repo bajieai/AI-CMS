@@ -70,6 +70,23 @@ if (!function_exists('get_role_text')) {
     }
 }
 
+if (!function_exists('format_bytes')) {
+    /**
+     * 格式化字节大小
+     */
+    function format_bytes(int $bytes): string
+    {
+        if ($bytes < 1024) {
+            return $bytes . ' B';
+        } elseif ($bytes < 1024 * 1024) {
+            return round($bytes / 1024, 2) . ' KB';
+        } elseif ($bytes < 1024 * 1024 * 1024) {
+            return round($bytes / 1024 / 1024, 2) . ' MB';
+        }
+        return round($bytes / 1024 / 1024 / 1024, 2) . ' GB';
+    }
+}
+
 if (!function_exists('i8j_cache')) {
     /**
      * AI-CMS缓存快捷方法

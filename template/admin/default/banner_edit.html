@@ -1,0 +1,116 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑轮播图{else/}添加轮播图{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/banner/index">轮播图管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑轮播图{else/}添加轮播图{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑轮播图{else/}添加轮播图{/if}
+    </div>
+    <div class="card-body">
+        <form id="bannerForm" method="post" action="{if condition="$info"}/admin/banner/edit/{$info.id}{else/}/admin/banner/add{/if}">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">标题 <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" value="{$info.title ?? ''}" required placeholder="请输入轮播图标题">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">图片 <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" name="image" id="bannerImage" class="form-control" value="{$info.image ?? ''}" required placeholder="请输入图片URL或上传">
+                            <button type="button" class="btn btn-outline-secondary" onclick="selectImage()"><i class="bi bi-image"></i> 选择图片</button>
+                        </div>
+                        <div class="mt-2" id="imagePreview">
+                            {if condition="$info.image ?? ''"}
+                            <img src="{$info.image}" class="img-thumbnail" style="max-height:150px">
+                            {/if}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">链接地址</label>
+                        <input type="text" name="link" class="form-control" value="{$info.link ?? ''}" placeholder="如：https://example.com">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">打开方式</label>
+                                <select name="target" class="form-select">
+                                    <option value="_self" {if condition="($info.target ?? '_self') == '_self'"}selected{/if}>当前窗口</option>
+                                    <option value="_blank" {if condition="($info.target ?? '') == '_blank'"}selected{/if}>新窗口</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">排序</label>
+                                <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}" placeholder="数字越小越靠前">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">状态</label>
+                                <select name="status" class="form-select">
+                                    <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                                    <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">开始时间</label>
+                                <input type="datetime-local" name="start_time" class="form-control"
+                                    value="{if condition="$info.start_time ?? 0"}{:date('Y-m-d\TH:i', $info.start_time)}{/if}">
+                                <div class="form-text">留空表示立即生效</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">结束时间</label>
+                                <input type="datetime-local" name="end_time" class="form-control"
+                                    value="{if condition="$info.end_time ?? 0"}{:date('Y-m-d\TH:i', $info.end_time)}{/if}">
+                                <div class="form-text">留空表示永久有效</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/banner/index" class="btn btn-outline-secondary">取消返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#bannerForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+
+function selectImage() {
+    window.open('/admin/media/select?filetype=image', 'mediaSelect', 'width=900,height=600');
+}
+
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.mceAction === 'insertContent' && e.data.content) {
+        var url = e.data.content.match(/src="([^"]+)"/);
+        if (url && url[1]) {
+            $('#bannerImage').val(url[1]);
+            $('#imagePreview').html('<img src="' + url[1] + '" class="img-thumbnail" style="max-height:150px">');
+        }
+    }
+});
+</script>
+{/block}

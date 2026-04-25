@@ -58,6 +58,22 @@
     <!-- 内容 -->
     {block name="content"}{/block}
 
+    <!-- 友情链接 -->
+    {i8j:linklist limit="20" status="1"}
+    {if condition="$i == 0"}
+    <div class="bg-light border-top py-3">
+        <div class="container">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="text-muted small me-2"><i class="bi bi-link-45deg me-1"></i>友情链接：</span>
+                {/if}
+                <a href="{$field.url}" target="_blank" class="small text-muted text-decoration-none">{$field.title}</a>
+                {if condition="$i == count($__LIST__) - 1"}
+            </div>
+        </div>
+    </div>
+    {/if}
+    {/i8j:linklist}
+
     <!-- 页脚 -->
     <footer>
         <div class="container">
@@ -67,7 +83,7 @@
                     <p class="small mb-0">AI驱动的企业信息管理系统</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="small mb-0">&copy; 2025 AI-CMS V2.0. All Rights Reserved.</p>
+                    <p class="small mb-0">&copy; 2025 AI-CMS V2.2. All Rights Reserved.</p>
                 </div>
             </div>
         </div>

@@ -1,25 +1,31 @@
-# 八界AI-CMS V2.1
+# 八界AI-CMS V2.2
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.1.0-blue)
+![Version](https://img.shields.io/badge/version-2.2.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.1 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek AI 接口，为内容创作提供智能辅助。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
+八界AI-CMS V2.2 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek AI 接口，为内容创作提供智能辅助。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
 
 ### 核心特性
 
 - **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式（DeepSeek API）
 - **6种内容类型** - 产品/案例/新闻/下载/招聘/单页，支持扩展字段
 - **简化RBAC** - 3级角色（超管/管理员/编辑），配置文件权限控制
-- **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`，灵活调用数据
+- **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`/`{i8j:bannerlist}`/`{i8j:linklist}`/`{i8j:medialist}`，灵活调用数据
 - **安装向导** - Web端5步安装，自动建表、创建管理员
-- **富文本编辑** - TinyMCE 6+ 编辑器，支持图片上传和AI辅助
+- **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
 - **内容回收站** - 软删除+回收站，防止误删
-- **版本历史** - 内容修改自动保存历史版本，支持对比和回滚
+- **版本历史** - 内容修改自动保存历史版本，支持回滚
+- **媒体资源库** - 统一管理图片/视频/文件，支持分类、搜索、批量操作
+- **内容审核工作流** - 待审列表、通过/驳回操作、审核历史追溯
+- **轮播图管理** - 后台管理轮播图，前台自动展示，支持有效期控制
+- **友情链接** - 后台管理友情链接，前台页脚展示
+- **数据库备份恢复** - 手动备份、下载、一键恢复，保障数据安全
+- **搜索增强** - MySQL FULLTEXT 全文搜索，支持自动降级
 
 ## 技术栈
 
@@ -27,7 +33,7 @@
 |------|------|------|
 | 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
 | 语言 | PHP 8.2+ | 严格类型声明 |
-| 数据库 | MySQL 8.0 | 10张数据表，前缀 i8j_ |
+| 数据库 | MySQL 8.0 | 13张数据表，前缀 i8j_ |
 | 缓存 | 文件缓存（Redis可选） | 带标签的缓存管理 |
 | Session | PHP原生文件Session | 24小时过期 |
 | AI接口 | DeepSeek API (GuzzleHTTP) | 直连，无需Python中间层 |
@@ -151,14 +157,18 @@ AI-CMS/
 | i8j_user | 用户表 | id,username,email,password,nickname,avatar,role_id,status |
 | i8j_config | 系统配置表 | id,group,name,value,type,options,sort,remark |
 | i8j_log | 操作日志表 | id,user_id,module,action,target,ip,data |
+| i8j_media | 媒体资源表 | id,user_id,filename,filepath,filetype,mimetype,filesize,alt_text |
+| i8j_banner | 轮播图表 | id,title,image,link,target,sort,status,start_time,end_time |
+| i8j_link | 友情链接表 | id,title,url,logo,sort,status |
+| i8j_review | 审核记录表 | id,content_id,user_id,action,remark |
 
 ## 角色权限
 
 | 角色 | role_id | 权限范围 |
 |------|---------|----------|
 | 超级管理员 | 1 | 全部权限，跳过权限检查 |
-| 管理员 | 2 | 内容管理+分类+标签+部分系统功能 |
-| 编辑 | 3 | 内容管理（含发布）+ 分类查看 |
+| 管理员 | 2 | 内容管理+分类+标签+媒体+运营+审核+部分系统功能 |
+| 编辑 | 3 | 内容管理（含发布）+ 分类查看 + 媒体上传 |
 
 ## API接口
 
@@ -183,6 +193,21 @@ AI-CMS/
 {i8j:catelist type="1" limit="10" parent="0"}
   <a href="{$field.url}">{$field.name}</a>
 {/i8j:catelist}
+
+<!-- 轮播图 -->
+{i8j:bannerlist limit="5" status="1"}
+  <img src="{$field.image}" alt="{$field.title}">
+{/i8j:bannerlist}
+
+<!-- 友情链接 -->
+{i8j:linklist limit="10" status="1"}
+  <a href="{$field.url}" target="_blank">{$field.title}</a>
+{/i8j:linklist}
+
+<!-- 媒体资源 -->
+{i8j:medialist filetype="image" limit="10"}
+  <img src="{$field.filepath}" alt="{$field.alt_text}">
+{/i8j:medialist}
 ```
 
 ## 默认账户

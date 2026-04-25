@@ -1,0 +1,89 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑友情链接{else/}添加友情链接{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/link/index">友情链接</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑友情链接{else/}添加友情链接{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑友情链接{else/}添加友情链接{/if}
+    </div>
+    <div class="card-body">
+        <form id="linkForm" method="post" action="{if condition="$info"}/admin/link/edit/{$info.id}{else/}/admin/link/add{/if}">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">网站名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" value="{$info.title ?? ''}" required placeholder="请输入网站名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">网站地址 <span class="text-danger">*</span></label>
+                        <input type="url" name="url" class="form-control" value="{$info.url ?? ''}" required placeholder="如：https://example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">LOGO 图片</label>
+                        <div class="input-group">
+                            <input type="text" name="logo" id="linkLogo" class="form-control" value="{$info.logo ?? ''}" placeholder="可选，输入图片URL或上传">
+                            <button type="button" class="btn btn-outline-secondary" onclick="selectLogo()"><i class="bi bi-image"></i> 选择图片</button>
+                        </div>
+                        <div class="mt-2" id="logoPreview">
+                            {if condition="$info.logo ?? ''"}
+                            <img src="{$info.logo}" class="img-thumbnail" style="max-height:80px">
+                            {/if}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">排序</label>
+                                <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}" placeholder="数字越小越靠前">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">状态</label>
+                                <select name="status" class="form-select">
+                                    <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                                    <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/link/index" class="btn btn-outline-secondary">取消返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#linkForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+
+function selectLogo() {
+    window.open('/admin/media/select?filetype=image', 'mediaSelect', 'width=900,height=600');
+}
+
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.mceAction === 'insertContent' && e.data.content) {
+        var url = e.data.content.match(/src="([^"]+)"/);
+        if (url && url[1]) {
+            $('#linkLogo').val(url[1]);
+            $('#logoPreview').html('<img src="' + url[1] + '" class="img-thumbnail" style="max-height:80px">');
+        }
+    }
+});
+</script>
+{/block}

@@ -97,6 +97,53 @@
     </div>
 </div>
 
+<!-- 内容类型分布 + 热门内容 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-pie-chart me-1" style="color:var(--primary)"></i>内容类型分布</div>
+            <div class="card-body">
+                {volist name="type_distribution" id="vo"}
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:60px;font-size:.84rem">{$vo.name}</div>
+                    <div class="flex-grow-1 mx-2" style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+                        <div style="width:{$vo.percent}%;height:100%;background:{$vo.color};border-radius:4px"></div>
+                    </div>
+                    <div style="width:50px;text-align:right;font-size:.84rem;font-weight:600">{$vo.count}</div>
+                </div>
+                {/volist}
+                {empty name="type_distribution"}
+                <div class="text-muted small py-2">暂无已发布内容</div>
+                {/empty}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-fire me-1" style="color:var(--primary)"></i>热门内容 TOP5</span>
+                {if condition="$pending_count > 0"}
+                <a href="/admin/review/index" class="badge bg-warning text-dark text-decoration-none">{$pending_count} 条待审</a>
+                {/if}
+            </div>
+            <div class="list-group list-group-flush">
+                {volist name="hot_contents" id="vo"}
+                <a href="/admin/content/edit/{$vo.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                    <div class="small text-truncate" style="max-width:75%">
+                        <span class="badge bg-light text-dark border me-1">{$vo.cate.name ?? '未分类'}</span>
+                        {$vo.title}
+                    </div>
+                    <small class="text-muted"><i class="bi bi-eye me-1"></i>{$vo.views}</small>
+                </a>
+                {/volist}
+                {empty name="hot_contents"}
+                <div class="list-group-item text-muted small py-3">暂无内容</div>
+                {/empty}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 快捷操作 + 系统信息 -->
 <div class="row g-3">
     <div class="col-lg-8">
@@ -138,9 +185,11 @@
             <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                     <tbody>
-                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">V2.0</td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">V2.2</td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">框架版本</td><td class="text-end pe-3" style="font-weight:600">ThinkPHP 8.1</td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">PHP版本</td><td class="text-end pe-3" style="font-weight:600"><?php echo PHP_VERSION; ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">数据库</td><td class="text-end pe-3" style="font-weight:600"><?php echo format_bytes($db_size); ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">磁盘剩余</td><td class="text-end pe-3" style="font-weight:600"><?php echo format_bytes($disk_free); ?></td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">当前用户</td><td class="text-end pe-3" style="font-weight:600"><?php echo session('nickname') ?: 'Admin'; ?></td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">用户角色</td><td class="text-end pe-3" style="font-weight:600">
                             <?php if(session('role_id') == 1): ?>超级管理员<?php endif; ?>

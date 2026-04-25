@@ -40,6 +40,11 @@ abstract class AdminBaseController extends \think\BaseController
         'system'   => 'system',
         'log'      => 'log',
         'recycle'  => 'recycle',
+        'media'    => 'media',
+        'banner'   => 'banner',
+        'link'     => 'link',
+        'review'   => 'review',
+        'backup'   => 'backup',
     ];
 
     public function __construct(App $app)

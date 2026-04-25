@@ -51,3 +51,35 @@ Route::rule('user/profile$', '\app\admin\controller\UserController@profile', 'GE
 // 系统设置
 Route::rule('system/config$', '\app\admin\controller\SystemController@config', 'GET|POST');
 Route::rule('log/index$', '\app\admin\controller\LogController@index', 'GET');
+
+// 媒体资源库
+Route::rule('media/index$', '\app\admin\controller\MediaController@index', 'GET');
+Route::post('media/upload$', '\app\admin\controller\MediaController@upload');
+Route::rule('media/edit/:id$', '\app\admin\controller\MediaController@edit', 'GET|POST');
+Route::post('media/delete/:id$', '\app\admin\controller\MediaController@delete');
+Route::get('media/select$', '\app\admin\controller\MediaController@select');
+
+// 轮播图管理
+Route::rule('banner/index$', '\app\admin\controller\BannerController@index', 'GET');
+Route::rule('banner/add$', '\app\admin\controller\BannerController@add', 'GET|POST');
+Route::rule('banner/edit/:id$', '\app\admin\controller\BannerController@edit', 'GET|POST');
+Route::post('banner/delete/:id$', '\app\admin\controller\BannerController@delete');
+
+// 友情链接管理
+Route::rule('link/index$', '\app\admin\controller\LinkController@index', 'GET');
+Route::rule('link/add$', '\app\admin\controller\LinkController@add', 'GET|POST');
+Route::rule('link/edit/:id$', '\app\admin\controller\LinkController@edit', 'GET|POST');
+Route::post('link/delete/:id$', '\app\admin\controller\LinkController@delete');
+
+// 内容审核
+Route::rule('review/index$', '\app\admin\controller\ReviewController@index', 'GET');
+Route::post('review/approve/:id$', '\app\admin\controller\ReviewController@approve');
+Route::post('review/reject/:id$', '\app\admin\controller\ReviewController@reject');
+Route::get('review/history/:id$', '\app\admin\controller\ReviewController@history');
+
+// 数据库备份
+Route::rule('backup/index$', '\app\admin\controller\BackupController@index', 'GET');
+Route::post('backup/create$', '\app\admin\controller\BackupController@create');
+Route::post('backup/restore$', '\app\admin\controller\BackupController@restore');
+Route::post('backup/delete$', '\app\admin\controller\BackupController@delete');
+Route::get('backup/download$', '\app\admin\controller\BackupController@download');

@@ -3,7 +3,38 @@
 {block name="title"}{$site_name} - 首页{/block}
 
 {block name="content"}
-<!-- Hero区域 -->
+<!-- 轮播图 -->
+{i8j:bannerlist limit="5" status="1"}
+{if condition="$i == 0"}
+<div id="homeBanner" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {/if}
+        <button type="button" data-bs-target="#homeBanner" data-bs-slide-to="{$i}" {if condition="$i == 0"}class="active" aria-current="true"{/if} aria-label="{$field.title}"></button>
+        {if condition="$i == count($__LIST__) - 1"}
+    </div>
+    <div class="carousel-inner">
+        {/if}
+        <div class="carousel-item {if condition='$i == 0'}active{/if}">
+            <a href="{$field.link|default='javascript:;'}" target="{$field.target|default='_self'}" class="d-block" style="height:400px;background:url('{$field.image}') center/cover no-repeat;">
+                <div class="carousel-caption d-none d-md-block" style="background:rgba(0,0,0,.4);border-radius:8px;padding:1rem">
+                    <h5>{$field.title}</h5>
+                </div>
+            </a>
+        </div>
+        {if condition="$i == count($__LIST__) - 1"}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#homeBanner" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#homeBanner" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</div>
+{/if}
+{/i8j:bannerlist}
+
+{empty name="__LIST__"}
+<!-- 无轮播图时显示默认Hero -->
 <section class="hero">
     <div class="container text-center">
         <h1 class="display-5">AI 驱动的企业信息管理</h1>
@@ -11,6 +42,7 @@
         <a href="/product" class="btn btn-primary btn-lg mt-3"><i class="bi bi-arrow-right me-1"></i>了解更多</a>
     </div>
 </section>
+{/empty}
 
 <!-- 产品展示 -->
 <section class="py-5">
