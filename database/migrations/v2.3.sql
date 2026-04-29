@@ -267,6 +267,13 @@ ALTER TABLE `i8j_link` ADD COLUMN `is_apply` tinyint NOT NULL DEFAULT 0 COMMENT 
 ALTER TABLE `i8j_link` ADD INDEX `idx_group_status` (`group_id`, `status`);
 
 -- -----------------------------------------------------------
+-- ALTER 3：性能优化索引（V2.3.1）
+-- -----------------------------------------------------------
+ALTER TABLE `i8j_content` ADD INDEX `idx_status_create_time` (`status`, `create_time`);
+ALTER TABLE `i8j_content` ADD INDEX `idx_status_cate` (`status`, `cate_id`);
+ALTER TABLE `i8j_comment` ADD INDEX `idx_parent_status` (`parent_id`, `status`);
+
+-- -----------------------------------------------------------
 -- 新增系统配置项
 -- -----------------------------------------------------------
 INSERT INTO `i8j_config` (`group`, `name`, `value`, `type`, `sort`, `remark`) VALUES

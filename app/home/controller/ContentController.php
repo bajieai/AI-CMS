@@ -13,6 +13,8 @@ use app\common\service\SeoService;
  */
 class ContentController extends FrontBaseController
 {
+    protected bool $enablePageCache = false;
+
     /**
      * 内容详情页
      * 路由：/product/{id}, /news/{id} 等（通过append传入type参数）

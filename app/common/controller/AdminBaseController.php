@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace app\common\controller;
 
 use app\common\model\Log as LogModel;
+use app\common\service\CacheService;
 use think\App;
+use think\facade\Cache;
 use think\facade\Config;
 
 /**
@@ -100,30 +102,27 @@ abstract class AdminBaseController extends \think\BaseController
      */
     protected function getFilteredMenus(int $roleId): array
     {
-        // 按角色缓存过滤后的菜单（同一请求内）
-        static $filteredCache = [];
-        if (isset($filteredCache[$roleId])) {
-            return $filteredCache[$roleId];
-        }
+        $cacheKey = 'admin_filtered_menus_' . $roleId;
 
-        $menus = Config::get('menu', []);
+        return Cache::tag(CacheService::TAG_CONFIG)->remember($cacheKey, function () use ($roleId) {
+            $menus = Config::get('menu', []);
 
-        // 1. 功能开关过滤 — 对所有人生效（含超管）
-        $hiddenMenuIds = $this->getDisabledModuleMenuIds();
-        if (!empty($hiddenMenuIds)) {
-            $menus = $this->removeDisabledMenus($menus, $hiddenMenuIds);
-        }
-
-        // 2. 权限过滤 — 仅对非超管生效
-        if ($roleId !== 1) {
-            $permissions = Config::get('permission.roles.' . $roleId . '.permissions', []);
-            if ($permissions !== '*') {
-                $menus = $this->filterMenu($menus, (array) $permissions);
+            // 1. 功能开关过滤 — 对所有人生效（含超管）
+            $hiddenMenuIds = $this->getDisabledModuleMenuIds();
+            if (!empty($hiddenMenuIds)) {
+                $menus = $this->removeDisabledMenus($menus, $hiddenMenuIds);
             }
-        }
 
-        $filteredCache[$roleId] = $menus;
-        return $menus;
+            // 2. 权限过滤 — 仅对非超管生效
+            if ($roleId !== 1) {
+                $permissions = Config::get('permission.roles.' . $roleId . '.permissions', []);
+                if ($permissions !== '*') {
+                    $menus = $this->filterMenu($menus, (array) $permissions);
+                }
+            }
+
+            return $menus;
+        }, 3600);
     }
 
     /**

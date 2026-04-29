@@ -14,6 +14,8 @@ use think\Request;
  */
 class MemberController extends FrontBaseController
 {
+    protected bool $enablePageCache = false;
+
     protected MemberService $service;
 
     public function __construct()

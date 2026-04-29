@@ -19,6 +19,8 @@ use think\Request;
  */
 class OauthController extends FrontBaseController
 {
+    protected bool $enablePageCache = false;
+
     /**
      * Gitee OAuth回调
      */

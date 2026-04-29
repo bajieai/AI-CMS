@@ -24,6 +24,12 @@ abstract class FrontBaseController extends \think\BaseController
     /** @var bool 是否已登录会员 */
     protected bool $isMemberLogin = false;
 
+    /** @var bool 是否启用整页缓存 */
+    protected bool $enablePageCache = true;
+
+    /** @var string|null 当前页面缓存Key */
+    protected ?string $pageCacheKey = null;
+
     public function __construct(App $app)
     {
         parent::__construct($app);
@@ -137,6 +143,38 @@ abstract class FrontBaseController extends \think\BaseController
             'seo_keywords'    => $keywords,
             'seo_description' => $description,
         ]);
+    }
+
+    /**
+     * 重写视图渲染，支持整页HTML缓存
+     * 仅对未登录会员的GET请求且非调试模式生效
+     */
+    protected function view(string $template = '', array $vars = [], int $code = 200, callable $filter = null): \think\Response
+    {
+        if ($this->enablePageCache
+            && !$this->isMemberLogin
+            && $this->request->isGet()
+            && !$this->app->isDebug()
+        ) {
+            $cacheKey = 'page_html_' . md5($this->request->url(true));
+            $cached = Cache::get($cacheKey);
+            if ($cached !== null) {
+                return response($cached, 200, ['Content-Type' => 'text/html; charset=utf-8']);
+            }
+            $this->pageCacheKey = $cacheKey;
+        }
+
+        $response = parent::view($template, $vars, $code, $filter);
+
+        if (!empty($this->pageCacheKey)) {
+            Cache::tag(CacheService::TAG_CONTENT)->set(
+                $this->pageCacheKey,
+                $response->getContent(),
+                3600
+            );
+        }
+
+        return $response;
     }
 
     /**

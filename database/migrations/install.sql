@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS `{prefix}content` (
   `update_time` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_type_status` (`type`, `status`),
+  KEY `idx_status_create_time` (`status`, `create_time`),
+  KEY `idx_status_cate` (`status`, `cate_id`),
   KEY `idx_cate` (`cate_id`),
   KEY `idx_user` (`user_id`),
   KEY `idx_create_time` (`create_time`)
@@ -415,6 +417,7 @@ CREATE TABLE IF NOT EXISTS `{prefix}comment` (
   `create_time` int UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `idx_content_status` (`content_id`, `status`),
+  KEY `idx_parent_status` (`parent_id`, `status`),
   KEY `idx_member` (`member_id`),
   KEY `idx_parent` (`parent_id`),
   KEY `idx_create_time` (`create_time`)

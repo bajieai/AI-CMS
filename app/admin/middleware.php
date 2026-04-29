@@ -5,4 +5,5 @@ return [
     \app\common\middleware\AdminAuth::class,
     \app\common\middleware\AdminPermission::class,
     \app\common\middleware\AdminCsrf::class,
+    \app\admin\middleware\PjaxMiddleware::class,
 ];

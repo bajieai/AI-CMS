@@ -12,6 +12,8 @@ use think\Request;
  */
 class CommentController extends FrontBaseController
 {
+    protected bool $enablePageCache = false;
+
     protected CommentService $service;
 
     public function __construct()

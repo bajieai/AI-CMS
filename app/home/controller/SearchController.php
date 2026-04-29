@@ -11,6 +11,8 @@ use app\common\model\Content;
  */
 class SearchController extends FrontBaseController
 {
+    protected bool $enablePageCache = false;
+
     /**
      * 搜索页
      */

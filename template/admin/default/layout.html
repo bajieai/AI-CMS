@@ -415,8 +415,8 @@
             </div>
         </header>
 
-        <!-- 页面内容 -->
-        <main class="main-content">
+        <!-- 页面内容（PJAX 容器） -->
+        <main class="main-content" id="pjax-container">
             {block name="content"}{/block}
         </main>
     </div>
@@ -446,13 +446,103 @@
             };
             // 页面加载完成时隐藏
             $(window).on('load', hidePageLoader);
-            // 点击菜单链接时显示进度条
-            $(document).on('click', '.sidebar-nav .nav-link, .breadcrumb a, .dropdown-menu a', function(e) {
+            // 点击非PJAX链接时显示进度条（PJAX链接由下方逻辑独立管理）
+            $(document).on('click', '.breadcrumb a, .dropdown-menu a', function(e) {
                 var href = $(this).attr('href');
                 if (href && href.indexOf('#') !== 0 && !$(this).attr('target')) {
                     showPageLoader();
                 }
             });
+
+            // ========== PJAX 局部刷新 ==========
+            (function($) {
+                var containerSelector = '#pjax-container';
+
+                function doPjax(url, pushState) {
+                    if (pushState !== false) pushState = true;
+                    window.showPageLoader && window.showPageLoader();
+
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        headers: { 'X-PJAX': 'true', 'X-Requested-With': 'XMLHttpRequest' },
+                        dataType: 'json',
+                        success: function(res) {
+                            if (!res || !res.html) {
+                                location.href = url;
+                                return;
+                            }
+
+                            // 替换内容区
+                            $(containerSelector).html(res.html);
+
+                            // 更新页面标题
+                            if (res.title) document.title = res.title;
+
+                            // 更新浏览器历史
+                            if (pushState) {
+                                history.pushState({pjax: true, url: url}, '', url);
+                            }
+
+                            // 更新菜单高亮
+                            updateSidebarActive(url);
+
+                            // 更新 CSRF Token
+                            if (res.csrf_token) {
+                                $('input[name="__token__"]').val(res.csrf_token);
+                            }
+
+                            // 安全执行页面特有脚本
+                            if (res.js) {
+                                try {
+                                    var s = document.createElement('script');
+                                    s.textContent = res.js;
+                                    document.head.appendChild(s);
+                                    document.head.removeChild(s);
+                                } catch (e) {
+                                    console.error('PJAX script error:', e);
+                                }
+                            }
+
+                            // 触发 PJAX 完成事件（供子页面绑定）
+                            $(document).trigger('pjax:complete');
+
+                            window.scrollTo(0, 0);
+                            window.hidePageLoader && window.hidePageLoader();
+                        },
+                        error: function() {
+                            location.href = url;
+                        }
+                    });
+                }
+
+                function updateSidebarActive(url) {
+                    $('.sidebar-nav .nav-link').removeClass('active');
+                    $('.sidebar-nav .nav-link').each(function() {
+                        var href = $(this).attr('href');
+                        if (href && (url === href || url.indexOf(href + '?') === 0 || url.indexOf(href + '&') === 0)) {
+                            $(this).addClass('active');
+                        }
+                    });
+                }
+
+                // 拦截侧边栏菜单链接
+                $(document).on('click', '.sidebar-nav .nav-link', function(e) {
+                    var href = $(this).attr('href');
+                    if (!href || href.indexOf('#') === 0 || href.indexOf('javascript:') === 0 || $(this).attr('target')) {
+                        return;
+                    }
+                    e.preventDefault();
+                    doPjax(href);
+                });
+
+                // 浏览器前进后退
+                window.addEventListener('popstate', function(e) {
+                    if (e.state && e.state.pjax) {
+                        doPjax(e.state.url, false);
+                    }
+                });
+            })(jQuery);
 
             // 自动为所有表单注入CSRF Token（兼容直接提交和AJAX）
             var csrfToken = $('input[name="__token__"]').val();

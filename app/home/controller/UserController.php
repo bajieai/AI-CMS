@@ -11,6 +11,8 @@ use app\common\model\User;
  */
 class UserController extends FrontBaseController
 {
+    protected bool $enablePageCache = false;
+
     /**
      * 用户中心首页
      */
