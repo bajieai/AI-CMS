@@ -71,6 +71,29 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">定时发布</label>
+                        <input type="datetime-local" name="publish_time" class="form-control" value="{$info.publish_time ? date('Y-m-d\TH:i', $info.publish_time) : ''}" placeholder="留空表示立即发布">
+                        <div class="form-text">留空表示立即发布，设置后内容将在指定时间自动发布</div>
+                    </div>
+                    <!-- SEO设置 -->
+                    <div class="card border-warning mb-3">
+                        <div class="card-header py-2 bg-warning text-dark"><i class="bi bi-search me-1"></i>SEO设置</div>
+                        <div class="card-body py-2">
+                            <div class="mb-2">
+                                <label class="form-label small">SEO标题</label>
+                                <input type="text" name="seo_title" class="form-control form-control-sm" value="{$info.seo_title ?? ''}" placeholder="留空则使用文章标题">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">SEO关键词</label>
+                                <input type="text" name="seo_keywords" class="form-control form-control-sm" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用英文逗号分隔">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">SEO描述</label>
+                                <textarea name="seo_description" class="form-control form-control-sm" rows="2" placeholder="留空则自动截取摘要">{$info.seo_description ?? ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">排序</label>
                         <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}">
                     </div>
@@ -169,6 +192,8 @@
                         <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
                         <a href="/admin/content/index" class="btn btn-outline-secondary">取消返回</a>
                     </div>
+                    <!-- 自动保存指示器 -->
+                    <div class="text-center mt-2 small text-muted" id="autoSaveStatus"></div>
                 </div>
             </div>
         </form>
@@ -421,5 +446,60 @@ $('#contentForm').on('submit', function(e) {
     var formData = $(this).serialize();
     ajaxPost($(this).attr('action'), formData);
 });
+
+// 草稿自动保存（60秒间隔）
+var autoSaveTimer = null;
+var lastSaveContent = '';
+function startAutoSave() {
+    if (!$('#contentForm').find('input[name="id"]').length && !window.location.pathname.match(/\/edit\//)) {
+        return; // 新建内容不自动保存（无ID）
+    }
+    autoSaveTimer = setInterval(function() {
+        var editor = tinymce.activeEditor;
+        if (!editor) return;
+        var currentContent = editor.getContent({format: 'text'});
+        if (currentContent === lastSaveContent) return;
+        lastSaveContent = currentContent;
+        tinymce.triggerSave();
+        var formData = $('#contentForm').serialize();
+        var contentId = window.location.pathname.match(/\/edit\/(\d+)/);
+        if (!contentId) return;
+        $.ajax({
+            url: '/admin/content/autoSave/' + contentId[1],
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(res) {
+                if (res.code === 0) {
+                    $('#autoSaveStatus').html('<i class="bi bi-check-circle text-success me-1"></i>自动保存于 ' + (res.data.time || ''));
+                } else {
+                    // 降级到LocalStorage
+                    try {
+                        localStorage.setItem('cms_autosave_' + contentId[1], JSON.stringify({
+                            title: $('[name="title"]').val(),
+                            content: editor.getContent(),
+                            time: new Date().toLocaleTimeString()
+                        }));
+                        $('#autoSaveStatus').html('<i class="bi bi-cloud-check text-info me-1"></i>已保存到本地 ' + new Date().toLocaleTimeString());
+                    } catch(e) {}
+                }
+            },
+            error: function() {
+                // 网络错误降级到LocalStorage
+                try {
+                    localStorage.setItem('cms_autosave_' + contentId[1], JSON.stringify({
+                        title: $('[name="title"]').val(),
+                        content: editor.getContent(),
+                        time: new Date().toLocaleTimeString()
+                    }));
+                    $('#autoSaveStatus').html('<i class="bi bi-cloud-check text-info me-1"></i>已保存到本地 ' + new Date().toLocaleTimeString());
+                } catch(e) {}
+            }
+        });
+    }, 60000);
+}
+// 编辑器就绪后启动自动保存
+tinymce.activeEditor && startAutoSave();
+setTimeout(startAutoSave, 2000);
 </script>
 {/block}

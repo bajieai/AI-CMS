@@ -1,0 +1,150 @@
+{extend name="layout" /}
+
+{block name="title"}评论管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">互动管理</li>
+<li class="breadcrumb-item active">评论管理</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/comment/index" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">状态</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">全部</option>
+                    <option value="0" {if condition="($status ?? '') === '0'"}selected{/if}>待审</option>
+                    <option value="1" {if condition="($status ?? '') === '1'"}selected{/if}>已通过</option>
+                    <option value="-1" {if condition="($status ?? '') === '-1'"}selected{/if}>已拒绝</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 筛选</button>
+                <a href="/admin/comment/index" class="btn btn-outline-secondary btn-sm">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>评论列表</span>
+        <div>
+            <button type="button" class="btn btn-success btn-sm me-1" onclick="batchAction('approve')"><i class="bi bi-check-lg"></i> 批量通过</button>
+            <button type="button" class="btn btn-warning btn-sm me-1" onclick="batchAction('reject')"><i class="bi bi-x-lg"></i> 批量拒绝</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="batchAction('delete')"><i class="bi bi-trash"></i> 批量删除</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="40"><input type="checkbox" class="form-check-input" id="checkAll"></th>
+                    <th width="50">ID</th>
+                    <th width="80">内容ID</th>
+                    <th>评论内容</th>
+                    <th width="100">昵称</th>
+                    <th width="70">状态</th>
+                    <th width="140">时间</th>
+                    <th width="120">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td><input type="checkbox" class="form-check-input check-item" value="{$vo.id}"></td>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.content_id}</td>
+                    <td class="small text-truncate" style="max-width:300px;">{$vo.content}</td>
+                    <td>{$vo.nickname}</td>
+                    <td>
+                        {if condition="$vo.status == 1"}
+                        <span class="badge bg-success">已通过</span>
+                        {elseif condition="$vo.status == 0"}
+                        <span class="badge bg-warning text-dark">待审</span>
+                        {else /}
+                        <span class="badge bg-secondary">已拒绝</span>
+                        {/if}
+                    </td>
+                    <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            {if condition="$vo.status != 1"}
+                            <button type="button" class="btn btn-outline-success" onclick="auditComment({$vo.id}, 1)" title="通过"><i class="bi bi-check-lg"></i></button>
+                            {/if}
+                            {if condition="$vo.status != -1"}
+                            <button type="button" class="btn btn-outline-warning" onclick="auditComment({$vo.id}, -1)" title="拒绝"><i class="bi bi-x-lg"></i></button>
+                            {/if}
+                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({$vo.id})" title="删除"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无评论</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function() {
+    $('#checkAll').on('change', function() {
+        $('.check-item').prop('checked', $(this).prop('checked'));
+    });
+});
+
+function auditComment(id, status) {
+    $.post('/admin/comment/audit', {id: id, status: status}, function(res) {
+        if (res.success) {
+            location.reload();
+        } else {
+            alert(res.msg);
+        }
+    });
+}
+
+function confirmDelete(id) {
+    if (!confirm('确定删除此评论？')) return;
+    $.post('/admin/comment/delete', {id: id}, function(res) {
+        if (res.success) {
+            location.reload();
+        } else {
+            alert(res.msg);
+        }
+    });
+}
+
+function batchAction(action) {
+    var ids = [];
+    $('.check-item:checked').each(function() {
+        ids.push($(this).val());
+    });
+    if (ids.length === 0) {
+        alert('请选择要操作的评论');
+        return;
+    }
+    if (action === 'delete' && !confirm('确定批量删除选中的评论？')) return;
+    $.post('/admin/comment/batch', {ids: ids, action: action}, function(res) {
+        if (res.success) {
+            location.reload();
+        } else {
+            alert(res.msg);
+        }
+    });
+}
+</script>
+{/block}

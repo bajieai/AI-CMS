@@ -36,7 +36,7 @@
         </div>
         {/empty}
 
-        {if condition="$list->hasPages() ?? false"}
+        {if condition="($list->hasPages() ?? false)"}
         <div class="mt-3 d-flex justify-content-center">
             {$list->render()|raw}
         </div>

@@ -58,7 +58,7 @@ class ContentService
         $cacheKey = 'info_list_' . md5($type . '_' . $limit . '_' . $order . '_' . $page . '_' . $pageSize);
         $cacheTag = Config::get('cache.tag.content', 'i8j_content');
 
-        $result = Cache::tag($cacheTag)->get($cacheKey);
+        $result = Cache::get($cacheKey);
         if ($result !== null) {
             return $result;
         }
@@ -102,6 +102,14 @@ class ContentService
         // 处理标签
         $tagIds = $data['tag_ids'] ?? [];
         unset($data['tag_ids']);
+
+        // 处理SEO字段
+        $data['seo_title'] = $data['seo_title'] ?? '';
+        $data['seo_keywords'] = $data['seo_keywords'] ?? '';
+        $data['seo_description'] = $data['seo_description'] ?? '';
+
+        // 处理定时发布
+        $data['publish_time'] = isset($data['publish_time']) && $data['publish_time'] ? strtotime($data['publish_time']) : 0;
 
         // 设置时间戳
         $data['create_time'] = time();
@@ -153,6 +161,22 @@ class ContentService
         // 处理标签
         $tagIds = $data['tag_ids'] ?? [];
         unset($data['tag_ids']);
+
+        // 处理SEO字段
+        if (isset($data['seo_title'])) {
+            $data['seo_title'] = trim($data['seo_title']);
+        }
+        if (isset($data['seo_keywords'])) {
+            $data['seo_keywords'] = trim($data['seo_keywords']);
+        }
+        if (isset($data['seo_description'])) {
+            $data['seo_description'] = trim($data['seo_description']);
+        }
+
+        // 处理定时发布
+        if (isset($data['publish_time'])) {
+            $data['publish_time'] = $data['publish_time'] ? strtotime($data['publish_time']) : 0;
+        }
 
         $data['update_time'] = time();
 
@@ -300,5 +324,24 @@ class ContentService
         if (!empty($data)) {
             (new ContentTag())->saveAll($data);
         }
+    }
+
+    /**
+     * 自动保存草稿（AJAX调用）
+     */
+    public function autoSave(int $id, array $data): array
+    {
+        $content = Content::find($id);
+        if (empty($content)) {
+            return ['success' => false, 'msg' => '内容不存在'];
+        }
+
+        $content->title = $data['title'] ?? $content->title;
+        $content->content = $data['content'] ?? $content->content;
+        $content->excerpt = $data['excerpt'] ?? $content->excerpt;
+        $content->update_time = time();
+        $content->save();
+
+        return ['success' => true, 'msg' => '自动保存成功', 'time' => date('H:i:s')];
     }
 }

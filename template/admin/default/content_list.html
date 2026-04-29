@@ -28,8 +28,8 @@
                 <select name="status" class="form-select form-select-sm">
                     <option value="">全部状态</option>
                     <option value="0" {if condition="($params.status ?? '') === '0'"}selected{/if}>草稿</option>
-                    <option value="1" {if condition="$params.status ?? '' == 1"}selected{/if}>待审</option>
-                    <option value="2" {if condition="$params.status ?? '' == 2"}selected{/if}>已发布</option>
+                    <option value="1" {if condition="($params.status ?? '') == 1"}selected{/if}>待审</option>
+                    <option value="2" {if condition="($params.status ?? '') == 2"}selected{/if}>已发布</option>
                 </select>
             </div>
             <div class="col-auto">
@@ -37,7 +37,7 @@
                 <select name="cate_id" class="form-select form-select-sm">
                     <option value="">全部分类</option>
                     {volist name="cates" id="cate"}
-                    <option value="{$cate.id}" {if condition="$params.cate_id ?? '' == $cate.id"}selected{/if}>{$cate.name}</option>
+                    <option value="{$cate.id}" {if condition="($params.cate_id ?? '') == $cate.id"}selected{/if}>{$cate.name}</option>
                     {/volist}
                 </select>
             </div>
@@ -109,6 +109,7 @@
                         {if condition="$vo.status == 1"}<span class="badge bg-warning text-dark">待审</span>{/if}
                         {if condition="$vo.status == 2"}<span class="badge bg-success">已发布</span>{/if}
                         {if condition="$vo.status == -1"}<span class="badge bg-danger">已删除</span>{/if}
+                        {if condition="$vo.publish_time > 0 && $vo.status == 0"}<span class="badge bg-info" title="定时发布: {$vo.publish_time|date='Y-m-d H:i'}"><i class="bi bi-clock me-1"></i>待发布</span>{/if}
                     </td>
                     <td>
                         {if condition="$vo.is_top == 1"}<i class="bi bi-arrow-up-circle-fill text-danger"></i>{/if}
@@ -133,7 +134,7 @@
             </tbody>
         </table>
     </div>
-    {if condition="$list->hasPages() ?? false"}
+    {if condition="($list->hasPages() ?? false)"}
     <div class="card-footer bg-white">
         <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">共 {$list->total()} 条</small>
@@ -142,8 +143,6 @@
     </div>
     {/if}
 </div>
-{/block}
-
 <!-- 批量移动分类Modal -->
 <div class="modal fade" id="moveCateModal" tabindex="-1">
     <div class="modal-dialog modal-sm modal-dialog-centered">
@@ -167,6 +166,7 @@
         </div>
     </div>
 </div>
+{/block}
 
 {block name="js"}
 <script>

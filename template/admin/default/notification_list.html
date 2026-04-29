@@ -1,0 +1,80 @@
+{extend name="layout" /}
+
+{block name="title"}通知中心{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">通知中心</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/notification/index" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">状态</label>
+                <select name="is_read" class="form-select form-select-sm">
+                    <option value="">全部</option>
+                    <option value="0" {if condition="($is_read ?? '') === '0'"}selected{/if}>未读</option>
+                    <option value="1" {if condition="($is_read ?? '') === '1'"}selected{/if}>已读</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 筛选</button>
+                <a href="/admin/notification/index" class="btn btn-outline-secondary btn-sm">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>通知列表</span>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="markAllRead()"><i class="bi bi-check-all"></i> 全部标记已读</button>
+    </div>
+    <div class="list-group list-group-flush">
+        {volist name="list" id="vo"}
+        <div class="list-group-item d-flex justify-content-between align-items-start py-3 {if condition='$vo.is_read == 0'}bg-light{/if}">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold {if condition='$vo.is_read == 0'}text-primary{/if}">{$vo.title}</div>
+                <div class="small text-muted mt-1">{$vo.content}</div>
+                <div class="small text-muted mt-1">{$vo.create_time|date='Y-m-d H:i'}</div>
+            </div>
+            {if condition="$vo.is_read == 0"}
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="markRead({$vo.id})">标记已读</button>
+            {/if}
+        </div>
+        {/volist}
+        {empty name="list"}
+        <div class="list-group-item text-center text-muted py-4">暂无通知</div>
+        {/empty}
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function markRead(id) {
+    $.post('/admin/notification/read', {id: id}, function(res) {
+        if (res.success) {
+            location.reload();
+        }
+    });
+}
+function markAllRead() {
+    $.post('/admin/notification/read', {id: 0, all: 1}, function(res) {
+        if (res.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{/block}

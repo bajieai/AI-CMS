@@ -28,8 +28,15 @@ class AdminPermission
             return $next($request);
         }
 
-        // 获取当前路由的权限标识
-        $controller = strtolower(preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $request->controller()));
+        // 获取当前路由的权限标识（兼容完整类名和简写）
+        $controller = $request->controller();
+        // 提取纯控制器名（去除命名空间前缀）
+        if (str_contains($controller, '\\')) {
+            $controller = substr($controller, strrpos($controller, '\\') + 1);
+        }
+        // 去除 Controller 后缀并转为蛇形命名
+        $controller = str_replace('Controller', '', $controller);
+        $controller = strtolower(preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $controller));
         $action = strtolower($request->action());
         $permission = $controller . '.' . $action;
 

@@ -1,0 +1,50 @@
+{extend name="layout" /}
+
+{block name="title"}我的收藏{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4"><i class="bi bi-star me-2"></i>我的收藏</h4>
+                    {volist name="list" id="vo"}
+                    <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{$vo.content.url}" class="text-decoration-none">{$vo.content.title}</a>
+                            </h6>
+                            <p class="text-muted small mb-0">{$vo.content.excerpt|msubstr=0,60}</p>
+                            <small class="text-muted">收藏于 {$vo.create_time|date='Y-m-d H:i'}</small>
+                        </div>
+                        <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-favorite" data-id="{$vo.content_id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    {/volist}
+                    {empty name="list"}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-star fs-1"></i>
+                        <p class="mt-2">暂无收藏内容</p>
+                    </div>
+                    {/empty}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('.remove-favorite').on('click', function() {
+    var id = $(this).data('id');
+    if (!confirm('确定取消收藏？')) return;
+    $.post('/member/favoriteRemove', { content_id: id }, function(res) {
+        alert(res.msg);
+        location.reload();
+    });
+});
+</script>
+{/block}

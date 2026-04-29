@@ -26,6 +26,15 @@
                         <input type="url" name="url" class="form-control" value="{$info.url ?? ''}" required placeholder="如：https://example.com">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">所属分组</label>
+                        <select name="group_id" class="form-select">
+                            <option value="0">未分组</option>
+                            {volist name="groups" id="name" key="gid"}
+                            <option value="{$gid}" {if condition="($info.group_id ?? 0) == $gid"}selected{/if}>{$name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">LOGO 图片</label>
                         <div class="input-group">
                             <input type="text" name="logo" id="linkLogo" class="form-control" value="{$info.logo ?? ''}" placeholder="可选，输入图片URL或上传">

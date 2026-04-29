@@ -6,7 +6,7 @@ namespace app\common\middleware;
 use Closure;
 use think\Request;
 use think\Response;
-use think\middleware\SessionInit;
+// use think\middleware\SessionInit; // 未使用，通过反射检测初始化状态
 
 /**
  * 后台认证中间件（app级别中间件）
@@ -54,20 +54,24 @@ class AdminAuth
      * 确保 session 已初始化
      * 在 app 级中间件中，全局的 SessionInit 可能还未执行，
      * 需要手动读取 cookie 中的 session ID 并初始化 session。
+     * 
+     * 修复：ThinkPHP 8 的 Store 没有 isStarted() 公开方法，
+     * 通过反射检测 protected $init 属性来判断 session 是否已初始化。
      */
     protected function ensureSessionInit(Request $request): void
     {
         $session = app('session');
         
-        // 如果 session 已经初始化过（有数据），跳过
-        // 注意：不能用 isStarted()，ThinkPHP 8 的 Store 没有此方法
+        // 使用反射检测 Store::$init 属性（true=已初始化, null=未初始化）
         try {
-            $all = $session->all();
-            if (!empty($all)) {
+            $ref = new \ReflectionClass($session);
+            $prop = $ref->getProperty('init');
+            $prop->setAccessible(true);
+            if ($prop->getValue($session) === true) {
                 return;
             }
         } catch (\Throwable $e) {
-            // session 未初始化，继续初始化
+            // 反射失败，继续初始化流程
         }
 
         // 从 cookie 获取 session ID

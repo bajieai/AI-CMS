@@ -32,7 +32,9 @@ return [
     // 预先加载的标签库
     'taglib_pre_load' => 'app\common\taglib\I8j',
     
-    // 模板路径（按应用映射到template目录）
+    // 模板路径（在控制器initialize中按应用动态设置）
+    // admin应用 -> template/admin/default/
+    // home应用 -> template/pc/default/
     'view_path' => '',
     
     // 布局模板开关

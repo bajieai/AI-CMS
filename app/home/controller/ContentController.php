@@ -6,6 +6,7 @@ namespace app\home\controller;
 use app\common\controller\FrontBaseController;
 use app\common\model\Content;
 use app\common\model\Cate;
+use app\common\service\SeoService;
 
 /**
  * 前台内容控制器
@@ -37,10 +38,23 @@ class ContentController extends FrontBaseController
         $typeMap = [1 => 'product', 2 => 'case', 3 => 'news', 4 => 'download', 5 => 'job', 6 => 'page'];
         $typeUrl = '/' . ($typeMap[$info->type] ?? 'info');
 
+        // V2.3 JSON-LD结构化数据
+        $seoService = new SeoService();
+        $jsonLd = $seoService->buildJsonLd([
+            'type'        => 'Article',
+            'title'       => $info->seo_title ?: $info->title,
+            'description' => $info->seo_description ?: $info->excerpt,
+            'url'         => request()->url(true),
+            'cover'       => $info->cover,
+            'create_time' => $info->create_time,
+            'update_time' => $info->update_time,
+        ]);
+
         $this->assign([
-            'info' => $info,
-            'related' => $related,
+            'info'     => $info,
+            'related'  => $related,
             'type_url' => $typeUrl,
+            'jsonLd'   => $jsonLd,
         ]);
 
         return $this->view('/detail');

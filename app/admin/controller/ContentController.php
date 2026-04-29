@@ -325,6 +325,20 @@ class ContentController extends AdminBaseController
     }
 
     /**
+     * 自动保存草稿（AJAX）
+     */
+    public function autoSave(int $id)
+    {
+        $data = $this->request->post();
+        $service = new ContentService();
+        $result = $service->autoSave($id, $data);
+        if ($result['success']) {
+            return $this->success($result['msg'], ['time' => $result['time'] ?? '']);
+        }
+        return $this->error($result['msg'] ?? '自动保存失败');
+    }
+
+    /**
      * 版本历史列表
      */
     public function versions(int $id)

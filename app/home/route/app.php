@@ -18,3 +18,23 @@ Route::get('search', '\app\home\controller\SearchController@index');
 
 // 用户中心
 Route::get('user', '\app\home\controller\UserController@index');
+
+// V2.3 会员系统
+Route::rule('member/register$', '\app\home\controller\MemberController@register', 'GET|POST');
+Route::rule('member/login$', '\app\home\controller\MemberController@login', 'GET|POST');
+Route::get('member/logout$', '\app\home\controller\MemberController@logout');
+Route::rule('member/profile$', '\app\home\controller\MemberController@profile', 'GET|POST');
+
+// V2.3 OAuth回调（放在home应用，避开api全局AdminAuth中间件）
+Route::get('oauth/gitee_callback$', '\app\home\controller\OauthController@giteeCallback');
+
+// V2.3 前台评论AJAX
+Route::post('comment/submit$', '\app\home\controller\CommentController@submit');
+Route::get('comment/list$', '\app\home\controller\CommentController@list');
+
+// V2.3 会员收藏与通知
+Route::get('member/favorite$', '\app\home\controller\MemberController@favorite');
+Route::post('member/favoriteRemove$', '\app\home\controller\MemberController@favoriteRemove');
+Route::get('member/notification$', '\app\home\controller\MemberController@notification');
+Route::post('member/notificationRead$', '\app\home\controller\MemberController@notificationRead');
+Route::post('member/notificationReadAll$', '\app\home\controller\MemberController@notificationReadAll');

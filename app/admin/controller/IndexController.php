@@ -107,6 +107,14 @@ class IndexController extends AdminBaseController
         // 最新操作日志
         $latestLogs = \app\common\model\Log::order('id', 'desc')->limit(6)->select();
 
+        // V2.3 定时发布队列
+        $publishQueue = Content::where('publish_time', '>', 0)
+            ->where('status', 0)
+            ->where('publish_time', '>', time())
+            ->order('publish_time', 'asc')
+            ->limit(10)
+            ->select();
+
         $this->assign([
             'content_count' => $contentCount,
             'published_count' => $publishedCount,
@@ -122,6 +130,7 @@ class IndexController extends AdminBaseController
             'db_size' => $dbSize,
             'disk_free' => $diskFree,
             'disk_total' => $diskTotal,
+            'publish_queue' => $publishQueue,
         ]);
 
         return $this->view('/dashboard');

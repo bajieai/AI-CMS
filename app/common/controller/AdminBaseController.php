@@ -32,35 +32,61 @@ abstract class AdminBaseController extends \think\BaseController
      * 菜单高亮映射（静态缓存，避免每次实例化都重建）
      */
     protected static array $menuMap = [
-        'index'    => 'dashboard',
-        'content'  => 'content',
-        'cate'     => 'cate',
-        'tag'      => 'tag',
-        'user'     => 'user',
-        'system'   => 'system',
-        'log'      => 'log',
-        'recycle'  => 'recycle',
-        'media'    => 'media',
-        'banner'   => 'banner',
-        'link'     => 'link',
-        'review'   => 'review',
-        'backup'   => 'backup',
+        'index'       => 'dashboard',
+        'content'     => 'content',
+        'cate'        => 'cate',
+        'tag'         => 'tag',
+        'user'        => 'user',
+        'system'      => 'system',
+        'log'         => 'log',
+        'recycle'     => 'recycle',
+        'media'       => 'media',
+        'banner'      => 'banner',
+        'link'        => 'link',
+        'review'      => 'review',
+        'backup'      => 'backup',
+        // V2.3 新增模块
+        'comment'     => 'comment',
+        'member'      => 'member',
+        'seo'         => 'seo',
+        'export'      => 'export',
+        'token'       => 'token',
+        'notification'=> 'notification',
+        'ad'          => 'ad',
+        'link_group'  => 'link_group',
     ];
 
     public function __construct(App $app)
     {
         parent::__construct($app);
-        $this->initialize();
     }
 
     protected function initialize(): void
     {
+        // 加载数据库系统配置到ThinkPHP Config（容错）
+        try {
+            load_cms_configs();
+        } catch (\Throwable) {
+            // 配置表可能尚未创建，降级跳过
+        }
+
+        // 设置后台模板路径（template/admin/default/）
+        $this->app->config->set([
+            'view.view_path' => root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR,
+        ], 'view');
+
         // 注入当前用户角色信息到所有视图
         $roleId = (int) session('role_id');
         $this->app->view->assign('is_super_admin', $roleId === 1);
 
-        // 自动注入当前菜单高亮标识
-        $controller = strtolower(str_replace('Controller', '', $this->request->controller()));
+        // 自动注入当前菜单高亮标识（兼容完整类名返回）
+        $controller = $this->request->controller();
+        if (str_contains($controller, '\\')) {
+            $controller = substr($controller, strrpos($controller, '\\') + 1);
+        }
+        $controller = str_replace('Controller', '', $controller);
+        // 驼峰转蛇形（如 LinkGroup → link_group），与菜单配置保持一致
+        $controller = strtolower(preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $controller));
         $this->app->view->assign('menuActive', self::$menuMap[$controller] ?? '');
 
         // 根据角色权限过滤菜单并注入视图（使用静态缓存避免同一请求重复计算）
@@ -70,18 +96,10 @@ abstract class AdminBaseController extends \think\BaseController
 
     /**
      * 获取已过滤的菜单（带静态缓存）
+     * 功能开关对所有人生效（含超管），权限过滤仅对非超管生效
      */
     protected function getFilteredMenus(int $roleId): array
     {
-        // 超级管理员直接返回完整菜单，无需过滤
-        if ($roleId === 1) {
-            static $superAdminMenus = null;
-            if ($superAdminMenus === null) {
-                $superAdminMenus = Config::get('menu', []);
-            }
-            return $superAdminMenus;
-        }
-
         // 按角色缓存过滤后的菜单（同一请求内）
         static $filteredCache = [];
         if (isset($filteredCache[$roleId])) {
@@ -89,15 +107,58 @@ abstract class AdminBaseController extends \think\BaseController
         }
 
         $menus = Config::get('menu', []);
-        $permissions = Config::get('permission.roles.' . $roleId . '.permissions', []);
 
-        if ($permissions === '*') {
-            $filteredCache[$roleId] = $menus;
-        } else {
-            $filteredCache[$roleId] = $this->filterMenu($menus, (array) $permissions);
+        // 1. 功能开关过滤 — 对所有人生效（含超管）
+        $hiddenMenuIds = $this->getDisabledModuleMenuIds();
+        if (!empty($hiddenMenuIds)) {
+            $menus = $this->removeDisabledMenus($menus, $hiddenMenuIds);
         }
 
-        return $filteredCache[$roleId];
+        // 2. 权限过滤 — 仅对非超管生效
+        if ($roleId !== 1) {
+            $permissions = Config::get('permission.roles.' . $roleId . '.permissions', []);
+            if ($permissions !== '*') {
+                $menus = $this->filterMenu($menus, (array) $permissions);
+            }
+        }
+
+        $filteredCache[$roleId] = $menus;
+        return $menus;
+    }
+
+    /**
+     * 获取已禁用模块关联的菜单ID列表
+     */
+    protected function getDisabledModuleMenuIds(): array
+    {
+        try {
+            $disabledModules = \app\common\model\Module::getDisabledMenuIds();
+            return $disabledModules;
+        } catch (\Throwable) {
+            // 模块表可能尚未创建，降级返回空数组
+            return [];
+        }
+    }
+
+    /**
+     * 从菜单中移除已禁用模块关联的菜单项
+     */
+    protected function removeDisabledMenus(array $menus, array $hiddenMenuIds): array
+    {
+        $result = [];
+        foreach ($menus as $group) {
+            $filteredChildren = [];
+            foreach ($group['children'] ?? [] as $item) {
+                if (!in_array($item['id'] ?? 0, $hiddenMenuIds, true)) {
+                    $filteredChildren[] = $item;
+                }
+            }
+            if (!empty($filteredChildren)) {
+                $group['children'] = $filteredChildren;
+                $result[] = $group;
+            }
+        }
+        return $result;
     }
 
     /**
@@ -240,11 +301,13 @@ abstract class AdminBaseController extends \think\BaseController
      */
     protected function getPermissionKey(): string
     {
-        $app = $this->request->app();
         $controller = $this->request->controller();
-        $action = $this->request->action();
-        
+        if (str_contains($controller, '\\')) {
+            $controller = substr($controller, strrpos($controller, '\\') + 1);
+        }
+        $controller = str_replace('Controller', '', $controller);
         $controller = strtolower(preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $controller));
+        $action = strtolower($this->request->action());
         
         return $controller . '.' . $action;
     }

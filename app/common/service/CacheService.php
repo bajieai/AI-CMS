@@ -10,13 +10,23 @@ use think\facade\Cache;
  */
 class CacheService
 {
+    const TAG_CATE     = 'i8j_cate';
+    const TAG_TAG      = 'i8j_tag';
+    const TAG_CONFIG   = 'i8j_config';
+    const TAG_CONTENT  = 'i8j_content';
+    const TAG_SEO      = 'i8j_seo';
+    const TAG_MEMBER   = 'i8j_member';
+    const TAG_AD       = 'i8j_ad';
+    const TAG_COMMENT  = 'i8j_comment';
+    const TAG_MODULE   = 'i8j_module';
+
     /**
      * 清除所有业务缓存
      */
     public function clearAll(): bool
     {
         try {
-            $tags = ['i8j_cate', 'i8j_tag', 'i8j_config', 'i8j_content'];
+            $tags = [self::TAG_CATE, self::TAG_TAG, self::TAG_CONFIG, self::TAG_CONTENT, self::TAG_SEO, self::TAG_MEMBER, self::TAG_AD, self::TAG_COMMENT, self::TAG_MODULE];
             foreach ($tags as $tag) {
                 Cache::tag($tag)->clear();
             }

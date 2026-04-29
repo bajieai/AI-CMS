@@ -1,21 +1,21 @@
-# 八界AI-CMS V2.2
+# 八界AI-CMS V2.3
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.2.0-blue)
+![Version](https://img.shields.io/badge/version-2.3.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.2 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek AI 接口，为内容创作提供智能辅助。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
+八界AI-CMS V2.3 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek AI 接口，为内容创作提供智能辅助。V2.3 聚焦「智能运营与开放生态」，新增定时发布、SEO管理、消息通知、数据导入导出、前台会员系统、评论系统、API开放接口等核心能力。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
 
 ### 核心特性
 
 - **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式（DeepSeek API）
 - **6种内容类型** - 产品/案例/新闻/下载/招聘/单页，支持扩展字段
 - **简化RBAC** - 3级角色（超管/管理员/编辑），配置文件权限控制
-- **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`/`{i8j:bannerlist}`/`{i8j:linklist}`/`{i8j:medialist}`，灵活调用数据
+- **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`/`{i8j:bannerlist}`/`{i8j:linklist}`/`{i8j:medialist}`/`{i8j:commentlist}`，灵活调用数据
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
 - **内容回收站** - 软删除+回收站，防止误删
@@ -23,9 +23,22 @@
 - **媒体资源库** - 统一管理图片/视频/文件，支持分类、搜索、批量操作
 - **内容审核工作流** - 待审列表、通过/驳回操作、审核历史追溯
 - **轮播图管理** - 后台管理轮播图，前台自动展示，支持有效期控制
-- **友情链接** - 后台管理友情链接，前台页脚展示
+- **友情链接** - 后台管理友情链接，支持分组，前台页脚展示
 - **数据库备份恢复** - 手动备份、下载、一键恢复，保障数据安全
 - **搜索增强** - MySQL FULLTEXT 全文搜索，支持自动降级
+
+### V2.3 新增特性
+
+- **定时发布** - 支持内容定时上线，配合命令行自动执行
+- **SEO管理** - Sitemap自动生成、robots.txt管理、死链检测、JSON-LD结构化数据
+- **消息通知** - 站内通知系统，支持管理员/会员双端推送
+- **数据导入导出** - Excel/CSV格式批量导入导出内容数据
+- **前台会员系统** - 独立会员注册/登录/资料管理，支持Gitee OAuth登录
+- **评论系统** - 前台评论提交、后台审核管理、自动计数
+- **API开放接口** - RESTful API v1，Bearer/HMAC双模式认证，支持速率限制
+- **广告系统** - 广告位管理、广告上下线、展示/点击统计
+- **功能模块开关** - 后台一键启用/禁用各功能模块
+- **操作日志增强** - 详细记录后台操作行为
 
 ## 技术栈
 
@@ -33,7 +46,7 @@
 |------|------|------|
 | 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
 | 语言 | PHP 8.2+ | 严格类型声明 |
-| 数据库 | MySQL 8.0 | 13张数据表，前缀 i8j_ |
+| 数据库 | MySQL 8.0 | 27+张数据表，前缀 i8j_ |
 | 缓存 | 文件缓存（Redis可选） | 带标签的缓存管理 |
 | Session | PHP原生文件Session | 24小时过期 |
 | AI接口 | DeepSeek API (GuzzleHTTP) | 直连，无需Python中间层 |

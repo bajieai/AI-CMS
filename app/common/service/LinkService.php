@@ -92,12 +92,15 @@ class LinkService
     /**
      * 获取友情链接列表（前台模板标签使用）
      */
-    public function getLinkList(int $limit = 10, int $status = 1): array
+    public function getLinkList(int $limit = 10, int $status = 1, int $group = 0): array
     {
         try {
             $query = Link::order('sort', 'asc')->order('id', 'desc');
             if ($status !== '') {
                 $query->where('status', (int) $status);
+            }
+            if ($group > 0) {
+                $query->where('group_id', $group);
             }
             return $query->limit($limit)->select()->toArray();
         } catch (\think\db\exception\DbException $e) {

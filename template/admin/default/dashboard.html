@@ -144,6 +144,37 @@
     </div>
 </div>
 
+<!-- 定时发布队列 -->
+{if condition="$publish_queue && count($publish_queue) > 0"}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-1" style="color:var(--primary)"></i>定时发布队列</span>
+                <span class="badge bg-info">{$publish_queue|count} 篇待发布</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr><th width="50">ID</th><th>标题</th><th width="120">定时发布时间</th><th width="80">状态</th></tr>
+                    </thead>
+                    <tbody>
+                        {volist name="publish_queue" id="vo"}
+                        <tr>
+                            <td>{$vo.id}</td>
+                            <td><a href="/admin/content/edit/{$vo.id}">{$vo.title}</a></td>
+                            <td class="small">{$vo.publish_time|date='Y-m-d H:i'}</td>
+                            <td><span class="badge bg-info"><i class="bi bi-clock me-1"></i>待发布</span></td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/if}
+
 <!-- 快捷操作 + 系统信息 -->
 <div class="row g-3">
     <div class="col-lg-8">
@@ -185,7 +216,7 @@
             <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                     <tbody>
-                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">V2.2</td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">V2.3</td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">框架版本</td><td class="text-end pe-3" style="font-weight:600">ThinkPHP 8.1</td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">PHP版本</td><td class="text-end pe-3" style="font-weight:600"><?php echo PHP_VERSION; ?></td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">数据库</td><td class="text-end pe-3" style="font-weight:600"><?php echo format_bytes($db_size); ?></td></tr>

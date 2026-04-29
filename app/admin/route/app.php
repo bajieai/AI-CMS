@@ -26,6 +26,7 @@ Route::post('content/copy/:id$', '\app\admin\controller\ContentController@copy')
 Route::post('content/batchPublish$', '\app\admin\controller\ContentController@batchPublish');
 Route::post('content/batchDelete$', '\app\admin\controller\ContentController@batchDelete');
 Route::post('content/batchMoveCate$', '\app\admin\controller\ContentController@batchMoveCate');
+Route::post('content/autoSave/:id$', '\app\admin\controller\ContentController@autoSave');
 Route::get('content/versions/:id$', '\app\admin\controller\ContentController@versions');
 Route::post('content/rollback/:versionId$', '\app\admin\controller\ContentController@rollback');
 
@@ -50,7 +51,14 @@ Route::rule('user/profile$', '\app\admin\controller\UserController@profile', 'GE
 
 // 系统设置
 Route::rule('system/config$', '\app\admin\controller\SystemController@config', 'GET|POST');
+Route::rule('system/customVar$', '\app\admin\controller\SystemController@customVar', 'GET|POST');
+Route::post('system/customVarSave$', '\app\admin\controller\SystemController@customVarSave');
+Route::post('system/customVarDelete$', '\app\admin\controller\SystemController@customVarDelete');
+Route::rule('system/moduleControl$', '\app\admin\controller\SystemController@moduleControl', 'GET');
+Route::post('system/moduleToggle$', '\app\admin\controller\SystemController@moduleToggle');
 Route::rule('log/index$', '\app\admin\controller\LogController@index', 'GET');
+Route::get('log/export$', '\app\admin\controller\LogController@export');
+Route::post('log/cleanup$', '\app\admin\controller\LogController@cleanup');
 
 // 媒体资源库
 Route::rule('media/index$', '\app\admin\controller\MediaController@index', 'GET');
@@ -83,3 +91,51 @@ Route::post('backup/create$', '\app\admin\controller\BackupController@create');
 Route::post('backup/restore$', '\app\admin\controller\BackupController@restore');
 Route::post('backup/delete$', '\app\admin\controller\BackupController@delete');
 Route::get('backup/download$', '\app\admin\controller\BackupController@download');
+
+// V2.3 评论管理
+Route::get('comment/index$', '\app\admin\controller\CommentController@index');
+Route::post('comment/audit$', '\app\admin\controller\CommentController@audit');
+Route::post('comment/delete$', '\app\admin\controller\CommentController@delete');
+Route::post('comment/batch$', '\app\admin\controller\CommentController@batch');
+
+// V2.3 API令牌管理
+Route::get('token/index$', '\app\admin\controller\TokenController@index');
+Route::rule('token/create$', '\app\admin\controller\TokenController@create', 'GET|POST');
+Route::post('token/revoke$', '\app\admin\controller\TokenController@revoke');
+
+// V2.3 SEO管理
+Route::get('seo/index$', '\app\admin\controller\SeoController@index');
+Route::post('seo/sitemap$', '\app\admin\controller\SeoController@generateSitemap');
+Route::post('seo/robots$', '\app\admin\controller\SeoController@saveRobots');
+
+// V2.3 通知管理
+Route::get('notification/index$', '\app\admin\controller\NotificationController@index');
+Route::post('notification/read$', '\app\admin\controller\NotificationController@read');
+
+// V2.3 数据导出
+Route::rule('export/index$', '\app\admin\controller\ExportController@index', 'GET|POST');
+
+// V2.3 后台会员管理
+Route::get('member/index$', '\app\admin\controller\MemberController@index');
+Route::get('member/detail/:id$', '\app\admin\controller\MemberController@detail');
+Route::rule('member/edit/:id$', '\app\admin\controller\MemberController@edit', 'GET|POST');
+Route::post('member/toggleStatus/:id$', '\app\admin\controller\MemberController@toggleStatus');
+
+// V2.3 广告管理
+Route::get('ad/index$', '\app\admin\controller\AdController@index');
+Route::rule('ad/add$', '\app\admin\controller\AdController@add', 'GET|POST');
+Route::rule('ad/edit/:id$', '\app\admin\controller\AdController@edit', 'GET|POST');
+Route::post('ad/delete/:id$', '\app\admin\controller\AdController@delete');
+Route::get('ad/stat$', '\app\admin\controller\AdController@stat');
+
+Route::get('ad_position/index$', '\app\admin\controller\AdController@positionIndex');
+Route::rule('ad_position/add$', '\app\admin\controller\AdController@positionAdd', 'GET|POST');
+Route::rule('ad_position/edit/:id$', '\app\admin\controller\AdController@positionEdit', 'GET|POST');
+Route::post('ad_position/delete/:id$', '\app\admin\controller\AdController@positionDelete');
+
+// V2.3 友链分组管理
+Route::get('link_group/index$', '\app\admin\controller\LinkGroupController@index');
+Route::rule('link_group/add$', '\app\admin\controller\LinkGroupController@add', 'GET|POST');
+Route::rule('link_group/edit/:id$', '\app\admin\controller\LinkGroupController@edit', 'GET|POST');
+Route::post('link_group/delete/:id$', '\app\admin\controller\LinkGroupController@delete');
+Route::post('link_group/toggleStatus/:id$', '\app\admin\controller\LinkGroupController@toggleStatus');

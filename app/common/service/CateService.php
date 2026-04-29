@@ -36,7 +36,7 @@ class CateService
         $cacheKey = 'cate_list_' . md5($type . '_' . $limit . '_' . $parentId);
         $cacheTag = Config::get('cache.tag.cate', 'i8j_cate');
 
-        $result = Cache::tag($cacheTag)->get($cacheKey);
+        $result = Cache::get($cacheKey);
         if ($result !== null) {
             return $result;
         }

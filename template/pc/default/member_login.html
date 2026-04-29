@@ -1,0 +1,48 @@
+{extend name="layout" /}
+
+{block name="title"}会员登录{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-4">会员登录</h4>
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label">用户名/邮箱</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">登录</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/member/register" class="text-decoration-none small">还没有账号？立即注册</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#loginForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/member/login', $(this).serialize(), function(res) {
+        if (res.success) {
+            location.href = '/member/profile';
+        } else {
+            alert(res.msg);
+        }
+    });
+});
+</script>
+{/block}

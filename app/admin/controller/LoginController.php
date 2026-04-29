@@ -57,6 +57,9 @@ class LoginController extends AdminBaseController
         session('role_id', $user->role_id);
         session('nickname', $user->nickname ?: $user->username);
 
+        // 生成初始CSRF Token（会话级持久化，登录时生成一次）
+        session('__token__', md5(uniqid((string) mt_rand(), true)));
+
         // 更新最后登录信息
         $user->last_login_time = time();
         $user->last_login_ip = $this->request->ip();

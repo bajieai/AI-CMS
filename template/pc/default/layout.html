@@ -51,6 +51,23 @@
                         <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
+                <!-- V2.3 会员入口 -->
+                <ul class="navbar-nav ms-2">
+                    {if condition="$is_member_login"}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {$member_info.nickname}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/member/profile">个人中心</a></li>
+                            <li><a class="dropdown-item" href="/member/logout">退出登录</a></li>
+                        </ul>
+                    </li>
+                    {else /}
+                    <li class="nav-item"><a class="nav-link" href="/member/login">登录</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/member/register">注册</a></li>
+                    {/if}
+                </ul>
             </div>
         </div>
     </nav>
@@ -83,7 +100,7 @@
                     <p class="small mb-0">AI驱动的企业信息管理系统</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="small mb-0">&copy; 2025 AI-CMS V2.2. All Rights Reserved.</p>
+                    <p class="small mb-0">&copy; 2025 AI-CMS V2.3. All Rights Reserved.</p>
                 </div>
             </div>
         </div>

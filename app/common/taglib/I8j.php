@@ -41,8 +41,18 @@ class I8j extends TagLib
         ],
         // 友情链接列表标签
         'linklist' => [
-            'attr' => 'limit,status',
+            'attr' => 'limit,status,group',
             'close' => 1,
+        ],
+        // 评论列表标签
+        'commentlist' => [
+            'attr' => 'content_id,limit,status',
+            'close' => 1,
+        ],
+        // 自定义变量标签
+        'customvar' => [
+            'attr' => 'name,default',
+            'close' => 0,
         ],
     ];
 
@@ -131,20 +141,65 @@ class I8j extends TagLib
     }
 
     /**
-     * {i8j:linklist limit="10" status="1"}
+     * {i8j:linklist limit="10" status="1" group="1"}
      * 编译为：调用LinkService::getLinkList获取数据，然后用{volist}遍历
      */
     public function tagLinklist(array $tag, string $content): string
     {
         $limit = $tag['limit'] ?? 10;
         $status = $tag['status'] ?? 1;
+        $group = isset($tag['group']) ? (int) $tag['group'] : 0;
 
         $parse = '<?php ';
-        $parse .= '$__LIST__ = app("app\\common\\service\\LinkService")->getLinkList(' . (int) $limit . ', ' . (int) $status . '); ';
+        $parse .= '$__LIST__ = app("app\\common\\service\\LinkService")->getLinkList(' . (int) $limit . ', ' . (int) $status . ', ' . $group . '); ';
         $parse .= '?>';
         $parse .= '{volist name="__LIST__" id="field"}';
         $parse .= $content;
         $parse .= '{/volist}';
+
+        return $parse;
+    }
+
+    /**
+     * {i8j:friendlink limit="10" status="1" group="1"}
+     * linklist的别名（语法糖），向后兼容
+     */
+    public function tagFriendlink(array $tag, string $content): string
+    {
+        return $this->tagLinklist($tag, $content);
+    }
+
+    /**
+     * {i8j:commentlist content_id="1" limit="10" status="1"}
+     * 编译为：调用CommentService::getList获取数据，然后用{volist}遍历
+     * 注意：content_id必须(int)强制转换，防止SQL注入
+     */
+    public function tagCommentlist(array $tag, string $content): string
+    {
+        $contentId = isset($tag['content_id']) ? (int) $tag['content_id'] : 0;
+        $limit = isset($tag['limit']) ? (int) $tag['limit'] : 10;
+        $status = isset($tag['status']) ? (int) $tag['status'] : 1;
+
+        $parse = '<?php ';
+        $parse .= '$__COMMENT_LIST__ = app("app\\common\\service\\CommentService")->getList(' . $contentId . ', ' . $status . ', 1, ' . $limit . '); ';
+        $parse .= '?>';
+        $parse .= '{volist name="__COMMENT_LIST__" id="field"}';
+        $parse .= $content;
+        $parse .= '{/volist}';
+
+        return $parse;
+    }
+
+    /**
+     * {i8j:customvar name="company_phone" default="" /}
+     * 编译为：输出自定义变量值
+     */
+    public function tagCustomvar(array $tag): string
+    {
+        $name = $tag['name'] ?? '';
+        $default = $tag['default'] ?? '';
+
+        $parse = '<?php echo htmlspecialchars($custom["' . $name . '"] ?? "' . $default . '", ENT_QUOTES, "UTF-8"); ?>';
 
         return $parse;
     }

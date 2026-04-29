@@ -46,11 +46,47 @@ class CateController extends FrontBaseController
             'type' => $type,
             'cate_id' => $cateId,
             'cates' => $cates,
+            'cate_tree_html' => $this->renderCateTree($cates, $typeSlug, $cateId),
             'list' => $list,
             'type_slug' => $typeSlug,
             'current_cate' => $currentCate,
         ]);
 
         return $this->view('/list');
+    }
+
+    /**
+     * 递归渲染分类树HTML（避免模板递归include导致编译死循环）
+     */
+    protected function renderCateTree(array $cates, string $typeSlug, int $cateId): string
+    {
+        $html = '';
+        foreach ($cates as $cate) {
+            $hasChildren = !empty($cate['children']);
+            $isActive = ($cateId == $cate['id']);
+            $isParentActive = false;
+            if ($hasChildren && !$isActive) {
+                foreach ($cate['children'] as $child) {
+                    if ($cateId == $child['id']) {
+                        $isParentActive = true;
+                        break;
+                    }
+                }
+            }
+            $showChildren = $isActive || $isParentActive;
+            $padding = ($cate['level'] * 1.2 + 1);
+            $html .= '<a href="/' . $typeSlug . '?cate_id=' . $cate['id'] . '" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ' . ($isActive ? 'active' : '') . '" style="padding-left:' . $padding . 'rem">';
+            $html .= '<span>' . htmlspecialchars((string) $cate['name']) . '</span>';
+            if ($hasChildren) {
+                $html .= '<i class="bi bi-chevron-' . ($showChildren ? 'down' : 'right') . ' small cate-toggle" data-target="cate-children-' . $cate['id'] . '"></i>';
+            }
+            $html .= '</a>';
+            if ($hasChildren) {
+                $html .= '<div class="cate-children" id="cate-children-' . $cate['id'] . '" style="' . (!$showChildren ? 'display:none' : '') . '">';
+                $html .= $this->renderCateTree($cate['children'], $typeSlug, $cateId);
+                $html .= '</div>';
+            }
+        }
+        return $html;
     }
 }

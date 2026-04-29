@@ -2,6 +2,35 @@
 // AI-CMS V2.0 公共辅助函数
 
 use think\facade\Cache;
+use think\facade\Config;
+
+if (!function_exists('load_cms_configs')) {
+    /**
+     * 从数据库加载系统配置到 ThinkPHP Config
+     * 支持 comment_auto_approve -> config('comment.comment_auto_approve')
+     */
+    function load_cms_configs(): void
+    {
+        static $loaded = false;
+        if ($loaded) {
+            return;
+        }
+        $loaded = true;
+
+        $configs = Cache::remember('site_configs_all', function () {
+            return \app\common\model\Config::column('value', 'name');
+        }, 3600);
+
+        foreach ($configs as $name => $value) {
+            $pos = strpos($name, '_');
+            if ($pos !== false) {
+                $group = substr($name, 0, $pos);
+                $key = substr($name, $pos + 1);
+                Config::set([$key => $value], $group);
+            }
+        }
+    }
+}
 
 if (!function_exists('get_status_text')) {
     /**

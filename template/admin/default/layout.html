@@ -318,8 +318,15 @@
     {block name="css"}{/block}
 </head>
 <body>
-    <!-- CSRF Token（供AJAX请求使用） -->
-    {:token_field()}
+    <!-- CSRF Token（会话级持久化，避免并发请求覆盖） -->
+    <?php
+    $csrfToken = session('__token__');
+    if (empty($csrfToken)) {
+        $csrfToken = md5(uniqid((string) mt_rand(), true));
+        session('__token__', $csrfToken);
+    }
+    echo '<input type="hidden" name="__token__" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '" />';
+    ?>
 
     <!-- 侧边栏遮罩（移动端） -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -373,9 +380,26 @@
                 <button type="button" class="btn btn-sm btn-light text-secondary" onclick="showToast('请联系官方获取授权', 'info')" title="购买授权">
                     <i class="bi bi-key"></i><span class="d-none d-md-inline ms-1">购买授权</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="showToast('当前已是最新版本 v2.2', 'info')" title="系统更新">
+                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="showToast('当前已是最新版本 v2.3', 'info')" title="系统更新">
                     <i class="bi bi-arrow-up-circle"></i><span class="d-none d-md-inline ms-1">系统更新</span>
                 </button>
+            </div>
+            <!-- 通知铃铛 -->
+            <div class="dropdown me-2">
+                <a href="#" class="text-decoration-none position-relative" data-bs-toggle="dropdown" id="notificationDropdown">
+                    <i class="bi bi-bell fs-5 text-secondary"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notificationBadge" style="font-size:0.6rem;">0</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" style="width:320px;" aria-labelledby="notificationDropdown">
+                    <li class="dropdown-header d-flex justify-content-between align-items-center">
+                        <span>通知中心</span>
+                        <a href="/admin/notification/index" class="small text-decoration-none">查看全部</a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li id="notificationList">
+                        <div class="dropdown-item-text text-center text-muted py-3">暂无新通知</div>
+                    </li>
+                </ul>
             </div>
             <div class="dropdown">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
@@ -429,6 +453,16 @@
                     showPageLoader();
                 }
             });
+
+            // 自动为所有表单注入CSRF Token（兼容直接提交和AJAX）
+            var csrfToken = $('input[name="__token__"]').val();
+            if (csrfToken) {
+                $('form').each(function() {
+                    if (!$(this).find('input[name="__token__"]').length) {
+                        $(this).append('<input type="hidden" name="__token__" value="' + csrfToken + '">');
+                    }
+                });
+            }
         })();
 
         // 侧边栏切换（移动端）
@@ -441,8 +475,8 @@
             $(this).removeClass('show');
         });
 
-        // 通用AJAX封装
-        window.ajaxPost = function(url, data, callback) {
+        // 通用AJAX封装（含CSRF自动恢复）
+        window.ajaxPost = function(url, data, callback, _retry) {
             var csrfToken = $('input[name="__token__"]').val();
             var ajaxOptions = {
                 url: url,
@@ -463,12 +497,22 @@
                                 }
                             }, 800);
                         }
+                    } else if (res.code === 403 && !_retry) {
+                        // CSRF验证失败，自动获取新token后重试一次
+                        refreshCsrfToken(function() {
+                            ajaxPost(url, data, callback, true);
+                        });
                     } else {
                         showToast(res.msg || '操作失败', 'danger');
                     }
                 },
                 error: function(xhr) {
-                    if (xhr.status === 403) {
+                    if (xhr.status === 403 && !_retry) {
+                        // HTTP 403，可能是CSRF失败，尝试自动恢复
+                        refreshCsrfToken(function() {
+                            ajaxPost(url, data, callback, true);
+                        });
+                    } else if (xhr.status === 403) {
                         showToast('CSRF验证失败，请刷新页面后重试', 'danger');
                     } else {
                         showToast('网络错误，请重试', 'danger');
@@ -479,6 +523,23 @@
                 ajaxOptions.headers = { 'X-CSRF-TOKEN': csrfToken };
             }
             $.ajax(ajaxOptions);
+        };
+
+        // CSRF Token 自动刷新
+        window.refreshCsrfToken = function(callback) {
+            $.get('/api/csrf/token', function(res) {
+                if (res.code === 0 && res.data && res.data.token) {
+                    $('input[name="__token__"]').val(res.data.token);
+                    if (typeof callback === 'function') callback();
+                } else {
+                    // 获取失败，刷新页面
+                    showToast('会话已过期，页面将刷新', 'warning');
+                    setTimeout(function() { location.reload(); }, 1500);
+                }
+            }).fail(function() {
+                showToast('会话已过期，页面将刷新', 'warning');
+                setTimeout(function() { location.reload(); }, 1500);
+            });
         };
 
         // Toast提示
@@ -528,31 +589,36 @@
         // 清除全站缓存
         window.clearCache = function() {
             if (!confirm('确定要清除全部缓存吗？')) return;
-            var csrfToken = $('input[name="__token__"]').val();
-            var ajaxOptions = {
-                url: '/api/cache/clear',
-                type: 'POST',
-                dataType: 'json',
-                success: function(res) {
-                    if (res.code === 0) {
-                        showToast(res.msg, 'success');
-                    } else {
-                        showToast(res.msg || '缓存清理失败', 'warning');
-                    }
-                },
-                error: function(xhr) {
-                    if (xhr.status === 403) {
-                        showToast('CSRF验证失败，请刷新页面后重试', 'danger');
-                    } else {
-                        showToast('网络错误，请重试', 'danger');
-                    }
-                }
-            };
-            if (csrfToken) {
-                ajaxOptions.headers = { 'X-CSRF-TOKEN': csrfToken };
-            }
-            $.ajax(ajaxOptions);
+            ajaxPost('/api/cache/clear', {});
         };
+
+        // V2.3 通知轮询（60秒间隔，指定JSON避免触发HTML渲染）
+        (function pollNotification() {
+            function fetchUnread() {
+                $.ajax({
+                    url: '/admin/notification/index',
+                    type: 'GET',
+                    data: { is_read: 0, ajax: 1 },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.code === 0 && res.data && res.data.count !== undefined) {
+                            var count = parseInt(res.data.count, 10);
+                            var $badge = $('#notificationBadge');
+                            if (count > 0) {
+                                $badge.text(count > 99 ? '99+' : count).removeClass('d-none');
+                            } else {
+                                $badge.addClass('d-none');
+                            }
+                        }
+                    },
+                    error: function() {
+                        // 静默失败，不影响用户操作
+                    }
+                });
+            }
+            fetchUnread();
+            setInterval(fetchUnread, 60000);
+        })();
     </script>
     {block name="js"}{/block}
 </body>

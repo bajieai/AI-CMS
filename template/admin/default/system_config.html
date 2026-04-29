@@ -8,6 +8,19 @@
 {/block}
 
 {block name="content"}
+<!-- Tab 导航 -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link active" href="/admin/system/config">系统配置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/system/customVar">自定义变量</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/system/moduleControl">功能开关</a>
+    </li>
+</ul>
+
 <form id="configForm" method="post" action="/admin/system/config">
     {volist name="groups" id="group" key="groupName"}
     <div class="card mb-3">
@@ -87,11 +100,5 @@ $('#configForm').on('submit', function(e) {
     });
     ajaxPost($(this).attr('action'), $(this).serialize());
 });
-
-function clearCache() {
-    if (confirm('确定要清除所有缓存吗？')) {
-        ajaxPost('/api/cache/clear', {});
-    }
-}
 </script>
 {/block}

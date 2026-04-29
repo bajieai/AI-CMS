@@ -45,9 +45,7 @@
                 <div class="card">
                     <div class="card-header bg-primary text-white"><i class="bi bi-folder2 me-1"></i>分类</div>
                     <div class="list-group list-group-flush" id="cateTree">
-                        {volist name="cates" id="cate"}
-                        {include file="cate_tree_item" /}
-                        {/volist}
+                        {$cate_tree_html|raw}
                     </div>
                 </div>
             </div>
@@ -81,7 +79,7 @@
                 </div>
                 {/empty}
 
-                {if condition="$list->hasPages() ?? false"}
+                {if condition="($list->hasPages() ?? false)"}
                 <div class="mt-3 d-flex justify-content-center">
                     {$list->render()|raw}
                 </div>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
+use app\common\model\LinkGroup;
 use app\common\service\LinkService;
 use think\facade\Request;
 
@@ -37,11 +38,12 @@ class LinkController extends AdminBaseController
     {
         if (Request::isPost()) {
             $data = [
-                'title'  => Request::post('title', ''),
-                'url'    => Request::post('url', ''),
-                'logo'   => Request::post('logo', ''),
-                'sort'   => (int) Request::post('sort', 0),
-                'status' => (int) Request::post('status', 1),
+                'title'     => Request::post('title', ''),
+                'url'       => Request::post('url', ''),
+                'logo'      => Request::post('logo', ''),
+                'group_id'  => (int) Request::post('group_id', 0),
+                'sort'      => (int) Request::post('sort', 0),
+                'status'    => (int) Request::post('status', 1),
             ];
 
             if (empty($data['title'])) {
@@ -60,6 +62,8 @@ class LinkController extends AdminBaseController
             return $this->error('添加失败');
         }
 
+        $groups = LinkGroup::where('status', 1)->order('sort', 'asc')->column('name', 'id');
+        $this->app->view->assign('groups', $groups);
         $this->app->view->assign('info', null);
         return $this->app->view->fetch('/link_edit');
     }
@@ -78,11 +82,12 @@ class LinkController extends AdminBaseController
 
         if (Request::isPost()) {
             $data = [
-                'title'  => Request::post('title', ''),
-                'url'    => Request::post('url', ''),
-                'logo'   => Request::post('logo', ''),
-                'sort'   => (int) Request::post('sort', 0),
-                'status' => (int) Request::post('status', 1),
+                'title'     => Request::post('title', ''),
+                'url'       => Request::post('url', ''),
+                'logo'      => Request::post('logo', ''),
+                'group_id'  => (int) Request::post('group_id', 0),
+                'sort'      => (int) Request::post('sort', 0),
+                'status'    => (int) Request::post('status', 1),
             ];
 
             if (empty($data['title'])) {
@@ -100,6 +105,8 @@ class LinkController extends AdminBaseController
             return $this->error('保存失败');
         }
 
+        $groups = LinkGroup::where('status', 1)->order('sort', 'asc')->column('name', 'id');
+        $this->app->view->assign('groups', $groups);
         $this->app->view->assign('info', $info);
         return $this->app->view->fetch('/link_edit');
     }

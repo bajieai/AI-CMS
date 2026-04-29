@@ -31,6 +31,11 @@ class Content extends Model
         'sort' => 'integer',
         'is_top' => 'integer',
         'views' => 'integer',
+        'publish_time' => 'integer',
+        'hotness' => 'integer',
+        'is_recommend' => 'integer',
+        'like_count' => 'integer',
+        'comment_count' => 'integer',
     ];
 
     /**
@@ -100,5 +105,29 @@ class Content extends Model
     public function ext()
     {
         return $this->hasOne(ContentExt::class, 'content_id');
+    }
+
+    /**
+     * 关联评论
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'content_id');
+    }
+
+    /**
+     * 关联点赞
+     */
+    public function likes()
+    {
+        return $this->hasMany(MemberLike::class, 'content_id');
+    }
+
+    /**
+     * 关联收藏
+     */
+    public function favorites()
+    {
+        return $this->hasMany(MemberFavorite::class, 'content_id');
     }
 }

@@ -13,6 +13,7 @@ use think\exception\ValidateException;
  * 为所有后台POST/PUT/DELETE/PATCH请求提供CSRF防护
  * 支持表单 __token__ 字段和 X-CSRF-TOKEN Header 两种传递方式
  * Token验证通过后不立即销毁，以兼容多个AJAX请求共用一个Token的场景
+ * 验证失败时自动生成新Token返回给客户端，支持AJAX自动恢复
  */
 class AdminCsrf
 {
@@ -36,11 +37,14 @@ class AdminCsrf
 
         // 验证Token
         if (empty($sessionToken) || empty($requestToken) || $requestToken !== $sessionToken) {
+            // 验证失败时重新生成Token，方便客户端自动恢复
+            $newToken = $this->regenerateToken();
+
             if ($request->isAjax()) {
                 return json([
                     'code' => 403,
                     'msg'  => 'CSRF验证失败，请刷新页面后重试',
-                    'data' => null,
+                    'data' => ['token' => $newToken],
                 ]);
             }
             throw new ValidateException('CSRF验证失败，请刷新页面后重试');
@@ -50,5 +54,16 @@ class AdminCsrf
         // 如需严格防止重放攻击，可在关键操作（如资金类）中额外使用单次Token
 
         return $next($request);
+    }
+
+    /**
+     * 重新生成CSRF Token
+     * 会话级持久化策略：只在首次或失效时生成，避免并发请求覆盖
+     */
+    protected function regenerateToken(): string
+    {
+        $token = md5(uniqid((string) mt_rand(), true));
+        session('__token__', $token);
+        return $token;
     }
 }

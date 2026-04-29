@@ -1,0 +1,48 @@
+{extend name="layout" /}
+
+{block name="title"}个人中心{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-4">个人中心</h4>
+                    <form id="profileForm">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" value="{$member.username}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">昵称</label>
+                            <input type="text" name="nickname" class="form-control" value="{$member.nickname}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" value="{$member.email}" disabled>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">保存修改</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/member/logout" class="text-decoration-none small text-danger">退出登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#profileForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/member/profile', $(this).serialize(), function(res) {
+        alert(res.msg);
+    });
+});
+</script>
+{/block}

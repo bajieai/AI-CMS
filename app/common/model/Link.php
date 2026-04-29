@@ -19,6 +19,8 @@ class Link extends Model
     protected $type = [
         'sort' => 'integer',
         'status' => 'integer',
+        'group_id' => 'integer',
+        'is_apply' => 'integer',
     ];
 
     /**
@@ -28,5 +30,13 @@ class Link extends Model
     {
         $map = [0 => '禁用', 1 => '启用'];
         return $map[$data['status']] ?? '未知';
+    }
+
+    /**
+     * 关联分组
+     */
+    public function group()
+    {
+        return $this->belongsTo(LinkGroup::class, 'group_id');
     }
 }
