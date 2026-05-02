@@ -1,0 +1,80 @@
+{extend name="layout" /}
+
+{block name="title"}导入管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/import/index">系统设置</a></li>
+<li class="breadcrumb-item active">导入管理</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-upload me-2" style="color:var(--primary)"></i>数据导入</h5>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100" style="border:none;box-shadow:var(--card-shadow)">
+            <div class="card-body p-4">
+                <h6 class="mb-3"><i class="bi bi-file-earmark-excel me-2 text-success"></i>内容导入</h6>
+                <div class="mb-3">
+                    <label class="form-label">选择分类</label>
+                    <select class="form-select" name="import_cate_id">
+                        <option value="0">不指定（保持原分类）</option>
+                        {volist name="categories" id="c"}<option value="{$c.id}">{$c.name}</option>{/volist}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">上传文件（CSV/Excel）</label>
+                    <input type="file" class="form-control" name="content_file" accept=".csv,.xlsx,.xls">
+                    <div class="form-text">CSV格式：标题,内容,分类名,标签,状态</div>
+                </div>
+                <button class="btn btn-primary w-100" id="btnImportContent"><i class="bi bi-upload me-1"></i>开始导入</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100" style="border:none;box-shadow:var(--card-shadow)">
+            <div class="card-body p-4">
+                <h6 class="mb-3"><i class="bi bi-people me-2 text-info"></i>会员导入</h6>
+                <div class="mb-3">
+                    <label class="form-label">上传文件</label>
+                    <input type="file" class="form-control" name="member_file" accept=".csv,.xlsx,.xls">
+                    <div class="form-text">CSV格式：用户名,邮箱,昵称,密码</div>
+                </div>
+                <button class="btn btn-info w-100" id="btnImportMember"><i class="bi bi-upload me-1"></i>开始导入</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 导入历史 -->
+<div class="card mt-4" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="card-header" style="background:transparent;border-bottom:1px solid var(--border-color)">
+        <i class="bi bi-clock-history me-1" style="color:var(--primary)"></i>最近导入记录
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr><th width="60">ID</th><th>类型</th><th>文件名</th><th width="80">总数</th><th width="80">成功</th><th width="80">失败</th><th width="140">时间</th></tr>
+            </thead>
+            <tbody>
+                {volist name="history" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td><span class="badge bg-light text-dark border">{$vo.type}</span></td>
+                    <td>{$vo.filename}</td>
+                    <td>{$vo.total}</td>
+                    <td class="text-success">{$vo.success_count}</td>
+                    <td class="text-danger">{$vo.fail_count}</td>
+                    <td style="font-size:.82rem">{$vo.create_time|date='Y-m-d H:i'}</td>
+                </tr>
+                {/volist}
+                {empty name="history"}
+                <tr><td colspan="7" class="text-center text-muted py-3">暂无导入记录</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

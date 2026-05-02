@@ -1,0 +1,68 @@
+{extend name="layout" /}
+
+{block name="title"}{$site_name} - 首页{/block}
+
+{block name="content"}
+<!-- 轮播 -->
+{i8j:bannerlist limit="5" status="1"}
+{if condition="$i == 0"}
+<div id="cmBanner" class="carousel slide" data-bs-ride="carousel" style="margin:-14px -14px 14px;border-radius:0;">
+    <div class="carousel-indicators">
+{/if}
+        <button type="button" data-bs-target="#cmBanner" data-bs-slide-to="{$i}" {if condition="$i == 0"}class="active"{/if} style="width:6px;height:6px;border-radius:50%;"></button>
+    {if condition="$i == count($__LIST__) - 1"}</div><div class="carousel-inner">{/if}
+    <div class="carousel-item {if condition='$i == 0'}active{/if}" style="height:200px;">
+        <a href="{$field.link|default='javascript:;'}" target="{$field.target|default='_self'}" class="d-block h-100" style="background:url('{$field.image}') center/cover no-repeat;">
+            {if condition="$field.title"}<div class="carousel-caption d-block" style="background:rgba(0,0,0,.35);border-radius:6px;padding:5px 10px;font-size:12.5px;"><span>{$field.title}</span></div>{/if}
+        </a>
+    </div>
+    {if condition="$i == count($__LIST__) - 1"}</div></div>
+{/if}
+{/i8j:bannerlist}
+
+{empty name="__LIST__"}
+<!-- 企业风Hero -->
+<div class="cm-hero"><h1>AI 驱动的企业信息管理</h1><p>高效管理产品、案例、新闻等多类型内容，AI智能写作助力企业数字化升级</p><a href="/product" class="btn">了解更多 &rarr;</a></div>
+{/empty}
+
+<!-- 服务卡片 -->
+<section style="margin-top:18px;">
+    <h3 class="cm-sect-tit">核心服务</h3>
+    {i8j:infolist type="product" limit="3"}
+    <div class="cm-svc-card">
+        <div class="cm-svc-icon"><i class="bi bi-box-seam"></i></div>
+        <h5>{$field.title}</h5>
+        <p>{$field.excerpt|msubstr=0,60}</p>
+        <a href="{$field.url}" style="color:#3b82f6;text-decoration:none;font-weight:600;font-size:13px;">了解详情 &rarr;</a>
+    </div>
+    {/i8j:infolist}
+</section>
+
+<!-- 案例展示 -->
+<section style="margin-top:20px;">
+    <h3 class="cm-sect-tit">成功案例</h3>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+        {i8j:infolist type="case" limit="4"}
+        <div class="cm-case-card" style="min-width:260px;flex-shrink:0;">
+            <img src="{$field.cover|default='/assets/images/placeholder-case.svg'}" alt="" onerror="this.src='/assets/images/placeholder-case.svg'">
+            <div class="ovl"><h5>{$field.title}</h5><p>{$field.excerpt|msubstr=0,35}</p></div>
+        </div>
+        {/i8j:infolist}
+    </div>
+</section>
+
+<!-- 新闻动态 -->
+<section style="margin-top:20px;margin-bottom:8px;">
+    <h3 class="cm-sect-tit">新闻动态</h3>
+    {i8j:infolist type="news" limit="4"}
+    <div class="cm-card">
+        <div class="cm-card-bd">
+            <small style="background:#eef2ff;color:#3b82f6;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:500;">{$field.create_time|date='m-d'}</small>
+            <h5 class="cm-card-tit" style="margin-top:4px;"><a href="{$field.url}">{$field.title}</a></h5>
+            <p style="font-size:12.5px;color:#64748b;margin-bottom:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{$field.excerpt|msubstr=0,55}</p>
+        </div>
+    </div>
+    {/i8j:infolist}
+    <div style="text-align:center;margin-top:14px;"><a href="/news" class="btn btn-sm rounded-pill px-4" style="color:#3b82f6;border:1px solid #e2e8f0;background:#fff;text-decoration:none;font-weight:600;">查看全部 &raquo;</a></div>
+</section>
+{/block}

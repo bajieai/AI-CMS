@@ -1,0 +1,70 @@
+{extend name="layout" /}
+
+{block name="title"}积分记录{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- 积分概览 -->
+            <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
+                <div class="card-body p-4" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);border-radius:12px;color:#fff">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div style="font-size:2rem;font-weight:700">{$member.points|default=0}</div>
+                            <div style="font-size:.78rem;opacity:.85">当前积分</div>
+                        </div>
+                        <div class="col-4" style="border-left:1px solid rgba(255,255,255,.3);border-right:1px solid rgba(255,255,255,.3)">
+                            <div style="font-size:2rem;font-weight:700">{$member.total_points|default=0}</div>
+                            <div style="font-size:.78rem;opacity:.85">累计获得</div>
+                        </div>
+                        <div class="col-4">
+                            <div style="font-size:2rem;font-weight:700">{$consecutive_days|default=0}</div>
+                            <div style="font-size:.78rem;opacity:.85">连续签到</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 积分记录列表 -->
+            <div class="card shadow-sm" style="border:none;border-radius:12px">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid #e2e8f0;font-weight:600">
+                    <span><i class="bi bi-clock-history me-1"></i>积分记录</span>
+                    <a href="/signin" class="btn btn-sm btn-primary" style="border-radius:50px"><i class="bi bi-calendar-check me-1"></i>去签到</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    {volist name="list" id="vo"}
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                        <div>
+                            <div style="font-weight:500;font-size:.9rem">
+                                {switch $vo.type}
+                                {case /signin/}<i class="bi bi-calendar-check text-success me-1"></i>签到{/case}
+                                {case /comment/}<i class="bi bi-chat-dots text-info me-1"></i>评论{/case}
+                                {case /content_liked/}<i class="bi bi-heart text-danger me-1"></i>被点赞{/case}
+                                {case /content_favorited/}<i class="bi bi-bookmark text-warning me-1"></i>被收藏{/case}
+                                {case /purchase/}<i class="bi bi-credit-card text-secondary me-1"></i>购买内容{/case}
+                                {case /register/}<i class="bi bi-person-plus text-primary me-1"></i>注册奖励{/case}
+                                {case /admin_adjust/}<i class="bi bi-gear text-dark me-1"></i>管理员调整{/case}
+                                {default /}<i class="bi bi-circle me-1"></i>{$vo.type}{/switch}
+                            </div>
+                            <div class="text-muted" style="font-size:.78rem">{$vo.note|default=''}</div>
+                        </div>
+                        <div class="text-end">
+                            <div style="font-weight:700;color:{$vo.points>0?'#43e97b':'#f5576c'}">
+                                {if $vo.points > 0}+{/if}{$vo.points}
+                            </div>
+                            <div class="text-muted" style="font-size:.72rem">{$vo.create_time|date='m-d H:i'}</div>
+                        </div>
+                    </div>
+                    {/volist}
+                    {empty name="list"}
+                    <div class="text-center text-muted py-5">暂无积分记录</div>
+                    {/empty}
+                </div>
+            </div>
+
+            {$list|raw}
+        </div>
+    </div>
+</div>
+{/block}

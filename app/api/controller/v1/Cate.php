@@ -4,17 +4,24 @@ declare(strict_types=1);
 namespace app\api\controller\v1;
 
 use app\common\model\Cate as CateModel;
+use app\common\traits\ApiScopeCheck;
 
 class Cate
 {
+    use ApiScopeCheck;
+
     public function index()
     {
+        $this->requireScope('cate:read');
+
         $list = CateModel::where('status', 1)->order('sort', 'asc')->select();
         return json(['code' => 0, 'msg' => 'success', 'data' => $list]);
     }
 
     public function tree()
     {
+        $this->requireScope('cate:read');
+
         $list = CateModel::where('status', 1)->order('sort', 'asc')->select()->toArray();
         $tree = $this->buildTree($list);
         return json(['code' => 0, 'msg' => 'success', 'data' => $tree]);

@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace app\common\service;
 
+use app\common\model\AiLog;
+use app\common\service\ai\AiProviderFactory;
+use app\common\service\ai\AiProviderInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
@@ -10,116 +13,170 @@ use GuzzleHttp\Exception\RequestException;
 use think\facade\Config;
 
 /**
- * AI服务（DeepSeek API直连）
- * 参考V1.0 DeepSeekAiService重写，移除JWT/Redis队列依赖
+ * AI服务门面类
+ * V2.4重构：委托给AiProviderFactory + 具体Provider实现
+ * 保留原有generate()接口以兼容现有调用方
  */
 class AiService
 {
+    protected ?AiProviderInterface $provider = null;
     protected Client $client;
     protected array $config;
 
     public function __construct()
     {
         $this->config = Config::get('ai.deepseek');
-        
-        $this->client = new Client([
-            'base_uri' => $this->config['base_url'],
-            'timeout' => Config::get('ai.request.timeout', 60),
-            'connect_timeout' => Config::get('ai.request.connect_timeout', 10),
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->config['api_key'],
-                'Content-Type' => 'application/json',
-            ],
-        ]);
     }
 
     /**
-     * 生成内容
+     * 获取当前Provider（懒加载）
+     */
+    protected function getProvider(): AiProviderInterface
+    {
+        if ($this->provider === null) {
+            $this->provider = AiProviderFactory::getDefault();
+        }
+        return $this->provider;
+    }
+
+    /**
+     * 设置指定Provider
+     */
+    public function setProvider(AiProviderInterface $provider): self
+    {
+        $this->provider = $provider;
+        return $this;
+    }
+
+    /**
+     * 生成内容（兼容原有接口）
      */
     public function generate(string $prompt, string $template = 'continue', array $options = []): array
     {
         $templates = Config::get('ai.templates', []);
         $systemPrompt = $templates[$template]['system_prompt'] ?? '';
-        
-        $model = $options['model'] ?? $this->config['default_model'];
-        $temperature = $options['temperature'] ?? $this->config['temperature'];
-        $maxTokens = $options['max_tokens'] ?? $this->config['max_tokens'];
 
-        $messages = [];
         if (!empty($systemPrompt)) {
-            $messages[] = ['role' => 'system', 'content' => $systemPrompt];
+            $options['system_prompt'] = $systemPrompt;
         }
-        $messages[] = ['role' => 'user', 'content' => $prompt];
 
-        $data = [
-            'model' => $model,
-            'messages' => $messages,
-            'temperature' => (float) $temperature,
-            'max_tokens' => (int) $maxTokens,
-        ];
-
-        $response = $this->sendWithRetry('POST', '/chat/completions', $data);
-
-        return $this->parseResponse($response);
-    }
-
-    /**
-     * 带重试发送请求
-     */
-    protected function sendWithRetry(string $method, string $uri, array $data, int $retryCount = 0): array
-    {
-        $maxRetries = Config::get('ai.request.retry_times', 2);
-        $retryDelay = Config::get('ai.request.retry_delay', 1000);
+        $provider = $this->getProvider();
+        $modelInfo = $provider->getModelInfo();
+        $startTime = microtime(true);
 
         try {
-            $response = $this->client->post($uri, ['json' => $data]);
-            $body = (string) $response->getBody();
-            $result = json_decode($body, true);
+            $content = $provider->write($prompt, $options);
+            $duration = intval((microtime(true) - $startTime) * 1000);
 
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('响应JSON解析失败');
+            // 记录成功日志
+            $this->logCall($modelInfo, 'write', $prompt, $content, $duration, 1);
+
+            return [
+                'content' => $content,
+                'usage' => null,
+                'model' => $modelInfo['model_id'] ?? $this->config['default_model'] ?? 'unknown',
+            ];
+        } catch (\Exception $e) {
+            $duration = intval((microtime(true) - $startTime) * 1000);
+
+            // 记录失败日志
+            $this->logCall($modelInfo, 'write', $prompt, '', $duration, 2, $e->getMessage());
+
+            // 故障降级：尝试备用Provider
+            try {
+                $fallback = AiProviderFactory::getFallbackProvider($modelInfo['provider'] ?? null);
+                $fallbackInfo = $fallback->getModelInfo();
+                $content = $fallback->write($prompt, $options);
+                $fallbackDuration = intval((microtime(true) - $startTime) * 1000);
+
+                // 记录降级日志
+                $this->logCall($fallbackInfo, 'write', $prompt, $content, $fallbackDuration, 3, '降级: ' . $e->getMessage());
+
+                return [
+                    'content' => $content,
+                    'usage' => null,
+                    'model' => $fallbackInfo['model_id'] ?? 'fallback',
+                ];
+            } catch (\Exception $fallbackError) {
+                throw new \Exception('AI调用失败，已尝试所有可用模型: ' . $e->getMessage());
             }
-
-            return $result;
-
-        } catch (ConnectException $e) {
-            if ($retryCount < $maxRetries) {
-                usleep($retryDelay * 1000);
-                return $this->sendWithRetry($method, $uri, $data, $retryCount + 1);
-            }
-            throw new \Exception('连接AI服务失败，请检查网络');
-
-        } catch (RequestException $e) {
-            $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 0;
-
-            if (in_array($statusCode, [429, 500, 502, 503, 504]) && $retryCount < $maxRetries) {
-                usleep($retryDelay * 1000 * ($retryCount + 1));
-                return $this->sendWithRetry($method, $uri, $data, $retryCount + 1);
-            }
-
-            if ($statusCode >= 400 && $statusCode < 500) {
-                $error = json_decode((string) $e->getResponse()->getBody(), true);
-                $message = $error['error']['message'] ?? $e->getMessage();
-                throw new \Exception("AI服务请求错误: {$message}");
-            }
-
-            throw new \Exception('AI服务请求失败: ' . $e->getMessage());
         }
     }
 
     /**
-     * 解析响应
+     * SEO优化
      */
-    protected function parseResponse(array $response): array
+    public function seoOptimize(string $content, array $keywords = []): array
     {
-        $content = $response['choices'][0]['message']['content'] ?? '';
-        $usage = $response['usage'] ?? null;
+        return $this->callWithFallback('seoOptimize', $content, $keywords);
+    }
 
-        return [
-            'content' => $content,
-            'usage' => $usage,
-            'model' => $response['model'] ?? $this->config['default_model'],
-        ];
+    /**
+     * 翻译
+     */
+    public function translate(string $text, string $from = 'zh', string $to = 'en'): string
+    {
+        return $this->callWithFallback('translate', $text, $from, $to);
+    }
+
+    /**
+     * 摘要生成
+     */
+    public function summarize(string $text, int $maxLength = 200): string
+    {
+        return $this->callWithFallback('summarize', $text, $maxLength);
+    }
+
+    /**
+     * 通用调用方法（带故障降级）
+     */
+    protected function callWithFallback(string $method, ...$args): mixed
+    {
+        $provider = $this->getProvider();
+        $modelInfo = $provider->getModelInfo();
+        $startTime = microtime(true);
+
+        try {
+            $result = $provider->$method(...$args);
+            $duration = intval((microtime(true) - $startTime) * 1000);
+            $this->logCall($modelInfo, $method, is_string($args[0] ?? '') ? $args[0] : '', is_string($result) ? $result : json_encode($result), $duration, 1);
+            return $result;
+        } catch (\Exception $e) {
+            $duration = intval((microtime(true) - $startTime) * 1000);
+            $this->logCall($modelInfo, $method, is_string($args[0] ?? '') ? $args[0] : '', '', $duration, 2, $e->getMessage());
+
+            // 降级
+            try {
+                $fallback = AiProviderFactory::getFallbackProvider($modelInfo['provider'] ?? null);
+                $result = $fallback->$method(...$args);
+                $fallbackInfo = $fallback->getModelInfo();
+                $fallbackDuration = intval((microtime(true) - $startTime) * 1000);
+                $this->logCall($fallbackInfo, $method, is_string($args[0] ?? '') ? $args[0] : '', is_string($result) ? $result : json_encode($result), $fallbackDuration, 3, '降级: ' . $e->getMessage());
+                return $result;
+            } catch (\Exception $fallbackError) {
+                throw new \Exception('AI调用失败: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * 记录AI调用日志
+     */
+    protected function logCall(array $modelInfo, string $taskType, string $prompt, string $response, int $durationMs, int $status, string $errorMsg = ''): void
+    {
+        try {
+            AiLog::create([
+                'model_id'        => $modelInfo['model_id'] ?? 0,
+                'task_type'       => $taskType,
+                'prompt_length'   => mb_strlen($prompt),
+                'response_length' => mb_strlen($response),
+                'duration_ms'     => $durationMs,
+                'status'          => $status,
+                'error_msg'       => $errorMsg,
+            ]);
+        } catch (\Throwable) {
+            // 日志记录失败不影响主流程
+        }
     }
 
     /**
@@ -127,6 +184,11 @@ class AiService
      */
     public function isConfigured(): bool
     {
-        return !empty($this->config['api_key']);
+        try {
+            $provider = $this->getProvider();
+            return true;
+        } catch (\Throwable) {
+            return !empty($this->config['api_key']);
+        }
     }
 }

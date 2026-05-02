@@ -34,6 +34,22 @@ class MemberFavoriteService
         ]);
 
         Cache::tag(CacheService::TAG_CONTENT)->clear();
+
+        // V2.4: 被收藏者获得积分（内容作者）
+        try {
+            $content = \app\common\model\Content::find($contentId);
+            if ($content && $content->member_id > 0 && $content->member_id != $memberId) {
+                if (PointsService::checkDailyLimit('content_favorited', $content->member_id)) {
+                    $points = PointsService::getConfig('content_favorited', 5);
+                    if ($points > 0) {
+                        PointsService::add($content->member_id, $points, 'content_favorited', $contentId, '内容被收藏积分');
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // 积分添加失败不影响收藏流程
+        }
+
         return ['success' => true, 'msg' => '收藏成功'];
     }
 

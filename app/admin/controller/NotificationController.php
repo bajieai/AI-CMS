@@ -37,9 +37,20 @@ class NotificationController extends AdminBaseController
 
     public function read(Request $request)
     {
-        $id = (int) $request->post('id', 0);
-        $userId = $this->getCurrentUser()['id'] ?? 0;
-        $success = $this->service->markRead($id, 'admin', $userId);
-        return json(['success' => $success]);
+        try {
+            $id = (int) $request->post('id', 0);
+            $all = (int) $request->post('all', 0);
+            $userId = $this->getCurrentUser()['id'] ?? 0;
+
+            if ($all === 1) {
+                $this->service->markAllRead('admin', $userId);
+                return json(['success' => true]);
+            }
+
+            $success = $this->service->markRead($id, 'admin', $userId);
+            return json(['success' => $success]);
+        } catch (\Exception $e) {
+            return json(['success' => false, 'msg' => $e->getMessage()]);
+        }
     }
 }

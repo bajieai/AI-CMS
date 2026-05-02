@@ -1,0 +1,115 @@
+{extend name="layout" /}
+
+{block name="title"}关键词分组管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/seo_keyword/index">SEO与数据</a></li>
+<li class="breadcrumb-item active">关键词分组</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-folder me-2" style="color:var(--primary)"></i>关键词分组</h5>
+    <button class="btn btn-primary" id="btnAdd"><i class="bi bi-plus-lg me-1"></i>添加分组</button>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="60">ID</th>
+                    <th>分组名称</th>
+                    <th width="80">排序</th>
+                    <th width="140">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td style="font-weight:500">{$vo.name}</td>
+                    <td>{$vo.sort}</td>
+                    <td>
+                        <a href="javascript:;" class="btn btn-sm btn-outline-primary btn-edit" data-id="{$vo.id}" data-name="{$vo.name}" data-sort="{$vo.sort}"><i class="bi bi-pencil"></i></a>
+                        <a href="javascript:;" class="btn btn-sm btn-outline-danger btn-delete" data-id="{$vo.id}"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="4" class="text-center text-muted py-4">暂无分组，点击右上角添加</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 分组弹窗 -->
+<div class="modal fade" id="groupModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="groupModalTitle">添加分组</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="groupId" value="0">
+                <div class="mb-3">
+                    <label class="form-label">分组名称</label>
+                    <input type="text" class="form-control" id="groupName" placeholder="如：核心关键词">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">排序</label>
+                    <input type="number" class="form-control" id="groupSort" value="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSave">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    var modal = new bootstrap.Modal('#groupModal');
+
+    $('#btnAdd').click(function(){
+        $('#groupId').val(0);
+        $('#groupName').val('');
+        $('#groupSort').val(0);
+        $('#groupModalTitle').text('添加分组');
+        modal.show();
+    });
+
+    $('.btn-edit').click(function(){
+        $('#groupId').val($(this).data('id'));
+        $('#groupName').val($(this).data('name'));
+        $('#groupSort').val($(this).data('sort'));
+        $('#groupModalTitle').text('编辑分组');
+        modal.show();
+    });
+
+    $('#btnSave').click(function(){
+        var name = $.trim($('#groupName').val());
+        if(!name){ $.toast('分组名称不能为空','danger'); return; }
+        $.post('/admin/seo_keyword/saveGroup',{
+            id: $('#groupId').val(),
+            name: name,
+            sort: $('#groupSort').val()
+        },function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),600);
+        });
+    });
+
+    $('.btn-delete').click(function(){
+        if(!confirm('确定删除该分组？分组内关键词将移回未分组。')) return;
+        $.post('/admin/seo_keyword/deleteGroup',{id:$(this).data('id')},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),600);
+        });
+    });
+});
+</script>
+{/block}

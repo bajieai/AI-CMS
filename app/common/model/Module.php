@@ -64,8 +64,7 @@ class Module extends Model
      */
     public static function clearCache(): void
     {
-        Cache::tag(CacheService::TAG_CONFIG)->delete('enabled_modules');
-        Cache::tag(CacheService::TAG_CONFIG)->delete('disabled_modules');
+        Cache::tag(CacheService::TAG_CONFIG)->clear();
     }
 
     /**

@@ -1,0 +1,40 @@
+{extend name="layout" /}
+
+{block name="title"}个人中心{/block}
+
+{block name="content"}
+<div class="m-content">
+    <!-- 用户信息卡片 -->
+    <div class="m-card text-center" style="padding:20px 16px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:#e8f2ff;color:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;margin-bottom:10px;">{$member.nickname|msubstr=0,1|upper}</div>
+        <h5 style="font-size:17px;font-weight:700;margin-bottom:2px;">{$member.nickname}</h5>
+        <small class="text-muted">@{$member.username}</small>
+    </div>
+
+    <!-- 编辑表单 -->
+    <div class="m-card" style="padding:18px 14px;">
+        <form id="profileForm">
+            <div class="m-form-group">
+                <label style="font-size:12.5px;color:#888;font-weight:550;display:block;margin-bottom:3px;">用户名（不可修改）</label>
+                <input type="text" class="m-form-control" value="{$member.username}" disabled style="background:#f5f5f5;">
+            </div>
+            <div class="m-form-group">
+                <label style="font-size:12.5px;color:#888;font-weight:550;display:block;margin-bottom:3px;">昵称</label>
+                <input type="text" name="nickname" class="m-form-control" value="{$member.nickname}">
+            </div>
+            <div class="m-form-group">
+                <label style="font-size:12.5px;color:#888;font-weight:550;display:block;margin-bottom:3px;">邮箱</label>
+                <input type="email" class="m-form-control" value="{$member.email}" disabled style="background:#f5f5f5;">
+            </div>
+            <button type="submit" class="m-btn m-btn-primary">保存修改</button>
+        </form>
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="/member/logout" style="color:#dc3545;text-decoration:none;font-size:13.5px;"><i class="bi bi-box-arrow-right me-1"></i>退出登录</a>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>$('#profileForm').on('submit',function(e){e.preventDefault();$.post('/member/profile',$(this).serialize(),function(r){showToast(r.msg||'保存成功','success');});});</script>
+{/block}

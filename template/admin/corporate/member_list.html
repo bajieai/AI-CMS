@@ -1,0 +1,59 @@
+{extend name="layout" /}
+
+{block name="title"}前台会员{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">互动管理</li>
+<li class="breadcrumb-item active">前台会员</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">会员列表</div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>昵称</th>
+                    <th>邮箱</th>
+                    <th>状态</th>
+                    <th>注册时间</th>
+                    <th>最后登录</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.username}</td>
+                    <td>{$vo.nickname}</td>
+                    <td>{$vo.email}</td>
+                    <td>
+                        {if condition="$vo.status == 1"}
+                        <span class="badge bg-success">正常</span>
+                        {else /}
+                        <span class="badge bg-secondary">禁用</span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td class="small text-muted">{if condition="$vo.last_login_time"}{$vo.last_login_time|date='Y-m-d H:i'}{else /}—{/if}</td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7" class="text-center text-muted py-4">暂无会员</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}

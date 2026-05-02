@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\api\controller\v1;
 
 use app\common\model\Media as MediaModel;
+use app\common\traits\ApiScopeCheck;
 use think\Request;
 
 /**
@@ -11,11 +12,15 @@ use think\Request;
  */
 class Media
 {
+    use ApiScopeCheck;
+
     /**
      * 媒体列表
      */
     public function index(Request $request)
     {
+        $this->requireScope('media:read');
+
         $page = (int) $request->get('page', 1);
         $limit = (int) $request->get('limit', 10);
         $filetype = $request->get('filetype', '');

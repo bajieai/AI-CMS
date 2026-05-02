@@ -28,7 +28,24 @@ class CommentService
             'ip'         => request()->ip(),
         ]);
 
-        return ['success' => true, 'msg' => '评论提交成功', 'data' => ['id' => $comment->id]];
+        $result = ['success' => true, 'msg' => '评论提交成功', 'data' => ['id' => $comment->id]];
+
+        // V2.4: 评论积分奖励（仅会员）
+        $memberId = $data['member_id'] ?? 0;
+        if ($memberId > 0) {
+            try {
+                if (PointsService::checkDailyLimit('comment', $memberId)) {
+                    $commentPoints = PointsService::getConfig('comment', 2);
+                    if ($commentPoints > 0) {
+                        PointsService::add($memberId, $commentPoints, 'comment', $comment->id, '评论积分');
+                    }
+                }
+            } catch (\Throwable) {
+                // 积分添加失败不影响评论流程
+            }
+        }
+
+        return $result;
     }
 
     /**

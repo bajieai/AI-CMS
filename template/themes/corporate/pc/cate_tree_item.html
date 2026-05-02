@@ -1,0 +1,27 @@
+{php}
+$hasChildren = !empty($cate['children']);
+$isActive = ($cate_id == $cate['id']);
+$isParentActive = false;
+if ($hasChildren && !$isActive) {
+    foreach ($cate['children'] as $child) {
+        if ($cate_id == $child['id']) { $isParentActive = true; break; }
+    }
+}
+$showChildren = $isActive || $isParentActive;
+{/php}
+<a href="/{$type_slug}?cate_id={$cate.id}" class="d-flex justify-content-between align-items-center px-3 py-2 text-decoration-none {if condition="$isActive"}active-cate-item{/if}"
+   style="padding-left:{:($cate.level * 1.0 + 1)}rem;color:#475569;font-size:.89rem;border-radius:8px;margin:2px 6px;transition:all .22s ease;{if condition="$isActive"}background:rgba(59,130,246,.10);color:#3b82f6;font-weight:600;{else}background:transparent;{/if}"
+   onmouseover="if(!this.classList.contains('active-cate-item'))this.style.background='#f1f5f9'"
+   onmouseout="if(!this.classList.contains('active-cate-item'))this.style.background='transparent'">
+    <span>{$cate.name}</span>
+    {if condition="$hasChildren"}
+    <i class="bi bi-chevron-{if condition="$showChildren"}down{else}right{/if} small cate-toggle" data-target="cate-children-{$cate.id}" style="font-size:.72rem;opacity:.55;"></i>
+    {/if}
+</a>
+{if condition="$hasChildren"}
+<div id="cate-children-{$cate.id}" style="{if condition="!$showChildren"}display:none{/if}">
+    {volist name="cate.children" id="cate"}
+    {include file="cate_tree_item" /}
+    {/volist}
+</div>
+{/if}

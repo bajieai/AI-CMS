@@ -1,0 +1,246 @@
+{extend name="layout" /}
+
+{block name="title"}信息管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">内容管理</li>
+<li class="breadcrumb-item active">信息管理</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/content/index" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">类型</label>
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">全部类型</option>
+                    <option value="1" {if condition="($params.type ?? '') == 1"}selected{/if}>产品</option>
+                    <option value="2" {if condition="($params.type ?? '') == 2"}selected{/if}>案例</option>
+                    <option value="3" {if condition="($params.type ?? '') == 3"}selected{/if}>新闻</option>
+                    <option value="4" {if condition="($params.type ?? '') == 4"}selected{/if}>下载</option>
+                    <option value="5" {if condition="($params.type ?? '') == 5"}selected{/if}>招聘</option>
+                    <option value="6" {if condition="($params.type ?? '') == 6"}selected{/if}>单页</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">状态</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">全部状态</option>
+                    <option value="0" {if condition="($params.status ?? '') === '0'"}selected{/if}>草稿</option>
+                    <option value="1" {if condition="($params.status ?? '') == 1"}selected{/if}>待审</option>
+                    <option value="2" {if condition="($params.status ?? '') == 2"}selected{/if}>已发布</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">分类</label>
+                <select name="cate_id" class="form-select form-select-sm">
+                    <option value="">全部分类</option>
+                    {volist name="cates" id="cate"}
+                    <option value="{$cate.id}" {if condition="($params.cate_id ?? '') == $cate.id"}selected{/if}>{$cate.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">关键词</label>
+                <input type="text" name="keyword" class="form-control form-control-sm" value="{$params.keyword ?? ''}" placeholder="搜索标题">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
+                <a href="/admin/content/index" class="btn btn-outline-secondary btn-sm">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>信息列表</span>
+        <a href="/admin/content/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>添加内容</a>
+    </div>
+    <!-- 批量操作栏 -->
+    <div class="card-body py-2 border-bottom bg-light" id="batchBar" style="display:none;">
+        <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted">已选 <strong id="batchCount">0</strong> 项</span>
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="batchAction('publish')"><i class="bi bi-check-circle me-1"></i>批量发布</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="batchAction('moveCate')"><i class="bi bi-folder-symlink me-1"></i>移动分类</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="batchAction('delete')"><i class="bi bi-trash me-1"></i>移入回收站</button>
+            <button type="button" class="btn btn-sm btn-link text-muted" onclick="cancelBatch()">取消</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="36"><input type="checkbox" class="form-check-input" id="checkAll"></th>
+                    <th width="50">ID</th>
+                    <th>标题</th>
+                    <th width="70">类型</th>
+                    <th width="80">分类</th>
+                    <th width="70">状态</th>
+                    <th width="60">置顶</th>
+                    <th width="70">浏览</th>
+                    <th width="150">创建时间</th>
+                    <th width="140">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td><input type="checkbox" class="form-check-input batch-check" value="{$vo.id}"></td>
+                    <td>{$vo.id}</td>
+                    <td>
+                        {if condition="$vo.cover"}
+                        <img src="{$vo.cover}" width="36" height="36" class="rounded me-1" style="object-fit:cover">
+                        {/if}
+                        <a href="/admin/content/edit/{$vo.id}">{$vo.title}</a>
+                    </td>
+                    <td>
+                        {if condition="$vo.type == 1"}<span class="badge bg-primary">产品</span>{/if}
+                        {if condition="$vo.type == 2"}<span class="badge bg-info">案例</span>{/if}
+                        {if condition="$vo.type == 3"}<span class="badge bg-success">新闻</span>{/if}
+                        {if condition="$vo.type == 4"}<span class="badge bg-warning text-dark">下载</span>{/if}
+                        {if condition="$vo.type == 5"}<span class="badge bg-secondary">招聘</span>{/if}
+                        {if condition="$vo.type == 6"}<span class="badge bg-dark">单页</span>{/if}
+                    </td>
+                    <td class="text-muted small">{$vo.cate.name ?? '未分类'}</td>
+                    <td>
+                        {if condition="$vo.status == 0"}<span class="badge bg-secondary">草稿</span>{/if}
+                        {if condition="$vo.status == 1"}<span class="badge bg-warning text-dark">待审</span>{/if}
+                        {if condition="$vo.status == 2"}<span class="badge bg-success">已发布</span>{/if}
+                        {if condition="$vo.status == -1"}<span class="badge bg-danger">已删除</span>{/if}
+                        {if condition="$vo.publish_time > 0 && $vo.status == 0"}<span class="badge bg-info" title="定时发布: {$vo.publish_time|date='Y-m-d H:i'}"><i class="bi bi-clock me-1"></i>待发布</span>{/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.is_top == 1"}<i class="bi bi-arrow-up-circle-fill text-danger"></i>{/if}
+                    </td>
+                    <td>{$vo.views}</td>
+                    <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/admin/content/edit/{$vo.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="btn btn-outline-info" title="复制" onclick="copyItem({$vo.id})"><i class="bi bi-copy"></i></button>
+                            {if condition="$vo.status != 2"}
+                            <button type="button" class="btn btn-outline-success" title="发布" onclick="publishItem({$vo.id})"><i class="bi bi-check-circle"></i></button>
+                            {/if}
+                            <button type="button" class="btn btn-outline-danger" title="移入回收站" onclick="deleteItem({$vo.id})"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="10" class="text-center text-muted py-4">暂无数据</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="($list->hasPages() ?? false)"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+<!-- 批量移动分类Modal -->
+<div class="modal fade" id="moveCateModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">移动分类</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <select id="batchCateSelect" class="form-select">
+                    <option value="0">未分类</option>
+                    {volist name="cates" id="cate"}
+                    <option value="{$cate.id}">{$cate.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="confirmMoveCate()">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function publishItem(id) {
+    if (confirm('确定发布此内容？')) {
+        ajaxPost('/admin/content/publish/' + id, {});
+    }
+}
+function deleteItem(id) {
+    confirmDelete('/admin/content/delete/' + id);
+}
+function copyItem(id) {
+    if (confirm('确定复制此内容？将创建一个草稿副本。')) {
+        ajaxPost('/admin/content/copy/' + id, {});
+    }
+}
+
+// 批量操作
+var moveCateModal = null;
+$(function() {
+    moveCateModal = new bootstrap.Modal(document.getElementById('moveCateModal'));
+
+    // 全选
+    $('#checkAll').on('change', function() {
+        $('.batch-check').prop('checked', this.checked);
+        updateBatchBar();
+    });
+    // 单选变化
+    $('.batch-check').on('change', function() {
+        var allChecked = $('.batch-check').length === $('.batch-check:checked').length;
+        $('#checkAll').prop('checked', allChecked);
+        updateBatchBar();
+    });
+});
+
+function updateBatchBar() {
+    var count = $('.batch-check:checked').length;
+    $('#batchCount').text(count);
+    $('#batchBar').toggle(count > 0);
+}
+
+function cancelBatch() {
+    $('.batch-check, #checkAll').prop('checked', false);
+    updateBatchBar();
+}
+
+function getSelectedIds() {
+    var ids = [];
+    $('.batch-check:checked').each(function() {
+        ids.push($(this).val());
+    });
+    return ids;
+}
+
+function batchAction(action) {
+    var ids = getSelectedIds();
+    if (ids.length === 0) {
+        showToast('请至少选择一项', 'warning');
+        return;
+    }
+    if (action === 'moveCate') {
+        moveCateModal.show();
+        return;
+    }
+    var msg = action === 'publish' ? '确定批量发布选中的 ' + ids.length + ' 项内容？' : '确定将选中的 ' + ids.length + ' 项内容移入回收站？';
+    if (!confirm(msg)) return;
+    ajaxPost('/admin/content/batch' + action.charAt(0).toUpperCase() + action.slice(1), { ids: ids });
+}
+
+function confirmMoveCate() {
+    var ids = getSelectedIds();
+    var cateId = $('#batchCateSelect').val();
+    moveCateModal.hide();
+    ajaxPost('/admin/content/batchMoveCate', { ids: ids, cate_id: cateId });
+}
+</script>
+{/block}

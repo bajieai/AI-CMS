@@ -1,0 +1,87 @@
+{extend name="layout" /}
+
+{block name="title"}{$site_name} - 首页{/block}
+
+{block name="content"}
+<!-- 轮播图 -->
+{i8j:bannerlist limit="5" status="1"}
+{if condition="$i == 0"}
+<div id="mBanner" class="carousel slide" data-bs-ride="carousel" style="margin:-14px -14px 12px;border-radius:0;">
+    <div class="carousel-indicators">
+{/if}
+        <button type="button" data-bs-target="#mBanner" data-bs-slide-to="{$i}" {if condition="$i == 0"}class="active"{/if} style="width:6px;height:6px;border-radius:50%;"></button>
+    {if condition="$i == count($__LIST__) - 1"}
+    </div>
+    <div class="carousel-inner">
+    {/if}
+    <div class="carousel-item {if condition='$i == 0'}active{/if}" style="height:200px;">
+        <a href="{$field.link|default='javascript:;'}" target="{$field.target|default='_self'}" class="d-block h-100" style="background:url('{$field.image}') center/cover no-repeat;border-radius:0;">
+            {if condition="$field.title"}<div class="carousel-caption d-block" style="background:rgba(0,0,0,.35);border-radius:6px;padding:6px 10px;font-size:13px;"><span>{$field.title}</span></div>{/if}
+        </a>
+    </div>
+    {if condition="$i == count($__LIST__) - 1"}
+    </div>
+</div>
+{/if}
+{/i8j:bannerlist}
+
+{empty name="__LIST__"}
+<div class="m-hero"><h1>AI 驱动的企业信息管理</h1><p>高效管理产品、案例、新闻等多类型内容</p><a href="/product" class="btn btn-primary">了解更多</a></div>
+{/empty}
+
+<!-- 产品中心 -->
+<section class="mt-3">
+    <h3 class="m-section-title">产品中心</h3>
+    <div class="row g-2 mt-2">
+        {i8j:infolist type="product" limit="4"}
+        <div class="col-6">
+            <div class="m-card">
+                {if condition="$field.cover"}
+                <img src="{$field.cover}" class="m-card-img" alt="" onerror="this.style.display='none'" style="height:110px;object-fit:cover;">
+                {/if}
+                <div class="m-card-body" style="padding:8px 10px;">
+                    <h6 class="m-card-tit" style="font-size:13px;"><a href="{$field.url}">{$field.title}</a></h6>
+                    <small class="text-muted" style="font-size:11px;">{$field.create_time|date='Y-m-d'}</small>
+                </div>
+            </div>
+        </div>
+        {/i8j:infolist}
+    </div>
+    <div class="text-center mt-3"><a href="/product" class="btn btn-outline-primary btn-sm rounded-pill px-4">查看全部 &raquo;</a></div>
+</section>
+
+<!-- 案例展示 -->
+<section class="mt-4">
+    <h3 class="m-section-title">成功案例</h3>
+    <div class="row g-2 mt-2">
+        {i8j:infolist type="case" limit="4"}
+        <div class="col-6">
+            <div class="m-card">
+                {if condition="$field.cover"}
+                <img src="{$field.cover}" class="m-card-img" alt="" style="height:100px;object-fit:cover;" onerror="this.style.display='none'">
+                {/if}
+                <div class="m-card-body" style="padding:8px 10px;">
+                    <h6 class="m-card-tit" style="font-size:13px;"><a href="{$field.url}">{$field.title}</a></h6>
+                    <p class="m-card-text" style="font-size:12px;">{$field.excerpt|msubstr=0,40}</p>
+                </div>
+            </div>
+        </div>
+        {/i8j:infolist}
+    </div>
+</section>
+
+<!-- 新闻动态 -->
+<section class="mt-4 mb-4">
+    <h3 class="m-section-title">新闻动态</h3>
+    {i8j:infolist type="news" limit="5"}
+    <div class="m-card">
+        <div class="m-card-body">
+            <small class="m-badge m-badge-primary" style="margin-bottom:4px;">{$field.create_time|date='m-d'}</small>
+            <h6 class="m-card-tit"><a href="{$field.url}">{$field.title}</a></h6>
+            <p class="m-card-text">{$field.excerpt|msubstr=0,60}</p>
+        </div>
+    </div>
+    {/i8j:infolist}
+    <div class="text-center mt-3"><a href="/news" class="btn btn-outline-primary btn-sm rounded-pill px-4">更多新闻 &raquo;</a></div>
+</section>
+{/block}

@@ -1,0 +1,38 @@
+{extend name="layout" /}
+
+{block name="title"}账号绑定{/block}
+
+{block name="content"}
+<div class="m-content">
+    <div class="m-card" style="padding:22px 18px;margin-top:8px;">
+        <h4 class="text-center mb-4" style="font-size:17px;font-weight:700;"><i class="bi bi-link-45deg me-2"></i>第三方账号绑定</h4>
+
+        <!-- 微信 -->
+        <div class="m-form-group" style="background:#fff;padding:14px;border-radius:10px;border:1px solid #e9ecef;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;"><i class="bi bi-wechat" style="font-size:24px;color:#07c160;"></i><div><strong style="font-size:14px;">微信</strong>{if condition="$binds.wechat"}<small class="text-success ms-1">已绑定</small>{else/}<small class="text-muted ms-1">未绑定</small>{/if}</div></div>
+                {if condition="$binds.wechat"}<button class="btn btn-sm btn-outline-secondary rounded-pill" disabled>已绑定</button>{else}<button class="btn btn-sm btn-outline-primary rounded-pill" onclick="bindOAuth('wechat')">绑定</button>{/if}
+            </div>
+        </div>
+
+        <!-- QQ -->
+        <div class="m-form-group" style="background:#fff;padding:14px;border-radius:10px;border:1px solid #e9ecef;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;"><i class="bi bi-qq" style="font-size:24px;color:#12b7f5;"></i><div><strong style="font-size:14px;">QQ</strong>{if condition="$binds.qq"}<small class="text-success ms-1">已绑定</small>{else/}<small class="text-muted ms-1">未绑定</small>{/if}</div></div>
+                {if condition="$binds.qq"}<button class="btn btn-sm btn-outline-secondary rounded-pill" disabled>已绑定</button>{else}<button class="btn btn-sm btn-outline-primary rounded-pill" onclick="bindOAuth('qq')">绑定</button>{/if}
+            </div>
+        </div>
+
+        <!-- GitHub -->
+        <div class="m-form-group" style="background:#fff;padding:14px;border-radius:10px;border:1px solid #e9ecef;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;"><i class="bi bi-github" style="font-size:24px;"></i><div><strong style="font-size:14px;">GitHub</strong>{if condition="$binds.github"}<small class="text-success ms-1">已绑定</small>{else/}<small class="text-muted ms-1">未绑定</small>{/if}</div></div>
+                {if condition="$binds.github"}<button class="btn btn-sm btn-outline-secondary rounded-pill" disabled>已绑定</button>{else}<button class="btn btn-sm btn-outline-primary rounded-pill" onclick="bindOAuth('github')">绑定</button>{/if}
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>function bindOAuth(type){showToast('正在跳转到'+type+'授权页面...','info');setTimeout(function(){location.href='/member/oauth/bind?platform='+type;},800);}</script>
+{/block}

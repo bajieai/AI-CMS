@@ -1,0 +1,98 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$form"}编辑表单{else/}创建表单{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/form/index">系统设置</a></li>
+<li class="breadcrumb-item"><a href="/admin/form/index">表单管理</a></li>
+<li class="breadcrumb-item active">{if condition="$form"}编辑{else/}创建{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="card-body">
+        <form id="formEdit" onsubmit="return false;">
+            <input type="hidden" name="id" value="{$form.id|default=0}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">表单名称</label>
+                    <input type="text" class="form-control" name="name" value="{$form.name|default=''}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">唯一标识</label>
+                    <input type="text" class="form-control" name="code" value="{$form.code|default=''}" placeholder="如 contact_us" required>
+                    <div class="form-text">调用标签：{literal}{i8j:form code="标识" /}{/literal}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">提交按钮文案</label>
+                    <input type="text" class="form-control" name="submit_text" value="{$form.submit_text|default='提交'}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">成功提示</label>
+                    <input type="text" class="form-control" name="success_msg" value="{$form.success_msg|default='提交成功'}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">提交后动作</label>
+                    <select class="form-select" name="success_action">
+                        <option value="message" {if condition="($form.success_action ?? 'message')=='message'"}selected{/if}>显示消息</option>
+                        <option value="redirect" {if condition="($form.success_action ?? 'message')=='redirect'"}selected{/if}>跳转页面</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">跳转URL（如需跳转）</label>
+                    <input type="text" class="form-control" name="redirect_url" value="{$form.redirect_url|default=''}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">防刷策略</label>
+                    <select class="form-select" name="anti_spam">
+                        <option value="0" {if condition="($form.anti_spam ?? 0)==0"}selected{/if}>无</option>
+                        <option value="1" {if condition="($form.anti_spam ?? 0)==1"}selected{/if}>验证码</option>
+                        <option value="2" {if condition="($form.anti_spam ?? 0)==2"}selected{/if}>IP限制</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">排序</label>
+                    <input type="number" class="form-control" name="sort" value="{$form.sort|default=0}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">状态</label>
+                    <select class="form-select" name="is_enabled">
+                        <option value="1" {if condition="($form.is_enabled ?? 1)==1"}selected{/if}>启用</option>
+                        <option value="0" {if condition="($form.is_enabled ?? 1)==0"}selected{/if}>禁用</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">字段配置（JSON）</label>
+                    <textarea class="form-control font-monospace" name="fields" rows="10" placeholder='[{"name":"姓名","type":"text","required":true},...]'><?php echo $form ? json_encode($form->fields, JSON_UNESCAPED_UNICODE) : ''; ?></textarea>
+                    <div class="form-text">字段type支持：text, textarea, number, email, select, checkbox, radio, date, file</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+                <a href="/admin/form/index" class="btn btn-outline-secondary ms-2">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+$(function(){
+    $('#btnSave').click(function(){
+        var data = {};
+        $('#formEdit').serializeArray().forEach(function(item){
+            if(item.name === 'fields'){
+                try{ data[item.name] = JSON.parse(item.value); }catch(e){ return $.toast('JSON格式错误','danger'); }
+            }else if(item.name === 'id' || item.name === 'sort' || item.name === 'anti_spam' || item.name === 'is_enabled'){
+                data[item.name] = parseInt(item.value);
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        ajaxPost('/admin/form/save', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/form/index'},800);
+        });
+    });
+});
+</script>
+{/block}

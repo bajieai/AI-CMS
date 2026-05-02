@@ -1,0 +1,42 @@
+{extend name="layout" /}
+
+{block name="title"}消息通知{/block}
+
+{block name="content"}
+
+<div class="section-padding" style="padding-top:2.5rem;">
+    <div class="container" style="max-width:900px;">
+        <h2 class="fw-bold mb-1" style="font-size:1.65rem;color:#1e293b;"><i class="bi bi-bell me-2" style="color:#f59e0b;"></i>消息通知</h2>
+        <p class="text-muted mb-4" style="font-size:.95rem;">系统通知和站内消息</p>
+
+        <div id="notificationList">
+            <!-- 通知时间线 -->
+            {volist name="list" id="vo"}
+            <div class="d-flex gap-3 mb-4 position-relative ps-4" style="border-left:3px solid #e2e8f0;padding-left:1.75rem;">
+                <!-- 圆点 -->
+                <div style="position:absolute;left:-8.5px;top:6px;width:14px;height:14px;border-radius:50%;background:{if condition="$vo.is_read == 0"}#94a3b8{else}#cbd5e1{/if};border:3px solid #fff;"></div>
+                <div class="card border-0 flex-grow-1" style="border-radius:10px;box-shadow:var(--shadow-card);padding:1.25rem 1.5rem;{if condition="$vo.is_read == 0"}background:#fffbeb;border-left:4px solid var(--color-accent);{/if}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="fw-semibold" style="color:#1e293b;font-size:.98rem;">{$vo.title}</div>
+                        <small class="text-muted" style="white-space:nowrap;">{$vo.create_time}</small>
+                    </div>
+                    <p class="mb-0 mt-2" style="color:#64748b;line-height:1.65;font-size:.9rem;">{$vo.content}</p>
+                </div>
+            </div>
+            {/volist}
+            {empty name="list"}
+            <div class="text-center py-6" style="background:#f8fafc;border-radius:16px;">
+                <i class="bi bi-check-circle display-4 text-muted opacity-40"></i>
+                <h5 class="text-muted mt-3 fw-bold opacity-70">暂无新通知</h5>
+                <p class="text-muted small opacity-50">所有消息已读</p>
+            </div>
+            {/empty}
+        </div>
+
+        {if condition="($list->hasPages() ?? false)"}
+        <div class="mt-4 d-flex justify-content-center"><nav>{$list->render()|raw}</nav></div>
+        {/if}
+    </div>
+</div>
+
+{/block}

@@ -1,0 +1,47 @@
+{extend name="layout" /}
+
+{block name="title"}每日签到{/block}
+
+{block name="content"}
+<div class="m-content">
+    <div class="m-card text-center" style="padding:28px 20px;background:linear-gradient(135deg,#fff8e1,#ffecb3);border-left:4px solid #ffc107;">
+        <i class="bi bi-calendar-check" style="font-size:40px;color:#f59e0b;"></i>
+        <h4 style="font-size:19px;font-weight:800;margin:10px 0 4px;">每日签到</h4>
+        <p style="color:#888;font-size:13.5px;">连续签到可获得更多积分奖励</p>
+    </div>
+
+    <!-- 签到日历（简化版） -->
+    <div class="m-card" style="padding:16px 14px;margin-top:12px;">
+        <h5 style="font-size:15px;font-weight:700;margin-bottom:10px;">本月签到记录</h5>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            {volist name="calendar" id="day"}
+            <div style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;
+                background:{if condition="$day.signed"}#d4edda;color:#155724;{else /}#f5f5f5;color:#bbb;{/if}">
+                {$day.day}
+            </div>
+            {/volist}
+        </div>
+
+        <div style="text-center;margin-top:16px;">
+            {if condition="$can_sign"}
+            <button id="signInBtn" class="m-btn m-btn-primary" style="max-width:220px;margin:0 auto;font-size:15px;padding:12px;"><i class="bi bi-hand-index-thumb-fill me-2"></i>点击签到</button>
+            {else /}
+            <p style="color:#198754;font-size:14px;"><i class="bi bi-check-circle-fill me-1"></i>今日已签到 ✅</p>
+            {/if}
+        </div>
+    </div>
+
+    <!-- 签到规则 -->
+    <div class="m-card" style="padding:14px;margin-top:12px;" style="background:#f8f9fa;">
+        <h5 style="font-size:14px;font-weight:600;margin-bottom:8px;">签到规则</h5>
+        <ul style="font-size:13px;color:#555;padding-left:18px;margin:0;line-height:1.8;">
+            <li>每日签到获得 <strong>+{$base_points}</strong> 积分</li>
+            <li>连续3天额外 <strong>+{$bonus_3days}</strong></li>
+            <li>连续7天额外 <strong>+{$bonus_7days}</strong></li>
+        </ul>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>$('#signInBtn').on('click',function(){var b=$(this);b.prop('disabled',true).text('签到中...');$.post('/member/signIn',{},function(r){if(r.code===0){showToast(r.msg||'签到成功！','success');setTimeout(function(){location.reload();},1000);}else{b.prop('disabled',false).text('点击签到');showToast(r.msg||'签到失败','danger');}});});</script>
+{/block}

@@ -1,0 +1,48 @@
+{extend name="layout" /}
+
+{block name="title"}
+{if condition="$current_cate"}
+    {$current_cate.seo_title ?: $current_cate.name} - {$site_name}
+{else /}
+    {if condition="$type == 1"}产品中心{elseif condition="$type == 2"/}成功案例{elseif condition="$type == 3"/}新闻动态{elseif condition="$type == 4"/}资料下载{elseif condition="$type == 5"/}人才招聘{else /}单页{/if} - {$site_name}
+{/if}
+{/block}
+
+{block name="content"}
+<nav aria-label="breadcrumb" class="m-breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">首页</a></li>
+        <li class="breadcrumb-item active">
+            {if condition="$type == 1"}产品中心{elseif condition="$type == 2"/}成功案例{elseif condition="$type == 3"/}新闻动态{elseif condition="$type == 4"/}资料下载{elseif condition="$type == 5"/}人才招聘{/if}
+        </li>
+    </ol>
+</nav>
+
+<!-- 分类树（移动端手风琴） -->
+{$cate_tree_html|raw}
+
+<!-- 内容列表 -->
+{volist name="list" id="vo"}
+<div class="m-card">
+    {if condition="$vo.cover"}
+    <img src="{$vo.cover}" class="m-card-img" alt="{$vo.title}" onerror="this.style.display='none'" style="max-height:180px;object-fit:cover;">
+    {/if}
+    <div class="m-card-body">
+        <h5 class="m-card-tit"><a href="{$vo.url}">{$vo.title}</a></h5>
+        <p class="m-card-text">{$vo.excerpt|msubstr=0,80}</p>
+        <div class="m-card-meta">
+            <span><i class="bi bi-calendar3 me-1"></i>{$vo.create_time|date='Y-m-d'}</span>
+            <a href="{$vo.url}" class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:11px;padding:3px 12px;">详情</a>
+        </div>
+    </div>
+</div>
+{/volist}
+
+{empty name="list"}
+<div class="m-empty"><i class="bi bi-inbox"></i><p>暂无相关内容</p></div>
+{/empty}
+
+{if condition="($list->hasPages() ?? false)"}
+<div class="m-pagination">{$list->render()|raw}</div>
+{/if}
+{/block}

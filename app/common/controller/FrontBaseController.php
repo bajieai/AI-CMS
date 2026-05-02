@@ -8,6 +8,7 @@ use app\common\model\CustomVar;
 use app\common\model\Member as MemberModel;
 use app\common\model\Module;
 use app\common\service\CacheService;
+use app\common\service\TemplateService;
 use think\App;
 use think\facade\Cache;
 use think\facade\Cookie;
@@ -37,6 +38,26 @@ abstract class FrontBaseController extends \think\BaseController
 
     protected function initialize(): void
     {
+        // T0: 提前获取当前主题名（用于缓存隔离，不依赖configs加载）
+        // getActiveTheme() 自身有 try/catch + Cache::remember + fallback default
+        $activeTheme = TemplateService::getActiveTheme();
+
+        // T1: 整页缓存命中检查（缓存key包含主题名，确保不同主题缓存隔离）
+        if ($this->enablePageCache
+            && !$this->app->isDebug()
+            && $this->request->isGet()
+            && !Cookie::has('member_token')
+        ) {
+            $cacheKey = 'page_html_' . $activeTheme . '_' . md5($this->request->url(true));
+            $cached = Cache::get($cacheKey);
+            if ($cached !== null) {
+                $this->pageCacheKey = null; // 命中后不再写入
+                response($cached, 200, ['Content-Type' => 'text/html; charset=utf-8'])->send();
+                exit;
+            }
+            $this->pageCacheKey = $cacheKey;
+        }
+
         // 加载数据库系统配置到ThinkPHP Config（容错）
         try {
             load_cms_configs();
@@ -44,10 +65,13 @@ abstract class FrontBaseController extends \think\BaseController
             // 配置表可能尚未创建，降级跳过
         }
 
-        // 设置前台模板路径（template/pc/default/）
+        // 设置前台模板路径（TemplateService 动态解析：3级降级链）
+        $frontendPath = TemplateService::getFrontendPath();
         $this->app->config->set([
-            'view.view_path' => root_path() . 'template' . DIRECTORY_SEPARATOR . 'pc' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR,
+            'view_path' => $frontendPath,
         ], 'view');
+        // 强制视图引擎重新读取配置（驱动实例会缓存配置，必须刷新）
+        $this->app->view->engine()->config(['view_path' => $frontendPath]);
 
         // 站点配置缓存（容错：表不存在时返回空数组）
         try {
@@ -79,7 +103,12 @@ abstract class FrontBaseController extends \think\BaseController
         // 解析会员登录状态
         $this->resolveMember();
 
-        // 注入视图全局变量
+        // 会员登录后禁用整页缓存（个性化内容不应缓存）
+        if ($this->isMemberLogin) {
+            $this->pageCacheKey = null;
+        }
+
+        // 注入视图全局变量（含主题变量供模板引用资源路径）
         $this->app->view->assign([
             'site_name'        => $configs['site_name'] ?? 'AI-CMS',
             'site_keywords'    => $configs['site_keywords'] ?? 'AI,CMS,内容管理',
@@ -91,6 +120,9 @@ abstract class FrontBaseController extends \think\BaseController
             'seo_description'  => '',
             'custom'           => $customVars,
             'enabled_modules'  => $enabledModules,
+            // V2.4 多模板风格：注入主题变量
+            'active_theme'     => $activeTheme,
+            'theme_assets'     => '/template/themes/' . $activeTheme . '/',
         ]);
     }
 
@@ -146,28 +178,16 @@ abstract class FrontBaseController extends \think\BaseController
     }
 
     /**
-     * 重写视图渲染，支持整页HTML缓存
+     * 重写视图渲染，支持整页HTML缓存写入
+     * 缓存命中检查已前移到initialize()，此处仅负责写入
      * 仅对未登录会员的GET请求且非调试模式生效
      */
     protected function view(string $template = '', array $vars = [], int $code = 200, callable $filter = null): \think\Response
     {
-        if ($this->enablePageCache
-            && !$this->isMemberLogin
-            && $this->request->isGet()
-            && !$this->app->isDebug()
-        ) {
-            $cacheKey = 'page_html_' . md5($this->request->url(true));
-            $cached = Cache::get($cacheKey);
-            if ($cached !== null) {
-                return response($cached, 200, ['Content-Type' => 'text/html; charset=utf-8']);
-            }
-            $this->pageCacheKey = $cacheKey;
-        }
-
         $response = parent::view($template, $vars, $code, $filter);
 
         if (!empty($this->pageCacheKey)) {
-            Cache::tag(CacheService::TAG_CONTENT)->set(
+            Cache::tag(CacheService::TAG_PAGE_CACHE)->set(
                 $this->pageCacheKey,
                 $response->getContent(),
                 3600

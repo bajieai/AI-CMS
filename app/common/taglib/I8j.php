@@ -54,6 +54,11 @@ class I8j extends TagLib
             'attr' => 'name,default',
             'close' => 0,
         ],
+        // 表单渲染标签
+        'form' => [
+            'attr' => 'code',
+            'close' => 0,
+        ],
     ];
 
     /**

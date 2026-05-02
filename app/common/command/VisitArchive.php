@@ -5,6 +5,7 @@ namespace app\common\command;
 
 use think\console\Command;
 use think\console\Input;
+use think\console\input\Option;
 use think\console\Output;
 use think\facade\Db;
 
@@ -13,19 +14,21 @@ class VisitArchive extends Command
     protected function configure()
     {
         $this->setName('visit:archive')
-            ->setDescription('归档访问日志（按日聚合PV/UV后删除原始日志）');
+            ->setDescription('归档访问日志（按日聚合PV/UV后删除原始日志）')
+            ->addOption('months', null, Option::VALUE_OPTIONAL, '归档多少个月前的数据', 1);
     }
 
     protected function execute(Input $input, Output $output)
     {
-        $yesterday = date('Y-m-d', strtotime('-1 day'));
-        $startTime = strtotime($yesterday . ' 00:00:00');
-        $endTime = strtotime($yesterday . ' 23:59:59');
+        $monthsAgo = (int) $input->getOption('months');
+        $archiveDate = date('Y-m-d', strtotime("-{$monthsAgo} months"));
+        $startTime = strtotime($archiveDate . ' 00:00:00');
+        $endTime = strtotime($archiveDate . ' 23:59:59');
 
         $pv = Db::name('visit_log')->whereBetween('visit_time', [$startTime, $endTime])->count();
         $uv = Db::name('visit_log')->whereBetween('visit_time', [$startTime, $endTime])->group('ip')->count();
 
-        $output->writeln("{$yesterday} PV: {$pv}, UV: {$uv}");
+        $output->writeln("{$archiveDate} PV: {$pv}, UV: {$uv}");
 
         if ($pv > 0) {
             // 按content_id聚合分页PV/UV
@@ -41,7 +44,7 @@ class VisitArchive extends Command
                 foreach ($contentStats as $stat) {
                     Db::name('visit_log_archive')->insert([
                         'content_id' => $stat['content_id'],
-                        'stat_date'  => $yesterday,
+                        'stat_date'  => $archiveDate,
                         'pv'         => $stat['pv'],
                         'uv'         => $stat['uv'],
                         'create_time' => time(),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\api\controller\v1;
 
 use app\common\model\Content as ContentModel;
+use app\common\traits\ApiScopeCheck;
 use think\Request;
 
 /**
@@ -11,11 +12,15 @@ use think\Request;
  */
 class Content
 {
+    use ApiScopeCheck;
+
     /**
      * 内容列表
      */
     public function index(Request $request)
     {
+        $this->requireScope('content:read');
+
         $page = (int) $request->get('page', 1);
         $limit = (int) $request->get('limit', 10);
         $cateId = (int) $request->get('cate_id', 0);
@@ -38,6 +43,8 @@ class Content
      */
     public function read(int $id)
     {
+        $this->requireScope('content:read');
+
         $content = ContentModel::with(['cate', 'tags'])->find($id);
         if (!$content || $content->status != 2) {
             return json(['code' => 404, 'msg' => '内容不存在'], 404);

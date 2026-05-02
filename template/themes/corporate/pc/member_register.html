@@ -1,0 +1,56 @@
+{extend name="layout" /}
+
+{block name="title"}会员注册{/block}
+
+{block name="content"}
+
+<div style="min-height:calc(100vh - 200px);display:flex;align-items:center;justify-content:center;padding:3rem 1rem;background:#f8fafc;">
+    <div style="width:100%;max-width:460px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.08);">
+        <!-- 深色头部 -->
+        <div style="background:linear-gradient(135deg, #1e293b 0%, #334155 100%);padding:2.5rem 2rem;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:rgba(34,197,94,.12);border-radius:50%;"></div>
+            <div style="position:relative;z-index:1;">
+                <div style="width:64px;height:64px;margin:0 auto .75rem;background:rgba(255,255,255,.12);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-person-plus" style="font-size:1.65rem;color:#fff;"></i>
+                </div>
+                <h4 class="text-white mb-0 fw-bold" style="font-size:1.25rem;">创建账号</h4>
+                <p class="mb-0 opacity-75" style="color:rgba(255,255,255,.7);font-size:.88rem;">加入我们，开启智能之旅</p>
+            </div>
+        </div>
+        <!-- 表单区 -->
+        <div style="padding:2.25rem 2.5rem 2.5rem;">
+            <form id="registerForm">
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6"><label class="form-label fw-semibold small text-uppercase" style="color:#64748b;">用户名</label>
+                        <input type="text" name="username" class="form-control" required placeholder="用户名" style="border-radius:10px;border-color:#e2e8f0;"></div>
+                    <div class="col-sm-6"><label class="form-label fw-semibold small text-uppercase" style="color:#64748b;">昵称</label>
+                        <input type="text" name="nickname" class="form-control" placeholder="昵称" style="border-radius:10px;border-color:#e2e8f0;"></div>
+                </div>
+                <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:#64748b;">邮箱</label>
+                    <input type="email" name="email" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:#e2e8f0;"></div>
+                <div class="mb-4"><label class="form-label fw-semibold small text-uppercase" style="color:#64748b;">密码</label>
+                    <input type="password" name="password" class="form-control" required placeholder="至少6位密码" style="border-radius:10px;border-color:#e2e8f0;"></div>
+                <button type="submit" class="btn btn-lg w-100" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-radius:10px;font-weight:700;border:none;box-shadow:0 4px 18px rgba(34,197,94,.28);">
+                    立即注册
+                </button>
+            </form>
+            <div class="text-center mt-4 pt-3" style="border-top:1px solid #f1f5f9;">
+                <span class="text-muted small">已有账号？</span> <a href="/member/login" class="small fw-bold" style="color:#3b82f6;text-decoration:none;">立即登录</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$('#registerForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/member/register', $(this).serialize(), function(res) {
+        if (res.success) { alert('注册成功，请登录'); location.href = '/member/login'; }
+        else alert(res.msg);
+    });
+});
+</script>
+{/block}

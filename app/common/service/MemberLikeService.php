@@ -37,6 +37,21 @@ class MemberLikeService
         ContentModel::where('id', $contentId)->inc('like_count')->update();
         Cache::tag(CacheService::TAG_CONTENT)->clear();
 
+        // V2.4: 被点赞者获得积分（内容作者）
+        try {
+            $content = ContentModel::find($contentId);
+            if ($content && $content->member_id > 0 && $content->member_id != $memberId) {
+                if (PointsService::checkDailyLimit('content_liked', $content->member_id)) {
+                    $points = PointsService::getConfig('content_liked', 3);
+                    if ($points > 0) {
+                        PointsService::add($content->member_id, $points, 'content_liked', $contentId, '内容被点赞积分');
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // 积分添加失败不影响点赞流程
+        }
+
         return ['success' => true, 'msg' => '点赞成功'];
     }
 

@@ -4,7 +4,14 @@
 
 return [
     // Gitee OAuth 应用配置
-    // 申请地址：https://gitee.com/oauth/applications
     'gitee_client_id'     => env('OAUTH_GITEE_CLIENT_ID', ''),
     'gitee_client_secret' => env('OAUTH_GITEE_CLIENT_SECRET', ''),
+
+    // 微信开放平台（PC扫码登录）
+    'wechat_open_appid'     => env('OAUTH_WECHAT_OPEN_APPID', ''),
+    'wechat_open_secret'    => env('OAUTH_WECHAT_OPEN_SECRET', ''),
+
+    // QQ互联
+    'qq_appid'     => env('OAUTH_QQ_APPID', ''),
+    'qq_appkey'    => env('OAUTH_QQ_APPKEY', ''),
 ];

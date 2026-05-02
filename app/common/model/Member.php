@@ -47,4 +47,9 @@ class Member extends Model
     {
         return $this->hasMany(MemberFavorite::class, 'member_id');
     }
+
+    public function level()
+    {
+        return $this->belongsTo(MemberLevel::class, 'level_id');
+    }
 }

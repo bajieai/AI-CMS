@@ -1,0 +1,309 @@
+{extend name="layout" /}
+
+{block name="title"}媒体资源库{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">内容管理</li>
+<li class="breadcrumb-item active">媒体资源库</li>
+{/block}
+
+{block name="content"}
+<style>
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+.media-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all .2s ease;
+    position: relative;
+}
+.media-card:hover { box-shadow: var(--card-hover-shadow); border-color: var(--primary); }
+.media-card .media-thumb {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    overflow: hidden;
+}
+.media-card .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.media-card .media-thumb .file-icon { font-size: 3rem; color: var(--text-secondary); }
+.media-card .media-info { padding: .6rem .75rem; }
+.media-card .media-info .media-name {
+    font-size: .8rem;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.media-card .media-info .media-meta {
+    font-size: .72rem;
+    color: var(--text-secondary);
+    margin-top: .2rem;
+}
+.media-card .media-actions {
+    position: absolute;
+    top: .3rem;
+    right: .3rem;
+    display: none;
+    gap: .2rem;
+}
+.media-card:hover .media-actions { display: flex; }
+.media-card .media-actions .btn {
+    width: 28px; height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: .8rem;
+}
+</style>
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/media/index" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">类型</label>
+                <select name="filetype" class="form-select form-select-sm">
+                    <option value="">全部</option>
+                    <option value="image" {if condition="($params.filetype ?? '') == 'image'"}selected{/if}>图片</option>
+                    <option value="video" {if condition="($params.filetype ?? '') == 'video'"}selected{/if}>视频</option>
+                    <option value="file" {if condition="($params.filetype ?? '') == 'file'"}selected{/if}>文件</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">关键词</label>
+                <input type="text" name="keyword" class="form-control form-control-sm" value="{$params.keyword ?? ''}" placeholder="搜索文件名">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
+                <a href="/admin/media/index" class="btn btn-outline-secondary btn-sm">重置</a>
+            </div>
+            <div class="col-auto ms-auto">
+                <div class="btn-group btn-group-sm">
+                    <a href="/admin/media/index?view=grid{$paramsStr ?? ''}" class="btn btn-outline-secondary {if condition='$viewType == "grid"'}active{/if}"><i class="bi bi-grid"></i></a>
+                    <a href="/admin/media/index?view=list{$paramsStr ?? ''}" class="btn btn-outline-secondary {if condition='$viewType == "list"'}active{/if}"><i class="bi bi-list-ul"></i></a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>媒体列表</span>
+        <div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="$('#uploadModal').modal('show')"><i class="bi bi-cloud-upload me-1"></i>上传文件</button>
+        </div>
+    </div>
+    <div class="card-body">
+        {if condition="$viewType == 'grid'"}
+        <div class="media-grid">
+            {volist name="list" id="vo"}
+            <div class="media-card" onclick="showMediaDetail({$vo.id})">
+                <div class="media-thumb">
+                    {if condition="$vo.filetype == 'image'"}
+                    <img src="{$vo.filepath}" alt="{$vo.alt_text}" loading="lazy">
+                    {elseif condition="$vo.filetype == 'video'"}
+                    <i class="bi bi-camera-video-fill file-icon text-danger"></i>
+                    {else /}
+                    <i class="bi bi-file-earmark-fill file-icon text-secondary"></i>
+                    {/if}
+                </div>
+                <div class="media-info">
+                    <div class="media-name" title="{$vo.filename}">{$vo.filename}</div>
+                    <div class="media-meta">{$vo.filesize|format_bytes} · {$vo.create_time|date='m-d'}</div>
+                </div>
+                <div class="media-actions">
+                    <button type="button" class="btn btn-light btn-sm" onclick="event.stopPropagation();copyUrl('{$vo.filepath}')" title="复制链接"><i class="bi bi-link-45deg"></i></button>
+                    <button type="button" class="btn btn-light btn-sm" onclick="event.stopPropagation();deleteMedia({$vo.id})" title="删除"><i class="bi bi-trash text-danger"></i></button>
+                </div>
+            </div>
+            {/volist}
+        </div>
+        {else /}
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th width="50">ID</th>
+                        <th width="60">预览</th>
+                        <th>文件名</th>
+                        <th width="60">类型</th>
+                        <th width="80">大小</th>
+                        <th width="120">上传者</th>
+                        <th width="140">上传时间</th>
+                        <th width="120">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>
+                            {if condition="$vo.filetype == 'image'"}
+                            <img src="{$vo.filepath}" width="40" height="40" class="rounded" style="object-fit:cover">
+                            {elseif condition="$vo.filetype == 'video'"}
+                            <i class="bi bi-camera-video-fill fs-4 text-danger"></i>
+                            {else /}
+                            <i class="bi bi-file-earmark-fill fs-4 text-secondary"></i>
+                            {/if}
+                        </td>
+                        <td>{$vo.filename}</td>
+                        <td>
+                            {if condition="$vo.filetype == 'image'"}<span class="badge bg-primary">图片</span>{/if}
+                            {if condition="$vo.filetype == 'video'"}<span class="badge bg-danger">视频</span>{/if}
+                            {if condition="$vo.filetype == 'file'"}<span class="badge bg-secondary">文件</span>{/if}
+                        </td>
+                        <td>{$vo.filesize|format_bytes}</td>
+                        <td class="text-muted small">{$vo.user.nickname ?? '未知'}</td>
+                        <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" onclick="copyUrl('{$vo.filepath}')" title="复制链接"><i class="bi bi-link-45deg"></i></button>
+                                <button type="button" class="btn btn-outline-danger" onclick="deleteMedia({$vo.id})" title="删除"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无数据</td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+        {/if}
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+
+<!-- 上传Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">上传媒体文件</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">文件类型</label>
+                        <select name="filetype" class="form-select" id="uploadFileType">
+                            <option value="image">图片 (jpg/png/gif/webp/svg)</option>
+                            <option value="video">视频 (mp4/webm/ogg)</option>
+                            <option value="file">文件 (pdf/doc/docx/zip/rar)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">选择文件</label>
+                        <input type="file" name="file" class="form-control" id="uploadFileInput" required>
+                        <div class="form-text text-muted" id="uploadFileHint">支持 jpg、png、gif、webp、svg，最大 5MB</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ALT 文本 / 描述</label>
+                        <input type="text" name="alt_text" class="form-control" placeholder="可选，用于SEO和图片描述">
+                    </div>
+                </form>
+                <div class="progress" style="height: 4px; display: none;" id="uploadProgress">
+                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="startUpload()">开始上传</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#uploadFileType').on('change', function() {
+    var type = $(this).val();
+    var hint = {
+        image: '支持 jpg、png、gif、webp、svg，最大 5MB',
+        video: '支持 mp4、webm、ogg，最大 50MB',
+        file: '支持 pdf、doc、docx、zip、rar，最大 20MB'
+    };
+    $('#uploadFileHint').text(hint[type] || '');
+});
+
+function startUpload() {
+    var fileInput = document.getElementById('uploadFileInput');
+    if (!fileInput.files.length) {
+        showToast('请选择文件', 'warning');
+        return;
+    }
+
+    var formData = new FormData(document.getElementById('uploadForm'));
+    var csrfToken = $('input[name="__token__"]').val();
+
+    $('#uploadProgress').show().find('.progress-bar').css('width', '30%');
+
+    $.ajax({
+        url: '/admin/media/upload',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
+        success: function(res) {
+            $('#uploadProgress').find('.progress-bar').css('width', '100%');
+            if (res.code === 0) {
+                showToast('上传成功', 'success');
+                setTimeout(function() {
+                    location.reload();
+                }, 600);
+            } else {
+                showToast(res.msg || '上传失败', 'danger');
+                $('#uploadProgress').hide();
+            }
+        },
+        error: function(xhr) {
+            $('#uploadProgress').hide();
+            if (xhr.status === 403) {
+                showToast('CSRF验证失败，请刷新页面后重试', 'danger');
+            } else {
+                showToast('上传失败，请重试', 'danger');
+            }
+        }
+    });
+}
+
+function deleteMedia(id) {
+    confirmDelete('/admin/media/delete/' + id);
+}
+
+function copyUrl(url) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+            showToast('链接已复制', 'success');
+        });
+    } else {
+        var input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('链接已复制', 'success');
+    }
+}
+
+function showMediaDetail(id) {
+    // TODO: 未来可扩展为详情弹窗
+}
+</script>
+{/block}

@@ -1,0 +1,82 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+
+{block name="content"}
+<nav aria-label="breadcrumb" class="m-breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">首页</a></li>
+        <li class="breadcrumb-item"><a href="{$type_url}">
+            {if condition="$info.type == 1"}产品中心{elseif condition="$info.type == 2"/}成功案例{elseif condition="$info.type == 3"/}新闻动态{elseif condition="$info.type == 4"/}资料下载{elseif condition="$info.type == 5"/}人才招聘{/if}
+        </a></li>
+        <li class="breadcrumb-item active">{$info.title}</li>
+    </ol>
+</nav>
+
+<article>
+    <h1 style="font-size:19px;font-weight:700;margin-bottom:10px;line-height:1.35;">{$info.title}</h1>
+    <div style="color:#888;font-size:12.5px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;">
+        <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
+        <span><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>
+        {if condition="$info.cate"}<span><i class="bi bi-folder2 me-1"></i>{$info.cate.name}</span>{/if}
+    </div>
+
+    {if condition="$info.cover"}
+    <div style="margin-bottom:14px;border-radius:10px;overflow:hidden;">
+        <img src="{$info.cover}" class="w-100" alt="{$info.title}" style="border-radius:10px;" onerror="this.parentElement.style.display='none'">
+    </div>
+    {/if}
+
+    <div class="m-article-body">
+        {$info.content|raw}
+    </div>
+
+    <!-- 互动数据 -->
+    <div style="display:flex;gap:16px;padding:12px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;margin-top:18px;font-size:13px;color:#888;">
+        <span><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 赞</span>
+        <span><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
+    </div>
+</article>
+
+<!-- 相关推荐 -->
+{if condition="!empty($related)"}
+<h5 style="font-weight:700;font-size:15px;margin:20px 0 10px;">相关内容</h5>
+{volist name="related" id="vo"}
+<div class="m-card" style="padding:10px 14px;">
+    <small class="text-muted" style="font-size:11.5px;">{$vo.create_time|date='Y-m-d'}</small>
+    <h6 class="m-card-tit" style="font-size:13.5px;"><a href="{$vo.url}">{$vo.title}</a></h6>
+</div>
+{/volist}
+{/if}
+
+<!-- 评论区 -->
+{if condition="config('comment.comment_enabled') !== 0"}
+<section style="margin-top:20px;">
+    <h5 style="font-size:15px;font-weight:700;margin-bottom:12px;"><i class="bi bi-chat-dots me-1"></i>评论 ({$info.comment_count})</h5>
+    <form id="commentForm">
+        <input type="hidden" name="content_id" value="{$info.id}">
+        {if condition="!$isMemberLogin"}
+        <div class="m-form-group"><input type="text" name="nickname" class="m-form-control" placeholder="昵称" required></div>
+        {/if}
+        <div class="m-form-group"><textarea name="content" class="m-form-control" rows="3" placeholder="发表你的看法..." required style="resize:none;"></textarea></div>
+        <button type="submit" class="m-btn m-btn-primary">提交评论</button>
+    </form>
+    <div id="commentList" style="margin-top:14px;"></div>
+</section>
+{/if}
+{/block}
+
+{block name="css"}
+<style>.m-article-body img{max-width:100%!important;height:auto!important;border-radius:8px;} .m-article-body table{display:block;overflow-x:auto;width:100%;font-size:13px;} .m-article-body a{color:#0d6efd;}</style>
+{/block}
+
+{block name="js"}
+<script type="application/ld+json">{$jsonLd|raw}</script>
+{if condition="config('comment.comment_enabled') !== 0"}
+<script>
+function loadComments(p){p=p||1;$.get('/home/comment/list',{content_id:{$info.id},page:p},function(r){if(r.code===0&&r.data){var h='';(r.data.list||[]).forEach(function(i){h+='<div style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13.5px;"><strong>'+i.nickname+'</strong> <small class="text-muted">'+i.create_time+'</small><p style="margin:4px 0 0;">'+i.content+'</p></div>';});$('#commentList').html(h||'<p class="text-muted text-center py-3">暂无评论</p>');}},'json');}
+loadComments(1);
+$('#commentForm').on('submit',function(e){e.preventDefault();$.post('/home/comment/submit',$(this).serialize(),function(r){if(r.code===0){showToast('评论已提交','success');$(this)[0].reset();loadComments(1);}else showToast(r.msg,'danger');});});
+{/if}
+</script>
+{/block}

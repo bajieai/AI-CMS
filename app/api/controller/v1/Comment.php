@@ -4,12 +4,17 @@ declare(strict_types=1);
 namespace app\api\controller\v1;
 
 use app\common\model\Comment as CommentModel;
+use app\common\traits\ApiScopeCheck;
 use think\Request;
 
 class Comment
 {
+    use ApiScopeCheck;
+
     public function index(Request $request)
     {
+        $this->requireScope('content:read');
+
         $contentId = (int) $request->get('content_id', 0);
         $page = (int) $request->get('page', 1);
         $limit = (int) $request->get('limit', 10);
@@ -25,6 +30,8 @@ class Comment
 
     public function save(Request $request)
     {
+        $this->requireScope('content:write');
+
         $data = [
             'content_id' => (int) $request->post('content_id', 0),
             'member_id'  => 0,

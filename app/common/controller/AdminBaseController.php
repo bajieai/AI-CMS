@@ -5,6 +5,7 @@ namespace app\common\controller;
 
 use app\common\model\Log as LogModel;
 use app\common\service\CacheService;
+use app\common\service\TemplateService;
 use think\App;
 use think\facade\Cache;
 use think\facade\Config;
@@ -32,6 +33,7 @@ abstract class AdminBaseController extends \think\BaseController
 
     /**
      * 菜单高亮映射（静态缓存，避免每次实例化都重建）
+     * 键为控制器蛇形名，值为菜单 active 标识
      */
     protected static array $menuMap = [
         'index'       => 'dashboard',
@@ -53,9 +55,32 @@ abstract class AdminBaseController extends \think\BaseController
         'seo'         => 'seo',
         'export'      => 'export',
         'token'       => 'token',
-        'notification'=> 'notification',
-        'ad'          => 'ad',
-        'link_group'  => 'link_group',
+        'notification'     => 'notification',
+        'ad'               => 'ad',
+        'link_group'       => 'link_group',
+        // V2.4 新增模块
+        'ai_model'         => 'ai_model',
+        'ai_log'           => 'ai_log',
+        'dashboard'        => 'dashboard',
+        'member_level'     => 'member_level',
+        'paid_order'       => 'paid_order',
+        'form'             => 'form',
+        'import'           => 'import',
+        'points_rule'      => 'points_rule',
+        'seo_keyword'      => 'seo_keyword',
+        'visit_archive'    => 'visit_archive',
+        'email_subscriber' => 'email_subscriber',
+    ];
+
+    /**
+     * 精确菜单高亮映射（控制器.方法 → active标识）
+     * 当同一控制器下不同方法需要高亮不同菜单项时使用
+     */
+    protected static array $menuActionMap = [
+        'system.config'         => 'system_config',
+        'system.custom_var'     => 'system_custom_var',
+        'system.module_control' => 'system_module',
+        'seo_keyword.group'     => 'seo_keyword_group',
     ];
 
     public function __construct(App $app)
@@ -72,14 +97,24 @@ abstract class AdminBaseController extends \think\BaseController
             // 配置表可能尚未创建，降级跳过
         }
 
-        // 设置后台模板路径（template/admin/default/）
+        // 设置后台模板路径（TemplateService 动态解析：template/admin/{$admin_theme}/）
+        $adminPath = TemplateService::getAdminPath();
         $this->app->config->set([
-            'view.view_path' => root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR,
+            'view_path' => $adminPath,
         ], 'view');
+        // 强制视图引擎重新读取配置（驱动实例会缓存配置，必须刷新）
+        $this->app->view->engine()->config(['view_path' => $adminPath]);
 
         // 注入当前用户角色信息到所有视图
         $roleId = (int) session('role_id');
         $this->app->view->assign('is_super_admin', $roleId === 1);
+
+        // V2.4 多模板风格：注入后台主题变量到所有视图
+        $adminTheme = TemplateService::getAdminTheme();
+        $this->app->view->assign([
+            'admin_theme'      => $adminTheme,
+            'admin_theme_path' => '/template/admin/' . $adminTheme . '/',
+        ]);
 
         // 自动注入当前菜单高亮标识（兼容完整类名返回）
         $controller = $this->request->controller();
@@ -89,7 +124,12 @@ abstract class AdminBaseController extends \think\BaseController
         $controller = str_replace('Controller', '', $controller);
         // 驼峰转蛇形（如 LinkGroup → link_group），与菜单配置保持一致
         $controller = strtolower(preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $controller));
-        $this->app->view->assign('menuActive', self::$menuMap[$controller] ?? '');
+
+        // 优先使用 控制器.方法名 精确匹配，回退到控制器级匹配
+        $action = strtolower(preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $this->request->action()));
+        $actionKey = $controller . '.' . $action;
+        $menuActive = self::$menuActionMap[$actionKey] ?? (self::$menuMap[$controller] ?? '');
+        $this->app->view->assign('menuActive', $menuActive);
 
         // 根据角色权限过滤菜单并注入视图（使用静态缓存避免同一请求重复计算）
         $filteredMenus = $this->getFilteredMenus($roleId);

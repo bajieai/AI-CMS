@@ -1,0 +1,17 @@
+{extend name="layout" /}
+
+{block name="title"}搜索: {$keyword} - {$site_name}{/block}
+
+{block name="content"}
+<nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">首页</a></li><li class="breadcrumb-item active">搜索结果</li></ol></nav>
+
+<h4 style="font-size:17px;font-weight:700;margin-bottom:14px;color:#1e293b;">搜索：<span style="color:#3b82f6;">{$keyword}</span></h4>
+
+{volist name="list" id="vo"}
+<div class="cm-card"><div class="cm-card-bd"><h5 class="cm-card-tit"><a href="{$vo.url}">{$vo.title}</a></h5><p class="cm-card-txt">{$vo.excerpt|msubstr=0,80}</p><small style="font-size:12px;color:#94a3b8;">{$vo.create_time|date='Y-m-d'}</small></div></div>
+{/volist}
+
+{empty name="list"}<div class="cm-empty"><i class="bi bi-search"></i><p>未找到与 "{$keyword}" 相关的内容</p><br><a href="/" class="btn btn-sm rounded-pill px-4" style="color:#3b82f6;border:1px solid #e2e8f0;text-decoration:none;">返回首页</a></div>{/empty}
+
+{if condition="($list->hasPages() ?? false)"}<div class="m-pagination">{$list->render()|raw}</div>{/if}
+{/block}

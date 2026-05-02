@@ -1,0 +1,43 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+
+{block name="content"}
+<nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">首页</a></li><li class="breadcrumb-item"><a href="{$type_url}">{if condition="$info.type==1"}产品中心{elseif condition="$info.type==2"/}成功案例{elseif condition="$info.type==3"/}新闻动态{elseif condition="$info.type==4"/}资料下载{elseif condition="$info.type==5"/}人才招聘{/if}</a></li><li class="breadcrumb-item active">{$info.title}</li></ol></nav>
+
+<article>
+<h1 style="font-size:19px;font-weight:800;color:#1e293b;margin-bottom:10px;line-height:1.35;">{$info.title}</h1>
+<div style="color:#94a3b8;font-size:12px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;"><span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span><span><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>{if condition="$info.cate"}<span><i class="bi bi-folder2 me-1"></i>{$info.cate.name}</span>{/if}</div>
+
+{if condition="$info.cover"}<div style="margin-bottom:14px;border-radius:12px;overflow:hidden;"><img src="{$info.cover}" class="w-100" onerror="this.parentElement.style.display='none'"></div>{/if}
+
+<div class="cm-art">{$info.content|raw}</div>
+
+<div style="display:flex;gap:16px;padding:12px 0;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;margin-top:18px;font-size:12.5px;color:#64748b;">
+<span><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 赞</span><span><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
+</div>
+</article>
+
+{if condition="!empty($related)"}
+<h5 style="font-size:15px;font-weight:750;color:#1e293b;margin:20px 0 10px;">相关推荐</h5>
+{volist name="related" id="vo"}<div class="cm-card" style="padding:10px 14px;"><small style="font-size:11px;color:#94a3b8;">{$vo.create_time|date='Y-m-d'}</small><h6 style="font-size:13.5px;font-weight:600;margin:3px 0;"><a href="{$vo.url}" style="color:inherit;text-decoration:none;">{$vo.title}</a></h6></div>{/volist}
+{/if}
+
+{if condition="config('comment.comment_enabled') !== 0"}
+<section style="margin-top:20px;"><h5 style="font-size:15px;font-weight:700;margin-bottom:12px;"><i class="bi me-1"></i>评论 ({$info.comment_count})</h5>
+<form id="commentForm"><input type="hidden" name="content_id" value="{$info.id}">{if condition="!$isMemberLogin"}<div class="cm-fg"><input type="text" name="nickname" class="cm-input" placeholder="昵称" required></div>{/if}<div class="cm-fg"><textarea name="content" class="cm-input" rows="3" placeholder="发表你的看法..." required style="resize:none;"></textarea></div><button type="submit" class="cm-btn cm-btn-pri">提交评论</button></form>
+<div id="commentList" style="margin-top:14px;"></div></section>
+{/if}
+{/block}
+
+{block name="css"}
+<style>.cm-art img{max-width:100%!important;height:auto!important;border-radius:10px;} .cm-art table{display:block;overflow-x:auto;width:100%;font-size:13px;} .cm-art a{color:#3b82f6;}</style>
+{/block}
+
+{block name="js"}
+<script type="application/ld+json">{$jsonLd|raw}</script>
+{if condition="config('comment.comment_enabled') !== 0"}
+<script>function loadComments(p){p=p||1;$.get('/home/comment/list',{content_id:{$info.id},page:p},function(r){if(r.code===0&&r.data){var h='';(r.data.list||[]).forEach(function(i){h+='<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13.5px;"><strong>'+i.nickname+'</strong> <small style="color:#94a3b8">'+i.create_time+'</small><p style="margin:4px 0 0;color:#334155;">'+i.content+'</p></div>';}) $('#commentList').html(h||'<p style="color:#94a3b8;text-align:center;padding:20px 0;">暂无评论</p>');}},'json');}loadComments(1);
+$('#commentForm').on('submit',function(e){e.preventDefault();$.post('/home/comment/submit',$(this).serialize(),function(r){if(r.code===0){showToast('评论已提交','success');$(this)[0].reset();loadComments(1);}else showToast(r.msg||'提交失败','danger');});});{/if}
+</script>
+{/block}

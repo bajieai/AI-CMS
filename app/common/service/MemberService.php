@@ -33,6 +33,23 @@ class MemberService
             'status'   => 1,
         ]);
 
+        // V2.4: 赋予默认等级
+        $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->find();
+        if ($defaultLevel) {
+            $member->level_id = $defaultLevel->id;
+            $member->save();
+        }
+
+        // V2.4: 注册奖励积分
+        $registerPoints = (int) ConfigService::get('points_register', 50);
+        if ($registerPoints > 0) {
+            try {
+                PointsService::add($member->id, $registerPoints, 'register', 0, '注册奖励');
+            } catch (\Throwable) {
+                // 积分添加失败不影响注册流程
+            }
+        }
+
         return ['success' => true, 'msg' => '注册成功', 'data' => ['id' => $member->id]];
     }
 

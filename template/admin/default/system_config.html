@@ -21,6 +21,39 @@
     </li>
 </ul>
 
+<!-- ========== V2.4 界面风格选择区 ========== -->
+<div id="themeSelectorArea" class="mb-4">
+    <!-- 前台风格 -->
+    <div class="card mb-3" style="border-radius:12px;border:2px solid #e0e7ff;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,#eff6ff,#dbeafe);padding:0.85rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;color:#1e40af;font-size:.95rem;"><i class="bi bi-palette2 me-2"></i>前台风格</span>
+            <button type="button" onclick="loadThemes()" class="btn btn-sm px-3" style="border-radius:20px;background:#fff;border-color:#93c5fd;color:#0369a1;">
+                <i class="bi bi-arrow-clockwise me-1"></i>刷新
+            </button>
+        </div>
+        <div class="p-3 text-center text-muted small"><i class="bi bi-info-circle me-1"></i>切换后前台立即生效</div>
+        <div id="frontendThemeList" class="px-3 pb-3 d-flex gap-4 flex-wrap justify-content-start">
+            <div class="text-center w-100 py-4"><i class="bi bi-hourglass-split spinner-border spinner-border me-2"></i>加载中...</div>
+        </div>
+    </div>
+
+    <!-- 后台模板 -->
+    <div class="card mb-3" style="border-radius:12px;border:2px solid #f0e6ff;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,#ede9fe,#ddd6fe);padding:0.85rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;color:#4338ca;font-size:.95rem;"><i class="bi bi-gear me-2"></i>后台模板</span>
+        </div>
+        <div class="p-3 text-center text-muted small"><i class="bi bi-info-circle me-1"></i>切换后需刷新页面生效</div>
+        <div id="backendThemeList" class="px-3 pb-3 d-flex gap-4 flex-wrap justify-content-start">
+            <div class="text-center w-100 py-4"><i class="bi bi-hourglass-split spinner-border spinner-border me-2"></i>加载中...</div>
+        </div>
+    </div>
+
+    <!-- V2.4 前后台主题独立配置 -->
+    <div class="text-center mt-3 mb-4">
+        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>前台风格与后台模板可独立选择，互不影响</small>
+    </div>
+</div>
+
 <form id="configForm" method="post" action="/admin/system/config">
     {volist name="groups" id="group" key="groupName"}
     <div class="card mb-3">
@@ -89,16 +122,150 @@
 
 {block name="js"}
 <script>
+// ========== V2.4 模板选择器逻辑 ==========
+var selectedFrontend = '';
+var selectedBackend = '';
+
+function loadThemes() {
+    $.get('/admin/system/allTemplates', function(res) {
+        if (res.code !== 0 || !res.data) return;
+        renderThemeCards('frontendThemeList', res.data.frontend.themes, res.data.frontend.active, 'frontend', true);
+        renderThemeCards('backendThemeList', res.data.admin.themes, res.data.admin.active, 'admin', true);
+    }, 'json');
+}
+
+function renderThemeCards(containerId, themes, active, type, allowSelect) {
+    var $container = $('#' + containerId);
+    $container.empty();
+    if (!themes || !themes.length) { $container.html('<div class="text-muted small text-center py-3">暂无可用主题</div>'); return; }
+    $.each(themes, function(i, t) {
+        var isActive = t.name === active;
+        var selClass = isActive ? ' selected-theme-card' : '';
+        var badgeHtml = isActive ? '<span class="theme-active-badge"><i class="bi bi-check-lg me-1"></i>当前</span>' : '';
+        var overlayHtml = isActive ? '<div class="theme-overlay"></div>' : '';
+        var cardHtml = '<div class="theme-card' +
+            selClass +
+            '" data-theme="' + t.name + '" data-type="' + type + '">' +
+            '<div class="theme-preview"' +
+                (t.screenshot ? 'style="background:#f1f5f5;">' : '>') +
+                (t.screenshot
+                    ? '<img src="/template/' + (type === 'admin' ? 'admin/' : 'themes/') + t.name + '/' + t.screenshot + '" loading="lazy">'
+                    : '<i class="bi bi-' + (type === 'admin' ? 'gear-fill' : 'palette2') + ' display-3"></i>'
+                ) +
+            '</div>' +
+            '<div class="theme-info">' +
+                '<strong class="theme-label">' + t.label + '</strong>' +
+                badgeHtml +
+                '<small class="theme-desc">' + (t.description || '企业风格模板') + '</small>' +
+                '<small class="theme-meta">v' + (t.version || '1.0') + ' &middot; ' + (t.author || 'AI-CMS') + (t.supports && t.supports.length ? ' &middot; 支持: ' + t.supports.join(', ') : '') + '</small>' +
+            '</div>' +
+            overlayHtml +
+            '</div>';
+        $container.append(cardHtml);
+
+        // 绑定点击事件
+        if (allowSelect) {
+            $container.find('.theme-card:last').off('click').on('click', function() {
+                var $card = $(this);
+                var themeName = $card.data('theme');
+                var cardType = $card.data('type');
+
+                // 如果已是选中态则不重复处理
+                if ($card.hasClass('selected-theme-card')) return;
+
+                // 清除同容器内所有卡片的选中状态
+                $container.find('.theme-card').each(function() {
+                    $(this).removeClass('selected-theme-card')
+                           .find('.theme-active-badge').remove()
+                           .end().find('.theme-overlay').remove()
+                           .end().find('.theme-label').css({color:'#1e293b'})
+                           .end().find('.theme-preview i').css({color:'#94a3b8'});
+                });
+
+                // 设置当前卡片为选中态
+                $card.addClass('selected-theme-card');
+                $card.find('.theme-info strong:first').after(
+                    '<span class="theme-active-badge"><i class="bi bi-check-lg me-1"></i>已选</span>'
+                );
+                $card.append('<div class="theme-overlay"></div>');
+                $card.find('.theme-label').css({color:'#0369a1'});
+                $card.find('.theme-preview i').css({color:'#3b82f6'});
+
+                // 记录选择
+                if (cardType === 'frontend') selectedFrontend = themeName;
+                else selectedBackend = themeName;
+
+                showToast('已选择 "' + t.label + '"，请点击「保存配置」生效', 'info');
+            });
+        }
+    });
+}
+
+// 保存时同时处理主题切换（在原表单submit之前拦截）
 $('#configForm').on('submit', function(e) {
     e.preventDefault();
+    var $form = $(this);
+
     // 处理switch未勾选时不会提交的问题
-    $(this).find('.form-check-input:not(:checked)').each(function() {
+    $form.find('.form-check-input:not(:checked)').each(function() {
         var name = $(this).attr('name');
         if (name && !$('[name="' + name + '"][type="hidden"]').length) {
             $(this).after('<input type="hidden" name="' + name + '" value="0">');
         }
     });
-    ajaxPost($(this).attr('action'), $(this).serialize());
+
+    // 如果有主题变更，先执行切换API再保存配置
+    var switchPromises = [];
+    if (selectedFrontend && selectedFrontend !== '') {
+        switchPromises.push($.post('/admin/system/setTheme', { theme: selectedFrontend }));
+    }
+    if (selectedBackend && selectedBackend !== '') {
+        switchPromises.push($.post('/admin/system/setAdminTheme', { admin_theme: selectedBackend }));
+    }
+
+    Promise.all(switchPromises).then(function() {
+        ajaxPost($form.attr('action'), $form.serialize());
+    }).catch(function() {
+        alert('主题切换失败，请重试');
+        ajaxPost($form.attr('action'), $form.serialize()); // fallback
+    });
 });
+
+// 初始化加载
+$(function() { loadThemes(); });
 </script>
+{/block}
+
+<style>
+/* ========== V2.4 主题卡片样式（统一CSS管理）========== */
+.theme-card {
+    width:240px;cursor:pointer;border:2px solid #e2e8f0;border-radius:12px;
+    overflow:hidden;transition:all .3s ease;background:#fff;padding:0;
+    text-align:center;position:relative;display:inline-block;vertical-align:top;
+}
+.theme-card:hover { transform:translateY(-5px)!important;box-shadow:0 10px 28px rgba(0,0,0,.14)!important;border-color:#93c5fd!important; }
+.theme-preview { height:140px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#f1f5f9,#e2e8f0); }
+.theme-preview img { width:100%;height:100%;object-fit:cover; }
+.theme-preview i { font-size:2.25rem;color:#94a3b8; }
+.theme-info { padding:.9rem .75rem; }
+.theme-label { display:block;font-size:.92rem;font-weight:700;color:#1e293b;margin-bottom:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .25s; }
+.theme-desc { display:block;text-muted;font-size:.78rem;margin-top:.2rem;line-height:1.4;height:1.35em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:#64748b; }
+.theme-meta { display:block;font-size:.72rem;margin-top:.15rem;opacity:.55;color:#94a3b8; }
+
+/* 选中态 */
+.selected-theme-card {
+    border-color:#3b82f6 !important;
+    box-shadow:0 0 0 4px rgba(59,130,246,.18),0 10px 24px rgba(59,130,246,.15) !important;
+}
+.theme-active-badge {
+    display:inline-block;margin-left:4px;vertical-align:middle;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;
+    border-radius:20px;padding:1px 10px;font-size:.7rem;font-weight:600;line-height:1.6;
+}
+.theme-overlay {
+    position:absolute;top:0;left:0;right:0;height:100%;
+    background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(37,99,235,.06));
+    pointer-events:none;border-radius:10px;
+}
+</style>
 {/block}

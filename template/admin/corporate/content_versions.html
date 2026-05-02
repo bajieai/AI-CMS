@@ -1,0 +1,76 @@
+{extend name="layout" /}
+
+{block name="title"}版本历史{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item"><a href="/admin/content/edit/{$info.id}">{$info.title}</a></li>
+<li class="breadcrumb-item active">版本历史</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history me-1"></i>版本历史 - {$info.title}</span>
+        <a href="/admin/content/edit/{$info.id}" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回编辑</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="60">版本ID</th>
+                    <th>标题</th>
+                    <th width="80">状态</th>
+                    <th width="80">分类</th>
+                    <th width="120">操作人</th>
+                    <th width="150">备份时间</th>
+                    <th width="100">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>#{$vo.id}</td>
+                    <td>{$vo.title}</td>
+                    <td>
+                        {if condition="$vo.status == 0"}<span class="badge bg-secondary">草稿</span>{/if}
+                        {if condition="$vo.status == 1"}<span class="badge bg-warning text-dark">待审</span>{/if}
+                        {if condition="$vo.status == 2"}<span class="badge bg-success">已发布</span>{/if}
+                    </td>
+                    <td class="text-muted small">
+                        {php}$cate = \app\common\model\Cate::find($vo.cate_id);{/php}
+                        {$cate.name ?? '未分类'}
+                    </td>
+                    <td>{$vo.user_name}</td>
+                    <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="rollbackVersion({$vo.id})"><i class="bi bi-arrow-counterclockwise"></i> 回滚</button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7" class="text-center text-muted py-4">暂无版本记录</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="($list->hasPages() ?? false)"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function rollbackVersion(id) {
+    if (confirm('确定回滚到此版本？当前内容将被备份为一个新版本。')) {
+        ajaxPost('/admin/content/rollback/' + id, {});
+    }
+}
+</script>
+{/block}
