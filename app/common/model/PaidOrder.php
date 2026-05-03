@@ -20,6 +20,8 @@ class PaidOrder extends Model
         'member_id' => 'integer',
         'content_id' => 'integer',
         'status'    => 'integer',
+        'price'     => 'float',
+        'paid_at'   => 'integer',
     ];
 
     /**

@@ -4,27 +4,38 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\Comment as CommentModel;
+use app\common\model\Member;
+use app\common\model\MemberLevel;
 use think\facade\Cache;
 
 /**
- * 评论服务
+ * 评论服务 - V2.5增强
+ * 新增：会员等级评论免审核(allow_comment_no_review)
  */
 class CommentService
 {
     /**
      * 提交评论
+     * V2.5增强：会员等级allow_comment_no_review免审逻辑
      */
     public function submit(array $data): array
     {
+        // V2.5：判断会员是否评论免审
+        $autoApprove = (bool) config('comment.comment_auto_approve');
+        $memberId = $data['member_id'] ?? 0;
+        if ($memberId > 0 && !$autoApprove) {
+            $autoApprove = $this->isMemberCommentNoReview($memberId);
+        }
+
         $comment = new CommentModel;
         $comment->save([
             'content_id' => $data['content_id'],
-            'member_id'  => $data['member_id'] ?? 0,
+            'member_id'  => $memberId,
             'nickname'   => $data['nickname'] ?? '游客',
             'email'      => $data['email'] ?? '',
             'content'    => strip_tags($data['content']),
             'parent_id'  => $data['parent_id'] ?? 0,
-            'status'     => config('comment.comment_auto_approve') ? 1 : 0,
+            'status'     => $autoApprove ? 1 : 0,
             'ip'         => request()->ip(),
         ]);
 
@@ -133,5 +144,23 @@ class CommentService
         }
         Cache::tag(CacheService::TAG_COMMENT)->clear();
         return ['success' => true, 'msg' => "已删除{$count}条评论"];
+    }
+
+    /**
+     * V2.5：检查会员是否拥有评论免审核权限
+     * 根据会员等级的allow_comment_no_review字段判断
+     */
+    protected function isMemberCommentNoReview(int $memberId): bool
+    {
+        try {
+            $member = Member::find($memberId);
+            if (!$member || empty($member->level_id)) {
+                return false;
+            }
+            $level = MemberLevel::find($member->level_id);
+            return $level && !empty($level->allow_comment_no_review);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

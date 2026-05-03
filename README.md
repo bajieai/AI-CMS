@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.3
+# 八界AI-CMS V2.5
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.3.0-blue)
+![Version](https://img.shields.io/badge/version-2.5.1-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.3 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek AI 接口，为内容创作提供智能辅助。V2.3 聚焦「智能运营与开放生态」，新增定时发布、SEO管理、消息通知、数据导入导出、前台会员系统、评论系统、API开放接口等核心能力。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
+八界AI-CMS V2.5 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。V2.5 聚焦「AI内容生产与分发平台」，在V2.4基础上新增支付变现、AI批量生成、内容采集、多平台发布、邮件系统、插件扩展、多语言国际化等核心能力。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
 
 ### 核心特性
 

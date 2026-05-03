@@ -13,14 +13,13 @@ use app\common\service\MemberLevelService;
 use app\common\service\oauth\OauthProviderInterface;
 use app\common\service\oauth\WechatOauthProvider;
 use app\common\service\oauth\GiteeOauthProvider;
+use app\common\service\oauth\QqOauthProvider;
 use think\facade\Cache;
 use think\facade\Cookie;
 
-use app\common\service\oauth\QqOauthProvider;
-
 /**
  * OAuth统一控制器
- * V2.4重构：通过provider路由参数分发到不同OAuth Provider
+ * V2.5完善：移动端UA检测+getMobileAuthUrl+启用开关+unionid写入修复+错误友好提示
  */
 class OauthController extends FrontBaseController
 {
@@ -36,73 +35,123 @@ class OauthController extends FrontBaseController
     /**
      * 跳转到第三方授权页
      * GET /oauth/{provider}
+     * V2.5增强：移动端UA检测+启用开关
      */
     public function redirect(string $provider)
     {
         $oauthProvider = $this->getProvider($provider);
         if (!$oauthProvider) {
-            return $this->error('不支持的登录方式');
+            return $this->oauthError('不支持的登录方式');
         }
 
-        // 检查OAuth是否已配置
+        // V2.5：检查是否已启用（独立开关配置）
+        if (!$this->isOAuthEnabled($provider)) {
+            return $this->oauthError('该登录方式暂未开放', '/member/login');
+        }
+
+        // V2.5：检查是否已配置
         if (!$this->isOAuthConfigured($provider)) {
-            return $this->error('该登录方式暂未开放');
+            return $this->oauthError('该登录方式暂未配置', '/member/login');
         }
 
         $state = md5(uniqid((string) rand(), true));
         Cache::tag(CacheService::TAG_MEMBER)->set('oauth_state_' . $state, $provider, 300);
 
-        $authUrl = $oauthProvider->getAuthUrl($state);
+        // V2.5：微信登录根据UA自动选择PC扫码/移动端H5授权
+        if ($provider === 'wechat' && $this->isWechatBrowser()) {
+            // 微信内浏览器 → 使用公众号授权URL（getMobileAuthUrl）
+            if (method_exists($oauthProvider, 'getMobileAuthUrl')) {
+                $authUrl = $oauthProvider->getMobileAuthUrl($state);
+            } else {
+                $authUrl = $oauthProvider->getAuthUrl($state);
+            }
+        } elseif ($provider === 'wechat' && $this->isMobile() && !$this->isWechatBrowser()) {
+            // V2.5修复：移动端非微信浏览器 → 跳转提示页（扫码体验差）
+            return redirect('/member/login')->with('error', '请在微信内打开或PC端扫码登录');
+        } else {
+            $authUrl = $oauthProvider->getAuthUrl($state);
+        }
+
         return redirect($authUrl);
     }
 
     /**
      * OAuth授权回调
      * GET /oauth/{provider}/callback
+     * V2.5增强：错误处理更友好
      */
     public function callback(string $provider)
     {
         $code = $this->request->get('code', '');
         $state = $this->request->get('state', '');
 
-        if (empty($code)) {
-            return $this->error('授权码为空');
+        // 用户取消授权
+        if ($this->request->get('error') || empty($code)) {
+            $errorDesc = $this->request->get('error_description', '用户取消授权');
+            return $this->oauthError('授权已取消: ' . $errorDesc, '/member/login');
         }
 
         // 验证state
         $cachedProvider = Cache::get('oauth_state_' . $state);
         if (!$cachedProvider || $cachedProvider !== $provider) {
-            return $this->error('授权状态异常，请重试');
+            return $this->oauthError('授权状态异常，请重新登录', '/member/login');
         }
         Cache::delete('oauth_state_' . $state);
 
         $oauthProvider = $this->getProvider($provider);
         if (!$oauthProvider) {
-            return $this->error('不支持的登录方式');
+            return $this->oauthError('不支持的登录方式', '/member/login');
         }
 
         try {
             // 获取Access Token
             $tokenData = $oauthProvider->getAccessToken($code);
 
+            // V2.5修复：QQ的openid需要单独获取
+            $openid = $tokenData['openid'] ?? '';
+            if (empty($openid) && $provider === 'qq' && method_exists($oauthProvider, 'getOpenId')) {
+                $openid = $oauthProvider->getOpenId($tokenData['access_token']);
+                $tokenData['openid'] = $openid;
+            }
+
             // 获取用户信息
-            $rawUser = $oauthProvider->getUserInfo($tokenData['access_token'], $tokenData['openid'] ?? '');
-            $userData = $oauthProvider->mapUserData($rawUser);
+            $rawUser = $oauthProvider->getUserInfo($tokenData['access_token'], $openid);
+            // V2.5修复：QQ的mapUserData需要传入openid
+            if ($provider === 'qq' && method_exists($oauthProvider, 'mapUserData')) {
+                $refMethod = new \ReflectionMethod($oauthProvider, 'mapUserData');
+                $params = $refMethod->getParameters();
+                if (count($params) > 1) {
+                    $userData = $oauthProvider->mapUserData($rawUser, $openid);
+                } else {
+                    $userData = $oauthProvider->mapUserData($rawUser);
+                    if (empty($userData['openid'])) {
+                        $userData['openid'] = $openid;
+                    }
+                }
+            } else {
+                $userData = $oauthProvider->mapUserData($rawUser);
+            }
+
+            // V2.5修复：确保openid从rawUser中补充
+            if (empty($userData['openid']) && !empty($openid)) {
+                $userData['openid'] = $openid;
+            }
 
             if (empty($userData['openid'])) {
-                return $this->error('获取用户标识失败');
+                return $this->oauthError('获取用户标识失败，请重试', '/member/login');
             }
 
             // 处理登录/注册
             return $this->handleOauthLogin($provider, $userData, $tokenData);
 
         } catch (\Exception $e) {
-            return $this->error('授权失败: ' . $e->getMessage());
+            return $this->oauthError('授权失败: ' . $e->getMessage(), '/member/login');
         }
     }
 
     /**
      * 处理OAuth登录/注册统一流程
+     * V2.5增强：unionid写入修复
      */
     protected function handleOauthLogin(string $provider, array $userData, array $tokenData)
     {
@@ -127,6 +176,10 @@ class OauthController extends FrontBaseController
             $oauth->access_token = $tokenData['access_token'] ?? $oauth->access_token;
             $oauth->refresh_token = $tokenData['refresh_token'] ?? $oauth->refresh_token;
             $oauth->expire_time = time() + ($tokenData['expires_in'] ?? 7200);
+            // V2.5修复：更新unionid（首次可能未写入）
+            if (!empty($unionid) && empty($oauth->unionid)) {
+                $oauth->unionid = $unionid;
+            }
             $oauth->save();
 
             $member = MemberModel::find($oauth->member_id);
@@ -142,14 +195,14 @@ class OauthController extends FrontBaseController
                 'status'   => 1,
             ]);
 
-            // V2.4: 赋予默认等级
+            // 赋予默认等级
             $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->find();
             if ($defaultLevel) {
                 $member->level_id = $defaultLevel->id;
                 $member->save();
             }
 
-            // V2.4: 注册奖励积分
+            // 注册奖励积分
             $registerPoints = (int) ConfigService::get('points_register', 50);
             if ($registerPoints > 0) {
                 try {
@@ -157,13 +210,13 @@ class OauthController extends FrontBaseController
                 } catch (\Throwable) {}
             }
 
-            // 绑定OAuth
+            // 绑定OAuth — V2.5修复：确保unionid写入
             $oauth = new MemberOauthModel;
             $oauth->save([
                 'member_id'     => $member->id,
                 'provider'      => $provider,
                 'openid'        => $openid,
-                'unionid'       => $unionid,
+                'unionid'       => $unionid,  // V2.5修复：确保写入
                 'access_token'  => $tokenData['access_token'] ?? '',
                 'refresh_token' => $tokenData['refresh_token'] ?? '',
                 'expire_time'   => time() + ($tokenData['expires_in'] ?? 7200),
@@ -173,11 +226,14 @@ class OauthController extends FrontBaseController
         }
 
         if (!$member || $member->status != 1) {
-            return $this->error('账号异常');
+            return $this->oauthError('账号异常', '/member/login');
         }
 
         // 写入登录态
         $this->setMemberLogin($member);
+
+        // V2.5：触发插件Hook
+        \app\common\service\PluginService::fire('member.login', ['member_id' => $member->id]);
 
         return redirect('/member/profile');
     }
@@ -201,7 +257,6 @@ class OauthController extends FrontBaseController
         Cache::tag(CacheService::TAG_MEMBER)->set($cacheKey . '_id', $member->id, 7200);
         Cookie::set('member_token', $token, ['expire' => 7200, 'httponly' => true]);
 
-        // 更新登录信息
         $member->last_login_time = time();
         $member->last_login_ip = request()->ip();
         $member->save();
@@ -212,12 +267,22 @@ class OauthController extends FrontBaseController
      */
     protected function getProvider(string $provider): ?OauthProviderInterface
     {
-        if (!isset($this->providerMap[$provider])) {
-            return null;
-        }
-
+        if (!isset($this->providerMap[$provider])) return null;
         $class = $this->providerMap[$provider];
         return new $class();
+    }
+
+    /**
+     * V2.5：检查OAuth是否已启用（独立开关）
+     */
+    protected function isOAuthEnabled(string $provider): bool
+    {
+        return match($provider) {
+            'wechat' => (bool) ConfigService::get('oauth_wechat_enabled', 0),
+            'qq'     => (bool) ConfigService::get('oauth_qq_enabled', 0),
+            'gitee'  => true, // Gitee默认启用（向后兼容）
+            default  => false,
+        };
     }
 
     /**
@@ -233,7 +298,40 @@ class OauthController extends FrontBaseController
         };
     }
 
-    // ========== 向后兼容方法 ==========
+    /**
+     * 判断是否移动端
+     */
+    protected function isMobile(): bool
+    {
+        $ua = request()->header('user-agent', '');
+        return (bool) preg_match('/Android|iPhone|iPad|iPod|Mobile/i', $ua);
+    }
+
+    /**
+     * 判断是否微信浏览器
+     */
+    protected function isWechatBrowser(): bool
+    {
+        $ua = request()->header('user-agent', '');
+        return str_contains($ua, 'MicroMessenger');
+    }
+
+    /**
+     * OAuth错误提示（支持跳转）
+     * 注意：不与父类error()冲突
+     */
+    protected function oauthError(string $msg = '操作失败', string $redirectUrl = ''): \think\Response
+    {
+        if ($this->request->isAjax()) {
+            return json(['code' => 1, 'msg' => $msg]);
+        }
+
+        if (!empty($redirectUrl)) {
+            return redirect($redirectUrl)->with('error', $msg);
+        }
+
+        return json(['code' => 1, 'msg' => $msg]);
+    }
 
     /**
      * Gitee回调（兼容旧路由）

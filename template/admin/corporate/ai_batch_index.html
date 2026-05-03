@@ -1,0 +1,48 @@
+{extend name="/layout" /}
+{block name="title"}AI批量生成 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">AI批量生成</h4>
+        <a href="/admin/ai_batch/create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> 新建任务</a>
+    </div>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>标题</th><th>关键词</th><th>数量</th><th>风格</th><th>状态</th><th>进度</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.title}</td>
+                <td><small>{$vo.keywords}</small></td>
+                <td>{$vo.total|default=0}</td>
+                <td>{$vo.style|default='default'}</td>
+                <td>
+                    {if $vo.status==0}<span class="badge bg-secondary">待执行</span>
+                    {elseif $vo.status==1}<span class="badge bg-primary">执行中</span>
+                    {elseif $vo.status==2}<span class="badge bg-success">已完成</span>
+                    {elseif $vo.status==3}<span class="badge bg-danger">失败</span>
+                    {else/}<span class="badge bg-warning">未知</span>{/if}
+                </td>
+                <td>{$vo.completed|default=0}/{$vo.total|default=0}</td>
+                <td>{$vo.create_time|date='Y-m-d H:i'}</td>
+                <td>
+                    <a href="/admin/ai_batch/detail/{$vo.id}" class="btn btn-sm btn-outline-info">详情</a>
+                    {if $vo.status==0 || $vo.status==1}
+                    <button class="btn btn-sm btn-outline-warning" onclick="cancelTask({$vo.id})">取消</button>
+                    {/if}
+                </td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+<script>
+function cancelTask(id) {
+    if (!confirm('确定取消此任务？')) return;
+    $.post('/admin/ai_batch/cancel', {id:id}, function(res) { alert(res.msg); location.reload(); });
+}
+</script>
+{/block}

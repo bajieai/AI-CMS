@@ -5,7 +5,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -54,5 +54,24 @@ return [
         'import.*' => ['admin/import/index', 'admin/import/execute'],
         'email_subscriber.*' => ['admin/email_subscriber/index', 'admin/email_subscriber/delete', 'admin/email_subscriber/export'],
         'visit_archive.*' => ['admin/visit_archive/index', 'admin/visit_archive/execute', 'admin/visit_archive/detail'],
+        // V2.5 新增权限映射
+        'payment.*' => ['admin/payment/index', 'admin/payment/config', 'admin/payment/refund', 'admin/payment/revenue'],
+        'payment.config' => ['admin/payment/config'],
+        'payment.refund' => ['admin/payment/refund'],
+        'payment.revenue' => ['admin/payment/revenue'],
+        'ai_batch.*' => ['admin/ai_batch/index', 'admin/ai_batch/create', 'admin/ai_batch/detail', 'admin/ai_batch/cancel'],
+        'collect.*' => ['admin/collect_source/index', 'admin/collect_source/add', 'admin/collect_source/edit', 'admin/collect_source/delete', 'admin/collect_source/run', 'admin/collect_log/index', 'admin/collect_log/detail'],
+        'collect.source' => ['admin/collect_source/index', 'admin/collect_source/add', 'admin/collect_source/edit', 'admin/collect_source/delete', 'admin/collect_source/run'],
+        'collect.log' => ['admin/collect_log/index', 'admin/collect_log/detail'],
+        'publish.*' => ['admin/publish_platform/index', 'admin/publish_platform/add', 'admin/publish_platform/edit', 'admin/publish_platform/delete', 'admin/publish_log/index', 'admin/publish_log/publish'],
+        'publish.platform' => ['admin/publish_platform/index', 'admin/publish_platform/add', 'admin/publish_platform/edit', 'admin/publish_platform/delete'],
+        'publish.log' => ['admin/publish_log/index', 'admin/publish_log/publish'],
+        'email.*' => ['admin/email_template/index', 'admin/email_template/add', 'admin/email_template/edit', 'admin/email_template/delete', 'admin/email_template/test', 'admin/email_log/index'],
+        'email.template' => ['admin/email_template/index', 'admin/email_template/add', 'admin/email_template/edit', 'admin/email_template/delete', 'admin/email_template/test'],
+        'email.log' => ['admin/email_log/index'],
+        'plugin.*' => ['admin/plugin/index', 'admin/plugin/install', 'admin/plugin/uninstall', 'admin/plugin/enable', 'admin/plugin/disable', 'admin/plugin/config'],
+        'language.*' => ['admin/language/index', 'admin/language/add', 'admin/language/edit', 'admin/language/delete', 'admin/language/translate'],
+        'theme_market.*' => ['admin/theme_market/index', 'admin/theme_market/scan', 'admin/theme_market/install', 'admin/theme_market/uninstall', 'admin/theme_market/checkUpdate'],
+        'captcha.*' => ['admin/captcha/config'],
     ],
 ];

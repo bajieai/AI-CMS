@@ -1,0 +1,59 @@
+{extend name="/layout" /}
+{block name="title"}插件管理 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">插件管理</h4>
+    <div class="row" id="pluginList">
+        {volist name="plugins" id="vo"}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-plug"></i> {$vo.name}</h6>
+                    <p class="text-muted small mb-1">{$vo.code} v{$vo.version}</p>
+                    <p class="small">{$vo.description|default='暂无描述'}</p>
+                    {if $vo.author}<p class="small text-muted">作者: {$vo.author}</p>{/if}
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    {if $vo.is_installed}
+                        {if $vo.is_enabled}
+                        <span class="badge bg-success">已启用</span>
+                        <div>
+                            <button class="btn btn-outline-warning btn-sm" onclick="togglePlugin('{$vo.code}','disable')">禁用</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="uninstallPlugin('{$vo.code}')">卸载</button>
+                        </div>
+                        {else/}
+                        <span class="badge bg-secondary">已安装/未启用</span>
+                        <div>
+                            <button class="btn btn-outline-success btn-sm" onclick="togglePlugin('{$vo.code}','enable')">启用</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="uninstallPlugin('{$vo.code}')">卸载</button>
+                        </div>
+                        {/if}
+                    {else/}
+                    <span class="badge bg-info">未安装</span>
+                    <button class="btn btn-outline-primary btn-sm" onclick="installPlugin('{$vo.code}')">安装</button>
+                    {/if}
+                </div>
+            </div>
+        </div>
+        {/volist}
+        {if empty($plugins)}
+        <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-plug" style="font-size:3rem;"></i>
+            <p class="mt-2">暂无插件，请将插件放入 plugin/ 目录</p>
+        </div>
+        {/if}
+    </div>
+</div>
+<script>
+function installPlugin(code) {
+    $.post('/admin/plugin/install', {code:code}, function(res) { alert(res.msg); location.reload(); });
+}
+function uninstallPlugin(code) {
+    if (!confirm('确定要卸载此插件？')) return;
+    $.post('/admin/plugin/uninstall', {code:code}, function(res) { alert(res.msg); location.reload(); });
+}
+function togglePlugin(code, action) {
+    $.post('/admin/plugin/' + action, {code:code}, function(res) { alert(res.msg); location.reload(); });
+}
+</script>
+{/block}

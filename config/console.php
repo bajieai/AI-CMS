@@ -6,5 +6,11 @@ return [
         'sitemap:generate'    => 'app\common\command\SitemapGenerate',
         'seo:check-deadlinks' => 'app\common\command\SeoCheckDeadlinks',
         'visit:archive'       => 'app\common\command\VisitArchive',
+        // V2.5 新增CLI命令
+        'ai:batch-generate'   => 'app\common\command\AiBatchGenerate',
+        'ai:migrate-encrypt'  => 'app\common\command\MigrateApiKeyEncrypt',
+        'email:worker'        => 'app\common\command\EmailWorker',
+        'collect:run'         => 'app\common\command\CollectRun',
+        'order:close-timeout' => 'app\common\command\OrderCloseTimeout',
     ],
 ];

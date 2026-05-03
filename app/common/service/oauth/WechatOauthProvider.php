@@ -25,6 +25,24 @@ class WechatOauthProvider implements OauthProviderInterface
         $this->client = new Client(['timeout' => 10]);
     }
 
+    /**
+     * 获取公众号AppID（用于微信内浏览器授权）
+     */
+    protected function getMpAppId(): string
+    {
+        $mpAppId = (string) ConfigService::get('wechat_mp_appid', '');
+        return $mpAppId ?: $this->appid;
+    }
+
+    /**
+     * 获取公众号Secret（用于微信内浏览器授权）
+     */
+    protected function getMpSecret(): string
+    {
+        $mpSecret = (string) ConfigService::get('wechat_mp_secret', '');
+        return $mpSecret ?: $this->secret;
+    }
+
     public function getAuthUrl(string $state): string
     {
         // PC端扫码登录
@@ -38,12 +56,14 @@ class WechatOauthProvider implements OauthProviderInterface
     }
 
     /**
-     * 移动端H5授权URL
+     * 移动端H5授权URL（微信内浏览器使用公众号授权）
      */
     public function getMobileAuthUrl(string $state): string
     {
+        // V2.5修复：微信内浏览器使用公众号appid（与开放平台不同）
+        $appId = $this->getMpAppId();
         return 'https://open.weixin.qq.com/connect/oauth2/authorize?' . http_build_query([
-            'appid'         => $this->appid,
+            'appid'         => $appId,
             'redirect_uri'  => $this->redirectUri,
             'response_type' => 'code',
             'scope'         => 'snsapi_userinfo',
@@ -53,10 +73,14 @@ class WechatOauthProvider implements OauthProviderInterface
 
     public function getAccessToken(string $code): array
     {
+        // V2.5修复：根据当前使用的appid选择对应的secret
+        $appId = $this->appid;
+        $secret = $this->secret;
+
         $response = $this->client->get('https://api.weixin.qq.com/sns/oauth2/access_token', [
             'query' => [
-                'appid'      => $this->appid,
-                'secret'     => $this->secret,
+                'appid'      => $appId,
+                'secret'     => $secret,
                 'code'       => $code,
                 'grant_type' => 'authorization_code',
             ],

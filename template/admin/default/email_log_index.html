@@ -1,0 +1,25 @@
+{extend name="/layout" /}
+{block name="title"}邮件日志 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">邮件日志</h4>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>收件人</th><th>主题</th><th>状态</th><th>错误信息</th><th>发送时间</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.to_email}</td>
+                <td>{$vo.subject}</td>
+                <td>{if $vo.status==1}<span class="badge bg-success">成功</span>{elseif $vo.status==0}<span class="badge bg-warning">排队</span>{else/}<span class="badge bg-danger">失败</span>{/if}</td>
+                <td><small class="text-danger">{$vo.error_msg|default='-'}</small></td>
+                <td>{$vo.create_time|date='Y-m-d H:i'}</td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+{/block}

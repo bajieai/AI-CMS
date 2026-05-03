@@ -4,21 +4,41 @@ declare(strict_types=1);
 namespace app\common\service\ai;
 
 use app\common\model\AiModel;
+use app\common\service\AiModelService;
+use app\common\traits\CircuitBreakerTrait;
 
 /**
- * AI Provider工厂
- * 根据模型配置创建对应Provider实例，支持故障降级
+ * AI Provider工厂 - V2.5增强
+ * 新增：熔断器集成、速率限制、更多Provider路由
  */
 class AiProviderFactory
 {
+    use CircuitBreakerTrait;
+
+    /**
+     * Provider类名映射（支持自定义路由）
+     */
+    protected static array $providerMap = [
+        'deepseek' => DeepSeekProvider::class,
+        'qwen'     => QwenProvider::class,
+        'glm'      => GlmProvider::class,
+        'ernie'    => ErnieProvider::class,
+        'openai'   => OpenaiCompatibleProvider::class,
+    ];
+
+    /**
+     * 注册自定义Provider
+     */
+    public static function registerProvider(string $name, string $class): void
+    {
+        self::$providerMap[$name] = $class;
+    }
+
     /**
      * 根据provider名称创建Provider实例
-     * @param string $providerName 供应商名称（deepseek/qwen等）
-     * @throws \Exception
      */
     public static function create(string $providerName): AiProviderInterface
     {
-        // 优先从数据库查找配置
         $model = AiModel::where('provider', $providerName)
             ->where('is_enabled', 1)
             ->find();
@@ -27,7 +47,16 @@ class AiProviderFactory
             throw new \Exception("AI模型 {$providerName} 未配置或已禁用");
         }
 
-        $class = "\\app\\common\\service\\ai\\" . ucfirst($providerName) . "Provider";
+        return self::createFromModel($model);
+    }
+
+    /**
+     * 从模型实例创建Provider
+     */
+    protected static function createFromModel(AiModel $model): AiProviderInterface
+    {
+        $providerName = $model->provider;
+        $class = self::$providerMap[$providerName] ?? "\\app\\common\\service\\ai\\" . ucfirst($providerName) . "Provider";
 
         if (!class_exists($class)) {
             throw new \Exception("AI Provider {$providerName} 不存在");
@@ -58,39 +87,43 @@ class AiProviderFactory
             return self::createFromEnv();
         }
 
-        $class = "\\app\\common\\service\\ai\\" . ucfirst($model->provider) . "Provider";
-        if (!class_exists($class)) {
-            return self::createFromEnv();
-        }
-
-        return new $class($model);
+        return self::createFromModel($model);
     }
 
     /**
      * 获取故障降级Provider（排除指定provider）
-     * @param string|null $excludeProvider 要排除的provider
+     * V2.5增强：集成熔断器，跳过已熔断的Provider
      */
     public static function getFallbackProvider(?string $excludeProvider = null): AiProviderInterface
     {
+        $factory = new self(); // 需要实例化以使用trait方法
         $query = AiModel::where('is_enabled', 1)->order('sort', 'asc');
 
         if ($excludeProvider) {
             $query->where('provider', '<>', $excludeProvider);
         }
 
-        $model = $query->find();
+        $models = $query->select();
 
-        if (!$model) {
-            throw new \Exception("无可用备用AI模型");
+        foreach ($models as $model) {
+            // 检查熔断状态
+            if ($factory->isBreakerOpen($model->provider)) {
+                continue; // 跳过已熔断的Provider
+            }
+
+            // 检查速率限制
+            if (!AiModelService::checkRateLimit($model->id, $model->rate_limit_rpm, $model->rate_limit_rph)) {
+                continue; // 跳过已达速率限制的Provider
+            }
+
+            $class = self::$providerMap[$model->provider] ?? "\\app\\common\\service\\ai\\" . ucfirst($model->provider) . "Provider";
+
+            if (class_exists($class)) {
+                return new $class($model);
+            }
         }
 
-        $class = "\\app\\common\\service\\ai\\" . ucfirst($model->provider) . "Provider";
-
-        if (!class_exists($class)) {
-            throw new \Exception("备用AI Provider {$model->provider} 不存在");
-        }
-
-        return new $class($model);
+        throw new \Exception("无可用备用AI模型");
     }
 
     /**
@@ -108,5 +141,13 @@ class AiProviderFactory
         $model->capabilities = 'write,seo,translate,summarize';
 
         return new DeepSeekProvider($model);
+    }
+
+    /**
+     * 获取所有可用Provider列表（供后台选择）
+     */
+    public static function getAvailableProviders(): array
+    {
+        return array_keys(self::$providerMap);
     }
 }

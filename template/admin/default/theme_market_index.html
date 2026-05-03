@@ -1,0 +1,95 @@
+{extend name="/layout" /}
+{block name="title"}模板市场 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">模板市场</h4>
+        <div>
+            <button class="btn btn-outline-primary btn-sm" onclick="scanThemes()">
+                <i class="bi bi-arrow-repeat"></i> 扫描同步
+            </button>
+            <button class="btn btn-outline-info btn-sm" onclick="checkUpdates()">
+                <i class="bi bi-cloud-download"></i> 检查更新
+            </button>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link {if $type=='frontend'}active{/if}" href="?type=frontend">前台主题</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {if $type=='admin'}active{/if}" href="?type=admin">后台主题</a>
+        </li>
+    </ul>
+
+    <div class="row" id="themeList">
+        {volist name="themes" id="vo"}
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    {if $vo.thumbnail}
+                    <img src="{$vo.thumbnail}" class="card-img-top mb-3" style="max-height:160px;object-fit:cover;" alt="{$vo.name}">
+                    {else/}
+                    <div class="bg-light rounded mb-3 d-flex align-items-center justify-content-center" style="height:160px;">
+                        <i class="bi bi-palette2" style="font-size:3rem;color:#ccc;"></i>
+                    </div>
+                    {/if}
+                    <h6 class="card-title">{$vo.name}</h6>
+                    <p class="text-muted small mb-1">{$vo.code}</p>
+                    <p class="text-muted small mb-2">v{$vo.version} {if $vo.author}by {$vo.author}{/if}</p>
+                    <p class="small">{$vo.description|default='暂无描述'}</p>
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    {if $vo.is_installed}
+                    <span class="badge bg-success">已安装</span>
+                    <button class="btn btn-outline-danger btn-sm" onclick="uninstall({$vo.id})">卸载</button>
+                    {else/}
+                    <span class="badge bg-secondary">未安装</span>
+                    <button class="btn btn-outline-primary btn-sm" onclick="installTheme('{$vo.code}')">安装</button>
+                    {/if}
+                </div>
+            </div>
+        </div>
+        {/volist}
+        {if empty($themes)}
+        <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-palette2" style="font-size:3rem;"></i>
+            <p class="mt-2">暂无主题，点击"扫描同步"检测已有主题</p>
+        </div>
+        {/if}
+    </div>
+</div>
+
+<script>
+function scanThemes() {
+    $.post('/admin/theme_market/scan', {}, function(res) {
+        if (res.code === 0) { location.reload(); }
+        else { alert(res.msg); }
+    });
+}
+
+function checkUpdates() {
+    $.get('/admin/theme_market/checkUpdate', function(res) {
+        if (res.code === 0) {
+            alert(res.data.length > 0 ? '发现' + res.data.length + '个更新' : '当前已是最新版本');
+        } else { alert(res.msg); }
+    });
+}
+
+function uninstall(id) {
+    if (!confirm('确定要卸载此主题吗？')) return;
+    $.post('/admin/theme_market/uninstall', {id: id}, function(res) {
+        if (res.code === 0) { location.reload(); }
+        else { alert(res.msg); }
+    });
+}
+
+function installTheme(code) {
+    $.post('/admin/theme_market/install', {source_path: code}, function(res) {
+        if (res.code === 0) { location.reload(); }
+        else { alert(res.msg); }
+    });
+}
+</script>
+{/block}

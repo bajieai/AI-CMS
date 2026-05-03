@@ -36,6 +36,8 @@ class Content extends Model
         'is_recommend' => 'integer',
         'like_count' => 'integer',
         'comment_count' => 'integer',
+        'min_level_id' => 'integer',
+        'is_paid' => 'integer',
     ];
 
     /**

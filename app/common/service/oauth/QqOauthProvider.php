@@ -98,11 +98,11 @@ class QqOauthProvider implements OauthProviderInterface
         return json_decode((string) $response->getBody(), true);
     }
 
-    public function mapUserData(array $raw): array
+    public function mapUserData(array $raw, string $openid = ''): array
     {
         return [
-            'openid'   => $raw['openid'] ?? '',
-            'unionid'  => '',
+            'openid'   => $openid ?: ($raw['openid'] ?? ''),
+            'unionid'  => $raw['unionid'] ?? '',
             'nickname' => $raw['nickname'] ?? 'QQ用户',
             'avatar'   => $raw['figureurl_qq_2'] ?? $raw['figureurl_qq_1'] ?? $raw['figureurl'] ?? '',
         ];

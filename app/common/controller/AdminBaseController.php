@@ -70,6 +70,18 @@ abstract class AdminBaseController extends \think\BaseController
         'seo_keyword'      => 'seo_keyword',
         'visit_archive'    => 'visit_archive',
         'email_subscriber' => 'email_subscriber',
+        // V2.5 新增模块
+        'payment'          => 'payment',
+        'ai_batch'         => 'ai_batch',
+        'collect_source'   => 'collect_source',
+        'collect_log'      => 'collect_log',
+        'publish_platform' => 'publish_platform',
+        'publish_log'      => 'publish_log',
+        'email_template'   => 'email_template',
+        'email_log'        => 'email_log',
+        'plugin'           => 'plugin',
+        'language'         => 'language',
+        'theme_market'     => 'theme_market',
     ];
 
     /**
@@ -81,6 +93,9 @@ abstract class AdminBaseController extends \think\BaseController
         'system.custom_var'     => 'system_custom_var',
         'system.module_control' => 'system_module',
         'seo_keyword.group'     => 'seo_keyword_group',
+        // V2.5 精确菜单映射
+        'payment.config'        => 'payment',
+        'payment.revenue'       => 'payment_revenue',
     ];
 
     public function __construct(App $app)

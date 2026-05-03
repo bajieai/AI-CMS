@@ -1,0 +1,53 @@
+{extend name="/layout" /}
+{block name="title"}翻译管理 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">翻译管理</h4>
+    <div class="card"><div class="card-body">
+        <form id="translateForm">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">语言</label>
+                    <select class="form-select" name="lang" id="selLang">
+                        {volist name="languages" id="v"}
+                        <option value="{$v.code}" {if $v.code==$current_lang}selected{/if}>{$v.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">分组</label>
+                    <select class="form-select" name="group" id="selGroup">
+                        <option value="common" {if $current_group=='common'}selected{/if}>通用</option>
+                        <option value="frontend" {if $current_group=='frontend'}selected{/if}>前台</option>
+                        <option value="backend" {if $current_group=='backend'}selected{/if}>后台</option>
+                    </select>
+                </div>
+            </div>
+            <table class="table table-bordered">
+                <thead><tr><th>键</th><th>翻译值</th></tr></thead>
+                <tbody>
+                {volist name="translations" id="v"}
+                <tr>
+                    <td>{$key}</td>
+                    <td><input type="text" class="form-control" name="translations[{$key}]" value="{$v}"></td>
+                </tr>
+                {/volist}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">保存翻译</button>
+        </form>
+    </div></div>
+</div>
+<script>
+$('#selLang, #selGroup').on('change', function() {
+    location.href = '/admin/language/translate?lang=' + $('#selLang').val() + '&group=' + $('#selGroup').val();
+});
+$('#translateForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/admin/language/translate', $(this).serialize(), function(res) {
+        if (res.code === 0) alert('保存成功');
+        else alert(res.msg);
+    });
+});
+</script>
+{/block}

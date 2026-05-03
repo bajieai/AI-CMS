@@ -1,0 +1,61 @@
+{extend name="/layout" /}
+{block name="title"}创建AI批量任务 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">创建AI批量任务</h4>
+    <div class="card"><div class="card-body">
+        <form id="taskForm">
+            <div class="mb-3">
+                <label class="form-label">任务标题 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="title" required placeholder="如：AI技术系列文章">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">关键词 <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="keywords" rows="3" required placeholder="每行一个关键词，将基于每个关键词生成一篇文章"></textarea>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">生成数量</label>
+                    <input type="number" class="form-control" name="total" value="5" min="1" max="50">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">写作风格</label>
+                    <select class="form-select" name="style">
+                        {volist name="styles" id="vo" key="k"}
+                        <option value="{$k}">{$vo.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">所属分类</label>
+                    <select class="form-select" name="cate_id">
+                        <option value="0">不指定分类</option>
+                        {volist name="cates" id="vo"}
+                        <option value="{$vo.id}">{$vo.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">AI模型</label>
+                <select class="form-select" name="model_id">
+                    <option value="0">默认模型</option>
+                    {volist name="models" id="vo"}
+                    <option value="{$vo.id}">{$vo.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-magic"></i> 创建任务</button>
+        </form>
+    </div></div>
+</div>
+<script>
+$('#taskForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/admin/ai_batch/create', $(this).serialize(), function(res) {
+        if (res.code === 0) { location.href = '/admin/ai_batch/index'; }
+        else { alert(res.msg); }
+    });
+});
+</script>
+{/block}

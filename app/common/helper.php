@@ -144,3 +144,34 @@ if (!function_exists('i8j_cache')) {
         return Cache::set($key, $value, $expire);
     }
 }
+
+// V2.5 多语言辅助函数
+if (!function_exists('__')) {
+    /**
+     * 多语言翻译函数
+     * @param string $key 翻译键 (group.key 格式，如 common.hello)
+     * @param array $replace 替换变量 ['name' => 'value']
+     * @param string|null $lang 指定语言（null=当前语言）
+     * @return string
+     */
+    function __(string $key, array $replace = [], ?string $lang = null): string
+    {
+        // 解析 group.key 格式
+        $group = 'common';
+        if (str_contains($key, '.')) {
+            [$group, $key] = explode('.', $key, 2);
+        }
+
+        try {
+            $text = \app\common\service\LanguageService::translate($key, $group, [], $lang);
+        } catch (\Throwable) {
+            $text = $key;
+        }
+
+        foreach ($replace as $k => $v) {
+            $text = str_replace(':' . $k, (string) $v, $text);
+        }
+
+        return $text;
+    }
+}

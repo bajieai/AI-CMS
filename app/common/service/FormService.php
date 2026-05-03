@@ -5,6 +5,7 @@ namespace app\common\service;
 
 use app\common\model\Form as FormModel;
 use app\common\model\FormData as FormDataModel;
+use app\common\service\CaptchaService;
 
 /**
  * 表单服务
@@ -115,6 +116,15 @@ class FormService
         $formCode = $data['form_code'] ?? '';
         $form = FormModel::where('code', $formCode)->where('is_enabled', 1)->find();
         if (!$form) throw new \Exception('表单不存在');
+
+        // V2.5：验证码检查
+        if (CaptchaService::isFormCaptchaRequired($formCode)) {
+            $captchaKey = $data['captcha_key'] ?? '';
+            $captchaAnswer = $data['captcha_answer'] ?? '';
+            if (!CaptchaService::verify($captchaKey, $captchaAnswer)) {
+                throw new \Exception('验证码错误');
+            }
+        }
 
         $fields = $form->fields;
         $submitData = [];
