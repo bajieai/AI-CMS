@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}创建AI批量任务 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -49,6 +49,9 @@
         </form>
     </div></div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 $('#taskForm').on('submit', function(e) {
     e.preventDefault();

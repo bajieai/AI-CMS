@@ -82,6 +82,8 @@ abstract class AdminBaseController extends \think\BaseController
         'plugin'           => 'plugin',
         'language'         => 'language',
         'theme_market'     => 'theme_market',
+        // V2.6 AI内容模板
+        'ai_template'      => 'ai_template',
     ];
 
     /**
@@ -129,6 +131,8 @@ abstract class AdminBaseController extends \think\BaseController
         $this->app->view->assign([
             'admin_theme'      => $adminTheme,
             'admin_theme_path' => '/template/admin/' . $adminTheme . '/',
+            // V2.6 静态资源分离：skin目录指向public/skin/，浏览器可直接访问
+            'skin_admin'       => '/skin/admin/' . $adminTheme . '/',
         ]);
 
         // 自动注入当前菜单高亮标识（兼容完整类名返回）
@@ -149,6 +153,19 @@ abstract class AdminBaseController extends \think\BaseController
         // 根据角色权限过滤菜单并注入视图（使用静态缓存避免同一请求重复计算）
         $filteredMenus = $this->getFilteredMenus($roleId);
         $this->app->view->assign('sidebarMenus', $filteredMenus);
+
+        // V2.6 双栏菜单：注入菜单JSON数据供 admin-sidebar.js 使用
+        $this->app->view->assign('menuDataJson', json_encode($filteredMenus, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG));
+    }
+
+    /**
+     * 判断是否为 PJAX 局部刷新请求（排除 PJAX 的普通 AJAX 检测）
+     * PJAX 请求携带 X-PJAX 头，需要渲染完整 HTML 由中间件提取内容区，
+     * 不能像普通 AJAX 那样提前返回 JSON 数据
+     */
+    protected function isRealAjax(): bool
+    {
+        return $this->request->isAjax() && !$this->request->header('X-PJAX');
     }
 
     /**

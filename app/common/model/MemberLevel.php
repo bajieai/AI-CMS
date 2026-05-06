@@ -18,7 +18,10 @@ class MemberLevel extends Model
 
     protected $type = [
         'min_points'  => 'integer',
-        'discount'    => 'integer',
+        'discount'    => 'float',
+        'price'       => 'float',
+        'points_rate' => 'float',
+        'daily_ai_quota' => 'integer',
         'allow_download' => 'integer',
         'allow_comment_no_review' => 'integer',
         'is_default'  => 'integer',

@@ -1,0 +1,70 @@
+﻿{extend name="/layout" /}
+{block name="title"}{if $info}编辑{else/}添加{/if}工作流 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">{if $info}编辑{else/}添加{/if}工作流</h4>
+    <div class="card">
+        <div class="card-body">
+            <form id="workflowForm">
+                <input type="hidden" name="id" value="{$info.id|default='0'}">
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">流程名称</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" name="name" value="{$info.name|default=''}" placeholder="请输入流程名称" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">适用模块</label>
+                    <div class="col-sm-10">
+                        <select class="form-select" name="module">
+                            <option value="content" {if condition="isset($info) && $info.module=='content'"}selected{/if}>内容</option>
+                            <option value="member" {if condition="isset($info) && $info.module=='member'"}selected{/if}>会员</option>
+                            <option value="comment" {if condition="isset($info) && $info.module=='comment'"}selected{/if}>评论</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">审核步骤JSON</label>
+                    <div class="col-sm-10">
+                        <textarea class="form-control" name="steps" rows="5" placeholder='[{&quot;step&quot;:1,&quot;role_id&quot;:0,&quot;name&quot;:&quot;一审&quot;},{&quot;step&quot;:2,&quot;role_id&quot;:0,&quot;name&quot;:&quot;二审&quot;}]'>{$info.steps|default=''}</textarea>
+                        <div class="form-text">JSON格式，示例：[{"step":1,"role_id":0,"name":"一审"}]</div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">设为默认</label>
+                    <div class="col-sm-10">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_default" value="1" {if condition="isset($info) && $info.is_default==1"}checked{/if}>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">启用状态</label>
+                    <div class="col-sm-10">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_enabled" value="1" {if condition="!isset($info) || $info.is_enabled==1"}checked{/if}>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存</button>
+                    <a href="/admin/workflow/index" class="btn btn-secondary">返回</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#workflowForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/workflow/save', data, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.href = '/admin/workflow/index';
+    });
+});
+</script>
+{/block}

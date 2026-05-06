@@ -1,0 +1,28 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+
+  <block wx:if="{{info && !loading}}">
+    <view class="card">
+      <view class="title">{{info.title}}</view>
+      <view class="meta">
+        <text>{{info.cate?.name}}</text>
+        <text style="margin-left:20rpx;">{{info.views}} 阅读</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <rich-text wx:if="{{info.content}}" nodes="{{info.content}}"></rich-text>
+      <view wx:else class="empty">该内容需付费后查看</view>
+    </view>
+
+    <!-- 章节列表 -->
+    <view wx:if="{{chapters.length > 0}}" class="card">
+      <view class="title" style="font-size:30rpx;margin-bottom:16rpx;">章节列表</view>
+      <view wx:for="{{chapters}}" wx:key="id" style="padding:16rpx 0;border-bottom:1rpx solid #eee;">
+        <text>{{item.chapter_title || item.title}}</text>
+        <text wx:if="{{item.is_free_chapter}}" style="color:#07c160;margin-left:12rpx;font-size:24rpx;">免费</text>
+        <text wx:else style="color:#e64340;margin-left:12rpx;font-size:24rpx;">付费</text>
+      </view>
+    </view>
+  </block>
+</view>

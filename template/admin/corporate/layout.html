@@ -8,313 +8,8 @@
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
-    <style>
-        /* ========== 企业商务后台主题变量 ========== */
-        :root {
-            --sidebar-width: 250px;
-            --header-height: 60px;
-            /* 品牌亮蓝（企业商务风格） */
-            --primary: #3699ff;
-            --primary-dark: #0e8eed;
-            --primary-light: #a6cfff;
-            --primary-glow: rgba(54,153,255,.35);
-            /* 深色侧边栏主题 */
-            --sidebar-bg: #1e1e2d;
-            --sidebar-text: #a2a3b7;
-            --sidebar-active-bg: rgba(54,153,255,.15);
-            --body-bg: #f5f6fa;
-            --card-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.03);
-            --card-hover-shadow: 0 10px 25px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
-            --border-color: #e2e6ef;
-            --text-secondary: #64748b;
-            --radius: 10px;
-            --radius-sm: 6px;
-        }
-
-        body {
-            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-            font-size: 14px;
-            color: #334155;
-            background: var(--body-bg);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ==================== 侧边栏（深色企业风） ==================== */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0; left: 0;
-            z-index: 1040;
-            background: linear-gradient(180deg, var(--sidebar-bg) 0%, #151521 100%);
-            overflow-y: auto;
-            overflow-x: hidden;
-            transition: transform .3s cubic-bezier(.4,0,.2,1);
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,.15) transparent;
-        }
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 4px; }
-
-        /* 品牌 Logo 栏 */
-        .sidebar-brand {
-            height: var(--header-height);
-            display: flex;
-            align-items: center;
-            padding: 0 1.25rem;
-            color: #fff;
-            font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: .02em;
-            text-decoration: none;
-            position: relative;
-            border-bottom: 1px solid rgba(255,255,255,.08);
-            background: rgba(0,0,0,.20);
-        }
-        .sidebar-brand::after {
-            content: '';
-            position: absolute;
-            bottom: -1px; left: 20%; right: 20%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--primary), transparent);
-            opacity: .8;
-        }
-        .sidebar-brand i {
-            font-size: 1.5rem;
-            margin-right: .65rem;
-            color: var(--primary);
-            filter: drop-shadow(0 0 8px rgba(54,153,255,.4));
-        }
-
-        /* 导航项基础样式 */
-        .sidebar-nav { padding: .5rem 0; }
-        .sidebar-nav .nav-item {
-            margin: 1.5px .75rem 0;
-        }
-        .sidebar-nav .nav-link {
-            color: var(--sidebar-text);
-            padding: .62rem 1rem .62rem 1.15rem;
-            font-size: .88rem;
-            border-radius: var(--radius-sm);
-            transition: all .22s ease;
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .sidebar-nav .nav-link i {
-            width: 22px; text-align: center;
-            margin-right: .55rem;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        /* Hover 状态：半透明亮蓝底 */
-        .sidebar-nav .nav-link:hover {
-            color: #fff;
-            background: rgba(54,153,255,.10);
-        }
-
-        /* Active 高亮 —— 亮蓝竖条 + 浅蓝底 + 白字加粗 */
-        .sidebar-nav .nav-link.active {
-            color: #fff;
-            background: var(--sidebar-active-bg);
-            border-left: 3.5px solid var(--primary);
-            padding-left: calc(1.15rem - 3.5px);
-            box-shadow: 0 2px 12px rgba(0,0,0,.25), inset 0 0 16px rgba(54,153,255,.08);
-            font-weight: 600;
-        }
-
-        /* 分组标题 */
-        .sidebar-nav .nav-section {
-            color: rgba(255,255,255,.35);
-            font-size: .7rem;
-            font-weight: 600;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            padding: 1.1rem 1.25rem .35rem;
-        }
-
-        /* 子菜单 */
-        .sidebar-nav .submenu .nav-link { padding-left: 2.6rem; font-size: .84rem; }
-
-        /* ==================== 主内容区 ==================== */
-        .main-wrapper {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            background: var(--body-bg);
-            transition: margin-left .3s cubic-bezier(.4,0,.2,1);
-        }
-
-        /* ==================== 顶部栏（深色融合） ==================== */
-        .top-header {
-            height: var(--header-height);
-            background: rgba(255,255,255,.95);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            padding: 0 1.75rem;
-            position: sticky;
-            top: 0;
-            z-index: 1030;
-            box-shadow: 0 1px 3px rgba(0,0,0,.04);
-        }
-        .top-header .breadcrumb {
-            margin-bottom: 0;
-            font-size: .84rem;
-            color: var(--text-secondary);
-        }
-        .top-header .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
-        .top-header .breadcrumb a:hover { color: var(--primary); }
-        .top-header .breadcrumb-item + .breadcrumb-item::before { color: #cbd5e1; }
-
-        /* 用户下拉 */
-        .top-header .dropdown-toggle {
-            color: #475569;
-            font-size: .88rem;
-        }
-        .top-header .dropdown-toggle:hover { color: var(--primary); }
-        .top-header .dropdown-menu { box-shadow: var(--card-hover-shadow); border: 1px solid var(--border-color); border-radius: var(--radius-sm); }
-
-        /* ==================== 内容区域 ==================== */
-        .main-content { padding: 1.5rem; max-width: 1440px; }
-
-        /* ==================== 卡片组件 ==================== */
-        .card {
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            overflow: hidden;
-            transition: box-shadow .25s ease;
-        }
-        .card:hover { box-shadow: var(--card-hover-shadow); }
-        .card-header {
-            background: linear-gradient(to right, #fafbfc, #fff);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            font-size: .94rem;
-            color: #1e293b;
-            padding: .85rem 1.25rem;
-            letter-spacing: .01em;
-        }
-        .card-body { padding: 1.25rem; }
-        .card-footer { background: #fafbfc; border-top: 1px solid var(--border-color); }
-
-        /* ==================== 统计卡片（仪表盘） ==================== */
-        .stat-card {
-            text-align: center;
-            padding: 1.5rem 1rem;
-            border-radius: var(--radius);
-            background: #fff;
-            border: 1px solid var(--border-color);
-            transition: transform .25s ease, box-shadow .25s ease;
-            cursor: default;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--card-hover-shadow);
-        }
-        .stat-card .stat-icon {
-            font-size: 2.2rem;
-            margin-bottom: .6rem;
-            display: inline-block;
-            padding: .7rem;
-            border-radius: 50%;
-        }
-        .stat-card .stat-icon.text-primary { background: #e8f2ff; }
-        .stat-card .stat-icon.text-success { background: #f0fdf4; }
-        .stat-card .stat-icon.text-warning { background: #fefce8; }
-        .stat-card .stat-icon.text-info { background: #f0f9ff; }
-        .stat-card .stat-num {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: -.02em;
-        }
-        .stat-card .stat-label {
-            color: var(--text-secondary);
-            font-size: .82rem;
-            margin-top: .25rem;
-            font-weight: 500;
-        }
-
-        /* ==================== 表格增强 ==================== */
-        .table > :not(caption) > * > * {
-            padding: .72rem .85rem;
-        }
-        .table thead th {
-            font-size: .78rem;
-            font-weight: 650;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            color: #64748b;
-            border-bottom-width: 1.5px;
-            background: #f8fafc;
-        }
-        .table-hover > tbody > tr:hover {
-            background-color: #f0f2f7;
-        }
-        .table-responsive { border-radius: var(--radius); overflow: hidden; }
-
-        /* ==================== 表单控件微调 ==================== */
-        .form-control, .form-select {
-            border-color: #d1d5db;
-            border-radius: var(--radius-sm);
-            transition: border-color .2s, box-shadow .2s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(54,153,255,.15);
-        }
-        .form-label {
-            font-weight: 550;
-            font-size: .87rem;
-            color: #374151;
-            margin-bottom: .35rem;
-        }
-
-        /* ==================== 按钮微调 ==================== */
-        .btn { border-radius: var(--radius-sm); font-weight: 500; letter-spacing: .01em; transition: all .2s; }
-        .btn-primary { background: var(--primary); border-color: var(--primary); }
-        .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
-        .btn-outline-primary { color: var(--primary); border-color: var(--primary); }
-        .btn-outline-primary:hover { background: var(--primary); border-color: var(--primary); }
-
-        /* ==================== 徽标 Badge ==================== */
-        .badge { font-weight: 500; font-size: .73rem; letter-spacing: .02em; padding: .35em .6em; }
-
-        /* ==================== 搜索栏卡片 ==================== */
-        .mb-3 > .card.bg-transparent, [class*=" mb-3"] > .card:first-child {
-            border-style: dashed;
-            border-color: #dde2ea;
-            background: rgba(255,255,255,.5);
-        }
-
-        /* ==================== 响应式 ==================== */
-        @media (max-width: 991.98px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.show { transform: translateX(0); }
-            .main-wrapper { margin-left: 0; }
-            .sidebar-overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,.45);
-                backdrop-filter: blur(4px);
-                z-index: 1035;
-            }
-            .sidebar-overlay.show { display: block; }
-        }
-
-        /* ==================== 页脚信息表（系统信息卡片） ==================== */
-        .card-body.p-0 table tr td:last-child { font-weight: 550; }
-
-        /* ==================== TinyMCE 推广与品牌隐藏（兜底） ==================== */
-        .tox-promotion,
-        .tox-statusbar__branding {
-            display: none !important;
-        }
-    </style>
+    <!-- V2.6 主题样式（从内联提取到外部CSS文件） -->
+    <link href="{$skin_admin}css/admin.css?v=2.6" rel="stylesheet">
     {block name="css"}{/block}
     <!-- jQuery（提前加载，供页面内联脚本使用） -->
     <script src="/assets/js/jquery.min.js"></script>
@@ -330,32 +25,27 @@
     echo '<input type="hidden" name="__token__" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '" />';
     ?>
 
+    <!-- 菜单数据（JSON注入给admin-sidebar.js使用） -->
+    <script>window.MENU_DATA = {$menuDataJson|raw};</script>
+
     <!-- 侧边栏遮罩（移动端） -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- 侧边栏 -->
-    <nav class="sidebar" id="sidebar">
-        <a href="/admin" class="sidebar-brand">
-            <i class="bi bi-robot"></i> AI-CMS
-        </a>
-        <ul class="nav sidebar-nav flex-column py-2">
-            <li class="nav-section">导航</li>
-            <li class="nav-item">
-                <a class="nav-link {if condition="$menuActive == 'dashboard'"}active{/if}" href="/admin">
-                    <i class="bi bi-speedometer2"></i> 仪表盘
+        <!-- V2.6 双栏侧边栏 -->
+        <nav class="sidebar-wrapper" id="sidebarWrapper">
+            <!-- 第一列：一级分类目录 (~170px) -->
+            <div class="sidebar-l1" id="sidebarL1">
+                <a href="/admin" class="sidebar-l1-brand" data-l1-dashboard>
+                    <i class="bi bi-robot"></i> 八界AI-CMS
                 </a>
-            </li>
-            {volist name="sidebarMenus" id="group"}
-            <li class="nav-section">{$group.name}</li>
-            {volist name="group.children" id="item"}
-            <li class="nav-item">
-                <a class="nav-link {if condition="$menuActive == $item.active"}active{/if}" href="{$item.url}">
-                    <i class="{$item.icon|default='bi bi-circle'}"></i> {$item.name}
-                </a>
-            </li>
-            {/volist}
-            {/volist}
-        </ul>
+                <!-- JS动态渲染一级菜单项 -->
+                <div class="l1-menu-list" id="l1MenuList"></div>
+            </div>
+
+        <!-- 第二列：动态二级子菜单 (~200px) -->
+        <div class="sidebar-l2" id="sidebarL2">
+            <!-- JS动态渲染二级菜单内容 -->
+        </div>
     </nav>
 
     <!-- 主内容区 -->
@@ -417,9 +107,10 @@
             </div>
         </header>
 
-        <!-- 页面内容（PJAX 容器） -->
         <main class="main-content" id="pjax-container">
+            <!-- PJAX-CONTAINER-START -->
             {block name="content"}{/block}
+            <!-- PJAX-CONTAINER-END -->
         </main>
     </div>
 
@@ -430,6 +121,10 @@
 
     <!-- Bootstrap JS -->
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <!-- PJAX 局部刷新（必须在 admin-sidebar.js 之前加载） -->
+    <script src="/assets/js/pjax.js?v=3.3"></script>
+    <!-- V2.6 双栏菜单控制器（双主题共用） -->
+    <script src="/assets/js/admin-sidebar.js?v=2.6"></script>
     <script>
         // 页面加载进度条
         (function() {
@@ -452,52 +147,6 @@
                 }
             });
 
-            // ========== PJAX 局部刷新 ==========
-            (function($) {
-                var containerSelector = '#pjax-container';
-                function doPjax(url, pushState) {
-                    if (pushState !== false) pushState = true;
-                    window.showPageLoader && window.showPageLoader();
-                    $.ajax({
-                        url: url,
-                        type: 'GET',
-                        headers: { 'X-PJAX': 'true', 'X-Requested-With': 'XMLHttpRequest' },
-                        dataType: 'json',
-                        success: function(res) {
-                            if (!res || !res.html) { location.href = url; return; }
-                            $(containerSelector).html(res.html);
-                            if (res.title) document.title = res.title;
-                            if (pushState) history.pushState({pjax: true, url: url}, '', url);
-                            updateSidebarActive(url);
-                            if (res.csrf_token) $('input[name="__token__"]').val(res.csrf_token);
-                            if (res.js) {
-                                try { var s = document.createElement('script'); s.textContent = res.js; document.head.appendChild(s); document.head.removeChild(s); } catch(e) { console.error('PJAX script error:', e); }
-                            }
-                            $(document).trigger('pjax:complete');
-                            window.scrollTo(0, 0);
-                            window.hidePageLoader && window.hidePageLoader();
-                        },
-                        error: function() { location.href = url; }
-                    });
-                }
-                function updateSidebarActive(url) {
-                    $('.sidebar-nav .nav-link').removeClass('active');
-                    $('.sidebar-nav .nav-link').each(function() {
-                        var href = $(this).attr('href');
-                        if (href && (url === href || url.indexOf(href + '?') === 0 || url.indexOf(href + '&') === 0)) $(this).addClass('active');
-                    });
-                }
-                $(document).on('click', '.sidebar-nav .nav-link', function(e) {
-                    var href = $(this).attr('href');
-                    if (!href || href.indexOf('#') === 0 || href.indexOf('javascript:') === 0 || $(this).attr('target')) return;
-                    e.preventDefault();
-                    doPjax(href);
-                });
-                window.addEventListener('popstate', function(e) {
-                    if (e.state && e.state.pjax) doPjax(e.state.url, false);
-                });
-            })(jQuery);
-
             var csrfToken = $('input[name="__token__"]').val();
             if (csrfToken) {
                 $('form').each(function() {
@@ -509,8 +158,8 @@
                 if (token && settings.type && settings.type.toUpperCase() === 'POST') jqXHR.setRequestHeader('X-CSRF-TOKEN', token);
             });
 
-            $('#sidebarToggle').on('click', function() { $('#sidebar').toggleClass('show'); $('#sidebarOverlay').toggleClass('show'); });
-            $('#sidebarOverlay').on('click', function() { $('#sidebar').removeClass('show'); $(this).removeClass('show'); });
+            $('#sidebarToggle').on('click', function() { $('#sidebarWrapper').toggleClass('show'); $('#sidebarOverlay').toggleClass('show'); });
+            $('#sidebarOverlay').on('click', function() { $('#sidebarWrapper').removeClass('show'); $(this).removeClass('show'); });
 
             window.ajaxPost = function(url, data, callback, _retry) {
                 var csrfToken = $('input[name="__token__"]').val();

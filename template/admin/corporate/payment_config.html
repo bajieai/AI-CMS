@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}支付配置 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -52,6 +52,9 @@
         </div>
     </div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 $('#configForm').on('submit', function(e) {
     e.preventDefault();

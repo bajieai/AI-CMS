@@ -20,6 +20,7 @@ class Media extends Model
         'user_id' => 'integer',
         'filesize' => 'integer',
         'cate_id' => 'integer',
+        'download_count' => 'integer',
     ];
 
     /**

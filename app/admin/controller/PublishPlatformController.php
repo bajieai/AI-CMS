@@ -16,7 +16,7 @@ class PublishPlatformController extends AdminBaseController
         $list = PublishPlatform::order('id', 'desc')
             ->paginate(['list_rows' => 20, 'path' => '/admin/publish_platform/index']);
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list->toArray()]);
         }
 

@@ -1,0 +1,90 @@
+﻿{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_template/index">AI中心</a></li>
+<li class="breadcrumb-item"><a href="/admin/ai_template/index">AI内容模板</a></li>
+<li class="breadcrumb-item active">{if condition="$id > 0"}编辑模板{else /}新建模板{/if}</li>
+{/block}
+{block name="css"}
+<style>.nav-tabs-custom .nav-link{color:var(--text-secondary);font-weight:500;font-size:13px;padding:10px 16px;border-bottom:2px solid transparent;background:none;}
+.nav-tabs-custom .nav-link:hover{color:var(--primary);}.nav-tabs-custom .nav-link.active{color:var(--primary);font-weight:600;border-color:var(--primary);}
+.field-row{animation:fadeInUp .2s ease-out;}@keyframes fadeInUp{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}</style>
+{/block}
+{block name="content"}
+<h5 class="mb-3"><i class="bi bi-gear me-2"></i>{if condition="$id > 0"}编辑模板{else /}新建模板{/if}</h5>
+<form id="templateForm" method="post" action="/admin/ai_template/save" autocomplete="off">
+<input type="hidden" name="id" value="{$id|default=0}">
+<ul class="nav nav-tabs-custom border-bottom mb-3">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-basic"><i class="bi bi-info-circle me-1"></i>基本信息</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-rules"><i class="bi bi-code-slash me-1"></i>生成规则</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-image"><i class="bi bi-image me-1"></i>配图发布</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-example"><i class="bi bi-bookmark-star me-1"></i>参考示例</a></li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-basic">
+        <div class="card"><div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-8"><label class="form-label">模板名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" required maxlength="100" value="{$template.name|default=''}" placeholder="例如：科技资讯文章模板"></div>
+                <div class="col-md-4"><label class="form-label">状态</label>
+                    <select name="status" class="form-select"><option value="1"{if condition="($template.status ?? 1)==1"} selected{/if}>启用</option><option value="0"{if condition="isset($template)&&$template.status==0"} selected{/if}>禁用</option></select></div>
+                <div class="col-12"><label class="form-label">描述</label>
+                    <textarea name="description" class="form-control" rows="2" maxlength="500" placeholder="简要说明此模板的用途...">{$template.description|default=''}</textarea></div>
+                <hr class="my-2">
+                <div class="col-md-6"><label class="form-label">生成模式</label>
+                    <div class="row g-2"><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="generate_mode" value="nlp" id="modeNlp"{if condition="($template.generate_mode ??'nlp')=='nlp'||empty($template)"} checked{/if}><label class="form-check-label" for="modeNlp">NLP 自然语言</label></div></div>
+                        <div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="generate_mode" value="example" id="modeExample"{if condition="isset($template)&&$template.generate_mode=='example'"} checked{/if}><label class="form-check-label" for="modeExample">参考示例</label></div></div></div></div>
+                <div class="col-md-3"><label class="form-label">默认分类</label><select name="cate_id" class="form-select form-select-sm">
+                    <option value="0">-- 不指定 --</option>{volist name="cate_list" id="cate"}<option value="{$cate.id}"{if condition="($template.cate_id ??0)==$cate.id"} selected{/if}>{$cate.name}</option>{/volist}</select></div>
+                <div class="col-md-3"><label class="form-label">AI模型</label><select name="model_id" class="form-select form-select-sm">
+                    <option value="0">-- 默认 --</option>{volist name="model_list" id="model"}<option value="{$model.id}"{if condition="($template.model_id ??0)==$model.id"} selected{/if}>{$model.name} ({$model.provider})</option>{/volist}</select></div>
+                <div class="col-md-4"><label class="form-label">写作风格</label><select name="style" class="form-select">{volist name="style_list" id="st"}<option value="{$st.key}"{if condition="($template.style ??'default')==$st.key"} selected{/if}>{$st.name} - {$st.desc}</option>{/volist}</select></div>
+                <div class="col-md-4"><label class="form-label">默认批量数量</label><input type="number" name="default_batch" class="form-control" min="1" max="100" value="{$template.default_batch|default=10}"></div>
+                <div class="col-md-4"><label class="form-label">排序权重</label><input type="number" name="sort" class="form-control" value="{$template.sort|default=0}"></div>
+            </div></div></div>
+    </div>
+    <div class="tab-pane fade" id="tab-rules">
+        <div class="card"><div class="card-body">
+            <div class="mb-3"><label class="form-label">标题生成规则</label><textarea name="title_rule" class="form-control" rows="3" placeholder="例如：标题15-25字，包含核心关键词...">{$template.title_rule|default=''}</textarea><div class="form-text">用自然语言描述你希望AI生成的标题规则</div></div>
+            <div class="mb-3"><label class="form-label">内容生成规则</label><textarea name="content_rule" class="form-control" rows="5" placeholder="例如：正文1500-2000字，分3-4个段落...">{$template.content_rule|default=''}</textarea><div class="form-text">用自然语言描述文章结构、字数、风格等要求</div></div>
+            <div class="mb-3"><label class="form-label">关键词提示（逗号分隔）</label><input type="text" name="keyword_hint" class="form-control" maxlength="500" value="{$template.keyword_hint|default=''}" placeholder="例如：人工智能,科技,未来趋势"></div>
+            <div class="mb-2 d-flex justify-content-between align-items-center"><label class="form-label mb-0 fw-bold"><i class="bi bi-list-ul me-1"></i>自定义字段配置</label><button type="button" class="btn btn-sm btn-outline-primary" onclick="addField()"><i class="bi bi-plus-lg me-1"></i>添加字段</button></div>
+            <div id="fieldsContainer">{php}$fields=isset($template)?$template->fields_array:[];{/php}{if condition="!empty($fields)"}{volist name="fields" id="f"}<div class="field-row row g-2 mb-2 align-items-center">
+                <div class="col-md-3"><input type="text" class="form-control form-control-sm field-name" placeholder="字段名" value="{$f.name|default=''}"></div>
+                <div class="col-md-3"><select class="form-select form-select-sm field-type"><option value="text"{if condition="$f.type=='text'"} selected{/if}>文本</option><option value="number"{if condition="$f.type=='number'"} selected{/if}>数字</option><option value="select"{if condition="$f.type=='select'"} selected{/if}>选择</option><option value="date"{if condition="$f.type=='date'"} selected{/if}>日期</option></select></div>
+                <div class="col-md-5"><input type="text" class="form-control form-control-sm field-rule" placeholder="生成规则" value="{$f.rule|default=''}"></div>
+                <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest('.field-row').remove()"><i class="bi bi-x-lg"></i></button></div></div>{/volist}{else /}<div class="text-center py-3 text-secondary small" id="fieldsEmptyHint"><i class="bi bi-info-circle me-1"></i>暂无自定义字段，点击上方按钮添加</div>{/if}</div>
+        </div></div></div>
+    </div>
+    <div class="tab-pane fade" id="tab-image">
+        <div class="card"><div class="card-body">
+            <h6 class="fw-bold mb-3"><i class="bi bi-image me-2"></i>封面图策略</h6>
+            <div class="row g-2 mb-4"><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[thumb]" value="0" id="thumb0" checked><label class="form-check-label" for="thumb0">不上传</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[thumb]" value="1" id="thumb1"><label class="form-check-label" for="thumb1">AI生成图片</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[thumb]" value="2" id="thumb2"><label class="form-check-label" for="thumb2">图库中选择</label></div></div></div>
+            <h6 class="fw-bold mb-3"><i class="bi bi-images me-2"></i>正文配图策略</h6>
+            <div class="row g-2 mb-3"><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[images]" value="0" id="img0" checked><label class="form-check-label" for="img0">不配图</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[images]" value="1" id="img1"><label class="form-check-label" for="img1">AI自动配图</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[images]" value="2" id="img2"><label class="form-check-label" for="img2">随机匹配图库</label></div></div></div>
+            <div class="row g-3"><div class="col-md-4"><label class="form-label">配图数量</label><input type="number" name="image_config[count]" class="form-control" min="0" max="20" value="0"></div>
+                <div class="col-md-4"><label class="form-label">图片来源</label><select name="image_config[source]" class="form-select"><option value="0">外链引用</option><option value="1">下载到本地</option></select></div></div>
+            <hr class="my-4"><h6 class="fw-bold mb-3"><i class="bi bi-send me-2"></i>默认发布信息</h6>
+            <div class="row g-3"><div class="col-md-6"><label class="form-label">默认作者</label><input type="text" name="publisher" class="form-control" maxlength="50" value="{$template.publisher|default=''}"></div>
+                <div class="col-md-6"><label class="form-label">默认联系方式</label><input type="text" name="contact" class="form-control" maxlength="100" value="{$template.contact|default=''}"></div></div>
+        </div></div></div>
+    </div>
+    <div class="tab-pane fade" id="tab-example">
+        <div class="card"><div class="card-body">
+            <div class="alert alert-info small"><i class="bi bi-lightbulb me-1"></i>选择「参考示例」模式时，请在此粘贴一篇您希望AI模仿其风格的示例文章。</div>
+            <div class="mb-3"><label class="form-label">示例标题</label><input type="text" name="example_title" class="form-control" maxlength="255" value="{$template.example_title|default=''}" placeholder="示例文章的标题（可选）"></div>
+            <div class="mb-3"><label class="form-label">示例正文 <span class="text-secondary">(用于风格学习)</span></label><textarea name="example_content" class="form-control" rows="14" placeholder="粘贴一篇您希望模仿其风格的示例文章正文内容...">{$template.example_content|default=''}</textarea><div class="form-text">建议提供完整示例以便AI准确学习写作风格</div></div>
+        </div></div></div>
+</div>
+<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+    <a href="/admin/ai_template/index" class="btn btn-secondary">取消</a>
+    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>保存模板</button>
+</div>
+</form>
+{/block}
+
+{block name="js"}
+<script>
+function addField(){$('#fieldsEmptyHint').remove();var h='<div class="field-row row g-2 mb-2 align-items-center"><div class="col-md-3"><input type="text" class="form-control form-control-sm field-name" placeholder="字段名"></div><div class="col-md-3"><select class="form-select form-select-sm field-type"><option value="text">文本</option><option value="number">数字</option><option value="select">选择</option><option value="date">日期</option></select></div><div class="col-md-5"><input type="text" class="form-control form-control-sm field-rule" placeholder="生成规则"></div><div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.field-row\').remove()"><i class="bi bi-x-lg"></i></button></div></div>';$('#fieldsContainer').append(h);}
+$('#templateForm').on('submit',function(e){e.preventDefault();var f=[];$('.field-row').each(function(){var n=$(this).find('.field-name').val();if(n)f.push({name:n,type:$(this).find('.field-type').val(),rule:$(this).find('.field-rule').val()});});var fd=$(this).serializeArray();fd.push({name:'fields_json',value:JSON.stringify(f)});ajaxPost($(this).attr('action'),fd,function(r){setTimeout(function(){location.href='/admin/ai_template/index';},800);});});
+</script>
+{/block}

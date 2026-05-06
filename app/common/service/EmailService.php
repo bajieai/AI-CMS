@@ -5,7 +5,7 @@ namespace app\common\service;
 
 use app\common\model\EmailLog;
 use app\common\model\EmailTemplate;
-use think\facade\Cache;
+use app\common\traits\RedisQueueTrait;
 use think\facade\Log;
 
 /**
@@ -14,6 +14,7 @@ use think\facade\Log;
  */
 class EmailService
 {
+    use RedisQueueTrait;
     /**
      * 缓存队列键名
      */
@@ -51,18 +52,17 @@ class EmailService
 
     /**
      * 将邮件加入发送队列（异步）
+     * V2.6: 从Cache迁移至Redis List，支持原子操作和并发安全
      */
     public static function queue(string $templateCode, string $toEmail, array $vars = []): bool
     {
-        $queue = Cache::get(self::$queueKey, []);
-        $queue[] = [
+        return self::queuePush(self::$queueKey, [
             'template_code' => $templateCode,
             'to_email' => $toEmail,
             'vars' => $vars,
+            'retry' => 0,
             'create_time' => time(),
-        ];
-        Cache::set(self::$queueKey, $queue, 86400);
-        return true;
+        ]);
     }
 
     /**
@@ -71,16 +71,16 @@ class EmailService
      */
     public static function processQueue(int $limit = 100): array
     {
-        $queue = Cache::get(self::$queueKey, []);
-        if (empty($queue)) {
-            return ['success' => 0, 'fail' => 0];
-        }
-
         $success = 0;
         $fail = 0;
         $remaining = [];
 
-        foreach (array_slice($queue, 0, $limit) as $item) {
+        for ($i = 0; $i < $limit; $i++) {
+            $item = self::queuePop(self::$queueKey);
+            if ($item === null) {
+                break;
+            }
+
             $result = self::sendByTemplate($item['template_code'], $item['to_email'], $item['vars'] ?? []);
             if ($result) {
                 $success++;
@@ -94,9 +94,10 @@ class EmailService
             }
         }
 
-        // 保留未处理的部分
-        $unprocessed = array_slice($queue, $limit);
-        Cache::set(self::$queueKey, array_merge($remaining, $unprocessed), 86400);
+        // 将重试项重新入队（保持FIFO顺序）
+        foreach ($remaining as $item) {
+            self::queuePush(self::$queueKey, $item);
+        }
 
         Log::info("邮件队列处理完成: 成功{$success}封，失败{$fail}封");
         return ['success' => $success, 'fail' => $fail];

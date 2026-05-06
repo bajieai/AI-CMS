@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}模板市场 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -60,7 +60,11 @@
         {/if}
     </div>
 </div>
+{/block}
 
+{block name="js"}
+{/block}
+{block name="js"}
 <script>
 function scanThemes() {
     $.post('/admin/theme_market/scan', {}, function(res) {

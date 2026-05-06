@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}邮件模板 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -29,6 +29,9 @@
         {$list|raw}
     </div></div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 function testSend() {
     var email = prompt('请输入测试邮箱地址：');

@@ -123,6 +123,8 @@ abstract class FrontBaseController extends \think\BaseController
             // V2.4 多模板风格：注入主题变量
             'active_theme'     => $activeTheme,
             'theme_assets'     => '/template/themes/' . $activeTheme . '/',
+            // V2.6 静态资源分离：skin目录指向public/skin/，按pc/mobile区分
+            'skin'             => '/skin/themes/' . $activeTheme . '/' . TemplateService::getDeviceType() . '/',
         ]);
     }
 
@@ -158,6 +160,7 @@ abstract class FrontBaseController extends \think\BaseController
                 'id'       => $member->id,
                 'username' => $member->username,
                 'nickname' => $member->nickname,
+                'email'    => $member->email,
                 'avatar'   => $member->avatar,
             ];
             $this->isMemberLogin = true;

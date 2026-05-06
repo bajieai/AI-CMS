@@ -5,6 +5,7 @@ namespace app\common\service;
 
 use app\common\model\Media;
 use think\facade\Config;
+use think\facade\Log;
 
 /**
  * 媒体资源服务
@@ -63,6 +64,7 @@ class MediaService
 
     /**
      * 删除媒体记录及文件
+     * V2.6: 支持通过StorageService删除远程文件
      */
     public function delete(int $id): bool
     {
@@ -71,10 +73,22 @@ class MediaService
             return false;
         }
 
-        // 删除物理文件
-        $filePath = public_path() . ltrim($media->filepath, '/');
-        if (file_exists($filePath)) {
-            @unlink($filePath);
+        // V2.6: 根据存储驱动选择删除方式
+        $driver = $media->storage_driver ?? 'local';
+        $filePath = $media->storage_path ?: ltrim($media->filepath, '/');
+
+        if ($driver === 'local') {
+            $localPath = public_path() . ltrim($filePath, '/');
+            if (file_exists($localPath)) {
+                @unlink($localPath);
+            }
+        } else {
+            try {
+                StorageService::driver($driver)->delete($filePath);
+            } catch (\Exception $e) {
+                // 远程删除失败不阻止记录删除，记录日志
+                Log::warning("媒体远程删除失败 [id:{$id}]: " . $e->getMessage());
+            }
         }
 
         return $media->delete();

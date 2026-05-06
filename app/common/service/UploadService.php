@@ -6,7 +6,7 @@ namespace app\common\service;
 use think\facade\Config;
 
 /**
- * 上传服务
+ * 上传服务 - V2.6增强：支持对象存储(CDN)上传
  */
 class UploadService
 {
@@ -75,23 +75,34 @@ class UploadService
             throw new \Exception('文件扩展名与内容类型不匹配');
         }
 
-        // 构建上传目录（使用日期）
-        $dateDir = date('Ymd');
-        $uploadDir = public_path() . 'uploads' . DIRECTORY_SEPARATOR . $dateDir . DIRECTORY_SEPARATOR;
-
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
         // 生成 UUID v4 安全文件名，避免并发碰撞
         $filename = self::uuidV4() . '.' . $ext;
+        $dateDir = date('Ymd');
+        $savePath = $dateDir . '/' . $filename;
 
-        // 移动文件
-        $file->move($uploadDir, $filename);
+        // V2.6: 根据存储配置选择上传方式
+        $driverName = StorageService::getDefaultDriver();
+        if ($driverName === 'local') {
+            $uploadDir = public_path() . 'uploads' . DIRECTORY_SEPARATOR . $dateDir . DIRECTORY_SEPARATOR;
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $file->move($uploadDir, $filename);
+            $url = '/uploads/' . $savePath;
+        } else {
+            // 云存储：使用临时文件路径直传
+            $tmpPath = $file->getRealPath();
+            if (!$tmpPath || !file_exists($tmpPath)) {
+                throw new \Exception('上传文件临时路径无效');
+            }
+            $result = StorageService::upload($tmpPath, $savePath, ['content_type' => $mimeType]);
+            if (!$result['success']) {
+                throw new \Exception($result['error'] ?? '云存储上传失败');
+            }
+            $url = $result['url'];
+        }
 
-        $url = '/uploads/' . $dateDir . '/' . $filename;
-
-        return ['url' => $url, 'path' => $filename];
+        return ['url' => $url, 'path' => $savePath, 'storage_driver' => $driverName];
     }
 
     /**
@@ -193,20 +204,35 @@ class UploadService
             }
         }
 
-        // 构建上传目录
-        $dateDir = date('Ymd');
-        $uploadDir = public_path() . 'uploads' . DIRECTORY_SEPARATOR . $dateDir . DIRECTORY_SEPARATOR;
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
         $filename = self::uuidV4() . '.' . $ext;
-        $file->move($uploadDir, $filename);
-        $url = '/uploads/' . $dateDir . '/' . $filename;
+        $dateDir = date('Ymd');
+        $savePath = $dateDir . '/' . $filename;
+
+        // V2.6: 根据存储配置选择上传方式
+        $driverName = StorageService::getDefaultDriver();
+        if ($driverName === 'local') {
+            $uploadDir = public_path() . 'uploads' . DIRECTORY_SEPARATOR . $dateDir . DIRECTORY_SEPARATOR;
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $file->move($uploadDir, $filename);
+            $url = '/uploads/' . $savePath;
+        } else {
+            $tmpPath = $file->getRealPath();
+            if (!$tmpPath || !file_exists($tmpPath)) {
+                throw new \Exception('上传文件临时路径无效');
+            }
+            $result = StorageService::upload($tmpPath, $savePath, ['content_type' => $mimeType]);
+            if (!$result['success']) {
+                throw new \Exception($result['error'] ?? '云存储上传失败');
+            }
+            $url = $result['url'];
+        }
 
         return [
             'url' => $url,
-            'path' => $filename,
+            'path' => $savePath,
+            'storage_driver' => $driverName,
             'filename' => $file->getOriginalName(),
             'mimetype' => $mimeType,
             'filesize' => $file->getSize(),

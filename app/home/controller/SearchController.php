@@ -4,48 +4,44 @@ declare(strict_types=1);
 namespace app\home\controller;
 
 use app\common\controller\FrontBaseController;
-use app\common\model\Content;
+use app\common\service\MeilisearchService;
 
 /**
- * 前台搜索控制器
+ * 前台搜索控制器 - V2.6
  */
 class SearchController extends FrontBaseController
 {
-    protected bool $enablePageCache = false;
-
     /**
-     * 搜索页
+     * 搜索结果页
      */
     public function index()
     {
-        $keyword = trim($this->request->param('keyword', ''));
+        $keyword = trim($this->request->get('keyword', ''));
+        $page = (int) $this->request->get('page', 1);
+        $cateId = (int) $this->request->get('cate_id', 0);
+        $type = (int) $this->request->get('type', 0);
 
-        if (empty($keyword)) {
-            $this->assign(['keyword' => '', 'list' => []]);
-            return $this->view('/search');
+        $filters = [];
+        if ($cateId > 0) {
+            $filters['cate_id'] = $cateId;
+        }
+        if ($type > 0) {
+            $filters['type'] = $type;
         }
 
-        // 尝试使用 MySQL FULLTEXT 索引搜索，失败时降级到 LIKE
-        try {
-            $safeKeyword = preg_replace('/[+\-<>()@~*"\']+/', ' ', $keyword);
-            $words = array_filter(explode(' ', $safeKeyword));
-            $matchKeyword = implode(' ', array_map(fn($w) => '+' . $w . '*', $words));
+        $result = ['hits' => [], 'total' => 0, 'page' => $page];
 
-            $list = Content::where('status', 2)
-                ->whereRaw("MATCH(title, excerpt) AGAINST(? IN BOOLEAN MODE)", [$matchKeyword])
-                ->order('id', 'desc')
-                ->paginate(12, false, ['query' => ['keyword' => $keyword]]);
-        } catch (\Exception) {
-            // FULLTEXT 不可用，降级到 LIKE
-            $list = Content::where('status', 2)
-                ->where('title', 'like', '%' . $keyword . '%')
-                ->order('id', 'desc')
-                ->paginate(12, false, ['query' => ['keyword' => $keyword]]);
+        if (!empty($keyword)) {
+            $result = MeilisearchService::search($keyword, $filters, $page, 20);
         }
 
         $this->assign([
             'keyword' => $keyword,
-            'list' => $list,
+            'list' => $result['hits'],
+            'total' => $result['total'],
+            'page' => $result['page'],
+            'cate_id' => $cateId,
+            'type' => $type,
         ]);
 
         return $this->view('/search');

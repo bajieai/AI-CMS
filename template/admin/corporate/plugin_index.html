@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}插件管理 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -44,6 +44,9 @@
         {/if}
     </div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 function installPlugin(code) {
     $.post('/admin/plugin/install', {code:code}, function(res) { alert(res.msg); location.reload(); });

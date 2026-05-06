@@ -19,7 +19,7 @@ class VisitArchiveController extends AdminBaseController
         $list = Db::name('visit_log_archive')
             ->order('period', 'desc')
             ->select();
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list]);
         }
         $this->assign('list', $list);

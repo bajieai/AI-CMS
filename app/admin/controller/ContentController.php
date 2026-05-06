@@ -156,6 +156,8 @@ class ContentController extends AdminBaseController
             $this->recordLog('移入回收站', $info->title ?? '', ['original_status' => $originalStatus]);
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+            // V2.6: 从搜索索引删除
+            \app\common\service\MeilisearchService::deleteDocument($info->id);
             return $this->success('已移入回收站');
         }
         return $this->error('操作失败');

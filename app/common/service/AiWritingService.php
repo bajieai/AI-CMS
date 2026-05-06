@@ -5,7 +5,9 @@ namespace app\common\service;
 
 use app\common\model\AiBatchTask;
 use app\common\model\Content;
+use app\common\model\AiTemplate;
 use app\common\service\ai\AiProviderFactory;
+use app\common\service\AiTemplateService;
 use think\facade\Db;
 use think\facade\Log;
 
@@ -166,16 +168,41 @@ class AiWritingService
 
         $keywords = array_filter(array_map('trim', explode("\n", $task->keywords)));
 
+        // V2.6 模板模式：检测 template_id > 0 时走模板Prompt引擎
+        $template = null;
+        if ($task->template_id > 0) {
+            $template = AiTemplate::find($task->template_id);
+            if (!$template || $template->status !== 1) {
+                Log::warning("批量生成任务 #{$taskId}: 关联模板不存在或已禁用，降级为普通模式");
+                $template = null;
+                $task->template_id = 0;
+                $task->save();
+            }
+        }
+
         try {
             foreach ($keywords as $keyword) {
-                $article = self::generateArticle($keyword, $task->style, ['max_tokens' => 2000]);
+                if ($template && $template->generate_mode === 'example') {
+                    // 参考示例模式
+                    $prompt = AiTemplateService::buildExamplePrompt($template, $keyword);
+                    $systemPrompt = self::$stylePrompts[$template->style] ?? self::$stylePrompts['default'];
+                    $article = self::executeWithPrompt($prompt, $systemPrompt, $keyword, $template);
+                } elseif ($template) {
+                    // NLP模板模式
+                    $prompt = AiTemplateService::buildPrompt($template, ['keyword' => $keyword]);
+                    $systemPrompt = self::$stylePrompts[$template->style] ?? self::$stylePrompts['default'];
+                    $article = self::executeWithPrompt($prompt, $systemPrompt, $keyword, $template);
+                } else {
+                    // 原有逻辑不变（向后兼容无模板的任务）
+                    $article = self::generateArticle($keyword, $task->style, ['max_tokens' => 2000]);
+                }
 
                 Content::create([
-                    'title' => $article['title'],
+                    'title'   => $article['title'],
                     'content' => $article['content'],
                     'cate_id' => $task->cate_id,
-                    'status' => 0,
-                    'source' => 'ai_batch',
+                    'status'  => 0,
+                    'source'  => 'ai_batch',
                     'create_time' => time(),
                     'update_time' => time(),
                 ]);
@@ -193,6 +220,33 @@ class AiWritingService
             Log::error("批量生成任务失败 #{$taskId}: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * 使用预构建的Prompt执行文章生成（V2.6 模板模式专用）
+     */
+    protected static function executeWithPrompt(string $prompt, string $systemPrompt, string $defaultTitle, ?AiTemplate $template): array
+    {
+        // 使用任务指定的模型ID或模板的模型ID
+        $modelId = $template?->model_id ?: 0;
+
+        if ($modelId > 0) {
+            try {
+                $provider = AiProviderFactory::getById($modelId);
+            } catch (\Exception $e) {
+                Log::warning("模板指定模型(#{$modelId})不可用，回退到默认模型");
+                $provider = AiProviderFactory::getDefault();
+            }
+        } else {
+            $provider = AiProviderFactory::getDefault();
+        }
+
+        $content = $provider->write($prompt, [
+            'system_prompt' => $systemPrompt,
+            'max_tokens'     => 3000,
+        ]);
+
+        return self::parseArticle($content, $defaultTitle);
     }
 
     /**

@@ -16,6 +16,8 @@ class AiBatchTask extends Model
     protected $updateTime = 'update_time';
 
     protected $type = [
+        'id' => 'integer',
+        'template_id' => 'integer',
         'total' => 'integer',
         'completed' => 'integer',
         'status' => 'integer',

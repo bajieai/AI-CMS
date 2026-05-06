@@ -27,6 +27,12 @@ class CacheService
     const TAG_COLLECT    = 'i8j_collect';
     const TAG_PUBLISH    = 'i8j_publish';
     const TAG_LANGUAGE   = 'i8j_language';
+    // V2.6 新增缓存标签
+    const TAG_QUEUE      = 'i8j_queue';
+    const TAG_MESSAGE    = 'i8j_message';
+    const TAG_REVIEW     = 'i8j_review';
+    const TAG_SEARCH     = 'i8j_search';
+    const TAG_POINTS     = 'i8j_points';
 
     /**
      * 清除所有业务缓存
@@ -34,7 +40,7 @@ class CacheService
     public static function clearAll(): bool
     {
         try {
-            $tags = [self::TAG_CATE, self::TAG_TAG, self::TAG_CONFIG, self::TAG_CONTENT, self::TAG_SEO, self::TAG_MEMBER, self::TAG_AD, self::TAG_COMMENT, self::TAG_MODULE, self::TAG_PAGE_CACHE, self::TAG_PAYMENT, self::TAG_PLUGIN, self::TAG_EMAIL, self::TAG_COLLECT, self::TAG_PUBLISH, self::TAG_LANGUAGE];
+            $tags = [self::TAG_CATE, self::TAG_TAG, self::TAG_CONFIG, self::TAG_CONTENT, self::TAG_SEO, self::TAG_MEMBER, self::TAG_AD, self::TAG_COMMENT, self::TAG_MODULE, self::TAG_PAGE_CACHE, self::TAG_PAYMENT, self::TAG_PLUGIN, self::TAG_EMAIL, self::TAG_COLLECT, self::TAG_PUBLISH, self::TAG_LANGUAGE, self::TAG_QUEUE, self::TAG_MESSAGE, self::TAG_REVIEW, self::TAG_SEARCH, self::TAG_POINTS];
             foreach ($tags as $tag) {
                 Cache::tag($tag)->clear();
             }

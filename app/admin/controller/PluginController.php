@@ -22,7 +22,7 @@ class PluginController extends AdminBaseController
             $plugins = [];
         }
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $plugins]);
         }
 

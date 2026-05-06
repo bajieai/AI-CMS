@@ -207,6 +207,8 @@ class CollectService
             'title' => mb_substr($title, 0, 500),
             'url' => $url,
             'url_hash' => $urlHash,
+            'content' => $content,
+            'pub_time' => $pubTime,
             'status' => 0,
         ]);
 

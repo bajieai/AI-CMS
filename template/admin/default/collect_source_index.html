@@ -31,6 +31,8 @@
         {$list|raw}
     </div></div>
 </div>
+{/block}
+{block name="js"}
 <script>
 function runCollect(id) { $.post('/admin/collect_source/run', {id:id}, function(res) { alert(res.msg); }); }
 function deleteItem(id) { if(!confirm('确定删除？')) return; $.post('/admin/collect_source/delete', {id:id}, function(res) { alert(res.msg); location.reload(); }); }

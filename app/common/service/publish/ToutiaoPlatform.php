@@ -29,29 +29,24 @@ class ToutiaoPlatform implements PublishPlatformInterface
         return [
             ['name' => 'client_key', 'label' => 'Client Key', 'type' => 'text', 'required' => true],
             ['name' => 'client_secret', 'label' => 'Client Secret', 'type' => 'password', 'required' => true],
-            ['name' => 'access_token', 'label' => 'Access Token', 'type' => 'password', 'required' => false],
+            ['name' => 'access_token', 'label' => 'Access Token', 'type' => 'password', 'required' => true],
         ];
     }
 
     public function validateConfig(PublishPlatform $platform): bool
     {
         $config = $platform->config_json;
-        return !empty($config['client_key']) && !empty($config['client_secret']);
+        return !empty($config['client_key']) && !empty($config['client_secret']) && !empty($config['access_token']);
     }
 
     public function publish(Content $content, PublishPlatform $platform): array
     {
         if (!$this->validateConfig($platform)) {
-            throw new \Exception('头条号凭证未配置');
+            throw new \Exception('头条号配置不完整，请检查Client Key、Client Secret和Access Token是否均已配置');
         }
 
         $config = $platform->config_json;
         $accessToken = $config['access_token'] ?? '';
-
-        if (empty($accessToken)) {
-            Log::warning('头条号AccessToken为空，发布内容为模拟模式');
-            return ['article_id' => 'simulated_' . time()];
-        }
 
         $client = new Client(['timeout' => 30, 'base_uri' => 'https://open-api.toutiao.com/']);
 

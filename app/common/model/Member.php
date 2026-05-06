@@ -18,6 +18,8 @@ class Member extends Model
 
     protected $type = [
         'status' => 'integer',
+        'level_id' => 'integer',
+        'vip_expire_time' => 'integer',
         'last_login_time' => 'integer',
     ];
 
@@ -30,7 +32,20 @@ class Member extends Model
 
     public function getStatusTextAttr($value, $data): string
     {
-        return $data['status'] ? '正常' : '禁用';
+        return match ((int) $data['status']) {
+            1 => '正常',
+            2 => '待审核',
+            default => '禁用',
+        };
+    }
+
+    public function getStatusBadgeAttr($value, $data): string
+    {
+        return match ((int) $data['status']) {
+            1 => 'bg-success',
+            2 => 'bg-warning text-dark',
+            default => 'bg-secondary',
+        };
     }
 
     public function oauth()

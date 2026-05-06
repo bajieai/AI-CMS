@@ -1,0 +1,105 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$member"}编辑会员{else /}添加会员{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">互动管理</li>
+<li class="breadcrumb-item"><a href="/admin/member/index">前台会员</a></li>
+<li class="breadcrumb-item active">{if condition="$member"}编辑会员{else /}添加会员{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">{if condition="$member"}编辑会员：{$member.username}{else /}添加会员{/if}</div>
+    <div class="card-body">
+        <form id="memberForm" method="post" action="{if condition='$member'}/admin/member/edit?id={$member.id}{else /}/admin/member/add{/if}">
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">用户名 <span class="text-danger">*</span></label>
+                <div class="col-sm-6">
+                    <input type="text" name="username" class="form-control" value="{$member.username|default=''}" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">邮箱 <span class="text-danger">*</span></label>
+                <div class="col-sm-6">
+                    <input type="email" name="email" class="form-control" value="{$member.email|default=''}" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">密码 {if condition="!$member"}<span class="text-danger">*</span>{else /}<small class="text-muted">(留空不修改)</small>{/if}</label>
+                <div class="col-sm-6">
+                    <input type="password" name="password" class="form-control" {if condition="!$member"}required{/if} autocomplete="new-password">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">昵称</label>
+                <div class="col-sm-6">
+                    <input type="text" name="nickname" class="form-control" value="{$member.nickname|default=''}">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">头像</label>
+                <div class="col-sm-6">
+                    <input type="text" name="avatar" class="form-control" value="{$member.avatar|default=''}" placeholder="图片URL">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">会员等级</label>
+                <div class="col-sm-6">
+                    <select name="level_id" class="form-select">
+                        <option value="0">无等级</option>
+                        {volist name="levels" id="lv"}
+                        <option value="{$lv.id}" {if condition="$member && $member.level_id == $lv.id"}selected{/if}>{$lv.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">状态</label>
+                <div class="col-sm-6">
+                    <select name="status" class="form-select">
+                        <option value="1" {if condition="$member && $member.status == 1"}selected{/if}>正常</option>
+                        <option value="0" {if condition="$member && $member.status == 0"}selected{/if}>禁用</option>
+                        <option value="2" {if condition="$member && $member.status == 2"}selected{/if}>待审核</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 offset-sm-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                    <a href="/admin/member/index" class="btn btn-outline-secondary ms-2">返回</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#memberForm').on('submit', function(e) {
+    e.preventDefault();
+    var $form = $(this);
+    var csrfToken = $('input[name="__token__"]').val();
+    var ajaxOpts = {
+        url: $form.attr('action'),
+        type: 'POST',
+        data: $form.serialize(),
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0) {
+                showToast(res.msg, 'success');
+                setTimeout(function() { location.href = '/admin/member/index'; }, 800);
+            } else {
+                showToast(res.msg || '保存失败', 'danger');
+            }
+        },
+        error: function() {
+            showToast('网络错误，请重试', 'danger');
+        }
+    };
+    if (csrfToken) { ajaxOpts.headers = { 'X-CSRF-TOKEN': csrfToken }; }
+    $.ajax(ajaxOpts);
+});
+</script>
+{/block}

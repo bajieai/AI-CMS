@@ -38,6 +38,12 @@ class Content extends Model
         'comment_count' => 'integer',
         'min_level_id' => 'integer',
         'is_paid' => 'integer',
+        'is_chapter' => 'integer',
+        'parent_id' => 'integer',
+        'chapter_sort' => 'integer',
+        'is_free_chapter' => 'integer',
+        'lang' => 'string',
+        'translation_of' => 'integer',
     ];
 
     /**

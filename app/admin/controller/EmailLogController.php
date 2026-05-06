@@ -21,7 +21,7 @@ class EmailLogController extends AdminBaseController
 
         $list = $query->paginate(['list_rows' => 20, 'path' => '/admin/email_log/index']);
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list->toArray()]);
         }
 

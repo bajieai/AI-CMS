@@ -27,7 +27,7 @@ class SeoKeywordController extends AdminBaseController
         $total = SeoKeyword::count();
         $groups = SeoKeywordService::getGroups();
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list, 'count' => $total]);
         }
         $this->assign('list', $list);

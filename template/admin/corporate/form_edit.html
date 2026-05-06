@@ -1,4 +1,4 @@
-{extend name="layout" /}
+﻿{extend name="layout" /}
 
 {block name="title"}{if condition="$form"}编辑表单{else/}创建表单{/if}{/block}
 
@@ -74,7 +74,9 @@
         </form>
     </div>
 </div>
+{/block}
 
+{block name="js"}
 <script>
 $(function(){
     $('#btnSave').click(function(){

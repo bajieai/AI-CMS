@@ -5,7 +5,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -35,7 +35,7 @@ return [
         'review.*' => ['admin/review/index', 'admin/review/approve', 'admin/review/reject', 'admin/review/history'],
         'backup.*' => ['admin/backup/index', 'admin/backup/create', 'admin/backup/restore', 'admin/backup/delete', 'admin/backup/download'],
         'comment.*' => ['admin/comment/index', 'admin/comment/audit', 'admin/comment/delete', 'admin/comment/batch'],
-        'member.*' => ['admin/member/index', 'admin/member/detail', 'admin/member/edit', 'admin/member/toggleStatus'],
+        'member.*' => ['admin/member/index', 'admin/member/detail', 'admin/member/add', 'admin/member/edit', 'admin/member/delete', 'admin/member/toggleStatus', 'admin/member/audit'],
         'seo.*' => ['admin/seo/index', 'admin/seo/sitemap', 'admin/seo/robots'],
         'export.*' => ['admin/export/index'],
         'token.*' => ['admin/token/index', 'admin/token/create', 'admin/token/revoke'],
@@ -51,7 +51,7 @@ return [
         'dashboard.*' => ['admin/dashboard/index', 'admin/dashboard/overview', 'admin/dashboard/trend', 'admin/dashboard/topContent', 'admin/dashboard/categoryStats'],
         'form.*' => ['admin/form/index', 'admin/form/add', 'admin/form/edit', 'admin/form/delete', 'admin/form/dataIndex', 'admin/form/dataDetail', 'admin/form/dataExport', 'admin/form/dataDelete'],
         'seo_keyword.*' => ['admin/seo_keyword/index', 'admin/seo_keyword/add', 'admin/seo_keyword/edit', 'admin/seo_keyword/delete', 'admin/seo_keyword/import', 'admin/seo_keyword/group', 'admin/seo_keyword/saveGroup', 'admin/seo_keyword/deleteGroup'],
-        'import.*' => ['admin/import/index', 'admin/import/execute'],
+        'import.*' => ['admin/import/index', 'admin/import/import'],
         'email_subscriber.*' => ['admin/email_subscriber/index', 'admin/email_subscriber/delete', 'admin/email_subscriber/export'],
         'visit_archive.*' => ['admin/visit_archive/index', 'admin/visit_archive/execute', 'admin/visit_archive/detail'],
         // V2.5 新增权限映射
@@ -73,5 +73,14 @@ return [
         'language.*' => ['admin/language/index', 'admin/language/add', 'admin/language/edit', 'admin/language/delete', 'admin/language/translate'],
         'theme_market.*' => ['admin/theme_market/index', 'admin/theme_market/scan', 'admin/theme_market/install', 'admin/theme_market/uninstall', 'admin/theme_market/checkUpdate'],
         'captcha.*' => ['admin/captcha/config'],
+        // V2.6 新增权限映射
+        'storage.*' => ['admin/storage/config', 'admin/storage/saveConfig'],
+        'chapter.*' => ['admin/chapter/index', 'admin/chapter/add', 'admin/chapter/edit', 'admin/chapter/delete', 'admin/chapter/sort'],
+        'message.*' => ['admin/message/system', 'admin/message/sendSystem'],
+        'workflow.*' => ['admin/workflow/index', 'admin/workflow/add', 'admin/workflow/edit', 'admin/workflow/delete', 'admin/workflow/records'],
+        'oauth.*' => ['admin/oauth_config/index', 'admin/oauth_config/save'],
+        'points_product.*' => ['admin/points_product/index', 'admin/points_product/add', 'admin/points_product/edit', 'admin/points_product/delete'],
+        'points_exchange.*' => ['admin/points_exchange/index', 'admin/points_exchange/audit'],
+        'ai_template.*' => ['admin/ai_template/index', 'admin/ai_template/edit', 'admin/ai_template/delete', 'admin/ai_template/use', 'admin/ai_template/progress'],
     ],
 ];

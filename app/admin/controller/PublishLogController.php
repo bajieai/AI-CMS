@@ -17,7 +17,7 @@ class PublishLogController extends AdminBaseController
         $list = PublishLog::with(['platform'])->order('id', 'desc')
             ->paginate(['list_rows' => 20, 'path' => '/admin/publish_log/index']);
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list->toArray()]);
         }
 

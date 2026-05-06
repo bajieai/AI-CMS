@@ -1,0 +1,62 @@
+﻿{extend name="/layout" /}
+{block name="title"}审核记录 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">审核记录</h4>
+        <div>
+            <a href="?status=-1" class="btn btn-outline-secondary btn-sm {if $Think.get.status==-1 || $Think.get.status===''}active{/if}">全部</a>
+            <a href="?status=0" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='0'}active{/if}">待审核</a>
+            <a href="?status=1" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='1'}active{/if}">审核中</a>
+            <a href="?status=2" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='2'}active{/if}">已通过</a>
+            <a href="?status=3" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='3'}active{/if}">已拒绝</a>
+        </div>
+    </div>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>流程ID</th><th>目标ID</th><th>类型</th><th>当前步骤</th><th>状态</th><th>提交者</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.workflow_id}</td>
+                <td>{$vo.target_id}</td>
+                <td>{$vo.target_type}</td>
+                <td>{$vo.current_step}/{$vo.total_steps}</td>
+                <td>
+                    {switch vo.status}
+                    {case 0}<span class="badge bg-warning">待审核</span>{/case}
+                    {case 1}<span class="badge bg-info">审核中</span>{/case}
+                    {case 2}<span class="badge bg-success">已通过</span>{/case}
+                    {case 3}<span class="badge bg-danger">已拒绝</span>{/case}
+                    {case 4}<span class="badge bg-secondary">已撤回</span>{/case}
+                    {default /}<span class="badge bg-secondary">未知</span>
+                    {/switch}
+                </td>
+                <td>{$vo.submitter_id}</td>
+                <td>
+                    {if $vo.status==0 || $vo.status==1}
+                    <button class="btn btn-sm btn-outline-success" onclick="doReview({$vo.id},'pass')">通过</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="doReview({$vo.id},'reject')">拒绝</button>
+                    {/if}
+                </td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function doReview(id, action) {
+    var comment = prompt('请输入审核意见（可选）：') || '';
+    $.post('/admin/workflow/review', {record_id:id, action:action, comment:comment}, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+</script>
+{/block}

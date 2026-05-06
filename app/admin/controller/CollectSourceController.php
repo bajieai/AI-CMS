@@ -17,7 +17,7 @@ class CollectSourceController extends AdminBaseController
         $list = CollectSource::order('id', 'desc')
             ->paginate(['list_rows' => 20, 'path' => '/admin/collect_source/index']);
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list->toArray()]);
         }
 

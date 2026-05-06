@@ -37,6 +37,8 @@ return [
             ['id' => 34, 'name' => '友情链接', 'url' => '/admin/link/index', 'permission' => 'link.*', 'active' => 'link', 'icon' => 'bi bi-link-45deg'],
             ['id' => 35, 'name' => '友链分组', 'url' => '/admin/link_group/index', 'permission' => 'link.*', 'active' => 'link_group', 'icon' => 'bi bi-folder2-open'],
             ['id' => 36, 'name' => '广告管理', 'url' => '/admin/ad/index', 'permission' => 'ad.*', 'active' => 'ad', 'icon' => 'bi bi-badge-ad'],
+            // V2.6 表单管理从系统设置迁移至此
+            ['id' => 47, 'name' => '表单管理', 'url' => '/admin/form/index', 'permission' => 'form.*', 'active' => 'form', 'icon' => 'bi bi-card-checklist'],
         ],
     ],
     [
@@ -48,6 +50,11 @@ return [
             ['id' => 51, 'name' => '评论管理', 'url' => '/admin/comment/index', 'permission' => 'comment.*', 'active' => 'comment', 'icon' => 'bi bi-chat-left-text'],
             ['id' => 52, 'name' => '前台会员', 'url' => '/admin/member/index', 'permission' => 'member.*', 'active' => 'member', 'icon' => 'bi bi-person-badge'],
             ['id' => 53, 'name' => '付费订单', 'url' => '/admin/paid_order/index', 'permission' => 'paid_order.*', 'active' => 'paid_order', 'icon' => 'bi bi-credit-card'],
+            // V2.6 私信系统
+            ['id' => 56, 'name' => '系统通知', 'url' => '/admin/message/system', 'permission' => 'message.*', 'active' => 'message_system', 'icon' => 'bi bi-bell'],
+            ['id' => 57, 'name' => '发送通知', 'url' => '/admin/message/sendSystem', 'permission' => 'message.*', 'active' => 'message_send', 'icon' => 'bi bi-send-plus'],
+            // V2.6 OAuth配置
+            ['id' => 510, 'name' => 'OAuth配置', 'url' => '/admin/oauth_config/index', 'permission' => 'oauth.*', 'active' => 'oauth_config', 'icon' => 'bi bi-key-fill'],
             // V2.5 支付管理
             ['id' => 54, 'name' => '支付管理', 'url' => '/admin/payment/index', 'permission' => 'payment.*', 'active' => 'payment', 'icon' => 'bi bi-wallet2'],
             ['id' => 55, 'name' => '收入统计', 'url' => '/admin/payment/revenue', 'permission' => 'payment.*', 'active' => 'payment_revenue', 'icon' => 'bi bi-cash-stack'],
@@ -63,6 +70,8 @@ return [
             ['id' => 72, 'name' => 'AI调用日志', 'url' => '/admin/ai_log/index', 'permission' => 'ai_log.*', 'active' => 'ai_log', 'icon' => 'bi bi-journal-code'],
             // V2.5 AI增强
             ['id' => 73, 'name' => 'AI批量生成', 'url' => '/admin/ai_batch/index', 'permission' => 'ai_batch.*', 'active' => 'ai_batch', 'icon' => 'bi bi-magic'],
+            // V2.6 AI内容模板
+            ['id' => 74, 'name' => 'AI内容模板', 'url' => '/admin/ai_template/index', 'permission' => 'ai_template.*', 'active' => 'ai_template', 'icon' => 'bi bi-file-earmark-text'],
         ],
     ],
     [
@@ -118,11 +127,13 @@ return [
             ['id' => 42, 'name' => '操作日志', 'url' => '/admin/log/index', 'permission' => 'system.log', 'active' => 'log', 'icon' => 'bi bi-journal-text'],
             ['id' => 43, 'name' => '数据库备份', 'url' => '/admin/backup/index', 'permission' => 'backup.*', 'active' => 'backup', 'icon' => 'bi bi-database'],
             ['id' => 44, 'name' => '通知中心', 'url' => '/admin/notification/index', 'permission' => 'notification.*', 'active' => 'notification', 'icon' => 'bi bi-bell'],
-            ['id' => 47, 'name' => '表单管理', 'url' => '/admin/form/index', 'permission' => 'form.*', 'active' => 'form', 'icon' => 'bi bi-card-checklist'],
+            // 表单管理已迁移至运营管理(id=47)
             ['id' => 48, 'name' => '导入管理', 'url' => '/admin/import/index', 'permission' => 'import.*', 'active' => 'import', 'icon' => 'bi bi-upload'],
             ['id' => 49, 'name' => '邮件订阅', 'url' => '/admin/email_subscriber/index', 'permission' => 'email_subscriber.*', 'active' => 'email_subscriber', 'icon' => 'bi bi-envelope'],
             ['id' => 50, 'name' => '访问归档', 'url' => '/admin/visit_archive/index', 'permission' => 'visit_archive.*', 'active' => 'visit_archive', 'icon' => 'bi bi-archive'],
             ['id' => 58, 'name' => '验证码配置', 'url' => '/admin/captcha/config', 'permission' => 'captcha.*', 'active' => 'captcha', 'icon' => 'bi bi-shield-check'],
+            // V2.6 CDN集成
+            ['id' => 59, 'name' => '存储配置', 'url' => '/admin/storage/config', 'permission' => 'storage.*', 'active' => 'storage_config', 'icon' => 'bi bi-hdd-network'],
         ],
     ],
 ];

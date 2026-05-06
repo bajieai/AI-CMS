@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}验证码配置 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -77,6 +77,9 @@
         </div>
     </div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 $('#captchaForm').on('submit', function(e) {
     e.preventDefault();

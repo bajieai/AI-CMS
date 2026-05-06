@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}发布平台 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -27,6 +27,9 @@
         {$list|raw}
     </div></div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 function deleteItem(id) { if(!confirm('确定删除？')) return; $.post('/admin/publish_platform/delete', {id:id}, function(res) { alert(res.msg); location.reload(); }); }
 </script>

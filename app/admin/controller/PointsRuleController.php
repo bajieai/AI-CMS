@@ -19,7 +19,7 @@ class PointsRuleController extends AdminBaseController
     public function index()
     {
         $rules = ConfigService::getGroup('points');
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $rules]);
         }
         $this->assign('rules', $rules);

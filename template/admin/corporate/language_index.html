@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}多语言管理 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -30,6 +30,9 @@
         </table>
     </div></div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 function deleteItem(id) { if(!confirm('确定删除？')) return; $.post('/admin/language/delete', {id:id}, function(res) { alert(res.msg); location.reload(); }); }
 </script>

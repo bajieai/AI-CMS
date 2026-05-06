@@ -19,7 +19,7 @@ class ThemeMarketController extends AdminBaseController
         $type = $this->request->param('type', 'frontend');
         $themes = ThemeMarketService::getThemes($type);
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $themes]);
         }
 

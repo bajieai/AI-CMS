@@ -138,6 +138,11 @@ class ContentService
         $cacheService = new CacheService();
         $cacheService->clearByTag(Config::get('cache.tag.content', 'i8j_content'));
 
+        // V2.6: 同步到Meilisearch
+        if ($content->status == 2) {
+            MeilisearchService::syncDocument($content);
+        }
+
         return true;
     }
 
@@ -207,6 +212,13 @@ class ContentService
         // 清除内容相关缓存
         $cacheService = new CacheService();
         $cacheService->clearByTag(Config::get('cache.tag.content', 'i8j_content'));
+
+        // V2.6: 同步到Meilisearch
+        if ($content->status == 2) {
+            MeilisearchService::syncDocument($content);
+        } else {
+            MeilisearchService::deleteDocument($content->id);
+        }
 
         return true;
     }

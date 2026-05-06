@@ -17,7 +17,7 @@ class MemberLevelController extends AdminBaseController
     public function index()
     {
         $list = MemberLevelService::getList();
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list]);
         }
         $this->assign('list', $list);
@@ -51,7 +51,10 @@ class MemberLevelController extends AdminBaseController
             'id'                      => (int) $this->request->post('id', 0),
             'name'                    => $this->request->post('name', ''),
             'min_points'              => (int) $this->request->post('min_points', 0),
-            'discount'                => (int) $this->request->post('discount', 100),
+            'price'                   => (float) $this->request->post('price', 0),
+            'discount'                => (float) $this->request->post('discount', 1.00),
+            'points_rate'             => (float) $this->request->post('points_rate', 1.00),
+            'daily_ai_quota'          => (int) $this->request->post('daily_ai_quota', 0),
             'allow_download'          => (int) $this->request->post('allow_download', 0),
             'allow_comment_no_review' => (int) $this->request->post('allow_comment_no_review', 0),
             'icon'                    => $this->request->post('icon', ''),

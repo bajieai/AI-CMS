@@ -17,7 +17,7 @@ class EmailTemplateController extends AdminBaseController
         $list = EmailTemplate::order('id', 'desc')
             ->paginate(['list_rows' => 20, 'path' => '/admin/email_template/index']);
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list->toArray()]);
         }
 

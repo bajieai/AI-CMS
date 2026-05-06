@@ -8,22 +8,8 @@
     <meta name="description" content="{block name='description'}{$site_description|default='AI驱动的企业信息管理系统'}{/block}">
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
-    <style>
-        :root { --primary: #0d6efd; --dark: #1a1d21; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; color: #333; }
-        .navbar-brand { font-weight: 700; font-size: 1.3rem; }
-        .navbar-brand i { color: var(--primary); }
-        .hero { background: linear-gradient(135deg, var(--dark) 0%, #2d3748 100%); color: #fff; padding: 4rem 0; }
-        .hero h1 { font-weight: 800; }
-        .section-title { font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--primary); display: inline-block; }
-        .card { transition: transform 0.2s, box-shadow 0.2s; border: none; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1); }
-        .card-img-top { height: 200px; object-fit: cover; }
-        footer { background: var(--dark); color: rgba(255,255,255,0.6); padding: 2rem 0; }
-        footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
-        footer a:hover { color: #fff; }
-        .breadcrumb { background: transparent; padding: 0; }
-    </style>
+    <!-- V2.6 前台主题样式（从内联提取到外部CSS文件） -->
+    <link href="{$skin}css/style.css?v=2.6" rel="stylesheet">
     {block name="css"}{/block}
 </head>
 <body>

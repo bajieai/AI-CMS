@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}AI批量生成 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -39,6 +39,9 @@
         {$list|raw}
     </div></div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 function cancelTask(id) {
     if (!confirm('确定取消此任务？')) return;

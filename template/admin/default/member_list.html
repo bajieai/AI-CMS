@@ -9,7 +9,28 @@
 
 {block name="content"}
 <div class="card">
-    <div class="card-header">会员列表</div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>会员列表</span>
+        <a href="/admin/member/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>添加会员</a>
+    </div>
+    <div class="card-body">
+        <form method="get" action="/admin/member/index" class="row g-3 mb-3">
+            <div class="col-auto">
+                <input type="text" name="keyword" class="form-control form-control-sm" placeholder="用户名/昵称/邮箱" value="{$Request.get.keyword|default=''}">
+            </div>
+            <div class="col-auto">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">全部状态</option>
+                    <option value="1" {if condition="$Request.get.status !== '' && $Request.get.status == '1'"}selected{/if}>正常</option>
+                    <option value="0" {if condition="$Request.get.status !== '' && $Request.get.status == '0'"}selected{/if}>禁用</option>
+                    <option value="2" {if condition="$Request.get.status !== '' && $Request.get.status == '2'"}selected{/if}>待审核</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search me-1"></i>搜索</button>
+            </div>
+        </form>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover table-sm mb-0 align-middle">
             <thead class="table-light">
@@ -18,9 +39,11 @@
                     <th>用户名</th>
                     <th>昵称</th>
                     <th>邮箱</th>
+                    <th>等级</th>
                     <th>状态</th>
                     <th>注册时间</th>
                     <th>最后登录</th>
+                    <th>操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,19 +53,22 @@
                     <td>{$vo.username}</td>
                     <td>{$vo.nickname}</td>
                     <td>{$vo.email}</td>
-                    <td>
-                        {if condition="$vo.status == 1"}
-                        <span class="badge bg-success">正常</span>
-                        {else /}
-                        <span class="badge bg-secondary">禁用</span>
-                        {/if}
-                    </td>
+                    <td>{if condition="isset($levels[$vo.level_id]) && $levels[$vo.level_id]"}<span class="badge bg-info">{$levels[$vo.level_id]}</span>{else /}<span class="text-muted">—</span>{/if}</td>
+                    <td><span class="badge {$vo.status_badge}">{$vo.status_text}</span></td>
                     <td class="small text-muted">{$vo.create_time|date='Y-m-d H:i'}</td>
                     <td class="small text-muted">{if condition="$vo.last_login_time"}{$vo.last_login_time|date='Y-m-d H:i'}{else /}—{/if}</td>
+                    <td>
+                        <a href="/admin/member/edit?id={$vo.id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="编辑"><i class="bi bi-pencil"></i></a>
+                        {if condition="$vo.status == 2"}
+                        <button type="button" class="btn btn-sm btn-outline-success py-0 px-1" onclick="auditMember({$vo.id})" title="审核通过"><i class="bi bi-check-lg"></i></button>
+                        {/if}
+                        <button type="button" class="btn btn-sm btn-outline-warning py-0 px-1" onclick="toggleMemberStatus({$vo.id}, '{$vo.status_text}')" title="{$vo.status == 1 ? '禁用' : '启用'}"><i class="bi bi-toggle-{$vo.status == 1 ? 'on' : 'off'}"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="deleteMember({$vo.id})" title="删除"><i class="bi bi-trash"></i></button>
+                    </td>
                 </tr>
                 {/volist}
                 {empty name="list"}
-                <tr><td colspan="7" class="text-center text-muted py-4">暂无会员</td></tr>
+                <tr><td colspan="9" class="text-center text-muted py-4">暂无会员</td></tr>
                 {/empty}
             </tbody>
         </table>
@@ -56,4 +82,31 @@
     </div>
     {/if}
 </div>
+{/block}
+
+{block name="js"}
+<script>
+function toggleMemberStatus(id, statusText) {
+    var msg = statusText === '正常' ? '确定禁用该会员？' : '确定启用该会员？';
+    if (!confirm(msg)) return;
+    $.post('/admin/member/toggleStatus', {id: id}, function(res) {
+        if (res.code === 0) { location.reload(); }
+        else { alert(res.msg || '操作失败'); }
+    }, 'json');
+}
+function auditMember(id) {
+    if (!confirm('确定审核通过该会员？')) return;
+    $.post('/admin/member/audit', {id: id}, function(res) {
+        if (res.code === 0) { location.reload(); }
+        else { alert(res.msg || '操作失败'); }
+    }, 'json');
+}
+function deleteMember(id) {
+    if (!confirm('确定删除该会员？此操作不可恢复！')) return;
+    $.post('/admin/member/delete', {id: id}, function(res) {
+        if (res.code === 0) { location.reload(); }
+        else { alert(res.msg || '删除失败'); }
+    }, 'json');
+}
+</script>
 {/block}

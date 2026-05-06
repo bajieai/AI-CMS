@@ -18,7 +18,7 @@ class FormController extends AdminBaseController
     public function index()
     {
         $list = FormModel::order('sort', 'asc')->select();
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list]);
         }
         $this->assign('list', $list);
@@ -126,7 +126,7 @@ class FormController extends AdminBaseController
             ->select();
         $total = FormDataModel::where('form_id', $formId)->count();
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list, 'count' => $total]);
         }
 

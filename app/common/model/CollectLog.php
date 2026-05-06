@@ -19,5 +19,6 @@ class CollectLog extends Model
         'source_id' => 'integer',
         'content_id' => 'integer',
         'status' => 'integer',
+        'pub_time' => 'integer',
     ];
 }

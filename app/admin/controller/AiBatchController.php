@@ -20,7 +20,7 @@ class AiBatchController extends AdminBaseController
         $list = AiBatchTask::order('id', 'desc')
             ->paginate(['list_rows' => 20, 'path' => '/admin/ai_batch/index']);
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list->toArray()]);
         }
 

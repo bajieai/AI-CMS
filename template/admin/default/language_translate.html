@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}翻译管理 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -38,6 +38,11 @@
         </form>
     </div></div>
 </div>
+{/block}
+
+{block name="js"}
+{/block}
+{block name="js"}
 <script>
 $('#selLang, #selGroup').on('change', function() {
     location.href = '/admin/language/translate?lang=' + $('#selLang').val() + '&group=' + $('#selGroup').val();

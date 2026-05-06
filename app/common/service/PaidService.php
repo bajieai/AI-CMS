@@ -17,27 +17,26 @@ class PaidService
 {
     /**
      * 检查会员是否有权限访问付费内容
-     * V2.5增强：VIP等级免费权益 + min_level_id内容限制
+     * V2.6修复：VIP权益增加vip_expire_time到期校验，修复discount<=0死代码
      */
     public static function canAccess(?int $memberId, int $contentId): bool
     {
         $content = Content::find($contentId);
         if (!$content) return false;
 
-        // 免费内容直接放行
+        // 免费内容直接放行（但检查等级限制）
         if (empty($content->is_paid)) {
-            // V2.5：检查min_level_id内容限制
             return self::checkLevelAccess($memberId, $content);
         }
 
         if (!$memberId) return false;
 
-        // V2.5：VIP等级免费权益
+        // V2.6：VIP权益校验（增加到期时间判断）
         $member = Member::find($memberId);
-        if ($member && $member->level_id) {
+        if ($member && $member->level_id && $member->vip_expire_time > time()) {
             $level = MemberLevel::find($member->level_id);
             if ($level && $level->discount <= 0) {
-                return true; // 折扣0=免费
+                return true; // VIP有效期内且折扣0=免费
             }
         }
 
@@ -121,10 +120,10 @@ class PaidService
             throw new \Exception('您的会员等级不足，无法访问此内容');
         }
 
-        // 计算折扣后价格
+        // V2.6：计算折扣后价格（增加VIP到期校验）
         $finalPrice = $content->paid_price;
         $member = Member::find($memberId);
-        if ($member && $member->level_id) {
+        if ($member && $member->level_id && $member->vip_expire_time > time()) {
             $level = MemberLevel::find($member->level_id);
             if ($level && $level->discount > 0 && $level->discount < 100) {
                 $finalPrice = round($content->paid_price * ($level->discount / 100), 2);
@@ -198,6 +197,61 @@ class PaidService
         $order = self::createOrder($memberId, $contentId, 'points');
         self::completePayment($order['order_sn'], $memberId);
         return ['success' => true, 'msg' => '购买成功', 'data' => $order];
+    }
+
+    /**
+     * V2.6: 检查会员是否有权限访问指定章节
+     * 规则：1) 免费试读章节直接放行 2) 已购买父内容放行 3) VIP免费放行
+     */
+    public static function canAccessChapter(?int $memberId, int $parentContentId, int $chapterId): bool
+    {
+        $chapter = Content::find($chapterId);
+        if (!$chapter || $chapter->parent_id != $parentContentId) {
+            return false;
+        }
+
+        // 免费试读章节
+        if (!empty($chapter->is_free_chapter)) {
+            return true;
+        }
+
+        if (!$memberId) return false;
+
+        // 已购买父内容
+        if (self::canAccess($memberId, $parentContentId)) {
+            return true;
+        }
+
+        // VIP权益
+        $member = Member::find($memberId);
+        if ($member && $member->level_id && $member->vip_expire_time > time()) {
+            $level = MemberLevel::find($member->level_id);
+            if ($level && $level->discount <= 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * V2.6: 检查会员是否有付费下载权限
+     */
+    public static function canAccessDownload(?int $memberId, int $contentId): bool
+    {
+        if (!$memberId) return false;
+
+        // 检查是否有独立的下载付费订单
+        $hasDownloadOrder = PaidOrder::where('member_id', $memberId)
+            ->where('content_id', $contentId)
+            ->where('type', 'download')
+            ->where('status', 1)
+            ->count() > 0;
+
+        if ($hasDownloadOrder) return true;
+
+        // 已购买内容本身也包含下载权限
+        return self::canAccess($memberId, $contentId);
     }
 
     /**

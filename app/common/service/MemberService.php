@@ -24,13 +24,15 @@ class MemberService
             return ['success' => false, 'msg' => '邮箱已被注册'];
         }
 
+        $needAudit = (int) ConfigService::get('member_register_audit', 0);
+
         $member = new MemberModel;
         $member->save([
             'username' => $data['username'],
             'email'    => $data['email'],
             'password' => $data['password'],
             'nickname' => $data['nickname'] ?? $data['username'],
-            'status'   => 1,
+            'status'   => $needAudit ? 2 : 1,
         ]);
 
         // V2.4: 赋予默认等级
@@ -42,7 +44,7 @@ class MemberService
 
         // V2.4: 注册奖励积分
         $registerPoints = (int) ConfigService::get('points_register', 50);
-        if ($registerPoints > 0) {
+        if ($registerPoints > 0 && !$needAudit) {
             try {
                 PointsService::add($member->id, $registerPoints, 'register', 0, '注册奖励');
             } catch (\Throwable) {
@@ -50,7 +52,8 @@ class MemberService
             }
         }
 
-        return ['success' => true, 'msg' => '注册成功', 'data' => ['id' => $member->id]];
+        $msg = $needAudit ? '注册成功，请等待管理员审核' : '注册成功';
+        return ['success' => true, 'msg' => $msg, 'data' => ['id' => $member->id]];
     }
 
     /**
@@ -66,8 +69,11 @@ class MemberService
             return ['success' => false, 'msg' => '用户名或密码错误'];
         }
 
-        if ($member->status != 1) {
+        if ($member->status == 0) {
             return ['success' => false, 'msg' => '账号已被禁用'];
+        }
+        if ($member->status == 2) {
+            return ['success' => false, 'msg' => '账号待审核，请等待管理员审核通过'];
         }
 
         // 生成Token并写入Cookie+Cache
@@ -78,6 +84,7 @@ class MemberService
             'id'       => $member->id,
             'username' => $member->username,
             'nickname' => $member->nickname,
+            'email'    => $member->email,
             'avatar'   => $member->avatar,
         ];
 
@@ -138,5 +145,90 @@ class MemberService
         $member->save();
 
         return ['success' => true, 'msg' => '密码修改成功'];
+    }
+
+    /**
+     * 后台管理员保存会员（新增/编辑）
+     */
+    public function adminSave(array $data, ?int $id = null): array
+    {
+        $isNew = !$id;
+
+        if (empty($data['username']) || empty($data['email'])) {
+            return ['success' => false, 'msg' => '用户名和邮箱不能为空'];
+        }
+
+        $checkQuery = MemberModel::where('username', $data['username']);
+        if (!$isNew) {
+            $checkQuery->where('id', '<>', $id);
+        }
+        if ($checkQuery->find()) {
+            return ['success' => false, 'msg' => '用户名已存在'];
+        }
+
+        $checkQueryEmail = MemberModel::where('email', $data['email']);
+        if (!$isNew) {
+            $checkQueryEmail->where('id', '<>', $id);
+        }
+        if ($checkQueryEmail->find()) {
+            return ['success' => false, 'msg' => '邮箱已被注册'];
+        }
+
+        if ($isNew) {
+            if (empty($data['password'])) {
+                return ['success' => false, 'msg' => '密码不能为空'];
+            }
+            $member = new MemberModel;
+            $member->save([
+                'username' => $data['username'],
+                'email'    => $data['email'],
+                'password' => $data['password'],
+                'nickname' => $data['nickname'] ?? $data['username'],
+                'avatar'   => $data['avatar'] ?? '',
+                'status'   => isset($data['status']) ? (int) $data['status'] : 1,
+                'level_id' => isset($data['level_id']) ? (int) $data['level_id'] : 0,
+            ]);
+
+            // 赋予默认等级
+            if (empty($data['level_id'])) {
+                $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->find();
+                if ($defaultLevel) {
+                    $member->level_id = $defaultLevel->id;
+                    $member->save();
+                }
+            }
+        } else {
+            $member = MemberModel::find($id);
+            if (!$member) {
+                return ['success' => false, 'msg' => '会员不存在'];
+            }
+
+            $update = [
+                'username' => $data['username'],
+                'email'    => $data['email'],
+                'nickname' => $data['nickname'] ?? $data['username'],
+                'avatar'   => $data['avatar'] ?? '',
+                'status'   => isset($data['status']) ? (int) $data['status'] : $member->status,
+                'level_id' => isset($data['level_id']) ? (int) $data['level_id'] : $member->level_id,
+            ];
+            if (!empty($data['password'])) {
+                $update['password'] = $data['password'];
+            }
+            $member->save($update);
+
+            // 如果审核通过，清除可能存在的token缓存并发放注册积分
+            if ($member->status == 1 && isset($data['status']) && (int) $data['status'] === 1) {
+                Cache::tag(CacheService::TAG_MEMBER)->clear();
+                $registerPoints = (int) ConfigService::get('points_register', 50);
+                if ($registerPoints > 0) {
+                    try {
+                        PointsService::add($member->id, $registerPoints, 'register', 0, '注册奖励');
+                    } catch (\Throwable) {
+                    }
+                }
+            }
+        }
+
+        return ['success' => true, 'msg' => $isNew ? '添加成功' : '更新成功', 'data' => ['id' => $member->id]];
     }
 }

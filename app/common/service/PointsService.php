@@ -16,26 +16,38 @@ class PointsService
 {
     /**
      * 增加积分（原子操作）
+     * V2.6: 应用会员等级积分倍率
      */
     public static function add(int $memberId, int $points, string $type, int $sourceId = 0, string $note = ''): bool
     {
         if ($points <= 0) return false;
+
+        // V2.6: 应用积分倍率
+        $member = Member::find($memberId);
+        $rate = 1.0;
+        if ($member && $member->level_id) {
+            $level = MemberLevel::find($member->level_id);
+            if ($level && $level->points_rate > 0) {
+                $rate = (float) $level->points_rate;
+            }
+        }
+        $finalPoints = (int) round($points * $rate);
 
         Db::startTrans();
         try {
             // 原子增加
             Db::name('member')
                 ->where('id', $memberId)
-                ->inc('points', $points)
-                ->inc('total_points', $points)
+                ->inc('points', $finalPoints)
+                ->inc('total_points', $finalPoints)
                 ->update();
 
             PointsLog::create([
                 'member_id' => $memberId,
-                'points'    => $points,
+                'points'    => $finalPoints,
                 'type'      => $type,
                 'source_id' => $sourceId,
-                'note'      => $note,
+                'note'      => $note . ($rate != 1.0 ? " (倍率x{$rate})" : ''),
             ]);
 
             MemberLevelService::checkUpgrade($memberId);

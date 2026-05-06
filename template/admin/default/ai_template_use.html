@@ -1,0 +1,167 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_template/index">AI中心</a></li>
+<li class="breadcrumb-item"><a href="/admin/ai_template/index">AI内容模板</a></li>
+<li class="breadcrumb-item active">使用模板</li>
+{/block}
+{block name="css"}
+<style>.use-card {border-left: 4px solid var(--primary);}.progress-bar-animated{animation-duration:1.5s;}</style>
+{/block}
+{block name="content"}
+
+<!-- 模板信息卡 -->
+<div class="card use-card mb-3">
+    <div class="card-body py-2">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-0 fw-bold">{$template.name}</h5>
+                <div class="d-flex flex-wrap gap-2 mt-1" style="font-size:12px;color:#94a3b8;">
+                    <span class="badge {if condition="$template.generate_mode == 'example'"}bg-success{else /}bg-primary{/if}">
+                        {$template.mode_text}
+                    </span>
+                    <span><i class="bi bi-cpu me-1"></i>{$template.style_text}</span>
+                    <span>· 批量上限: {$template.default_batch}篇</span>
+                    {if condition="$template.description"}
+                    <span class="ms-2 opacity-60">{$template.description}</span>
+                    {/if}
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="/admin/ai_template/index" class="btn btn-sm btn-outline-secondary me-1">
+                    <i class="bi bi-arrow-left me-1"></i>返回列表
+                </a>
+                <a href="/admin/ai_template/edit?id={$template.id}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i>编辑
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="useForm" method="post" action="/admin/ai_template/submitBatch">
+    <input type="hidden" name="template_id" value="{$template.id}">
+
+    <div class="row g-3">
+        <!-- 参数填写区 -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-sliders me-1"></i>生成参数</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">关键词列表 <span class="text-danger">*</span></label>
+                        <textarea name="keywords" class="form-control" rows="8" required
+                                  placeholder="每行输入一个关键词或主题，AI将根据每个关键词独立生成一篇文章&#10;&#10;示例：&#10;2025年人工智能发展趋势&#10;ChatGPT在医疗领域的应用前景&#10;机器学习算法入门指南"></textarea>
+                        <div class="form-text">每行一个关键词，共生成N篇文章</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">生成数量</label>
+                            <input type="number" name="total" class="form-control" min="1" max="100"
+                                   value="{$template.default_batch|default=10}"
+                                   title="覆盖模板默认值，实际以关键词行数为准">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">覆盖分类</label>
+                            <select name="cate_id" class="form-select">
+                                <option value="0">使用模板预设 ({$template.cate_id > 0 ? '已设' : '未设'})</option>
+                                {volist name="cate_list" id="cate"}
+                                <option value="{$cate.id}" {if condition="$template.cate_id == $cate.id"}selected{/if}>{$cate.name}</option>
+                                {/volist}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">覆盖模型</label>
+                            <select name="model_id" class="form-select">
+                                <option value="0">使用模板预设</option>
+                                {volist name="model_list" id="model"}
+                                <option value="{$model.id}">{$model.name}</option>
+                                {/volist}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧操作面板 -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-rocket-takeoff me-1"></i>开始生成</div>
+                <div class="card-body">
+                    <div class="alert alert-warning small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        生成任务将在后台异步执行，预计耗时取决于关键词数量和AI模型响应速度。<br>
+                        完成后可在「AI批量生成」中查看结果。
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="startBtn">
+                        <i class="bi bi-play-circle me-2"></i>开始批量生成
+                    </button>
+
+                    <div class="mt-3 small text-secondary" id="taskStatus" style="display:none;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>任务进度...</span>
+                            <span id="percentText">0%</span>
+                        </div>
+                        <div class="progress" style="height:18px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="progressBar"
+                                 role="progressbar" style="width:0%">0%</div>
+                        </div>
+                        <div class="text-center mt-2" id="statusText"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模板规则预览 -->
+            {if condition="$template.title_rule || $template.content_rule"}
+            <div class="card mt-3">
+                <div class="card-header"><i class="bi bi-eye me-1"></i>模板规则预览</div>
+                <div class="card-body small">
+                    {if condition="$template.title_rule"}
+                    <div class="mb-2"><strong>标题：</strong>{$template.title_rule}</div>{/if}
+                    {if condition="$template.content_rule"}
+                    <div class="text-secondary">{$template.content_rule|substr=0,200}{if condition="strlen($template.content_rule)>200"}...{/if}</div>
+                    {/if}
+                </div>
+            </div>
+            {/if}
+        </div>
+    </div>
+</form>
+
+{/block}
+{block name="js"}
+<script>
+$('#useForm').on('submit', function(e) {
+    e.preventDefault();
+
+    var $btn = $('#startBtn');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>正在提交任务...');
+
+    var formData = new FormData(this);
+
+    $.ajax({
+        url: $(this).attr('action'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.task_id) {
+                // 跳转到进度页
+                window.location.href = '/admin/ai_template/progress?task_id=' + res.data.task_id;
+            } else {
+                showToast(res.msg || '任务创建失败', 'danger');
+                $btn.prop('disabled', false).html('<i class="bi bi-play-circle me-2"></i>重新提交');
+            }
+        },
+        error: function() {
+            showToast('网络错误，请重试', 'danger');
+            $btn.prop('disabled', false).html('<i class="bi bi-play-circle me-2"></i>重新提交');
+        }
+    });
+});
+</script>
+{/block}

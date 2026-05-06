@@ -17,7 +17,7 @@ class AiModelController extends AdminBaseController
     public function index()
     {
         $list = AiModelService::getList();
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list]);
         }
         $this->assign('list', $list);

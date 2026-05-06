@@ -1,4 +1,4 @@
-{extend name="/layout" /}
+﻿{extend name="/layout" /}
 {block name="title"}{if $info}编辑{else/}添加{/if}采集源 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
@@ -43,6 +43,9 @@
         </form>
     </div></div>
 </div>
+{/block}
+
+{block name="js"}
 <script>
 $('#sourceForm').on('submit', function(e) {
     e.preventDefault();

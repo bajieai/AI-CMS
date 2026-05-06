@@ -9,6 +9,18 @@ namespace app\common\service;
 class ImportService
 {
     /**
+     * 导入CSV文件（组合解析+批量创建）
+     */
+    public function importCsv(string $filePath, int $userId = 0): array
+    {
+        $rows = $this->parseCsv($filePath);
+        if (empty($rows)) {
+            throw new \Exception('CSV文件为空或格式不正确');
+        }
+        return $this->batchCreateContent($rows, $userId);
+    }
+
+    /**
      * 解析CSV文件
      */
     public function parseCsv(string $filePath): array

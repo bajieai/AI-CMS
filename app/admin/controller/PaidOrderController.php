@@ -28,7 +28,7 @@ class PaidOrderController extends AdminBaseController
         $list = $query->page($page, $limit)->select();
         $total = $query->count();
 
-        if ($this->request->isAjax()) {
+        if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $list, 'count' => $total]);
         }
         $this->assign('list', $list);
