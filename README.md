@@ -1,31 +1,28 @@
-# 八界AI-CMS V2.5
+# 八界AI-CMS V2.6
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.5.1-blue)
+![Version](https://img.shields.io/badge/version-2.6.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.5 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。V2.5 聚焦「AI内容生产与分发平台」，在V2.4基础上新增支付变现、AI批量生成、内容采集、多平台发布、邮件系统、插件扩展、多语言国际化等核心能力。采用服务端模板渲染 + 传统多页应用架构，部署简单、维护方便。
+八界AI-CMS V2.6 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.6 在V2.5基础上完成CSS静态资源分离、PJAX核心架构修复、数据导入修复等重要改进，进一步提升了系统性能与可维护性。
 
 ### 核心特性
 
-- **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式（DeepSeek API）
+- **多模型AI引擎** - DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 5大AI引擎，工厂模式+熔断降级
+- **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式，支持AI批量生成
+- **AI模板** - 预设AI写作模板，一键套用生成不同风格内容
 - **6种内容类型** - 产品/案例/新闻/下载/招聘/单页，支持扩展字段
 - **简化RBAC** - 3级角色（超管/管理员/编辑），配置文件权限控制
 - **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`/`{i8j:bannerlist}`/`{i8j:linklist}`/`{i8j:medialist}`/`{i8j:commentlist}`，灵活调用数据
+- **CSS静态资源分离** - 内联样式提取为独立CSS文件，`public/skin/` 目录统一管理
+- **PJAX无刷新** - 后台PJAX切换，51个模板script迁移至js block，体验流畅
+- **双主题后台** - default(经典) / corporate(企业) 两套后台主题自由切换
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
-- **内容回收站** - 软删除+回收站，防止误删
-- **版本历史** - 内容修改自动保存历史版本，支持回滚
-- **媒体资源库** - 统一管理图片/视频/文件，支持分类、搜索、批量操作
-- **内容审核工作流** - 待审列表、通过/驳回操作、审核历史追溯
-- **轮播图管理** - 后台管理轮播图，前台自动展示，支持有效期控制
-- **友情链接** - 后台管理友情链接，支持分组，前台页脚展示
-- **数据库备份恢复** - 手动备份、下载、一键恢复，保障数据安全
-- **搜索增强** - MySQL FULLTEXT 全文搜索，支持自动降级
 
 ### V2.3 新增特性
 
@@ -40,19 +37,44 @@
 - **功能模块开关** - 后台一键启用/禁用各功能模块
 - **操作日志增强** - 详细记录后台操作行为
 
+### V2.5 新增特性
+
+- **微信支付V3** - 会员内容付费，微信支付V3接口集成
+- **AI批量生成** - 按分类批量AI生成内容，支持队列任务
+- **多AI模型** - GLM / ERNIE / OpenAI兼容 Provider，工厂模式+熔断降级
+- **内容采集** - 采集规则管理+AI智能改写，一键导入内容
+- **多平台发布** - 微信公众号/头条号/知乎等平台一键发布
+- **邮件系统** - 邮件模板/订阅者管理/批量发送/发送日志
+- **插件管理** - 插件安装/启用/禁用/评分/配置，可扩展架构
+- **多语言** - 中/英/日多语言包，后台界面语言切换
+- **模板市场** - 在线模板浏览/安装/评分，主题一键切换
+- **Redis缓存** - CacheService标签体系(17标签)，精准缓存管理
+- **小程序** - 微信小程序端，支持内容浏览/搜索/详情
+
+### V2.6 改进
+
+- **CSS静态资源分离** - 后台/前台/登录页内联CSS提取为外部文件，`public/skin/` 目录管理
+- **PJAX核心修复** - 51个模板`<script>`从content block迁移至js block，解决PJAX切换脚本丢失
+- **数据导入修复** - ImportController分类查询+ImportService CSV导入+权限映射修正
+- **模板变量注入** - `$skin_admin`(后台) / `$skin`(前台) 自动注入CSS路径变量
+- **Nginx配置更新** - deploy/nginx + docker/nginx 添加 `/skin/` 路径支持
+- **调试文件清理** - 移除调试临时文件，.gitignore增强忽略规则
+
 ## 技术栈
 
 | 层级 | 技术 | 说明 |
 |------|------|------|
 | 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
 | 语言 | PHP 8.2+ | 严格类型声明 |
-| 数据库 | MySQL 8.0 | 27+张数据表，前缀 i8j_ |
-| 缓存 | 文件缓存（Redis可选） | 带标签的缓存管理 |
+| 数据库 | MySQL 8.0 | 40+张数据表，前缀 i8j_ |
+| 缓存 | Redis | CacheService标签体系(17标签) |
 | Session | PHP原生文件Session | 24小时过期 |
-| AI接口 | DeepSeek API (GuzzleHTTP) | 直连，无需Python中间层 |
-| 前端UI | Bootstrap 5.3 + jQuery 3.7 | 本地静态资源 |
+| AI接口 | DeepSeek/Qwen/GLM/ERNIE/OpenAI | 工厂模式+熔断降级CircuitBreakerTrait |
+| 前端UI | Bootstrap 5.3 + jQuery 3.7 | CSS分离至public/skin/目录 |
 | 富文本 | TinyMCE 6+ | 本地静态资源，中文语言包 |
 | 部署 | Docker / Nginx+PHP-FPM | 多入口模式 |
+| 认证 | Session / Cookie+Cache / Bearer+HMAC | 后台/会员/API三套认证 |
+| 小程序 | 微信小程序 | 内容浏览/搜索/详情 |
 
 ## 快速开始
 
@@ -76,7 +98,7 @@ install.bat --docker           # Windows
 ### 方式二：原生部署
 
 ```bash
-# 1. 确保已安装 PHP 8.2+, MySQL 8.0+, Composer
+# 1. 确保已安装 PHP 8.2+, MySQL 8.0+, Composer, Redis
 # 2. 克隆项目并安装依赖
 git clone https://gitee.com/bajieai/ai-cms.git
 cd AI-CMS
@@ -84,7 +106,7 @@ composer install --no-dev --optimize-autoloader
 
 # 3. 复制环境配置
 cp .env.example .env
-# 编辑 .env 配置数据库信息
+# 编辑 .env 配置数据库和Redis信息
 
 # 4. 启动开发服务器
 php think run --port=8080
@@ -100,54 +122,71 @@ AI-CMS/
 ├── app/                        # 应用目录 (PSR-4: app\)
 │   ├── admin/                  # 后台应用
 │   │   ├── controller/         #   控制器
+│   │   ├── middleware/         #   中间件(PjaxMiddleware等)
 │   │   ├── route/app.php       #   路由定义
 │   │   ├── middleware.php      #   中间件注册
-│   │   └── config/view.php    #   视图路径映射
+│   │   └── config/view.php     #   视图路径映射
 │   ├── home/                   # 前台应用
 │   │   ├── controller/         #   控制器
 │   │   ├── route/app.php       #   路由定义
 │   │   └── config/view.php    #   视图路径映射
 │   ├── api/                    # API应用
-│   │   ├── controller/         #   控制器(Ai/Upload/Cache)
+│   │   ├── controller/         #   控制器(Ai/Upload/Cache/Content等)
 │   │   └── route/app.php       #   API路由定义
 │   ├── install/                # 安装向导应用
 │   │   ├── controller/         #   控制器(5步安装)
 │   │   └── view/               #   安装页面模板
 │   └── common/                 # 公共模块
-│       ├── controller/         #   基类控制器
+│       ├── controller/         #   基类控制器(AdminBase/FrontBase)
 │       ├── middleware/         #   中间件
 │       ├── model/              #   数据模型
-│       ├── service/            #   业务服务
+│       ├── service/            #   业务服务(AI/支付/采集/发布/邮件/插件等)
 │       ├── taglib/             #   模板标签引擎(I8j)
+│       ├── traits/             #   特性(CircuitBreakerTrait/RedisQueueTrait)
 │       └── helper.php          #   全局助手函数
 ├── config/                     # 框架全局配置
 │   ├── app.php                 #   应用配置
 │   ├── database.php            #   数据库配置
 │   ├── template.php            #   模板引擎(含I8j标签库)
 │   ├── session.php             #   Session配置
-│   ├── cache.php               #   缓存配置
+│   ├── cache.php               #   缓存配置(Redis)
 │   ├── menu.php                #   后台菜单配置
 │   ├── permission.php          #   RBAC权限配置
 │   ├── ai.php                  #   AI服务配置
-│   └── info_type_fields.php   #   扩展字段定义
+│   ├── payment.php             #   支付配置
+│   ├── storage.php             #   对象存储配置
+│   ├── meilisearch.php         #   MeiliSearch配置
+│   └── info_type_fields.php    #   扩展字段定义
 ├── template/                   # 模板目录
-│   ├── admin/default/          #   后台模板
-│   └── pc/default/             #   前台模板
+│   ├── admin/                  #   后台模板
+│   │   ├── default/            #     经典主题
+│   │   └── corporate/          #     企业主题
+│   └── themes/                 #   前台主题
+│       ├── default/            #     默认主题(pc/mobile)
+│       └── corporate/          #     企业主题(pc/mobile)
 ├── public/                     # Web根目录
 │   ├── index.php               #   前台入口
 │   ├── admin.php               #   后台入口
 │   ├── install.php             #   安装入口
-│   ├── assets/                 #   静态资源(Bootstrap/jQuery/TinyMCE)
+│   ├── assets/                 #   公共静态资源(Bootstrap/jQuery/TinyMCE)
+│   ├── skin/                   #   主题静态资源(V2.6新增)
+│   │   ├── admin/              #     后台CSS/JS/图片/字体
+│   │   └── themes/             #     前台主题CSS/JS/图片/字体
 │   └── uploads/                #   上传目录
-├── database/
-│   └── migrations/
-│       └── install.sql         #   建表SQL+初始数据
+├── database/                   # 数据库SQL
+│   ├── install.sql             #   建表SQL+初始数据
+│   ├── v2.5.sql                #   V2.5增量更新
+│   └── v2.6.sql                #   V2.6增量更新
+├── miniprogram/                # 微信小程序
+│   ├── pages/                  #   页面(index/detail/search/login)
+│   └── utils/                  #   工具(API封装)
+├── plugin/                     # 插件目录
 ├── docker/                     # Docker配置
 │   ├── php/Dockerfile          #   PHP-FPM镜像
-│   ├── nginx/                  #   Nginx配置
+│   ├── nginx/                  #   Nginx配置(含/skin/路径)
 │   └── mysql/                  #   MySQL配置
 ├── deploy/                     # 生产部署配置
-│   └── nginx/aicms.conf       #   Nginx生产配置模板
+│   └── nginx/aicms.conf       #   Nginx生产配置模板(含/skin/路径)
 ├── .env.example                #   环境变量模板
 ├── .gitignore                  #   Git忽略规则
 ├── composer.json               #   Composer依赖
@@ -168,12 +207,19 @@ AI-CMS/
 | i8j_tag | 标签表 | id,name,sort |
 | i8j_content_tag | 内容标签关联 | content_id,tag_id |
 | i8j_user | 用户表 | id,username,email,password,nickname,avatar,role_id,status |
+| i8j_member | 会员表 | id,username,email,password,nickname,avatar,level_id,status |
 | i8j_config | 系统配置表 | id,group,name,value,type,options,sort,remark |
 | i8j_log | 操作日志表 | id,user_id,module,action,target,ip,data |
 | i8j_media | 媒体资源表 | id,user_id,filename,filepath,filetype,mimetype,filesize,alt_text |
 | i8j_banner | 轮播图表 | id,title,image,link,target,sort,status,start_time,end_time |
 | i8j_link | 友情链接表 | id,title,url,logo,sort,status |
 | i8j_review | 审核记录表 | id,content_id,user_id,action,remark |
+| i8j_ai_log | AI调用日志 | id,provider,model,type,prompt,tokens,cost |
+| i8j_collect_source | 采集源 | id,name,url,rule_json,status |
+| i8j_publish_log | 发布日志 | id,content_id,platform,status,result |
+| i8j_email_template | 邮件模板 | id,name,subject,body,status |
+| i8j_paid_order | 付费订单 | id,member_id,content_id,amount,status |
+| i8j_plugin | 插件表 | id,name,title,version,status,config |
 
 ## 角色权限
 
@@ -190,6 +236,11 @@ AI-CMS/
 | POST | /api/ai/generate | AI内容生成（Session认证） |
 | POST | /api/upload/image | 图片上传 |
 | POST | /api/cache/clear | 清除缓存（超管专用） |
+| GET | /api/csrf/token | 获取CSRF Token（AJAX恢复） |
+| GET | /api/content/list | 内容列表 |
+| GET | /api/content/detail | 内容详情 |
+| POST | /api/member/login | 会员登录 |
+| POST | /api/member/register | 会员注册 |
 
 ## I8j模板标签
 
@@ -221,7 +272,24 @@ AI-CMS/
 {i8j:medialist filetype="image" limit="10"}
   <img src="{$field.filepath}" alt="{$field.alt_text}">
 {/i8j:medialist}
+
+<!-- 评论列表 -->
+{i8j:commentlist content_id="$id" limit="10"}
+  <div>{$field.content} - {$field.username}</div>
+{/i8j:commentlist}
 ```
+
+## 版本历史
+
+| 版本 | 日期 | 主要更新 |
+|------|------|----------|
+| V2.0.0 | 2024-Q4 | 基础CMS：内容管理/分类/标签/媒体/轮播图/友情链接 |
+| V2.1.0 | 2024-Q4 | AI智能写作(DeepSeek)/审核工作流/媒体资源库 |
+| V2.2.0 | 2025-Q1 | 回收站/版本历史/富文本增强/操作日志 |
+| V2.3.0 | 2025-Q1 | 定时发布/SEO管理/会员系统/评论/广告/数据导入导出/API |
+| V2.4.0 | 2025-Q2 | 多语言支持/模板市场/插件系统/搜索增强 |
+| V2.5.1 | 2025-Q3 | 微信支付V3/AI批量生成/多AI模型/采集/多平台发布/邮件/Redis缓存 |
+| V2.6.0 | 2025-Q4 | CSS静态资源分离/PJAX核心修复/数据导入修复 |
 
 ## 默认账户
 
