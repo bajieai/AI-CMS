@@ -19,7 +19,7 @@ class OauthBindController extends FrontBaseController
     public function index()
     {
         if (!$this->isMemberLogin) {
-            return $this->redirect(url('home/member/login'));
+            return redirect('/member/login');
         }
 
         $memberId = $this->memberInfo['id'];
@@ -40,7 +40,7 @@ class OauthBindController extends FrontBaseController
 
         $this->assign('providers', $providerList);
         $this->assign('member', $this->memberInfo);
-        return $this->view->fetch();
+        return $this->view('/oauth_bind');
     }
 
     /**

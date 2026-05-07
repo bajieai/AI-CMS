@@ -19,15 +19,15 @@ class SigninController extends FrontBaseController
     public function index()
     {
         if (!$this->isMemberLogin) {
-            return $this->redirect(url('home/member/login'));
+            return redirect('/member/login');
         }
 
-        $memberId = $this->memberInfo['id'];
+        $memberId = (int) $this->memberInfo['id'];
         $calendar = SigninService::getCalendar($memberId);
 
         $this->assign('calendar', $calendar);
         $this->assign('member', $this->memberInfo);
-        return $this->view->fetch();
+        return $this->view('/signin');
     }
 
     /**
@@ -40,7 +40,7 @@ class SigninController extends FrontBaseController
         }
 
         try {
-            $result = SigninService::signin($this->memberInfo['id']);
+            $result = SigninService::signin((int) $this->memberInfo['id']);
             return json(['code' => 0, 'msg' => '签到成功', 'data' => $result]);
         } catch (\Exception $e) {
             return json(['code' => 1, 'msg' => $e->getMessage()]);
@@ -48,23 +48,22 @@ class SigninController extends FrontBaseController
     }
 
     /**
-     * 积分记录
+     * V2.7: 签到积分记录
      */
     public function pointsLog()
     {
         if (!$this->isMemberLogin) {
-            return $this->redirect(url('home/member/login'));
+            return redirect('/member/login');
         }
 
-        $memberId = $this->memberInfo['id'];
-        $page = (int) $this->request->get('page', 1);
+        $memberId = (int) $this->memberInfo['id'];
         $list = PointsLog::where('member_id', $memberId)
+            ->where('type', 'signin')
             ->order('id', 'desc')
-            ->page($page, 20)
-            ->select();
+            ->paginate(20);
 
         $this->assign('list', $list);
         $this->assign('member', $this->memberInfo);
-        return $this->view->fetch();
+        return $this->view('/signin_points_log');
     }
 }

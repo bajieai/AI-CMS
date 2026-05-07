@@ -14,6 +14,36 @@ class FormController extends FrontBaseController
     protected bool $enablePageCache = false;
 
     /**
+     * V2.7: 表单展示页（支持可视化编辑器渲染）
+     */
+    public function show(string $code = '')
+    {
+        $form = \app\common\model\Form::where('code', $code)
+            ->where('is_enabled', 1)
+            ->find();
+        if (!$form) {
+            return $this->error('表单不存在或已停用');
+        }
+
+        // 优先使用可视化编辑器配置
+        $fieldsConfig = [];
+        if (!empty($form->fields_config)) {
+            $fieldsConfig = is_string($form->fields_config)
+                ? json_decode($form->fields_config, true)
+                : $form->fields_config;
+        } elseif (!empty($form->fields)) {
+            // 兼容旧版字段配置
+            $fieldsConfig = $form->fields;
+        }
+
+        $this->assign([
+            'form' => $form,
+            'fields_config' => $fieldsConfig,
+        ]);
+        return $this->view('/form_render');
+    }
+
+    /**
      * 提交表单
      */
     public function submit()

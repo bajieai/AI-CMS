@@ -97,14 +97,8 @@
     {volist name="groups" id="group" key="groupName"}
     <div class="card mb-3">
         <div class="card-header">
-            <i class="bi bi-{switch name="$groupName" case="basic|基本" value="gear" case="upload" value="cloud-upload" case="ai" value="robot" default="sliders" /} me-1"></i>
-            {switch name="$groupName"}
-            {case value="basic"}基本设置{/case}
-            {case value="upload"}上传设置{/case}
-            {case value="ai"}AI设置{/case}
-            {case value="member"}会员设置{/case}
-            {default /}{$groupName}
-            {/switch}
+            <i class="bi bi-<?php echo $groupIcons[$key] ?? 'sliders'; ?> me-1"></i>
+            <?php echo $groupNames[$key] ?? $key; ?>
         </div>
         <div class="card-body">
             {volist name="group" id="item"}

@@ -5,6 +5,8 @@ namespace app\common\service;
 
 use app\common\model\PaidOrder;
 use app\common\model\PaymentLog;
+use app\common\service\ConfigService;
+use app\common\service\PointsService;
 use app\common\service\payment\PaymentChannelInterface;
 use app\common\service\payment\WechatPaymentChannel;
 use think\facade\Db;
@@ -124,6 +126,19 @@ class PaymentService
             $order->save();
 
             Db::commit();
+
+            // V2.7: 消费返积分
+            $ratio = (float) ConfigService::get('points_consume_ratio', 0);
+            if ($ratio > 0 && $order->price > 0) {
+                $rewardPoints = (int) round($order->price * $ratio);
+                if ($rewardPoints > 0) {
+                    try {
+                        PointsService::add($order->member_id, $rewardPoints, 'consume_reward', $order->id, "消费返积分(订单{$orderSn})");
+                    } catch (\Throwable $e) {
+                        Log::warning("消费返积分失败: " . $e->getMessage());
+                    }
+                }
+            }
 
             // 触发支付完成事件（供插件Hook）
             if (class_exists('app\common\service\PluginService')) {

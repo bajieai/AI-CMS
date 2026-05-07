@@ -10,7 +10,7 @@
     <div class="row align-items-center">
         <div class="col-md-8"><h5 class="mb-0 fw-bold">{$template.name}</h5>
             <div class="d-flex flex-wrap gap-2 mt-1" style="font-size:12px;color:#94a3b8;">
-                <span class="badge {if condition='$template.generate_mode=="example"'}bg-success{else /}bg-primary{/if}">{$template.mode_text}</span>
+                <span class="badge <?php echo ($template['generate_mode'] ?? '') == 'example' ? 'bg-success' : 'bg-primary'; ?>">{$template.mode_text}</span>
                 <span><i class="bi bi-cpu me-1"></i>{$template.style_text}</span><span>· 批量上限: {$template.default_batch}篇</span>
                 {if condition="$template.description"}<span class="ms-2 opacity-60">{$template.description}</span>{/if}
             </div>

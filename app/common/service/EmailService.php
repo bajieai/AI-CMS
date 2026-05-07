@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\EmailLog;
+use app\common\model\EmailQueue;
 use app\common\model\EmailTemplate;
 use app\common\traits\RedisQueueTrait;
 use think\facade\Log;
@@ -52,16 +53,20 @@ class EmailService
 
     /**
      * 将邮件加入发送队列（异步）
-     * V2.6: 从Cache迁移至Redis List，支持原子操作和并发安全
+     * V2.7: 先写DB持久化，再入Redis队列
      */
     public static function queue(string $templateCode, string $toEmail, array $vars = []): bool
     {
+        // 先写DB持久化（status=0）
+        $dbId = EmailQueue::enqueue($templateCode, $toEmail, $vars);
+        // 再入Redis队列（携带db_id，处理时用于更新状态）
         return self::queuePush(self::$queueKey, [
+            'db_id'        => $dbId,
             'template_code' => $templateCode,
-            'to_email' => $toEmail,
-            'vars' => $vars,
-            'retry' => 0,
-            'create_time' => time(),
+            'to_email'      => $toEmail,
+            'vars'          => $vars,
+            'retry'          => 0,
+            'create_time'    => time(),
         ]);
     }
 
@@ -81,15 +86,29 @@ class EmailService
                 break;
             }
 
+            $dbId  = $item['db_id'] ?? 0;
             $result = self::sendByTemplate($item['template_code'], $item['to_email'], $item['vars'] ?? []);
             if ($result) {
                 $success++;
+                // 更新DB状态为已发
+                if ($dbId > 0) {
+                    EmailQueue::markSent($dbId);
+                }
             } else {
                 $fail++;
-                // 重试次数超过3次则丢弃
-                $item['retry'] = ($item['retry'] ?? 0) + 1;
-                if ($item['retry'] < 3) {
-                    $remaining[] = $item;
+                if ($dbId > 0) {
+                    // 通过DB记录重试次数，超过max_retries则标记为失败并不再重试
+                    $shouldRetry = EmailQueue::markFailed($dbId, 'SMTP发送失败');
+                    if ($shouldRetry) {
+                        $item['retry'] = ($item['retry'] ?? 0) + 1;
+                        $remaining[] = $item;
+                    }
+                } else {
+                    // 无DB记录，按原逻辑处理
+                    $item['retry'] = ($item['retry'] ?? 0) + 1;
+                    if ($item['retry'] < 3) {
+                        $remaining[] = $item;
+                    }
                 }
             }
         }

@@ -7,6 +7,8 @@ use app\common\model\Content;
 use app\common\model\Member;
 use app\common\model\MemberLevel;
 use app\common\model\PaidOrder;
+use app\common\model\UserChapter;
+use app\common\service\ConfigService;
 use think\facade\Db;
 
 /**
@@ -17,7 +19,7 @@ class PaidService
 {
     /**
      * 检查会员是否有权限访问付费内容
-     * V2.6修复：VIP权益增加vip_expire_time到期校验，修复discount<=0死代码
+     * V2.7规范化：VIP判断统一使用is_vip字段，替代discount<=0语义
      */
     public static function canAccess(?int $memberId, int $contentId): bool
     {
@@ -31,12 +33,12 @@ class PaidService
 
         if (!$memberId) return false;
 
-        // V2.6：VIP权益校验（增加到期时间判断）
+        // V2.7：VIP权益校验（is_vip=1且vip_expire_time未到期）
         $member = Member::find($memberId);
         if ($member && $member->level_id && $member->vip_expire_time > time()) {
             $level = MemberLevel::find($member->level_id);
-            if ($level && $level->discount <= 0) {
-                return true; // VIP有效期内且折扣0=免费
+            if ($level && $level->is_vip) {
+                return true; // VIP有效期内免费
             }
         }
 
@@ -120,15 +122,16 @@ class PaidService
             throw new \Exception('您的会员等级不足，无法访问此内容');
         }
 
-        // V2.6：计算折扣后价格（增加VIP到期校验）
+        // V2.7：计算折扣后价格（VIP校验改用is_vip字段）
         $finalPrice = $content->paid_price;
         $member = Member::find($memberId);
         if ($member && $member->level_id && $member->vip_expire_time > time()) {
             $level = MemberLevel::find($member->level_id);
+            if ($level && $level->is_vip) {
+                throw new \Exception('VIP会员可免费阅读');
+            }
             if ($level && $level->discount > 0 && $level->discount < 100) {
                 $finalPrice = round($content->paid_price * ($level->discount / 100), 2);
-            } elseif ($level && $level->discount <= 0) {
-                throw new \Exception('VIP会员可免费阅读');
             }
         }
 
@@ -182,6 +185,20 @@ class PaidService
             $order->save();
 
             Db::commit();
+
+            // V2.7: 消费返积分（积分支付也返）
+            $ratio = (float) ConfigService::get('points_consume_ratio', 0);
+            if ($ratio > 0 && $order->price > 0) {
+                $rewardPoints = (int) round($order->price * $ratio);
+                if ($rewardPoints > 0) {
+                    try {
+                        PointsService::add($memberId, $rewardPoints, 'consume_reward', $order->id, "消费返积分(订单{$order->order_sn})");
+                    } catch (\Throwable $e) {
+                        \think\facade\Log::warning("消费返积分失败: " . $e->getMessage());
+                    }
+                }
+            }
+
             return true;
         } catch (\Exception $e) {
             Db::rollback();
@@ -200,8 +217,8 @@ class PaidService
     }
 
     /**
-     * V2.6: 检查会员是否有权限访问指定章节
-     * 规则：1) 免费试读章节直接放行 2) 已购买父内容放行 3) VIP免费放行
+     * V2.7: 检查会员是否有权限访问指定章节
+     * 规则：1) 免费试读章节直接放行 2) 已购买父内容放行 3) VIP免费放行 4) 单章购买放行
      */
     public static function canAccessChapter(?int $memberId, int $parentContentId, int $chapterId): bool
     {
@@ -217,21 +234,113 @@ class PaidService
 
         if (!$memberId) return false;
 
-        // 已购买父内容
+        // 已购买父内容（整本购买）
         if (self::canAccess($memberId, $parentContentId)) {
             return true;
         }
 
-        // VIP权益
+        // 单章购买
+        if (UserChapter::hasPurchased($memberId, $chapterId)) {
+            return true;
+        }
+
+        // VIP权益（V2.7改用is_vip字段）
         $member = Member::find($memberId);
         if ($member && $member->level_id && $member->vip_expire_time > time()) {
             $level = MemberLevel::find($member->level_id);
-            if ($level && $level->discount <= 0) {
+            if ($level && $level->is_vip) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * V2.7: 获取章节列表及访问状态（前台阅读页用）
+     */
+    public static function getChapterListWithAccess(int $parentId, ?int $memberId = null): array
+    {
+        $chapters = Content::where('parent_id', $parentId)
+            ->where('is_chapter', 1)
+            ->where('status', 2)
+            ->order('chapter_sort', 'asc')
+            ->order('id', 'asc')
+            ->select();
+
+        $result = [];
+        foreach ($chapters as $chapter) {
+            $canAccess = self::canAccessChapter($memberId, $parentId, $chapter->id);
+            $result[] = [
+                'id'           => $chapter->id,
+                'title'        => $chapter->chapter_title ?: $chapter->title,
+                'sort'         => $chapter->chapter_sort,
+                'is_free'      => !empty($chapter->is_free_chapter),
+                'is_unlocked'  => $canAccess,
+                'price'        => $chapter->chapter_price ?? 0,
+                'create_time'  => $chapter->create_time,
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * V2.7: 购买单章（积分支付）
+     */
+    public static function buyChapter(int $memberId, int $chapterId): array
+    {
+        $chapter = Content::find($chapterId);
+        if (!$chapter || empty($chapter->is_chapter) || $chapter->parent_id <= 0) {
+            throw new \Exception('章节不存在');
+        }
+
+        $parentId = $chapter->parent_id;
+
+        if (self::canAccessChapter($memberId, $parentId, $chapterId)) {
+            throw new \Exception('您已拥有该章节权限');
+        }
+
+        $price = (float) ($chapter->chapter_price ?? 0);
+        if ($price <= 0) {
+            $parent = Content::find($parentId);
+            $price = $parent ? (float) $parent->paid_price : 0;
+        }
+
+        if ($price > 0) {
+            PointsService::consume($memberId, (int) $price, 'chapter', $chapterId, '购买章节');
+        }
+
+        $orderSn = 'C' . date('YmdHis') . str_pad((string) $memberId, 6, '0', STR_PAD_LEFT) . rand(100, 999);
+
+        UserChapter::create([
+            'member_id'  => $memberId,
+            'content_id' => $chapterId,
+            'parent_id'  => $parentId,
+            'order_sn'   => $orderSn,
+            'price'      => $price,
+        ]);
+
+        return ['success' => true, 'msg' => '购买成功', 'order_sn' => $orderSn];
+    }
+
+    /**
+     * V2.7: 购买整本（复用paid_order，type=chapter）
+     */
+    public static function buyWholeBook(int $memberId, int $parentId): array
+    {
+        $book = Content::find($parentId);
+        if (!$book || empty($book->is_paid)) {
+            throw new \Exception('该内容无需付费');
+        }
+
+        if (self::canAccess($memberId, $parentId)) {
+            throw new \Exception('您已购买该内容');
+        }
+
+        $order = self::createOrder($memberId, $parentId, 'points');
+        self::completePayment($order['order_sn'], $memberId);
+
+        return ['success' => true, 'msg' => '购买成功', 'order_sn' => $order['order_sn']];
     }
 
     /**

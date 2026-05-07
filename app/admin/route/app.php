@@ -30,6 +30,15 @@ Route::post('content/autoSave/:id$', '\app\admin\controller\ContentController@au
 Route::get('content/versions/:id$', '\app\admin\controller\ContentController@versions');
 Route::post('content/rollback/:versionId$', '\app\admin\controller\ContentController@rollback');
 
+// V2.7 章节管理
+Route::get('content/getChapters/:parentId$', '\app\admin\controller\ContentController@getChapters');
+Route::post('content/saveChapter$', '\app\admin\controller\ContentController@saveChapter');
+Route::post('content/deleteChapter/:id$', '\app\admin\controller\ContentController@deleteChapter');
+Route::post('content/sortChapters$', '\app\admin\controller\ContentController@sortChapters');
+
+// V2.7 头条号OAuth
+Route::get('toutiao/oauth$', '\app\admin\controller\PublishPlatformController@toutiaoOauth');
+
 // 分类管理
 Route::rule('cate/index$', '\app\admin\controller\CateController@index', 'GET');
 Route::rule('cate/add$', '\app\admin\controller\CateController@add', 'GET|POST');
@@ -56,6 +65,9 @@ Route::post('system/customVarSave$', '\app\admin\controller\SystemController@cus
 Route::post('system/customVarDelete$', '\app\admin\controller\SystemController@customVarDelete');
 Route::rule('system/moduleControl$', '\app\admin\controller\SystemController@moduleControl', 'GET');
 Route::post('system/moduleToggle$', '\app\admin\controller\SystemController@moduleToggle');
+// 头条号OAuth
+Route::get('toutiaoOAuth/authorize$', '\app\admin\controller\ToutiaoOAuthController@authorize');
+Route::get('toutiaoOAuth/callback$', '\app\admin\controller\ToutiaoOAuthController@callback');
 Route::rule('log/index$', '\app\admin\controller\LogController@index', 'GET');
 Route::get('log/export$', '\app\admin\controller\LogController@export');
 Route::post('log/cleanup$', '\app\admin\controller\LogController@cleanup');
@@ -139,3 +151,24 @@ Route::rule('link_group/add$', '\app\admin\controller\LinkGroupController@add', 
 Route::rule('link_group/edit/:id$', '\app\admin\controller\LinkGroupController@edit', 'GET|POST');
 Route::post('link_group/delete/:id$', '\app\admin\controller\LinkGroupController@delete');
 Route::post('link_group/toggleStatus/:id$', '\app\admin\controller\LinkGroupController@toggleStatus');
+
+// V2.7 表单管理（含可视化编辑器）
+Route::get('form/index$', '\app\admin\controller\FormController@index');
+Route::rule('form/add$', '\app\admin\controller\FormController@add', 'GET|POST');
+Route::rule('form/edit/:id$', '\app\admin\controller\FormController@edit', 'GET|POST');
+Route::get('form/editor/:id$', '\app\admin\controller\FormController@editor');
+Route::post('form/save$', '\app\admin\controller\FormController@save');
+Route::post('form/saveEditor$', '\app\admin\controller\FormController@saveEditor');
+Route::post('form/delete$', '\app\admin\controller\FormController@delete');
+Route::post('form/toggleEnabled$', '\app\admin\controller\FormController@toggleEnabled');
+Route::get('form/dataIndex$', '\app\admin\controller\FormController@dataIndex');
+
+// V2.7 积分商城
+Route::get('points_product/index$', '\app\admin\controller\PointsProductController@index');
+Route::rule('points_product/edit/:id$', '\app\admin\controller\PointsProductController@edit', 'GET|POST');
+Route::rule('points_product/edit$', '\app\admin\controller\PointsProductController@edit', 'GET|POST');
+Route::post('points_product/save$', '\app\admin\controller\PointsProductController@save');
+Route::post('points_product/delete$', '\app\admin\controller\PointsProductController@delete');
+Route::get('points_exchange/index$', '\app\admin\controller\PointsExchangeController@index');
+Route::post('points_exchange/audit$', '\app\admin\controller\PointsExchangeController@audit');
+Route::get('points_exchange/detail/:id$', '\app\admin\controller\PointsExchangeController@detail');

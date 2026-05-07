@@ -32,4 +32,20 @@ class PointsExchange extends Model
     {
         return is_string($value) ? $value : json_encode($value, JSON_UNESCAPED_UNICODE);
     }
+
+    /**
+     * 关联会员
+     */
+    public function member()
+    {
+        return $this->belongsTo(Member::class, 'user_id', 'id')->field('id,nickname,avatar,mobile');
+    }
+
+    /**
+     * 关联商品
+     */
+    public function product()
+    {
+        return $this->belongsTo(PointsProduct::class, 'product_id', 'id')->field('id,title,image,type');
+    }
 }

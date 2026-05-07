@@ -17,9 +17,10 @@ class Form extends Model
     protected $updateTime = 'update_time';
 
     protected $type = [
-        'is_enabled' => 'integer',
-        'sort'       => 'integer',
-        'anti_spam'  => 'integer',
+        'is_enabled'   => 'integer',
+        'sort'         => 'integer',
+        'anti_spam'    => 'integer',
+        'fields_config'=> 'json',
     ];
 
     /**

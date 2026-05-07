@@ -157,6 +157,17 @@
                     <div class="d-grid mb-2">
                         <a href="/admin/content/versions/{$info.id}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history me-1"></i>版本历史</a>
                     </div>
+
+                    <!-- V2.7 章节管理 -->
+                    <div class="card border-success mb-3" id="chapterManageCard">
+                        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-book me-1"></i>章节管理</span>
+                            <button type="button" class="btn btn-sm btn-light" onclick="openChapterModal()">+ 新增</button>
+                        </div>
+                        <div class="card-body py-2" id="chapterListBox">
+                            <div class="text-muted small text-center py-2">加载中...</div>
+                        </div>
+                    </div>
                     {/if}
                     <!-- AI辅助写作 -->
                     <div class="card bg-light mb-3">
@@ -501,5 +512,167 @@ function startAutoSave() {
 // 编辑器就绪后启动自动保存
 tinymce.activeEditor && startAutoSave();
 setTimeout(startAutoSave, 2000);
+
+// ================== V2.7 章节管理 ==================
+var parentId = {$info.id|default=0};
+var chapterList = [];
+
+function loadChapters() {
+    if (!parentId) return;
+    $.get('/admin/content/getChapters/' + parentId, function(res) {
+        if (res.code === 0) {
+            chapterList = res.data.list || [];
+            renderChapterList();
+        }
+    }, 'json');
+}
+
+function renderChapterList() {
+    var $box = $('#chapterListBox');
+    if (!chapterList.length) {
+        $box.html('<div class="text-muted small text-center py-2">暂无章节，点击上方按钮添加</div>');
+        return;
+    }
+    var html = '<div class="list-group list-group-flush" id="chapterSortable">';
+    for (var i = 0; i < chapterList.length; i++) {
+        var ch = chapterList[i];
+        html += '<div class="list-group-item px-2 py-1 d-flex justify-content-between align-items-center" data-id="' + ch.id + '">';
+        html += '<div class="d-flex align-items-center" style="cursor:move"><i class="bi bi-grip-vertical text-muted me-2"></i>';
+        html += '<div><div class="small fw-bold">' + (ch.chapter_title || ch.title) + '</div>';
+        html += '<div class="small text-muted">' + (ch.is_free_chapter ? '<span class="badge bg-success">免费</span>' : '<span class="badge bg-primary">付费</span>');
+        if (ch.chapter_price > 0) html += ' ' + ch.chapter_price + '积分';
+        html += '</div></div></div>';
+        html += '<div class="btn-group btn-group-sm">';
+        html += '<button class="btn btn-outline-secondary" onclick="editChapter(' + ch.id + ')"><i class="bi bi-pencil"></i></button>';
+        html += '<button class="btn btn-outline-danger" onclick="delChapter(' + ch.id + ')"><i class="bi bi-trash"></i></button>';
+        html += '</div></div>';
+    }
+    html += '</div>';
+    $box.html(html);
+    var dragSrcEl = null;
+    $('#chapterSortable .list-group-item').each(function() {
+        $(this).attr('draggable', true);
+        $(this).on('dragstart', function(e) { dragSrcEl = this; e.originalEvent.dataTransfer.effectAllowed = 'move'; });
+        $(this).on('dragover', function(e) { e.preventDefault(); e.originalEvent.dataTransfer.dropEffect = 'move'; return false; });
+        $(this).on('drop', function(e) {
+            e.stopPropagation();
+            if (dragSrcEl !== this) {
+                $(this).before(dragSrcEl);
+                saveChapterSort();
+            }
+            return false;
+        });
+    });
+}
+
+function saveChapterSort() {
+    var orders = [];
+    $('#chapterSortable .list-group-item').each(function(idx) {
+        orders.push({id: $(this).data('id'), sort: idx});
+    });
+    $.post('/admin/content/sortChapters', {orders: orders}, function(res) {
+        if (res.code !== 0) showToast(res.msg, 'danger');
+    }, 'json');
+}
+
+function openChapterModal() {
+    $('#chapterModal').find('input,textarea').val('');
+    $('#chapterModal [name="chapter_id"]').val(0);
+    $('#chapterModal [name="is_free_chapter"]').prop('checked', false);
+    $('#chapterModal [name="chapter_price"]').val(0);
+    bootstrap.Modal.getInstance(document.getElementById('chapterModal')) || new bootstrap.Modal(document.getElementById('chapterModal'));
+    bootstrap.Modal.getInstance(document.getElementById('chapterModal')).show();
+}
+
+function editChapter(id) {
+    var ch = chapterList.find(function(c){return c.id == id;});
+    if (!ch) return;
+    $('#chapterModal [name="chapter_id"]').val(ch.id);
+    $('#chapterModal [name="chapter_title"]').val(ch.chapter_title || ch.title);
+    $('#chapterModal [name="chapter_content"]').val(ch.content || '');
+    $('#chapterModal [name="chapter_sort"]').val(ch.chapter_sort || 0);
+    $('#chapterModal [name="is_free_chapter"]').prop('checked', ch.is_free_chapter == 1);
+    $('#chapterModal [name="chapter_price"]').val(ch.chapter_price || 0);
+    var modal = bootstrap.Modal.getInstance(document.getElementById('chapterModal')) || new bootstrap.Modal(document.getElementById('chapterModal'));
+    modal.show();
+}
+
+function saveChapter() {
+    var data = {
+        id: parseInt($('#chapterModal [name="chapter_id"]').val()) || 0,
+        parent_id: parentId,
+        title: $('#chapterModal [name="chapter_title"]').val(),
+        chapter_title: $('#chapterModal [name="chapter_title"]').val(),
+        content: $('#chapterModal [name="chapter_content"]').val(),
+        chapter_sort: parseInt($('#chapterModal [name="chapter_sort"]').val()) || 0,
+        is_free_chapter: $('#chapterModal [name="is_free_chapter"]').is(':checked') ? 1 : 0,
+        chapter_price: parseFloat($('#chapterModal [name="chapter_price"]').val()) || 0,
+    };
+    if (!data.title) { showToast('请输入章节标题', 'warning'); return; }
+    $.post('/admin/content/saveChapter', data, function(res) {
+        if (res.code === 0) {
+            showToast('保存成功', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('chapterModal')).hide();
+            loadChapters();
+        } else {
+            showToast(res.msg, 'danger');
+        }
+    }, 'json');
+}
+
+function delChapter(id) {
+    if (!confirm('确定删除该章节？')) return;
+    $.post('/admin/content/deleteChapter/' + id, function(res) {
+        if (res.code === 0) { showToast('删除成功', 'success'); loadChapters(); }
+        else { showToast(res.msg, 'danger'); }
+    }, 'json');
+}
+
+loadChapters();
+// =====================================================
 </script>
+
+<!-- 章节编辑 Modal -->
+<div class="modal fade" id="chapterModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑章节</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="chapter_id" value="0">
+                <div class="mb-3">
+                    <label class="form-label">章节标题 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="chapter_title" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">章节内容</label>
+                    <textarea class="form-control" name="chapter_content" rows="8"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">排序</label>
+                        <input type="number" class="form-control" name="chapter_sort" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">单章价格(积分)</label>
+                        <input type="number" class="form-control" name="chapter_price" value="0" min="0">
+                        <div class="form-text">0表示跟随父内容定价</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" name="is_free_chapter" value="1" id="swFreeChapter">
+                            <label class="form-check-label" for="swFreeChapter">免费试读</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveChapter()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
 {/block}

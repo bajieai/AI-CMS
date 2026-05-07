@@ -166,6 +166,25 @@
                     jqXHR.setRequestHeader('X-CSRF-TOKEN', token);
                 }
             });
+
+            // V2.7 P2-2: CSRF Token过期自动恢复
+            $(document).ajaxError(function(event, jqXHR, settings, thrownError) {
+                if (jqXHR.status === 419) {
+                    // Token过期，静默获取新token并重试一次
+                    $.get('/api/csrf/token', function(res) {
+                        if (res.token) {
+                            $('input[name="__token__"]').val(res.token);
+                            // 重试原请求（仅非POST表单提交，避免重复提交）
+                            if (settings.type && settings.type.toUpperCase() !== 'POST') {
+                                $.ajax(settings);
+                            } else {
+                                // POST请求提示用户刷新页面
+                                alert('页面会话已过期，请刷新页面后重试');
+                            }
+                        }
+                    });
+                }
+            });
         })();
 
         // 侧边栏切换（移动端）

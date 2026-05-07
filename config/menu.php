@@ -25,6 +25,9 @@ return [
             ['id' => 21, 'name' => '用户列表', 'url' => '/admin/user/index', 'permission' => 'user.*', 'active' => 'user', 'icon' => 'bi bi-people'],
             ['id' => 27, 'name' => '会员等级', 'url' => '/admin/member_level/index', 'permission' => 'member_level.*', 'active' => 'member_level', 'icon' => 'bi bi-award'],
             ['id' => 28, 'name' => '积分规则', 'url' => '/admin/points_rule/index', 'permission' => 'points.*', 'active' => 'points_rule', 'icon' => 'bi bi-star'],
+            // V2.7 积分商城
+            ['id' => 29, 'name' => '积分商品', 'url' => '/admin/points_product/index', 'permission' => 'points_product.*', 'active' => 'points_product', 'icon' => 'bi bi-gift'],
+            ['id' => 210, 'name' => '兑换记录', 'url' => '/admin/points_exchange/index', 'permission' => 'points_exchange.*', 'active' => 'points_exchange', 'icon' => 'bi bi-arrow-left-right'],
         ],
     ],
     [

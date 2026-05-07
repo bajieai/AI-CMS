@@ -27,8 +27,79 @@ class SystemController extends AdminBaseController
             foreach ($configs as $config) {
                 $groups[$config->group][] = $config;
             }
+            // 移除site分组（主题切换由上方卡片选择器完成，不重复显示）
+            unset($groups['site']);
 
-            $this->assign(['groups' => $groups]);
+            // 分组显示顺序（按用户要求：基本设置第1，AI设置第2，会员设置第3）
+            // 注意：site分组（主题设置）已移除，主题切换由上方卡片选择器完成
+            $groupOrder = [
+                'basic',        // 1. 基本设置
+                'ai',           // 2. AI设置
+                'member',       // 3. 会员设置
+                'upload',       // 4. 上传设置
+                'comment',      // 5. 评论设置
+                'ad',           // 6. 广告设置
+                'email',        // 7. 邮件设置
+                'notification', // 8. 通知设置
+                'oauth',        // 9. 第三方登录
+                'payment',      // 10. 支付设置
+                'points',       // 11. 积分设置
+                'security',     // 12. 安全设置
+                'seo',          // 13. SEO设置
+                'system',       // 14. 系统设置
+            ];
+
+            // 分组中文名称与图标映射
+            $groupNames = [
+                'basic'        => '基本设置',
+                'upload'       => '上传设置',
+                'ai'           => 'AI设置',
+                'member'       => '会员设置',
+                'comment'      => '评论设置',
+                'ad'           => '广告设置',
+                'email'        => '邮件设置',
+                'notification' => '通知设置',
+                'oauth'        => '第三方登录',
+                'payment'      => '支付设置',
+                'points'       => '积分设置',
+                'security'     => '安全设置',
+                'seo'          => 'SEO设置',
+                'site'         => '主题设置',
+                'system'       => '系统设置',
+            ];
+            $groupIcons = [
+                'basic'        => 'gear',
+                'upload'       => 'cloud-upload',
+                'ai'           => 'robot',
+                'member'       => 'people',
+                'comment'      => 'chat-left-text',
+                'ad'           => 'badge-ad',
+                'email'        => 'envelope',
+                'notification' => 'bell',
+                'oauth'        => 'box-arrow-in-right',
+                'payment'      => 'credit-card',
+                'points'       => 'coin',
+                'security'     => 'shield-lock',
+                'seo'          => 'search',
+                'site'         => 'palette2',
+                'system'       => 'sliders2',
+            ];
+
+            // 按指定顺序重新排列分组
+            $sortedGroups = [];
+            foreach ($groupOrder as $groupKey) {
+                if (isset($groups[$groupKey])) {
+                    $sortedGroups[$groupKey] = $groups[$groupKey];
+                }
+            }
+            // 将未定义顺序的分组追加到末尾
+            foreach ($groups as $key => $value) {
+                if (!isset($sortedGroups[$key])) {
+                    $sortedGroups[$key] = $value;
+                }
+            }
+
+            $this->assign(['groups' => $sortedGroups, 'groupNames' => $groupNames, 'groupIcons' => $groupIcons]);
             return $this->view('/system_config');
         }
 

@@ -72,6 +72,13 @@ class AiTemplateController extends AdminBaseController
         $data = $this->request->post();
         $id = (int) ($data['id'] ?? 0);
 
+        // V2.7 修复：前端提交 fields_json 需转为 fields_config
+        if (!empty($data['fields_json'])) {
+            $decoded = json_decode($data['fields_json'], true);
+            $data['fields_config'] = is_array($decoded) ? $decoded : [];
+            unset($data['fields_json']);
+        }
+
         if ($id > 0) {
             unset($data['id']);
             $result = AiTemplateService::update($id, $data);

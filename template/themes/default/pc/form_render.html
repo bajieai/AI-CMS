@@ -1,0 +1,172 @@
+{extend name="layout" /}
+
+{block name="title"}{$form.name ?? '在线表单'}{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-ui-checks me-2"></i>{$form.name ?? '在线表单'}</h5>
+                </div>
+                <div class="card-body p-4">
+                    {notempty name="form.description"}
+                    <p class="text-muted mb-4">{$form.description}</p>
+                    {/notempty}
+
+                    <form id="renderForm" method="post" action="/form/submit">
+                        <input type="hidden" name="form_id" value="{$form.id}">
+                        <input type="hidden" name="form_code" value="{$form.code}">
+
+                        {volist name="fields_config" id="field"}
+                        <div class="mb-3" data-required="{$field.required ? 1 : 0}">
+                            <label class="form-label">
+                                {$field.label ?? $field.name ?? ''}
+                                {if condition="$field.required ?? false"}<span class="text-danger">*</span>{/if}
+                            </label>
+
+                            {switch field.type}
+                                {case value="text"}
+                                <input type="text" name="{$field.name}" class="form-control"
+                                    placeholder="{$field.placeholder ?? ''}"
+                                    {if condition="$field.required ?? false"}required{/if}
+                                    value="{$field.default ?? ''}">
+                                {/case}
+
+                                {case value="textarea"}
+                                <textarea name="{$field.name}" class="form-control" rows="4"
+                                    placeholder="{$field.placeholder ?? ''}"
+                                    {if condition="$field.required ?? false"}required{/if}>{$field.default ?? ''}</textarea>
+                                {/case}
+
+                                {case value="number"}
+                                <input type="number" name="{$field.name}" class="form-control"
+                                    placeholder="{$field.placeholder ?? ''}"
+                                    {if condition="$field.required ?? false"}required{/if}
+                                    value="{$field.default ?? ''}">
+                                {/case}
+
+                                {case value="email"}
+                                <input type="email" name="{$field.name}" class="form-control"
+                                    placeholder="{$field.placeholder ?? ''}"
+                                    {if condition="$field.required ?? false"}required{/if}
+                                    value="{$field.default ?? ''}">
+                                {/case}
+
+                                {case value="tel"}
+                                <input type="tel" name="{$field.name}" class="form-control"
+                                    placeholder="{$field.placeholder ?? ''}"
+                                    {if condition="$field.required ?? false"}required{/if}
+                                    value="{$field.default ?? ''}">
+                                {/case}
+
+                                {case value="date"}
+                                <input type="date" name="{$field.name}" class="form-control"
+                                    {if condition="$field.required ?? false"}required{/if}
+                                    value="{$field.default ?? ''}">
+                                {/case}
+
+                                {case value="select"}
+                                <select name="{$field.name}" class="form-select"
+                                    {if condition="$field.required ?? false"}required{/if}>
+                                    <option value="">请选择</option>
+                                    {volist name="field.options ?? []" id="opt"}
+                                    <option value="{$opt.value}" {if condition="($field.default ?? '') == $opt.value"}selected{/if}>{$opt.label}</option>
+                                    {/volist}
+                                </select>
+                                {/case}
+
+                                {case value="radio"}
+                                <div>
+                                    {volist name="field.options ?? []" id="opt"}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="{$field.name}"
+                                            id="{$field.name}_{$opt.value}" value="{$opt.value}"
+                                            {if condition="($field.default ?? '') == $opt.value"}checked{/if}>
+                                        <label class="form-check-label" for="{$field.name}_{$opt.value}">{$opt.label}</label>
+                                    </div>
+                                    {/volist}
+                                </div>
+                                {/case}
+
+                                {case value="checkbox"}
+                                <div>
+                                    {volist name="field.options ?? []" id="opt"}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" name="{$field.name}[]"
+                                            id="{$field.name}_{$opt.value}" value="{$opt.value}">
+                                        <label class="form-check-label" for="{$field.name}_{$opt.value}">{$opt.label}</label>
+                                    </div>
+                                    {/volist}
+                                </div>
+                                {/case}
+
+                                {case value="file"}
+                                <input type="file" name="{$field.name}" class="form-control"
+                                    {if condition="$field.required ?? false"}required{/if}>
+                                {/case}
+
+                                {default /}
+                                <input type="text" name="{$field.name}" class="form-control"
+                                    placeholder="{$field.placeholder ?? ''}"
+                                    {if condition="$field.required ?? false"}required{/if}>
+                            {/switch}
+
+                            {notempty name="field.help"}
+                            <div class="form-text">{$field.help}</div>
+                            {/notempty}
+                        </div>
+                        {/volist}
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send me-2"></i>{$form.submit_text ?? '提交'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#renderForm').on('submit', function(e) {
+    e.preventDefault();
+    var $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>提交中...');
+
+    var formData = new FormData(this);
+    $.ajax({
+        url: $(this).attr('action'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-send me-2"></i>{$form.submit_text ?? '提交'}');
+            if (res.code === 0) {
+                alert('{$form.success_msg ?? '提交成功'}');
+                // 根据成功动作处理
+                var action = '{$form.success_action ?? 'message'}';
+                if (action === 'redirect') {
+                    window.location.href = '{$form.success_redirect ?? '/'}';
+                } else if (action === 'reset') {
+                    $('#renderForm')[0].reset();
+                }
+            } else {
+                alert(res.msg || '提交失败，请稍后重试');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-send me-2"></i>{$form.submit_text ?? '提交'}');
+            alert('网络错误，请稍后重试');
+        }
+    });
+});
+</script>
+{/block}

@@ -53,12 +53,13 @@ class SigninService
 
         Db::startTrans();
         try {
-            // 签到记录
-            SigninLog::create([
+            // 签到记录（绕过模型严格字段检查）
+            Db::name('signin_log')->insert([
                 'member_id'        => $memberId,
                 'signin_date'      => $today,
                 'points'           => $totalPoints,
                 'consecutive_days' => $consecutiveDays,
+                'create_time'      => time(),
             ]);
 
             // 更新会员积分和签到信息
@@ -69,12 +70,14 @@ class SigninService
                 'last_signin_date' => $today,
             ]);
 
-            // 积分日志
-            PointsLog::create([
-                'member_id' => $memberId,
-                'points'    => $totalPoints,
-                'type'      => 'signin',
-                'note'      => "签到第{$consecutiveDays}天",
+            // 积分日志（绕过模型严格字段检查）
+            Db::name('points_log')->insert([
+                'member_id'  => $memberId,
+                'points'     => $totalPoints,
+                'type'       => 'signin',
+                'source_id'  => 0,
+                'note'       => "签到第{$consecutiveDays}天",
+                'create_time'=> time(),
             ]);
 
             // 检查等级升降

@@ -31,14 +31,17 @@
                     <li class="nav-item"><a class="nav-link" href="/download">资料下载</a></li>
                     <li class="nav-item"><a class="nav-link" href="/job">人才招聘</a></li>
                 </ul>
-                <form class="d-flex ms-3" action="/search" method="get">
+                <form class="d-flex ms-3 position-relative" action="/search" method="get" id="headerSearchForm">
                     <div class="input-group input-group-sm">
-                        <input type="text" name="keyword" class="form-control" placeholder="搜索...">
+                        <input type="text" name="keyword" class="form-control" placeholder="搜索..." id="headerSearchInput" autocomplete="off">
                         <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
                     </div>
+                    <!-- V2.7 搜索联想下拉 -->
+                    <div class="dropdown-menu w-100" id="searchSuggestDropdown" style="top:100%;left:0;"></div>
                 </form>
                 <!-- V2.3 会员入口 -->
                 <ul class="navbar-nav ms-2">
+                    <li class="nav-item"><a class="nav-link" href="/points"><i class="bi bi-gift me-1"></i>积分商城</a></li>
                     {if condition="$is_member_login"}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -46,6 +49,8 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="/member/profile">个人中心</a></li>
+                            <li><a class="dropdown-item" href="/member/points">我的积分</a></li>
+                            <li><a class="dropdown-item" href="/member/exchange">兑换记录</a></li>
                             <li><a class="dropdown-item" href="/member/logout">退出登录</a></li>
                         </ul>
                     </li>
@@ -111,6 +116,45 @@
         }
     });
     </script>
+    <!-- V2.7 PV打点 -->
+    <script>window.CMS_MEMBER_ID = {$member_info.id|default=0};</script>
+    <script src="/assets/js/visit-tracker.js?v=2.7" async></script>
     {block name="js"}{/block}
+
+    <!-- V2.7 搜索联想 -->
+    <script>
+    (function() {
+        var $input = $('#headerSearchInput');
+        var $dropdown = $('#searchSuggestDropdown');
+        var timer = null;
+        $input.on('input', function() {
+            clearTimeout(timer);
+            var kw = $input.val().trim();
+            if (kw.length < 1) { $dropdown.removeClass('show'); return; }
+            timer = setTimeout(function() {
+                $.get('/api/v1/search/suggest', { keyword: kw, limit: 8 }, function(res) {
+                    if (res.code === 0 && res.data && res.data.length > 0) {
+                        var html = '';
+                        res.data.forEach(function(item) {
+                            if (item.type === 'content' && item.id > 0) {
+                                html += '<a class="dropdown-item" href="/page/' + item.id + '"><i class="bi bi-file-text text-muted me-2"></i>' + escapeHtml(item.title) + '</a>';
+                            } else {
+                                html += '<a class="dropdown-item" href="/search?keyword=' + encodeURIComponent(item.title) + '"><i class="bi bi-search text-muted me-2"></i>' + escapeHtml(item.title) + '</a>';
+                            }
+                        });
+                        $dropdown.html(html).addClass('show');
+                    } else {
+                        $dropdown.removeClass('show');
+                    }
+                });
+            }, 200);
+        });
+        $input.on('blur', function() { setTimeout(function() { $dropdown.removeClass('show'); }, 200); });
+        $input.on('focus', function() { if ($dropdown.children().length) $dropdown.addClass('show'); });
+        function escapeHtml(t) {
+            var d = document.createElement('div'); d.textContent = t; return d.innerHTML;
+        }
+    })();
+    </script>
 </body>
 </html>

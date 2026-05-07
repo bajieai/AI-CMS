@@ -128,6 +128,103 @@ class ContentController extends AdminBaseController
     }
 
     /**
+     * V2.7: 获取章节列表（AJAX）
+     */
+    public function getChapters(int $parentId)
+    {
+        $list = Content::where('parent_id', $parentId)
+            ->where('is_chapter', 1)
+            ->where('status', '>=', 0)
+            ->order('chapter_sort', 'asc')
+            ->select();
+        return $this->success('获取成功', ['list' => $list]);
+    }
+
+    /**
+     * V2.7: 保存章节（新增/编辑）
+     */
+    public function saveChapter()
+    {
+        $data = $this->request->post();
+        $id = (int) ($data['id'] ?? 0);
+        $parentId = (int) ($data['parent_id'] ?? 0);
+
+        if ($parentId <= 0) {
+            return $this->error('parent_id参数错误');
+        }
+
+        $saveData = [
+            'parent_id'       => $parentId,
+            'is_chapter'      => 1,
+            'title'           => $data['title'] ?? '',
+            'chapter_title'   => $data['chapter_title'] ?? '',
+            'content'         => $data['content'] ?? '',
+            'chapter_sort'    => (int) ($data['chapter_sort'] ?? 0),
+            'is_free_chapter' => (int) ($data['is_free_chapter'] ?? 0),
+            'chapter_price'   => (float) ($data['chapter_price'] ?? 0),
+            'status'          => (int) ($data['status'] ?? 2),
+            'type'            => 6, // 单页类型
+        ];
+
+        if (empty($saveData['title'])) {
+            return $this->error('章节标题不能为空');
+        }
+
+        try {
+            if ($id > 0) {
+                $chapter = Content::find($id);
+                if (!$chapter || $chapter->parent_id != $parentId) {
+                    return $this->error('章节不存在');
+                }
+                $chapter->save($saveData);
+            } else {
+                $chapter = Content::create($saveData);
+            }
+            return $this->success('保存成功', ['id' => $chapter->id]);
+        } catch (\Exception $e) {
+            return $this->error('保存失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.7: 删除章节
+     */
+    public function deleteChapter(int $id)
+    {
+        $chapter = Content::find($id);
+        if (!$chapter || empty($chapter->is_chapter)) {
+            return $this->error('章节不存在');
+        }
+        $chapter->status = -1;
+        $chapter->save();
+        return $this->success('删除成功');
+    }
+
+    /**
+     * V2.7: 批量更新章节排序
+     */
+    public function sortChapters()
+    {
+        $orders = $this->request->post('orders', []);
+        if (empty($orders) || !is_array($orders)) {
+            return $this->error('参数错误');
+        }
+
+        try {
+            foreach ($orders as $item) {
+                $id = (int) ($item['id'] ?? 0);
+                $sort = (int) ($item['sort'] ?? 0);
+                if ($id > 0) {
+                    Content::where('id', $id)->update(['chapter_sort' => $sort]);
+                }
+            }
+            return $this->success('排序更新成功');
+        } catch (\Exception $e) {
+            return $this->error('排序更新失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * 获取分类列表（按类型过滤，AJAX）
      */
     public function getCates()

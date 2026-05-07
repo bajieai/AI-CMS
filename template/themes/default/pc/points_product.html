@@ -1,0 +1,149 @@
+{extend name="layout" /}
+
+{block name="title"}积分商城{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- 积分概览 -->
+            <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
+                <div class="card-body p-4" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);border-radius:12px;color:#fff">
+                    <div class="row text-center align-items-center">
+                        <div class="col-md-4">
+                            <div style="font-size:2.2rem;font-weight:700">{$member_info.points|default=0}</div>
+                            <div style="font-size:.85rem;opacity:.9">我的积分</div>
+                        </div>
+                        <div class="col-md-4" style="border-left:1px solid rgba(255,255,255,.3);border-right:1px solid rgba(255,255,255,.3)">
+                            <div style="font-size:2.2rem;font-weight:700">{$member_info.total_points|default=0}</div>
+                            <div style="font-size:.85rem;opacity:.9">累计获得</div>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/signin" class="btn btn-light" style="border-radius:50px"><i class="bi bi-calendar-check me-1"></i>每日签到</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="mb-3"><i class="bi bi-gift me-2 text-danger"></i>积分兑换</h5>
+            <div class="row g-3">
+                {volist name="list" id="item"}
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm" style="border:none;border-radius:12px;overflow:hidden">
+                        {if condition="$item.image"}
+                        <img src="{$item.image}" class="card-img-top" style="height:160px;object-fit:cover" alt="{$item.title}">
+                        {else/}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:160px">
+                            <i class="bi bi-gift text-muted" style="font-size:3rem"></i>
+                        </div>
+                        {/if}
+                        <div class="card-body">
+                            <h6 class="card-title">{$item.title}</h6>
+                            <p class="card-text text-muted small" style="min-height:40px">{$item.description|default=''|msubstr=0,40}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-danger" style="font-size:.9rem"><i class="bi bi-coin me-1"></i>{$item.points} 积分</span>
+                                {if condition="$item.stock > 0 || $item.stock == -1"}
+                                <button type="button" class="btn btn-sm btn-primary" onclick="openExchangeModal({$item.id}, '{$item.title}', {$item.points}, '{$item.type}')">立即兑换</button>
+                                {else/}
+                                <button type="button" class="btn btn-sm btn-secondary" disabled>已兑完</button>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/volist}
+                {empty name="list"}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mt-2">暂无积分商品</p>
+                </div>
+                {/empty}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 兑换弹窗 -->
+<div class="modal fade" id="exchangeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">兑换确认</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>商品：<strong id="modalProductName"></strong></p>
+                <p>所需积分：<strong id="modalProductPoints" class="text-danger"></strong></p>
+                <div id="deliveryFields">
+                    <div class="mb-2">
+                        <label class="form-label">收货人姓名</label>
+                        <input type="text" id="exName" class="form-control" placeholder="请输入姓名">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">手机号</label>
+                        <input type="tel" id="exPhone" class="form-control" placeholder="请输入手机号">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">收货地址</label>
+                        <textarea id="exAddress" class="form-control" rows="2" placeholder="请输入收货地址（虚拟商品可不填）"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmExchange">确认兑换</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var currentProductId = 0;
+function openExchangeModal(id, title, points, type) {
+    currentProductId = id;
+    $('#modalProductName').text(title);
+    $('#modalProductPoints').text(points);
+    if (type === 'virtual') {
+        $('#deliveryFields').hide();
+    } else {
+        $('#deliveryFields').show();
+    }
+    var modal = new bootstrap.Modal(document.getElementById('exchangeModal'));
+    modal.show();
+}
+
+$('#btnConfirmExchange').on('click', function() {
+    var $btn = $(this);
+    $btn.prop('disabled', true).text('兑换中...');
+    $.ajax({
+        url: '/points-product/exchange',
+        type: 'POST',
+        data: {
+            product_id: currentProductId,
+            name: $('#exName').val(),
+            phone: $('#exPhone').val(),
+            address: $('#exAddress').val()
+        },
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).text('确认兑换');
+            if (res.code === 0) {
+                alert('兑换成功！');
+                location.reload();
+            } else if (res.code === 401) {
+                alert('请先登录');
+                location.href = '/member/login';
+            } else {
+                alert(res.msg || '兑换失败');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).text('确认兑换');
+            alert('网络错误');
+        }
+    });
+});
+</script>
+{/block}

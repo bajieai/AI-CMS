@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.6
+# 八界AI-CMS V2.7
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.6.0-blue)
+![Version](https://img.shields.io/badge/version-2.7.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.6 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.6 在V2.5基础上完成CSS静态资源分离、PJAX核心架构修复、数据导入修复等重要改进，进一步提升了系统性能与可维护性。
+八界AI-CMS V2.7 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.7 在V2.6基础上完成API安全加固、付费内容体系完善、积分生态闭环和运营体验升级，标志着产品进入商业变现+安全合规的成熟阶段。
 
 ### 核心特性
 
@@ -60,13 +60,30 @@
 - **Nginx配置更新** - deploy/nginx + docker/nginx 添加 `/skin/` 路径支持
 - **调试文件清理** - 移除调试临时文件，.gitignore增强忽略规则
 
+### V2.7 新增特性
+
+- **API安全加固** - ApiMemberAuth中间件注入会员ID，PaidContentGuard二级防护，杜绝付费内容绕过
+- **VIP权益规范化** - is_vip字段统一标记，登录时实时过期检查，VipExpireCommand定时降级
+- **付费章节体系** - UserChapter模型+章节管理UI+阅读页+试读截断，支持按章节单独售卖
+- **积分签到生态** - 每日签到+连续签到奖励+消费返积分，前台签到页/积分记录页
+- **积分商城前端** - PointsProductController+兑换弹窗+兑换记录+发货管理
+- **头条号OAuth** - OAuth 2.0授权+Token自动刷新，发布时无感续期
+- **PV统计重构** - JS异步打点+VisitService+蜘蛛过滤，不影响页面渲染
+- **验证码增强** - GD库生成(干扰线/噪点/扭曲)，支持切换腾讯验证码
+- **邮件队列持久化** - i8j_email_queue表+DB/Cache双写+EmailQueueRecoverCommand
+- **表单可视化编辑器** - 12种字段类型+4预设模板+拖拽排序+实时预览
+- **搜索增强** - Meilisearch集成+联想补全+热门搜索
+- **CDN集成** - StorageService::getCdnUrl() + 后台配置开关
+- **双栏菜单(corporate)** - L1图标55px+L2面板200px，hover/click交互
+- **AI模板参考示例** - generate_mode=example，参考示例Prompt构建
+
 ## 技术栈
 
 | 层级 | 技术 | 说明 |
 |------|------|------|
 | 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
 | 语言 | PHP 8.2+ | 严格类型声明 |
-| 数据库 | MySQL 8.0 | 40+张数据表，前缀 i8j_ |
+| 数据库 | MySQL 8.0 | 46+张数据表，前缀 i8j_ |
 | 缓存 | Redis | CacheService标签体系(17标签) |
 | Session | PHP原生文件Session | 24小时过期 |
 | AI接口 | DeepSeek/Qwen/GLM/ERNIE/OpenAI | 工厂模式+熔断降级CircuitBreakerTrait |
@@ -176,7 +193,8 @@ AI-CMS/
 ├── database/                   # 数据库SQL
 │   ├── install.sql             #   建表SQL+初始数据
 │   ├── v2.5.sql                #   V2.5增量更新
-│   └── v2.6.sql                #   V2.6增量更新
+│   ├── v2.6.sql                #   V2.6增量更新
+│   └── v2.7.sql                #   V2.7增量更新
 ├── miniprogram/                # 微信小程序
 │   ├── pages/                  #   页面(index/detail/search/login)
 │   └── utils/                  #   工具(API封装)
@@ -220,6 +238,10 @@ AI-CMS/
 | i8j_email_template | 邮件模板 | id,name,subject,body,status |
 | i8j_paid_order | 付费订单 | id,member_id,content_id,amount,status |
 | i8j_plugin | 插件表 | id,name,title,version,status,config |
+| i8j_email_queue | 邮件队列 | id,to_email,subject,status,retry_count,created_at |
+| i8j_user_chapter | 用户已购章节 | id,user_id,content_id,chapter_id,price |
+| i8j_signin_log | 签到记录 | id,member_id,signin_date,points,consecutive_days |
+| i8j_points_log | 积分变动日志 | id,member_id,points,type,source_id,note |
 
 ## 角色权限
 
@@ -241,6 +263,9 @@ AI-CMS/
 | GET | /api/content/detail | 内容详情 |
 | POST | /api/member/login | 会员登录 |
 | POST | /api/member/register | 会员注册 |
+| POST | /api/v1/visit | PV打点统计 |
+| GET | /api/v1/search/suggest | 搜索联想补全 |
+| GET | /api/v1/search/hot | 热门搜索 |
 
 ## I8j模板标签
 
@@ -290,6 +315,7 @@ AI-CMS/
 | V2.4.0 | 2025-Q2 | 多语言支持/模板市场/插件系统/搜索增强 |
 | V2.5.1 | 2025-Q3 | 微信支付V3/AI批量生成/多AI模型/采集/多平台发布/邮件/Redis缓存 |
 | V2.6.0 | 2025-Q4 | CSS静态资源分离/PJAX核心修复/数据导入修复 |
+| V2.7.0 | 2026-Q1 | API安全加固/付费章节/积分签到/表单编辑器/搜索增强/CDN集成 |
 
 ## 默认账户
 

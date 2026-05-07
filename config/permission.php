@@ -5,7 +5,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -49,7 +49,7 @@ return [
         'ai_log.*' => ['admin/ai_log/index', 'admin/ai_log/detail', 'admin/ai_log/cleanup'],
         'paid_order.*' => ['admin/paid_order/index', 'admin/paid_order/detail', 'admin/paid_order/refund'],
         'dashboard.*' => ['admin/dashboard/index', 'admin/dashboard/overview', 'admin/dashboard/trend', 'admin/dashboard/topContent', 'admin/dashboard/categoryStats'],
-        'form.*' => ['admin/form/index', 'admin/form/add', 'admin/form/edit', 'admin/form/delete', 'admin/form/dataIndex', 'admin/form/dataDetail', 'admin/form/dataExport', 'admin/form/dataDelete'],
+        'form.*' => ['admin/form/index', 'admin/form/add', 'admin/form/edit', 'admin/form/editor', 'admin/form/save', 'admin/form/delete', 'admin/form/dataIndex', 'admin/form/dataDetail', 'admin/form/dataExport', 'admin/form/dataDelete', 'admin/form/toggleEnabled'],
         'seo_keyword.*' => ['admin/seo_keyword/index', 'admin/seo_keyword/add', 'admin/seo_keyword/edit', 'admin/seo_keyword/delete', 'admin/seo_keyword/import', 'admin/seo_keyword/group', 'admin/seo_keyword/saveGroup', 'admin/seo_keyword/deleteGroup'],
         'import.*' => ['admin/import/index', 'admin/import/import'],
         'email_subscriber.*' => ['admin/email_subscriber/index', 'admin/email_subscriber/delete', 'admin/email_subscriber/export'],
@@ -80,7 +80,7 @@ return [
         'workflow.*' => ['admin/workflow/index', 'admin/workflow/add', 'admin/workflow/edit', 'admin/workflow/delete', 'admin/workflow/records'],
         'oauth.*' => ['admin/oauth_config/index', 'admin/oauth_config/save'],
         'points_product.*' => ['admin/points_product/index', 'admin/points_product/add', 'admin/points_product/edit', 'admin/points_product/delete'],
-        'points_exchange.*' => ['admin/points_exchange/index', 'admin/points_exchange/audit'],
+        'points_exchange.*' => ['admin/points_exchange/index', 'admin/points_exchange/audit', 'admin/points_exchange/detail'],
         'ai_template.*' => ['admin/ai_template/index', 'admin/ai_template/edit', 'admin/ai_template/delete', 'admin/ai_template/use', 'admin/ai_template/progress'],
     ],
 ];

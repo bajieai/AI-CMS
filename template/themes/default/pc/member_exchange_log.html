@@ -1,0 +1,79 @@
+{extend name="layout" /}
+
+{block name="title"}兑换记录{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- 积分概览 -->
+            <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
+                <div class="card-body p-4" style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%);border-radius:12px;color:#fff">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div style="font-size:2rem;font-weight:700">{$member.points|default=0}</div>
+                            <div style="font-size:.78rem;opacity:.85">当前积分</div>
+                        </div>
+                        <div class="col-6" style="border-left:1px solid rgba(255,255,255,.3)">
+                            <div style="font-size:2rem;font-weight:700">{$member.total_points|default=0}</div>
+                            <div style="font-size:.78rem;opacity:.85">累计获得</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 兑换记录 -->
+            <div class="card shadow-sm" style="border:none;border-radius:12px">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid #e2e8f0;font-weight:600">
+                    <span><i class="bi bi-gift me-1"></i>积分兑换记录</span>
+                    <a href="/points" class="btn btn-sm btn-primary" style="border-radius:50px"><i class="bi bi-shop me-1"></i>去兑换</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    {volist name="list" id="vo"}
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                        <div>
+                            <div style="font-weight:500;font-size:.9rem">
+                                <i class="bi bi-gift text-warning me-1"></i>{$vo.product_name|default='积分商品'}
+                            </div>
+                            <div class="text-muted" style="font-size:.78rem">
+                                兑换时间: {$vo.create_time|date='Y-m-d H:i'}
+                                {if condition="$vo.status == 0"}
+                                <span class="badge bg-warning ms-1">待审核</span>
+                                {elseif condition="$vo.status == 1"}
+                                <span class="badge bg-info ms-1">已审核</span>
+                                {elseif condition="$vo.status == 2"}
+                                <span class="badge bg-success ms-1">已发货</span>
+                                {else /}
+                                <span class="badge bg-secondary ms-1">已取消</span>
+                                {/if}
+                            </div>
+                            {if condition="$vo.delivery_info && $vo.status == 2"}
+                            <div class="text-muted mt-1" style="font-size:.75rem">
+                                {if condition="$vo.delivery_info.delivery_type == 'virtual'"}
+                                <i class="bi bi-envelope me-1"></i>虚拟发放: {$vo.delivery_info.delivery_info}
+                                {else /}
+                                <i class="bi bi-truck me-1"></i>快递: {$vo.delivery_info.delivery_info}
+                                {/if}
+                            </div>
+                            {/if}
+                        </div>
+                        <div class="text-end">
+                            <div style="font-weight:700;color:#f5576c">-{$vo.points}</div>
+                            <div class="text-muted" style="font-size:.72rem">{$vo.quantity|default=1}件</div>
+                        </div>
+                    </div>
+                    {/volist}
+                    {empty name="list"}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>暂无兑换记录
+                        <div class="mt-2"><a href="/points" class="btn btn-sm btn-outline-primary">去积分商城看看</a></div>
+                    </div>
+                    {/empty}
+                </div>
+            </div>
+
+            {$list|raw}
+        </div>
+    </div>
+</div>
+{/block}

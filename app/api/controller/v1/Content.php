@@ -3,13 +3,16 @@ declare(strict_types=1);
 
 namespace app\api\controller\v1;
 
+use app\api\middleware\ApiMemberAuth;
+use app\api\middleware\PaidContentGuard;
 use app\common\model\Content as ContentModel;
 use app\common\service\PaidService;
 use app\common\traits\ApiScopeCheck;
 use think\Request;
 
 /**
- * 内容API - V2.6增强：付费内容权限校验
+ * 内容API - V2.7安全加固：付费内容权限校验
+ * member_id来源：apiMemberId(Cookie/X-Member-Token) > GET过渡兼容(已弃用)
  */
 class Content
 {
@@ -38,11 +41,11 @@ class Content
 
         $list = $query->order('create_time', 'desc')->page($page, $limit)->select();
 
-        // 列表中移除付费内容的完整正文，防止绕过
-        $memberId = (int) $request->get('member_id', 0);
+        // V2.7: 从认证信息获取会员ID，GET参数member_id已弃用
+        $memberId = ApiMemberAuth::getApiMemberId($request);
         foreach ($list as &$item) {
             if (!empty($item['is_paid'])) {
-                $hasAccess = $memberId > 0 && PaidService::canAccess($memberId, (int) $item['id']);
+                $hasAccess = $memberId !== null && $memberId > 0 && PaidService::canAccess($memberId, (int) $item['id']);
                 if (!$hasAccess) {
                     $item['content'] = '';
                     $item['is_locked'] = true;
@@ -57,7 +60,7 @@ class Content
 
     /**
      * 内容详情
-     * V2.6: 传入member_id校验付费权限，未授权返回安全预览版本
+     * V2.7: 从认证信息获取member_id校验付费权限，未授权返回安全预览版本
      */
     public function read(Request $request, int $id)
     {
@@ -68,8 +71,15 @@ class Content
             return json(['code' => 404, 'msg' => '内容不存在'], 404);
         }
 
-        $memberId = (int) $request->get('member_id', 0);
-        $safe = PaidService::getSafeContent($content, $memberId > 0 ? $memberId : null);
+        // V2.7: 二级防护校验（可选，主要逻辑仍在下方）
+        $memberId = ApiMemberAuth::getApiMemberId($request);
+        $guardResponse = PaidContentGuard::checkAccess($id, $memberId);
+        if ($guardResponse && empty($content->is_free_chapter)) {
+            // 如果完全无权限且不是免费试读，返回402；但保留预览模式让前端优雅展示
+            // 这里继续执行以返回预览内容，真正的拦截由前端根据is_unlocked判断
+        }
+
+        $safe = PaidService::getSafeContent($content, $memberId);
 
         $data = $content->toArray();
         $data['content'] = $safe['full'] ?? $safe['preview'];

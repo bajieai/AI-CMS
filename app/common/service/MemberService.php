@@ -92,12 +92,26 @@ class MemberService
         Cache::tag(CacheService::TAG_MEMBER)->set($cacheKey . '_id', $member->id, 7200);
         Cookie::set('member_token', $token, ['expire' => 7200, 'httponly' => true]);
 
+        // V2.7: 登录时VIP过期实时检查
+        $vipExpiredNotice = '';
+        if ($member->vip_expire_time > 0 && $member->vip_expire_time < time() && $member->level_id > 0) {
+            $currentLevel = \app\common\model\MemberLevel::find($member->level_id);
+            if ($currentLevel && $currentLevel->is_vip) {
+                $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->value('id') ?: 0;
+                $member->level_id = $defaultLevel;
+                $member->save();
+                $vipExpiredNotice = '您的VIP已过期，会员等级已重置为默认等级，请及时续费。';
+                \think\facade\Log::info("VIP过期实时检查: 会员{$member->id}等级已重置");
+            }
+        }
+
         // 更新登录信息
         $member->last_login_time = time();
         $member->last_login_ip = request()->ip();
         $member->save();
 
-        return ['success' => true, 'msg' => '登录成功', 'data' => $memberData];
+        $msg = $vipExpiredNotice ?: '登录成功';
+        return ['success' => true, 'msg' => $msg, 'data' => $memberData];
     }
 
     /**

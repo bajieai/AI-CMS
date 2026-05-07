@@ -12,5 +12,9 @@ return [
         'email:worker'        => 'app\common\command\EmailWorker',
         'collect:run'         => 'app\common\command\CollectRun',
         'order:close-timeout' => 'app\common\command\OrderCloseTimeout',
+        // V2.7 新增CLI命令
+        'vip:expire'          => 'app\common\command\VipExpireCommand',
+        'points:archive'      => 'app\common\command\PointsArchiveCommand',
+        'email:recover'       => 'app\common\command\EmailQueueRecoverCommand',
     ],
 ];

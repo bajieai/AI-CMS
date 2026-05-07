@@ -19,6 +19,9 @@ class Member extends Model
     protected $type = [
         'status' => 'integer',
         'level_id' => 'integer',
+        'points' => 'integer',
+        'total_points' => 'integer',
+        'signin_count' => 'integer',
         'vip_expire_time' => 'integer',
         'last_login_time' => 'integer',
     ];

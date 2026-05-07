@@ -60,6 +60,7 @@ class MemberLevelController extends AdminBaseController
             'icon'                    => $this->request->post('icon', ''),
             'sort'                    => (int) $this->request->post('sort', 0),
             'is_default'              => (int) $this->request->post('is_default', 0),
+            'is_vip'                  => (int) $this->request->post('is_vip', 0),
         ];
 
         if (empty($data['name'])) {

@@ -30,6 +30,41 @@
                         <label class="form-label">摘要</label>
                         <textarea name="excerpt" class="form-control" rows="3" placeholder="留空则自动截取内容前200字">{$info.excerpt ?? ''}</textarea>
                     </div>
+
+                    <!-- V2.7 章节管理组件 (仅单页类型且编辑模式显示) -->
+                    {if condition="$info && $info.type == 6"}
+                    <div class="card border-success mb-3" id="chapterManager">
+                        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-list-ol me-1"></i>章节管理</span>
+                            <button type="button" class="btn btn-sm btn-light" onclick="addChapterRow()">
+                                <i class="bi bi-plus-lg me-1"></i>新增章节
+                            </button>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="mb-2">
+                                <label class="form-label small">试读截断字数</label>
+                                <input type="number" name="preview_length" class="form-control form-control-sm" value="{$info.preview_length ?? 500}" min="0" placeholder="付费章节试读字数，0=不截断">
+                                <div class="form-text">付费章节前台展示字数，超出后显示购买按钮</div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0" id="chapterTable">
+                                    <thead><tr>
+                                        <th style="width:40px" class="text-center">#</th>
+                                        <th>章节标题</th>
+                                        <th style="width:80px">价格</th>
+                                        <th style="width:70px">免费</th>
+                                        <th style="width:80px">排序</th>
+                                        <th style="width:90px">操作</th>
+                                    </tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="text-center py-3 text-muted" id="chapterEmpty" style="display:none;">
+                                <i class="bi bi-inbox fs-3 d-block mb-1"></i>暂无章节，点击上方按钮添加
+                            </div>
+                        </div>
+                    </div>
+                    {/if}
                 </div>
                 <!-- 右侧属性 -->
                 <div class="col-lg-4">
@@ -501,5 +536,136 @@ function startAutoSave() {
 // 编辑器就绪后启动自动保存
 tinymce.activeEditor && startAutoSave();
 setTimeout(startAutoSave, 2000);
+
+// ================= V2.7 章节管理组件 =================
+var chapterList = [];
+var parentContentId = 0;
+var contentIdMatch = window.location.pathname.match(/\/edit\/(\d+)/);
+if (contentIdMatch) {
+    parentContentId = parseInt(contentIdMatch[1]);
+}
+
+function loadChapters() {
+    if (!parentContentId) return;
+    $.get('/admin/content/getChapters/' + parentContentId, function(res) {
+        if (res.code === 0) {
+            chapterList = res.data.list || [];
+            renderChapterTable();
+        }
+    });
+}
+
+function renderChapterTable() {
+    var $tbody = $('#chapterTable tbody');
+    $tbody.empty();
+    if (chapterList.length === 0) {
+        $('#chapterEmpty').show();
+        return;
+    }
+    $('#chapterEmpty').hide();
+    chapterList.forEach(function(ch, idx) {
+        var html = '<tr data-id="' + (ch.id || 0) + '" data-sort="' + (ch.chapter_sort || idx) + '">';
+        html += '<td class="text-center text-muted">' + (idx + 1) + '</td>';
+        html += '<td><input type="text" class="form-control form-control-sm chapter-title" value="' + escapeHtml(ch.chapter_title || ch.title || '') + '" placeholder="章节标题"></td>';
+        html += '<td><input type="number" class="form-control form-control-sm chapter-price" value="' + (ch.chapter_price || 0) + '" min="0" step="0.01"></td>';
+        html += '<td class="text-center"><input type="checkbox" class="form-check-input chapter-free" ' + (ch.is_free_chapter ? 'checked' : '') + '></td>';
+        html += '<td><input type="number" class="form-control form-control-sm chapter-sort" value="' + (ch.chapter_sort || idx) + '" min="0"></td>';
+        html += '<td>';
+        html += '<button type="button" class="btn btn-sm btn-success me-1" onclick="saveChapterRow(this)" title="保存"><i class="bi bi-check-lg"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-danger" onclick="deleteChapterRow(this)" title="删除"><i class="bi bi-trash"></i></button>';
+        html += '</td>';
+        html += '</tr>';
+        $tbody.append(html);
+    });
+}
+
+function addChapterRow() {
+    chapterList.push({
+        id: 0,
+        title: '',
+        chapter_title: '',
+        chapter_price: 0,
+        is_free_chapter: 0,
+        chapter_sort: chapterList.length,
+        status: 2
+    });
+    renderChapterTable();
+    // 滚动到新行
+    var $rows = $('#chapterTable tbody tr');
+    if ($rows.length) {
+        $rows.last()[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        $rows.last().find('.chapter-title').focus();
+    }
+}
+
+function saveChapterRow(btn) {
+    var $tr = $(btn).closest('tr');
+    var id = parseInt($tr.attr('data-id')) || 0;
+    var data = {
+        id: id,
+        parent_id: parentContentId,
+        title: $tr.find('.chapter-title').val().trim(),
+        chapter_title: $tr.find('.chapter-title').val().trim(),
+        chapter_price: parseFloat($tr.find('.chapter-price').val()) || 0,
+        is_free_chapter: $tr.find('.chapter-free').is(':checked') ? 1 : 0,
+        chapter_sort: parseInt($tr.find('.chapter-sort').val()) || 0,
+        content: '',
+        status: 2
+    };
+    if (!data.title) { showToast('章节标题不能为空', 'warning'); return; }
+    $.ajax({
+        url: '/admin/content/saveChapter',
+        type: 'POST',
+        data: data,
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0) {
+                showToast('保存成功', 'success');
+                if (id === 0 && res.data.id) {
+                    $tr.attr('data-id', res.data.id);
+                }
+                loadChapters(); // 刷新以同步排序
+            } else {
+                showToast(res.msg || '保存失败', 'danger');
+            }
+        },
+        error: function() { showToast('网络错误', 'danger'); }
+    });
+}
+
+function deleteChapterRow(btn) {
+    var $tr = $(btn).closest('tr');
+    var id = parseInt($tr.attr('data-id')) || 0;
+    if (!id) {
+        $tr.remove();
+        return;
+    }
+    if (!confirm('确定删除该章节？')) return;
+    $.ajax({
+        url: '/admin/content/deleteChapter/' + id,
+        type: 'POST',
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0) {
+                showToast('删除成功', 'success');
+                loadChapters();
+            } else {
+                showToast(res.msg || '删除失败', 'danger');
+            }
+        },
+        error: function() { showToast('网络错误', 'danger'); }
+    });
+}
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 初始化加载章节
+if ($('#chapterManager').length && parentContentId) {
+    loadChapters();
+}
 </script>
 {/block}

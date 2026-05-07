@@ -39,19 +39,26 @@
                     <label class="form-label">排序</label>
                     <input type="number" class="form-control" name="sort" value="{$info.sort|default=0}">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_vip" value="1" id="swVip" {if condition="($info.is_vip ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swVip">VIP等级 <i class="bi bi-gem text-warning"></i></label>
+                        <div class="form-text">VIP有效期内免费阅读付费内容</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" name="allow_download" value="1" id="swDownload" {if condition="($info.allow_download ?? 0)==1"}checked{/if}>
                         <label class="form-check-label" for="swDownload">允许下载附件</label>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" name="allow_comment_no_review" value="1" id="swComment" {if condition="($info.allow_comment_no_review ?? 0)==1"}checked{/if}>
                         <label class="form-check-label" for="swComment">评论免审核</label>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" name="is_default" value="1" id="swDefault" {if condition="($info.is_default ?? 0)==1"}checked{/if}>
                         <label class="form-check-label" for="swDefault">设为默认等级</label>
@@ -141,7 +148,7 @@ $(function(){
         $('#levelForm').serializeArray().forEach(function(item){
             if(item.name === 'id' || item.name === 'min_points' || item.name === 'discount' || item.name === 'sort'){
                 data[item.name] = parseInt(item.value);
-            }else if(item.name === 'allow_download' || item.name === 'allow_comment_no_review' || item.name === 'is_default'){
+            }else if(item.name === 'allow_download' || item.name === 'allow_comment_no_review' || item.name === 'is_default' || item.name === 'is_vip'){
                 data[item.name] = $('#levelForm [name='+item.name+']').is(':checked') ? 1 : 0;
             }else{
                 data[item.name] = item.value;

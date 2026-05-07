@@ -17,7 +17,7 @@ class MessageController extends FrontBaseController
     public function index()
     {
         if (!$this->isMemberLogin) {
-            return $this->redirect('/member/login?redirect=' . urlencode(request()->url()));
+            return redirect('/member/login?redirect=' . urlencode(request()->url()));
         }
 
         $page = (int) $this->request->get('page', 1);
@@ -36,7 +36,7 @@ class MessageController extends FrontBaseController
     public function chat(int $id)
     {
         if (!$this->isMemberLogin) {
-            return $this->redirect('/member/login?redirect=' . urlencode(request()->url()));
+            return redirect('/member/login?redirect=' . urlencode(request()->url()));
         }
 
         $page = (int) $this->request->get('page', 1);
@@ -76,7 +76,7 @@ class MessageController extends FrontBaseController
     public function system()
     {
         if (!$this->isMemberLogin) {
-            return $this->redirect('/member/login?redirect=' . urlencode(request()->url()));
+            return redirect('/member/login?redirect=' . urlencode(request()->url()));
         }
 
         $page = (int) $this->request->get('page', 1);

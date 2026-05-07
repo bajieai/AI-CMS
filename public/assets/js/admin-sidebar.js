@@ -50,8 +50,33 @@
         // 4. 绑定事件
         bindEvents();
 
+        // 5. corporate 主题初始化 Bootstrap Tooltip（延迟到 Bootstrap 可用）
+        if (document.body.classList.contains('theme-corporate')) {
+            initCorporateTooltips();
+        }
+
         return true;
     };
+
+    /**
+     * corporate 主题：为 L1 图标初始化 Bootstrap Tooltip
+     */
+    function initCorporateTooltips() {
+        var maxWait = 100;
+        var waited = 0;
+        function tryInit() {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip && waited < maxWait) {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('.l1-item[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (el) {
+                    return new bootstrap.Tooltip(el, { placement: 'right', boundary: 'window' });
+                });
+            } else if (waited < maxWait) {
+                waited++;
+                setTimeout(tryInit, 100);
+            }
+        }
+        tryInit();
+    }
 
     /**
      * 根据当前URL初始化第二列显示状态
@@ -92,9 +117,11 @@
      */
     function renderL1Menu() {
         var html = '';
+        var isCorp = document.body.classList.contains('theme-corporate');
+        var tooltipAttr = isCorp ? ' data-bs-toggle="tooltip" data-bs-placement="right"' : '';
 
         // 仪表盘
-        html += '<a class="l1-item l1-dashboard" data-id="dashboard" href="/admin">';
+        html += '<a class="l1-item l1-dashboard" data-id="dashboard" href="/admin"' + tooltipAttr + ' title="仪表盘">';
         html += '<i class="bi bi-speedometer2"></i><span class="l1-text">仪表盘</span>';
         html += '</a>';
 
@@ -102,12 +129,13 @@
             var g = menuData[i];
             var hasChildren = !!(g.children && g.children.length);
             var icon = g.icon || 'bi bi-circle';
+            var titleAttr = tooltipAttr + ' title="' + escapeHtml(g.name) + '"';
 
             if (!hasChildren && g.url) {
                 // 无子菜单但有url：用<a>标签，点击直接跳转
                 html += '<a class="l1-item l1-group" href="' + escapeHtml(g.url) + '" ';
                 html += 'data-id="' + g.id + '" ';
-                html += 'data-has-children="0">';
+                html += 'data-has-children="0"' + titleAttr + '>';
                 html += '<i class="' + icon + '"></i>';
                 html += '<span class="l1-text">' + escapeHtml(g.name) + '</span>';
                 html += '</a>';
@@ -115,7 +143,7 @@
                 // 有子菜单：用<div>，点击仅展开二级列
                 html += '<div class="l1-item l1-group" ';
                 html += 'data-id="' + g.id + '" ';
-                html += 'data-has-children="' + (hasChildren ? 1 : 0) + '">';
+                html += 'data-has-children="' + (hasChildren ? 1 : 0) + '"' + titleAttr + '>';
                 html += '<i class="' + icon + '"></i>';
                 html += '<span class="l1-text">' + escapeHtml(g.name) + '</span>';
                 if (hasChildren) {

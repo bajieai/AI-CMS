@@ -81,6 +81,29 @@ class MemberController extends FrontBaseController
     }
 
     /**
+     * V2.7: 我的积分
+     */
+    public function points()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $list = \app\common\model\PointsLog::where('member_id', $this->memberInfo['id'])
+            ->order('id', 'desc')
+            ->paginate(20);
+
+        // 连续签到天数（从会员信息获取）
+        $consecutiveDays = $this->memberInfo['signin_count'] ?? 0;
+
+        return $this->view('/member_points', [
+            'list' => $list,
+            'consecutive_days' => $consecutiveDays,
+            'member' => $this->memberInfo,
+        ]);
+    }
+
+    /**
      * 我的收藏
      */
     public function favorite()
@@ -150,6 +173,25 @@ class MemberController extends FrontBaseController
             ->update(['is_read' => 1]);
 
         return json(['success' => true, 'msg' => '已读']);
+    }
+
+    /**
+     * V2.7: 积分兑换记录
+     */
+    public function exchangeLog()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $list = \app\common\model\PointsExchange::where('member_id', $this->memberInfo['id'])
+            ->order('id', 'desc')
+            ->paginate(20);
+
+        return $this->view('/member_exchange_log', [
+            'list' => $list,
+            'member' => $this->memberInfo,
+        ]);
     }
 
     /**

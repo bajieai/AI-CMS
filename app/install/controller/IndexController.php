@@ -185,7 +185,7 @@ class IndexController
         $envContent .= "CACHE_DRIVER = file\n\n";
         $envContent .= "AI_DEEPSEEK_BASE_URL = https://api.deepseek.com\n";
         $envContent .= "AI_DEEPSEEK_API_KEY = \n";
-        $envContent .= "AI_DEEPSEEK_MODEL = deepseek-chat\n";
+        $envContent .= "AI_DEEPSEEK_MODEL = deepseek-chat  # DeepSeek V4-Flash / V4-Pro 通用端点 (默认用Flash)\n";
 
         file_put_contents(root_path() . '.env', $envContent);
     }

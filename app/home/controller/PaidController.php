@@ -42,7 +42,7 @@ class PaidController extends FrontBaseController
     public function purchased()
     {
         if (!$this->isMemberLogin) {
-            return $this->redirect(url('home/member/login'));
+            return redirect('/member/login');
         }
 
         $page = (int) $this->request->get('page', 1);
@@ -50,6 +50,6 @@ class PaidController extends FrontBaseController
 
         $this->assign('list', $list);
         $this->assign('member', $this->memberInfo);
-        return $this->view->fetch();
+        return $this->view('/paid_purchased');
     }
 }

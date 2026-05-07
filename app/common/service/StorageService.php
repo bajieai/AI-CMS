@@ -96,6 +96,37 @@ class StorageService
     }
 
     /**
+     * V2.7: 获取CDN加速URL（若启用CDN则替换域名）
+     */
+    public static function getCdnUrl(string $path): string
+    {
+        $url = self::getUrl($path);
+        $cdnEnabled = \think\facade\Config::get('cdn.enabled', false);
+        $cdnDomain = trim(\think\facade\Config::get('cdn.domain', ''));
+
+        if (!$cdnEnabled || empty($cdnDomain)) {
+            return $url;
+        }
+
+        // 替换URL中的域名部分为CDN域名
+        $parsed = parse_url($url);
+        if (!empty($parsed['host'])) {
+            $scheme = $parsed['scheme'] ?? 'https';
+            $cdnDomain = rtrim($cdnDomain, '/');
+            $newUrl = $scheme . '://' . $cdnDomain;
+            if (!empty($parsed['path'])) {
+                $newUrl .= $parsed['path'];
+            }
+            if (!empty($parsed['query'])) {
+                $newUrl .= '?' . $parsed['query'];
+            }
+            return $newUrl;
+        }
+
+        return $url;
+    }
+
+    /**
      * 检查文件是否存在
      */
     public static function exists(string $path): bool

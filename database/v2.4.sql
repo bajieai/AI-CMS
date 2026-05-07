@@ -213,8 +213,10 @@ INSERT INTO `{prefix}member_level` (`name`, `min_points`, `discount`, `allow_com
 ('至尊会员', 5000, 70, 1, 'badge-lv5', 5, 0, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
 
 -- AI模型初始化（DeepSeek，从.env读取api_key）
+-- 注意：DeepSeek官方API目前仅提供 deepseek-chat（V3/V4通用端点）和 deepseek-reasoner（R1）
+-- 如需配置多个版本，请使用不同的api_base或api_key区分，或移除uk_provider_model唯一键约束
 INSERT INTO `{prefix}ai_model` (`name`, `provider`, `model_id`, `api_base`, `api_key`, `capabilities`, `is_default`, `is_enabled`, `max_tokens`, `temperature`, `sort`, `create_time`, `update_time`) VALUES
-('DeepSeek V3', 'deepseek', 'deepseek-chat', 'https://api.deepseek.com/v1', '', 'write,seo,translate,summarize', 1, 1, 2000, 0.7, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+('DeepSeek V4-Flash', 'deepseek', 'deepseek-chat', 'https://api.deepseek.com/v1', '', 'write,seo,translate,summarize', 1, 1, 2000, 0.7, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
 
 -- 积分规则配置
 INSERT INTO `{prefix}config` (`name`, `value`, `group`, `remark`) VALUES

@@ -34,13 +34,23 @@ class FormController extends AdminBaseController
     }
 
     /**
-     * 编辑表单页面
+     * 编辑表单页面（传统JSON模式）
      */
     public function edit(int $id = 0)
     {
         $form = $id ? FormModel::find($id) : null;
         $this->assign('form', $form);
         return $this->view('/form_edit');
+    }
+
+    /**
+     * 可视化编辑器页面 - V2.7新增
+     */
+    public function editor(int $id = 0)
+    {
+        $form = $id ? FormModel::find($id) : null;
+        $this->assign('form', $form);
+        return $this->view('/form_editor');
     }
 
     /**
@@ -109,6 +119,47 @@ class FormController extends AdminBaseController
         $form->delete();
         FormDataModel::where('form_id', $id)->delete();
         return json(['code' => 0, 'msg' => '删除成功']);
+    }
+
+    /**
+     * 可视化编辑器保存 - V2.7新增
+     */
+    public function saveEditor()
+    {
+        if (!$this->request->isPost()) {
+            return json(['code' => 1, 'msg' => '请求方式错误']);
+        }
+
+        $id = (int) $this->request->post('id', 0);
+        $title = $this->request->post('title', '');
+        $fieldsConfig = $this->request->post('fields_config', '[]');
+
+        if (empty($title)) {
+            return json(['code' => 1, 'msg' => '表单名称不能为空']);
+        }
+
+        $data = [
+            'name'          => $title,
+            'code'          => 'form_' . time(),
+            'fields'        => [],
+            'fields_config' => $fieldsConfig,
+            'submit_text'   => '提交',
+            'success_msg'   => '提交成功',
+            'success_action'=> 'message',
+            'is_enabled'    => 1,
+            'sort'          => 0,
+        ];
+
+        if ($id > 0) {
+            $form = FormModel::find($id);
+            if (!$form) return json(['code' => 1, 'msg' => '表单不存在']);
+            $form->save($data);
+        } else {
+            $form = new FormModel();
+            $form->save($data);
+        }
+
+        return json(['code' => 0, 'msg' => '保存成功', 'data' => ['id' => $form->id]]);
     }
 
     /**

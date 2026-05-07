@@ -62,6 +62,7 @@ class MemberLevelService
             'points_rate'     => $level->points_rate,
             'daily_ai_quota'  => $level->daily_ai_quota,
             'min_points'      => $level->min_points,
+            'is_vip'          => $level->is_vip,
             'next_level'      => $nextLevel ? [
                 'name'       => $nextLevel->name,
                 'min_points' => $nextLevel->min_points,

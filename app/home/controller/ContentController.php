@@ -34,7 +34,7 @@ class ContentController extends FrontBaseController
         // V2.5：检查min_level_id内容等级限制
         if (!PaidService::checkLevelAccess($this->memberInfo['id'] ?? 0, $info)) {
             if (!$this->isMemberLogin) {
-                $this->redirect('/member/login?redirect=' . urlencode(request()->url()));
+                return redirect('/member/login?redirect=' . urlencode(request()->url()));
             }
             $this->assign('info', $info);
             return $this->view('/level_deny');

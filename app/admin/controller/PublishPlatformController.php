@@ -76,4 +76,30 @@ class PublishPlatformController extends AdminBaseController
             return json(['code' => 1, 'msg' => $e->getMessage()]);
         }
     }
+
+    /**
+     * V2.7: 头条号OAuth授权页
+     */
+    public function toutiaoOauth()
+    {
+        $id = (int) $this->request->get('id', 0);
+        $platform = PublishPlatform::find($id);
+        if (!$platform || $platform->name !== 'toutiao') {
+            return $this->error('平台配置不存在');
+        }
+
+        $config = $platform->config_json;
+        $clientKey = $config['client_key'] ?? '';
+        $redirectUri = (string) url('/oauth/toutiao/callback', [], true, true);
+        $state = $id . '|' . bin2hex(random_bytes(8));
+
+        $authUrl = \app\common\service\publish\ToutiaoPlatform::getAuthUrl($clientKey, $redirectUri, $state);
+
+        $this->assign([
+            'platform'   => $platform,
+            'auth_url'   => $authUrl,
+            'client_key' => $clientKey ? '已配置' : '未配置',
+        ]);
+        return $this->view('/toutiao_oauth');
+    }
 }

@@ -114,8 +114,17 @@ class FormService
     public static function submit(array $data): bool
     {
         $formCode = $data['form_code'] ?? '';
-        $form = FormModel::where('code', $formCode)->where('is_enabled', 1)->find();
-        if (!$form) throw new \Exception('表单不存在');
+        $formId = (int) ($data['form_id'] ?? 0);
+
+        if ($formId > 0) {
+            $form = FormModel::find($formId);
+        } elseif ($formCode) {
+            $form = FormModel::where('code', $formCode)->find();
+        } else {
+            throw new \Exception('表单参数错误');
+        }
+
+        if (!$form || !$form->is_enabled) throw new \Exception('表单不存在或已停用');
 
         // V2.5：验证码检查
         if (CaptchaService::isFormCaptchaRequired($formCode)) {

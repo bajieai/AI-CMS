@@ -25,6 +25,7 @@ class MemberLevel extends Model
         'allow_download' => 'integer',
         'allow_comment_no_review' => 'integer',
         'is_default'  => 'integer',
+        'is_vip'      => 'integer',
         'sort'        => 'integer',
     ];
 }

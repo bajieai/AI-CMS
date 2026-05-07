@@ -26,6 +26,9 @@
                             {if condition="$vo.is_default == 1"}
                             <span class="badge bg-success ms-1">默认</span>
                             {/if}
+                            {if condition="$vo.is_vip == 1"}
+                            <span class="badge bg-warning text-dark ms-1"><i class="bi bi-gem"></i> VIP</span>
+                            {/if}
                         </h6>
                         <small class="text-muted">最低 {$vo.min_points} 积分</small>
                     </div>
@@ -49,6 +52,10 @@
                     <div class="col-6">
                         <span class="text-muted">允许下载</span>
                         <div>{if condition="$vo.allow_download==1"}<span class="text-success">是</span>{else/}<span class="text-muted">否</span>{/if}</div>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted">VIP权益</span>
+                        <div>{if condition="$vo.is_vip==1"}<span class="text-warning"><i class="bi bi-gem"></i> 免费读</span>{else/}<span class="text-muted">无</span>{/if}</div>
                     </div>
                     <div class="col-6">
                         <span class="text-muted">排序</span>

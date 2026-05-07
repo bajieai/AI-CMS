@@ -18,6 +18,9 @@
                 <td>{if $vo.is_enabled==1}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td>
                 <td>
                     <a href="/admin/publish_platform/edit/{$vo.id}" class="btn btn-sm btn-outline-info">编辑</a>
+                    {if condition="$vo.name == 'toutiao'"}
+                    <button class="btn btn-sm btn-outline-success" onclick="authToutiao({$vo.id})">授权</button>
+                    {/if}
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteItem({$vo.id})">删除</button>
                 </td>
             </tr>
@@ -32,5 +35,8 @@
 {block name="js"}
 <script>
 function deleteItem(id) { if(!confirm('确定删除？')) return; $.post('/admin/publish_platform/delete', {id:id}, function(res) { alert(res.msg); location.reload(); }); }
+function authToutiao(id) {
+    window.open('/admin/toutiao/oauth?id=' + id, 'toutiao_oauth', 'width=800,height=600');
+}
 </script>
 {/block}
