@@ -198,9 +198,9 @@
                         <div class="card-header py-2"><i class="bi bi-robot me-1"></i>AI 辅助</div>
                         <div class="card-body py-2">
                             <div class="mb-2">
-                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿&#10;快捷键：Ctrl+Shift+C续写 / R改写 / E扩写 / U总结"></textarea>
+                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿&#10;快捷键：Ctrl+Shift+C续写 / X改写 / E扩写 / U总结"></textarea>
                             </div>
-                            <div class="d-grid gap-2">
+                            <div class="d-grid gap-2 mb-2">
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="aiGenerate('replace')" id="btnAi">
                                     <i class="bi bi-magic me-1"></i>AI 生成内容
                                 </button>
@@ -213,6 +213,13 @@
                                     </button>
                                 </div>
                             </div>
+                            <!-- V2.8 AI质量检测 -->
+                            <div class="border-top pt-2">
+                                <button type="button" class="btn btn-sm btn-outline-success w-100" onclick="aiQualityCheck()" id="btnQuality">
+                                    <i class="bi bi-check-circle me-1"></i>内容质量检测
+                                </button>
+                                <div class="form-text small">检测可读性/SEO/原创性/结构/吸引力</div>
+                            </div>
                             <div class="mt-2 small text-muted">
                                 <i class="bi bi-keyboard me-1"></i>编辑器内快捷键：
                                 <span class="badge bg-light text-dark border">Ctrl+Shift+C</span> 续写
@@ -221,6 +228,13 @@
                                 <span class="badge bg-light text-dark border">U</span> 总结
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- V2.8 质量提示条（编辑>500字时显示） -->
+                    <div class="alert alert-info alert-dismissible fade show d-none" id="qualityTip" role="alert">
+                        <i class="bi bi-lightbulb me-1"></i>
+                        <strong>提示：</strong>内容已超过500字，建议进行<a href="javascript:;" onclick="aiQualityCheck()" class="alert-link">质量检测</a>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -536,6 +550,138 @@ function startAutoSave() {
 // 编辑器就绪后启动自动保存
 tinymce.activeEditor && startAutoSave();
 setTimeout(startAutoSave, 2000);
+
+// ================= V2.8 AI质量检测 =================
+var qualityCheckTimer = null;
+var lastQualityCheckWordCount = 0;
+
+// 监听编辑器内容变化，>500字显示提示条
+setTimeout(function() {
+    var editor = tinymce.activeEditor;
+    if (editor) {
+        editor.on('keyup', function() {
+            clearTimeout(qualityCheckTimer);
+            qualityCheckTimer = setTimeout(function() {
+                var content = editor.getContent({format: 'text'});
+                var wordCount = content.length;
+                if (wordCount > 500 && wordCount !== lastQualityCheckWordCount) {
+                    $('#qualityTip').removeClass('d-none');
+                    lastQualityCheckWordCount = wordCount;
+                } else if (wordCount <= 500) {
+                    $('#qualityTip').addClass('d-none');
+                }
+            }, 1000); // 防抖1秒
+        });
+    }
+}, 2500);
+
+// AI质量检测
+function aiQualityCheck() {
+    var editor = tinymce.activeEditor;
+    if (!editor) {
+        showToast('编辑器未就绪', 'warning');
+        return;
+    }
+    var content = editor.getContent({format: 'text'});
+    if (!content.trim()) {
+        showToast('请先输入内容', 'warning');
+        return;
+    }
+    
+    var $btn = $('#btnQuality');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>检测中...');
+    
+    var csrfToken = $('input[name="__token__"]').val();
+    $.ajax({
+        url: '/api/ai/quality',
+        type: 'POST',
+        data: { content: content.substring(0, 3000) }, // 限制长度
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i>内容质量检测');
+            if (res.code === 0 && res.data) {
+                showQualityModal(res.data);
+            } else {
+                showToast(res.msg || '检测失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i>内容质量检测');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+// 显示质量检测结果弹窗
+function showQualityModal(data) {
+    var html = '<div class="modal fade" id="qualityModal" tabindex="-1">';
+    html += '<div class="modal-dialog modal-lg modal-dialog-centered">';
+    html += '<div class="modal-content">';
+    html += '<div class="modal-header">';
+    html += '<h5 class="modal-title"><i class="bi bi-check-circle me-1"></i>内容质量检测结果</h5>';
+    html += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
+    html += '</div>';
+    html += '<div class="modal-body">';
+    
+    // 总分
+    var score = data.overall_score || 0;
+    var scoreClass = score >= 80 ? 'text-success' : (score >= 60 ? 'text-warning' : 'text-danger');
+    html += '<div class="text-center mb-4">';
+    html += '<h1 class="' + scoreClass + '">' + score + '分</h1>';
+    html += '<p class="text-muted">综合质量评分（满分100）</p>';
+    html += '</div>';
+    
+    // 维度评分
+    html += '<div class="row g-3 mb-4">';
+    var dimensions = data.dimensions || {};
+    var dimNames = { readability: '可读性', seo: 'SEO优化', originality: '原创性', structure: '结构完整性', engagement: '吸引力' };
+    for (var key in dimNames) {
+        if (dimensions.hasOwnProperty(key)) {
+            var val = dimensions[key] || 0;
+            var barClass = val >= 80 ? 'bg-success' : (val >= 60 ? 'bg-warning' : 'bg-danger');
+            html += '<div class="col-sm-6 col-md-4">';
+            html += '<div class="border rounded p-2">';
+            html += '<div class="d-flex justify-content-between mb-1">';
+            html += '<small>' + dimNames[key] + '</small>';
+            html += '<small class="' + scoreClass + '">' + val + '分</small>';
+            html += '</div>';
+            html += '<div class="progress" style="height:6px;">';
+            html += '<div class="progress-bar ' + barClass + '" style="width:' + val + '%"></div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+        }
+    }
+    html += '</div>';
+    
+    // 建议
+    if (data.suggestions && data.suggestions.length > 0) {
+        html += '<div class="alert alert-info">';
+        html += '<h6><i class="bi bi-lightbulb me-1"></i>改进建议</h6>';
+        html += '<ul class="mb-0 ps-3">';
+        data.suggestions.forEach(function(s) {
+            html += '<li>' + escapeHtml(s) + '</li>';
+        });
+        html += '</ul>';
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    html += '<div class="modal-footer">';
+    html += '<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">关闭</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    // 移除旧弹窗
+    $('#qualityModal').remove();
+    // 添加新弹窗
+    $('body').append(html);
+    // 显示弹窗
+    var modal = new bootstrap.Modal(document.getElementById('qualityModal'));
+    modal.show();
+}
 
 // ================= V2.7 章节管理组件 =================
 var chapterList = [];

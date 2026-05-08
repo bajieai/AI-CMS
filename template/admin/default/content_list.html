@@ -79,6 +79,7 @@
                     <th width="80">分类</th>
                     <th width="70">状态</th>
                     <th width="60">置顶</th>
+                    <th width="90">质量评分</th>
                     <th width="70">浏览</th>
                     <th width="150">创建时间</th>
                     <th width="140">操作</th>
@@ -113,6 +114,13 @@
                     </td>
                     <td>
                         {if condition="$vo.is_top == 1"}<i class="bi bi-arrow-up-circle-fill text-danger"></i>{/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.quality_score > 0"}
+                            <span class="badge {if condition='$vo.quality_score >= 80'}bg-success{elseif condition='$vo.quality_score >= 60'}bg-warning text-dark{else/}bg-danger{/if}">{$vo.quality_score}分</span>
+                        {else/}
+                            <span class="text-muted">-</span>
+                        {/if}
                     </td>
                     <td>{$vo.views}</td>
                     <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>

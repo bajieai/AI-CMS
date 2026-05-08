@@ -6,7 +6,8 @@
 ALTER TABLE `i8j_content`
   ADD COLUMN IF NOT EXISTS `chapter_price` decimal(10,2) DEFAULT 0.00 COMMENT '章节单购价格' AFTER `is_free_chapter`,
   ADD COLUMN IF NOT EXISTS `chapter_count` int UNSIGNED DEFAULT 0 COMMENT '总章节数(父记录)' AFTER `chapter_price`,
-  ADD COLUMN IF NOT EXISTS `chapter_title` varchar(255) DEFAULT '' COMMENT '章节标题' AFTER `chapter_sort`;
+  ADD COLUMN IF NOT EXISTS `chapter_title` varchar(255) DEFAULT '' COMMENT '章节标题' AFTER `chapter_sort`,
+  ADD COLUMN IF NOT EXISTS `quality_score` tinyint DEFAULT 0 COMMENT 'AI质量评分(0-100)' AFTER `chapter_title`;
 
 -- 2. VIP免费阅读范围配置
 INSERT INTO `i8j_config` (`name`, `value`, `group`, `type`, `remark`, `sort`) VALUES

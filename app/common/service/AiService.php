@@ -191,4 +191,104 @@ class AiService
             return !empty($this->config['api_key']);
         }
     }
+
+    /**
+     * AI内容质量检测 - V2.8新增
+     * 使用门面方法，不修改AiProviderInterface
+     * 
+     * @param string $content 待检测内容
+     * @param array $dimensions 检测维度 ['readability','seo','originality','structure','engagement']
+     * @return array ['overall_score'=>int, 'dimensions'=>[], 'suggestions'=>[], 'total_words'=>int]
+     */
+    public function evaluateContentQuality(string $content, array $dimensions = []): array
+    {
+        if (empty($content)) {
+            return ['overall_score' => 0, 'dimensions' => [], 'suggestions' => [], 'total_words' => 0];
+        }
+
+        $prompt = $this->buildQualityPrompt($content, $dimensions);
+        
+        try {
+            $response = $this->callWithFallback('write', $prompt, [
+                'max_tokens' => 1024,
+                'temperature' => 0.3,
+                'system_prompt' => '你是专业的内容质量评估专家。请严格按JSON格式返回评估结果，不要包含任何其他文字。'
+            ]);
+            
+            // 尝试解析JSON响应
+            $result = json_decode($response, true);
+            
+            if (is_array($result)) {
+                return [
+                    'overall_score' => intval($result['overall_score'] ?? 0),
+                    'dimensions' => $result['dimensions'] ?? [],
+                    'suggestions' => $result['suggestions'] ?? [],
+                    'total_words' => intval($result['total_words'] ?? mb_strlen($content)),
+                ];
+            }
+            
+            // JSON解析失败，返回默认结果
+            return [
+                'overall_score' => 0,
+                'dimensions' => [],
+                'suggestions' => ['AI返回格式异常，请稍后重试'],
+                'total_words' => mb_strlen($content),
+            ];
+            
+        } catch (\Exception $e) {
+            // AI调用失败，返回降级结果
+            return [
+                'overall_score' => 0,
+                'dimensions' => [],
+                'suggestions' => ['AI质量检测服务暂不可用：' . $e->getMessage()],
+                'total_words' => mb_strlen($content),
+            ];
+        }
+    }
+
+    /**
+     * 构建质量检测Prompt
+     */
+    protected function buildQualityPrompt(string $content, array $dimensions = []): string
+    {
+        $defaultDimensions = ['readability', 'seo', 'originality', 'structure', 'engagement'];
+        $checkDimensions = empty($dimensions) ? $defaultDimensions : $dimensions;
+        
+        $dimensionNames = [
+            'readability' => '可读性',
+            'seo' => 'SEO优化',
+            'originality' => '原创性',
+            'structure' => '结构完整性',
+            'engagement' => '吸引力',
+        ];
+        
+        $dimensionList = [];
+        foreach ($checkDimensions as $dim) {
+            $dimensionList[] = ($dimensionNames[$dim] ?? $dim) . '(0-100分)';
+        }
+        
+        $prompt = "请对以下内容进行质量评估，返回JSON格式：\n\n";
+        $prompt .= "评估维度：\n";
+        foreach ($dimensionList as $i => $dim) {
+            $prompt .= ($i + 1) . ". {$dim}\n";
+        }
+        
+        $prompt .= "\n返回格式示例：\n";
+        $prompt .= "{\n";
+        $prompt .= '  "overall_score": 85,' . "\n";
+        $prompt .= '  "dimensions": {' . "\n";
+        $prompt .= '    "readability": 90,' . "\n";
+        $prompt .= '    "seo": 80,' . "\n";
+        $prompt .= '    "originality": 85,' . "\n";
+        $prompt .= '    "structure": 90,' . "\n";
+        $prompt .= '    "engagement": 80' . "\n";
+        $prompt .= '  },' . "\n";
+        $prompt .= '  "suggestions": ["建议1", "建议2"],' . "\n";
+        $prompt .= '  "total_words": 1500' . "\n";
+        $prompt .= "}\n\n";
+        
+        $prompt .= "待评估内容：\n" . mb_substr($content, 0, 3000) . (mb_strlen($content) > 3000 ? "\n...(内容已截断)" : "");
+        
+        return $prompt;
+    }
 }

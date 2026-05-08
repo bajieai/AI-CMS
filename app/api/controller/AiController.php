@@ -50,4 +50,36 @@ class AiController
             return json(['code' => 4, 'msg' => $e->getMessage(), 'data' => null]);
         }
     }
+
+    /**
+     * AI内容质量检测 - V2.8新增
+     * POST /api/ai/quality
+     */
+    public function quality()
+    {
+        if (empty(session('user_id'))) {
+            return json(['code' => 2, 'msg' => '请先登录', 'data' => null]);
+        }
+
+        if (!$this->aiService->isConfigured()) {
+            return json(['code' => 4, 'msg' => 'AI服务未配置', 'data' => null]);
+        }
+
+        $content = request()->post('content', '');
+        
+        if (empty($content)) {
+            return json(['code' => 1, 'msg' => '请输入内容', 'data' => null]);
+        }
+
+        try {
+            $result = $this->aiService->evaluateContentQuality($content);
+            return json([
+                'code' => 0,
+                'msg' => '检测成功',
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            return json(['code' => 4, 'msg' => $e->getMessage(), 'data' => null]);
+        }
+    }
 }
