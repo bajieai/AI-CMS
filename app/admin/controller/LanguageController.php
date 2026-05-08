@@ -38,7 +38,7 @@ class LanguageController extends AdminBaseController
                 'code'       => $this->request->post('code', ''),
                 'sort'       => (int) $this->request->post('sort', 0),
                 'is_default' => (int) $this->request->post('is_default', 0),
-                'status'     => (int) $this->request->post('status', 1),
+                'is_enabled' => (int) $this->request->post('is_enabled', 1),
             ];
 
             if (empty($data['name']) || empty($data['code'])) {
@@ -79,7 +79,7 @@ class LanguageController extends AdminBaseController
             'code'       => $this->request->post('code', ''),
             'sort'       => (int) $this->request->post('sort', 0),
             'is_default' => (int) $this->request->post('is_default', 0),
-            'status'     => (int) $this->request->post('status', 1),
+            'is_enabled' => (int) $this->request->post('is_enabled', 1),
         ];
 
         try {
@@ -128,7 +128,7 @@ class LanguageController extends AdminBaseController
         }
 
         $translations = LanguageService::getGroupTranslations($langCode, $group);
-        $languages = Language::where('status', 1)->select();
+        $languages = Language::where('is_enabled', 1)->select();
 
         $this->assign('translations', $translations);
         $this->assign('languages', $languages);

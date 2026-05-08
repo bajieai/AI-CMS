@@ -216,10 +216,27 @@ class RatingService
      */
     public static function likeRating(int $ratingId, int $memberId): array
     {
-        // 检查是否已点赞（可以用Redis或数据库记录，这里简化为直接+1）
         $rating = ContentRating::find($ratingId);
         if (!$rating) {
             return ['success' => false, 'msg' => '评价不存在'];
+        }
+
+        // V2.9: Redis防重复点赞
+        $redisKey = "rating_like:{$ratingId}:{$memberId}";
+        $redis = \think\facade\Cache::store('redis');
+        try {
+            if ($redis->has($redisKey)) {
+                return ['success' => false, 'msg' => '您已点赞过该评价'];
+            }
+            $redis->set($redisKey, 1, 86400 * 365); // 永久记录（可按需清理）
+        } catch (\Throwable $e) {
+            // Redis不可用则降级为请求级内存检查，防止同请求内重复点赞（如快速双击）
+            static $likedInRequest = [];
+            $reqKey = "{$ratingId}:{$memberId}";
+            if (isset($likedInRequest[$reqKey])) {
+                return ['success' => false, 'msg' => '您已点赞过该评价'];
+            }
+            $likedInRequest[$reqKey] = true;
         }
 
         $rating->like_count += 1;

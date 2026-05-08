@@ -8,6 +8,7 @@ use app\common\model\CustomVar;
 use app\common\model\Member as MemberModel;
 use app\common\model\Module;
 use app\common\service\CacheService;
+use app\common\service\LanguageService;
 use app\common\service\TemplateService;
 use think\App;
 use think\facade\Cache;
@@ -42,13 +43,21 @@ abstract class FrontBaseController extends \think\BaseController
         // getActiveTheme() 自身有 try/catch + Cache::remember + fallback default
         $activeTheme = TemplateService::getActiveTheme();
 
-        // T1: 整页缓存命中检查（缓存key包含主题名，确保不同主题缓存隔离）
+        // T0.5: 获取当前语言（缓存key需包含语言维度）
+        $currentLang = 'zh-CN';
+        try {
+            $currentLang = LanguageService::getCurrentLang();
+        } catch (\Throwable) {
+            // LanguageService 依赖可能未就绪，降级使用默认值
+        }
+
+        // T1: 整页缓存命中检查（缓存key包含主题名+语言，确保不同主题/语言缓存隔离）
         if ($this->enablePageCache
             && !$this->app->isDebug()
             && $this->request->isGet()
             && !Cookie::has('member_token')
         ) {
-            $cacheKey = 'page_html_' . $activeTheme . '_' . md5($this->request->url(true));
+            $cacheKey = 'page_html_' . $activeTheme . '_' . $currentLang . '_' . md5($this->request->url(true));
             $cached = Cache::get($cacheKey);
             if ($cached !== null) {
                 $this->pageCacheKey = null; // 命中后不再写入
@@ -109,11 +118,20 @@ abstract class FrontBaseController extends \think\BaseController
         }
 
         // 注入视图全局变量（含主题变量供模板引用资源路径）
+        // 获取启用语言列表（容错）
+        $enabledLanguages = [];
+        try {
+            $enabledLanguages = LanguageService::getEnabledLanguages();
+        } catch (\Throwable) {
+            // Language 表可能未创建
+        }
+
         $this->app->view->assign([
             'site_name'        => $configs['site_name'] ?? 'AI-CMS',
             'site_keywords'    => $configs['site_keywords'] ?? 'AI,CMS,内容管理',
             'site_description' => $configs['site_description'] ?? 'AI驱动的企业信息管理系统',
-            'is_member_login'  => $this->isMemberLogin,
+            'isMemberLogin'    => $this->isMemberLogin,
+            'is_member_login'  => $this->isMemberLogin, // 兼容layout.html等使用下划线命名
             'member_info'      => $this->memberInfo,
             'seo_title'        => '',
             'seo_keywords'     => '',
@@ -125,6 +143,11 @@ abstract class FrontBaseController extends \think\BaseController
             'theme_assets'     => '/template/themes/' . $activeTheme . '/',
             // V2.6 静态资源分离：skin目录指向public/skin/，按pc/mobile区分
             'skin'             => '/skin/themes/' . $activeTheme . '/' . TemplateService::getDeviceType() . '/',
+            // V2.9 多语言：注入语言变量供模板使用
+            'current_lang'     => $currentLang,
+            'enabled_languages'=> $enabledLanguages,
+            // V2.9 M11 模板可视化：注入主题CSS变量供layout.html消费
+            'theme_css_vars'   => $this->getThemeCssVars($activeTheme),
         ]);
     }
 
@@ -222,5 +245,40 @@ abstract class FrontBaseController extends \think\BaseController
             'msg' => $msg,
             'data' => $data,
         ]);
+    }
+
+    /**
+     * 获取主题CSS变量配置 - V2.9 M11模板可视化
+     * 从i8j_config表读取theme_vars_{theme}配置，与默认值合并
+     */
+    protected function getThemeCssVars(string $theme): array
+    {
+        $defaults = [
+            '--primary'          => '#3b82f6',
+            '--secondary'       => '#64748b',
+            '--accent'          => '#f59e0b',
+            '--bg'              => '#ffffff',
+            '--bg-secondary'    => '#f8fafc',
+            '--text'            => '#1e293b',
+            '--text-secondary'  => '#64748b',
+            '--border'          => '#e2e8f0',
+            '--radius'          => '8px',
+            '--shadow'          => '0 1px 3px rgba(0,0,0,.1)',
+        ];
+
+        try {
+            $configKey = 'theme_vars_' . $theme;
+            $saved = ConfigModel::where('name', $configKey)->value('value');
+            if ($saved) {
+                $decoded = json_decode($saved, true);
+                if (is_array($decoded)) {
+                    return array_merge($defaults, $decoded);
+                }
+            }
+        } catch (\Throwable) {
+            // 配置表不可用时使用默认值
+        }
+
+        return $defaults;
     }
 }

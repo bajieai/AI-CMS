@@ -5,7 +5,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -85,6 +85,7 @@ return [
         'points_product.*' => ['admin/points_product/index', 'admin/points_product/add', 'admin/points_product/edit', 'admin/points_product/delete'],
         'points_exchange.*' => ['admin/points_exchange/index', 'admin/points_exchange/audit', 'admin/points_exchange/detail'],
         'ai_template.*' => ['admin/ai_template/index', 'admin/ai_template/edit', 'admin/ai_template/delete', 'admin/ai_template/use', 'admin/ai_template/progress'],
+        'template_design.*' => ['admin/template_design/index', 'admin/template_design/save', 'admin/template_design/preview', 'admin/template_design/reset'],
         // V2.8 新增权限映射
         'traffic.*' => ['admin/traffic/index', 'admin/traffic/getSourceStats', 'admin/traffic/getDeviceStats', 'admin/traffic/getHourlyStats', 'admin/traffic/getPageRank'],
         'ai_stat.*' => ['admin/aiStat/index', 'admin/aiStat/getGenerateTrend', 'admin/aiStat/getProviderStats', 'admin/aiStat/getTaskTypeStats', 'admin/aiStat/getQualityDistribution'],

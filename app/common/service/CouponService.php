@@ -91,19 +91,27 @@ class CouponService
             return ['success' => false, 'msg' => '超过每人限领数量'];
         }
 
-        // 检查库存
-        if ($template->total_stock > 0 && $template->remain_stock < $quantity) {
-            return ['success' => false, 'msg' => '库存不足'];
-        }
-
         Db::startTrans();
         try {
+            // 原子扣减库存（高并发安全）
+            if ($template->total_stock > 0) {
+                $affected = Db::name('coupon_template')
+                    ->where('id', $templateId)
+                    ->where('remain_stock', '>=', $quantity)
+                    ->dec('remain_stock', $quantity)
+                    ->update();
+                if (!$affected) {
+                    Db::rollback();
+                    return ['success' => false, 'msg' => '库存不足'];
+                }
+            }
+
             $couponCodes = [];
             for ($i = 0; $i < $quantity; $i++) {
                 $code = self::generateCouponCode();
                 $expireAt = self::calculateExpireAt($template);
 
-                $coupon = UserCoupon::create([
+                UserCoupon::create([
                     'member_id'     => $memberId,
                     'template_id'   => $templateId,
                     'code'          => $code,
@@ -114,12 +122,6 @@ class CouponService
                     'expire_at'     => $expireAt,
                 ]);
                 $couponCodes[] = $code;
-            }
-
-            // 扣减库存
-            if ($template->total_stock > 0) {
-                $template->remain_stock -= $quantity;
-                $template->save();
             }
 
             Db::commit();

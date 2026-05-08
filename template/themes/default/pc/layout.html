@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{$current_lang|default='zh-CN'}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +10,8 @@
     <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
     <!-- V2.6 前台主题样式（从内联提取到外部CSS文件） -->
     <link href="{$skin}css/style.css?v=2.6" rel="stylesheet">
+    <!-- V2.9 M11 模板可视化：CSS自定义变量（后台模板设计器可覆盖） -->
+    <style>:root{--primary:{$theme_css_vars['--primary']|default='#3b82f6'};--secondary:{$theme_css_vars['--secondary']|default='#64748b'};--accent:{$theme_css_vars['--accent']|default='#f59e0b'};--bg:{$theme_css_vars['--bg']|default='#ffffff'};--bg-secondary:{$theme_css_vars['--bg-secondary']|default='#f8fafc'};--text:{$theme_css_vars['--text']|default='#1e293b'};--text-secondary:{$theme_css_vars['--text-secondary']|default='#64748b'};--border:{$theme_css_vars['--border']|default='#e2e8f0'};--radius:{$theme_css_vars['--radius']|default='8px'};--shadow:{$theme_css_vars['--shadow']|default='0 1px 3px rgba(0,0,0,.1)'}}</style>
     {block name="css"}{/block}
 </head>
 <body>
@@ -31,6 +33,20 @@
                     <li class="nav-item"><a class="nav-link" href="/download">资料下载</a></li>
                     <li class="nav-item"><a class="nav-link" href="/job">人才招聘</a></li>
                 </ul>
+                <!-- V2.9 语言切换器（动态） -->
+                {if condition="count($enabled_languages) > 1"}
+                <div class="dropdown ms-2" id="langSwitcher">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-globe"></i> <span id="currentLang">{$current_lang|default='zh-CN'}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" id="langList">
+                        {volist name="enabled_languages" id="lang"}
+                        <li><a class="dropdown-item{if $lang.code == $current_lang} active{/if}" href="#" data-lang="{$lang.code}">{$lang.name}</a></li>
+                        {/volist}
+                    </ul>
+                </div>
+                {/if}
+
                 <form class="d-flex ms-3 position-relative" action="/search" method="get" id="headerSearchForm">
                     <div class="input-group input-group-sm">
                         <input type="text" name="keyword" class="form-control" placeholder="搜索..." id="headerSearchInput" autocomplete="off">
@@ -158,5 +174,26 @@
     </script>
 <!-- V2.8 社交分享组件 -->
 <script src="/assets/js/social-share.js"></script>
+<!-- V2.9 语言切换器（动态） -->
+<script>
+(function() {
+    var currentLang = '{$current_lang|default="zh-CN"}';
+    var el = document.getElementById('currentLang');
+    if (el) el.textContent = currentLang;
+
+    document.querySelectorAll('#langList .dropdown-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            var lang = this.getAttribute('data-lang');
+            if (lang === currentLang) return;
+            fetch('/api/language/switch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lang: lang })
+            }).then(function() { location.reload(); });
+        });
+    });
+})();
+</script>
 </body>
 </html>

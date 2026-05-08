@@ -1,91 +1,84 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>评价设置 - 后台管理</title>
-    <link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/lib/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-    <link href="/static/css/admin.css" rel="stylesheet">
-</head>
-<body>
-{{include file="layout" /}}
+{extend name="layout" /}
 
-<main class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-gear"></i> 评价设置</h5>
-                </div>
-                <div class="card-body">
-                    <form action="/admin/rating/settings" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">启用评价功能</label>
-                            <select name="rating_enabled" class="form-select">
-                                <option value="1" {{if $config.rating_enabled==1}}selected{{/if}}>启用</option>
-                                <option value="0" {{if $config.rating_enabled==0}}selected{{/if}}>禁用</option>
-                            </select>
-                            <div class="form-text">关闭后前台将不显示评价功能</div>
-                        </div>
+{block name="title"}评价设置{/block}
 
-                        <div class="mb-3">
-                            <label class="form-label">付费内容需购买后才能评价</label>
-                            <select name="rating_require_purchase" class="form-select">
-                                <option value="1" {{if $config.rating_require_purchase==1}}selected{{/if}}>是</option>
-                                <option value="0" {{if $config.rating_require_purchase==0}}selected{{/if}}>否</option>
-                            </select>
-                            <div class="form-text">开启后，付费内容需购买后才能提交评价</div>
-                        </div>
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/dashboard/index">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/rating/index">评价管理</a></li>
+<li class="breadcrumb-item active">评价设置</li>
+{/block}
 
-                        <div class="mb-3">
-                            <label class="form-label">允许匿名评价</label>
-                            <select name="rating_anonymous_allowed" class="form-select">
-                                <option value="1" {{if $config.rating_anonymous_allowed==1}}selected{{/if}}>允许</option>
-                                <option value="0" {{if $config.rating_anonymous_allowed==0}}selected{{/if}}>不允许</option>
-                            </select>
-                            <div class="form-text">允许会员匿名提交评价</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">评价自动审核</label>
-                            <select name="rating_auto_approve" class="form-select">
-                                <option value="1" {{if $config.rating_auto_approve==1}}selected{{/if}}>自动通过</option>
-                                <option value="0" {{if $config.rating_auto_approve==0}}selected{{/if}}>人工审核</option>
-                            </select>
-                            <div class="form-text">自动通过：评价提交后立即显示；人工审核：需后台审核通过后才显示</div>
-                        </div>
-
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check"></i> 保存设置
-                            </button>
-                            <a href="/admin/rating/index" class="btn btn-outline-secondary">返回列表</a>
-                        </div>
-                    </form>
-                </div>
+{block name="content"}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> 评价设置</h5>
             </div>
-        </div>
+            <div class="card-body">
+                <form action="/admin/rating/settings" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">启用评价功能</label>
+                        <select name="rating_enabled" class="form-select">
+                            <option value="1" {if condition="$config.rating_enabled == 1"}selected{/if}>启用</option>
+                            <option value="0" {if condition="$config.rating_enabled == 0"}selected{/if}>禁用</option>
+                        </select>
+                        <div class="form-text">关闭后前台将不显示评价功能</div>
+                    </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">使用说明</h6>
-                </div>
-                <div class="card-body">
-                    <p class="small text-muted">
-                        1. 评价功能支持1-5星评分<br>
-                        2. 会员可以对已购买的内容进行评价<br>
-                        3. 支持上传图片/视频作为评价媒体<br>
-                        4. 评价需审核通过后才在前台显示<br>
-                        5. 匿名评价不会显示会员信息
-                    </p>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">付费内容需购买后才能评价</label>
+                        <select name="rating_require_purchase" class="form-select">
+                            <option value="1" {if condition="$config.rating_require_purchase == 1"}selected{/if}>是</option>
+                            <option value="0" {if condition="$config.rating_require_purchase == 0"}selected{/if}>否</option>
+                        </select>
+                        <div class="form-text">开启后，付费内容需购买后才能提交评价</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">允许匿名评价</label>
+                        <select name="rating_anonymous_allowed" class="form-select">
+                            <option value="1" {if condition="$config.rating_anonymous_allowed == 1"}selected{/if}>允许</option>
+                            <option value="0" {if condition="$config.rating_anonymous_allowed == 0"}selected{/if}>不允许</option>
+                        </select>
+                        <div class="form-text">允许会员匿名提交评价</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">评价自动审核</label>
+                        <select name="rating_auto_approve" class="form-select">
+                            <option value="1" {if condition="$config.rating_auto_approve == 1"}selected{/if}>自动通过</option>
+                            <option value="0" {if condition="$config.rating_auto_approve == 0"}selected{/if}>人工审核</option>
+                        </select>
+                        <div class="form-text">自动通过：评价提交后立即显示；人工审核：需后台审核通过后才显示</div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> 保存设置
+                        </button>
+                        <a href="/admin/rating/index" class="btn btn-outline-secondary">返回列表</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</main>
 
-<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">使用说明</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    1. 评价功能支持1-5星评分<br>
+                    2. 会员可以对已购买的内容进行评价<br>
+                    3. 支持上传图片/视频作为评价媒体<br>
+                    4. 评价需审核通过后才在前台显示<br>
+                    5. 匿名评价不会显示会员信息
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

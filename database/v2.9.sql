@@ -6,9 +6,10 @@ SET NAMES utf8mb4;
 -- ============================================================
 -- 1. i8j_ai_template 表新增字段映射和质量检测配置字段
 -- ============================================================
-ALTER TABLE `i8j_ai_template`
-  ADD COLUMN `field_mapping` text DEFAULT NULL COMMENT '字段映射规则JSON(含mappings/variables/image_config_override)' AFTER `image_config`,
-  ADD COLUMN `quality_config` text DEFAULT NULL COMMENT '质量检测配置JSON(min_score/max_retry/action_on_low_quality/check_items)' AFTER `field_mapping`;
+-- ALTER TABLE `i8j_ai_template`
+--   ADD COLUMN `field_mapping` text DEFAULT NULL COMMENT '字段映射规则JSON(含mappings/variables/image_config_override)' AFTER `image_config`;
+-- ALTER TABLE `i8j_ai_template`
+--   ADD COLUMN `quality_config` text DEFAULT NULL COMMENT '质量检测配置JSON(min_score/max_retry/action_on_low_quality/check_items)' AFTER `field_mapping`;
 
 -- ============================================================
 -- 2. i8j_visit_log 表补全 event_type 字段（如v2.8未执行）
@@ -129,11 +130,68 @@ ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 -- ============================================================
 INSERT INTO `i8j_module` (`code`, `name`, `description`, `icon`, `category`, `is_system`, `is_enabled`, `sort`, `menu_ids`) VALUES
 ('coupon', '优惠券系统', '满减/折扣/免邮券管理', 'bi-ticket-perforated', 'marketing', 0, 1, 60, '[]'),
-('content_rating', '评价评分', '内容评价与评分管理', 'bi-star', 'interaction', 0, 1, 61, '[]')
+('content_rating', '评价评分', '内容评价与评分管理', 'bi-star', 'interaction', 0, 1, 61, '[]'),
+('template_design', '模板设计器', '前台模板可视化配置与AI配色', 'bi-palette', 'extension', 0, 1, 62, '[]')
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`);
 
 -- ============================================================
--- 9. i8j_content 表补全 quality_score 字段（如v2.8未执行）
+-- 8.5. FLUX/DALL-E AI配图配置项
+-- ============================================================
+INSERT INTO `i8j_config` (`name`, `value`, `group`, `type`, `remark`, `sort`) VALUES
+('ai_image_default_provider', 'tongyi_wanxiang', 'ai', 'select', '默认AI配图Provider(tongyi_wanxiang/flux/dalle)', 21),
+('ai_image_fallback_provider', 'flux', 'ai', 'select', '备用AI配图Provider', 22),
+('ai_image_flux_enabled', '0', 'ai', 'switch', '是否启用FLUX配图', 23),
+('ai_image_flux_api_key', '', 'ai', 'text', 'FLUX API Key', 24),
+('ai_image_flux_model', 'flux-pro', 'ai', 'text', 'FLUX模型名称', 25),
+('ai_image_dalle_enabled', '0', 'ai', 'switch', '是否启用DALL-E配图', 26),
+('ai_image_dalle_api_key', '', 'ai', 'text', 'DALL-E API Key', 27),
+('ai_image_dalle_model', 'dall-e-3', 'ai', 'text', 'DALL-E模型名称', 28)
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `group` = VALUES(`group`), `type` = VALUES(`type`), `remark` = VALUES(`remark`);
+
+-- ============================================================
+-- 9. 前台主题配置表（V2.9 M11 模板可视化配置持久化）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `i8j_theme_config` (
+  `id` int UNSIGNED AUTO_INCREMENT,
+  `theme` varchar(50) NOT NULL DEFAULT 'default' COMMENT '主题标识',
+  `scope` enum('global','page','component') NOT NULL DEFAULT 'global' COMMENT '配置范围',
+  `scope_id` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '范围ID（页面ID或组件ID，global时为0）',
+  `config_key` varchar(100) NOT NULL COMMENT '配置键名',
+  `config_value` text DEFAULT NULL COMMENT '配置值（JSON或纯文本）',
+  `config_type` enum('color','text','number','image','select','boolean','json') NOT NULL DEFAULT 'text' COMMENT '值类型',
+  `label` varchar(100) DEFAULT '' COMMENT '显示标签',
+  `description` varchar(255) DEFAULT '' COMMENT '配置说明',
+  `sort` int NOT NULL DEFAULT 0 COMMENT '排序',
+  `create_time` int UNSIGNED DEFAULT 0,
+  `update_time` int UNSIGNED DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_theme_scope_key` (`theme`, `scope`, `scope_id`, `config_key`),
+  KEY `idx_theme_scope` (`theme`, `scope`, `scope_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='前台主题配置表';
+
+-- ============================================================
+-- 10. i8j_member 表补全 invite_code 字段（V2.9邀请功能需要）
+-- ============================================================
+SET @exists3 = (
+  SELECT COUNT(*)
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = 'i8j_member'
+    AND COLUMN_NAME = 'invite_code'
+);
+SET @sql3 = IF(@exists3 = 0,
+  'ALTER TABLE `i8j_member`
+    ADD COLUMN `invite_code` varchar(32) DEFAULT "" COMMENT "邀请码" AFTER `avatar`,
+    ADD COLUMN `inviter_id` int UNSIGNED DEFAULT 0 COMMENT "邀请人ID" AFTER `invite_code`,
+    ADD UNIQUE KEY `uk_invite_code` (`invite_code`)',
+  'SELECT "invite_code column already exists" AS info'
+);
+PREPARE stmt3 FROM @sql3;
+EXECUTE stmt3;
+DEALLOCATE PREPARE stmt3;
+
+-- ============================================================
+-- 11. i8j_content 表补全 quality_score 字段（如v2.8未执行）
 -- ============================================================
 SET @exists2 = (
   SELECT COUNT(*)
@@ -149,3 +207,13 @@ SET @sql2 = IF(@exists2 = 0,
 PREPARE stmt2 FROM @sql2;
 EXECUTE stmt2;
 DEALLOCATE PREPARE stmt2;
+
+-- ============================================================
+-- 12. V2.9 邀请奖励三阶段积分配置
+-- ============================================================
+INSERT INTO `i8j_config` (`name`, `value`, `group`, `type`, `remark`, `sort`) VALUES
+('invite_reward_register', '10', 'invite', 'number', '邀请注册阶段奖励积分', 1),
+('invite_reward_signin', '20', 'invite', 'number', '邀请签到阶段奖励积分', 2),
+('invite_reward_pay', '50', 'invite', 'number', '邀请付费阶段奖励积分', 3),
+('invite_enabled', '1', 'invite', 'switch', '是否启用邀请奖励系统', 4)
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `group` = VALUES(`group`), `type` = VALUES(`type`), `remark` = VALUES(`remark`);

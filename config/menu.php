@@ -81,6 +81,8 @@ return [
             ['id' => 73, 'name' => 'AI批量生成', 'url' => '/admin/ai_batch/index', 'permission' => 'ai_batch.*', 'active' => 'ai_batch', 'icon' => 'bi bi-magic'],
             // V2.6 AI内容模板
             ['id' => 74, 'name' => 'AI内容模板', 'url' => '/admin/ai_template/index', 'permission' => 'ai_template.*', 'active' => 'ai_template', 'icon' => 'bi bi-file-earmark-text'],
+            // V2.9 前台模板可视化设计
+            ['id' => 75, 'name' => '模板设计器', 'url' => '/admin/template_design/index', 'permission' => 'template_design.*', 'active' => 'template_design', 'icon' => 'bi bi-palette'],
         ],
     ],
     [

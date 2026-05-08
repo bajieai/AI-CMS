@@ -1,197 +1,172 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>评价管理 - 后台管理</title>
-    <link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/lib/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-    <link href="/static/css/admin.css" rel="stylesheet">
-    <style>
-        .rating-stars { color: #ffc107; }
-        .status-badge { font-size: 12px; padding: 2px 8px; }
-    </style>
-</head>
-<body>
-{{include file="layout" /}}
+{extend name="layout" /}
 
-<main class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-star"></i> 评价管理</h5>
-                    <div>
-                        <a href="/admin/rating/settings" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-gear"></i> 评价设置
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- 筛选 -->
-                    <form class="row g-3 mb-3" method="get" action="/admin/rating/index">
-                        <div class="col-md-3">
-                            <select name="status" class="form-select">
-                                <option value="-1">全部状态</option>
-                                <option value="0" {{if $status==0}}selected{{/if}}>待审核</option>
-                                <option value="1" {{if $status==1}}selected{{/if}}>已通过</option>
-                                <option value="2" {{if $status==2}}selected{{/if}}>已拒绝</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" name="keyword" class="form-control" placeholder="内容标题/会员昵称" value="{{$keyword ?? ''}}">
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i> 搜索
-                            </button>
-                            <a href="/admin/rating/index" class="btn btn-outline-secondary">重置</a>
-                        </div>
-                    </form>
+{block name="title"}评价管理{/block}
 
-                    <!-- 统计 -->
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <div class="card bg-warning text-white">
-                                <div class="card-body text-center">
-                                    <h3>{{$stats.pending ?? 0}}</h3>
-                                    <small>待审核</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-success text-white">
-                                <div class="card-body text-center">
-                                    <h3>{{$stats.approved ?? 0}}</h3>
-                                    <small>已通过</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-info text-white">
-                                <div class="card-body text-center">
-                                    <h3>{{$stats.total ?? 0}}</h3>
-                                    <small>总评价数</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body text-center">
-                                    <h3>{{$stats.avg_rating ?? 0}}</h3>
-                                    <small>平均评分</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/dashboard/index">首页</a></li>
+<li class="breadcrumb-item active">评价管理</li>
+{/block}
 
-                    <!-- 列表 -->
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>内容</th>
-                                    <th>会员</th>
-                                    <th>评分</th>
-                                    <th>标题</th>
-                                    <th>点赞</th>
-                                    <th>状态</th>
-                                    <th>时间</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{volist name="list" id="vo"}}
-                                <tr>
-                                    <td>{{$vo.id}}</td>
-                                    <td>
-                                        <a href="/home/content/view?id={{$vo.content_id}}" target="_blank">
-                                            {{$vo.content_title ?? '内容#'.$vo.content_id}}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        {{if $vo.is_anonymous}}
-                                        <span class="text-muted">匿名用户</span>
-                                        {{else /}}
-                                        <a href="/admin/member/edit?id={{$vo.member_id}}">
-                                            {{$vo.member_nickname ?? '会员#'.$vo.member_id}}
-                                        </a>
-                                        {{/if}}
-                                    </td>
-                                    <td>
-                                        <div class="rating-stars">
-                                            {{for i=1 to=$vo.rating}}
-                                            <i class="bi bi-star-fill"></i>
-                                            {{/for}}
-                                            {{for i=$vo.rating+1 to=5}}
-                                            <i class="bi bi-star"></i>
-                                            {{/for}}
-                                        </div>
-                                    </td>
-                                    <td>{{$vo.title ?: '-'}}</td>
-                                    <td><span class="badge bg-secondary">{{$vo.like_count ?? 0}}</span></td>
-                                    <td>
-                                        {{switch $vo.status}}
-                                        {{case 0}}
-                                        <span class="badge bg-warning status-badge">待审核</span>
-                                        {{break /}}
-                                        {{case 1}}
-                                        <span class="badge bg-success status-badge">已通过</span>
-                                        {{break /}}
-                                        {{case 2}}
-                                        <span class="badge bg-danger status-badge">已拒绝</span>
-                                        {{break /}}
-                                        {{/switch}}
-                                    </td>
-                                    <td>{{date('Y-m-d H:i', $vo.create_time)}}</td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            {{if $vo.status == 0}}
-                                            <a href="javascript:;" onclick="approveRating({{$vo.id}})" class="btn btn-success btn-sm" title="通过">
-                                                <i class="bi bi-check"></i>
-                                            </a>
-                                            <a href="javascript:;" onclick="rejectRating({{$vo.id}})" class="btn btn-warning btn-sm" title="拒绝">
-                                                <i class="bi bi-x"></i>
-                                            </a>
-                                            {{/if}}
-                                            <a href="/admin/rating/view?id={{$vo.id}}" class="btn btn-info btn-sm" title="查看">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a href="javascript:;" onclick="deleteRating({{$vo.id}})" class="btn btn-danger btn-sm" title="删除">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {{else /}}
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted py-4">暂无评价数据</td>
-                                </tr>
-                                {{/volist}}
-                            </tbody>
-                        </table>
-                    </div>
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/rating/index" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">状态</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="-1" {if condition="$status == -1"}selected{/if}>全部</option>
+                    <option value="0" {if condition="$status == 0"}selected{/if}>待审核</option>
+                    <option value="1" {if condition="$status == 1"}selected{/if}>已通过</option>
+                    <option value="2" {if condition="$status == 2"}selected{/if}>已拒绝</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <input type="text" name="keyword" class="form-control form-control-sm" placeholder="内容标题/会员昵称" value="{$keyword|default=''}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
+                <a href="/admin/rating/index" class="btn btn-outline-secondary btn-sm">重置</a>
+            </div>
+            <div class="col-auto ms-auto">
+                <a href="/admin/rating/settings" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-gear"></i> 评价设置
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 
-                    <!-- 分页 -->
-                    <div class="d-flex justify-content-center">
-                        {{$page /}}
-                    </div>
-                </div>
+<!-- 统计 -->
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3>{$stats.pending ?? 0}</h3>
+                <small>待审核</small>
             </div>
         </div>
     </div>
-</main>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>{$stats.approved ?? 0}</h3>
+                <small>已通过</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>{$stats.total ?? 0}</h3>
+                <small>总评价数</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{$stats.avg_rating ?? 0}</h3>
+                <small>平均评分</small>
+            </div>
+        </div>
+    </div>
+</div>
 
-<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-star me-1"></i>评价列表</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>内容</th>
+                    <th>会员</th>
+                    <th>评分</th>
+                    <th>标题</th>
+                    <th>点赞</th>
+                    <th>状态</th>
+                    <th>时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        <a href="/home/content/view?id={$vo.content_id}" target="_blank">
+                            {$vo.content_title ?? '内容#'.$vo.content_id}
+                        </a>
+                    </td>
+                    <td>
+                        {if condition="$vo.is_anonymous"}
+                        <span class="text-muted">匿名用户</span>
+                        {else /}
+                        <a href="/admin/member/edit?id={$vo.member_id}">
+                            {$vo.member_nickname ?? '会员#'.$vo.member_id}
+                        </a>
+                        {/if}
+                    </td>
+                    <td>
+                        <span class="text-warning">
+                            {php}
+                            for ($i = 1; $i <= $vo['rating']; $i++) {
+                                echo '<i class="bi bi-star-fill"></i>';
+                            }
+                            for ($i = $vo['rating'] + 1; $i <= 5; $i++) {
+                                echo '<i class="bi bi-star"></i>';
+                            }
+                            {/php}
+                        </span>
+                    </td>
+                    <td>{$vo.title ?: '-'}</td>
+                    <td><span class="badge bg-secondary">{$vo.like_count ?? 0}</span></td>
+                    <td>
+                        {if condition="$vo.status == 0"}
+                        <span class="badge bg-warning">待审核</span>
+                        {elseif condition="$vo.status == 1"}
+                        <span class="badge bg-success">已通过</span>
+                        {elseif condition="$vo.status == 2"}
+                        <span class="badge bg-danger">已拒绝</span>
+                        {/if}
+                    </td>
+                    <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            {if condition="$vo.status == 0"}
+                            <button type="button" class="btn btn-outline-success" onclick="approveRating({$vo.id})" title="通过"><i class="bi bi-check"></i></button>
+                            <button type="button" class="btn btn-outline-warning" onclick="rejectRating({$vo.id})" title="拒绝"><i class="bi bi-x"></i></button>
+                            {/if}
+                            <a href="/admin/rating/detail?id={$vo.id}" class="btn btn-outline-info" title="查看"><i class="bi bi-eye"></i></a>
+                            <button type="button" class="btn btn-outline-danger" onclick="deleteRating({$vo.id})" title="删除"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="9" class="text-center text-muted py-4">暂无评价数据</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
 <script>
 function approveRating(id) {
     if (!confirm('确定通过此评价？')) return;
-    fetch('/admin/rating/approve', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&__token__=' + (document.querySelector('meta[name="csrf-token"]')?.content || '')
-    }).then(r => r.json()).then(res => {
+    $.post('/admin/rating/approve', {id: id}, function(res) {
         if (res.code === 1) {
             location.reload();
         } else {
@@ -202,11 +177,7 @@ function approveRating(id) {
 
 function rejectRating(id) {
     if (!confirm('确定拒绝此评价？')) return;
-    fetch('/admin/rating/reject', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&__token__=' + (document.querySelector('meta[name="csrf-token"]')?.content || '')
-    }).then(r => r.json()).then(res => {
+    $.post('/admin/rating/reject', {id: id}, function(res) {
         if (res.code === 1) {
             location.reload();
         } else {
@@ -217,11 +188,7 @@ function rejectRating(id) {
 
 function deleteRating(id) {
     if (!confirm('确定删除此评价？删除后不可恢复！')) return;
-    fetch('/admin/rating/delete', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&__token__=' + (document.querySelector('meta[name="csrf-token"]')?.content || '')
-    }).then(r => r.json()).then(res => {
+    $.post('/admin/rating/delete', {id: id}, function(res) {
         if (res.code === 1) {
             location.reload();
         } else {
@@ -230,5 +197,4 @@ function deleteRating(id) {
     });
 }
 </script>
-</body>
-</html>
+{/block}

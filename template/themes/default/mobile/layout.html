@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{$current_lang|default='zh-CN'}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,6 +10,8 @@
     <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
     <!-- V2.6 前台移动端样式（从内联提取到外部CSS文件） -->
     <link href="{$skin}css/style.css?v=2.6" rel="stylesheet">
+    <!-- V2.9 M11 模板可视化：CSS自定义变量（后台模板设计器可覆盖） -->
+    <style>:root{--primary:{$theme_css_vars['--primary']|default='#3b82f6'};--secondary:{$theme_css_vars['--secondary']|default='#64748b'};--accent:{$theme_css_vars['--accent']|default='#f59e0b'};--bg:{$theme_css_vars['--bg']|default='#ffffff'};--bg-secondary:{$theme_css_vars['--bg-secondary']|default='#f8fafc'};--text:{$theme_css_vars['--text']|default='#1e293b'};--text-secondary:{$theme_css_vars['--text-secondary']|default='#64748b'};--border:{$theme_css_vars['--border']|default='#e2e8f0'};--radius:{$theme_css_vars['--radius']|default='8px'};--shadow:{$theme_css_vars['--shadow']|default='0 1px 3px rgba(0,0,0,.1)'}}</style>
     {block name="css"}{/block}
 </head>
 <body>
@@ -18,6 +20,16 @@
 <header class="m-navbar">
     <a class="m-navbar-brand" href="/"><i class="bi bi-robot"></i> AI-CMS</a>
     <div class="m-navbar-actions">
+        {if condition="count($enabled_languages) > 1"}
+        <div class="dropdown" id="langSwitcher">
+            <button class="m-nav-btn" data-bs-toggle="dropdown"><i class="bi bi-globe"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end" id="langList">
+                {volist name="enabled_languages" id="lang"}
+                <li><a class="dropdown-item{if $lang.code == $current_lang} active{/if}" href="#" data-lang="{$lang.code}">{$lang.name}</a></li>
+                {/volist}
+            </ul>
+        </div>
+        {/if}
         <button class="m-nav-btn" onclick="toggleSearch()"><i class="bi bi-search"></i></button>
         <button class="m-nav-btn" onclick="toggleMenu()"><i class="bi bi-list"></i></button>
     </div>

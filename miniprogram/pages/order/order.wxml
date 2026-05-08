@@ -1,0 +1,25 @@
+<!-- pages/order/order.wxml - V2.9 订单页面 -->
+<view class="container">
+  <view class="page-title">我的订单</view>
+
+  <view wx:for="{{list}}" wx:key="id" class="card" bindtap="goDetail" data-content-id="{{item.content_id}}">
+    <view class="order-item">
+      <view class="order-info">
+        <text class="order-title">{{item.title || '内容订单'}}</text>
+        <text class="order-time">{{item.create_time_fmt}}</text>
+      </view>
+      <view class="order-meta">
+        <text class="order-price">¥{{item.amount}}</text>
+        <text class="order-status {{item.status === 1 ? 'paid' : 'unpaid'}}">
+          {{item.status === 1 ? '已支付' : '待支付'}}
+        </text>
+      </view>
+      <button wx:if="{{item.status === 0}}" size="mini" class="pay-btn" bindtap="handlePay"
+              data-id="{{item.id}}" catchtap="handlePay">去支付</button>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && list.length === 0}}" class="empty">暂无订单</view>
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:if="{{!hasMore && list.length > 0}}" class="empty">已经到底了</view>
+</view>

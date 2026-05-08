@@ -144,6 +144,18 @@ class AiProviderFactory
     }
 
     /**
+     * 根据模型ID获取Provider实例（V2.9补全）
+     */
+    public static function getById(int $modelId): AiProviderInterface
+    {
+        $model = AiModel::find($modelId);
+        if (!$model || !$model->is_enabled) {
+            throw new \Exception("AI模型 #{$modelId} 未配置或已禁用");
+        }
+        return self::createFromModel($model);
+    }
+
+    /**
      * 获取所有可用Provider列表（供后台选择）
      */
     public static function getAvailableProviders(): array

@@ -1,0 +1,80 @@
+/* payment.wxss - 支付页 */
+.order-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+.order-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+.order-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12rpx;
+}
+.order-price-row .label {
+  font-size: 28rpx;
+  color: #666;
+}
+.price {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #e64340;
+}
+.original-price {
+  font-size: 28rpx;
+  color: #999;
+  text-decoration: line-through;
+}
+.coupon-section {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+  display: block;
+}
+.coupon-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+}
+.coupon-item.selected {
+  border-color: #3b82f6;
+  background: rgba(59,130,246,0.05);
+}
+.coupon-name {
+  font-size: 28rpx;
+  color: #333;
+}
+.coupon-value {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #e64340;
+}
+.pay-btn {
+  background: #07c160;
+  color: #fff;
+  border-radius: 20rpx;
+  font-size: 32rpx;
+  padding: 24rpx;
+  text-align: center;
+}
+.pay-btn.disabled {
+  background: #ccc;
+}

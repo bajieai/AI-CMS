@@ -84,6 +84,10 @@ abstract class AdminBaseController extends \think\BaseController
         'theme_market'     => 'theme_market',
         // V2.6 AI内容模板
         'ai_template'      => 'ai_template',
+        // V2.9 新增模块
+        'coupon'           => 'coupon',
+        'rating'           => 'rating',
+        'template_design'  => 'template_design',
     ];
 
     /**

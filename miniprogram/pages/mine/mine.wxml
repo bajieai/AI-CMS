@@ -1,4 +1,4 @@
-<!-- V2.8 个人中心页面 -->
+<!-- V2.9 个人中心页面 -->
 <view class="container">
   <!-- 用户信息 -->
   <view class="user-info">
@@ -17,11 +17,31 @@
     </block>
   </view>
 
+  <!-- 数据概览 -->
+  <view class="stats-bar" wx:if="{{isLogin}}">
+    <view class="stat-item" bindtap="goSignin">
+      <text class="stat-num">{{signinDays}}</text>
+      <text class="stat-label">签到天数</text>
+    </view>
+    <view class="stat-item" bindtap="goCoupon">
+      <text class="stat-num">{{couponCount}}</text>
+      <text class="stat-label">优惠券</text>
+    </view>
+    <view class="stat-item" bindtap="goOrders">
+      <text class="stat-num">{{orderCount}}</text>
+      <text class="stat-label">订单</text>
+    </view>
+    <view class="stat-item" bindtap="handleInvite">
+      <text class="stat-num">{{inviteCount}}</text>
+      <text class="stat-label">邀请</text>
+    </view>
+  </view>
+
   <!-- 签到卡片 -->
   <view class="signin-card" wx:if="{{isLogin}}">
     <view class="signin-info">
       <text class="signin-days">连续签到 {{signinDays}} 天</text>
-      <button class="signin-btn {{hasSignedToday ? 'signed' : ''}}" bindtap="handleSignin">
+      <button class="signin-btn {{hasSignedToday ? 'signed' : ''}}" bindtap="goSignin">
         {{hasSignedToday ? '已签到' : '立即签到'}}
       </button>
     </view>
@@ -39,6 +59,16 @@
       <text class="title">搜索</text>
       <text class="arrow">></text>
     </navigator>
+    <view class="menu-item" bindtap="goCoupon" wx:if="{{isLogin}}">
+      <text class="icon">🎟</text>
+      <text class="title">我的优惠券</text>
+      <text class="arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="handleInvite" wx:if="{{isLogin}}">
+      <text class="icon">🎁</text>
+      <text class="title">邀请好友</text>
+      <text class="arrow">></text>
+    </view>
   </view>
 
   <!-- 退出登录 -->

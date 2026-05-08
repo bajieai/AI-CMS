@@ -1,20 +1,26 @@
-# 八界AI-CMS V2.8
+# 八界AI-CMS V2.9
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.8.0-blue)
+![Version](https://img.shields.io/badge/version-2.9.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.8 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.8 在V2.7基础上完成AI能力升级（配图/质量检测/SEO优化）、运营数据分析体系、社交互动与会员增长闭环，标志着产品进入AI驱动+数据运营的智能化阶段。
+八界AI-CMS V2.9 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9 在V2.8基础上完成AI模板高度定制化（字段映射+质量检测）、FLUX/DALL-E多模型配图、优惠券系统、评价评分、全阶段邀请奖励、小程序100%完善、前台模板可视化预研与CSS变量化等核心升级，标志着产品进入AI深度定制+商业运营闭环的新阶段。
 
 ### 核心特性
 
 - **多模型AI引擎** - DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 5大AI引擎，工厂模式+熔断降级
 - **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式，支持AI批量生成
-- **AI模板** - 预设AI写作模板，一键套用生成不同风格内容
+- **AI模板定制化** - 字段映射+质量检测+配图发布+参考示例，5大Tab深度配置
+- **FLUX/DALL-E配图** - 多模型AI配图引擎，通义万相/FLUX.1/DALL-E 3三Provider+自动降级
+- **优惠券系统** - 满减/折扣/免邮3种券，新人券自动发放，前台会员券中心+小程序领券
+- **评价评分系统** - 5星评分+文字评价+匿名+点赞+审核，前台+小程序双端评价
+- **全阶段邀请奖励** - 注册/签到/付费三阶段递进奖励，邀请排行+明细
+- **小程序完善** - 11页面全覆盖(首页/详情/搜索/登录/个人/分类/支付/签到/优惠券/邀请/订单)
+- **模板可视化预研** - 后台CSS变量编辑器+AI配色推荐，前台:root变量动态注入
 - **6种内容类型** - 产品/案例/新闻/下载/招聘/单页，支持扩展字段
 - **简化RBAC** - 3级角色（超管/管理员/编辑），配置文件权限控制
 - **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`/`{i8j:bannerlist}`/`{i8j:linklist}`/`{i8j:medialist}`/`{i8j:commentlist}`，灵活调用数据
@@ -24,41 +30,18 @@
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
 
-### V2.3 新增特性
+### V2.9 新增特性
 
-- **定时发布** - 支持内容定时上线，配合命令行自动执行
-- **SEO管理** - Sitemap自动生成、robots.txt管理、死链检测、JSON-LD结构化数据
-- **消息通知** - 站内通知系统，支持管理员/会员双端推送
-- **数据导入导出** - Excel/CSV格式批量导入导出内容数据
-- **前台会员系统** - 独立会员注册/登录/资料管理，支持Gitee OAuth登录
-- **评论系统** - 前台评论提交、后台审核管理、自动计数
-- **API开放接口** - RESTful API v1，Bearer/HMAC双模式认证，支持速率限制
-- **广告系统** - 广告位管理、广告上下线、展示/点击统计
-- **功能模块开关** - 后台一键启用/禁用各功能模块
-- **操作日志增强** - 详细记录后台操作行为
-
-### V2.5 新增特性
-
-- **微信支付V3** - 会员内容付费，微信支付V3接口集成
-- **AI批量生成** - 按分类批量AI生成内容，支持队列任务
-- **多AI模型** - GLM / ERNIE / OpenAI兼容 Provider，工厂模式+熔断降级
-- **内容采集** - 采集规则管理+AI智能改写，一键导入内容
-- **多平台发布** - 微信公众号/头条号/知乎等平台一键发布
-- **邮件系统** - 邮件模板/订阅者管理/批量发送/发送日志
-- **插件管理** - 插件安装/启用/禁用/评分/配置，可扩展架构
-- **多语言** - 中/英/日多语言包，后台界面语言切换
-- **模板市场** - 在线模板浏览/安装/评分，主题一键切换
-- **Redis缓存** - CacheService标签体系(17标签)，精准缓存管理
-- **小程序** - 微信小程序端，支持内容浏览/搜索/详情
-
-### V2.6 改进
-
-- **CSS静态资源分离** - 后台/前台/登录页内联CSS提取为外部文件，`public/skin/` 目录管理
-- **PJAX核心修复** - 51个模板`<script>`从content block迁移至js block，解决PJAX切换脚本丢失
-- **数据导入修复** - ImportController分类查询+ImportService CSV导入+权限映射修正
-- **模板变量注入** - `$skin_admin`(后台) / `$skin`(前台) 自动注入CSS路径变量
-- **Nginx配置更新** - deploy/nginx + docker/nginx 添加 `/skin/` 路径支持
-- **调试文件清理** - 移除调试临时文件，.gitignore增强忽略规则
+- **AI模板高度定制化** - 5大Tab页(基本信息/生成规则/字段映射/配图发布/参考示例)，自定义字段动态增删，6种转换规则，质量检测配置(评分阈值/自动重试/低质处理)
+- **AI模板表单联动** - 生成模式(NLP/参考示例)切换联动，字段映射动态交互，结构化JSON采集(fields_json/field_mapping_json/quality_config_json)
+- **FLUX/DALL-E Provider** - ImageProviderFactory工厂+3Provider(通义万相/FLUX.1/DALL-E)，Provider自动降级，5种FLUX风格+3种DALL-E尺寸
+- **小程序100%完善** - 11个页面(index/detail/search/login/mine/category/payment/signin/coupon/invite/order)，优惠券双Tab+邀请三阶段奖励+7日签到里程碑+订单管理
+- **全阶段邀请奖励** - InviteRewardService三阶段(register→signin→pay)，事件驱动挂接，邀请排行+明细+邀请码唯一索引
+- **优惠券系统** - CouponService完整CRUD，3种券类型(满减/折扣/免邮)，库存扣减+每人限领+唯一券码，新人券自动发放，5种状态流转
+- **评价评分系统** - RatingService评分+文字评价+匿名+审核，Redis防重复点赞，PC/Mobile/小程序三端评价区块，星级分布统计
+- **前台模板可视化预研** - TemplateDesignController+后台CSS变量编辑器，HSL色彩推导AI配色，:root CSS变量动态注入(4套layout.html)，i8j_theme_config持久化
+- **多语言翻译完善** - AI批量翻译(AiService::translateBatch)，前台4套模板语言切换器，LanguageController字段名统一(is_enabled)
+- **V2.9收尾** - menu.php+permission.php+module注册3项同步更新，v2.9.sql完整迁移(5张新表+字段补全+配置项)
 
 ### V2.8 新增特性
 
@@ -89,6 +72,42 @@
 - **CDN集成** - StorageService::getCdnUrl() + 后台配置开关
 - **双栏菜单(corporate)** - L1图标55px+L2面板200px，hover/click交互
 - **AI模板参考示例** - generate_mode=example，参考示例Prompt构建
+
+### V2.6 改进
+
+- **CSS静态资源分离** - 后台/前台/登录页内联CSS提取为外部文件，`public/skin/` 目录管理
+- **PJAX核心修复** - 51个模板`<script>`从content block迁移至js block，解决PJAX切换脚本丢失
+- **数据导入修复** - ImportController分类查询+ImportService CSV导入+权限映射修正
+- **模板变量注入** - `$skin_admin`(后台) / `$skin`(前台) 自动注入CSS路径变量
+- **Nginx配置更新** - deploy/nginx + docker/nginx 添加 `/skin/` 路径支持
+- **调试文件清理** - 移除调试临时文件，.gitignore增强忽略规则
+
+### V2.5 新增特性
+
+- **微信支付V3** - 会员内容付费，微信支付V3接口集成
+- **AI批量生成** - 按分类批量AI生成内容，支持队列任务
+- **多AI模型** - GLM / ERNIE / OpenAI兼容 Provider，工厂模式+熔断降级
+- **内容采集** - 采集规则管理+AI智能改写，一键导入内容
+- **多平台发布** - 微信公众号/头条号/知乎等平台一键发布
+- **邮件系统** - 邮件模板/订阅者管理/批量发送/发送日志
+- **插件管理** - 插件安装/启用/禁用/评分/配置，可扩展架构
+- **多语言** - 中/英/日多语言包，后台界面语言切换
+- **模板市场** - 在线模板浏览/安装/评分，主题一键切换
+- **Redis缓存** - CacheService标签体系(17标签)，精准缓存管理
+- **小程序** - 微信小程序端，支持内容浏览/搜索/详情
+
+### 更早版本特性
+
+- **定时发布** - 支持内容定时上线，配合命令行自动执行
+- **SEO管理** - Sitemap自动生成、robots.txt管理、死链检测、JSON-LD结构化数据
+- **消息通知** - 站内通知系统，支持管理员/会员双端推送
+- **数据导入导出** - Excel/CSV格式批量导入导出内容数据
+- **前台会员系统** - 独立会员注册/登录/资料管理，支持Gitee OAuth登录
+- **评论系统** - 前台评论提交、后台审核管理、自动计数
+- **API开放接口** - RESTful API v1，Bearer/HMAC双模式认证，支持速率限制
+- **广告系统** - 广告位管理、广告上下线、展示/点击统计
+- **功能模块开关** - 后台一键启用/禁用各功能模块
+- **操作日志增强** - 详细记录后台操作行为
 
 ## 技术栈
 
@@ -209,8 +228,9 @@ AI-CMS/
 │   ├── v2.6.sql                #   V2.6增量更新
 │   ├── v2.7.sql                #   V2.7增量更新
 │   └── v2.8.sql                #   V2.8增量更新
-├── miniprogram/                # 微信小程序
-│   ├── pages/                  #   页面(index/detail/search/login)
+│   └── v2.9.sql                #   V2.9增量更新
+├── miniprogram/                # 微信小程序(V2.9: 11页面)
+│   ├── pages/                  #   页面(index/detail/search/login/mine/coupon/invite/signin/order/payment/category)
 │   └── utils/                  #   工具(API封装)
 ├── plugin/                     # 插件目录
 ├── docker/                     # Docker配置
@@ -257,6 +277,10 @@ AI-CMS/
 | i8j_signin_log | 签到记录 | id,member_id,signin_date,points,consecutive_days |
 | i8j_points_log | 积分变动日志 | id,member_id,points,type,source_id,note |
 | i8j_invite_relation | 邀请关系表 | id,inviter_id,invitee_id,invite_code,invitee_ip,reward_points,reward_stage |
+| i8j_coupon_template | 优惠券模板表 | id,coupon_name,coupon_type,condition_amount,reduce_amount,total_stock,remain_stock,per_user_limit,start_time,end_time,scope_type,scope_value,status |
+| i8j_user_coupon | 用户优惠券表 | id,member_id,template_id,code,coupon_type,condition_amount,reduce_amount,status,used_at,expire_at |
+| i8j_content_rating | 内容评价评分表 | id,content_id,member_id,rating,title,content,has_media,media_urls,is_anonymous,reply_count,like_count,status |
+| i8j_theme_config | 主题配置表 | id,theme,scope,scope_id,config_key,config_value,config_type,label,description,sort |
 
 ## 角色权限
 
@@ -281,6 +305,18 @@ AI-CMS/
 | POST | /api/v1/visit | PV打点统计 |
 | GET | /api/v1/search/suggest | 搜索联想补全 |
 | GET | /api/v1/search/hot | 热门搜索 |
+| GET | /api/coupon/list | 优惠券列表 |
+| GET | /api/coupon/my | 我的优惠券 |
+| POST | /api/coupon/receive | 领取优惠券 |
+| POST | /api/coupon/newbie | 新人券领取 |
+| GET | /api/rating/list | 内容评价列表 |
+| POST | /api/rating/submit | 提交评价 |
+| POST | /api/rating/like | 评价点赞 |
+| GET | /api/invite/info | 邀请信息 |
+| GET | /api/invite/records | 邀请记录 |
+| GET | /api/language/index | 语言列表 |
+| POST | /api/language/switch | 切换语言 |
+| GET | /api/language/current | 当前语言 |
 
 ## I8j模板标签
 
@@ -323,15 +359,16 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
-| V2.0.0 | 2024-Q4 | 基础CMS：内容管理/分类/标签/媒体/轮播图/友情链接 |
-| V2.1.0 | 2024-Q4 | AI智能写作(DeepSeek)/审核工作流/媒体资源库 |
-| V2.2.0 | 2025-Q1 | 回收站/版本历史/富文本增强/操作日志 |
-| V2.3.0 | 2025-Q1 | 定时发布/SEO管理/会员系统/评论/广告/数据导入导出/API |
-| V2.4.0 | 2025-Q2 | 多语言支持/模板市场/插件系统/搜索增强 |
-| V2.5.1 | 2025-Q3 | 微信支付V3/AI批量生成/多AI模型/采集/多平台发布/邮件/Redis缓存 |
-| V2.6.0 | 2025-Q4 | CSS静态资源分离/PJAX核心修复/数据导入修复 |
-| V2.7.0 | 2026-Q1 | API安全加固/付费章节/积分签到/表单编辑器/搜索增强/CDN集成 |
+| V2.9.0 | 2026-Q3 | AI模板定制化/FLUX+DALL-E配图/优惠券系统/评价评分/邀请奖励/小程序完善/模板可视化预研 |
 | V2.8.0 | 2026-Q2 | AI配图/质量检测/SEO优化/运营报表/流量分析/AI统计/社交分享/邀请返积分 |
+| V2.7.0 | 2026-Q1 | API安全加固/付费章节/积分签到/表单编辑器/搜索增强/CDN集成 |
+| V2.6.0 | 2025-Q4 | CSS静态资源分离/PJAX核心修复/数据导入修复 |
+| V2.5.1 | 2025-Q3 | 微信支付V3/AI批量生成/多AI模型/采集/多平台发布/邮件/Redis缓存 |
+| V2.4.0 | 2025-Q2 | 多语言支持/模板市场/插件系统/搜索增强 |
+| V2.3.0 | 2025-Q1 | 定时发布/SEO管理/会员系统/评论/广告/数据导入导出/API |
+| V2.2.0 | 2025-Q1 | 回收站/版本历史/富文本增强/操作日志 |
+| V2.1.0 | 2024-Q4 | AI智能写作(DeepSeek)/审核工作流/媒体资源库 |
+| V2.0.0 | 2024-Q4 | 基础CMS：内容管理/分类/标签/媒体/轮播图/友情链接 |
 
 ## 默认账户
 

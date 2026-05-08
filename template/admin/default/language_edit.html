@@ -27,7 +27,7 @@
                 <label class="form-check-label" for="swDefault">设为默认语言</label>
             </div>
             <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" name="status" value="1" id="swStatus" {if !isset($info) || $info.status==1}checked{/if}>
+                <input class="form-check-input" type="checkbox" name="is_enabled" value="1" id="swStatus" {if !isset($info) || $info.is_enabled==1}checked{/if}>
                 <label class="form-check-label" for="swStatus">启用</label>
             </div>
             <button type="submit" class="btn btn-primary">保存</button>
@@ -37,8 +37,6 @@
 </div>
 {/block}
 
-{block name="js"}
-{/block}
 {block name="js"}
 <script>
 $('#langForm').on('submit', function(e) {

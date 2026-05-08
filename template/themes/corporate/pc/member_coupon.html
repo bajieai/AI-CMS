@@ -1,0 +1,110 @@
+{extend name="layout" /}
+
+{block name="title"}我的优惠券{/block}
+
+{block name="content"}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                {include file="member_sidebar" /}
+            </div>
+            <div class="col-lg-9">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <i class="bi bi-ticket-perforated me-1"></i>我的优惠券
+                    </div>
+                    <div class="card-body">
+                        <!-- 优惠券统计 -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="text-primary" style="font-size:2rem;font-weight:700">{$usable_count|default=0}</div>
+                                    <div class="text-muted small">可用券</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="text-success" style="font-size:2rem;font-weight:700">{$used_count|default=0}</div>
+                                    <div class="text-muted small">已使用</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="text-warning" style="font-size:2rem;font-weight:700">{$expired_count|default=0}</div>
+                                    <div class="text-muted small">已过期</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 筛选Tab -->
+                        <ul class="nav nav-pills mb-3" id="couponTab">
+                            <li class="nav-item"><a class="nav-link active" href="#" onclick="filterCoupons(-1, this)">全部</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" onclick="filterCoupons(0, this)">可用</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" onclick="filterCoupons(1, this)">已使用</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" onclick="filterCoupons(2, this)">已过期</a></li>
+                        </ul>
+
+                        <!-- 优惠券列表 -->
+                        <div id="couponList">
+                            {volist name="coupons" id="vo"}
+                            <div class="card mb-3 coupon-card" data-status="{$vo.status}" style="border-radius:10px;overflow:hidden;{if $vo.status != 0}opacity:0.6;{/if}">
+                                <div class="row g-0">
+                                    <div class="col-auto" style="background:linear-gradient(135deg,{$vo.coupon_type=='reduce'?'#1e3a5f,#2563eb':'#92400e,#d97706'});min-width:120px;display:flex;align-items:center;justify-content:center;">
+                                        <div class="text-center text-white p-3">
+                                            <div style="font-size:1.5rem;font-weight:700">
+                                                {if $vo.coupon_type == 'reduce'}¥{$vo.reduce_amount}{elseif $vo.coupon_type == 'discount' /}{$vo.reduce_amount}折{else /}免邮{/if}
+                                            </div>
+                                            <div style="font-size:.7rem;opacity:.85">
+                                                {if $vo.condition_amount > 0}满{$vo.condition_amount}可用{else /}无门槛{/if}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="p-3">
+                                            <div class="fw-bold">{$vo.coupon_name}</div>
+                                            <div class="text-muted small">
+                                                {if $vo.expire_at > 0}有效期至 {$vo.expire_at|date='Y-m-d'}{else /}长期有效{/if}
+                                            </div>
+                                            <div class="mt-1">
+                                                {switch $vo.status}
+                                                {case 0}<span class="badge bg-success">可使用</span>{/case}
+                                                {case 1}<span class="badge bg-secondary">已使用</span>{/case}
+                                                {case 2}<span class="badge bg-danger">已过期</span>{/case}
+                                                {case 3}<span class="badge bg-dark">已作废</span>{/case}
+                                                {case 4}<span class="badge bg-info">已退还</span>{/case}
+                                                {/switch}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {/volist}
+                            {if condition="count($coupons) == 0"}
+                            <div class="text-center text-muted py-5">
+                                <i class="bi bi-ticket-perforated fs-1 d-block mb-2"></i>
+                                暂无优惠券
+                            </div>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function filterCoupons(status, el) {
+    $('#couponTab .nav-link').removeClass('active');
+    $(el).addClass('active');
+    if (status === -1) {
+        $('.coupon-card').show();
+    } else {
+        $('.coupon-card').each(function() {
+            $(this).toggle($(this).data('status') === status);
+        });
+    }
+}
+</script>
+{/block}

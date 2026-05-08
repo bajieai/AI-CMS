@@ -5,7 +5,12 @@
     "pages/search/search",
     "pages/login/login",
     "pages/mine/mine",
-    "pages/category/category"
+    "pages/category/category",
+    "pages/payment/payment",
+    "pages/signin/signin",
+    "pages/coupon/coupon",
+    "pages/invite/invite",
+    "pages/order/order"
   ],
   "window": {
     "backgroundTextStyle": "light",

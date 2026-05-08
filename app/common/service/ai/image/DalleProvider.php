@@ -109,7 +109,7 @@ class DalleProvider implements ImageProviderInterface
                 }
             }
 
-            return $results;
+            return $results[0] ?? ['url' => '', 'width' => 0, 'height' => 0, 'format' => '', '_provider' => 'dalle', '_request_id' => ''];
 
         } catch (\Exception $e) {
             Log::error('[DalleProvider] ' . $e->getMessage());

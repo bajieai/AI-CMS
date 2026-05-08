@@ -27,7 +27,7 @@
     <ul class="nav nav-tabs-custom border-bottom mb-3" role="tablist">
         <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-basic"><i class="bi bi-info-circle me-1"></i>基本信息</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-rules"><i class="bi bi-code-slash me-1"></i>生成规则</a></li>
-        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-mapping"><i class="bi bi-arrow-left-right me-1"></i>字段映射</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-mapping"><i class="bi bi-arrow-left-right me-1"></i>字段映射<span class="badge bg-warning text-dark ms-1 mapping-mode-hint" style="display:none;font-size:10px;">参考示例模式下不适用</span></a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-image"><i class="bi bi-image me-1"></i>配图发布</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-example"><i class="bi bi-bookmark-star me-1"></i>参考示例</a></li>
     </ul>
@@ -470,6 +470,32 @@ function addVariable() {
         '<div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.variable-row\').remove()"><i class="bi bi-x-lg"></i></button></div>' +
         '</div>';
     $('#variableContainer').append(html);
+}
+
+// 生成模式切换联动
+$('input[name="generate_mode"]').on('change', function() {
+    var mode = $(this).val();
+    if (mode === 'example') {
+        $('.mapping-mode-hint').show();
+        var tabEl = $('a[href="#tab-example"]')[0];
+        if (tabEl && typeof bootstrap !== 'undefined') {
+            new bootstrap.Tab(tabEl).show();
+        } else if (tabEl) {
+            $(tabEl).tab('show');
+        }
+    } else {
+        $('.mapping-mode-hint').hide();
+        var tabEl = $('a[href="#tab-rules"]')[0];
+        if (tabEl && typeof bootstrap !== 'undefined') {
+            new bootstrap.Tab(tabEl).show();
+        } else if (tabEl) {
+            $(tabEl).tab('show');
+        }
+    }
+});
+// 初始化：根据当前选中模式显示/隐藏提示
+if ($('input[name="generate_mode"]:checked').val() === 'example') {
+    $('.mapping-mode-hint').show();
 }
 
 // 表单提交

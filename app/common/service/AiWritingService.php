@@ -7,6 +7,7 @@ use app\common\model\AiBatchTask;
 use app\common\model\Content;
 use app\common\model\AiTemplate;
 use app\common\service\ai\AiProviderFactory;
+use app\common\service\ai\ImageProviderFactory;
 use app\common\service\AiTemplateService;
 use think\facade\Db;
 use think\facade\Log;
@@ -157,6 +158,7 @@ class AiWritingService
 
     /**
      * 执行批量生成（CLI调用）
+     * V2.9 集成字段映射引擎 + 表单联动 + 质量检测
      */
     public static function executeBatchTask(int $taskId): bool
     {
@@ -180,24 +182,85 @@ class AiWritingService
             }
         }
 
+        $contentService = new ContentService();
+
         try {
             foreach ($keywords as $keyword) {
-                if ($template && $template->generate_mode === 'example') {
-                    // 参考示例模式
-                    $prompt = AiTemplateService::buildExamplePrompt($template, $keyword);
-                    $systemPrompt = self::$stylePrompts[$template->style] ?? self::$stylePrompts['default'];
-                    $article = self::executeWithPrompt($prompt, $systemPrompt, $keyword, $template);
-                } elseif ($template) {
-                    // NLP模板模式
-                    $prompt = AiTemplateService::buildPrompt($template, ['keyword' => $keyword]);
-                    $systemPrompt = self::$stylePrompts[$template->style] ?? self::$stylePrompts['default'];
-                    $article = self::executeWithPrompt($prompt, $systemPrompt, $keyword, $template);
-                } else {
-                    // 原有逻辑不变（向后兼容无模板的任务）
-                    $article = self::generateArticle($keyword, $task->style, ['max_tokens' => 2000]);
+                $article = null;
+                $retryCount = 0;
+                $maxRetry = 2;
+                $qualityPassed = false;
+
+                do {
+                    if ($template && $template->generate_mode === 'example') {
+                        // 参考示例模式
+                        $prompt = AiTemplateService::buildExamplePrompt($template, $keyword);
+                        $systemPrompt = self::$stylePrompts[$template->style] ?? self::$stylePrompts['default'];
+                        $article = self::executeWithPrompt($prompt, $systemPrompt, $keyword, $template);
+                    } elseif ($template) {
+                        // V2.9: NLP模板模式 — 使用结构化Prompt（字段映射+表单联动）
+                        $prompt = AiTemplateService::buildStructuredPrompt($template, ['keyword' => $keyword]);
+                        $systemPrompt = self::$stylePrompts[$template->style] ?? self::$stylePrompts['default'];
+                        $rawOutput = self::executeWithPromptRaw($prompt, $systemPrompt, $template);
+
+                        // V2.9: 应用字段映射引擎
+                        $cmsData = AiTemplateService::applyFieldMapping($template, $rawOutput);
+
+                        // V2.9 M2: 解析表单数据并填充扩展字段
+                        if (!empty($cmsData['form_data']) && is_array($cmsData['form_data'])) {
+                            $fieldsConfig = $template->fields_array;
+                            $parsedForm = $contentService->parseFormData($cmsData['form_data'], $fieldsConfig);
+                            $cmsData = array_merge($cmsData, $parsedForm);
+                            unset($cmsData['form_data']);
+                        }
+
+                        $article = [
+                            'title'   => $cmsData['title']   ?? '未命名文章',
+                            'content' => $cmsData['content'] ?? $rawOutput,
+                        ];
+
+                        // 将映射字段合并到article供后续使用
+                        foreach (['seo_title','seo_keywords','seo_description','summary','tags','source','author'] as $f) {
+                            if (!empty($cmsData[$f])) {
+                                $article[$f] = $cmsData[$f];
+                            }
+                        }
+                        if (!empty($cmsData['ext_data'])) {
+                            $article['ext_data'] = $cmsData['ext_data'];
+                        }
+
+                        // V2.9: 质量检测决策
+                        $qualityResult = AiTemplateService::applyQualityConfig($template, $article);
+                        if ($qualityResult['passed']) {
+                            $qualityPassed = true;
+                            Log::info("批量生成任务 #{$taskId} 质量检测通过: 评分 {$qualityResult['score']}");
+                        } elseif ($qualityResult['retry_suggested'] && $retryCount < $maxRetry) {
+                            $retryCount++;
+                            Log::warning("批量生成任务 #{$taskId} 质量不达标(评分 {$qualityResult['score']})，第{$retryCount}次重试");
+                            continue;
+                        } elseif ($qualityResult['action'] === 'reject') {
+                            Log::error("批量生成任务 #{$taskId} 质量过低已拒绝: 评分 {$qualityResult['score']}");
+                            $task->completed++;
+                            $task->save();
+                            break 2; // 跳过该关键词，继续下一个
+                        } else {
+                            // notify: 记录但继续
+                            $qualityPassed = true;
+                            Log::warning("批量生成任务 #{$taskId} 质量不达标但已记录: 评分 {$qualityResult['score']}");
+                        }
+                    } else {
+                        // 原有逻辑不变（向后兼容无模板的任务）
+                        $article = self::generateArticle($keyword, $task->style, ['max_tokens' => 2000]);
+                        $qualityPassed = true;
+                    }
+                } while (!$qualityPassed && $retryCount <= $maxRetry);
+
+                if (!$qualityPassed) {
+                    continue;
                 }
 
-                Content::create([
+                // 构建Content创建数据
+                $contentData = [
                     'title'   => $article['title'],
                     'content' => $article['content'],
                     'cate_id' => $task->cate_id,
@@ -205,7 +268,60 @@ class AiWritingService
                     'source'  => 'ai_batch',
                     'create_time' => time(),
                     'update_time' => time(),
-                ]);
+                ];
+
+                // 映射SEO字段
+                if (!empty($article['seo_title'])) {
+                    $contentData['seo_title'] = $article['seo_title'];
+                }
+                if (!empty($article['seo_keywords'])) {
+                    $contentData['seo_keywords'] = $article['seo_keywords'];
+                }
+                if (!empty($article['seo_description'])) {
+                    $contentData['seo_description'] = $article['seo_description'];
+                }
+                if (!empty($article['summary'])) {
+                    $contentData['excerpt'] = $article['summary'];
+                }
+                if (!empty($article['tags'])) {
+                    $contentData['tags'] = $article['tags'];
+                }
+                if (!empty($article['source'])) {
+                    $contentData['source'] = $article['source'];
+                }
+                if (!empty($article['author'])) {
+                    $contentData['author'] = $article['author'];
+                }
+                // 质量评分
+                if (!empty($qualityResult['score'])) {
+                    $contentData['quality_score'] = $qualityResult['score'];
+                }
+
+                // 处理扩展字段
+                if (!empty($article['ext_data'])) {
+                    $contentData['ext'] = $article['ext_data'];
+                }
+
+                $contentRecord = Content::create($contentData);
+
+                // V2.9 M12: AI配图生成（根据模板image_config配置）
+                if ($template && $contentRecord) {
+                    $imgCfg = $template->image_config_array;
+                    if (($imgCfg['images'] ?? '0') === '1' && ($imgCfg['source'] ?? '0') === '1') {
+                        $count = min((int) ($imgCfg['count'] ?? 1), 3);
+                        $imgPrompt = $article['title'] ?? $keyword;
+                        try {
+                            $imgProvider = ImageProviderFactory::getDefault();
+                            $imgResult = $imgProvider->generateImage($imgPrompt, ['count' => $count]);
+                            if (!empty($imgResult['url'])) {
+                                $contentRecord->cover = $imgResult['url'];
+                                $contentRecord->save();
+                            }
+                        } catch (\Exception $imgEx) {
+                            Log::warning("AI配图生成失败 #{$taskId}: " . $imgEx->getMessage());
+                        }
+                    }
+                }
 
                 $task->completed++;
                 $task->save();
@@ -227,6 +343,15 @@ class AiWritingService
      */
     protected static function executeWithPrompt(string $prompt, string $systemPrompt, string $defaultTitle, ?AiTemplate $template): array
     {
+        $rawOutput = self::executeWithPromptRaw($prompt, $systemPrompt, $template);
+        return self::parseArticle($rawOutput, $defaultTitle);
+    }
+
+    /**
+     * V2.9 新增：执行Prompt并返回原始AI输出字符串（供字段映射引擎使用）
+     */
+    protected static function executeWithPromptRaw(string $prompt, string $systemPrompt, ?AiTemplate $template): string
+    {
         // 使用任务指定的模型ID或模板的模型ID
         $modelId = $template?->model_id ?: 0;
 
@@ -241,12 +366,10 @@ class AiWritingService
             $provider = AiProviderFactory::getDefault();
         }
 
-        $content = $provider->write($prompt, [
+        return $provider->write($prompt, [
             'system_prompt' => $systemPrompt,
             'max_tokens'     => 3000,
         ]);
-
-        return self::parseArticle($content, $defaultTitle);
     }
 
     /**

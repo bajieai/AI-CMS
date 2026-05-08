@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\controller\AdminBaseController;
 use app\common\model\CouponTemplate;
 use app\common\service\CouponService;
 use think\Request;
@@ -27,7 +28,7 @@ class CouponController extends AdminBaseController
             'used'    => \app\common\model\UserCoupon::where('status', 1)->count(),
         ];
 
-        return $this->view('coupon_index', ['list' => $list, 'stats' => $stats]);
+        return $this->view('/coupon_index', ['list' => $list, 'stats' => $stats]);
     }
 
     /**
@@ -44,7 +45,18 @@ class CouponController extends AdminBaseController
             return json(['success' => false, 'msg' => '添加失败']);
         }
 
-        return $this->view('coupon_edit', ['action' => 'add', 'template' => null]);
+        return $this->view('/coupon_edit', ['action' => 'add', 'template' => [
+            'coupon_name'     => '',
+            'coupon_type'     => 'reduce',
+            'condition_amount'=> 0,
+            'reduce_amount'   => 0,
+            'total_stock'     => 0,
+            'per_user_limit'  => 1,
+            'start_time'      => 0,
+            'end_time'        => 0,
+            'scope_type'      => 'all',
+            'status'          => 0,
+        ]]);
     }
 
     /**
@@ -66,7 +78,22 @@ class CouponController extends AdminBaseController
             return json(['success' => false, 'msg' => '更新失败']);
         }
 
-        return $this->view('coupon_edit', ['action' => 'edit', 'template' => $template]);
+        $templateArr = $template->toArray();
+        $defaults = [
+            'coupon_name'     => '',
+            'coupon_type'     => 'reduce',
+            'condition_amount'=> 0,
+            'reduce_amount'   => 0,
+            'total_stock'     => 0,
+            'per_user_limit'  => 1,
+            'start_time'      => 0,
+            'end_time'        => 0,
+            'scope_type'      => 'all',
+            'status'          => 0,
+        ];
+        $templateArr = array_merge($defaults, $templateArr);
+
+        return $this->view('/coupon_edit', ['action' => 'edit', 'template' => $templateArr]);
     }
 
     /**
@@ -102,7 +129,7 @@ class CouponController extends AdminBaseController
         }
 
         $templates = CouponTemplate::where('status', 1)->select();
-        return $this->view('coupon_issue', ['templates' => $templates]);
+        return $this->view('/coupon_issue', ['templates' => $templates]);
     }
 
     /**
@@ -117,7 +144,7 @@ class CouponController extends AdminBaseController
         }
 
         $list = $query->paginate(30);
-        return $this->view('coupon_records', ['list' => $list, 'templateId' => $templateId]);
+        return $this->view('/coupon_records', ['list' => $list, 'templateId' => $templateId]);
     }
 
     /**

@@ -33,9 +33,9 @@
                     <div class="mb-3">
                         <label class="form-label">优惠券类型 <span class="text-danger">*</span></label>
                         <select class="form-select" name="coupon_type" id="couponType" onchange="toggleCouponFields()">
-                            <option value="reduce" {if ($template.coupon_type|default='reduce')=='reduce'}selected{/if}>满减券</option>
-                            <option value="discount" {if ($template.coupon_type|default='')=='discount'}selected{/if}>折扣券</option>
-                            <option value="free_shipping" {if ($template.coupon_type|default='')=='free_shipping'}selected{/if}>免邮券</option>
+                            <option value="reduce" {if $template.coupon_type=='reduce'}selected{/if}>满减券</option>
+                            <option value="discount" {if $template.coupon_type=='discount'}selected{/if}>折扣券</option>
+                            <option value="free_shipping" {if $template.coupon_type=='free_shipping'}selected{/if}>免邮券</option>
                         </select>
                     </div>
 
@@ -76,13 +76,13 @@
                         <div class="col-md-6">
                             <label class="form-label">有效期开始</label>
                             <input type="datetime-local" class="form-control" name="start_time" 
-                                   value="{if $template.start_time|default=0>0}{php}echo date('Y-m-d\TH:i', $template['start_time']);{/php}{/if}">
+                                   value="{if $template.start_time>0}{php}echo date('Y-m-d\TH:i', $template['start_time']);{/php}{/if}">
                             <div class="form-text">留空表示立即生效</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">有效期结束</label>
                             <input type="datetime-local" class="form-control" name="end_time" 
-                                   value="{if $template.end_time|default=0>0}{php}echo date('Y-m-d\TH:i', $template['end_time']);{/php}{/if}">
+                                   value="{if $template.end_time>0}{php}echo date('Y-m-d\TH:i', $template['end_time']);{/php}{/if}">
                             <div class="form-text">留空表示长期有效</div>
                         </div>
                     </div>
@@ -91,9 +91,9 @@
                     <div class="mb-3">
                         <label class="form-label">适用范围</label>
                         <select class="form-select" name="scope_type">
-                            <option value="all" {if ($template.scope_type|default='all')=='all'}selected{/if}>全部商品</option>
-                            <option value="category" {if ($template.scope_type|default='')=='category'}selected{/if}>指定分类</option>
-                            <option value="content" {if ($template.scope_type|default='')=='content'}selected{/if}>指定商品</option>
+                            <option value="all" {if $template.scope_type=='all'}selected{/if}>全部商品</option>
+                            <option value="category" {if $template.scope_type=='category'}selected{/if}>指定分类</option>
+                            <option value="content" {if $template.scope_type=='content'}selected{/if}>指定商品</option>
                         </select>
                     </div>
 
@@ -101,9 +101,9 @@
                     <div class="mb-3">
                         <label class="form-label">状态</label>
                         <select class="form-select" name="status">
-                            <option value="0" {if ($template.status|default=0)==0}selected{/if}>草稿</option>
-                            <option value="1" {if ($template.status|default=0)==1}selected{/if}>启用</option>
-                            <option value="2" {if ($template.status|default=0)==2}selected{/if}>停用</option>
+                            <option value="0" {if $template.status==0}selected{/if}>草稿</option>
+                            <option value="1" {if $template.status==1}selected{/if}>启用</option>
+                            <option value="2" {if $template.status==2}selected{/if}>停用</option>
                         </select>
                     </div>
 

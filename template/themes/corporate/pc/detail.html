@@ -262,6 +262,11 @@ $('#commentForm').on('submit', function(e) {
         }
     }, 'json');
 });
+</script>
+{/if}
+
+{if condition="config('rating_enabled') !== 0"}
+<script>
 // 加载评价列表和统计
 function loadRatings(page) {
     page = page || 1;
@@ -367,6 +372,6 @@ $('#ratingForm').on('submit', function(e) {
 
 // 初始化加载评价
 loadRatings(1);
-{/if}
 </script>
+{/if}
 {/block}

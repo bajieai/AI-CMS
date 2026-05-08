@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主题预览 - {$theme}</title>
+    <link rel="stylesheet" href="/skin/themes/{$theme}/pc/style.css">
+    <style>
+        :root {
+            {foreach $variables as $key => $value}
+            {$key}: {$value};
+            {/foreach}
+        }
+        body { margin: 0; padding: 0; }
+        .preview-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #1e293b;
+            color: #fff;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .preview-bar span { font-weight: 500; }
+        .preview-bar button {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .preview-bar button:hover { background: #2563eb; }
+        .preview-frame { margin-top: 42px; min-height: calc(100vh - 42px); }
+    </style>
+</head>
+<body>
+    <div class="preview-bar">
+        <span>主题预览：{$theme}</span>
+        <button onclick="window.close()">关闭预览</button>
+    </div>
+    <div class="preview-frame">
+        <iframe src="/" style="width:100%;height:calc(100vh - 42px);border:none;"></iframe>
+    </div>
+</body>
+</html>

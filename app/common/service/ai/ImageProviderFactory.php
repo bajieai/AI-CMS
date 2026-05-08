@@ -43,7 +43,7 @@ class ImageProviderFactory
             case 'flux':
                 return new image\FluxProvider($config);
             case 'dalle':
-                return new image\DallEProvider($config);
+                return new image\DalleProvider($config);
             default:
                 throw new \Exception('不支持的配图Provider: ' . $name);
         }

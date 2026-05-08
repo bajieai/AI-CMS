@@ -49,7 +49,9 @@ class SystemController extends AdminBaseController
                 'security',     // 12. 安全设置
                 'social',       // 13. 社交分享
                 'seo',          // 14. SEO设置
-                'system',       // 15. 系统设置
+                'coupon',       // 15. 优惠券设置
+                'rating',       // 16. 评价设置
+                'system',       // 17. 系统设置
             ];
 
             // 分组中文名称与图标映射
@@ -68,6 +70,8 @@ class SystemController extends AdminBaseController
                 'security'     => '安全设置',
                 'social'       => '社交分享',
                 'seo'          => 'SEO设置',
+                'coupon'       => '优惠券设置',
+                'rating'       => '评价设置',
                 'site'         => '主题设置',
                 'system'       => '系统设置',
             ];
@@ -86,6 +90,8 @@ class SystemController extends AdminBaseController
                 'security'     => 'shield-lock',
                 'social'       => 'share',
                 'seo'          => 'search',
+                'coupon'       => 'ticket-perforated',
+                'rating'       => 'star',
                 'site'         => 'palette2',
                 'system'       => 'sliders2',
             ];

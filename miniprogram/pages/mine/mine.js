@@ -1,11 +1,16 @@
-// V2.8 个人中心页面
+// V2.9 个人中心页面
+const api = require('../../utils/api.js');
+
 Page({
   data: {
     memberInfo: null,
     isLogin: false,
     points: 0,
     signinDays: 0,
-    hasSignedToday: false
+    hasSignedToday: false,
+    couponCount: 0,
+    orderCount: 0,
+    inviteCount: 0,
   },
 
   onShow() {
@@ -29,9 +34,13 @@ Page({
           memberInfo: res.data,
           isLogin: true,
           points: res.data.points || 0,
-          signinDays: res.data.signin_count || 0
+          signinDays: res.data.signin_count || 0,
+          couponCount: res.data.coupon_count || 0,
+          orderCount: res.data.order_count || 0,
+          inviteCount: res.data.invite_count || 0,
         });
         this.checkSigninStatus();
+        this.loadInviteInfo();
       }
     });
   },
@@ -45,6 +54,14 @@ Page({
     });
   },
 
+  loadInviteInfo() {
+    api.getInviteInfo().then(res => {
+      if (res.code === 0) {
+        this.setData({ inviteCount: res.data.invite_count || 0 });
+      }
+    }).catch(() => {});
+  },
+
   // 微信登录
   handleLogin() {
     const app = getApp();
@@ -56,28 +73,36 @@ Page({
     });
   },
 
-  // 签到
-  handleSignin() {
-    if (this.data.hasSignedToday) {
-      wx.showToast({ title: '今日已签到', icon: 'none' });
+  // 前往签到页
+  goSignin() {
+    wx.navigateTo({ url: '/pages/signin/signin' });
+  },
+
+  // 前往优惠券页
+  goCoupon() {
+    if (!this.data.isLogin) {
+      wx.navigateTo({ url: '/pages/login/login' });
       return;
     }
-    const app = getApp();
-    app.request({
-      url: '/member/signin',
-      method: 'POST'
-    }).then(res => {
-      if (res.code === 0) {
-        this.setData({
-          hasSignedToday: true,
-          points: this.data.points + (res.data.points || 0),
-          signinDays: this.data.signinDays + 1
-        });
-        wx.showToast({ title: '签到成功', icon: 'success' });
-      } else {
-        wx.showToast({ title: res.msg, icon: 'none' });
-      }
-    });
+    wx.navigateTo({ url: '/pages/coupon/coupon' });
+  },
+
+  // 前往订单页
+  goOrders() {
+    if (!this.data.isLogin) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/order/order' });
+  },
+
+  // 邀请好友 - V2.9: 跳转独立邀请页
+  handleInvite() {
+    if (!this.data.isLogin) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/invite/invite' });
   },
 
   // 退出登录
@@ -93,9 +118,11 @@ Page({
 
   // 分享
   onShareAppMessage() {
+    const memberId = getApp().globalData.memberId || 0;
     return {
       title: '八界AI-CMS',
-      path: '/pages/index/index'
+      path: `/pages/index/index?invite_by=${memberId}`,
+      imageUrl: '/images/share.png'
     };
   }
 });

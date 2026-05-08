@@ -3,14 +3,14 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
-use app\admin\controller\BaseController;
+use app\common\controller\AdminBaseController;
 use app\common\service\RatingService;
 use think\facade\Request;
 
 /**
  * 评价管理控制器 - V2.9新增
  */
-class RatingController extends BaseController
+class RatingController extends AdminBaseController
 {
     /**
      * 评价列表
@@ -47,7 +47,7 @@ class RatingController extends BaseController
             'avg_rating'=> \app\common\model\ContentRating::where('status', 1)->avg('rating') ?: 0,
         ];
 
-        return $this->view('rating_index', [
+        return $this->view('/rating_index', [
             'list'   => $list,
             'status' => $status,
             'keyword'=> $keyword,
@@ -58,7 +58,7 @@ class RatingController extends BaseController
     /**
      * 查看评价详情
      */
-    public function view()
+    public function detail()
     {
         $id = (int) Request::get('id', 0);
         if (!$id) {
@@ -81,7 +81,7 @@ class RatingController extends BaseController
             $rating->media_urls = json_decode($rating->media_urls, true);
         }
 
-        return $this->view('rating_view', [
+        return $this->view('/rating_view', [
             'rating' => $rating,
         ]);
     }
@@ -164,6 +164,6 @@ class RatingController extends BaseController
             'rating_enabled'          => \app\common\service\ConfigService::get('rating_enabled', 1),
         ];
 
-        return $this->view('rating_settings', ['config' => $config]);
+        return $this->view('/rating_settings', ['config' => $config]);
     }
 }

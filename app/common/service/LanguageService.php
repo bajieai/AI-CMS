@@ -149,6 +149,8 @@ class LanguageService
         }
 
         Cache::tag(self::$cacheTag)->clear();
+        // V2.9: 翻译变更后清除前台页面缓存，确保多语言内容即时生效
+        Cache::tag(CacheService::TAG_PAGE_CACHE)->clear();
         return true;
     }
 
