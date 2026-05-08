@@ -15,8 +15,10 @@ class VisitLog extends Model
     protected $autoWriteTimestamp = false;
 
     protected $type = [
-        'content_id'  => 'integer',
-        'visitor_id'  => 'integer',
-        'visit_time'  => 'integer',
+        'content_id'   => 'integer',
+        'visitor_id'   => 'integer',
+        'visit_time'   => 'integer',
+        'event_type'   => 'string',
+        'share_channel'=> 'string',
     ];
 }

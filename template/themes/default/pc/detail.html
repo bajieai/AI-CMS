@@ -6,6 +6,16 @@
 
 {block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
 
+{block name="meta_extra"}
+<!-- V2.8 OGP社交分享元标签 -->
+<meta property="og:title" content="{$info.seo_title ?: $info.title}">
+<meta property="og:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
+{if condition="$info.cover"}<meta property="og:image" content="{$info.cover}">{/if}
+<meta property="og:type" content="article">
+<meta property="og:url" content="{$site_url}{$Request.url}">
+<meta property="og:site_name" content="{$site_name}">
+{/block}
+
 {block name="content"}
 <section class="py-4">
     <div class="container">
@@ -52,6 +62,25 @@
                     <div class="d-flex align-items-center gap-3 mt-4 mb-3 py-2 border-top border-bottom">
                         <span class="text-muted small"><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 赞</span>
                         <span class="text-muted small"><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
+                    </div>
+                    
+                    <!-- V2.8 社交分享栏 -->
+                    <div class="social-share-bar mb-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">分享到：</span>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-share="wechat" title="微信">
+                                <i class="bi bi-wechat"></i> 微信
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-share="weibo" title="微博">
+                                <i class="bi bi-sina-weibo"></i> 微博
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-share="qq" title="QQ">
+                                <i class="bi bi-tencent-qq"></i> QQ
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-share="copy" title="复制链接">
+                                <i class="bi bi-link-45deg"></i> 复制链接
+                            </button>
+                        </div>
                     </div>
                 </article>
 

@@ -39,22 +39,41 @@
                     <label class="form-label">排序</label>
                     <input type="number" class="form-control" name="sort" value="{$info.sort|default=0}">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_vip" value="1" id="swVip" {if condition="($info.is_vip ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swVip">VIP等级 <i class="bi bi-gem text-warning"></i></label>
+                        <div class="form-text">VIP有效期内免费阅读付费内容</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" name="allow_download" value="1" id="swDownload" {if condition="($info.allow_download ?? 0)==1"}checked{/if}>
                         <label class="form-check-label" for="swDownload">允许下载附件</label>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" name="allow_comment_no_review" value="1" id="swComment" {if condition="($info.allow_comment_no_review ?? 0)==1"}checked{/if}>
                         <label class="form-check-label" for="swComment">评论免审核</label>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" name="is_default" value="1" id="swDefault" {if condition="($info.is_default ?? 0)==1"}checked{/if}>
                         <label class="form-check-label" for="swDefault">设为默认等级</label>
+                    </div>
+                </div>
+            </div>
+            <!-- V2.8 VIP免费阅读范围配置区 -->
+            <div class="row g-3 mt-2" id="vipFreeConfig" style="display:none;">
+                <div class="col-12">
+                    <div class="alert alert-info mb-0">
+                        <h6 class="alert-heading"><i class="bi bi-info-circle me-1"></i>VIP免费阅读范围配置</h6>
+                        <p class="mb-2 small">当前全局配置：
+                            <strong>{if condition="$vip_free_read_mode == 1"}<span class="text-success">全部免费</span>{else/}<span class="text-secondary">不免费（仅折扣/已购）</span>{/if}</strong>
+                        </p>
+                        <p class="mb-0 small text-muted">V2.8仅支持全免费/不免费二元开关，分类级别精细控制将在V3.0提供。如需修改请前往「系统设置 → 系统配置」调整 vip_free_read_mode。</p>
                     </div>
                 </div>
             </div>
@@ -123,6 +142,17 @@
 {block name="js"}
 <script>
 $(function(){
+    // V2.8: VIP等级切换时显示/隐藏免费阅读配置提示
+    function toggleVipConfig() {
+        if($('#swVip').is(':checked')) {
+            $('#vipFreeConfig').show();
+        } else {
+            $('#vipFreeConfig').hide();
+        }
+    }
+    $('#swVip').on('change', toggleVipConfig);
+    toggleVipConfig();
+
     // 图标预览
     $('#iconInput').on('input', function(){
         $('#iconPreview').attr('class', $(this).val());
@@ -141,7 +171,7 @@ $(function(){
         $('#levelForm').serializeArray().forEach(function(item){
             if(item.name === 'id' || item.name === 'min_points' || item.name === 'discount' || item.name === 'sort'){
                 data[item.name] = parseInt(item.value);
-            }else if(item.name === 'allow_download' || item.name === 'allow_comment_no_review' || item.name === 'is_default'){
+            }else if(item.name === 'allow_download' || item.name === 'allow_comment_no_review' || item.name === 'is_default' || item.name === 'is_vip'){
                 data[item.name] = $('#levelForm [name='+item.name+']').is(':checked') ? 1 : 0;
             }else{
                 data[item.name] = item.value;

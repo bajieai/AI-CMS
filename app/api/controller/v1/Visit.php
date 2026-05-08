@@ -51,4 +51,26 @@ class Visit
 
         return json(['code' => 0, 'msg' => 'success', 'data' => $list]);
     }
+
+    /**
+     * 分享统计埋点 - V2.8新增
+     * POST /api/v1/visit/trackShare
+     */
+    public function trackShare(Request $request)
+    {
+        $data = [
+            'content_id' => 0,
+            'visitor_id' => 0,
+            'ip'         => $request->ip(),
+            'ua'         => $request->header('User-Agent', ''),
+            'page_url'   => $request->post('url', ''),
+            'referrer'   => '',
+            'event_type' => 'share',
+            'share_channel' => $request->post('channel', ''),
+        ];
+
+        VisitService::track($data);
+
+        return json(['code' => 0, 'msg' => 'ok']);
+    }
 }

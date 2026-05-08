@@ -29,6 +29,8 @@ class SystemController extends AdminBaseController
             }
             // 移除site分组（主题切换由上方卡片选择器完成，不重复显示）
             unset($groups['site']);
+            // 移除points分组（积分规则有专用管理页 /admin/points_rule/index，避免重复）
+            unset($groups['points']);
 
             // 分组显示顺序（按用户要求：基本设置第1，AI设置第2，会员设置第3）
             // 注意：site分组（主题设置）已移除，主题切换由上方卡片选择器完成
@@ -45,8 +47,9 @@ class SystemController extends AdminBaseController
                 'payment',      // 10. 支付设置
                 'points',       // 11. 积分设置
                 'security',     // 12. 安全设置
-                'seo',          // 13. SEO设置
-                'system',       // 14. 系统设置
+                'social',       // 13. 社交分享
+                'seo',          // 14. SEO设置
+                'system',       // 15. 系统设置
             ];
 
             // 分组中文名称与图标映射
@@ -63,6 +66,7 @@ class SystemController extends AdminBaseController
                 'payment'      => '支付设置',
                 'points'       => '积分设置',
                 'security'     => '安全设置',
+                'social'       => '社交分享',
                 'seo'          => 'SEO设置',
                 'site'         => '主题设置',
                 'system'       => '系统设置',
@@ -80,6 +84,7 @@ class SystemController extends AdminBaseController
                 'payment'      => 'credit-card',
                 'points'       => 'coin',
                 'security'     => 'shield-lock',
+                'social'       => 'share',
                 'seo'          => 'search',
                 'site'         => 'palette2',
                 'system'       => 'sliders2',

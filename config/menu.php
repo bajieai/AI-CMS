@@ -52,6 +52,8 @@ return [
         'children' => [
             ['id' => 51, 'name' => '评论管理', 'url' => '/admin/comment/index', 'permission' => 'comment.*', 'active' => 'comment', 'icon' => 'bi bi-chat-left-text'],
             ['id' => 52, 'name' => '前台会员', 'url' => '/admin/member/index', 'permission' => 'member.*', 'active' => 'member', 'icon' => 'bi bi-person-badge'],
+            // V2.8 邀请排行
+            ['id' => 511, 'name' => '邀请排行', 'url' => '/admin/invite/index', 'permission' => 'invite.*', 'active' => 'invite', 'icon' => 'bi bi-gift'],
             ['id' => 53, 'name' => '付费订单', 'url' => '/admin/paid_order/index', 'permission' => 'paid_order.*', 'active' => 'paid_order', 'icon' => 'bi bi-credit-card'],
             // V2.6 私信系统
             ['id' => 56, 'name' => '系统通知', 'url' => '/admin/message/system', 'permission' => 'message.*', 'active' => 'message_system', 'icon' => 'bi bi-bell'],
@@ -89,6 +91,9 @@ return [
             ['id' => 65, 'name' => '关键词分组', 'url' => '/admin/seo_keyword/group', 'permission' => 'seo_keyword.*', 'active' => 'seo_keyword_group', 'icon' => 'bi bi-folder'],
             ['id' => 62, 'name' => '数据导出', 'url' => '/admin/export/index', 'permission' => 'export.*', 'active' => 'export', 'icon' => 'bi bi-download'],
             ['id' => 63, 'name' => 'API令牌', 'url' => '/admin/token/index', 'permission' => 'token.*', 'active' => 'token', 'icon' => 'bi bi-key'],
+            // V2.8 流量分析与AI统计
+            ['id' => 66, 'name' => '流量分析', 'url' => '/admin/traffic/index', 'permission' => 'traffic.*', 'active' => 'traffic', 'icon' => 'bi bi-graph-up'],
+            ['id' => 67, 'name' => 'AI统计', 'url' => '/admin/aiStat/index', 'permission' => 'ai_stat.*', 'active' => 'ai_stat', 'icon' => 'bi bi-robot'],
         ],
     ],
     // V2.5 内容生态

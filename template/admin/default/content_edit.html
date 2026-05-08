@@ -89,13 +89,33 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">封面图</label>
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span>封面图</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="aiGenerateImage()" id="btnAiImage">
+                                <i class="bi bi-image me-1"></i>AI配图
+                            </button>
+                        </label>
                         <div class="input-group">
                             <input type="text" name="cover" id="coverInput" class="form-control" value="{$info.cover ?? ''}" placeholder="图片URL">
                             <button type="button" class="btn btn-outline-secondary" onclick="uploadCover()"><i class="bi bi-upload"></i></button>
                         </div>
                         <div id="coverPreview" class="mt-2" {if condition="!($info.cover ?? '')"}style="display:none"{/if}>
                             <img src="{$info.cover ?? ''}" class="img-thumbnail" style="max-height:120px">
+                        </div>
+                        <div class="mt-2" id="aiImageArea" style="display:none;">
+                            <div class="d-flex gap-2 flex-wrap" id="aiImageResults"></div>
+                            <div class="mt-1 d-flex gap-2 align-items-center">
+                                <select id="aiImageStyle" class="form-select form-select-sm" style="width:auto;">
+                                    <option value="realistic">写实</option>
+                                    <option value="illustration">插画</option>
+                                    <option value="watercolor">水彩</option>
+                                    <option value="3d_render">3D</option>
+                                    <option value="pixel_art">像素</option>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="aiRegenerateImage()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>重新生成
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -112,19 +132,33 @@
                     </div>
                     <!-- SEO设置 -->
                     <div class="card border-warning mb-3">
-                        <div class="card-header py-2 bg-warning text-dark"><i class="bi bi-search me-1"></i>SEO设置</div>
+                        <div class="card-header py-2 bg-warning text-dark d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-search me-1"></i>SEO设置</span>
+                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="seoOptimize()" id="btnSeo">
+                                <i class="bi bi-magic me-1"></i>一键优化
+                            </button>
+                        </div>
                         <div class="card-body py-2">
                             <div class="mb-2">
                                 <label class="form-label small">SEO标题</label>
-                                <input type="text" name="seo_title" class="form-control form-control-sm" value="{$info.seo_title ?? ''}" placeholder="留空则使用文章标题">
+                                <input type="text" name="seo_title" id="seoTitle" class="form-control form-control-sm" value="{$info.seo_title ?? ''}" placeholder="留空则使用文章标题">
                             </div>
                             <div class="mb-2">
                                 <label class="form-label small">SEO关键词</label>
-                                <input type="text" name="seo_keywords" class="form-control form-control-sm" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用英文逗号分隔">
+                                <input type="text" name="seo_keywords" id="seoKeywords" class="form-control form-control-sm" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用英文逗号分隔">
                             </div>
                             <div class="mb-2">
                                 <label class="form-label small">SEO描述</label>
-                                <textarea name="seo_description" class="form-control form-control-sm" rows="2" placeholder="留空则自动截取摘要">{$info.seo_description ?? ''}</textarea>
+                                <textarea name="seo_description" id="seoDescription" class="form-control form-control-sm" rows="2" placeholder="留空则自动截取摘要">{$info.seo_description ?? ''}</textarea>
+                            </div>
+                            <!-- SEO预览卡片 -->
+                            <div class="border rounded p-2 mt-2" id="seoPreview" style="display:none;">
+                                <small class="text-muted">搜索结果预览：</small>
+                                <div class="mt-1">
+                                    <div class="text-primary small text-truncate" id="previewTitle" style="max-width:500px;"></div>
+                                    <div class="text-success" id="previewUrl" style="font-size:11px;">{$vo.url ?? ''}</div>
+                                    <div class="text-muted" id="previewDescription" style="font-size:12px;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -198,9 +232,9 @@
                         <div class="card-header py-2"><i class="bi bi-robot me-1"></i>AI 辅助</div>
                         <div class="card-body py-2">
                             <div class="mb-2">
-                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿&#10;快捷键：Ctrl+Shift+C续写 / R改写 / E扩写 / U总结"></textarea>
+                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿&#10;快捷键：Ctrl+Shift+C续写 / X改写 / E扩写 / U总结"></textarea>
                             </div>
-                            <div class="d-grid gap-2">
+                            <div class="d-grid gap-2 mb-2">
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="aiGenerate('replace')" id="btnAi">
                                     <i class="bi bi-magic me-1"></i>AI 生成内容
                                 </button>
@@ -213,6 +247,13 @@
                                     </button>
                                 </div>
                             </div>
+                            <!-- V2.8 AI质量检测 -->
+                            <div class="border-top pt-2">
+                                <button type="button" class="btn btn-sm btn-outline-success w-100" onclick="aiQualityCheck()" id="btnQuality">
+                                    <i class="bi bi-check-circle me-1"></i>内容质量检测
+                                </button>
+                                <div class="form-text small">检测可读性/SEO/原创性/结构/吸引力</div>
+                            </div>
                             <div class="mt-2 small text-muted">
                                 <i class="bi bi-keyboard me-1"></i>编辑器内快捷键：
                                 <span class="badge bg-light text-dark border">Ctrl+Shift+C</span> 续写
@@ -221,6 +262,13 @@
                                 <span class="badge bg-light text-dark border">U</span> 总结
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- V2.8 质量提示条（编辑>500字时显示） -->
+                    <div class="alert alert-info alert-dismissible fade show d-none" id="qualityTip" role="alert">
+                        <i class="bi bi-lightbulb me-1"></i>
+                        <strong>提示：</strong>内容已超过500字，建议进行<a href="javascript:;" onclick="aiQualityCheck()" class="alert-link">质量检测</a>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -536,6 +584,282 @@ function startAutoSave() {
 // 编辑器就绪后启动自动保存
 tinymce.activeEditor && startAutoSave();
 setTimeout(startAutoSave, 2000);
+
+// ================= V2.8 SEO一键优化 =================
+// SEO字段实时预览
+$('#seoTitle, #seoKeywords, #seoDescription').on('input', function() {
+    updateSeoPreview();
+});
+
+function updateSeoPreview() {
+    var title = $('#seoTitle').val().trim() || $('[name="title"]').val().trim() || '标题';
+    var description = $('#seoDescription').val().trim() || $('[name="excerpt"]').val().trim() || '描述';
+    var url = window.location.origin + ($('[name="id"]').val() ? '/news/' + $('[name="id"]').val() : '/preview');
+    
+    $('#previewTitle').text(title);
+    $('#previewUrl').text(url);
+    $('#previewDescription').text(description.substring(0, 150));
+    $('#seoPreview').show();
+}
+
+// SEO一键优化
+function seoOptimize() {
+    var content = tinymce.activeEditor.getContent({format: 'text'});
+    var title = $('[name="title"]').val().trim();
+    
+    if (!content) {
+        showToast('请先输入内容', 'warning');
+        return;
+    }
+    
+    var $btn = $('#btnSeo');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>优化中...');
+    
+    var csrfToken = $('input[name="__token__"]').val();
+    $.ajax({
+        url: '/api/ai/seo',
+        type: 'POST',
+        data: { 
+            content: content.substring(0, 2000),
+            title: title,
+            keywords: ''
+        },
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>一键优化');
+            if (res.code === 0 && res.data) {
+                // 自动填充空字段
+                if (!$(#seoTitle').val().trim() && res.data.title) {
+                    $('#seoTitle').val(res.data.title);
+                }
+                if (!$(#seoKeywords').val().trim() && res.data.keywords) {
+                    $('#seoKeywords').val(Array.isArray(res.data.keywords) ? res.data.keywords.join(',') : res.data.keywords);
+                }
+                if (!$(#seoDescription').val().trim() && res.data.description) {
+                    $('#seoDescription').val(res.data.description);
+                }
+                updateSeoPreview();
+                showToast('SEO优化完成', 'success');
+            } else {
+                showToast(res.msg || '优化失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>一键优化');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+// 页面加载后初始化SEO预览
+setTimeout(updateSeoPreview, 500);
+
+// ================= V2.8 AI质量检测 =================
+var qualityCheckTimer = null;
+var lastQualityCheckWordCount = 0;
+
+// 监听编辑器内容变化，>500字显示提示条
+setTimeout(function() {
+    var editor = tinymce.activeEditor;
+    if (editor) {
+        editor.on('keyup', function() {
+            clearTimeout(qualityCheckTimer);
+            qualityCheckTimer = setTimeout(function() {
+                var content = editor.getContent({format: 'text'});
+                var wordCount = content.length;
+                if (wordCount > 500 && wordCount !== lastQualityCheckWordCount) {
+                    $('#qualityTip').removeClass('d-none');
+                    lastQualityCheckWordCount = wordCount;
+                } else if (wordCount <= 500) {
+                    $('#qualityTip').addClass('d-none');
+                }
+            }, 1000); // 防抖1秒
+        });
+    }
+}, 2500);
+
+// V2.8 AI配图生成
+function aiGenerateImage() {
+    var content = tinymce.activeEditor.getContent({format: 'text'});
+    var title = $('[name="title"]').val().trim();
+    var prompt = title || content.substring(0, 100);
+    
+    if (!prompt) {
+        showToast('请先输入标题或内容', 'warning');
+        return;
+    }
+    
+    var $btn = $('#btnAiImage');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>生成中...');
+    
+    callAiImageApi(prompt, false);
+}
+
+function aiRegenerateImage() {
+    var content = tinymce.activeEditor.getContent({format: 'text'});
+    var title = $('[name="title"]').val().trim();
+    var prompt = title || content.substring(0, 100);
+    
+    if (!prompt) {
+        showToast('请先输入标题或内容', 'warning');
+        return;
+    }
+    
+    callAiImageApi(prompt, true);
+}
+
+function callAiImageApi(prompt, regenerate) {
+    var $btn = $('#btnAiImage');
+    var style = $('#aiImageStyle').val() || 'realistic';
+    
+    $.ajax({
+        url: '/api/ai/image',
+        type: 'POST',
+        data: { 
+            prompt: prompt,
+            style: style,
+            regenerate: regenerate ? 1 : 0
+        },
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-image me-1"></i>AI配图');
+            if (res.code === 0 && res.data && res.data.url) {
+                showAiImageResult(res.data);
+            } else {
+                showToast(res.msg || '生成失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-image me-1"></i>AI配图');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+function showAiImageResult(data) {
+    var html = '<div class="position-relative">';
+    html += '<img src="' + data.url + '" class="img-thumbnail" style="max-height:120px;cursor:pointer;" onclick="selectAiImage(\'' + data.url + '\')">';
+    html += '<span class="position-absolute top-0 end-0 badge bg-primary" style="font-size:9px;">' + (data.width || 0) + 'x' + (data.height || 0) + '</span>';
+    html += '</div>';
+    
+    $('#aiImageResults').html(html);
+    $('#aiImageArea').show();
+}
+
+function selectAiImage(url) {
+    $('#coverInput').val(url);
+    $('#coverPreview img').attr('src', url);
+    $('#coverPreview').show();
+    showToast('已选择为封面图', 'success');
+}
+
+// AI质量检测
+function aiQualityCheck() {
+    var editor = tinymce.activeEditor;
+    if (!editor) {
+        showToast('编辑器未就绪', 'warning');
+        return;
+    }
+    var content = editor.getContent({format: 'text'});
+    if (!content.trim()) {
+        showToast('请先输入内容', 'warning');
+        return;
+    }
+    
+    var $btn = $('#btnQuality');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>检测中...');
+    
+    var csrfToken = $('input[name="__token__"]').val();
+    $.ajax({
+        url: '/api/ai/quality',
+        type: 'POST',
+        data: { content: content.substring(0, 3000) }, // 限制长度
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i>内容质量检测');
+            if (res.code === 0 && res.data) {
+                showQualityModal(res.data);
+            } else {
+                showToast(res.msg || '检测失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i>内容质量检测');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+// 显示质量检测结果弹窗
+function showQualityModal(data) {
+    var html = '<div class="modal fade" id="qualityModal" tabindex="-1">';
+    html += '<div class="modal-dialog modal-lg modal-dialog-centered">';
+    html += '<div class="modal-content">';
+    html += '<div class="modal-header">';
+    html += '<h5 class="modal-title"><i class="bi bi-check-circle me-1"></i>内容质量检测结果</h5>';
+    html += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
+    html += '</div>';
+    html += '<div class="modal-body">';
+    
+    // 总分
+    var score = data.overall_score || 0;
+    var scoreClass = score >= 80 ? 'text-success' : (score >= 60 ? 'text-warning' : 'text-danger');
+    html += '<div class="text-center mb-4">';
+    html += '<h1 class="' + scoreClass + '">' + score + '分</h1>';
+    html += '<p class="text-muted">综合质量评分（满分100）</p>';
+    html += '</div>';
+    
+    // 维度评分
+    html += '<div class="row g-3 mb-4">';
+    var dimensions = data.dimensions || {};
+    var dimNames = { readability: '可读性', seo: 'SEO优化', originality: '原创性', structure: '结构完整性', engagement: '吸引力' };
+    for (var key in dimNames) {
+        if (dimensions.hasOwnProperty(key)) {
+            var val = dimensions[key] || 0;
+            var barClass = val >= 80 ? 'bg-success' : (val >= 60 ? 'bg-warning' : 'bg-danger');
+            html += '<div class="col-sm-6 col-md-4">';
+            html += '<div class="border rounded p-2">';
+            html += '<div class="d-flex justify-content-between mb-1">';
+            html += '<small>' + dimNames[key] + '</small>';
+            html += '<small class="' + scoreClass + '">' + val + '分</small>';
+            html += '</div>';
+            html += '<div class="progress" style="height:6px;">';
+            html += '<div class="progress-bar ' + barClass + '" style="width:' + val + '%"></div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+        }
+    }
+    html += '</div>';
+    
+    // 建议
+    if (data.suggestions && data.suggestions.length > 0) {
+        html += '<div class="alert alert-info">';
+        html += '<h6><i class="bi bi-lightbulb me-1"></i>改进建议</h6>';
+        html += '<ul class="mb-0 ps-3">';
+        data.suggestions.forEach(function(s) {
+            html += '<li>' + escapeHtml(s) + '</li>';
+        });
+        html += '</ul>';
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    html += '<div class="modal-footer">';
+    html += '<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">关闭</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    // 移除旧弹窗
+    $('#qualityModal').remove();
+    // 添加新弹窗
+    $('body').append(html);
+    // 显示弹窗
+    var modal = new bootstrap.Modal(document.getElementById('qualityModal'));
+    modal.show();
+}
 
 // ================= V2.7 章节管理组件 =================
 var chapterList = [];

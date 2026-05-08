@@ -21,14 +21,16 @@ class VisitService
     {
         try {
             VisitLog::create([
-                'content_id'  => (int) ($data['content_id'] ?? 0),
-                'visitor_id'  => (int) ($data['visitor_id'] ?? 0),
-                'ip'          => substr($data['ip'] ?? '', 0, 45),
-                'ua'          => substr($data['ua'] ?? '', 0, 500),
-                'page_url'    => substr($data['page_url'] ?? '', 0, 500),
-                'referrer'    => substr($data['referrer'] ?? '', 0, 500),
-                'source_type' => self::detectSource($data['referrer'] ?? ''),
-                'visit_time'  => time(),
+                'content_id'   => (int) ($data['content_id'] ?? 0),
+                'visitor_id'   => (int) ($data['visitor_id'] ?? 0),
+                'ip'           => substr($data['ip'] ?? '', 0, 45),
+                'ua'           => substr($data['ua'] ?? '', 0, 500),
+                'page_url'     => substr($data['page_url'] ?? '', 0, 500),
+                'referrer'     => substr($data['referrer'] ?? '', 0, 500),
+                'source_type'  => self::detectSource($data['referrer'] ?? ''),
+                'event_type'   => substr($data['event_type'] ?? 'visit', 0, 20),
+                'share_channel'=> substr($data['share_channel'] ?? '', 0, 20),
+                'visit_time'   => time(),
             ]);
 
             // 异步更新内容表views（低优先级，失败不影响主流程）

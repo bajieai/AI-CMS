@@ -14,6 +14,59 @@ App({
     }
   },
 
+  // V2.8: 微信登录
+  wxLogin() {
+    const app = this;
+    return new Promise((resolve, reject) => {
+      wx.login({
+        success(res) {
+          if (res.code) {
+            app.request({
+              url: '/auth/wxLogin',
+              method: 'POST',
+              data: { code: res.code }
+            }).then(data => {
+              if (data.code === 0) {
+                wx.setStorageSync('api_token', data.data.token);
+                wx.setStorageSync('member_id', data.data.member_id);
+                app.globalData.token = data.data.token;
+                app.globalData.memberId = data.data.member_id;
+                resolve(data.data);
+              } else {
+                reject(data.msg);
+              }
+            }).catch(reject);
+          } else {
+            reject(res.errMsg);
+          }
+        },
+        fail: reject
+      });
+    });
+  },
+
+  // V2.8: 微信支付
+  wxPay(orderId) {
+    const app = this;
+    return new Promise((resolve, reject) => {
+      app.request({
+        url: '/payment/wxPay',
+        method: 'POST',
+        data: { order_id: orderId }
+      }).then(data => {
+        if (data.code === 0) {
+          wx.requestPayment({
+            ...data.data.payment,
+            success: resolve,
+            fail: reject
+          });
+        } else {
+          reject(data.msg);
+        }
+      }).catch(reject);
+    });
+  },
+
   // 全局请求封装
   request(options) {
     const app = this;

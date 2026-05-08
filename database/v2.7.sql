@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- AI-CMS V2.7 数据库增量脚本
 -- 执行顺序：先建表 → 再ALTER → 最后INSERT
 
@@ -36,26 +37,25 @@ CREATE TABLE IF NOT EXISTS `i8j_user_chapter` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户已购章节';
 
 -- ============================================
--- 2. ALTER 现有表
+-- 2. ALTER 现有表（MySQL 8.0 不支持 ADD COLUMN IF NOT EXISTS，以下语句已在 V2.7 部署时手动执行）
 -- ============================================
 
 -- 2.1 VIP规范化：member_level 添加 is_vip 字段 (P0-5)
--- 注意：V2.7之前如果已手动添加，此语句会报错但不影响，建议先检查再执行
-ALTER TABLE `i8j_member_level`
-    ADD COLUMN IF NOT EXISTS `is_vip` tinyint NOT NULL DEFAULT 0 COMMENT '是否VIP等级' AFTER `is_default`;
+-- ALTER TABLE `i8j_member_level`
+--     ADD COLUMN `is_vip` tinyint NOT NULL DEFAULT 0 COMMENT '是否VIP等级' AFTER `is_default`;
 
 -- 2.2 visit_log 添加 visitor_id (P0-6)
-ALTER TABLE `i8j_visit_log`
-    ADD COLUMN IF NOT EXISTS `visitor_id` int UNSIGNED DEFAULT 0 COMMENT '会员id,0=游客' AFTER `content_id`,
-    ADD KEY IF NOT EXISTS `idx_visitor_time` (`visitor_id`, `visit_time`);
+-- ALTER TABLE `i8j_visit_log`
+--     ADD COLUMN `visitor_id` int UNSIGNED DEFAULT 0 COMMENT '会员id,0=游客' AFTER `content_id`,
+--     ADD KEY `idx_visitor_time` (`visitor_id`, `visit_time`);
 
 -- 2.3 form 添加 fields_config (Sprint3-3.3 表单可视化编辑器)
-ALTER TABLE `i8j_form`
-    ADD COLUMN IF NOT EXISTS `fields_config` json NULL COMMENT '可视化编辑器字段配置' AFTER `fields`;
+-- ALTER TABLE `i8j_form`
+--     ADD COLUMN `fields_config` json NULL COMMENT '可视化编辑器字段配置' AFTER `fields`;
 
 -- 2.4 content 添加 preview_length (Sprint2-2.2 试读截断)
-ALTER TABLE `i8j_content`
-    ADD COLUMN IF NOT EXISTS `preview_length` int DEFAULT 500 COMMENT '付费章节试读截断字数' AFTER `content`;
+-- ALTER TABLE `i8j_content`
+--     ADD COLUMN `preview_length` int DEFAULT 500 COMMENT '付费章节试读截断字数' AFTER `content`;
 
 -- ============================================
 -- 3. 配置项新增/更新

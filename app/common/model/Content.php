@@ -42,6 +42,10 @@ class Content extends Model
         'parent_id' => 'integer',
         'chapter_sort' => 'integer',
         'is_free_chapter' => 'integer',
+        'chapter_price' => 'float',
+        'chapter_count' => 'integer',
+        'chapter_title' => 'string',
+        'quality_score' => 'integer',
         'lang' => 'string',
         'translation_of' => 'integer',
     ];

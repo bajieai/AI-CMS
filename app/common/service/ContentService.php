@@ -339,6 +339,83 @@ class ContentService
     }
 
     /**
+     * V2.8: AI自动生成配图并更新内容封面
+     */
+    public function autoGenerateCover(int $contentId, string $style = 'realistic'): ?string
+    {
+        $content = Content::find($contentId);
+        if (!$content) return null;
+
+        try {
+            $aiService = new AiService();
+            $prompt = $this->buildImagePrompt($content);
+            $result = $aiService->generateImage($prompt, ['style' => $style, 'count' => 1]);
+            if (!empty($result['url'])) {
+                $content->cover = $result['url'];
+                $content->save();
+                return $result['url'];
+            }
+        } catch (\Throwable $e) {
+            \think\facade\Log::warning("AI配图失败 content_id={$contentId}: " . $e->getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * V2.8: 构建AI配图Prompt
+     */
+    protected function buildImagePrompt(Content $content): string
+    {
+        $title = $content->title;
+        $excerpt = mb_substr(strip_tags($content->excerpt ?: $content->content), 0, 200);
+        return "为以下内容生成一张高质量配图，主题：{$title}，内容描述：{$excerpt}";
+    }
+
+    /**
+     * V2.8: AI自动填充SEO元数据
+     */
+    public function autoFillSeo(int $contentId): array
+    {
+        $content = Content::find($contentId);
+        if (!$content) return ['success' => false, 'msg' => '内容不存在'];
+
+        try {
+            $aiService = new AiService();
+            $result = $aiService->seoOptimize($content->title, $content->content);
+
+            $updated = false;
+            if (empty($content->seo_title) && !empty($result['title'])) {
+                $content->seo_title = $result['title'];
+                $updated = true;
+            }
+            if (empty($content->seo_keywords) && !empty($result['keywords'])) {
+                $content->seo_keywords = $result['keywords'];
+                $updated = true;
+            }
+            if (empty($content->seo_description) && !empty($result['description'])) {
+                $content->seo_description = $result['description'];
+                $updated = true;
+            }
+
+            if ($updated) {
+                $content->save();
+            }
+
+            return [
+                'success' => true,
+                'msg'     => 'SEO优化完成',
+                'data'    => [
+                    'seo_title'       => $content->seo_title,
+                    'seo_keywords'    => $content->seo_keywords,
+                    'seo_description' => $content->seo_description,
+                ],
+            ];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'msg' => 'SEO优化失败: ' . $e->getMessage()];
+        }
+    }
+
+    /**
      * 自动保存草稿（AJAX调用）
      */
     public function autoSave(int $id, array $data): array

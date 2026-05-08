@@ -41,7 +41,7 @@ Route::group('v1', function () {
 })->middleware([
     \app\api\middleware\ApiAuth::class,
     \app\api\middleware\ApiMemberAuth::class,
-    \app\api\middleware\PaidContentGuard::class,
+    \app\common\middleware\PaidContentGuard::class,
 ]);
 
 // V2.7 公开API（无需认证）

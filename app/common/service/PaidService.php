@@ -38,7 +38,12 @@ class PaidService
         if ($member && $member->level_id && $member->vip_expire_time > time()) {
             $level = MemberLevel::find($member->level_id);
             if ($level && $level->is_vip) {
-                return true; // VIP有效期内免费
+                // V2.8: VIP免费阅读范围二元开关（0=不免费 1=全部免费）
+                $vipFreeMode = (int) ConfigService::get('vip_free_read_mode', 0);
+                if ($vipFreeMode === 1) {
+                    return true; // 全部免费模式：VIP有效期内免费阅读所有付费内容
+                }
+                // V2.8默认模式(0=不免费)：继续检查折扣或已购买
             }
         }
 
@@ -249,7 +254,11 @@ class PaidService
         if ($member && $member->level_id && $member->vip_expire_time > time()) {
             $level = MemberLevel::find($member->level_id);
             if ($level && $level->is_vip) {
-                return true;
+                // V2.8: VIP免费阅读范围二元开关
+                $vipFreeMode = (int) ConfigService::get('vip_free_read_mode', 0);
+                if ($vipFreeMode === 1) {
+                    return true; // 全部免费模式
+                }
             }
         }
 
