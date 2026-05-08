@@ -56,6 +56,8 @@ class MemberService
         if (!empty($data['invite_code']) && !$needAudit) {
             try {
                 $this->processInviteReward($member->id, $data['invite_code'], request()->ip() ?? '0.0.0.0');
+                // V2.9: 统一入口触发注册奖励（由InviteRewardService处理）
+                InviteRewardService::onMemberEvent($member->id, 'register');
             } catch (\Throwable) {
                 // 邀请处理失败不影响注册流程
             }
@@ -283,7 +285,7 @@ class MemberService
             return;
         }
         
-        // 创建邀请关系
+        // 创建邀请关系（reward_stage=-1 表示未发放任何奖励，由InviteRewardService统一处理）
         $relation = new \app\common\model\InviteLog();
         $relation->save([
             'inviter_id' => $inviterId,
@@ -291,23 +293,11 @@ class MemberService
             'invite_code' => \app\common\model\InviteLog::generateCode($inviteeId),
             'invitee_ip' => $ip,
             'reward_points' => 0,
-            'reward_stage' => 0,
+            'reward_stage' => -1,
             'create_time' => time(),
         ]);
         
-        // 发放邀请人注册奖励积分
-        $invitePoints = (int) ConfigService::get('points_invite_register', 50);
-        if ($invitePoints > 0) {
-            try {
-                PointsService::add($inviterId, $invitePoints, 'invite', $relation->id, '邀请注册奖励');
-                $relation->reward_points += $invitePoints;
-                $relation->reward_stage = 0;
-                $relation->save();
-            } catch (\Throwable) {
-            }
-        }
-        
-        // 发放被邀请人注册奖励积分
+        // 发放被邀请人注册奖励积分（邀请人奖励由InviteRewardService::onMemberEvent统一处理）
         $inviteePoints = (int) ConfigService::get('points_invitee_register', 20);
         if ($inviteePoints > 0) {
             try {

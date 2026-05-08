@@ -85,6 +85,9 @@ class SigninService
 
             Db::commit();
 
+            // V2.9 邀请奖励：首次签到触发邀请人奖励
+            InviteRewardService::onMemberEvent($memberId, 'signin');
+
             return [
                 'points'           => $totalPoints,
                 'base_points'      => $basePoints,

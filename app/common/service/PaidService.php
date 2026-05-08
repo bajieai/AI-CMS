@@ -191,6 +191,9 @@ class PaidService
 
             Db::commit();
 
+            // V2.9 邀请奖励：首次付费触发邀请人奖励
+            InviteRewardService::onMemberEvent($memberId, 'pay');
+
             // V2.7: 消费返积分（积分支付也返）
             $ratio = (float) ConfigService::get('points_consume_ratio', 0);
             if ($ratio > 0 && $order->price > 0) {

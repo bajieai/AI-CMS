@@ -84,6 +84,74 @@
                     </div>
                 </article>
 
+                <!-- 评价区 - V2.9新增 -->
+                {if condition="config('rating_enabled') !== 0"}
+                <section class="mt-4" id="ratingSection">
+                    <h5 class="mb-3"><i class="bi bi-star me-1"></i>评价评分</h5>
+                    
+                    <!-- 评分统计 -->
+                    <div class="row mb-4" id="ratingStats">
+                        <div class="col-md-3 text-center">
+                            <h2 class="text-warning mb-0" id="avgRating">0.0</h2>
+                            <small class="text-muted">平均评分</small>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="mb-1" id="starStats">
+                                <!-- JS动态生成 -->
+                            </div>
+                            <small class="text-muted" id="ratingCount">共0条评价</small>
+                        </div>
+                    </div>
+
+                    <!-- 评价列表 -->
+                    <div id="ratingList"></div>
+                    <nav id="ratingPagination" class="mt-3"></nav>
+
+                    <!-- 提交评价表单 -->
+                    <div class="card mt-4" id="ratingFormCard">
+                        <div class="card-header">发表评价</div>
+                        <div class="card-body">
+                            <form id="ratingForm">
+                                <input type="hidden" name="content_id" value="{$info.id}">
+                                
+                                <!-- 评分 -->
+                                <div class="mb-3">
+                                    <label class="form-label">评分 <span class="text-danger">*</span></label>
+                                    <div class="rating-input">
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="1"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="2"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="3"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="4"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="5"></i>
+                                        <input type="hidden" name="rating" id="ratingValue" value="0" required>
+                                    </div>
+                                </div>
+
+                                <!-- 标题 -->
+                                <div class="mb-3">
+                                    <input type="text" name="title" class="form-control form-control-sm" placeholder="评价标题（可选）">
+                                </div>
+
+                                <!-- 内容 -->
+                                <div class="mb-3">
+                                    <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="分享您的使用体验..."></textarea>
+                                </div>
+
+                                <!-- 匿名评价 -->
+                                {if condition="$isMemberLogin"}
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" name="is_anonymous" id="isAnonymous">
+                                    <label class="form-check-label small" for="isAnonymous">匿名评价</label>
+                                </div>
+                                {/if}
+
+                                <button type="submit" class="btn btn-primary btn-sm">提交评价</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                {/if}
+
                 <!-- 评论区 -->
                 {if condition="config('comment.comment_enabled') !== 0"}
                 <section class="mt-4" id="commentSection">
@@ -194,6 +262,111 @@ $('#commentForm').on('submit', function(e) {
         }
     }, 'json');
 });
+// 加载评价列表和统计
+function loadRatings(page) {
+    page = page || 1;
+    $.get('/api/rating/list', {content_id: {$info.id}, page: page, limit: 10}, function(res) {
+        if (res.code === 1 && res.data) {
+            var html = '';
+            (res.data.list || []).forEach(function(item) {
+                var stars = '';
+                for (var i = 1; i <= 5; i++) {
+                    stars += i <= item.rating ? '★' : '☆';
+                }
+                var nickname = item.is_anonymous ? '匿名用户' : (item.member_nickname || '用户#' + item.member_id);
+                html += '<div class="card mb-2"><div class="card-body"><div class="d-flex justify-content-between mb-2">';
+                html += '<div><strong>' + nickname + '</strong> <span class="text-warning">' + stars + '</span></div>';
+                html += '<small class="text-muted">' + item.create_time + '</small>';
+                html += '</div>';
+                if (item.title) html += '<h6>' + item.title + '</h6>';
+                if (item.content) html += '<p class="mb-2">' + item.content + '</p>';
+                html += '<div class="d-flex align-items-center gap-3"><button class="btn btn-sm btn-outline-secondary" onclick="likeRating(' + item.id + ')"><i class="bi bi-hand-thumbs-up"></i> <span class="like-count">' + (item.like_count || 0) + '</span></button></div>';
+                html += '</div></div>';
+            });
+            $('#ratingList').html(html || '<p class="text-muted">暂无评价</p>');
+            
+            // 分页
+            var total = res.data.total || 0;
+            var totalPages = Math.ceil(total / 10);
+            if (totalPages > 1) {
+                var pageHtml = '<ul class="pagination pagination-sm">';
+                for (var p = 1; p <= totalPages; p++) {
+                    pageHtml += '<li class="page-item ' + (p === page ? 'active' : '') + '"><a class="page-link" href="javascript:;" onclick="loadRatings(' + p + ')">' + p + '</a></li>';
+                }
+                pageHtml += '</ul>';
+                $('#ratingPagination').html(pageHtml);
+            }
+        }
+    }, 'json');
+    
+    // 加载统计
+    $.get('/api/rating/stats', {content_id: {$info.id}}, function(res) {
+        if (res.code === 1 && res.data) {
+            $('#avgRating').text(res.data.average || '0.0');
+            $('#ratingCount').text('共' + (res.data.count || 0) + '条评价');
+            
+            var starHtml = '';
+            for (var i = 5; i >= 1; i--) {
+                var count = res.data.stars[i] || 0;
+                starHtml += '<div class="d-flex align-items-center mb-1"><small class="me-2">' + i + '星</small><div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar bg-warning" style="width:' + (res.data.count > 0 ? (count/res.data.count*100) : 0) + '%"></div></div><small class="ms-2">' + count + '</small></div>';
+            }
+            $('#starStats').html(starHtml);
+        }
+    }, 'json');
+}
+
+// 点赞评价
+function likeRating(ratingId) {
+    $.post('/api/rating/like', {rating_id: ratingId}, function(res) {
+        if (res.code === 1) {
+            loadRatings(1);
+        }
+    }, 'json');
+}
+
+// 评分输入
+$('.rating-input i').css('cursor', 'pointer').css('color', '#e2e8f0');
+$('.rating-input i').hover(function() {
+    var rating = $(this).data('rating');
+    $('.rating-input i').each(function() {
+        $(this).css('color', $(this).data('rating') <= rating ? '#ffc107' : '#e2e8f0');
+    });
+}, function() {
+    var currentRating = $('#ratingValue').val();
+    $('.rating-input i').each(function() {
+        $(this).css('color', $(this).data('rating') <= currentRating ? '#ffc107' : '#e2e8f0');
+    });
+}).click(function() {
+    var rating = $(this).data('rating');
+    $('#ratingValue').val(rating);
+    $('.rating-input i').each(function() {
+        $(this).css('color', $(this).data('rating') <= rating ? '#ffc107' : '#e2e8f0');
+    });
+});
+
+// 提交评价
+$('#ratingForm').on('submit', function(e) {
+    e.preventDefault();
+    var rating = $('#ratingValue').val();
+    if (rating == 0) {
+        showToast('请选择评分', 'warning');
+        return;
+    }
+    $.post('/api/rating/submit', $(this).serialize(), function(res) {
+        if (res.code === 1) {
+            showToast(res.msg || '评价成功', 'success');
+            $('#ratingForm')[0].reset();
+            $('#ratingValue').val(0);
+            $('.rating-input i').css('color', '#e2e8f0');
+            loadRatings(1);
+        } else {
+            showToast(res.msg || '提交失败', 'danger');
+        }
+    }, 'json');
+});
+
+// 初始化加载评价
+loadRatings(1);
 {/if}
 </script>
 {/block}

@@ -136,4 +136,28 @@ class LanguageController extends AdminBaseController
         $this->assign('current_group', $group);
         return $this->view('/language_translate');
     }
+
+    /**
+     * AI批量翻译 - V2.9新增
+     */
+    public function aiTranslate()
+    {
+        $texts  = $this->request->post('texts/a', []);
+        $from   = $this->request->post('from', 'zh');
+        $to     = $this->request->post('to', 'en');
+        $group  = $this->request->post('group', 'common');
+
+        if (empty($texts)) {
+            return json(['code' => 1, 'msg' => '待翻译文本为空']);
+        }
+
+        try {
+            $ai = new \app\common\service\AiService();
+            $result = $ai->translateBatch($texts, $from, $to);
+
+            return json(['code' => 0, 'msg' => '翻译成功', 'data' => $result]);
+        } catch (\Exception $e) {
+            return json(['code' => 1, 'msg' => 'AI翻译失败：' . $e->getMessage()]);
+        }
+    }
 }

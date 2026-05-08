@@ -34,17 +34,61 @@
     <div class="col-lg-5">
         <div class="card"><div class="card-header"><i class="bi bi-rocket-takeoff me-1"></i>开始生成</div><div class="card-body">
             <div class="alert alert-warning small mb-3"><i class="bi bi-exclamation-triangle me-1"></i>任务将在后台异步执行，完成后可在「AI批量生成」中查看结果。</div>
-            <button type="submit" class="btn btn-primary btn-lg w-100" id="startBtn"><i class="bi bi-play-circle me-2"></i>开始批量生成</button>
+            <div class="d-flex gap-2 mb-3">
+                <button type="button" class="btn btn-outline-success flex-1" id="previewBtn"><i class="bi bi-eye me-1"></i>预览单篇效果</button>
+                <button type="submit" class="btn btn-primary flex-1" id="startBtn"><i class="bi bi-play-circle me-2"></i>开始批量生成</button>
+            </div>
             <div class="mt-3 small text-secondary" id="taskStatus" style="display:none;"><div class="d-flex justify-content-between mb-1"><span>任务进度...</span><span id="percentText">0%</span></div>
                 <div class="progress" style="height:18px;"><div class="progress-bar progress-bar-striped progress-bar-animated" id="progressBar" role="progressbar" style="width:0%">0%</div></div>
                 <div class="text-center mt-2" id="statusText"></div></div>
         </div></div>
         {if condition="$template.title_rule || $template.content_rule"}<div class="card mt-3"><div class="card-header"><i class="bi bi-eye me-1"></i>模板规则预览</div><div class="card-body small">{if condition="$template.title_rule"}<div class="mb-2"><strong>标题：</strong>{$template.title_rule}</div>{/if}{if condition="$template.content_rule"}<div class="text-secondary">{$template.content_rule|substr=0,200}{if condition="strlen($template.content_rule)>200"}...{/if}</div>{/if}</div></div>{/if}
     </div></div></form>
+
+<!-- 预览结果模态框（V2.9新增） -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-eye me-2"></i>预览生成效果</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <div>AI正在生成预览，请稍候...</div>
+                </div>
+                <div id="previewError" class="alert alert-danger" style="display:none;"></div>
+                <div id="previewResult" style="display:none;">
+                    <div class="mb-3"><strong>标题：</strong><span id="previewTitle" class="fw-bold"></span></div>
+                    <div class="mb-3"><strong>内容预览：</strong></div>
+                    <div id="previewContent" class="border p-3 rounded" style="max-height:400px;overflow-y:auto;"></div>
+                    <div class="mt-3 small text-secondary">
+                        <span>质量评分：</span><span id="previewScore" class="badge bg-primary">-</span>
+                        <span class="ms-3">字数：</span><span id="previewWords">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {/block}
 
 {block name="js"}
 <script>
+// 预览按钮
+$('#previewBtn').on('click',function(){
+    $('#previewLoading').show();$('#previewError').hide();$('#previewResult').hide();$('#previewModal').modal('show');
+    var fd=new FormData($('#useForm')[0]);fd.append('is_preview','1');
+    $.ajax({url:'/admin/ai_template/preview',type:'POST',data:fd,processData:false,contentType:false,dataType:'json',
+        success:function(r){$('#previewLoading').hide();if(r.code===0&&r.data){$('#previewTitle').text(r.data.title||'（无标题）');$('#previewContent').html(r.data.content||'（无内容）');$('#previewScore').text(r.data.quality_score||'-');$('#previewWords').text((r.data.word_count||0)+'字');$('#previewResult').show();}else{$('#previewError').text(r.msg||'预览失败').show();}},
+        error:function(){$('#previewLoading').hide();$('#previewError').text('网络错误').show();}});
+});
+// 批量生成提交
 $('#useForm').on('submit',function(e){e.preventDefault();var $b=$('#startBtn');$b.prop('disabled',true).html('<span class="spinner-border spinner-border-sm me-2"></span>正在提交...');
 $.ajax({url:$(this).attr('action'),type:'POST',data:new FormData(this),processData:false,contentType:false,dataType:'json',
 success:function(r){if(r.code===0&&r.data&&r.data.task_id)location.href='/admin/ai_template/progress?task_id='+r.data.task_id;else{showToast(r.msg||'失败','danger');$b.prop('disabled',false).html('<i class="bi bi-play-circle me-2"></i>重新提交');}},

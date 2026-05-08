@@ -5,7 +5,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -77,6 +77,9 @@ return [
         'storage.*' => ['admin/storage/config', 'admin/storage/saveConfig'],
         'chapter.*' => ['admin/chapter/index', 'admin/chapter/add', 'admin/chapter/edit', 'admin/chapter/delete', 'admin/chapter/sort'],
         'message.*' => ['admin/message/system', 'admin/message/sendSystem'],
+        // V2.9 新增权限映射
+        'coupon.*' => ['admin/coupon/index', 'admin/coupon/add', 'admin/coupon/edit', 'admin/coupon/delete', 'admin/coupon/issue', 'admin/coupon/records', 'admin/coupon/toggleStatus'],
+        'rating.*' => ['admin/rating/index', 'admin/rating/view', 'admin/rating/approve', 'admin/rating/reject', 'admin/rating/delete', 'admin/rating/settings'],
         'workflow.*' => ['admin/workflow/index', 'admin/workflow/add', 'admin/workflow/edit', 'admin/workflow/delete', 'admin/workflow/records'],
         'oauth.*' => ['admin/oauth_config/index', 'admin/oauth_config/save'],
         'points_product.*' => ['admin/points_product/index', 'admin/points_product/add', 'admin/points_product/edit', 'admin/points_product/delete'],

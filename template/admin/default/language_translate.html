@@ -7,7 +7,7 @@
         <form id="translateForm">
             <div class="row mb-3">
                 <div class="col-md-3">
-                    <label class="form-label">语言</label>
+                    <label class="form-label">目标语言</label>
                     <select class="form-select" name="lang" id="selLang">
                         {volist name="languages" id="v"}
                         <option value="{$v.code}" {if $v.code==$current_lang}selected{/if}>{$v.name}</option>
@@ -22,14 +22,27 @@
                         <option value="backend" {if $current_group=='backend'}selected{/if}>后台</option>
                     </select>
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label">源语言（AI翻译）</label>
+                    <select class="form-select" id="srcLang">
+                        <option value="zh">中文</option>
+                        <option value="en">英语</option>
+                        <option value="auto">自动检测</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-warning" id="btnAiTranslate">
+                        <i class="bi bi-robot"></i> AI 批量翻译
+                    </button>
+                </div>
             </div>
             <table class="table table-bordered">
                 <thead><tr><th>键</th><th>翻译值</th></tr></thead>
                 <tbody>
                 {volist name="translations" id="v"}
                 <tr>
-                    <td>{$key}</td>
-                    <td><input type="text" class="form-control" name="translations[{$key}]" value="{$v}"></td>
+                    <td class="translate-key">{$key}</td>
+                    <td><input type="text" class="form-control translate-value" name="translations[{$key}]" value="{$v}"></td>
                 </tr>
                 {/volist}
                 </tbody>
@@ -41,17 +54,71 @@
 {/block}
 
 {block name="js"}
-{/block}
-{block name="js"}
 <script>
 $('#selLang, #selGroup').on('change', function() {
     location.href = '/admin/language/translate?lang=' + $('#selLang').val() + '&group=' + $('#selGroup').val();
 });
+
 $('#translateForm').on('submit', function(e) {
     e.preventDefault();
     $.post('/admin/language/translate', $(this).serialize(), function(res) {
         if (res.code === 0) alert('保存成功');
         else alert(res.msg);
+    });
+});
+
+// AI 批量翻译
+$('#btnAiTranslate').on('click', function() {
+    var srcLang = $('#srcLang').val();
+    var targetLang = $('#selLang').val();
+    
+    if (srcLang === targetLang) {
+        alert('源语言不能与目标语言相同');
+        return;
+    }
+    
+    if (!confirm('确定使用 AI 批量翻译空翻译项？')) return;
+    
+    // 收集需要翻译的文本
+    var texts = {};
+    $('.translate-key').each(function(idx) {
+        var key = $(this).text().trim();
+        var val = $(this).closest('tr').find('.translate-value').val();
+        if (!val) {
+            texts[key] = key; // 默认用 key 作为待翻译文本
+        }
+    });
+    
+    if (Object.keys(texts).length === 0) {
+        alert('所有条目都已翻译，无需 AI 翻译');
+        return;
+    }
+    
+    $('#btnAiTranslate').prop('disabled', true).html('<i class="bi bi-hourglass"></i> 翻译中...');
+    
+    $.post('/admin/language/aiTranslate', {
+        texts: JSON.stringify(texts),
+        from: srcLang,
+        to: targetLang,
+        group: $('#selGroup').val()
+    }, function(res) {
+        if (res.code === 0 && res.data) {
+            // 填充翻译结果
+            for (var key in res.data) {
+                $('.translate-key').each(function() {
+                    if ($(this).text().trim() === key) {
+                        $(this).closest('tr').find('.translate-value').val(res.data[key]);
+                    }
+                });
+            }
+            alert('AI 翻译完成！请检查后保存。');
+        } else {
+            alert(res.msg || 'AI 翻译失败');
+        }
+        $('#btnAiTranslate').prop('disabled', false).html('<i class="bi bi-robot"></i> AI 批量翻译');
+    }, 'json').fail(function() {
+        alert('AI 翻译请求失败');
+        $('#btnAiTranslate').prop('disabled', false).html('<i class="bi bi-robot"></i> AI 批量翻译');
     });
 });
 </script>

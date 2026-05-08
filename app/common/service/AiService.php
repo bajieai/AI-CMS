@@ -120,6 +120,86 @@ class AiService
     }
 
     /**
+     * 批量翻译 - V2.9新增
+     *
+     * @param array  $texts  待翻译文本数组 ['key1' => 'text1', 'key2' => 'text2']
+     * @param string $from   源语言
+     * @param string $to     目标语言
+     * @return array ['key1' => 'translated1', 'key2' => 'translated2']
+     */
+    public function translateBatch(array $texts, string $from = 'zh', string $to = 'en'): array
+    {
+        if (empty($texts)) {
+            return [];
+        }
+
+        // 构建批量翻译 prompt
+        $prompt = "请将以下JSON中的文本从" . $this->getLangName($from) . "翻译成" . $this->getLangName($to) . "。\n\n";
+        $prompt .= "待翻译文本（JSON格式）：\n";
+        $prompt .= json_encode($texts, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n\n";
+        $prompt .= "请严格按原JSON结构返回翻译结果，保持key不变，仅翻译value。\n";
+        $prompt .= "只返回JSON，不要包含其他文字说明。";
+
+        try {
+            $response = $this->callWithFallback('write', $prompt, [
+                'max_tokens' => 4096,
+                'temperature' => 0.3,
+            ]);
+
+            // 尝试提取 JSON
+            preg_match('/\{.*\}/s', $response, $matches);
+            if (!empty($matches[0])) {
+                $result = json_decode($matches[0], true);
+                if (is_array($result)) {
+                    return $result;
+                }
+            }
+
+            // JSON 解析失败，尝试逐条翻译
+            $result = [];
+            foreach ($texts as $key => $text) {
+                try {
+                    $result[$key] = $this->translate($text, $from, $to);
+                } catch (\Exception) {
+                    $result[$key] = $text; // 翻译失败保留原文
+                }
+            }
+            return $result;
+        } catch (\Exception $e) {
+            // 批量翻译失败，逐条翻译降级
+            $result = [];
+            foreach ($texts as $key => $text) {
+                try {
+                    $result[$key] = $this->translate($text, $from, $to);
+                } catch (\Exception) {
+                    $result[$key] = $text;
+                }
+            }
+            return $result;
+        }
+    }
+
+    /**
+     * 获取语言名称
+     */
+    protected function getLangName(string $code): string
+    {
+        $map = [
+            'zh'    => '中文',
+            'zh-cn' => '简体中文',
+            'zh-tw' => '繁体中文',
+            'en'    => '英语',
+            'ja'    => '日语',
+            'ko'    => '韩语',
+            'fr'    => '法语',
+            'de'    => '德语',
+            'es'    => '西班牙语',
+            'auto'  => '自动检测',
+        ];
+        return $map[$code] ?? $code;
+    }
+
+    /**
      * 摘要生成
      */
     public function summarize(string $text, int $maxLength = 200): string

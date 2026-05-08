@@ -79,6 +79,20 @@ class AiTemplateController extends AdminBaseController
             unset($data['fields_json']);
         }
 
+        // V2.9 新增：处理字段映射JSON
+        if (!empty($data['field_mapping_json'])) {
+            $decoded = json_decode($data['field_mapping_json'], true);
+            $data['field_mapping'] = is_array($decoded) ? $decoded : [];
+            unset($data['field_mapping_json']);
+        }
+
+        // V2.9 新增：处理质量检测配置JSON
+        if (!empty($data['quality_config_json'])) {
+            $decoded = json_decode($data['quality_config_json'], true);
+            $data['quality_config'] = is_array($decoded) ? $decoded : [];
+            unset($data['quality_config_json']);
+        }
+
         if ($id > 0) {
             unset($data['id']);
             $result = AiTemplateService::update($id, $data);
@@ -132,6 +146,38 @@ class AiTemplateController extends AdminBaseController
         ]);
 
         return $this->app->view->fetch('/ai_template_use');
+    }
+
+    /**
+     * 预览生成效果（V2.9新增）
+     */
+    public function preview(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return json(['code' => 1, 'msg' => '请求方式错误']);
+        }
+
+        $templateId = (int) $this->request->param('template_id', 0);
+        if ($templateId <= 0) {
+            return json(['code' => 1, 'msg' => '请选择模板']);
+        }
+
+        $keyword = trim($this->request->param('keywords', ''));
+        if (empty($keyword)) {
+            $keyword = '测试关键词';
+        }
+
+        $params = $this->request->param();
+        // 提取变量
+        $variables = $this->request->param('variables/a', []);
+
+        $result = AiTemplateService::preview($templateId, $keyword, $params);
+
+        if ($result['success']) {
+            return json(['code' => 0, 'data' => $result['data']]);
+        }
+
+        return json(['code' => 1, 'msg' => $result['msg']]);
     }
 
     /**

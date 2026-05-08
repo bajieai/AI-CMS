@@ -433,4 +433,78 @@ class ContentService
 
         return ['success' => true, 'msg' => '自动保存成功', 'time' => date('H:i:s')];
     }
+
+    /**
+     * 解析AI生成的 form_data 并填充到内容表单字段（V2.9 M2新增）
+     *
+     * @param array $formData AI生成的form_data {field_name: value}
+     * @param array $fieldsConfig 模板字段配置（含type信息）
+     * @return array 可直接写入Content模型的字段键值对
+     */
+    public function parseFormData(array $formData, array $fieldsConfig = []): array
+    {
+        if (empty($formData)) {
+            return [];
+        }
+
+        $result = [];
+
+        foreach ($fieldsConfig as $field) {
+            $name = $field['name'] ?? '';
+            if (empty($name) || !isset($formData[$name])) {
+                continue;
+            }
+
+            $type  = $field['type'] ?? 'text';
+            $value = $formData[$name];
+            $processed = $this->processFormFieldValue($value, $type, $field);
+
+            if ($processed !== null) {
+                // 映射到Content模型字段（扩展字段存ContentExt）
+                $contentFields = ['title', 'content', 'excerpt', 'seo_title', 'seo_keywords', 'seo_description', 'source', 'author'];
+                if (in_array($name, $contentFields)) {
+                    $result[$name] = $processed;
+                } else {
+                    // 自定义字段：存到 ext_data 供前台显示
+                    $result['ext_data'][$name] = $processed;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * 按字段类型处理值（类型感知）
+     */
+    private function processFormFieldValue($value, string $type, array $field)
+    {
+        switch ($type) {
+            case 'number':
+                // 数值类型：提取数字，校验范围
+                $num = (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+                $min = $field['min'] ?? null;
+                $max = $field['max'] ?? null;
+                if ($min !== null && $num < $min) return $min;
+                if ($max !== null && $num > $max) return $max;
+                return $num;
+
+            case 'select':
+                // 单选择：校验值是否在可选项中
+                $options = $field['options'] ?? [];
+                if (in_array($value, $options)) {
+                    return $value;
+                }
+                return $options[0] ?? $value;
+
+            case 'date':
+                // 日期类型：标准化格式
+                $timestamp = strtotime($value);
+                return $timestamp ? date('Y-m-d', $timestamp) : $value;
+
+            case 'text':
+            default:
+                return is_string($value) ? strip_tags($value) : (string) $value;
+        }
+    }
 }

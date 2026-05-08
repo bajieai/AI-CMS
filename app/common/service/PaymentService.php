@@ -89,6 +89,64 @@ class PaymentService
     }
 
     /**
+     * 小程序微信支付（JSAPI）
+     * @param int $orderId   订单ID（i8j_paid_order）
+     * @param int $memberId 会员ID
+     * @return array JSAPI参数（timeStamp, nonceStr, package, signType, paySign）
+     */
+    public static function createMiniProgramPay(int $orderId, int $memberId): array
+    {
+        $order = \app\common\model\PaidOrder::find($orderId);
+        if (!$order || $order->member_id != $memberId) {
+            throw new \Exception('订单不存在');
+        }
+        if ($order->status !== 0) {
+            throw new \Exception('订单已处理');
+        }
+
+        $member = \app\common\model\Member::find($memberId);
+        if (!$member) {
+            throw new \Exception('会员不存在');
+        }
+
+        // 获取微信支付小程序配置
+        $config = self::getMiniProgramPayConfig();
+        if (empty($config['app_id']) || empty($config['mch_id']) || empty($config['api_key'])) {
+            throw new \Exception('微信支付小程序配置缺失');
+        }
+
+        $channel = self::getChannel('wechat');
+        if (!$channel) {
+            throw new \Exception('微信支付渠道不可用');
+        }
+
+        // 构造JSAPI支付参数
+        $jsApiParams = $channel->createMiniProgramOrder([
+            'order_sn'  => $order->order_sn,
+            'amount'    => (float) $order->price,
+            'subject'   => mb_substr($order->content_title ?? '付费内容', 0, 32),
+            'openid'   => $member->wx_openid ?? '',
+        ]);
+
+        // 记录支付日志
+        self::logPayment($order->order_sn, 'miniprogram_request', $jsApiParams, []);
+
+        return $jsApiParams;
+    }
+
+    /**
+     * 获取小程序支付配置
+     */
+    private static function getMiniProgramPayConfig(): array
+    {
+        return [
+            'app_id'  => \think\facade\Config::get('wechat.mini_appid', ''),
+            'mch_id'  => \think\facade\Config::get('payment.wechat.mch_id', ''),
+            'api_key' => \think\facade\Config::get('payment.wechat.api_key', ''),
+        ];
+    }
+
+    /**
      * 处理支付回调通知
      */
     public static function handleNotify(string $body, array $headers, string $channel = 'wechat'): bool

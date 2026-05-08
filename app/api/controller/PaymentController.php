@@ -74,6 +74,49 @@ class PaymentController
     }
 
     /**
+     * 微信小程序支付（小程序端调用）
+     * POST /payment/wxPay
+     * Body: {order_id: xxx}
+     */
+    public function wxPay(): \think\Response
+    {
+        $memberId  = $this->getMemberId();
+        $orderId  = (int) $this->request->param('order_id', 0);
+
+        if ($memberId <= 0) {
+            return json(['code' => 1, 'msg' => '请先登录']);
+        }
+        if ($orderId <= 0) {
+            return json(['code' => 1, 'msg' => '订单ID错误']);
+        }
+
+        try {
+            $result = \app\common\service\PaymentService::createMiniProgramPay($orderId, $memberId);
+            return json(['code' => 0, 'data' => ['payment' => $result]]);
+        } catch (\Exception $e) {
+            Log::error('[PaymentController::wxPay] ' . $e->getMessage());
+            return json(['code' => 1, 'msg' => '支付下单失败：' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * 从Token中获取会员ID
+     */
+    protected function getMemberId(): int
+    {
+        $token = $this->request->header('Authorization', '');
+        if (preg_match('/Bearer\s+(.*)$/i', $token, $matches)) {
+            $token = $matches[1];
+        }
+        if (empty($token)) {
+            return 0;
+        }
+        $cacheKey = 'api_token:' . $token;
+        $cached   = cache($cacheKey);
+        return (int) ($cached['member_id'] ?? 0);
+    }
+
+    /**
      * 验证码获取
      */
     public function captcha(): \think\Response

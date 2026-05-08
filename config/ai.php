@@ -38,4 +38,33 @@ return [
             'system_prompt' => '你是一个专业的内容编辑助手。请为以下内容生成一段简洁的摘要，不超过200字。',
         ],
     ],
+
+    // ==================== AI配图配置（V2.9补全Flux/DALL-E） ====================
+    'image' => [
+        'default_provider'  => env('ai.image.default', 'tongyi_wanxiang'),
+        'fallback_provider' => env('ai.image.fallback', 'flux'),
+        'timeout'           => (int) env('ai.image.timeout', 30),
+        'providers'        => [
+            'tongyi_wanxiang' => [
+                'enabled'  => (bool) env('ai.image.tongyi.enabled', true),
+                'api_key' => env('ai.image.tongyi.api_key', ''),
+                'model'   => env('ai.image.tongyi.model', 'wanx-v1'),
+                'timeout'  => (int) env('ai.image.tongyi.timeout', 15),
+            ],
+            'flux' => [
+                'enabled'  => (bool) env('ai.image.flux.enabled', false),
+                'api_key' => env('ai.image.flux.api_key', ''),
+                'model'   => env('ai.image.flux.model', 'flux-pro'),
+                'timeout'  => (int) env('ai.image.flux.timeout', 30),
+                'steps'   => (int) env('ai.image.flux.steps', 25),
+            ],
+            'dalle' => [
+                'enabled'  => (bool) env('ai.image.dalle.enabled', false),
+                'api_key' => env('ai.image.dalle.api_key', ''),
+                'model'   => env('ai.image.dalle.model', 'dall-e-3'),
+                'base_url' => env('ai.image.dalle.base_url', 'https://api.openai.com/v1'),
+                'timeout'  => (int) env('ai.image.dalle.timeout', 30),
+            ],
+        ],
+    ],
 ];

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评价详情 - 后台管理</title>
+    <link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/lib/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/admin.css" rel="stylesheet">
+    <style>
+        .rating-stars { color: #ffc107; font-size: 1.2em; }
+        .media-preview { max-width: 200px; max-height: 200px; margin: 5px; }
+    </style>
+</head>
+<body>
+{{include file="layout" /}}
+
+<main class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-star"></i> 评价详情 #{{$rating.id}}</h5>
+                    <a href="/admin/rating/index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- 评价信息 -->
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="120">ID</th>
+                            <td>{{$rating.id}}</td>
+                        </tr>
+                        <tr>
+                            <th>内容</th>
+                            <td>
+                                <a href="/home/content/view?id={{$rating.content_id}}" target="_blank">
+                                    {{$rating.content_title ?? '内容#'.$rating.content_id}}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>评分</th>
+                            <td>
+                                <div class="rating-stars">
+                                    {{for i=1 to=$rating.rating}}
+                                    <i class="bi bi-star-fill"></i>
+                                    {{/for}}
+                                    {{for i=$rating.rating+1 to=5}}
+                                    <i class="bi bi-star"></i>
+                                    {{/for}}
+                                    <span class="ms-2">{{$rating.rating}} 分</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>评价标题</th>
+                            <td>{{$rating.title ?: '-'}}</td>
+                        </tr>
+                        <tr>
+                            <th>评价内容</th>
+                            <td>{{$rating.content ?: '-'}}</td>
+                        </tr>
+                        <tr>
+                            <th>评价会员</th>
+                            <td>
+                                {{if $rating.is_anonymous}}
+                                <span class="text-muted">匿名用户</span>
+                                {{else /}}
+                                <a href="/admin/member/edit?id={{$rating.member_id}}">
+                                    {{$rating.member_nickname ?? '会员#'.$rating.member_id}}
+                                </a>
+                                {{/if}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>点赞数</th>
+                            <td><span class="badge bg-secondary">{{$rating.like_count ?? 0}}</span></td>
+                        </tr>
+                        <tr>
+                            <th>回复数</th>
+                            <td><span class="badge bg-info">{{$rating.reply_count ?? 0}}</span></td>
+                        </tr>
+                        <tr>
+                            <th>有媒体</th>
+                            <td>
+                                {{if $rating.has_media}}
+                                <span class="badge bg-success">是</span>
+                                {{else /}}
+                                <span class="badge bg-secondary">否</span>
+                                {{/if}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>状态</th>
+                            <td>
+                                {{switch $rating.status}}
+                                {{case 0}}
+                                <span class="badge bg-warning">待审核</span>
+                                {{break /}}
+                                {{case 1}}
+                                <span class="badge bg-success">已通过</span>
+                                {{break /}}
+                                {{case 2}}
+                                <span class="badge bg-danger">已拒绝</span>
+                                {{break /}}
+                                {{/switch}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>创建时间</th>
+                            <td>{{date('Y-m-d H:i:s', $rating.create_time)}}</td>
+                        </tr>
+                        <tr>
+                            <th>更新时间</th>
+                            <td>{{$rating.update_time ? date('Y-m-d H:i:s', $rating.update_time) : '-'}}</td>
+                        </tr>
+                    </table>
+
+                    <!-- 媒体文件 -->
+                    {{if $rating.has_media and $rating.media_urls}}
+                    <div class="mt-3">
+                        <h6>媒体文件</h6>
+                        <div class="d-flex flex-wrap">
+                            {{foreach $rating.media_urls as $url}}
+                            <a href="{{$url}}" target="_blank">
+                                {{if in_array(strtolower(pathinfo($url, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp'])}}
+                                <img src="{{$url}}" class="media-preview rounded">
+                                {{else /}}
+                                <span class="badge bg-primary m-1">{{$url}}</span>
+                                {{/if}}
+                            </a>
+                            {{/foreach}}
+                        </div>
+                    </div>
+                    {{/if}}
+
+                    <!-- 操作按钮 -->
+                    <div class="mt-4">
+                        {{if $rating.status == 0}}
+                        <button onclick="approveRating({{$rating.id}})" class="btn btn-success">
+                            <i class="bi bi-check"></i> 通过
+                        </button>
+                        <button onclick="rejectRating({{$rating.id}})" class="btn btn-warning">
+                            <i class="bi bi-x"></i> 拒绝
+                        </button>
+                        {{/if}}
+                        <button onclick="deleteRating({{$rating.id}})" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> 删除
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- 快捷操作 -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">快捷操作</h6>
+                </div>
+                <div class="card-body">
+                    <a href="/admin/rating/index?status=0" class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-hourglass"></i> 待审核评价
+                    </a>
+                    <a href="/admin/rating/index?status=1" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-check-circle"></i> 已通过评价
+                    </a>
+                    <a href="/admin/content/edit?id={{$rating.content_id}}" class="btn btn-info w-100">
+                        <i class="bi bi-pencil"></i> 编辑内容
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script>
+function approveRating(id) {
+    if (!confirm('确定通过此评价？')) return;
+    fetch('/admin/rating/approve', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + id + '&__token__=' + (document.querySelector('meta[name="csrf-token"]')?.content || '')
+    }).then(r => r.json()).then(res => {
+        if (res.code === 1) {
+            location.reload();
+        } else {
+            alert(res.msg || '操作失败');
+        }
+    });
+}
+
+function rejectRating(id) {
+    if (!confirm('确定拒绝此评价？')) return;
+    fetch('/admin/rating/reject', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + id + '&__token__=' + (document.querySelector('meta[name="csrf-token"]')?.content || '')
+    }).then(r => r.json()).then(res => {
+        if (res.code === 1) {
+            location.reload();
+        } else {
+            alert(res.msg || '操作失败');
+        }
+    });
+}
+
+function deleteRating(id) {
+    if (!confirm('确定删除此评价？删除后不可恢复！')) return;
+    fetch('/admin/rating/delete', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + id + '&__token__=' + (document.querySelector('meta[name="csrf-token"]')?.content || '')
+    }).then(r => r.json()).then(res => {
+        if (res.code === 1) {
+            window.location.href = '/admin/rating/index';
+        } else {
+            alert(res.msg || '删除失败');
+        }
+    });
+}
+</script>
+</body>
+</html>

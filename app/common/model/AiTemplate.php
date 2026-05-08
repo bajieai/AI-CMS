@@ -16,16 +16,18 @@ class AiTemplate extends Model
     protected $updateTime = 'update_time';
 
     protected $type = [
-        'id'             => 'integer',
-        'generate_mode'  => 'string',
-        'cate_id'        => 'integer',
-        'model_id'       => 'integer',
-        'style'          => 'string',
-        'fields_config'  => 'json',
-        'image_config'   => 'json',
-        'default_batch'  => 'integer',
-        'status'         => 'integer',
-        'sort'           => 'integer',
+        'id'              => 'integer',
+        'generate_mode'   => 'string',
+        'cate_id'         => 'integer',
+        'model_id'        => 'integer',
+        'style'           => 'string',
+        'fields_config'   => 'json',
+        'image_config'    => 'json',
+        'field_mapping'   => 'json',     // V2.9新增：字段映射规则
+        'quality_config'  => 'json',     // V2.9新增：质量检测配置
+        'default_batch'   => 'integer',
+        'status'          => 'integer',
+        'sort'            => 'integer',
     ];
 
     /**
@@ -99,5 +101,76 @@ class AiTemplate extends Model
         ], $config) : [
             'thumb' => '0', 'images' => '0', 'count' => 0, 'source' => '0',
         ];
+    }
+
+    /**
+     * 解析 field_mapping 为数组（V2.9新增）
+     * 结构: {mappings:[{ai_output_field, cms_field, transform_rule}], variables:[{name, default}], image_config_override:{}}
+     */
+    public function getFieldMappingArrayAttr($value, $data): array
+    {
+        $mapping = $data['field_mapping'] ?? null;
+        if (empty($mapping)) {
+            return [
+                'mappings'            => [],
+                'variables'            => [],
+                'image_config_override' => [],
+            ];
+        }
+
+        if (is_string($mapping)) {
+            $decoded = json_decode($mapping, true);
+            if (!is_array($decoded)) {
+                return ['mappings' => [], 'variables' => [], 'image_config_override' => []];
+            }
+            return array_merge([
+                'mappings'             => [],
+                'variables'             => [],
+                'image_config_override' => [],
+            ], $decoded);
+        }
+
+        return array_merge([
+            'mappings'             => [],
+            'variables'             => [],
+            'image_config_override' => [],
+        ], is_array($mapping) ? $mapping : []);
+    }
+
+    /**
+     * 解析 quality_config 为数组（V2.9新增）
+     * 结构: {min_score, max_retry, action_on_low_quality, check_items}
+     */
+    public function getQualityConfigArrayAttr($value, $data): array
+    {
+        $config = $data['quality_config'] ?? null;
+        if (empty($config)) {
+            return [
+                'min_score'               => 70,
+                'max_retry'               => 2,
+                'action_on_low_quality'    => 'notify',  // notify/auto_retry/reject
+                'check_items'              => ['spelling', 'readability', 'seo'],
+            ];
+        }
+
+        if (is_string($config)) {
+            $decoded = json_decode($config, true);
+            if (!is_array($decoded)) {
+                return ['min_score' => 70, 'max_retry' => 2, 'action_on_low_quality' => 'notify', 'check_items' => ['spelling', 'readability', 'seo']];
+            }
+            return array_merge([
+                'min_score'              => 70,
+                'max_retry'              => 2,
+                'action_on_low_quality'  => 'notify',
+                'check_items'            => ['spelling', 'readability', 'seo'],
+            ], $decoded);
+        }
+
+        return array_merge([
+            'min_score'              => 70,
+            'max_retry'              => 2,
+            'action_on_low_quality'  => 'notify',
+            'check_items'            => ['spelling', 'readability', 'seo'],
+        ], is_array($config) ? $config : []);
     }
 }

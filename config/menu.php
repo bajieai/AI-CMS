@@ -42,6 +42,8 @@ return [
             ['id' => 36, 'name' => '广告管理', 'url' => '/admin/ad/index', 'permission' => 'ad.*', 'active' => 'ad', 'icon' => 'bi bi-badge-ad'],
             // V2.6 表单管理从系统设置迁移至此
             ['id' => 47, 'name' => '表单管理', 'url' => '/admin/form/index', 'permission' => 'form.*', 'active' => 'form', 'icon' => 'bi bi-card-checklist'],
+            // V2.9 优惠券管理
+            ['id' => 48, 'name' => '优惠券', 'url' => '/admin/coupon/index', 'permission' => 'coupon.*', 'active' => 'coupon', 'icon' => 'bi bi-ticket-perforated'],
         ],
     ],
     [
@@ -51,6 +53,8 @@ return [
         'url' => '',
         'children' => [
             ['id' => 51, 'name' => '评论管理', 'url' => '/admin/comment/index', 'permission' => 'comment.*', 'active' => 'comment', 'icon' => 'bi bi-chat-left-text'],
+            // V2.9 评价管理
+            ['id' => 513, 'name' => '评价管理', 'url' => '/admin/rating/index', 'permission' => 'rating.*', 'active' => 'rating', 'icon' => 'bi bi-star'],
             ['id' => 52, 'name' => '前台会员', 'url' => '/admin/member/index', 'permission' => 'member.*', 'active' => 'member', 'icon' => 'bi bi-person-badge'],
             // V2.8 邀请排行
             ['id' => 511, 'name' => '邀请排行', 'url' => '/admin/invite/index', 'permission' => 'invite.*', 'active' => 'invite', 'icon' => 'bi bi-gift'],

@@ -27,6 +27,7 @@
     <ul class="nav nav-tabs-custom border-bottom mb-3" role="tablist">
         <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-basic"><i class="bi bi-info-circle me-1"></i>基本信息</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-rules"><i class="bi bi-code-slash me-1"></i>生成规则</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-mapping"><i class="bi bi-arrow-left-right me-1"></i>字段映射</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-image"><i class="bi bi-image me-1"></i>配图发布</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-example"><i class="bi bi-bookmark-star me-1"></i>参考示例</a></li>
     </ul>
@@ -256,7 +257,127 @@
             </div>
         </div>
 
-        <!-- Tab4: 参考示例 -->
+        <!-- Tab4: 字段映射（V2.9新增） -->
+        <div class="tab-pane fade" id="tab-mapping">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-info small">
+                        <i class="bi bi-lightbulb me-1"></i>
+                        <strong>字段映射</strong>：让AI按结构化格式输出，并自动映射到CMS字段（如title/content/seo_title等）。
+                        适用于需要精确控制输出字段的场景。
+                    </div>
+
+                    <!-- 字段映射规则 -->
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <label class="form-label mb-0 fw-bold"><i class="bi bi-arrow-left-right me-1"></i>字段映射规则</label>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMapping()">
+                            <i class="bi bi-plus-lg me-1"></i>添加映射
+                        </button>
+                    </div>
+                    <div id="mappingContainer" class="mb-4">
+                        {php}$mappingData = isset($template) ? $template->field_mapping_array : ['mappings'=>[],'variables'=>[],'image_config_override'=>[]];{/php}
+                        {if condition="!empty($mappingData['mappings'])"}
+                        {volist name="mappingData['mappings']" id="m"}
+                        <div class="mapping-row row g-2 mb-2 align-items-center">
+                            <div class="col-md-3"><input type="text" class="form-control form-control-sm map-ai-field" placeholder="AI输出字段名" value="{$m.ai_output_field|default=''}"></div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm map-cms-field">
+                                    <option value="title" {if condition="$m.cms_field=='title'"}selected{/if}>title（标题）</option>
+                                    <option value="content" {if condition="$m.cms_field=='content'"}selected{/if}>content（正文）</option>
+                                    <option value="seo_title" {if condition="$m.cms_field=='seo_title'"}selected{/if}>seo_title（SEO标题）</option>
+                                    <option value="seo_keywords" {if condition="$m.cms_field=='seo_keywords'"}selected{/if}>seo_keywords（SEO关键词）</option>
+                                    <option value="seo_description" {if condition="$m.cms_field=='seo_description'"}selected{/if}>seo_description（SEO描述）</option>
+                                    <option value="summary" {if condition="$m.cms_field=='summary'"}selected{/if}>summary（摘要）</option>
+                                    <option value="tags" {if condition="$m.cms_field=='tags'"}selected{/if}>tags（标签）</option>
+                                    <option value="source" {if condition="$m.cms_field=='source'"}selected{/if}>source（来源）</option>
+                                    <option value="author" {if condition="$m.cms_field=='author'"}selected{/if}>author（作者）</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm map-transform">
+                                    <option value="none" {if condition="($m.transform_rule ?? 'none')=='none'"}selected{/if}>不转换</option>
+                                    <option value="strip_html" {if condition="($m.transform_rule ?? '')=='strip_html'"}selected{/if}>去除HTML标签</option>
+                                    <option value="truncate_100" {if condition="($m.transform_rule ?? '')=='truncate_100'"}selected{/if}>截取前100字</option>
+                                    <option value="truncate_200" {if condition="($m.transform_rule ?? '')=='truncate_200'"}selected{/if}>截取前200字</option>
+                                    <option value="to_seo_keywords" {if condition="($m.transform_rule ?? '')=='to_seo_keywords'"}selected{/if}>转SEO关键词(JSON)</option>
+                                    <option value="extract_summary" {if condition="($m.transform_rule ?? '')=='extract_summary'"}selected{/if}>提取摘要(前150字)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2"><input type="text" class="form-control form-control-sm map-default" placeholder="默认值" value="{$m.default_value|default=''}"></div>
+                            <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest('.mapping-row').remove()"><i class="bi bi-x-lg"></i></button></div>
+                        </div>
+                        {/volist}
+                        {else /}
+                        <div class="text-center py-3 text-secondary small" id="mappingEmptyHint">
+                            <i class="bi bi-info-circle me-1"></i>暂无字段映射，点击上方按钮添加
+                        </div>
+                        {/if}
+                    </div>
+
+                    <!-- 模板变量 -->
+                    <hr class="my-3">
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <label class="form-label mb-0 fw-bold"><i class="bi bi-code me-1"></i>模板变量</label>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="addVariable()">
+                            <i class="bi bi-plus-lg me-1"></i>添加变量
+                        </button>
+                    </div>
+                    <div id="variableContainer" class="mb-3">
+                        {if condition="!empty($mappingData['variables'])"}
+                        {volist name="mappingData['variables']" id="v"}
+                        <div class="variable-row row g-2 mb-2 align-items-center">
+                            <div class="col-md-4"><input type="text" class="form-control form-control-sm var-name" placeholder="变量名（如: category_name）" value="{$v.name|default=''}"></div>
+                            <div class="col-md-6"><input type="text" class="form-control form-control-sm var-default" placeholder="默认值" value="{$v.default|default=''}"></div>
+                            <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest('.variable-row').remove()"><i class="bi bi-x-lg"></i></button></div>
+                        </div>
+                        {/volist}
+                        {else /}
+                        <div class="text-center py-2 text-secondary small" id="variableEmptyHint">暂无变量，点击上方按钮添加</div>
+                        {/if}
+                    </div>
+                    <div class="form-text small">变量可在标题规则、内容规则中使用 <code>{变量名}</code> 引用，如 <code>{site_name}</code>、<code>{category_name}</code>、<code>{date}</code></div>
+
+                    <!-- 质量检测配置 -->
+                    <hr class="my-3">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2"></i>质量检测配置</h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">最低质量分数</label>
+                            <input type="number" name="quality_config[min_score]" class="form-control form-control-sm"
+                                   min="0" max="100" value="{$template.quality_config_array.min_score|default=70}">
+                            <div class="form-text">低于此分数触发对应行为</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">最大重试次数</label>
+                            <input type="number" name="quality_config[max_retry]" class="form-control form-control-sm"
+                                   min="0" max="5" value="{$template.quality_config_array.max_retry|default=2}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">质量不达标时</label>
+                            <select name="quality_config[action_on_low_quality]" class="form-select form-select-sm">
+                                <option value="notify" {if condition="($template.quality_config_array.action_on_low_quality ?? 'notify')=='notify'"}selected{/if}>仅通知</option>
+                                <option value="auto_retry" {if condition="($template.quality_config_array.action_on_low_quality ?? '')=='auto_retry'"}selected{/if}>自动重试</option>
+                                <option value="reject" {if condition="($template.quality_config_array.action_on_low_quality ?? '')=='reject'"}selected{/if}>拒绝并标记</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">检测项目</label>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" name="quality_config[check_items][]" value="spelling" id="chkSpelling"
+                                {if condition="in_array('spelling', $template.quality_config_array.check_items ?? ['spelling'])"}checked{/if}>
+                                <label class="form-check-label small" for="chkSpelling">拼写检查</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" name="quality_config[check_items][]" value="readability" id="chkReadability"
+                                {if condition="in_array('readability', $template.quality_config_array.check_items ?? ['readability'])"}checked{/if}>
+                                <label class="form-check-label small" for="chkReadability">可读性</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" name="quality_config[check_items][]" value="seo" id="chkSeo"
+                                {if condition="in_array('seo', $template.quality_config_array.check_items ?? ['seo'])"}checked{/if}>
+                                <label class="form-check-label small" for="chkSeo">SEO优化</label></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab5: 参考示例 -->
         <div class="tab-pane fade" id="tab-example">
             <div class="card">
                 <div class="card-body">
@@ -310,10 +431,52 @@ function addField() {
     $('#fieldsContainer').append(html);
 }
 
+// 字段映射规则动态增删
+function addMapping() {
+    $('#mappingEmptyHint').remove();
+    var html = '<div class="mapping-row row g-2 mb-2 align-items-center">' +
+        '<div class="col-md-3"><input type="text" class="form-control form-control-sm map-ai-field" placeholder="AI输出字段名(如:title)"></div>' +
+        '<div class="col-md-3"><select class="form-select form-select-sm map-cms-field">' +
+        '<option value="title">title（标题）</option>' +
+        '<option value="content">content（正文）</option>' +
+        '<option value="seo_title">seo_title（SEO标题）</option>' +
+        '<option value="seo_keywords">seo_keywords（SEO关键词）</option>' +
+        '<option value="seo_description">seo_description（SEO描述）</option>' +
+        '<option value="summary">summary（摘要）</option>' +
+        '<option value="tags">tags（标签）</option>' +
+        '<option value="source">source（来源）</option>' +
+        '<option value="author">author（作者）</option>' +
+        '</select></div>' +
+        '<div class="col-md-3"><select class="form-select form-select-sm map-transform">' +
+        '<option value="none">不转换</option>' +
+        '<option value="strip_html">去除HTML标签</option>' +
+        '<option value="truncate_100">截取前100字</option>' +
+        '<option value="truncate_200">截取前200字</option>' +
+        '<option value="to_seo_keywords">转SEO关键词(JSON)</option>' +
+        '<option value="extract_summary">提取摘要(前150字)</option>' +
+        '</select></div>' +
+        '<div class="col-md-2"><input type="text" class="form-control form-control-sm map-default" placeholder="默认值"></div>' +
+        '<div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.mapping-row\').remove()"><i class="bi bi-x-lg"></i></button></div>' +
+        '</div>';
+    $('#mappingContainer').append(html);
+}
+
+// 模板变量动态增删
+function addVariable() {
+    $('#variableEmptyHint').remove();
+    var html = '<div class="variable-row row g-2 mb-2 align-items-center">' +
+        '<div class="col-md-4"><input type="text" class="form-control form-control-sm var-name" placeholder="变量名（如: category_name）"></div>' +
+        '<div class="col-md-6"><input type="text" class="form-control form-control-sm var-default" placeholder="默认值"></div>' +
+        '<div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.variable-row\').remove()"><i class="bi bi-x-lg"></i></button></div>' +
+        '</div>';
+    $('#variableContainer').append(html);
+}
+
 // 表单提交
 $('#templateForm').on('submit', function(e) {
     e.preventDefault();
-    // 收集自定义字段为JSON数组
+
+    // 收集自定义字段
     var fields = [];
     $('.field-row').each(function() {
         var name = $(this).find('.field-name').val();
@@ -326,12 +489,45 @@ $('#templateForm').on('submit', function(e) {
         }
     });
 
+    // 收集字段映射规则
+    var mappings = [];
+    $('.mapping-row').each(function() {
+        var aiField = $(this).find('.map-ai-field').val();
+        var cmsField = $(this).find('.map-cms-field').val();
+        if (aiField && cmsField) {
+            mappings.push({
+                ai_output_field: aiField,
+                cms_field: cmsField,
+                transform_rule: $(this).find('.map-transform').val(),
+                default_value: $(this).find('.map-default').val()
+            });
+        }
+    });
+
+    // 收集模板变量
+    var variables = [];
+    $('.variable-row').each(function() {
+        var name = $(this).find('.var-name').val();
+        if (name) {
+            variables.push({
+                name: name,
+                default: $(this).find('.var-default').val()
+            });
+        }
+    });
+
+    // 构建 field_mapping JSON
+    var fieldMapping = {
+        mappings: mappings,
+        variables: variables,
+        image_config_override: {}
+    };
+
     // 构建POST数据
     var formData = $(this).serializeArray();
     formData.push({ name: 'fields_json', value: JSON.stringify(fields) });
-
-    // 转换 image_config 为扁平结构
-    // （ThinkPHP已支持数组参数解析）
+    formData.push({ name: 'field_mapping_json', value: JSON.stringify(fieldMapping) });
+    formData.push({ name: 'quality_config_json', value: JSON.stringify(collectQualityConfig()) });
 
     ajaxPost($(this).attr('action'), formData, function(res) {
         if (res.data && res.data.redirect) {
@@ -341,5 +537,19 @@ $('#templateForm').on('submit', function(e) {
         }
     });
 });
+
+// 收集质量检测配置
+function collectQualityConfig() {
+    var checkItems = [];
+    $('input[name="quality_config[check_items][]"]:checked').each(function() {
+        checkItems.push($(this).val());
+    });
+    return {
+        min_score: $('input[name="quality_config[min_score]"]').val() || 70,
+        max_retry: $('input[name="quality_config[max_retry]"]').val() || 2,
+        action_on_low_quality: $('select[name="quality_config[action_on_low_quality]"]').val() || 'notify',
+        check_items: checkItems.length ? checkItems : ['spelling', 'readability', 'seo']
+    };
+}
 </script>
 {/block}
