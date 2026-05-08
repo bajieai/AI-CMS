@@ -53,6 +53,25 @@
                         <span class="text-muted small"><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 赞</span>
                         <span class="text-muted small"><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
                     </div>
+                    
+                    <!-- V2.8 社交分享栏 -->
+                    <div class="social-share-bar mb-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">分享到：</span>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-share="wechat" title="微信">
+                                <i class="bi bi-wechat"></i> 微信
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-share="weibo" title="微博">
+                                <i class="bi bi-sina-weibo"></i> 微博
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-share="qq" title="QQ">
+                                <i class="bi bi-tencent-qq"></i> QQ
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-share="copy" title="复制链接">
+                                <i class="bi bi-link-45deg"></i> 复制链接
+                            </button>
+                        </div>
+                    </div>
                 </article>
 
                 <!-- 评论区 -->

@@ -81,6 +81,53 @@ class MemberController extends FrontBaseController
     }
 
     /**
+     * V2.8: 我的邀请（邀请返积分）
+     */
+    public function invite()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $memberId = $this->memberInfo['id'];
+        
+        // 生成或获取邀请码
+        $inviteCode = \app\common\model\InviteLog::where('inviter_id', $memberId)->value('invite_code');
+        if (!$inviteCode) {
+            $inviteCode = \app\common\model\InviteLog::generateCode($memberId);
+            // 创建一条自引用记录作为邀请码持有者
+            $log = new \app\common\model\InviteLog();
+            $log->save([
+                'inviter_id' => $memberId,
+                'invitee_id' => 0,
+                'invite_code' => $inviteCode,
+                'invitee_ip' => '',
+                'reward_points' => 0,
+                'reward_stage' => 0,
+                'create_time' => time(),
+            ]);
+        }
+        
+        // 邀请统计
+        $inviteCount = \app\common\model\InviteLog::where('inviter_id', $memberId)->where('invitee_id', '>', 0)->count();
+        $invitePoints = \app\common\model\InviteLog::where('inviter_id', $memberId)->sum('reward_points') ?? 0;
+        
+        // 邀请列表
+        $inviteList = \app\common\model\InviteLog::where('inviter_id', $memberId)
+            ->where('invitee_id', '>', 0)
+            ->order('id', 'desc')
+            ->limit(20)
+            ->select();
+
+        return $this->view('/member_invite', [
+            'invite_code' => $inviteCode,
+            'invite_count' => $inviteCount,
+            'invite_points' => $invitePoints,
+            'invite_list' => $inviteList,
+        ]);
+    }
+
+    /**
      * V2.7: 我的积分
      */
     public function points()

@@ -52,6 +52,15 @@ class MemberService
             }
         }
 
+        // V2.8: 邀请返积分处理
+        if (!empty($data['invite_code']) && !$needAudit) {
+            try {
+                $this->processInviteReward($member->id, $data['invite_code'], $request->ip() ?? '0.0.0.0');
+            } catch (\Throwable) {
+                // 邀请处理失败不影响注册流程
+            }
+        }
+
         $msg = $needAudit ? '注册成功，请等待管理员审核' : '注册成功';
         return ['success' => true, 'msg' => $msg, 'data' => ['id' => $member->id]];
     }
@@ -244,5 +253,67 @@ class MemberService
         }
 
         return ['success' => true, 'msg' => $isNew ? '添加成功' : '更新成功', 'data' => ['id' => $member->id]];
+    }
+
+    /**
+     * V2.8: 处理邀请奖励
+     */
+    protected function processInviteReward(int $inviteeId, string $inviteCode, string $ip): void
+    {
+        $inviteRelation = \app\common\model\InviteLog::getByCode($inviteCode);
+        if (!$inviteRelation) {
+            return;
+        }
+        
+        $inviterId = $inviteRelation->inviter_id;
+        
+        // 防止自邀
+        if ($inviterId === $inviteeId) {
+            return;
+        }
+        
+        // 检查是否已邀请过
+        if (\app\common\model\InviteLog::where('inviter_id', $inviterId)->where('invitee_id', $inviteeId)->find()) {
+            return;
+        }
+        
+        // 防刷：同IP限3次
+        $ipCount = \app\common\model\InviteLog::where('invitee_ip', $ip)->count();
+        if ($ipCount >= 3) {
+            return;
+        }
+        
+        // 创建邀请关系
+        $relation = new \app\common\model\InviteLog();
+        $relation->save([
+            'inviter_id' => $inviterId,
+            'invitee_id' => $inviteeId,
+            'invite_code' => \app\common\model\InviteLog::generateCode($inviteeId),
+            'invitee_ip' => $ip,
+            'reward_points' => 0,
+            'reward_stage' => 0,
+            'create_time' => time(),
+        ]);
+        
+        // 发放邀请人注册奖励积分
+        $invitePoints = (int) ConfigService::get('points_invite_register', 50);
+        if ($invitePoints > 0) {
+            try {
+                PointsService::add($inviterId, $invitePoints, 'invite', $relation->id, '邀请注册奖励');
+                $relation->reward_points += $invitePoints;
+                $relation->reward_stage = 0;
+                $relation->save();
+            } catch (\Throwable) {
+            }
+        }
+        
+        // 发放被邀请人注册奖励积分
+        $inviteePoints = (int) ConfigService::get('points_invitee_register', 20);
+        if ($inviteePoints > 0) {
+            try {
+                PointsService::add($inviteeId, $inviteePoints, 'invited', $relation->id, '被邀请注册奖励');
+            } catch (\Throwable) {
+            }
+        }
     }
 }
