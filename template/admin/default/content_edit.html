@@ -112,19 +112,33 @@
                     </div>
                     <!-- SEO设置 -->
                     <div class="card border-warning mb-3">
-                        <div class="card-header py-2 bg-warning text-dark"><i class="bi bi-search me-1"></i>SEO设置</div>
+                        <div class="card-header py-2 bg-warning text-dark d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-search me-1"></i>SEO设置</span>
+                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="seoOptimize()" id="btnSeo">
+                                <i class="bi bi-magic me-1"></i>一键优化
+                            </button>
+                        </div>
                         <div class="card-body py-2">
                             <div class="mb-2">
                                 <label class="form-label small">SEO标题</label>
-                                <input type="text" name="seo_title" class="form-control form-control-sm" value="{$info.seo_title ?? ''}" placeholder="留空则使用文章标题">
+                                <input type="text" name="seo_title" id="seoTitle" class="form-control form-control-sm" value="{$info.seo_title ?? ''}" placeholder="留空则使用文章标题">
                             </div>
                             <div class="mb-2">
                                 <label class="form-label small">SEO关键词</label>
-                                <input type="text" name="seo_keywords" class="form-control form-control-sm" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用英文逗号分隔">
+                                <input type="text" name="seo_keywords" id="seoKeywords" class="form-control form-control-sm" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用英文逗号分隔">
                             </div>
                             <div class="mb-2">
                                 <label class="form-label small">SEO描述</label>
-                                <textarea name="seo_description" class="form-control form-control-sm" rows="2" placeholder="留空则自动截取摘要">{$info.seo_description ?? ''}</textarea>
+                                <textarea name="seo_description" id="seoDescription" class="form-control form-control-sm" rows="2" placeholder="留空则自动截取摘要">{$info.seo_description ?? ''}</textarea>
+                            </div>
+                            <!-- SEO预览卡片 -->
+                            <div class="border rounded p-2 mt-2" id="seoPreview" style="display:none;">
+                                <small class="text-muted">搜索结果预览：</small>
+                                <div class="mt-1">
+                                    <div class="text-primary small text-truncate" id="previewTitle" style="max-width:500px;"></div>
+                                    <div class="text-success" id="previewUrl" style="font-size:11px;">{$vo.url ?? ''}</div>
+                                    <div class="text-muted" id="previewDescription" style="font-size:12px;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -550,6 +564,75 @@ function startAutoSave() {
 // 编辑器就绪后启动自动保存
 tinymce.activeEditor && startAutoSave();
 setTimeout(startAutoSave, 2000);
+
+// ================= V2.8 SEO一键优化 =================
+// SEO字段实时预览
+$('#seoTitle, #seoKeywords, #seoDescription').on('input', function() {
+    updateSeoPreview();
+});
+
+function updateSeoPreview() {
+    var title = $('#seoTitle').val().trim() || $('[name="title"]').val().trim() || '标题';
+    var description = $('#seoDescription').val().trim() || $('[name="excerpt"]').val().trim() || '描述';
+    var url = window.location.origin + ($('[name="id"]').val() ? '/news/' + $('[name="id"]').val() : '/preview');
+    
+    $('#previewTitle').text(title);
+    $('#previewUrl').text(url);
+    $('#previewDescription').text(description.substring(0, 150));
+    $('#seoPreview').show();
+}
+
+// SEO一键优化
+function seoOptimize() {
+    var content = tinymce.activeEditor.getContent({format: 'text'});
+    var title = $('[name="title"]').val().trim();
+    
+    if (!content) {
+        showToast('请先输入内容', 'warning');
+        return;
+    }
+    
+    var $btn = $('#btnSeo');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>优化中...');
+    
+    var csrfToken = $('input[name="__token__"]').val();
+    $.ajax({
+        url: '/api/ai/seo',
+        type: 'POST',
+        data: { 
+            content: content.substring(0, 2000),
+            title: title,
+            keywords: ''
+        },
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>一键优化');
+            if (res.code === 0 && res.data) {
+                // 自动填充空字段
+                if (!$(#seoTitle').val().trim() && res.data.title) {
+                    $('#seoTitle').val(res.data.title);
+                }
+                if (!$(#seoKeywords').val().trim() && res.data.keywords) {
+                    $('#seoKeywords').val(Array.isArray(res.data.keywords) ? res.data.keywords.join(',') : res.data.keywords);
+                }
+                if (!$(#seoDescription').val().trim() && res.data.description) {
+                    $('#seoDescription').val(res.data.description);
+                }
+                updateSeoPreview();
+                showToast('SEO优化完成', 'success');
+            } else {
+                showToast(res.msg || '优化失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>一键优化');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+// 页面加载后初始化SEO预览
+setTimeout(updateSeoPreview, 500);
 
 // ================= V2.8 AI质量检测 =================
 var qualityCheckTimer = null;
