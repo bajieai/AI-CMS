@@ -180,6 +180,61 @@
         </div>
     </div>
 </div>
+
+<!-- V2.8 运营报表：收入趋势 + 会员增长 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card" style="border:none;box-shadow:var(--card-shadow)">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
+                <span><i class="bi bi-cash-stack me-1" style="color:#43e97b"></i>收入趋势</span>
+                <button class="btn btn-sm btn-outline-success" onclick="exportRevenueExcel()"><i class="bi bi-file-earmark-excel me-1"></i>导出Excel</button>
+            </div>
+            <div class="card-body p-3">
+                <div id="revenueChart" style="height:280px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card" style="border:none;box-shadow:var(--card-shadow)">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
+                <span><i class="bi bi-people me-1" style="color:#4facfe"></i>会员增长</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="exportMemberExcel()"><i class="bi bi-file-earmark-excel me-1"></i>导出</button>
+            </div>
+            <div class="card-body p-3">
+                <div id="memberChart" style="height:280px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V2.8 内容排行 Top20 -->
+<div class="row g-3">
+    <div class="col-12">
+        <div class="card" style="border:none;box-shadow:var(--card-shadow)">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
+                <span><i class="bi bi-trophy me-1" style="color:#f5576c"></i>内容浏览排行 Top20</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="exportRankExcel()"><i class="bi bi-file-earmark-excel me-1"></i>导出Excel</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50">排名</th>
+                            <th>标题</th>
+                            <th width="80">分类</th>
+                            <th width="70">浏览</th>
+                            <th width="70">点赞</th>
+                            <th width="70">评论</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topContent20">
+                        <tr><td colspan="6" class="text-center text-muted py-4">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {/block}
 
 {block name="js"}
@@ -263,9 +318,68 @@ $(function(){
         $('#topContent').html(html);
     });
 
+    // V2.8 收入趋势图
+    var revenueChart = echarts.init(document.getElementById('revenueChart'));
+    $.get('/admin/dashboard/getRevenueStats?days=30', function(d){
+        if(d.code !== 0) return;
+        var dates=[], revenue=[], orders=[];
+        $.each(d.data.list || [], function(i,v){ dates.push(v.date); revenue.push(v.revenue); orders.push(v.orders); });
+        revenueChart.setOption({
+            tooltip:{trigger:'axis'},
+            legend:{data:['收入','订单数'],top:0},
+            grid:{left:'3%',right:'4%',bottom:'3%',containLabel:true},
+            xAxis:{type:'category',data:dates,boundaryGap:false},
+            yAxis:[{type:'value',name:'收入(元)'},{type:'value',name:'订单'}],
+            series:[
+                {name:'收入',type:'line',data:revenue,smooth:true,lineStyle:{width:3},areaStyle:{opacity:.15},itemStyle:{color:'#43e97b'}},
+                {name:'订单数',type:'bar',data:orders,yAxisIndex:1,itemStyle:{color:'#667eea',borderRadius:[4,4,0,0]}}
+            ]
+        });
+    });
+
+    // V2.8 会员增长图
+    var memberChart = echarts.init(document.getElementById('memberChart'));
+    $.get('/admin/dashboard/getMemberGrowth?days=30', function(d){
+        if(d.code !== 0) return;
+        var dates=[], daily=[], total=[];
+        $.each(d.data.list || [], function(i,v){ dates.push(v.date); daily.push(v.daily); total.push(v.total); });
+        memberChart.setOption({
+            tooltip:{trigger:'axis'},
+            legend:{data:['日新增','累计'],top:0},
+            grid:{left:'3%',right:'4%',bottom:'3%',containLabel:true},
+            xAxis:{type:'category',data:dates,boundaryGap:false},
+            yAxis:[{type:'value',name:'日新增'},{type:'value',name:'累计'}],
+            series:[
+                {name:'日新增',type:'bar',data:daily,itemStyle:{color:'#4facfe',borderRadius:[4,4,0,0]}},
+                {name:'累计',type:'line',data:total,smooth:true,lineStyle:{width:3},itemStyle:{color:'#f5576c'}}
+            ]
+        });
+    });
+
+    // V2.8 Top20内容排行
+    $.get('/admin/dashboard/getContentRankData?limit=20', function(d){
+        if(d.code !== 0) return;
+        var html='';
+        $.each(d.data || [], function(i,v){
+            html+='<tr><td><span class="badge '+(i<3?'bg-danger':'bg-light text-dark border')+' rounded-pill px-2">'+(i+1)+'</span></td>'
+                +'<td class="text-truncate" style="max-width:300px"><a href="/admin/content/edit/'+v.id+'" class="text-decoration-none">'+v.title+'</a></td>'
+                +'<td><span class="badge bg-light text-dark border">'+(v.cate_name || '未分类')+'</span></td>'
+                +'<td>'+v.views+'</td><td>'+(v.like_count || 0)+'</td><td>'+(v.comment_count || 0)+'</td></tr>';
+        });
+        if(!html) html='<tr><td colspan="6" class="text-center text-muted py-3">暂无数据</td></tr>';
+        $('#topContent20').html(html);
+    });
+
+    // V2.8 Excel导出
+    function exportRevenueExcel(){ window.open('/admin/dashboard/exportExcel?type=revenue&days=30','_blank'); }
+    function exportMemberExcel(){ window.open('/admin/dashboard/exportExcel?type=member&days=30','_blank'); }
+    function exportRankExcel(){ window.open('/admin/dashboard/exportExcel?type=rank&limit=20','_blank'); }
+
     $(window).resize(function(){
         trendChart.resize();
         cateChart.resize();
+        revenueChart.resize();
+        memberChart.resize();
     });
 });
 </script>

@@ -1,0 +1,90 @@
+.category-page {
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.cate-tabs {
+  white-space: nowrap;
+  background: #fff;
+  padding: 10rpx 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.cate-tab {
+  display: inline-block;
+  padding: 12rpx 28rpx;
+  margin-right: 16rpx;
+  font-size: 28rpx;
+  color: #666;
+  border-radius: 32rpx;
+  background: #f5f5f5;
+}
+
+.cate-tab.active {
+  color: #fff;
+  background: #07c160;
+}
+
+.content-list {
+  padding: 20rpx;
+}
+
+.content-card {
+  display: flex;
+  background: #fff;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.content-card .cover {
+  width: 200rpx;
+  height: 160rpx;
+  flex-shrink: 0;
+}
+
+.content-card .info {
+  flex: 1;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.content-card .title {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.content-card .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+.content-card .cate {
+  font-size: 24rpx;
+  color: #07c160;
+  background: rgba(7,193,96,0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.content-card .views {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.load-more {
+  text-align: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 26rpx;
+}

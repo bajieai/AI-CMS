@@ -1,0 +1,41 @@
+<view class="category-page">
+  <!-- 分类标签栏 -->
+  <scroll-view scroll-x class="cate-tabs" enhanced show-scrollbar="false">
+    <view
+      wx:for="{{cates}}"
+      wx:key="id"
+      class="cate-tab {{currentCate === item.id ? 'active' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="switchCate"
+    >
+      {{item.name}}
+    </view>
+  </scroll-view>
+
+  <!-- 内容列表 -->
+  <view class="content-list">
+    <view
+      wx:for="{{list}}"
+      wx:key="id"
+      class="content-card"
+      data-id="{{item.id}}"
+      bindtap="goDetail"
+    >
+      <image wx:if="{{item.cover}}" class="cover" src="{{item.cover}}" mode="aspectFill" />
+      <view class="info">
+        <text class="title">{{item.title}}</text>
+        <view class="meta">
+          <text class="cate" wx:if="{{item.cate_name}}">{{item.cate_name}}</text>
+          <text class="views">{{item.views}} 阅读</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="load-more">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:elif="{{!hasMore && list.length > 0}}">已经到底了</text>
+    <text wx:elif="{{list.length === 0 && !loading}}">暂无内容</text>
+  </view>
+</view>

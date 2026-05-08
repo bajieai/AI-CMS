@@ -526,4 +526,33 @@ class ContentController extends AdminBaseController
         $this->recordLog('版本回滚', $content->title . ' => 版本#' . $versionId);
         return $this->success('回滚成功', ['redirect' => '/admin/content/edit/' . $content->id]);
     }
+
+    /**
+     * V2.8: 批量SEO优化（AI自动填充空SEO字段）
+     */
+    public function batchSeoOptimize()
+    {
+        $ids = $this->request->post('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $service = new ContentService();
+        $success = 0;
+        $fail = 0;
+
+        foreach ($ids as $id) {
+            $result = $service->autoFillSeo((int) $id);
+            if ($result['success']) {
+                $success++;
+            } else {
+                $fail++;
+            }
+        }
+
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+        $this->recordLog('批量SEO优化', "成功:{$success}, 失败:{$fail}");
+        return $this->success("批量SEO优化完成，成功 {$success} 条，失败 {$fail} 条");
+    }
 }

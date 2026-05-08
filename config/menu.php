@@ -52,6 +52,8 @@ return [
         'children' => [
             ['id' => 51, 'name' => '评论管理', 'url' => '/admin/comment/index', 'permission' => 'comment.*', 'active' => 'comment', 'icon' => 'bi bi-chat-left-text'],
             ['id' => 52, 'name' => '前台会员', 'url' => '/admin/member/index', 'permission' => 'member.*', 'active' => 'member', 'icon' => 'bi bi-person-badge'],
+            // V2.8 邀请排行
+            ['id' => 511, 'name' => '邀请排行', 'url' => '/admin/invite/index', 'permission' => 'invite.*', 'active' => 'invite', 'icon' => 'bi bi-gift'],
             ['id' => 53, 'name' => '付费订单', 'url' => '/admin/paid_order/index', 'permission' => 'paid_order.*', 'active' => 'paid_order', 'icon' => 'bi bi-credit-card'],
             // V2.6 私信系统
             ['id' => 56, 'name' => '系统通知', 'url' => '/admin/message/system', 'permission' => 'message.*', 'active' => 'message_system', 'icon' => 'bi bi-bell'],

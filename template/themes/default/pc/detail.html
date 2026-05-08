@@ -6,6 +6,16 @@
 
 {block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
 
+{block name="meta_extra"}
+<!-- V2.8 OGP社交分享元标签 -->
+<meta property="og:title" content="{$info.seo_title ?: $info.title}">
+<meta property="og:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
+{if condition="$info.cover"}<meta property="og:image" content="{$info.cover}">{/if}
+<meta property="og:type" content="article">
+<meta property="og:url" content="{$site_url}{$Request.url}">
+<meta property="og:site_name" content="{$site_name}">
+{/block}
+
 {block name="content"}
 <section class="py-4">
     <div class="container">
