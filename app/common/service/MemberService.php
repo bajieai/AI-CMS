@@ -55,7 +55,7 @@ class MemberService
         // V2.8: 邀请返积分处理
         if (!empty($data['invite_code']) && !$needAudit) {
             try {
-                $this->processInviteReward($member->id, $data['invite_code'], $request->ip() ?? '0.0.0.0');
+                $this->processInviteReward($member->id, $data['invite_code'], request()->ip() ?? '0.0.0.0');
             } catch (\Throwable) {
                 // 邀请处理失败不影响注册流程
             }

@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.7
+# 八界AI-CMS V2.8
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.7.0-blue)
+![Version](https://img.shields.io/badge/version-2.8.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.7 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.7 在V2.6基础上完成API安全加固、付费内容体系完善、积分生态闭环和运营体验升级，标志着产品进入商业变现+安全合规的成熟阶段。
+八界AI-CMS V2.8 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.8 在V2.7基础上完成AI能力升级（配图/质量检测/SEO优化）、运营数据分析体系、社交互动与会员增长闭环，标志着产品进入AI驱动+数据运营的智能化阶段。
 
 ### 核心特性
 
@@ -59,6 +59,19 @@
 - **模板变量注入** - `$skin_admin`(后台) / `$skin`(前台) 自动注入CSS路径变量
 - **Nginx配置更新** - deploy/nginx + docker/nginx 添加 `/skin/` 路径支持
 - **调试文件清理** - 移除调试临时文件，.gitignore增强忽略规则
+
+### V2.8 新增特性
+
+- **AI配图生成** - 通义万相Provider+ImageProviderFactory工厂模式，编辑器一键AI生成封面图
+- **AI内容质量检测** - 5维度评分(可读性/SEO/原创性/结构/吸引力)+改进建议，编辑器实时提示
+- **AI SEO优化助手** - 一键优化SEO标题/关键词/描述，搜索引擎结果预览卡片
+- **运营数据报表中心** - Dashboard ECharts可视化图表，内容/PV/收入/趋势多维分析
+- **流量分析看板** - 来源分析/设备分布/24小时时段/受访页面排行，ECharts交互图表
+- **AI生成统计** - 生成趋势/Provider消耗占比/任务类型/质量分布，量化AI投入产出
+- **VIP免费阅读范围** - 后台配置VIP会员免费阅读模式(0=不免费/1=全部免费)
+- **社交分享** - 微信/微博/QQ分享按钮+OGP Meta+分享统计埋点
+- **邀请返积分** - 邀请码+注册奖励+IP防刷(限3次)+邀请排行/明细，会员增长闭环
+- **权限配置完善** - 新增traffic/ai_stat/invite三组权限映射，非超管角色可正常访问
 
 ### V2.7 新增特性
 
@@ -194,7 +207,8 @@ AI-CMS/
 │   ├── install.sql             #   建表SQL+初始数据
 │   ├── v2.5.sql                #   V2.5增量更新
 │   ├── v2.6.sql                #   V2.6增量更新
-│   └── v2.7.sql                #   V2.7增量更新
+│   ├── v2.7.sql                #   V2.7增量更新
+│   └── v2.8.sql                #   V2.8增量更新
 ├── miniprogram/                # 微信小程序
 │   ├── pages/                  #   页面(index/detail/search/login)
 │   └── utils/                  #   工具(API封装)
@@ -242,6 +256,7 @@ AI-CMS/
 | i8j_user_chapter | 用户已购章节 | id,user_id,content_id,chapter_id,price |
 | i8j_signin_log | 签到记录 | id,member_id,signin_date,points,consecutive_days |
 | i8j_points_log | 积分变动日志 | id,member_id,points,type,source_id,note |
+| i8j_invite_relation | 邀请关系表 | id,inviter_id,invitee_id,invite_code,invitee_ip,reward_points,reward_stage |
 
 ## 角色权限
 
@@ -316,6 +331,7 @@ AI-CMS/
 | V2.5.1 | 2025-Q3 | 微信支付V3/AI批量生成/多AI模型/采集/多平台发布/邮件/Redis缓存 |
 | V2.6.0 | 2025-Q4 | CSS静态资源分离/PJAX核心修复/数据导入修复 |
 | V2.7.0 | 2026-Q1 | API安全加固/付费章节/积分签到/表单编辑器/搜索增强/CDN集成 |
+| V2.8.0 | 2026-Q2 | AI配图/质量检测/SEO优化/运营报表/流量分析/AI统计/社交分享/邀请返积分 |
 
 ## 默认账户
 

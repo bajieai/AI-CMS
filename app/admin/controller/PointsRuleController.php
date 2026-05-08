@@ -38,7 +38,11 @@ class PointsRuleController extends AdminBaseController
 
         try {
             foreach ($rules as $key => $value) {
-                ConfigService::set($key, (int) $value, 'points');
+                // 保留小数支持（如 points_consume_ratio=0.1），整数配置也兼容
+                $typedValue = is_numeric($value) && strpos(strval($value), '.') !== false
+                    ? (float) $value
+                    : (int) $value;
+                ConfigService::set($key, $typedValue, 'points');
             }
             Cache::tag(CacheService::TAG_CONFIG)->clear();
             return json(['code' => 0, 'msg' => '保存成功']);

@@ -82,5 +82,9 @@ return [
         'points_product.*' => ['admin/points_product/index', 'admin/points_product/add', 'admin/points_product/edit', 'admin/points_product/delete'],
         'points_exchange.*' => ['admin/points_exchange/index', 'admin/points_exchange/audit', 'admin/points_exchange/detail'],
         'ai_template.*' => ['admin/ai_template/index', 'admin/ai_template/edit', 'admin/ai_template/delete', 'admin/ai_template/use', 'admin/ai_template/progress'],
+        // V2.8 新增权限映射
+        'traffic.*' => ['admin/traffic/index', 'admin/traffic/getSourceStats', 'admin/traffic/getDeviceStats', 'admin/traffic/getHourlyStats', 'admin/traffic/getPageRank'],
+        'ai_stat.*' => ['admin/aiStat/index', 'admin/aiStat/getGenerateTrend', 'admin/aiStat/getProviderStats', 'admin/aiStat/getTaskTypeStats', 'admin/aiStat/getQualityDistribution'],
+        'invite.*' => ['admin/invite/index', 'admin/invite/detail'],
     ],
 ];
