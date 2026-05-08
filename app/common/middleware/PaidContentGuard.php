@@ -1,15 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace app\api\middleware;
+namespace app\common\middleware;
 
 use app\common\service\PaidService;
 use think\Response;
 
 /**
- * 付费内容API二级防护中间件 - V2.7 P0-3
+ * 付费内容二级防护中间件 - V2.7 P0-3
  * 对标记为付费的内容路由追加权限检查
  * 注意：此中间件只做检查并注入权限信息，不直接阻断（让控制器灵活处理预览/拦截逻辑）
+ * 位置：从api/middleware移至common/middleware（V2.8修复）
  */
 class PaidContentGuard
 {
@@ -38,7 +39,7 @@ class PaidContentGuard
     }
 
     /**
-     * 检查内容访问权限
+     * 检查内容访问权限（静态方法，供API和前台控制器共用）
      * @return array ['has_access' => bool, 'price' => float, 'type' => string]
      */
     public static function checkAccess(int $contentId, ?int $memberId): array
