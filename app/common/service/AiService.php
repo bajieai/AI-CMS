@@ -193,6 +193,40 @@ class AiService
     }
 
     /**
+     * AI图片生成 - V2.8新增
+     * 使用门面方法，不修改ImageProviderInterface
+     * 
+     * @param string $prompt 图片描述
+     * @param array $options 选项 ['style', 'size', 'count', 'regenerate']
+     * @return array 图片信息数组
+     */
+    public function generateImage(string $prompt, array $options = []): array
+    {
+        if (empty(trim($prompt))) {
+            throw new \Exception('图片描述不能为空');
+        }
+
+        $factory = new \app\common\service\ai\ImageProviderFactory();
+        $provider = $factory->getDefault();
+        
+        try {
+            $result = $provider->generateImage($prompt, $options);
+            return $result;
+        } catch (\Exception $e) {
+            // 尝试降级到备用Provider
+            $fallback = \app\common\service\ai\ImageProviderFactory::getFallbackProvider(
+                $provider->getImageInfo()['provider'] ?? null
+            );
+            
+            if ($fallback !== null) {
+                return $fallback->generateImage($prompt, $options);
+            }
+            
+            throw new \Exception('AI配图失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * AI内容质量检测 - V2.8新增
      * 使用门面方法，不修改AiProviderInterface
      * 

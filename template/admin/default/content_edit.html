@@ -89,13 +89,33 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">封面图</label>
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span>封面图</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="aiGenerateImage()" id="btnAiImage">
+                                <i class="bi bi-image me-1"></i>AI配图
+                            </button>
+                        </label>
                         <div class="input-group">
                             <input type="text" name="cover" id="coverInput" class="form-control" value="{$info.cover ?? ''}" placeholder="图片URL">
                             <button type="button" class="btn btn-outline-secondary" onclick="uploadCover()"><i class="bi bi-upload"></i></button>
                         </div>
                         <div id="coverPreview" class="mt-2" {if condition="!($info.cover ?? '')"}style="display:none"{/if}>
                             <img src="{$info.cover ?? ''}" class="img-thumbnail" style="max-height:120px">
+                        </div>
+                        <div class="mt-2" id="aiImageArea" style="display:none;">
+                            <div class="d-flex gap-2 flex-wrap" id="aiImageResults"></div>
+                            <div class="mt-1 d-flex gap-2 align-items-center">
+                                <select id="aiImageStyle" class="form-select form-select-sm" style="width:auto;">
+                                    <option value="realistic">写实</option>
+                                    <option value="illustration">插画</option>
+                                    <option value="watercolor">水彩</option>
+                                    <option value="3d_render">3D</option>
+                                    <option value="pixel_art">像素</option>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="aiRegenerateImage()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>重新生成
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -657,6 +677,81 @@ setTimeout(function() {
         });
     }
 }, 2500);
+
+// V2.8 AI配图生成
+function aiGenerateImage() {
+    var content = tinymce.activeEditor.getContent({format: 'text'});
+    var title = $('[name="title"]').val().trim();
+    var prompt = title || content.substring(0, 100);
+    
+    if (!prompt) {
+        showToast('请先输入标题或内容', 'warning');
+        return;
+    }
+    
+    var $btn = $('#btnAiImage');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>生成中...');
+    
+    callAiImageApi(prompt, false);
+}
+
+function aiRegenerateImage() {
+    var content = tinymce.activeEditor.getContent({format: 'text'});
+    var title = $('[name="title"]').val().trim();
+    var prompt = title || content.substring(0, 100);
+    
+    if (!prompt) {
+        showToast('请先输入标题或内容', 'warning');
+        return;
+    }
+    
+    callAiImageApi(prompt, true);
+}
+
+function callAiImageApi(prompt, regenerate) {
+    var $btn = $('#btnAiImage');
+    var style = $('#aiImageStyle').val() || 'realistic';
+    
+    $.ajax({
+        url: '/api/ai/image',
+        type: 'POST',
+        data: { 
+            prompt: prompt,
+            style: style,
+            regenerate: regenerate ? 1 : 0
+        },
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-image me-1"></i>AI配图');
+            if (res.code === 0 && res.data && res.data.url) {
+                showAiImageResult(res.data);
+            } else {
+                showToast(res.msg || '生成失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-image me-1"></i>AI配图');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+function showAiImageResult(data) {
+    var html = '<div class="position-relative">';
+    html += '<img src="' + data.url + '" class="img-thumbnail" style="max-height:120px;cursor:pointer;" onclick="selectAiImage(\'' + data.url + '\')">';
+    html += '<span class="position-absolute top-0 end-0 badge bg-primary" style="font-size:9px;">' + (data.width || 0) + 'x' + (data.height || 0) + '</span>';
+    html += '</div>';
+    
+    $('#aiImageResults').html(html);
+    $('#aiImageArea').show();
+}
+
+function selectAiImage(url) {
+    $('#coverInput').val(url);
+    $('#coverPreview img').attr('src', url);
+    $('#coverPreview').show();
+    showToast('已选择为封面图', 'success');
+}
 
 // AI质量检测
 function aiQualityCheck() {

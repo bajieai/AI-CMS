@@ -84,6 +84,40 @@ class AiController
     }
 
     /**
+     * AI图片生成 - V2.8新增
+     * POST /api/ai/image
+     */
+    public function image()
+    {
+        if (empty(session('user_id'))) {
+            return json(['code' => 2, 'msg' => '请先登录', 'data' => null]);
+        }
+
+        $prompt = request()->post('prompt', '');
+        $style = request()->post('style', 'realistic');
+        
+        if (empty($prompt)) {
+            return json(['code' => 1, 'msg' => '请输入图片描述', 'data' => null]);
+        }
+
+        try {
+            $result = $this->aiService->generateImage($prompt, [
+                'style' => $style,
+                'count' => 1,
+                'size' => '1024x1024',
+            ]);
+            
+            return json([
+                'code' => 0,
+                'msg' => '生成成功',
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            return json(['code' => 4, 'msg' => $e->getMessage(), 'data' => null]);
+        }
+    }
+
+    /**
      * AI SEO优化 - V2.8新增
      * POST /api/ai/seo
      */
