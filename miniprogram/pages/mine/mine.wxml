@@ -1,0 +1,46 @@
+<!-- V2.8 个人中心页面 -->
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="user-info">
+    <block wx:if="{{isLogin}}">
+      <image class="avatar" src="{{memberInfo.avatar || '/images/default_avatar.png'}}" mode="aspectFill"/>
+      <view class="user-detail">
+        <text class="nickname">{{memberInfo.nickname || memberInfo.username}}</text>
+        <text class="points">积分: {{points}}</text>
+      </view>
+    </block>
+    <block wx:else>
+      <image class="avatar" src="/images/default_avatar.png" mode="aspectFill"/>
+      <view class="user-detail">
+        <button class="login-btn" bindtap="handleLogin">微信一键登录</button>
+      </view>
+    </block>
+  </view>
+
+  <!-- 签到卡片 -->
+  <view class="signin-card" wx:if="{{isLogin}}">
+    <view class="signin-info">
+      <text class="signin-days">连续签到 {{signinDays}} 天</text>
+      <button class="signin-btn {{hasSignedToday ? 'signed' : ''}}" bindtap="handleSignin">
+        {{hasSignedToday ? '已签到' : '立即签到'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-list">
+    <navigator url="/pages/index/index" class="menu-item">
+      <text class="icon">🏠</text>
+      <text class="title">首页</text>
+      <text class="arrow">></text>
+    </navigator>
+    <navigator url="/pages/search/search" class="menu-item">
+      <text class="icon">🔍</text>
+      <text class="title">搜索</text>
+      <text class="arrow">></text>
+    </navigator>
+  </view>
+
+  <!-- 退出登录 -->
+  <button class="logout-btn" wx:if="{{isLogin}}" bindtap="handleLogout">退出登录</button>
+</view>

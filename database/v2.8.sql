@@ -65,3 +65,18 @@ INSERT INTO `i8j_config` (`name`, `value`, `group`, `type`, `remark`, `sort`) VA
 ('ai_stat_enabled', '1', 'ai', 'switch', '是否启用AI生成统计', 15),
 ('ai_stat_retention_days', '30', 'ai', 'number', 'AI统计保留天数', 16)
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+
+-- 9. V2.8功能模块注册
+INSERT INTO `i8j_module` (`code`, `name`, `description`, `icon`, `category`, `is_system`, `is_enabled`, `sort`, `menu_ids`) VALUES
+('ai_image', 'AI配图', 'AI自动生成文章配图', 'bi-image', 'ai', 0, 1, 50, '[]'),
+('ai_quality', 'AI质量检测', 'AI内容质量评分与建议', 'bi-check-circle', 'ai', 0, 1, 51, '[]'),
+('ai_seo', 'AI SEO优化', 'AI自动优化SEO元数据', 'bi-search', 'ai', 0, 1, 52, '[]'),
+('social_share', '社交分享', '微信/微博/QQ分享与统计', 'bi-share', 'interaction', 0, 1, 55, '[]'),
+('invite_points', '邀请返积分', '邀请好友注册返积分', 'bi-gift', 'interaction', 0, 1, 56, '[]')
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`);
+
+-- 10. 后台菜单项（数据统计菜单下添加流量分析和AI统计）
+INSERT INTO `i8j_menu` (`id`, `pid`, `title`, `url`, `icon`, `sort`, `status`) VALUES
+(1001, 0, '流量分析', '/admin/traffic/index', 'bi-graph-up', 90, 1),
+(1002, 0, 'AI统计', '/admin/aiStat/index', 'bi-robot', 91, 1)
+ON DUPLICATE KEY UPDATE `title` = VALUES(`title`), `url` = VALUES(`url`), `sort` = VALUES(`sort`);
