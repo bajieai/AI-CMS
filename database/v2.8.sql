@@ -3,11 +3,12 @@
 -- 说明: AI配图+质量检测+SEO优化+运营报表+流量分析+AI统计+社交分享+邀请返积分+VIP免费阅读
 
 -- 1. content表补全章节相关字段（技术审核要求补全3个字段）
-ALTER TABLE `i8j_content`
-  ADD COLUMN IF NOT EXISTS `chapter_price` decimal(10,2) DEFAULT 0.00 COMMENT '章节单购价格' AFTER `is_free_chapter`,
-  ADD COLUMN IF NOT EXISTS `chapter_count` int UNSIGNED DEFAULT 0 COMMENT '总章节数(父记录)' AFTER `chapter_price`,
-  ADD COLUMN IF NOT EXISTS `chapter_title` varchar(255) DEFAULT '' COMMENT '章节标题' AFTER `chapter_sort`,
-  ADD COLUMN IF NOT EXISTS `quality_score` tinyint DEFAULT 0 COMMENT 'AI质量评分(0-100)' AFTER `chapter_title`;
+-- 注意：以下字段已存在，若首次执行请取消注释
+-- ALTER TABLE `i8j_content`
+--   ADD COLUMN `chapter_price` decimal(10,2) DEFAULT 0.00 COMMENT '章节单购价格',
+--   ADD COLUMN `chapter_count` int UNSIGNED DEFAULT 0 COMMENT '总章节数(父记录)',
+--   ADD COLUMN `chapter_title` varchar(255) DEFAULT '' COMMENT '章节标题',
+--   ADD COLUMN `quality_score` tinyint DEFAULT 0 COMMENT 'AI质量评分(0-100)';
 
 -- 2. VIP免费阅读范围配置
 INSERT INTO `i8j_config` (`name`, `value`, `group`, `type`, `remark`, `sort`) VALUES
@@ -55,10 +56,11 @@ INSERT INTO `i8j_config` (`name`, `value`, `group`, `type`, `remark`, `sort`) VA
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 
 -- 7. visit_log表增加event_type字段（用于分享统计埋点）
-ALTER TABLE `i8j_visit_log`
-  ADD COLUMN IF NOT EXISTS `event_type` varchar(20) DEFAULT 'visit' COMMENT '事件类型: visit/share/click' AFTER `referer`,
-  ADD COLUMN IF NOT EXISTS `share_channel` varchar(20) DEFAULT '' COMMENT '分享渠道: wechat/weibo/qq/copy' AFTER `event_type`,
-  ADD KEY IF NOT EXISTS `idx_event_type` (`event_type`);
+-- 注意：以下字段已存在，若首次执行请取消注释
+-- ALTER TABLE `i8j_visit_log`
+--   ADD COLUMN `event_type` varchar(20) DEFAULT 'visit' COMMENT '事件类型: visit/share/click' AFTER `referrer`,
+--   ADD COLUMN `share_channel` varchar(20) DEFAULT '' COMMENT '分享渠道: wechat/weibo/qq/copy' AFTER `event_type`,
+--   ADD KEY `idx_event_type` (`event_type`);
 
 -- 8. AI生成统计相关配置
 INSERT INTO `i8j_config` (`name`, `value`, `group`, `type`, `remark`, `sort`) VALUES
@@ -76,7 +78,7 @@ INSERT INTO `i8j_module` (`code`, `name`, `description`, `icon`, `category`, `is
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`);
 
 -- 10. 后台菜单项（数据统计菜单下添加流量分析和AI统计）
-INSERT INTO `i8j_menu` (`id`, `pid`, `title`, `url`, `icon`, `sort`, `status`) VALUES
-(1001, 0, '流量分析', '/admin/traffic/index', 'bi-graph-up', 90, 1),
-(1002, 0, 'AI统计', '/admin/aiStat/index', 'bi-robot', 91, 1)
-ON DUPLICATE KEY UPDATE `title` = VALUES(`title`), `url` = VALUES(`url`), `sort` = VALUES(`sort`);
+-- 注意：当前系统使用 config/menu.php 配置文件管理菜单，非数据库存储
+-- 请在 config/menu.php 的 "SEO与数据" 菜单下手动添加以下子项：
+-- ['id' => 66, 'name' => '流量分析', 'url' => '/admin/traffic/index', 'permission' => 'traffic.*', 'active' => 'traffic', 'icon' => 'bi bi-graph-up'],
+-- ['id' => 67, 'name' => 'AI统计', 'url' => '/admin/aiStat/index', 'permission' => 'ai_stat.*', 'active' => 'ai_stat', 'icon' => 'bi bi-robot'],

@@ -89,6 +89,9 @@ return [
             ['id' => 65, 'name' => '关键词分组', 'url' => '/admin/seo_keyword/group', 'permission' => 'seo_keyword.*', 'active' => 'seo_keyword_group', 'icon' => 'bi bi-folder'],
             ['id' => 62, 'name' => '数据导出', 'url' => '/admin/export/index', 'permission' => 'export.*', 'active' => 'export', 'icon' => 'bi bi-download'],
             ['id' => 63, 'name' => 'API令牌', 'url' => '/admin/token/index', 'permission' => 'token.*', 'active' => 'token', 'icon' => 'bi bi-key'],
+            // V2.8 流量分析与AI统计
+            ['id' => 66, 'name' => '流量分析', 'url' => '/admin/traffic/index', 'permission' => 'traffic.*', 'active' => 'traffic', 'icon' => 'bi bi-graph-up'],
+            ['id' => 67, 'name' => 'AI统计', 'url' => '/admin/aiStat/index', 'permission' => 'ai_stat.*', 'active' => 'ai_stat', 'icon' => 'bi bi-robot'],
         ],
     ],
     // V2.5 内容生态
