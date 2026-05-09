@@ -143,6 +143,14 @@ class ContentService
             MeilisearchService::syncDocument($content);
         }
 
+        // V2.9.2 M19b: 内容变更时清除Sitemap缓存
+        SeoService::clearSitemapCache();
+
+        // V2.9.2 M19a: 自动翻译触发（防递归：翻译内容不触发二次翻译）
+        if ($content->translation_of == 0) {
+            AiTranslationService::autoTranslate($content->id);
+        }
+
         return true;
     }
 
@@ -218,6 +226,14 @@ class ContentService
             MeilisearchService::syncDocument($content);
         } else {
             MeilisearchService::deleteDocument($content->id);
+        }
+
+        // V2.9.2 M19b: 内容变更时清除Sitemap缓存
+        SeoService::clearSitemapCache();
+
+        // V2.9.2 M19a: 自动翻译触发（防递归：翻译内容不触发二次翻译）
+        if ($content->translation_of == 0) {
+            AiTranslationService::autoTranslate($content->id);
         }
 
         return true;

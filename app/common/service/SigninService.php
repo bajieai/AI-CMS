@@ -49,6 +49,15 @@ class SigninService
 
         $totalPoints = $basePoints + $bonusPoints;
 
+        // V2.9.2 M20: 签到积分倍率（会员等级权益）
+        $member = Db::name('member')->where('id', $memberId)->find();
+        if ($member && !empty($member['level_id'])) {
+            $level = Db::name('member_level')->where('id', $member['level_id'])->find();
+            if ($level && !empty($level['points_rate']) && $level['points_rate'] > 0) {
+                $totalPoints = (int) round($totalPoints * (float) $level['points_rate']);
+            }
+        }
+
         Db::startTrans();
         try {
             // 签到记录（绕过模型严格字段检查）

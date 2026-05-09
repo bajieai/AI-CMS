@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace app\common\service;
 
+use app\common\model\Content;
 use app\common\model\Language as LanguageModel;
 use app\common\model\Translation;
 use think\facade\Cache;
@@ -152,6 +153,36 @@ class LanguageService
         // V2.9: 翻译变更后清除前台页面缓存，确保多语言内容即时生效
         Cache::tag(CacheService::TAG_PAGE_CACHE)->clear();
         return true;
+    }
+
+    /**
+     * V2.9.2 M19a: 按语言获取内容（前台多语言展示）
+     * 优先返回该语言的翻译，无翻译则返回原始内容
+     */
+    public static function getContentByLang(int $contentId, string $langCode): ?Content
+    {
+        // 1. 尝试获取该语言的直接翻译
+        $translated = Content::where('translation_of', $contentId)
+            ->where('lang', $langCode)
+            ->where('status', 2)
+            ->find();
+
+        if ($translated) {
+            return $translated;
+        }
+
+        // 2. 回退到原始内容
+        return Content::find($contentId);
+    }
+
+    /**
+     * V2.9.2 M19a: 获取内容的全部翻译
+     */
+    public static function getTranslationsOf(int $contentId): array
+    {
+        return Content::where('translation_of', $contentId)
+            ->order('id', 'asc')
+            ->column('id,lang,title,status,create_time', 'lang');
     }
 
     /**

@@ -1,19 +1,27 @@
-# 八界AI-CMS V2.9.1
+# 八界AI-CMS V2.9.2
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.1-blue)
+![Version](https://img.shields.io/badge/version-2.9.2-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.1 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.1 在V2.9基础上完成性能筑基（FluxProvider异步化+懒加载+CDN+CSS变量化）、功能补完（AI报告+API文档+评价媒体+回复+免邮券+批量管理）、智能升级（AI配色+配图本地化+小程序样式），标志着产品从功能构建迈入性能优化+体验精研的新阶段。
+八界AI-CMS V2.9.2 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.2 定位"AI驱动 × 内容分发 × 生态基础"，聚焦多语言AI深度翻译、SEO分发增强、插件市场框架三大P0方向，同步推进会员等级权益深化、PWA离线支持、H5移动端优化、数据导出增强、系统监控等功能，构建AI-CMS从"功能完善"迈向"生态可扩展"的关键版本。
 
 ### 核心特性
 
 - **多模型AI引擎** - DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 5大AI引擎，工厂模式+熔断降级
 - **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式，支持AI批量生成
+- **多语言AI深度翻译** - AI翻译引擎+自动翻译钩子+翻译记忆缓存+批量翻译，翻译内容为独立Content记录
+- **SEO分发增强** - Sitemap索引拆分+Schema.org JSON-LD+Open Graph+多语言hreflang+搜索引擎Ping
+- **插件市场框架** - 在线浏览+一键安装+本地上传ZIP+更新检测，双轨安装架构
+- **会员等级权益深化** - 权益配置后台+签到积分倍率+购买折扣+VIP标识+手动降级+升降通知
+- **PWA离线支持** - manifest.json+Service Worker(StaleWhileRevalidate策略)+安装提示+iOS降级
+- **H5移动端优化** - 骨架屏+无限滚动+手势滑动+下拉刷新+图片查看器(2套mobile主题)
+- **数据导出增强** - 高级筛选+自定义字段+CSV/XLSX双格式+流式导出
+- **系统性能监控** - CPU/内存/磁盘/PHP/MySQL监控+慢日志降级+缓存分析
 - **AI模板定制化** - 字段映射+质量检测+配图发布+参考示例，5大Tab深度配置
 - **FLUX/DALL-E配图** - 多模型AI配图引擎，通义万相/FLUX.1/DALL-E 3三Provider+自动降级+异步轮询
 - **AI数据分析报告** - 日报/周报/月报AI生成，异常检测+关键发现+建议+Markdown导出
@@ -34,6 +42,21 @@
 - **双主题后台** - default(经典) / corporate(企业) 两套后台主题自由切换
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
+
+### V2.9.2 新增特性
+
+- **多语言AI深度翻译(M19a, P0)** - AiTranslationService翻译引擎，支持批量翻译+翻译记忆缓存+SEO字段翻译+防递归机制，翻译内容创建为独立Content记录(lang+translation_of)
+- **Sitemap+结构化数据基础(M19b-core, P0)** - SeoService增强：Sitemap索引拆分(>50000条自动拆分)+增量缓存+robots.txt动态生成；SchemaService新增：Article/Product JSON-LD+BreadcrumbList+WebSite SearchAction
+- **多语言Sitemap(M19b-hreflang, P0)** - 多语言hreflang标签生成+各语言独立Sitemap(/sitemap/{lang}.xml)+搜索引擎自动Ping(Google/Bing)
+- **插件市场框架(M25, P0)** - PluginMarketService远程浏览+一键安装+ZIP本地上传+更新检测，双轨安装架构，后台市场浏览页+上传区
+- **会员等级权益深化(M20, P1)** - 权益配置后台(折扣倍率/签到倍率/AI配额/VIP标识/专享内容)+签到积分×points_rate+购买折扣兼容(百分比/倍率双语义)+VIP标识展示+手动降级+升降通知
+- **PWA离线支持(M22a, P1)** - manifest.json+Service Worker(StaleWhileRevalidate/Cache First/Network Only分层策略)+PWA安装提示+iOS Safari降级
+- **H5移动端深度优化(M22b, P1)** - 骨架屏+无限滚动+手势滑动(左右翻页)+下拉刷新+底部Sheet图片查看器(2套mobile主题覆盖)
+- **数据导出增强(M23, P1)** - ExportService.advancedExport()+CSV流式导出(UTF-8 BOM)+XLSX分块导出+后台高级筛选对话框
+- **知乎专栏适配器(M20b, P1)** - 复用PublishPlatformInterface策略模式，ZhihuPlatform OAuth2+内容API发布
+- **系统性能监控面板(M24, P2)** - MonitorService指标采集(CPU/内存/磁盘/负载/PHP/MySQL/缓存)+MySQL慢日志降级+MonitorController+双主题监控面板
+- **Open Graph标签增强** - og:type/og:title/og:description/og:image/og:url/og:locale/og:locale:alternate，4套layout.html注入
+- **V2.9.2收尾** - v2.9.2.sql(3字段ALTER+12配置项)+menu.php新增5组菜单+permission.php新增5组权限+route.php新增4条Sitemap路由
 
 ### V2.9.1 新增特性
 
@@ -252,6 +275,7 @@ AI-CMS/
 │   └── v2.8.sql                #   V2.8增量更新
 │   └── v2.9.sql                #   V2.9增量更新
 │   └── v2.9.1.sql              #   V2.9.1增量更新
+│   └── v2.9.2.sql              #   V2.9.2增量更新
 ├── miniprogram/                # 微信小程序(V2.9: 11页面)
 │   ├── pages/                  #   页面(index/detail/search/login/mine/coupon/invite/signin/order/payment/category)
 │   └── utils/                  #   工具(API封装)
@@ -387,6 +411,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.2 | 2026-Q3 | AI深度翻译/SEO分发增强(Sitemap拆分+JSON-LD+hreflang)/插件市场/会员权益深化/PWA/H5移动端优化/数据导出增强/系统监控 |
 | V2.9.1 | 2026-Q3 | FluxProvider异步化/懒加载/CDN/CSS变量化/AI报告/API文档/评价媒体+回复/免邮券/AI配色/配图本地化/批量管理 |
 | V2.9.0 | 2026-Q3 | AI模板定制化/FLUX+DALL-E配图/优惠券系统/评价评分/邀请奖励/小程序完善/模板可视化预研 |
 | V2.8.0 | 2026-Q2 | AI配图/质量检测/SEO优化/运营报表/流量分析/AI统计/社交分享/邀请返积分 |

@@ -142,4 +142,44 @@ class Content extends Model
     {
         return $this->hasMany(MemberFavorite::class, 'content_id');
     }
+
+    /**
+     * V2.9.2 M19a: 关联翻译内容（一条原始内容对应多条翻译）
+     */
+    public function translations()
+    {
+        return $this->hasMany(Content::class, 'translation_of', 'id');
+    }
+
+    /**
+     * V2.9.2 M19a: 关联原始内容
+     */
+    public function original()
+    {
+        return $this->belongsTo(Content::class, 'translation_of');
+    }
+
+    /**
+     * V2.9.2 M19a: 查询作用域 — 只查询原始内容（非翻译）
+     */
+    public function scopeOriginal($query)
+    {
+        return $query->where('translation_of', 0);
+    }
+
+    /**
+     * V2.9.2 M19a: 查询作用域 — 只查询翻译内容
+     */
+    public function scopeTranslated($query)
+    {
+        return $query->where('translation_of', '>', 0);
+    }
+
+    /**
+     * V2.9.2 M19a: 查询作用域 — 按语言筛选
+     */
+    public function scopeByLang($query, string $langCode)
+    {
+        return $query->where('lang', $langCode);
+    }
 }

@@ -1,0 +1,96 @@
+{extend name="layout" /}
+{block name="title"}权益配置 - {$level.name}{/block}
+
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-stars me-2"></i>「{$level.name}」权益配置</h4>
+        <a href="/admin/member_level/index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回等级列表
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form id="benefitForm">
+                <input type="hidden" name="id" value="{$level.id}">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">购买折扣倍率</label>
+                            <div class="input-group">
+                                <input type="number" name="discount" class="form-control" value="{$level.discount|default='1.0'}" step="0.01" min="0" max="100">
+                                <span class="input-group-text">倍</span>
+                            </div>
+                            <div class="form-text text-muted">1.0=无折扣，0.8=8折。兼容旧数据：填写80也表示8折。</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">签到积分倍率</label>
+                            <div class="input-group">
+                                <input type="number" name="points_rate" class="form-control" value="{$level.points_rate|default='1.0'}" step="0.1" min="0">
+                                <span class="input-group-text">倍</span>
+                            </div>
+                            <div class="form-text text-muted">1.0=无倍率，2.0=双倍积分</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">每日AI配额</label>
+                            <input type="number" name="daily_ai_quota" class="form-control" value="{$level.daily_ai_quota|default='0'}" min="0">
+                            <div class="form-text text-muted">0=不限，-1=禁用</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">VIP标识图标类名</label>
+                            <input type="text" name="vip_badge_icon" class="form-control" value="{$level.vip_badge_icon|default=''}" placeholder="如：bi bi-gem text-warning">
+                            <div class="form-text text-muted">Bootstrap Icons类名，留空不显示</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">专享内容ID列表</label>
+                    <input type="text" name="exclusive_content_ids" class="form-control"
+                           value="{if is_array($level.exclusive_content_ids)}{:implode(',', $level.exclusive_content_ids)}{/if}"
+                           placeholder="逗号分隔的内容ID，如：12,34,56">
+                    <div class="form-text text-muted">仅限该等级及以上会员可见的内容ID</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">自动降级天数（预留V3.0）</label>
+                    <input type="number" name="auto_downgrade_days" class="form-control" value="{$level.auto_downgrade_days|default='0'}" min="0">
+                    <div class="form-text text-muted">0=不自动降级，N=连续N天未活跃则降级。当前版本仅记录，V3.0启用定时任务。</div>
+                </div>
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-primary" id="btnSave">
+                        <i class="bi bi-check-lg"></i> 保存配置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+$(function() {
+    $('#btnSave').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> 保存中...');
+        $.post('/admin/member_benefit/save', $('#benefitForm').serialize(), function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> 保存配置');
+            alert(res.msg);
+        }, 'json');
+    });
+});
+</script>
+{/block}

@@ -8,6 +8,12 @@
     <meta name="description" content="{block name='description'}{$site_description|default='AI驱动的企业信息管理系统'}{/block}">
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- V2.9.2 M22a: PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <!-- V2.9.2 M19b: Open Graph通用标签 -->
+    <meta property="og:site_name" content="{$site_name|default='AI-CMS'}">
+    <meta property="og:locale" content="{$current_lang|default='zh-CN'}">
+    {block name='og'}{/block}
     <!-- V2.6 前台移动端样式（从内联提取到外部CSS文件） -->
     <link href="{$skin}css/style.css?v=2.6" rel="stylesheet">
     <!-- V2.9 M11 模板可视化：CSS自定义变量（后台模板设计器可覆盖） -->
@@ -136,6 +142,11 @@ $.toast = window.showToast;
 </script>
 <!-- V2.9.1 M14b: 统一图片懒加载 -->
 <script src="/assets/js/lazyload.js"></script>
+<!-- V2.9.2 M22a: PWA安装提示 -->
+<script src="/assets/js/pwa-install.js"></script>
+<!-- V2.9.2 M22b: 移动端增强 -->
+<script src="/assets/js/mobile-enhance.js"></script>
+<script src="/assets/js/mobile-swipe.js"></script>
 {block name="js"}{/block}
 </body>
 </html>

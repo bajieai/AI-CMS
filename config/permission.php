@@ -5,7 +5,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*', 'report.*', 'apidoc.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*', 'report.*', 'apidoc.*', 'ai_translation.*', 'plugin_market.*', 'member_benefit.*', 'export_advanced.*', 'monitor.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -94,6 +94,16 @@ return [
         'report.*' => ['admin/report/index', 'admin/report/detail', 'admin/report/generate', 'admin/report/delete', 'admin/report/publish'],
         // V2.9.1 M10: API文档
         'apidoc.*' => ['admin/api_doc/index', 'admin/api_doc/export'],
+        // V2.9.2 M19a: AI翻译管理
+        'ai_translation.*' => ['admin/ai_translation/index', 'admin/ai_translation/translate', 'admin/ai_translation/batchTranslate', 'admin/ai_translation/deleteTranslation', 'admin/ai_translation/detail'],
+        // V2.9.2 M20: 会员权益配置
+        'member_benefit.*' => ['admin/member_benefit/edit', 'admin/member_benefit/save', 'admin/member_benefit/members', 'admin/member_benefit/downgrade'],
+        // V2.9.2 M23: 高级导出
+        'export_advanced.*' => ['admin/export/dialog', 'admin/export/advanced'],
+        // V2.9.2 M24: 系统监控
+        'monitor.*' => ['admin/monitor/index', 'admin/monitor/refresh'],
+        // V2.9.2 M25: 插件市场
+        'plugin_market.*' => ['admin/plugin_market/index', 'admin/plugin_market/install', 'admin/plugin_market/upload', 'admin/plugin_market/checkUpdates'],
         // V2.9.1 M16a: 物流配置
         'shipping.*' => ['admin/shipping/config', 'admin/shipping/saveConfig'],
         // V2.9.1 M18: 批量内容操作（复用content权限）

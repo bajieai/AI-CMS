@@ -14,6 +14,10 @@
 <meta property="og:type" content="article">
 <meta property="og:url" content="{$site_url}{$Request.url}">
 <meta property="og:site_name" content="{$site_name}">
+<!-- V2.9.2 M19b: Schema.org JSON-LD -->
+{:app\common\service\SchemaService::article($info)}
+<!-- V2.9.2 M19b: BreadcrumbList -->
+{:app\common\service\SchemaService::breadcrumb(['首页'=>$site_url,'分类'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
 {/block}
 
 {block name="content"}
@@ -239,7 +243,8 @@ function loadComments(page) {
         if (res.code === 0 && res.data) {
             var html = '';
             (res.data.list || []).forEach(function(item) {
-                html += '<div class="comment-item"><div class="d-flex justify-content-between"><strong>' + item.nickname + '</strong><small class="text-muted">' + item.create_time + '</small></div><p class="mb-1">' + item.content + '</p>';
+                var vipBadge = item.vip_badge ? '<span class="badge bg-warning ms-1"><i class="bi ' + item.vip_badge + '"></i></span>' : '';
+                html += '<div class="comment-item"><div class="d-flex justify-content-between"><strong>' + item.nickname + vipBadge + '</strong><small class="text-muted">' + item.create_time + '</small></div><p class="mb-1">' + item.content + '</p>';
                 if (item.replies && item.replies.length) {
                     html += '<div class="reply">';
                     item.replies.forEach(function(r) {
@@ -293,7 +298,8 @@ function loadRatings(page) {
                     stars += i <= item.rating ? '★' : '☆';
                 }
                 var nickname = item.is_anonymous ? '匿名用户' : (item.member_nickname || '用户#' + item.member_id);
-                html += '<div class="card mb-2"><div class="card-body"><div class="d-flex justify-content-between mb-2">';
+                var vipBadge = item.vip_badge ? '<span class="badge bg-warning ms-1"><i class="bi ' + item.vip_badge + '"></i></span>' : '';
+                html += '<div class="card mb-2"><div class="card-body"><div class="d-flex justify-content-between mb-2"><span>' + nickname + vipBadge + '</span>';
                 html += '<div><strong>' + nickname + '</strong> <span class="text-warning">' + stars + '</span></div>';
                 html += '<small class="text-muted">' + item.create_time + '</small>';
                 html += '</div>';

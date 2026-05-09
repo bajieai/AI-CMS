@@ -44,4 +44,29 @@ class ExportController extends AdminBaseController
 
         return $this->view('/export_index');
     }
+
+    /**
+     * V2.9.2 M23: 高级导出
+     */
+    public function advanced(Request $request)
+    {
+        $module = $request->get('module', 'content');
+        $format = $request->get('format', 'xlsx');
+        $filters = $request->get('filters', []);
+        $fields = $request->get('fields', []);
+
+        if (empty($fields)) {
+            return $this->error('请选择至少一个导出字段');
+        }
+
+        ExportService::advancedExport($module, $filters, $fields, $format);
+    }
+
+    /**
+     * V2.9.2 M23: 导出配置页
+     */
+    public function dialog()
+    {
+        return $this->view('/export_dialog');
+    }
 }

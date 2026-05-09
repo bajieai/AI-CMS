@@ -127,16 +127,22 @@ class PaidService
             throw new \Exception('您的会员等级不足，无法访问此内容');
         }
 
-        // V2.7：计算折扣后价格（VIP校验改用is_vip字段）
+        // V2.9.2 M20: 计算折扣后价格（统一倍率语义：1.0=无折扣，0.8=8折）
         $finalPrice = $content->paid_price;
         $member = Member::find($memberId);
-        if ($member && $member->level_id && $member->vip_expire_time > time()) {
+        if ($member && $member->level_id) {
             $level = MemberLevel::find($member->level_id);
-            if ($level && $level->is_vip) {
-                throw new \Exception('VIP会员可免费阅读');
-            }
-            if ($level && $level->discount > 0 && $level->discount < 100) {
-                $finalPrice = round($content->paid_price * ($level->discount / 100), 2);
+            if ($level && $level->discount > 0) {
+                $discount = (float) $level->discount;
+                // 兼容旧数据：discount>1视为百分比(如80=80%)，discount<1视为倍率(如0.8=8折)
+                if ($discount >= 1 && $discount <= 100) {
+                    $finalPrice = round($content->paid_price * ($discount / 100), 2);
+                } elseif ($discount < 1) {
+                    $finalPrice = round($content->paid_price * $discount, 2);
+                }
+                if ($finalPrice < 0.01) {
+                    $finalPrice = 0;
+                }
             }
         }
 

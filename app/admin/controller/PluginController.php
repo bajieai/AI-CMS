@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
+use app\common\service\PluginMarketService;
 use app\common\service\PluginService;
 
 /**
@@ -22,11 +23,29 @@ class PluginController extends AdminBaseController
             $plugins = [];
         }
 
+        // V2.9.2 M25: 检查可更新插件
+        $updateMap = [];
+        try {
+            $marketService = new PluginMarketService();
+            $updates = $marketService->checkUpdates();
+            foreach ($updates as $u) {
+                $updateMap[$u['code']] = $u['remote_version'];
+            }
+        } catch (\Throwable) {
+            // 更新检测失败不影响主列表
+        }
+
+        foreach ($plugins as &$plugin) {
+            $plugin['has_update'] = isset($updateMap[$plugin['code'] ?? '']);
+            $plugin['remote_version'] = $updateMap[$plugin['code'] ?? ''] ?? '';
+        }
+
         if ($this->isRealAjax()) {
             return json(['code' => 0, 'msg' => 'success', 'data' => $plugins]);
         }
 
         $this->assign('plugins', $plugins);
+        $this->assign('updateCount', count($updateMap));
         return $this->view('/plugin_index');
     }
 

@@ -25,6 +25,9 @@ return [
         'children' => [
             ['id' => 21, 'name' => '用户列表', 'url' => '/admin/user/index', 'permission' => 'user.*', 'active' => 'user', 'icon' => 'bi bi-people'],
             ['id' => 27, 'name' => '会员等级', 'url' => '/admin/member_level/index', 'permission' => 'member_level.*', 'active' => 'member_level', 'icon' => 'bi bi-award'],
+            // V2.9.2 M20: 会员权益配置
+            ['id' => 271, 'name' => '权益配置', 'url' => '/admin/member_benefit/edit', 'permission' => 'member_benefit.*', 'active' => 'member_benefit', 'icon' => 'bi bi-stars'],
+            ['id' => 272, 'name' => '会员等级管理', 'url' => '/admin/member_benefit/members', 'permission' => 'member_benefit.*', 'active' => 'member_benefit_members', 'icon' => 'bi bi-people'],
             ['id' => 28, 'name' => '积分规则', 'url' => '/admin/points_rule/index', 'permission' => 'points.*', 'active' => 'points_rule', 'icon' => 'bi bi-star'],
             // V2.7 积分商城
             ['id' => 29, 'name' => '积分商品', 'url' => '/admin/points_product/index', 'permission' => 'points_product.*', 'active' => 'points_product', 'icon' => 'bi bi-gift'],
@@ -84,6 +87,8 @@ return [
             ['id' => 74, 'name' => 'AI内容模板', 'url' => '/admin/ai_template/index', 'permission' => 'ai_template.*', 'active' => 'ai_template', 'icon' => 'bi bi-file-earmark-text'],
             // V2.9 前台模板可视化设计
             ['id' => 75, 'name' => '模板设计器', 'url' => '/admin/template_design/index', 'permission' => 'template_design.*', 'active' => 'template_design', 'icon' => 'bi bi-palette'],
+            // V2.9.2 M19a: AI翻译管理
+            ['id' => 76, 'name' => 'AI翻译管理', 'url' => '/admin/ai_translation/index', 'permission' => 'ai_translation.*', 'active' => 'ai_translation', 'icon' => 'bi bi-translate'],
         ],
     ],
     [
@@ -97,7 +102,11 @@ return [
             ['id' => 64, 'name' => 'SEO关键词', 'url' => '/admin/seo_keyword/index', 'permission' => 'seo_keyword.*', 'active' => 'seo_keyword', 'icon' => 'bi bi-hash'],
             ['id' => 65, 'name' => '关键词分组', 'url' => '/admin/seo_keyword/group', 'permission' => 'seo_keyword.*', 'active' => 'seo_keyword_group', 'icon' => 'bi bi-folder'],
             ['id' => 62, 'name' => '数据导出', 'url' => '/admin/export/index', 'permission' => 'export.*', 'active' => 'export', 'icon' => 'bi bi-download'],
+            // V2.9.2 M23: 高级导出
+            ['id' => 621, 'name' => '高级导出', 'url' => '/admin/export/dialog', 'permission' => 'export_advanced.*', 'active' => 'export_dialog', 'icon' => 'bi bi-file-earmark-arrow-down'],
             ['id' => 63, 'name' => 'API令牌', 'url' => '/admin/token/index', 'permission' => 'token.*', 'active' => 'token', 'icon' => 'bi bi-key'],
+            // V2.9.2 M24: 系统监控
+            ['id' => 69, 'name' => '系统监控', 'url' => '/admin/monitor/index', 'permission' => 'monitor.*', 'active' => 'monitor', 'icon' => 'bi bi-speedometer2'],
             // V2.8 流量分析与AI统计
             ['id' => 66, 'name' => '流量分析', 'url' => '/admin/traffic/index', 'permission' => 'traffic.*', 'active' => 'traffic', 'icon' => 'bi bi-graph-up'],
             ['id' => 67, 'name' => 'AI统计', 'url' => '/admin/aiStat/index', 'permission' => 'ai_stat.*', 'active' => 'ai_stat', 'icon' => 'bi bi-robot'],
@@ -128,6 +137,8 @@ return [
         'url' => '',
         'children' => [
             ['id' => 91, 'name' => '插件管理', 'url' => '/admin/plugin/index', 'permission' => 'plugin.*', 'active' => 'plugin', 'icon' => 'bi bi-plug'],
+            // V2.9.2 M25: 插件市场
+            ['id' => 911, 'name' => '插件市场', 'url' => '/admin/plugin_market/index', 'permission' => 'plugin_market.*', 'active' => 'plugin_market', 'icon' => 'bi bi-shop'],
             ['id' => 92, 'name' => '多语言管理', 'url' => '/admin/language/index', 'permission' => 'language.*', 'active' => 'language', 'icon' => 'bi bi-translate'],
             ['id' => 93, 'name' => '模板市场', 'url' => '/admin/theme_market/index', 'permission' => 'theme_market.*', 'active' => 'theme_market', 'icon' => 'bi bi-palette2'],
             // V2.9.1 M10: API文档
