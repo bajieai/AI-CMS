@@ -6,6 +6,7 @@ namespace app\admin\controller;
 use app\common\controller\AdminBaseController;
 use app\common\model\Language;
 use app\common\service\LanguageService;
+use think\facade\Db;
 
 /**
  * 多语言管理后台控制器 - V2.5新增
@@ -63,9 +64,9 @@ class LanguageController extends AdminBaseController
      */
     public function edit(int $id = 0)
     {
-        $language = $id ? Language::find($id) : null;
-        $this->assign('info', $language);
-        return $this->view('/language_edit');
+        $language = $id ? Db::name('language')->where('id', $id)->find() : null;
+        $this->app->view->assign('info', $language);
+        return $this->app->view->fetch('/language_edit');
     }
 
     /**
@@ -83,8 +84,8 @@ class LanguageController extends AdminBaseController
         ];
 
         try {
-            $lang = Language::find($data['id']);
-            if ($lang) { $lang->save($data); }
+            $lang = Db::name('language')->where('id', $data['id'])->find();
+            if ($lang) { Db::name('language')->where('id', $data['id'])->update($data); }
             \app\common\service\CacheService::clearByTag(\app\common\service\CacheService::TAG_LANGUAGE);
             return json(['code' => 0, 'msg' => '保存成功']);
         } catch (\Exception $e) {

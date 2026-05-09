@@ -475,6 +475,149 @@ class ContentService
     }
 
     /**
+     * V2.9.1 M18: 批量内容操作
+     *
+     * @param string $action 操作类型：audit/delete/move/recommend/unrecommend
+     * @param array  $ids    内容ID数组
+     * @param array  $extra  额外参数（如move时的目标分类ID）
+     * @return array ['success'=>bool, 'msg'=>string, 'affected'=>int]
+     */
+    public static function batchOperate(string $action, array $ids, array $extra = []): array
+    {
+        if (empty($ids)) {
+            return ['success' => false, 'msg' => '未选择任何内容', 'affected' => 0];
+        }
+
+        $ids = array_map('intval', $ids);
+        $affected = 0;
+
+        try {
+            switch ($action) {
+                case 'audit':
+                    $affected = Content::whereIn('id', $ids)->update([
+                        'status' => 2,
+                        'update_time' => time(),
+                    ]);
+                    break;
+
+                case 'delete':
+                    $affected = Content::whereIn('id', $ids)->update([
+                        'status' => -1,
+                        'update_time' => time(),
+                    ]);
+                    break;
+
+                case 'move':
+                    $cateId = (int) ($extra['cate_id'] ?? 0);
+                    if ($cateId <= 0) {
+                        return ['success' => false, 'msg' => '未指定目标分类', 'affected' => 0];
+                    }
+                    $affected = Content::whereIn('id', $ids)->update([
+                        'cate_id' => $cateId,
+                        'update_time' => time(),
+                    ]);
+                    break;
+
+                case 'recommend':
+                    $affected = Content::whereIn('id', $ids)->update([
+                        'is_recommend' => 1,
+                        'update_time' => time(),
+                    ]);
+                    break;
+
+                case 'unrecommend':
+                    $affected = Content::whereIn('id', $ids)->update([
+                        'is_recommend' => 0,
+                        'update_time' => time(),
+                    ]);
+                    break;
+
+                default:
+                    return ['success' => false, 'msg' => '未知操作类型', 'affected' => 0];
+            }
+
+            // 清除内容缓存
+            try {
+                $cacheService = new CacheService();
+                $cacheService->clearByTag(Config::get('cache.tag.content', 'i8j_content'));
+            } catch (\Throwable) {
+                // 缓存清除失败不影响主流程
+            }
+
+            return [
+                'success'  => true,
+                'msg'      => "批量操作成功，影响 {$affected} 条内容",
+                'affected' => $affected,
+            ];
+        } catch (\Exception $e) {
+            return ['success' => false, 'msg' => '操作失败: ' . $e->getMessage(), 'affected' => 0];
+        }
+    }
+
+    /**
+     * V2.9.1 M14b: 统一拦截 — 给HTML内容中的img标签添加懒加载属性
+     *
+     * 在模板渲染前调用，自动将富文本中的 <img src="..."> 转为 <img data-src="..." class="lazyload">
+     *
+     * @param string $html 原始HTML内容
+     * @return string 处理后的HTML
+     */
+    public static function applyLazyloadToHtml(string $html): string
+    {
+        if (empty($html)) {
+            return $html;
+        }
+
+        // 使用DOMDocument处理，避免正则误伤
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        // 抑制HTML5标签警告
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $images = $dom->getElementsByTagName('img');
+        $placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+        // 从后往前遍历（避免NodeList因删除/修改而索引错乱）
+        for ($i = $images->length - 1; $i >= 0; $i--) {
+            $img = $images->item($i);
+            if (!($img instanceof \DOMElement)) {
+                continue;
+            }
+
+            $src = $img->getAttribute('src');
+            if (empty($src) || str_starts_with($src, 'data:')) {
+                continue;
+            }
+
+            // 已经处理过的跳过
+            if ($img->hasAttribute('data-src')) {
+                continue;
+            }
+
+            $img->setAttribute('data-src', $src);
+            $img->setAttribute('src', $placeholder);
+
+            $class = $img->getAttribute('class') ?: '';
+            if (strpos($class, 'lazyload') === false) {
+                $img->setAttribute('class', trim($class . ' lazyload'));
+            }
+        }
+
+        // 提取body内容（去掉自动包裹的html/body标签）
+        $body = $dom->getElementsByTagName('body')->item(0);
+        if ($body && $body->childNodes->length > 0) {
+            $result = '';
+            foreach ($body->childNodes as $child) {
+                $result .= $dom->saveHTML($child);
+            }
+            return $result;
+        }
+
+        return $html;
+    }
+
+    /**
      * 按字段类型处理值（类型感知）
      */
     private function processFormFieldValue($value, string $type, array $field)

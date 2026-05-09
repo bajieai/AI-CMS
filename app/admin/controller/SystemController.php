@@ -32,6 +32,21 @@ class SystemController extends AdminBaseController
             // 移除points分组（积分规则有专用管理页 /admin/points_rule/index，避免重复）
             unset($groups['points']);
 
+            // ==== V2.9.1: 配置分类Tab ====
+            $currentTab = $this->request->get('tab', 'basic');
+            $tabGroups = [
+                'basic'    => ['basic', 'upload', 'security', 'social'],
+                'features' => ['ai', 'comment', 'ad', 'email', 'notification', 'oauth', 'payment', 'seo'],
+                'business' => ['member', 'coupon', 'rating', 'invite', 'shipping'],
+                'system'   => ['system'],
+            ];
+            $tabNames = [
+                'basic'    => '基本设置',
+                'features' => '功能配置',
+                'business' => '业务设置',
+                'system'   => '系统设置',
+            ];
+
             // 分组显示顺序（按用户要求：基本设置第1，AI设置第2，会员设置第3）
             // 注意：site分组（主题设置）已移除，主题切换由上方卡片选择器完成
             $groupOrder = [
@@ -51,7 +66,9 @@ class SystemController extends AdminBaseController
                 'seo',          // 14. SEO设置
                 'coupon',       // 15. 优惠券设置
                 'rating',       // 16. 评价设置
-                'system',       // 17. 系统设置
+                'invite',       // 17. 邀请奖励
+                'shipping',     // 18. 物流设置
+                'system',       // 19. 系统设置
             ];
 
             // 分组中文名称与图标映射
@@ -72,6 +89,8 @@ class SystemController extends AdminBaseController
                 'seo'          => 'SEO设置',
                 'coupon'       => '优惠券设置',
                 'rating'       => '评价设置',
+                'invite'       => '邀请奖励',
+                'shipping'     => '物流设置',
                 'site'         => '主题设置',
                 'system'       => '系统设置',
             ];
@@ -92,6 +111,8 @@ class SystemController extends AdminBaseController
                 'seo'          => 'search',
                 'coupon'       => 'ticket-perforated',
                 'rating'       => 'star',
+                'invite'       => 'gift',
+                'shipping'     => 'truck',
                 'site'         => 'palette2',
                 'system'       => 'sliders2',
             ];
@@ -110,13 +131,40 @@ class SystemController extends AdminBaseController
                 }
             }
 
-            $this->assign(['groups' => $sortedGroups, 'groupNames' => $groupNames, 'groupIcons' => $groupIcons]);
+            // V2.9.1: 按当前tab过滤分组
+            $allowedGroups = $tabGroups[$currentTab] ?? $tabGroups['basic'];
+            $filteredGroups = [];
+            foreach ($allowedGroups as $g) {
+                if (isset($sortedGroups[$g])) {
+                    $filteredGroups[$g] = $sortedGroups[$g];
+                }
+            }
+
+            $this->assign([
+                'groups'             => $filteredGroups,
+                'groupNames'         => $groupNames,
+                'groupIcons'         => $groupIcons,
+                'currentTab'         => $currentTab,
+                'tabNames'           => $tabNames,
+                'isMainTab'          => $currentTab === 'basic',
+            ]);
             return $this->view('/system_config');
         }
 
-        // 保存配置
+        // 保存配置（编码根治：写入前校验UTF-8合法性，防止乱码落库）
         $data = $this->request->post();
         foreach ($data as $name => $value) {
+            // 跳过非字符串值和系统保留字段
+            if (!is_string($value) || in_array($name, ['__token__'], true)) {
+                continue;
+            }
+            // 校验UTF-8编码合法性：无效UTF-8序列将替换为�(U+FFFD)
+            $cleaned = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+            if ($cleaned !== $value) {
+                // 记录异常日志
+                \think\facade\Log::warning("[编码防护] 配置 {$name} 包含非UTF-8字符，已自动清理");
+                $value = $cleaned;
+            }
             ConfigModel::where('name', $name)->update(['value' => $value]);
         }
 

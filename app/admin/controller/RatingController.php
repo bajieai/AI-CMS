@@ -81,6 +81,9 @@ class RatingController extends AdminBaseController
             $rating->media_urls = json_decode($rating->media_urls, true);
         }
 
+        // 加载回复列表 - V2.9.1 M15b
+        $rating->replies = \app\common\model\RatingReply::getByRatingId($id);
+
         return $this->view('/rating_view', [
             'rating' => $rating,
         ]);
@@ -135,6 +138,40 @@ class RatingController extends AdminBaseController
             return json(['code' => 1, 'msg' => '删除成功']);
         }
         return json(['code' => 0, 'msg' => '删除失败']);
+    }
+
+    /**
+     * 回复评价 - V2.9.1 M15b
+     */
+    public function reply()
+    {
+        if (Request::isPost()) {
+            $ratingId = (int) Request::post('rating_id', 0);
+            $content = trim(Request::post('content', ''));
+
+            if (!$ratingId || !$content) {
+                return json(['code' => 0, 'msg' => '参数错误']);
+            }
+
+            $result = RatingService::replyRating($ratingId, $content, (int) session('admin_id'));
+            return json($result);
+        }
+
+        return json(['code' => 0, 'msg' => '仅支持POST请求']);
+    }
+
+    /**
+     * 删除回复 - V2.9.1 M15b
+     */
+    public function deleteReply()
+    {
+        $replyId = (int) Request::post('reply_id', 0);
+        if (!$replyId) {
+            return json(['code' => 0, 'msg' => 'ID无效']);
+        }
+
+        $result = RatingService::deleteReply($replyId);
+        return json($result ? ['code' => 1, 'msg' => '删除成功'] : ['code' => 0, 'msg' => '删除失败']);
     }
 
     /**

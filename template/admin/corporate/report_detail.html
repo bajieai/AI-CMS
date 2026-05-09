@@ -1,0 +1,91 @@
+{extend name="layout" /}
+{block name="title"}{$report.title}{/block}
+{block name="content"}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{:url('index')}">报告列表</a></li>
+            <li class="breadcrumb-item active">{$report.title}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>{$report.title}</span>
+                    <span class="badge bg-{$report.status==1?'success':($report.status==0?'warning':'danger')}">{$report.status_text}</span>
+                </div>
+                <div class="card-body">
+                    {if $report.summary}
+                    <div class="alert alert-info">
+                        <strong>一句话总结：</strong>{$report.summary}
+                    </div>
+                    {/if}
+
+                    {if $report.sections}
+                    {volist name="report.sections" id="sec"}
+                    <div class="mb-4">
+                        <h5 class="border-start border-3 border-primary ps-2">{$sec.title}</h5>
+                        <div class="text-muted">{$sec.content|nl2br}</div>
+                    </div>
+                    {/volist}
+                    {/if}
+
+                    {if $report.findings}
+                    <div class="mb-4">
+                        <h5 class="border-start border-3 border-success ps-2">关键发现</h5>
+                        <ul class="list-group list-group-flush">
+                            {volist name="report.findings" id="f"}
+                            <li class="list-group-item">{$f}</li>
+                            {/volist}
+                        </ul>
+                    </div>
+                    {/if}
+
+                    {if $report.recommendations}
+                    <div class="mb-4">
+                        <h5 class="border-start border-3 border-warning ps-2">优化建议</h5>
+                        <ul class="list-group list-group-flush">
+                            {volist name="report.recommendations" id="r"}
+                            <li class="list-group-item">{$r}</li>
+                            {/volist}
+                        </ul>
+                    </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            {if $report.anomalies}
+            <div class="card mb-3">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle me-1"></i>异常检测
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {volist name="report.anomalies" id="a"}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <strong>{$a.metric}</strong>
+                                <span class="badge bg-{$a.severity=='high'?'danger':'warning'}">{$a.deviation}</span>
+                            </div>
+                            <small class="text-muted">{$a.description}</small>
+                        </li>
+                        {/volist}
+                    </ul>
+                </div>
+            </div>
+            {/if}
+
+            <div class="card">
+                <div class="card-header">原始数据快照</div>
+                <div class="card-body">
+                    <pre class="small text-muted" style="max-height:400px;overflow:auto;">{$report.raw_data|json_encode:JSON_PRETTY_PRINT|raw}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

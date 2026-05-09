@@ -54,6 +54,28 @@
                         <input type="color" id="aiBaseColor" value="#3b82f6" style="width:48px;height:36px;border:none;padding:0;cursor:pointer;">
                     </div>
                     <div class="col-auto">
+                        <label class="form-label small mb-1">行业类型</label>
+                        <select class="form-select form-select-sm" id="aiIndustry" style="width:auto;min-width:120px;">
+                            <option value="">不限</option>
+                            <option value="科技">科技</option>
+                            <option value="电商">电商</option>
+                            <option value="教育">教育</option>
+                            <option value="医疗">医疗</option>
+                            <option value="金融">金融</option>
+                            <option value="政务">政务</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small mb-1">风格偏好</label>
+                        <select class="form-select form-select-sm" id="aiStyle" style="width:auto;min-width:120px;">
+                            <option value="">不限</option>
+                            <option value="现代">现代</option>
+                            <option value="简约">简约</option>
+                            <option value="活泼">活泼</option>
+                            <option value="商务">商务</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
                         <button class="btn btn-sm btn-primary" onclick="aiSuggest()"><i class="bi bi-magic me-1"></i>AI生成配色</button>
                     </div>
                 </div>
@@ -128,7 +150,9 @@ function loadThemeVars() {
 
 function aiSuggest() {
     var baseColor = $('#aiBaseColor').val();
-    $.post('/admin/template_design/aiSuggest', { base_color: baseColor }, function(res) {
+    var industry = $('#aiIndustry').val();
+    var style = $('#aiStyle').val();
+    $.post('/admin/template_design/aiSuggest', { base_color: baseColor, industry: industry, style: style }, function(res) {
         if (res.code === 0 || res.code === 1) {
             var data = res.data || res;
             var container = $('#aiSchemeColors').empty();

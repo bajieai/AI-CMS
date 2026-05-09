@@ -20,6 +20,33 @@ use think\facade\Config as ThinkConfig;
 class ContentController extends AdminBaseController
 {
     /**
+     * V2.9.1 M18: 批量内容操作
+     */
+    public function batchAction()
+    {
+        $action = $this->request->post('action', '');
+        $ids = $this->request->post('ids', []);
+        $cateId = $this->request->post('cate_id', 0);
+
+        $extra = [];
+        if ($action === 'move') {
+            $extra['cate_id'] = (int) $cateId;
+        }
+
+        $result = ContentService::batchOperate($action, $ids, $extra);
+
+        if ($this->request->isAjax()) {
+            return json($result);
+        }
+
+        if ($result['success']) {
+            $this->success($result['msg']);
+        } else {
+            $this->error($result['msg']);
+        }
+    }
+
+    /**
      * 内容列表
      */
     public function index()

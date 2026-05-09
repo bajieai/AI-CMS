@@ -3,9 +3,6 @@ declare(strict_types=1);
 
 namespace app\common\service;
 
-use app\common\model\Member;
-use app\common\model\PointsLog;
-use app\common\model\SigninLog;
 use think\facade\Db;
 
 /**
@@ -19,24 +16,25 @@ class SigninService
     public static function signin(int $memberId): array
     {
         $today = date('Y-m-d');
-        $member = Member::find($memberId);
+        // 绕过Model字段缓存，直接使用查询构造器
+        $member = Db::name('member')->where('id', $memberId)->find();
         if (!$member) throw new \Exception('会员不存在');
 
         // 检查今天是否已签到
-        $exists = SigninLog::where('member_id', $memberId)
+        $exists = Db::name('signin_log')->where('member_id', $memberId)
             ->where('signin_date', $today)
             ->find();
         if ($exists) throw new \Exception('今日已签到');
 
         // 计算连续签到天数
         $yesterday = date('Y-m-d', strtotime('-1 day'));
-        $lastSignin = SigninLog::where('member_id', $memberId)
+        $lastSignin = Db::name('signin_log')->where('member_id', $memberId)
             ->order('signin_date', 'desc')
             ->find();
 
         $consecutiveDays = 1;
-        if ($lastSignin && $lastSignin->signin_date == $yesterday) {
-            $consecutiveDays = ($member->signin_count ?? 0) + 1;
+        if ($lastSignin && $lastSignin['signin_date'] == $yesterday) {
+            $consecutiveDays = ((int) ($member['signin_count'] ?? 0)) + 1;
         }
 
         // 计算积分
@@ -109,9 +107,13 @@ class SigninService
         $startDate = $month . '-01';
         $endDate = date('Y-m-t', strtotime($startDate));
 
-        $logs = SigninLog::where('member_id', $memberId)
+        $records = Db::name('signin_log')->where('member_id', $memberId)
             ->whereBetween('signin_date', [$startDate, $endDate])
-            ->column('signin_date, consecutive_days', 'signin_date');
+            ->select();
+        $logs = [];
+        foreach ($records as $r) {
+            $logs[$r['signin_date']] = ['consecutive_days' => (int) ($r['consecutive_days'] ?? 0)];
+        }
 
         $days = [];
         $current = strtotime($startDate);

@@ -17,15 +17,15 @@ class MemberLevelService
      */
     public static function checkUpgrade(int $memberId): bool
     {
-        $member = Member::find($memberId);
+        $member = Db::name('member')->where('id', $memberId)->find();
         if (!$member) return false;
 
-        $newLevel = MemberLevel::where('min_points', '<=', $member->total_points)
+        $newLevel = Db::name('member_level')->where('min_points', '<=', $member['total_points'])
             ->order('min_points', 'desc')
             ->find();
 
-        if ($newLevel && $newLevel->id != $member->level_id) {
-            Db::name('member')->where('id', $memberId)->update(['level_id' => $newLevel->id]);
+        if ($newLevel && $newLevel['id'] != $member['level_id']) {
+            Db::name('member')->where('id', $memberId)->update(['level_id' => $newLevel['id']]);
             return true;
         }
 

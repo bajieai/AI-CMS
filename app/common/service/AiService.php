@@ -361,6 +361,86 @@ class AiService
     }
 
     /**
+     * V2.9.1 M16b: AI配色推荐
+     *
+     * @param string $industry  行业类型（如科技/电商/教育/医疗）
+     * @param string $style     风格偏好（如现代/简约/活泼/商务）
+     * @param string $baseColor 基础色（可选，如#3b82f6）
+     * @return array ['primary'=>'#xxx', 'secondary'=>'#xxx', 'accent'=>'#xxx', 'bg'=>'#xxx', 'text'=>'#xxx', 'reason'=>'推荐原因']
+     */
+    public function colorSuggest(string $industry = '', string $style = '', string $baseColor = ''): array
+    {
+        $prompt = "你是一位专业的UI/UX设计师，请为以下场景推荐一套网站配色方案。\n\n";
+        if ($industry) $prompt .= "行业: {$industry}\n";
+        if ($style) $prompt .= "风格偏好: {$style}\n";
+        if ($baseColor) $prompt .= "基础色: {$baseColor}\n";
+        $prompt .= "\n请返回JSON格式（仅JSON，不要其他文字）:\n";
+        $prompt .= "{\n";
+        $prompt .= '  "primary": "#主色",' . "\n";
+        $prompt .= '  "secondary": "#辅色",' . "\n";
+        $prompt .= '  "accent": "#强调色",' . "\n";
+        $prompt .= '  "bg": "#背景色",' . "\n";
+        $prompt .= '  "bg_secondary": "#次背景色",' . "\n";
+        $prompt .= '  "text": "#主文字色",' . "\n";
+        $prompt .= '  "text_secondary": "#次文字色",' . "\n";
+        $prompt .= '  "border": "#边框色",' . "\n";
+        $prompt .= '  "reason": "推荐原因（50字以内）"' . "\n";
+        $prompt .= "}\n";
+
+        try {
+            $response = $this->callWithFallback('write', $prompt, [
+                'max_tokens'  => 512,
+                'temperature' => 0.5,
+            ]);
+
+            preg_match('/\{.*\}/s', $response, $matches);
+            if (!empty($matches[0])) {
+                $result = json_decode($matches[0], true);
+                if (is_array($result) && !empty($result['primary'])) {
+                    return $result;
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[AiService] AI配色推荐失败: ' . $e->getMessage());
+        }
+
+        // HSL降级：根据行业返回预设配色
+        return self::getPresetColors($industry, $style, $baseColor);
+    }
+
+    /**
+     * V2.9.1 M16b: HSL降级配色方案
+     */
+    public static function getPresetColors(string $industry = '', string $style = '', string $baseColor = ''): array
+    {
+        // 行业预设
+        $industryMap = [
+            '科技' => ['primary' => '#3b82f6', 'secondary' => '#64748b', 'accent' => '#06b6d4'],
+            '电商' => ['primary' => '#f97316', 'secondary' => '#64748b', 'accent' => '#ef4444'],
+            '教育' => ['primary' => '#22c55e', 'secondary' => '#64748b', 'accent' => '#eab308'],
+            '医疗' => ['primary' => '#06b6d4', 'secondary' => '#64748b', 'accent' => '#10b981'],
+            '金融' => ['primary' => '#1e40af', 'secondary' => '#64748b', 'accent' => '#f59e0b'],
+            '政务' => ['primary' => '#dc2626', 'secondary' => '#64748b', 'accent' => '#f59e0b'],
+        ];
+
+        $colors = $industryMap[$industry] ?? ['primary' => '#3b82f6', 'secondary' => '#64748b', 'accent' => '#f59e0b'];
+
+        // 如果提供了基础色，以其为primary
+        if ($baseColor && preg_match('/^#[0-9a-fA-F]{6}$/', $baseColor)) {
+            $colors['primary'] = $baseColor;
+        }
+
+        return array_merge($colors, [
+            'bg'             => '#ffffff',
+            'bg_secondary'   => '#f8fafc',
+            'text'           => '#1e293b',
+            'text_secondary' => '#64748b',
+            'border'         => '#e2e8f0',
+            'reason'         => '基于行业特征和色彩理论的HSL降级推荐方案',
+        ]);
+    }
+
+    /**
      * 构建质量检测Prompt
      */
     protected function buildQualityPrompt(string $content, array $dimensions = []): string

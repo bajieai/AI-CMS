@@ -172,3 +172,12 @@ Route::post('points_product/delete$', '\app\admin\controller\PointsProductContro
 Route::get('points_exchange/index$', '\app\admin\controller\PointsExchangeController@index');
 Route::post('points_exchange/audit$', '\app\admin\controller\PointsExchangeController@audit');
 Route::get('points_exchange/detail/:id$', '\app\admin\controller\PointsExchangeController@detail');
+
+// V2.5 多语言管理
+Route::get('language/index$', '\app\admin\controller\LanguageController@index');
+Route::rule('language/add$', '\app\admin\controller\LanguageController@add', 'GET|POST');
+Route::rule('language/edit/:id$', '\app\admin\controller\LanguageController@edit', 'GET|POST');
+Route::post('language/save$', '\app\admin\controller\LanguageController@save');
+Route::post('language/delete$', '\app\admin\controller\LanguageController@delete');
+Route::rule('language/translate$', '\app\admin\controller\LanguageController@translate', 'GET|POST');
+Route::post('language/aiTranslate$', '\app\admin\controller\LanguageController@aiTranslate');

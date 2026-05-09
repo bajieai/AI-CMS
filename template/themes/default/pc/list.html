@@ -57,7 +57,7 @@
                     <div class="col-md-6">
                         <div class="card h-100">
                             {if condition="$vo.cover"}
-                            <img src="{$vo.cover}" class="card-img-top" alt="{$vo.title}" onerror="this.style.display='none'">
+                            <img data-src="{$vo.cover}" class="card-img-top lazyload" alt="{$vo.title}" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                             {/if}
                             <div class="card-body">
                                 <h5 class="card-title"><a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a></h5>

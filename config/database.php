@@ -34,8 +34,8 @@ return [
             'master_num' => 1,
             // 指定从服务器序号
             'slave_no' => '',
-            // 是否严格检查字段是否存在
-            'fields_strict' => true,
+            // 是否严格检查字段是否存在（V2.9.1: 关闭以避免字段缓存不一致导致fields not exists报错）
+            'fields_strict' => false,
             // 是否需要断线重连
             'break_reconnect' => false,
             // 监听SQL（生产环境关闭，避免大量日志I/O）

@@ -30,4 +30,8 @@ return [
     'app_map' => [],
     'domain_bind' => [],
     'deny_app_list' => ['common'],
+
+    // ===== 编码根治：全局默认字符集 =====
+    'default_charset' => 'utf-8',
+    'default_return_type' => 'html',
 ];

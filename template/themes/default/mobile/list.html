@@ -25,7 +25,7 @@
 {volist name="list" id="vo"}
 <div class="m-card">
     {if condition="$vo.cover"}
-    <img src="{$vo.cover}" class="m-card-img" alt="{$vo.title}" onerror="this.style.display='none'" style="max-height:180px;object-fit:cover;">
+    <img data-src="{$vo.cover}" class="m-card-img lazyload" alt="{$vo.title}" onerror="this.style.display='none'" style="max-height:180px;object-fit:cover;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
     {/if}
     <div class="m-card-body">
         <h5 class="m-card-tit"><a href="{$vo.url}">{$vo.title}</a></h5>

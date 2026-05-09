@@ -16,10 +16,10 @@
     text-align:center;position:relative;display:inline-block;vertical-align:top;
 }
 .theme-card:hover { transform:translateY(-5px)!important;box-shadow:0 10px 28px rgba(0,0,0,.14)!important;border-color:#93c5fd!important; }
-.theme-preview { height:140px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#f1f5f9,#e2e8f0); }
+.theme-preview { height:80px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#f1f5f9,#e2e8f0); }
 .theme-preview img { width:100%;height:100%;object-fit:cover; }
-.theme-preview i { font-size:2.25rem;color:#94a3b8; }
-.theme-info { padding:.9rem .75rem; }
+.theme-preview i { font-size:1.6rem;color:#94a3b8; }
+.theme-info { padding:.5rem .75rem; }
 .theme-label { display:block;font-size:.92rem;font-weight:700;color:#1e293b;margin-bottom:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .25s; }
 .theme-desc { display:block;text-muted;font-size:.78rem;margin-top:.2rem;line-height:1.4;height:1.35em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:#64748b; }
 .theme-meta { display:block;font-size:.72rem;margin-top:.15rem;opacity:.55;color:#94a3b8; }
@@ -43,10 +43,19 @@
 {/block}
 
 {block name="content"}
-<!-- Tab 导航 -->
+<!-- Tab 导航：功能页面 -->
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
-        <a class="nav-link active" href="/admin/system/config">系统配置</a>
+        <a class="nav-link {if $currentTab == 'basic'}active{/if}" href="/admin/system/config?tab=basic">基本设置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'features'}active{/if}" href="/admin/system/config?tab=features">功能配置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'business'}active{/if}" href="/admin/system/config?tab=business">业务设置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'system'}active{/if}" href="/admin/system/config?tab=system">系统设置</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" href="/admin/system/customVar">自定义变量</a>
@@ -56,7 +65,8 @@
     </li>
 </ul>
 
-<!-- ========== V2.4 界面风格选择区 ========== -->
+<!-- ========== V2.4 界面风格选择区（仅基本设置tab显示） ========== -->
+{if $isMainTab}
 <div id="themeSelectorArea" class="mb-4">
     <!-- 前台风格 -->
     <div class="card mb-3" style="border-radius:12px;border:2px solid #e0e7ff;overflow:hidden;">
@@ -88,6 +98,7 @@
         <small class="text-muted"><i class="bi bi-info-circle me-1"></i>前台风格与后台模板可独立选择，互不影响</small>
     </div>
 </div>
+{/if}
 
 <form id="configForm" method="post" action="/admin/system/config">
     {volist name="groups" id="group" key="groupName"}

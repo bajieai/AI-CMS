@@ -50,7 +50,7 @@
 
                     {if condition="$info.cover"}
                     <div class="mb-4">
-                        <img src="{$info.cover}" class="img-fluid rounded" alt="{$info.title}" onerror="this.style.display='none'">
+                        <img data-src="{$info.cover}" class="img-fluid rounded lazyload" alt="{$info.title}" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                     </div>
                     {/if}
 
@@ -135,6 +135,12 @@
                                 <!-- 内容 -->
                                 <div class="mb-3">
                                     <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="分享您的使用体验..."></textarea>
+                                </div>
+
+                                <!-- 媒体上传 - V2.9.1 M15a -->
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">上传图片（可选）</label>
+                                    <div id="ratingMediaUploader"></div>
                                 </div>
 
                                 <!-- 匿名评价 -->
@@ -266,7 +272,15 @@ $('#commentForm').on('submit', function(e) {
 {/if}
 
 {if condition="config('rating_enabled') !== 0"}
+<script src="/assets/js/rating-media-uploader.js"></script>
 <script>
+// 初始化媒体上传 - V2.9.1 M15a
+var ratingUploader = new RatingMediaUploader({
+    container: '#ratingMediaUploader',
+    inputName: 'media_urls',
+    maxFiles: 5
+});
+
 // 加载评价列表和统计
 function loadRatings(page) {
     page = page || 1;
@@ -286,6 +300,14 @@ function loadRatings(page) {
                 if (item.title) html += '<h6>' + item.title + '</h6>';
                 if (item.content) html += '<p class="mb-2">' + item.content + '</p>';
                 html += '<div class="d-flex align-items-center gap-3"><button class="btn btn-sm btn-outline-secondary" onclick="likeRating(' + item.id + ')"><i class="bi bi-hand-thumbs-up"></i> <span class="like-count">' + (item.like_count || 0) + '</span></button></div>';
+                // 回复展示 - V2.9.1 M15b
+                if (item.replies && item.replies.length) {
+                    html += '<div class="mt-2 ms-2 ps-2 border-start border-2 border-light">';
+                    item.replies.forEach(function(reply) {
+                        html += '<div class="small mb-1"><span class="badge bg-primary me-1">商家</span><span class="text-muted">' + reply.create_time + '</span><p class="mb-0">' + reply.content + '</p></div>';
+                    });
+                    html += '</div>';
+                }
                 html += '</div></div>';
             });
             $('#ratingList').html(html || '<p class="text-muted">暂无评价</p>');

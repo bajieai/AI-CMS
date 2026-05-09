@@ -88,6 +88,9 @@ abstract class AdminBaseController extends \think\BaseController
         'coupon'           => 'coupon',
         'rating'           => 'rating',
         'template_design'  => 'template_design',
+        // V2.9.1 新增模块
+        'report'           => 'report',
+        'api_doc'          => 'api_doc',
     ];
 
     /**
@@ -96,8 +99,6 @@ abstract class AdminBaseController extends \think\BaseController
      */
     protected static array $menuActionMap = [
         'system.config'         => 'system_config',
-        'system.custom_var'     => 'system_custom_var',
-        'system.module_control' => 'system_module',
         'seo_keyword.group'     => 'seo_keyword_group',
         // V2.5 精确菜单映射
         'payment.config'        => 'payment',
@@ -125,6 +126,23 @@ abstract class AdminBaseController extends \think\BaseController
         ], 'view');
         // 强制视图引擎重新读取配置（驱动实例会缓存配置，必须刷新）
         $this->app->view->engine()->config(['view_path' => $adminPath]);
+
+        // ===== 编码根治：强制所有响应输出为 UTF-8 =====
+        // 1. 设置视图引擎编码
+        $this->app->view->engine()->config(['view_charset' => 'UTF-8']);
+        // 2. 强制全局响应编码（覆盖任何可能的外部配置干扰）
+        $this->app->config->set([
+            'default_charset' => 'utf-8',
+            'default_return_type' => 'html',
+        ], 'app');
+        // 3. 发送 Content-Type 响应头（确保传输层不丢失编码信息）
+        header('Content-Type: text/html; charset=utf-8');
+        // 4. 设置数据库连接编码（确保 ORM 层写入时使用正确编码）
+        try {
+            \think\facade\Db::execute("SET NAMES utf8mb4");
+        } catch (\Throwable) {
+            // 数据库未连接时静默跳过
+        }
 
         // 注入当前用户角色信息到所有视图
         $roleId = (int) session('role_id');

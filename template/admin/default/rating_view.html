@@ -125,6 +125,40 @@
                 </div>
                 {/if}
 
+                <!-- 回复管理 - V2.9.1 M15b -->
+                <div class="mt-4">
+                    <h6><i class="bi bi-chat-dots me-1"></i>管理员回复</h6>
+                    <form id="replyForm" class="mb-3">
+                        <input type="hidden" name="rating_id" value="{$rating.id}">
+                        <div class="input-group">
+                            <input type="text" name="content" class="form-control" placeholder="输入回复内容..." required>
+                            <button type="submit" class="btn btn-primary">发送回复</button>
+                        </div>
+                    </form>
+                    <div id="replyList">
+                        {if condition="!empty($rating.replies)"}
+                        {foreach $rating.replies as $reply}
+                        <div class="card mb-2" id="reply-{$reply.id}">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="badge bg-primary me-1">管理员</span>
+                                        <small class="text-muted">{$reply.create_time|date='Y-m-d H:i'}</small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteReply({$reply.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <p class="mb-0 mt-1">{$reply.content}</p>
+                            </div>
+                        </div>
+                        {/foreach}
+                        {else}
+                        <p class="text-muted small">暂无回复</p>
+                        {/if}
+                    </div>
+                </div>
+
                 <div class="mt-4">
                     {if condition="$rating.status == 0"}
                     <button onclick="approveRating({$rating.id})" class="btn btn-success">
@@ -165,6 +199,35 @@
 
 {block name="js"}
 <script>
+// 回复评价 - V2.9.1 M15b
+$('#replyForm').on('submit', function(e) {
+    e.preventDefault();
+    var content = $(this).find('input[name=content]').val();
+    if (!content.trim()) {
+        alert('请输入回复内容');
+        return;
+    }
+    $.post('/admin/rating/reply', $(this).serialize(), function(res) {
+        if (res.code === 1) {
+            location.reload();
+        } else {
+            alert(res.msg || '回复失败');
+        }
+    }, 'json');
+});
+
+// 删除回复 - V2.9.1 M15b
+function deleteReply(replyId) {
+    if (!confirm('确定删除此回复？')) return;
+    $.post('/admin/rating/deleteReply', {reply_id: replyId}, function(res) {
+        if (res.code === 1) {
+            $('#reply-' + replyId).remove();
+        } else {
+            alert(res.msg || '删除失败');
+        }
+    }, 'json');
+}
+
 function approveRating(id) {
     if (!confirm('确定通过此评价？')) return;
     $.post('/admin/rating/approve', {id: id}, function(res) {

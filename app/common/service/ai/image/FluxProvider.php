@@ -42,10 +42,10 @@ class FluxProvider implements ImageProviderInterface
     }
 
     /**
-     * 生成图片（FLUX API）
+     * 生成图片（FLUX API）— V2.9.1 M14a 异步化改造
      *
      * 使用 BFL API 格式（非 OpenAI 兼容）
-     * 注意：FLUX API 是异步的，需要轮询结果
+     * 注意：FLUX API 是异步的，V2.9.1改为写入DB任务表+前端轮询，不再阻塞PHP-FPM
      */
     public function generateImage(string $prompt, array $options = []): array
     {
@@ -80,16 +80,38 @@ class FluxProvider implements ImageProviderInterface
                 throw new \Exception('FLUX API 未返回 polling_url');
             }
 
-            // 轮询获取结果（最多30秒）
-            $imageUrl = $this->pollForResult($body['polling_url']);
+            // V2.9.1: 异步化 — 写入任务表，立即返回task_id供前端轮询
+            $taskId = $body['id'] ?? uniqid('flux_', true);
+            $task = \app\common\model\ImageTask::create([
+                'task_id'      => $taskId,
+                'provider'     => 'flux',
+                'poll_url'     => $body['polling_url'],
+                'status'       => \app\common\model\ImageTask::STATUS_PENDING,
+                'prompt'       => $styledPrompt,
+                'result'       => null,
+                'attempts'     => 0,
+                'max_attempts' => 30, // 30次×3秒≈90秒
+                'related_type' => $options['related_type'] ?? '',
+                'related_id'   => $options['related_id'] ?? 0,
+                'error_msg'    => '',
+                'retry_count'  => 0,
+                'local_path'   => '',
+                'create_time'  => time(),
+                'update_time'  => time(),
+            ]);
+
+            Log::info("[FluxProvider] 异步任务已创建 task_id={$taskId}, db_id={$task->id}");
 
             return [
-                'url'          => $imageUrl,
+                'url'          => '', // 异步模式下不立即返回URL
                 'width'        => $size['width'],
                 'height'       => $size['height'],
                 'format'       => $options['format'] ?? 'png',
                 '_provider'    => 'flux',
-                '_request_id'  => $body['id'] ?? '',
+                '_request_id'  => $taskId,
+                '_task_id'     => $taskId,         // 前端轮询用
+                '_db_id'       => $task->id,       // 内部ID
+                '_async'       => true,            // 标记为异步模式
             ];
 
         } catch (\Exception $e) {
@@ -99,12 +121,13 @@ class FluxProvider implements ImageProviderInterface
     }
 
     /**
-     * 轮询异步结果
+     * 轮询异步结果 — V2.9.1已废弃，轮询逻辑迁移到ImagePollCommand CLI命令
+     * 保留此方法仅用于向后兼容或本地调试
      */
     protected function pollForResult(string $pollingUrl): string
     {
         $startTime = time();
-        $maxWait = 30; // 最多等待30秒
+        $maxWait = 30;
 
         while (time() - $startTime < $maxWait) {
             sleep(2);

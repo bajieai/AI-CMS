@@ -53,7 +53,7 @@
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="card h-100">
                     {if condition="$field.cover"}
-                    <img src="{$field.cover}" class="card-img-top" alt="{$field.title}" onerror="this.src='https://placehold.co/400x200/e9ecef/6c757d?text=Product'">
+                    <img data-src="{$field.cover}" class="card-img-top lazyload" alt="{$field.title}" onerror="this.src='https://placehold.co/400x200/e9ecef/6c757d?text=Product'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                     {else/}
                     <img src="https://placehold.co/400x200/e9ecef/6c757d?text=Product" class="card-img-top" alt="{$field.title}">
                     {/if}
@@ -80,7 +80,7 @@
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100">
                     {if condition="$field.cover"}
-                    <img src="{$field.cover}" class="card-img-top" alt="{$field.title}" onerror="this.src='/assets/images/placeholder-case.svg'">
+                    <img data-src="{$field.cover}" class="card-img-top lazyload" alt="{$field.title}" onerror="this.src='/assets/images/placeholder-case.svg'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                     {else/}
                     <img src="/assets/images/placeholder-case.svg" class="card-img-top" alt="{$field.title}">
                     {/if}

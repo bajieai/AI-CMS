@@ -16,5 +16,7 @@ return [
         'vip:expire'          => 'app\common\command\VipExpireCommand',
         'points:archive'      => 'app\common\command\PointsArchiveCommand',
         'email:recover'       => 'app\common\command\EmailQueueRecoverCommand',
+        // V2.9.1 M14a: 配图异步轮询命令
+        'image:poll'          => 'app\common\command\ImagePollCommand',
     ],
 ];

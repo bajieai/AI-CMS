@@ -8,6 +8,10 @@ Route::post('ai/generate', '\app\api\controller\AiController@generate');
 // 图片上传
 Route::post('upload/image', '\app\api\controller\UploadController@image');
 
+// V2.9.1 M14a: 配图任务状态查询（公开API，无需认证）
+Route::get('image/status', '\app\api\controller\ImageController@status');
+Route::post('image/batch_status', '\app\api\controller\ImageController@batchStatus');
+
 // CSRF Token刷新（GET请求无需CSRF验证，用于AJAX自动恢复）
 Route::get('csrf/token', '\app\api\controller\CsrfController@token');
 

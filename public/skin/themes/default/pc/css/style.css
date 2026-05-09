@@ -1,14 +1,34 @@
-:root { --primary: #0d6efd; --dark: #1a1d21; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; color: #333; }
+:root {
+    /* 颜色系统 - 设计令牌 */
+    --primary: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --primary-light: #3d8bfd;
+    --dark: #1a1d21;
+    --dark-secondary: #2d3748;
+    --bg: #ffffff;
+    --bg-alt: #f8f9fa;
+    --text: #333333;
+    --text-secondary: #6c757d;
+    --border: #e9ecef;
+    /* 渐变 */
+    --gradient-hero: linear-gradient(135deg, var(--dark) 0%, var(--dark-secondary) 100%);
+    /* 阴影 */
+    --shadow-card: 0 0.5rem 1rem rgba(0,0,0,0.1);
+    --shadow-card-hover: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    /* 圆角 */
+    --radius-card: 12px;
+    --radius-btn: 8px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--text); }
 .navbar-brand { font-weight: 700; font-size: 1.3rem; }
 .navbar-brand i { color: var(--primary); }
-.hero { background: linear-gradient(135deg, var(--dark) 0%, #2d3748 100%); color: #fff; padding: 4rem 0; }
+.hero { background: var(--gradient-hero); color: var(--bg); padding: 4rem 0; }
 .hero h1 { font-weight: 800; }
 .section-title { font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--primary); display: inline-block; }
 .card { transition: transform 0.2s, box-shadow 0.2s; border: none; }
-.card:hover { transform: translateY(-3px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1); }
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card-hover); }
 .card-img-top { height: 200px; object-fit: cover; }
 footer { background: var(--dark); color: rgba(255,255,255,0.6); padding: 2rem 0; }
 footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
-footer a:hover { color: #fff; }
+footer a:hover { color: var(--bg); }
 .breadcrumb { background: transparent; padding: 0; }

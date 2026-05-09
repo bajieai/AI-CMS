@@ -1,26 +1,31 @@
-# 八界AI-CMS V2.9
+# 八界AI-CMS V2.9.1
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.0-blue)
+![Version](https://img.shields.io/badge/version-2.9.1-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9 在V2.8基础上完成AI模板高度定制化（字段映射+质量检测）、FLUX/DALL-E多模型配图、优惠券系统、评价评分、全阶段邀请奖励、小程序100%完善、前台模板可视化预研与CSS变量化等核心升级，标志着产品进入AI深度定制+商业运营闭环的新阶段。
+八界AI-CMS V2.9.1 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.1 在V2.9基础上完成性能筑基（FluxProvider异步化+懒加载+CDN+CSS变量化）、功能补完（AI报告+API文档+评价媒体+回复+免邮券+批量管理）、智能升级（AI配色+配图本地化+小程序样式），标志着产品从功能构建迈入性能优化+体验精研的新阶段。
 
 ### 核心特性
 
 - **多模型AI引擎** - DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 5大AI引擎，工厂模式+熔断降级
 - **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式，支持AI批量生成
 - **AI模板定制化** - 字段映射+质量检测+配图发布+参考示例，5大Tab深度配置
-- **FLUX/DALL-E配图** - 多模型AI配图引擎，通义万相/FLUX.1/DALL-E 3三Provider+自动降级
+- **FLUX/DALL-E配图** - 多模型AI配图引擎，通义万相/FLUX.1/DALL-E 3三Provider+自动降级+异步轮询
+- **AI数据分析报告** - 日报/周报/月报AI生成，异常检测+关键发现+建议+Markdown导出
+- **AI配色推荐** - 行业/风格偏好+AI大模型配色+HSL降级，实时预览+一键应用
 - **优惠券系统** - 满减/折扣/免邮3种券，新人券自动发放，前台会员券中心+小程序领券
-- **评价评分系统** - 5星评分+文字评价+匿名+点赞+审核，前台+小程序双端评价
+- **评价评分系统** - 5星评分+文字评价+媒体上传+回复管理+匿名+点赞+审核
 - **全阶段邀请奖励** - 注册/签到/付费三阶段递进奖励，邀请排行+明细
-- **小程序完善** - 11页面全覆盖(首页/详情/搜索/登录/个人/分类/支付/签到/优惠券/邀请/订单)
-- **模板可视化预研** - 后台CSS变量编辑器+AI配色推荐，前台:root变量动态注入
+- **小程序完善** - 11页面全覆盖+完整设计体系(487行全局样式)
+- **性能优化** - FluxProvider异步化(DB任务表+CLI轮询)+图片懒加载(IntersectionObserver)+CDN系统化(模板精准+str_replace兜底)
+- **CSS变量化** - 4套style.css硬编码→完整CSS变量体系，双主题独立设计令牌
+- **批量内容管理** - 后台全选/多选+批量审核/删除/移动分类/推荐，确认弹窗防误操作
+- **API文档自动生成** - PHP Reflection+DocBlock解析，后台Swagger风格展示+Markdown导出
 - **6种内容类型** - 产品/案例/新闻/下载/招聘/单页，支持扩展字段
 - **简化RBAC** - 3级角色（超管/管理员/编辑），配置文件权限控制
 - **I8j标签引擎** - 自定义模板标签 `{i8j:infolist}`/`{i8j:catelist}`/`{i8j:bannerlist}`/`{i8j:linklist}`/`{i8j:medialist}`/`{i8j:commentlist}`，灵活调用数据
@@ -29,6 +34,23 @@
 - **双主题后台** - default(经典) / corporate(企业) 两套后台主题自由切换
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
+
+### V2.9.1 新增特性
+
+- **FluxProvider异步化(M14a)** - DB任务表+CLI轮询替代sleep(2)阻塞，前端AJAX进度轮询(4种状态+进度%)，30次/90秒超时+3次错误重试
+- **图片懒加载系统化(M14b)** - IntersectionObserver统一组件+4套layout引入+8+模板img→data-src替换+富文本自动拦截
+- **CDN URL替换系统化(M14c)** - 模板层精准替换(cdn_enabled/cdn_domain变量)+响应层str_replace兜底(仅src/href)+后台开关可控
+- **CSS变量化深度改造(M14d)** - 4套style.css硬编码→完整CSS变量体系(default+corporate各pc/mobile)，独立设计令牌
+- **AI数据分析报告(M9)** - Model层数据采集+AI分析引擎(日报/周报/月报)+异常检测+关键发现+建议+邮件推送+Markdown导出
+- **API文档自动生成(M10)** - PHP Reflection+DocBlock解析+路由匹配，后台分组展示+Swagger风格+Markdown导出
+- **评价媒体上传前端(M15a)** - 多图预览/进度/拖拽/删除组件，复用/api/upload/image接口，4套detail.html集成
+- **评价回复独立表(M15b)** - i8j_rating_reply表+管理员回复+会员追问，前台回复展示+后台回复管理
+- **免邮券对接物流模块(M16a)** - ShippingService运费计算+免邮阈值+免邮券识别+CouponTemplate.free_shipping支持
+- **aiSuggest接入AI大模型(M16b)** - AiService.colorSuggest()AI配色+行业/风格偏好选择器+HSL降级预设
+- **小程序样式补全(M16c)** - app.wxss完整设计体系(487行/10大模块:变量/布局/间距/卡片/按钮/表单/列表/图文/状态/工具类)
+- **AI配图URL本地化(M17)** - ImagePollCommand下载远程配图到本地StorageService+Content.cover自动回写
+- **批量内容管理增强(M18)** - 后台全选/多选+批量审核/删除/移动分类/推荐/取消推荐，确认弹窗防误操作
+- **V2.9.1收尾** - menu.php新增report/apidoc菜单、permission.php新增4组权限、v2.9.1.sql(3表+CDN配置+免邮配置+语言切换器)
 
 ### V2.9 新增特性
 
@@ -115,7 +137,7 @@
 |------|------|------|
 | 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
 | 语言 | PHP 8.2+ | 严格类型声明 |
-| 数据库 | MySQL 8.0 | 46+张数据表，前缀 i8j_ |
+| 数据库 | MySQL 8.0 | 49+张数据表，前缀 i8j_ |
 | 缓存 | Redis | CacheService标签体系(17标签) |
 | Session | PHP原生文件Session | 24小时过期 |
 | AI接口 | DeepSeek/Qwen/GLM/ERNIE/OpenAI | 工厂模式+熔断降级CircuitBreakerTrait |
@@ -229,6 +251,7 @@ AI-CMS/
 │   ├── v2.7.sql                #   V2.7增量更新
 │   └── v2.8.sql                #   V2.8增量更新
 │   └── v2.9.sql                #   V2.9增量更新
+│   └── v2.9.1.sql              #   V2.9.1增量更新
 ├── miniprogram/                # 微信小程序(V2.9: 11页面)
 │   ├── pages/                  #   页面(index/detail/search/login/mine/coupon/invite/signin/order/payment/category)
 │   └── utils/                  #   工具(API封装)
@@ -280,6 +303,9 @@ AI-CMS/
 | i8j_coupon_template | 优惠券模板表 | id,coupon_name,coupon_type,condition_amount,reduce_amount,total_stock,remain_stock,per_user_limit,start_time,end_time,scope_type,scope_value,status |
 | i8j_user_coupon | 用户优惠券表 | id,member_id,template_id,code,coupon_type,condition_amount,reduce_amount,status,used_at,expire_at |
 | i8j_content_rating | 内容评价评分表 | id,content_id,member_id,rating,title,content,has_media,media_urls,is_anonymous,reply_count,like_count,status |
+| i8j_rating_reply | 评价回复表 | id,rating_id,user_id,member_id,content,create_time |
+| i8j_image_task | 配图异步任务表 | id,task_id,provider,poll_url,status,prompt,result,attempts,max_attempts,related_type,related_id,error_msg,retry_count,local_path |
+| i8j_ai_report | AI分析报告表 | id,type,title,period_start,period_end,raw_data,summary,findings,anomalies,recommendations,sections,status |
 | i8j_theme_config | 主题配置表 | id,theme,scope,scope_id,config_key,config_value,config_type,label,description,sort |
 
 ## 角色权限
@@ -312,6 +338,8 @@ AI-CMS/
 | GET | /api/rating/list | 内容评价列表 |
 | POST | /api/rating/submit | 提交评价 |
 | POST | /api/rating/like | 评价点赞 |
+| GET | /api/image/status | 配图任务状态查询(V2.9.1) |
+| POST | /api/image/batch_status | 配图任务批量查询(V2.9.1) |
 | GET | /api/invite/info | 邀请信息 |
 | GET | /api/invite/records | 邀请记录 |
 | GET | /api/language/index | 语言列表 |
@@ -359,6 +387,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.1 | 2026-Q3 | FluxProvider异步化/懒加载/CDN/CSS变量化/AI报告/API文档/评价媒体+回复/免邮券/AI配色/配图本地化/批量管理 |
 | V2.9.0 | 2026-Q3 | AI模板定制化/FLUX+DALL-E配图/优惠券系统/评价评分/邀请奖励/小程序完善/模板可视化预研 |
 | V2.8.0 | 2026-Q2 | AI配图/质量检测/SEO优化/运营报表/流量分析/AI统计/社交分享/邀请返积分 |
 | V2.7.0 | 2026-Q1 | API安全加固/付费章节/积分签到/表单编辑器/搜索增强/CDN集成 |

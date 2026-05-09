@@ -43,10 +43,19 @@
 {/block}
 
 {block name="content"}
-<!-- Tab 导航 -->
+<!-- Tab 导航：功能页面 -->
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
-        <a class="nav-link active" href="/admin/system/config">系统配置</a>
+        <a class="nav-link {if $currentTab == 'basic'}active{/if}" href="/admin/system/config?tab=basic">基本设置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'features'}active{/if}" href="/admin/system/config?tab=features">功能配置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'business'}active{/if}" href="/admin/system/config?tab=business">业务设置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'system'}active{/if}" href="/admin/system/config?tab=system">系统设置</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" href="/admin/system/customVar">自定义变量</a>
@@ -56,7 +65,8 @@
     </li>
 </ul>
 
-<!-- ========== V2.4 界面风格选择区 ========== -->
+<!-- ========== V2.4 界面风格选择区（仅基本设置tab显示） ========== -->
+{if $isMainTab}
 <div id="themeSelectorArea" class="mb-4">
     <!-- 前台风格 -->
     <div class="card mb-3" style="border-radius:12px;border:2px solid #e0e7ff;overflow:hidden;">
@@ -92,6 +102,7 @@
         </label>
     </div>
 </div>
+{/if}
 
 <form id="configForm" method="post" action="/admin/system/config">
     {volist name="groups" id="group" key="groupName"}

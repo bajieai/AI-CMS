@@ -87,7 +87,7 @@ body.theme-corporate .sidebar-l1-brand i {
 .l1-item {
     display:flex; align-items:center; padding:9px 11px; color:var(--sidebar-text);
     font-size:14px; cursor:pointer; position:relative; transition:all .2s ease;
-    user-select:none; border-left:2.5px solid transparent;
+    user-select:none; border-left:2.5px solid transparent; text-decoration:none;
 }
 .l1-item:hover{color:#fff;background:rgba(54,153,255,.07);}
 .l1-item.active{

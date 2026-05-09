@@ -63,13 +63,30 @@ class TemplateDesignController extends AdminBaseController
     }
 
     /**
-     * AI配色推荐（预研占位）
+     * AI配色推荐 - V2.9.1 M16b 增强版
+     * 支持行业/风格偏好，优先调用AI大模型，降级为HSL推导
      */
     public function aiSuggest()
     {
         $baseColor = $this->request->post('base_color', '#3b82f6');
+        $industry  = $this->request->post('industry', '');
+        $style     = $this->request->post('style', '');
 
-        // 简单的色彩推导：基于主色生成互补色方案
+        // 优先使用AI大模型配色
+        if ($industry || $style) {
+            try {
+                $aiService = new \app\common\service\AiService();
+                $aiResult = $aiService->colorSuggest($industry, $style, $baseColor);
+                if (!empty($aiResult) && empty($aiResult['error'])) {
+                    return $this->success('AI配色推荐成功', $aiResult);
+                }
+            } catch (\Throwable $e) {
+                // AI调用失败，降级为HSL推导
+                \think\facade\Log::warning('[TemplateDesign] AI配色降级: ' . $e->getMessage());
+            }
+        }
+
+        // 降级：基于主色的HSL色彩推导
         $scheme = $this->generateColorScheme($baseColor);
 
         return $this->success('获取成功', $scheme);

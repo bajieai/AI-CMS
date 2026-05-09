@@ -14,6 +14,7 @@ return [
             ['id' => 14, 'name' => '回收站', 'url' => '/admin/content/recycleBin', 'permission' => 'content.recycle', 'active' => 'recycle', 'icon' => 'bi bi-trash3'],
             ['id' => 15, 'name' => '媒体资源库', 'url' => '/admin/media/index', 'permission' => 'media.*', 'active' => 'media', 'icon' => 'bi bi-images'],
             ['id' => 16, 'name' => '内容审核', 'url' => '/admin/review/index', 'permission' => 'review.*', 'active' => 'review', 'icon' => 'bi bi-patch-check'],
+            // V2.9.1 M18: 批量内容管理（复用content权限，不新增独立菜单）
         ],
     ],
     [
@@ -100,6 +101,8 @@ return [
             // V2.8 流量分析与AI统计
             ['id' => 66, 'name' => '流量分析', 'url' => '/admin/traffic/index', 'permission' => 'traffic.*', 'active' => 'traffic', 'icon' => 'bi bi-graph-up'],
             ['id' => 67, 'name' => 'AI统计', 'url' => '/admin/aiStat/index', 'permission' => 'ai_stat.*', 'active' => 'ai_stat', 'icon' => 'bi bi-robot'],
+            // V2.9.1 M9: AI数据分析报告
+            ['id' => 68, 'name' => '数据报告', 'url' => '/admin/report/index', 'permission' => 'report.*', 'active' => 'report', 'icon' => 'bi bi-graph-up-arrow'],
         ],
     ],
     // V2.5 内容生态
@@ -127,6 +130,8 @@ return [
             ['id' => 91, 'name' => '插件管理', 'url' => '/admin/plugin/index', 'permission' => 'plugin.*', 'active' => 'plugin', 'icon' => 'bi bi-plug'],
             ['id' => 92, 'name' => '多语言管理', 'url' => '/admin/language/index', 'permission' => 'language.*', 'active' => 'language', 'icon' => 'bi bi-translate'],
             ['id' => 93, 'name' => '模板市场', 'url' => '/admin/theme_market/index', 'permission' => 'theme_market.*', 'active' => 'theme_market', 'icon' => 'bi bi-palette2'],
+            // V2.9.1 M10: API文档
+            ['id' => 94, 'name' => 'API文档', 'url' => '/admin/api_doc/index', 'permission' => 'apidoc.*', 'active' => 'api_doc', 'icon' => 'bi bi-file-code'],
         ],
     ],
     [
@@ -136,8 +141,7 @@ return [
         'url' => '',
         'children' => [
             ['id' => 41, 'name' => '系统配置', 'url' => '/admin/system/config', 'permission' => 'system.*', 'active' => 'system_config', 'icon' => 'bi bi-gear'],
-            ['id' => 45, 'name' => '自定义变量', 'url' => '/admin/system/customVar', 'permission' => 'system.*', 'active' => 'system_custom_var', 'icon' => 'bi bi-braces'],
-            ['id' => 46, 'name' => '功能开关', 'url' => '/admin/system/moduleControl', 'permission' => 'system.*', 'active' => 'system_module', 'icon' => 'bi bi-toggle-on'],
+            // 自定义变量(id=45)、功能开关(id=46) 已作为系统配置页内tab，不再重复显示为独立菜单项
             ['id' => 42, 'name' => '操作日志', 'url' => '/admin/log/index', 'permission' => 'system.log', 'active' => 'log', 'icon' => 'bi bi-journal-text'],
             ['id' => 43, 'name' => '数据库备份', 'url' => '/admin/backup/index', 'permission' => 'backup.*', 'active' => 'backup', 'icon' => 'bi bi-database'],
             ['id' => 44, 'name' => '通知中心', 'url' => '/admin/notification/index', 'permission' => 'notification.*', 'active' => 'notification', 'icon' => 'bi bi-bell'],

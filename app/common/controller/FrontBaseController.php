@@ -12,6 +12,7 @@ use app\common\service\LanguageService;
 use app\common\service\TemplateService;
 use think\App;
 use think\facade\Cache;
+use think\facade\Config;
 use think\facade\Cookie;
 
 /**
@@ -117,7 +118,6 @@ abstract class FrontBaseController extends \think\BaseController
             $this->pageCacheKey = null;
         }
 
-        // 注入视图全局变量（含主题变量供模板引用资源路径）
         // 获取启用语言列表（容错）
         $enabledLanguages = [];
         try {
@@ -125,6 +125,17 @@ abstract class FrontBaseController extends \think\BaseController
         } catch (\Throwable) {
             // Language 表可能未创建
         }
+
+        // V2.9.1 M14c: CDN配置注入
+        $cdnEnabled = (bool) Config::get('cdn.enabled', false);
+        $cdnDomain = trim(Config::get('cdn.domain', ''));
+
+        // V2.9.1: 多语言开关 — 关闭时清空语言列表，前台自动隐藏切换器
+        $langSwitcherEnabled = (bool) ($configs['language_switcher_enabled'] ?? true);
+        if (!$langSwitcherEnabled) {
+            $enabledLanguages = [];
+        }
+        $langSitewide = (bool) ($configs['language_sitewide'] ?? false);
 
         $this->app->view->assign([
             'site_name'        => $configs['site_name'] ?? 'AI-CMS',
@@ -148,6 +159,12 @@ abstract class FrontBaseController extends \think\BaseController
             'enabled_languages'=> $enabledLanguages,
             // V2.9 M11 模板可视化：注入主题CSS变量供layout.html消费
             'theme_css_vars'   => $this->getThemeCssVars($activeTheme),
+            // V2.9.1 M14c: CDN变量供模板主动替换
+            'cdn_enabled'      => $cdnEnabled,
+            'cdn_domain'       => $cdnDomain,
+            // V2.9.1: 多语言开关（供模板/逻辑判断）
+            'lang_switcher_enabled' => $langSwitcherEnabled,
+            'lang_sitewide'    => $langSitewide,
         ]);
     }
 
@@ -177,14 +194,15 @@ abstract class FrontBaseController extends \think\BaseController
             return;
         }
 
-        $member = MemberModel::find($memberId);
-        if ($member && $member->status == 1) {
+        // 使用Db查询构造器绕过模型字段缓存（避免fields not exists报错）
+        $member = Db::name('member')->where('id', $memberId)->find();
+        if ($member && $member['status'] == 1) {
             $this->memberInfo = [
-                'id'       => $member->id,
-                'username' => $member->username,
-                'nickname' => $member->nickname,
-                'email'    => $member->email,
-                'avatar'   => $member->avatar,
+                'id'       => (int) $member['id'],
+                'username' => $member['username'],
+                'nickname' => $member['nickname'],
+                'email'    => $member['email'],
+                'avatar'   => $member['avatar'],
             ];
             $this->isMemberLogin = true;
             Cache::tag(CacheService::TAG_MEMBER)->set($cacheKey, $this->memberInfo, 7200);
@@ -212,6 +230,9 @@ abstract class FrontBaseController extends \think\BaseController
     {
         $response = parent::view($template, $vars, $code, $filter);
 
+        // V2.9.1 M14c: 响应层CDN兜底 — 仅对src="/uploads/ 和 href="/uploads/ 做轻量str_replace
+        $response = $this->applyCdnFallback($response);
+
         if (!empty($this->pageCacheKey)) {
             Cache::tag(CacheService::TAG_PAGE_CACHE)->set(
                 $this->pageCacheKey,
@@ -219,6 +240,52 @@ abstract class FrontBaseController extends \think\BaseController
                 3600
             );
         }
+
+        return $response;
+    }
+
+    /**
+     * V2.9.1 M14c: 响应层CDN兜底替换
+     * 仅匹配 src="/uploads/ 和 href="/uploads/ 两种模式，避免误伤JS字符串
+     */
+    protected function applyCdnFallback(\think\Response $response): \think\Response
+    {
+        $cdnEnabled = (bool) Config::get('cdn.enabled', false);
+        $cdnDomain = trim(Config::get('cdn.domain', ''));
+        if (!$cdnEnabled || empty($cdnDomain)) {
+            return $response;
+        }
+
+        $contentType = $response->getHeader('Content-Type');
+        $isHtml = false;
+        if (is_array($contentType)) {
+            $contentType = implode(';', $contentType);
+        }
+        if (is_string($contentType) && stripos($contentType, 'text/html') !== false) {
+            $isHtml = true;
+        }
+
+        if (!$isHtml) {
+            return $response;
+        }
+
+        $html = $response->getContent();
+        if (empty($html)) {
+            return $response;
+        }
+
+        $cdnDomain = rtrim($cdnDomain, '/');
+
+        // 仅替换两种明确模式，不做全HTML正则（避免误伤JS代码块中的路径字符串）
+        $replacements = [
+            'src="/uploads/'  => 'src="https://' . $cdnDomain . '/uploads/',
+            'href="/uploads/' => 'href="https://' . $cdnDomain . '/uploads/',
+            "src='/uploads/"  => "src='https://" . $cdnDomain . "/uploads/",
+            "href='/uploads/" => "href='https://" . $cdnDomain . "/uploads/",
+        ];
+
+        $html = str_replace(array_keys($replacements), array_values($replacements), $html);
+        $response->content($html);
 
         return $response;
     }

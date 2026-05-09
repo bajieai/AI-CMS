@@ -44,7 +44,7 @@
     <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
         {i8j:infolist type="case" limit="4"}
         <div class="cm-case-card" style="min-width:260px;flex-shrink:0;">
-            <img src="{$field.cover|default='/assets/images/placeholder-case.svg'}" alt="" onerror="this.src='/assets/images/placeholder-case.svg'">
+            <img data-src="{$field.cover|default='/assets/images/placeholder-case.svg'}" class="lazyload" alt="" onerror="this.src='/assets/images/placeholder-case.svg'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
             <div class="ovl"><h5>{$field.title}</h5><p>{$field.excerpt|msubstr=0,35}</p></div>
         </div>
         {/i8j:infolist}

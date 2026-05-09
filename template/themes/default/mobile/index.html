@@ -37,7 +37,7 @@
         <div class="col-6">
             <div class="m-card">
                 {if condition="$field.cover"}
-                <img src="{$field.cover}" class="m-card-img" alt="" onerror="this.style.display='none'" style="height:110px;object-fit:cover;">
+                <img data-src="{$field.cover}" class="m-card-img lazyload" alt="" onerror="this.style.display='none'" style="height:110px;object-fit:cover;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 {/if}
                 <div class="m-card-body" style="padding:8px 10px;">
                     <h6 class="m-card-tit" style="font-size:13px;"><a href="{$field.url}">{$field.title}</a></h6>
@@ -58,7 +58,7 @@
         <div class="col-6">
             <div class="m-card">
                 {if condition="$field.cover"}
-                <img src="{$field.cover}" class="m-card-img" alt="" style="height:100px;object-fit:cover;" onerror="this.style.display='none'">
+                <img data-src="{$field.cover}" class="m-card-img lazyload" alt="" style="height:100px;object-fit:cover;" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 {/if}
                 <div class="m-card-body" style="padding:8px 10px;">
                     <h6 class="m-card-tit" style="font-size:13px;"><a href="{$field.url}">{$field.title}</a></h6>

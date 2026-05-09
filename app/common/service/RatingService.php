@@ -246,16 +246,92 @@ class RatingService
     }
 
     /**
-     * 回复评价
+     * V2.9.1 M15b: 回复评价（写入独立回复表）
+     *
+     * @param int    $ratingId  评价ID
+     * @param string $content    回复内容
+     * @param int    $userId     管理员ID（后台回复时传入）
+     * @param int    $memberId   会员ID（前台回复时传入）
+     * @return array
      */
-    public static function replyRating(int $ratingId, int $memberId, string $reply): bool
+    public static function replyRating(int $ratingId, string $content, int $userId = 0, int $memberId = 0): array
     {
         $rating = ContentRating::find($ratingId);
-        if (!$rating) return false;
+        if (!$rating) {
+            return ['success' => false, 'msg' => '评价不存在'];
+        }
 
-        // 这里可以创建回复记录表，暂时简化为更新回复计数
-        $rating->reply_count += 1;
-        return $rating->save();
+        if (empty(trim($content))) {
+            return ['success' => false, 'msg' => '回复内容不能为空'];
+        }
+
+        try {
+            $reply = \app\common\model\RatingReply::create([
+                'rating_id'   => $ratingId,
+                'user_id'     => $userId,
+                'member_id'   => $memberId,
+                'content'     => strip_tags($content),
+                'create_time' => time(),
+            ]);
+
+            // 更新评价的回复计数
+            $replyCount = \app\common\model\RatingReply::where('rating_id', $ratingId)->count();
+            $rating->reply_count = $replyCount;
+            $rating->save();
+
+            return [
+                'success' => true,
+                'msg'     => '回复成功',
+                'data'    => [
+                    'id'      => $reply->id,
+                    'content' => $reply->content,
+                    'time'    => date('Y-m-d H:i', $reply->create_time),
+                ],
+            ];
+        } catch (\Exception $e) {
+            Log::error("[RatingService] 回复评价失败: " . $e->getMessage());
+            return ['success' => false, 'msg' => '回复失败: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * V2.9.1 M15b: 删除回复
+     */
+    public static function deleteReply(int $replyId): bool
+    {
+        $reply = \app\common\model\RatingReply::find($replyId);
+        if (!$reply) {
+            return false;
+        }
+
+        $ratingId = $reply->rating_id;
+        $reply->delete();
+
+        // 更新回复计数
+        $replyCount = \app\common\model\RatingReply::where('rating_id', $ratingId)->count();
+        $rating = ContentRating::find($ratingId);
+        if ($rating) {
+            $rating->reply_count = $replyCount;
+            $rating->save();
+        }
+
+        return true;
+    }
+
+    /**
+     * V2.9.1 M15b: 获取评价及回复详情
+     */
+    public static function getRatingWithReplies(int $ratingId): ?array
+    {
+        $rating = ContentRating::find($ratingId);
+        if (!$rating) {
+            return null;
+        }
+
+        $data = $rating->toArray();
+        $data['replies'] = \app\common\model\RatingReply::getByRatingId($ratingId);
+
+        return $data;
     }
 
     /**
