@@ -17,3 +17,17 @@
 
 {if condition="($list->hasPages() ?? false)"}<div class="m-pagination">{$list->render()|raw}</div>{/if}
 {/block}
+
+{block name="js"}
+<script>
+// V2.9.2 M22b: 无限滚动（移动端列表页）
+if (window.MobileEnhance && document.querySelector('.m-pagination')) {
+    MobileEnhance.initInfiniteScroll({
+        container: '.cm-card',
+        nextSelector: '.m-pagination a[rel="next"]',
+        itemSelector: '.cm-card'
+    });
+    document.querySelector('.m-pagination').style.display = 'none';
+}
+</script>
+{/block}

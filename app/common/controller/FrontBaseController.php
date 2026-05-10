@@ -165,6 +165,11 @@ abstract class FrontBaseController extends \think\BaseController
             // V2.9.1: 多语言开关（供模板/逻辑判断）
             'lang_switcher_enabled' => $langSwitcherEnabled,
             'lang_sitewide'    => $langSitewide,
+            // V2.9.2 注入网站Logo及相关配置到前台视图
+            'site_logo'        => $configs['site_logo'] ?? '',
+            'logo_icon_only'   => ($configs['logo_icon_only'] ?? '') === '1',
+            'logo_name'        => $configs['logo_name'] ?? '',
+            'brand_name'       => !empty($configs['logo_name']) ? $configs['logo_name'] : '八界AI-CMS',
         ]);
     }
 

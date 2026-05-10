@@ -34,7 +34,7 @@ class AiTranslationController extends AdminBaseController
 
         // 为每条内容获取其翻译状态
         foreach ($list as &$item) {
-            $item['translations'] = (new AiTranslationService())->getTranslations($item['id']);
+            $item['translations'] = (new AiTranslationService())->getTranslations((int)$item['id']);
             $item['translation_count'] = count($item['translations']);
         }
 

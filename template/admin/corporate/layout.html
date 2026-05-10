@@ -37,7 +37,15 @@
             <!-- 第一列：一级分类目录 (~170px) -->
             <div class="sidebar-l1" id="sidebarL1">
                 <a href="/admin" class="sidebar-l1-brand" data-l1-dashboard>
-                    <i class="bi bi-robot"></i> 八界AI-CMS
+                    {if $site_logo}
+                        {if $logo_icon_only}
+                        <img src="{$site_logo}" alt="Logo" height="28" style="vertical-align:middle;"> {$brand_name}
+                        {else}
+                        <img src="{$site_logo}" alt="Logo" height="28" style="vertical-align:middle;">
+                        {/if}
+                    {else}
+                    <i class="bi bi-robot"></i> {$brand_name}
+                    {/if}
                 </a>
                 <!-- JS动态渲染一级菜单项 -->
                 <div class="l1-menu-list" id="l1MenuList"></div>
@@ -126,117 +134,8 @@
     <script src="/assets/js/pjax.js?v=3.3"></script>
     <!-- V2.6 双栏菜单控制器（双主题共用） -->
     <script src="/assets/js/admin-sidebar.js?v=2.6"></script>
-    <script>
-        // 页面加载进度条
-        (function() {
-            var $loader = $('#pageLoader');
-            var $bar = $loader.find('div');
-            window.showPageLoader = function() {
-                $bar.css('width', '30%');
-                $loader.css('opacity', '1');
-                setTimeout(function() { $bar.css('width', '70%'); }, 100);
-            };
-            window.hidePageLoader = function() {
-                $bar.css('width', '100%');
-                setTimeout(function() { $loader.css('opacity', '0'); $bar.css('width', '0%'); }, 300);
-            };
-            $(window).on('load', hidePageLoader);
-            $(document).on('click', '.breadcrumb a, .dropdown-menu a', function(e) {
-                var href = $(this).attr('href');
-                if (href && href.indexOf('#') !== 0 && !$(this).attr('target')) {
-                    showPageLoader();
-                }
-            });
-
-            var csrfToken = $('input[name="__token__"]').val();
-            if (csrfToken) {
-                $('form').each(function() {
-                    if (!$(this).find('input[name="__token__"]').length) $(this).append('<input type="hidden" name="__token__" value="' + csrfToken + '">');
-                });
-            }
-            $(document).ajaxSend(function(event, jqXHR, settings) {
-                var token = $('input[name="__token__"]').val();
-                if (token && settings.type && settings.type.toUpperCase() === 'POST') jqXHR.setRequestHeader('X-CSRF-TOKEN', token);
-            });
-
-            $('#sidebarToggle').on('click', function() { $('#sidebarWrapper').toggleClass('show'); $('#sidebarOverlay').toggleClass('show'); });
-            $('#sidebarOverlay').on('click', function() { $('#sidebarWrapper').removeClass('show'); $(this).removeClass('show'); });
-
-            window.ajaxPost = function(url, data, callback, _retry) {
-                var csrfToken = $('input[name="__token__"]').val();
-                var ajaxOptions = { url: url, type: 'POST', data: data, dataType: 'json',
-                    success: function(res) {
-                        if (res.code === 0) {
-                            if (typeof callback === 'function') callback(res);
-                            else { showToast(res.msg || '操作成功', 'success'); setTimeout(function() { location.reload(); }, 800); }
-                        } else if (res.code === 403 && !_retry) refreshCsrfToken(function() { ajaxPost(url, data, callback, true); });
-                        else showToast(res.msg || '操作失败', 'danger');
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 403 && !_retry) refreshCsrfToken(function() { ajaxPost(url, data, callback, true); });
-                        else showToast(xhr.status === 403 ? 'CSRF验证失败' : '网络错误', 'danger');
-                    }
-                };
-                if (csrfToken) ajaxOptions.headers = { 'X-CSRF-TOKEN': csrfToken };
-                $.ajax(ajaxOptions);
-            };
-
-            window.refreshCsrfToken = function(callback) {
-                $.get('/api/csrf/token', function(res) {
-                    if (res.code === 0 && res.data && res.data.token) { $('input[name="__token__"]').val(res.data.token); if (callback) callback(); }
-                    else { showToast('会话已过期', 'warning'); setTimeout(function() { location.reload(); }, 1500); }
-                }).fail(function() { showToast('会话已过期', 'warning'); setTimeout(function() { location.reload(); }, 1500); });
-            };
-
-            window.showToast = function(msg, type) {
-                type = type || 'success';
-                var html = '<div class="toast align-items-center text-bg-' + type + ' border-0 position-fixed top-0 end-0 m-3" role="alert" style="z-index:9999">' +
-                    '<div class="d-flex"><div class="toast-body">' + msg + '</div>' +
-                    '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
-                $('body').append(html);
-                var $toast = $('body .toast').last();
-                new bootstrap.Toast($toast[0], { delay: 2000 }).show();
-                $toast.on('hidden.bs.toast', function() { $(this).remove(); });
-            };
-            $.toast = window.showToast;
-
-            window.confirmDelete = function(url) { showConfirm('确定要删除吗？', '此操作不可恢复！', function() { ajaxPost(url, {}); }); };
-
-            window.showConfirm = function(title, message, onConfirm) {
-                var modalId = 'confirmModal' + Date.now();
-                var html = '<div class="modal fade" id="' + modalId + '" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">' +
-                    '<div class="modal-header"><h5 class="modal-title">' + title + '</h5>' +
-                    '<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>' +
-                    '<div class="modal-body"><p>' + message + '</p></div>' +
-                    '<div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>' +
-                    '<button type="button" class="btn btn-danger btn-sm" id="' + modalId + '_ok">确定</button></div></div></div></div>';
-                $('body').append(html);
-                var $modal = $('#' + modalId);
-                var modal = new bootstrap.Modal($modal[0]);
-                $modal.find('#' + modalId + '_ok').on('click', function() { modal.hide(); if (typeof onConfirm === 'function') onConfirm(); });
-                $modal.on('hidden.bs.modal', function() { $modal.remove(); });
-                modal.show();
-            };
-
-            window.clearCache = function() { if (!confirm('确定要清除全部缓存吗？')) return; ajaxPost('/api/cache/clear', {}); };
-        })();
-
-            (function pollNotification() {
-                function fetchUnread() {
-                    $.ajax({ url: '/admin/notification/index', type: 'GET', data: { is_read: 0, ajax: 1 }, dataType: 'json',
-                        success: function(res) {
-                            if (res.code === 0 && res.data && res.data.count !== undefined) {
-                                var count = parseInt(res.data.count, 10);
-                                var $badge = $('#notificationBadge');
-                                if (count > 0) $badge.text(count > 99 ? '99+' : count).removeClass('d-none');
-                                else $badge.addClass('d-none');
-                            }
-                        }, error: function() {}
-                    });
-                }
-                fetchUnread(); setInterval(fetchUnread, 60000);
-            })();
-    </script>
+    <!-- V2.9.2 后台管理核心脚本（提取自内联JS） -->
+    <script src="{$skin_admin}js/admin.js?v=2.9.2"></script>
     {block name="js"}{/block}
 </body>
 </html>

@@ -25,7 +25,15 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="bi bi-robot me-1"></i>AI-CMS
+                {if $site_logo}
+                    {if $logo_icon_only}
+                    <img src="{$site_logo}" alt="Logo" height="32" style="vertical-align:middle;"> {$brand_name}
+                    {else}
+                    <img src="{$site_logo}" alt="Logo" height="32" style="vertical-align:middle;">
+                    {/if}
+                {else}
+                <i class="bi bi-robot me-1"></i>{$brand_name}
+                {/if}
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                 <span class="navbar-toggler-icon"></span>
@@ -109,7 +117,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h6 class="text-white mb-2"><i class="bi bi-robot me-1"></i>AI-CMS</h6>
+                    <h6 class="text-white mb-2">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;filter:brightness(0) invert(1);"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;filter:brightness(0) invert(1);">{/if}{else}<i class="bi bi-robot me-1"></i>{$brand_name}{/if}</h6>
                     <p class="small mb-0">AI驱动的企业信息管理系统</p>
                 </div>
                 <div class="col-md-6 text-md-end">
@@ -121,86 +129,16 @@
 
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/jquery.min.js"></script>
-    <script>
-    // 分类树折叠展开
-    document.addEventListener('click', function(e) {
-        var el = e.target.closest('.cate-toggle');
-        if (!el) return;
-        e.preventDefault();
-        e.stopPropagation();
-        var targetId = el.getAttribute('data-target');
-        var target = document.getElementById(targetId);
-        if (target) {
-            var isHidden = target.style.display === 'none';
-            target.style.display = isHidden ? 'block' : 'none';
-            el.classList.toggle('bi-chevron-right', !isHidden);
-            el.classList.toggle('bi-chevron-down', isHidden);
-        }
-    });
-    </script>
     <!-- V2.7 PV打点 -->
     <script>window.CMS_MEMBER_ID = {$member_info.id|default=0};</script>
     <script src="/assets/js/visit-tracker.js?v=2.7" async></script>
+    <!-- V2.8 社交分享组件 -->
+    <script src="/assets/js/social-share.js"></script>
+    <!-- V2.9 语言切换器（当前语言初始化） -->
+    <script>window._currentLang = '{$current_lang|default="zh-CN"}';</script>
+    <!-- V2.9.2 前台布局脚本（分类树/搜索联想/语言切换） -->
+    <script src="{$skin}js/layout.js?v=2.9.2"></script>
     {block name="js"}{/block}
-
-    <!-- V2.7 搜索联想 -->
-    <script>
-    (function() {
-        var $input = $('#headerSearchInput');
-        var $dropdown = $('#searchSuggestDropdown');
-        var timer = null;
-        $input.on('input', function() {
-            clearTimeout(timer);
-            var kw = $input.val().trim();
-            if (kw.length < 1) { $dropdown.removeClass('show'); return; }
-            timer = setTimeout(function() {
-                $.get('/api/v1/search/suggest', { keyword: kw, limit: 8 }, function(res) {
-                    if (res.code === 0 && res.data && res.data.length > 0) {
-                        var html = '';
-                        res.data.forEach(function(item) {
-                            if (item.type === 'content' && item.id > 0) {
-                                html += '<a class="dropdown-item" href="/page/' + item.id + '"><i class="bi bi-file-text text-muted me-2"></i>' + escapeHtml(item.title) + '</a>';
-                            } else {
-                                html += '<a class="dropdown-item" href="/search?keyword=' + encodeURIComponent(item.title) + '"><i class="bi bi-search text-muted me-2"></i>' + escapeHtml(item.title) + '</a>';
-                            }
-                        });
-                        $dropdown.html(html).addClass('show');
-                    } else {
-                        $dropdown.removeClass('show');
-                    }
-                });
-            }, 200);
-        });
-        $input.on('blur', function() { setTimeout(function() { $dropdown.removeClass('show'); }, 200); });
-        $input.on('focus', function() { if ($dropdown.children().length) $dropdown.addClass('show'); });
-        function escapeHtml(t) {
-            var d = document.createElement('div'); d.textContent = t; return d.innerHTML;
-        }
-    })();
-    </script>
-<!-- V2.8 社交分享组件 -->
-<script src="/assets/js/social-share.js"></script>
-<!-- V2.9 语言切换器（动态） -->
-<script>
-(function() {
-    var currentLang = '{$current_lang|default="zh-CN"}';
-    var el = document.getElementById('currentLang');
-    if (el) el.textContent = currentLang;
-
-    document.querySelectorAll('#langList .dropdown-item').forEach(function(item) {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            var lang = this.getAttribute('data-lang');
-            if (lang === currentLang) return;
-            fetch('/api/language/switch', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lang: lang })
-            }).then(function() { location.reload(); });
-        });
-    });
-})();
-</script>
 <!-- V2.9.1 M14b: 统一图片懒加载 -->
 <script src="/assets/js/lazyload.js"></script>
 <!-- V2.9.2 M22a: PWA安装提示 -->

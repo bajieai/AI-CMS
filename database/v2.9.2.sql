@@ -20,4 +20,6 @@ INSERT INTO `{prefix}config` (`group`, `name`, `value`, `type`, `comment`) VALUE
 ('seo', 'schema_enabled', '1', 'switch', '启用结构化数据(JSON-LD)'),
 ('seo', 'og_enabled', '1', 'switch', '启用Open Graph标签'),
 ('member', 'level_manual_downgrade', '1', 'switch', '允许手动降级会员等级'),
-('member', 'level_change_notify', '1', 'switch', '等级变更时发送通知');
+('member', 'level_change_notify', '1', 'switch', '等级变更时发送通知'),
+('basic', 'logo_icon_only', '0', 'switch', '仅使用Logo图标(勾选:仅替换图标保留文字/不勾选:完整替换)'),
+('basic', 'logo_name', '', 'text', '后台品牌名称(留空则使用默认名称)');

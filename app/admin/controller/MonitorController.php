@@ -18,8 +18,11 @@ class MonitorController extends AdminBaseController
     public function index()
     {
         $service = new MonitorService();
-
-        $this->assign('system', $service->getSystemMetrics());
+        $system = $service->getSystemMetrics();
+        $this->assign('load', $system['load']);
+        $this->assign('memory', $system['memory']);
+        $this->assign('disk', $system['disk']);
+        $this->assign('cpu', $system['cpu']);
         $this->assign('php', $service->getPhpMetrics());
         $this->assign('mysql', $service->getMysqlMetrics());
         $this->assign('cache', $service->getCacheMetrics());

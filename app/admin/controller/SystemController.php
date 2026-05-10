@@ -22,6 +22,10 @@ class SystemController extends AdminBaseController
         $this->app->view->assign('menuActive', 'system_config');
 
         if ($this->request->isGet()) {
+            // V2.9.2 确保Logo相关配置项存在
+            $this->ensureConfigExists('logo_icon_only', 'basic', '0', 'switch', '仅使用Logo图标(勾选:仅替换图标保留文字/不勾选:完整替换)');
+            $this->ensureConfigExists('logo_name', 'basic', '', 'text', '后台品牌名称(留空则使用默认名称)');
+
             $configs = ConfigModel::order('sort', 'asc')->select();
             $groups = [];
             foreach ($configs as $config) {
@@ -31,6 +35,10 @@ class SystemController extends AdminBaseController
             unset($groups['site']);
             // 移除points分组（积分规则有专用管理页 /admin/points_rule/index，避免重复）
             unset($groups['points']);
+
+            // V2.9.2: 注入Logo配置值供模板使用
+            $this->app->view->assign('logoIconOnly', ConfigModel::getValue('logo_icon_only'));
+            $this->app->view->assign('logoName', ConfigModel::getValue('logo_name'));
 
             // ==== V2.9.1: 配置分类Tab ====
             $currentTab = $this->request->get('tab', 'basic');
@@ -146,7 +154,7 @@ class SystemController extends AdminBaseController
                 'groupIcons'         => $groupIcons,
                 'currentTab'         => $currentTab,
                 'tabNames'           => $tabNames,
-                'isMainTab'          => $currentTab === 'basic',
+                'isMainTab'          => $currentTab === 'system',
             ]);
             return $this->view('/system_config');
         }
@@ -170,6 +178,23 @@ class SystemController extends AdminBaseController
 
         $this->recordLog('保存系统配置', '', $data);
         return $this->success('保存成功');
+    }
+
+    /**
+     * 确保配置项存在（不存在时自动创建）
+     */
+    protected function ensureConfigExists(string $name, string $group, string $value, string $type, string $remark): void
+    {
+        if (!ConfigModel::where('name', $name)->find()) {
+            ConfigModel::create([
+                'name'   => $name,
+                'group'  => $group,
+                'value'  => $value,
+                'type'   => $type,
+                'remark' => $remark,
+                'sort'   => 0,
+            ]);
+        }
     }
 
     /**

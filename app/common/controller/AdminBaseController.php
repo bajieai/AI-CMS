@@ -10,6 +10,9 @@ use think\App;
 use think\facade\Cache;
 use think\facade\Config;
 
+// V2.9.2 Logo相关: 直接使用Config模型避免命名冲突
+use app\common\model\Config as CmsConfig;
+
 /**
  * 后台管理基类控制器
  * 所有admin应用的控制器继承此类
@@ -91,6 +94,11 @@ abstract class AdminBaseController extends \think\BaseController
         // V2.9.1 新增模块
         'report'           => 'report',
         'api_doc'          => 'api_doc',
+        // V2.9.2 新增模块
+        'ai_translation'   => 'ai_translation',
+        'plugin_market'    => 'plugin_market',
+        'member_benefit'   => 'member_benefit',
+        'monitor'          => 'monitor',
     ];
 
     /**
@@ -103,6 +111,8 @@ abstract class AdminBaseController extends \think\BaseController
         // V2.5 精确菜单映射
         'payment.config'        => 'payment',
         'payment.revenue'       => 'payment_revenue',
+        // V2.9.2 精确菜单映射
+        'export.dialog'         => 'export_dialog',
     ];
 
     public function __construct(App $app)
@@ -178,6 +188,18 @@ abstract class AdminBaseController extends \think\BaseController
 
         // V2.6 双栏菜单：注入菜单JSON数据供 admin-sidebar.js 使用
         $this->app->view->assign('menuDataJson', json_encode($filteredMenus, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG));
+
+        // V2.9.2 注入网站Logo及相关配置到后台视图
+        $cmsConfigs = CmsConfig::whereIn('name', ['site_logo', 'logo_icon_only', 'logo_name'])->column('value', 'name');
+        $siteLogo   = $cmsConfigs['site_logo'] ?? '';
+        $iconOnly   = ($cmsConfigs['logo_icon_only'] ?? '') === '1';
+        $brandName  = $cmsConfigs['logo_name'] ?: '八界AI-CMS';
+        $this->app->view->assign([
+            'site_logo'      => $siteLogo,
+            'logo_icon_only' => $iconOnly,
+            'logo_name'      => $cmsConfigs['logo_name'] ?? '',
+            'brand_name'     => $brandName,       // 自定义品牌名称
+        ]);
     }
 
     /**

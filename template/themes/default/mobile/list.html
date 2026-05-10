@@ -22,6 +22,7 @@
 {$cate_tree_html|raw}
 
 <!-- 内容列表 -->
+<div class="m-card-list">
 {volist name="list" id="vo"}
 <div class="m-card">
     {if condition="$vo.cover"}
@@ -37,6 +38,7 @@
     </div>
 </div>
 {/volist}
+</div>
 
 {empty name="list"}
 <div class="m-empty"><i class="bi bi-inbox"></i><p>暂无相关内容</p></div>
@@ -45,4 +47,19 @@
 {if condition="($list->hasPages() ?? false)"}
 <div class="m-pagination">{$list->render()|raw}</div>
 {/if}
+{/block}
+
+{block name="js"}
+<script>
+// V2.9.2 M22b: 无限滚动（移动端列表页）
+if (window.MobileEnhance && document.querySelector('.m-pagination')) {
+    MobileEnhance.initInfiniteScroll({
+        container: '.m-card-list',
+        nextSelector: '.m-pagination a[rel="next"]',
+        itemSelector: '.m-card'
+    });
+    // 隐藏传统分页，使用无限滚动替代
+    document.querySelector('.m-pagination').style.display = 'none';
+}
+</script>
 {/block}

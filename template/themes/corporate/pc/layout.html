@@ -26,7 +26,15 @@
 <nav class="navbar navbar-expand-lg navbar-corporate fixed-top" id="corporateNavbar">
     <div class="container">
         <a class="navbar-brand" href="/">
-            <i class="bi bi-robot me-1"></i>AI-CMS
+            {if $site_logo}
+                {if $logo_icon_only}
+                <img src="{$site_logo}" alt="Logo" height="32" style="vertical-align:middle;"> {$brand_name}
+                {else}
+                <img src="{$site_logo}" alt="Logo" height="32" style="vertical-align:middle;">
+                {/if}
+            {else}
+            <i class="bi bi-robot me-1"></i>{$brand_name}
+            {/if}
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" style="border-color:rgba(255,255,255,.25)">
             <span class="navbar-toggler-icon"></span>
@@ -117,7 +125,7 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-4">
-                    <h6><i class="bi bi-robot me-2"></i>AI-CMS</h6>
+                    <h6>{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h6>
                     <p class="small mb-2">专业的内容管理系统，融合 AI 技术，为企业提供高效的内容运营解决方案。</p>
                     <p class="mb-0 small">&copy; 2025 AI-CMS V2.4. All Rights Reserved.</p>
                 </div>
@@ -146,55 +154,11 @@
 
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/jquery.min.js"></script>
-<script>
-// 导航栏滚动效果
-(function() {
-    var nav = document.getElementById('corporateNavbar');
-    if (!nav) return;
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 50) nav.classList.add('scrolled');
-        else nav.classList.remove('scrolled');
-    }, { passive: true });
-})();
-
-// 分类树折叠展开
-document.addEventListener('click', function(e) {
-    var el = e.target.closest('.cate-toggle');
-    if (!el) return;
-    e.preventDefault();
-    e.stopPropagation();
-    var targetId = el.getAttribute('data-target');
-    var target = document.getElementById(targetId);
-    if (target) {
-        var isHidden = target.style.display === 'none';
-        target.style.display = isHidden ? 'block' : 'none';
-        el.classList.toggle('bi-chevron-right', !isHidden);
-        el.classList.toggle('bi-chevron-down', isHidden);
-    }
-});
-</script>
+<!-- V2.9 语言切换器（当前语言初始化） -->
+<script>window._currentLang = '{$current_lang|default="zh-CN"}';</script>
+<!-- V2.9.2 前台布局脚本（导航栏/分类树/语言切换） -->
+<script src="{$skin}js/layout.js?v=2.9.2"></script>
 {block name="js"}{/block}
-<!-- V2.9 语言切换器（动态） -->
-<script>
-(function() {
-    var currentLang = '{$current_lang|default="zh-CN"}';
-    var btn = document.querySelector('#langSwitcher .dropdown-toggle');
-    if (btn) btn.innerHTML = '<i class="bi bi-globe"></i> ' + currentLang;
-
-    document.querySelectorAll('#langList .dropdown-item').forEach(function(item) {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            var lang = this.getAttribute('data-lang');
-            if (lang === currentLang) return;
-            fetch('/api/language/switch', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lang: lang })
-            }).then(function() { location.reload(); });
-        });
-    });
-})();
-</script>
 <!-- V2.9.1 M14b: 统一图片懒加载 -->
 <script src="/assets/js/lazyload.js"></script>
 <!-- V2.9.2 M22a: PWA安装提示 -->
