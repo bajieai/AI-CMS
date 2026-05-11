@@ -75,7 +75,14 @@
                 </tr>
                 {/volist}
                 {empty name="list"}
-                <tr><td colspan="5" class="text-center text-muted py-4">暂无备份文件</td></tr>
+                <tr><td colspan="5">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                        <div class="ui-empty-title">暂无备份</div>
+                        <div class="ui-empty-desc">系统尚未创建任何备份，建议定期进行数据备份</div>
+                        <div class="ui-empty-action"><button type="button" class="btn btn-primary btn-sm" onclick="createBackup('all', true)"><i class="bi bi-plus-lg me-1"></i>创建备份</button></div>
+                    </div>
+                </td></tr>
                 {/empty}
             </tbody>
         </table>

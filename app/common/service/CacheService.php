@@ -37,6 +37,8 @@ class CacheService
     const TAG_COUPON     = 'i8j_coupon';
     const TAG_RATING     = 'i8j_rating';
     const TAG_THEME      = 'i8j_theme';
+    // V2.9.4 PJAX响应缓存标签
+    const TAG_PJAX_CACHE = 'i8j_pjax_cache';
 
     /**
      * 清除所有业务缓存
@@ -44,7 +46,7 @@ class CacheService
     public static function clearAll(): bool
     {
         try {
-            $tags = [self::TAG_CATE, self::TAG_TAG, self::TAG_CONFIG, self::TAG_CONTENT, self::TAG_SEO, self::TAG_MEMBER, self::TAG_AD, self::TAG_COMMENT, self::TAG_MODULE, self::TAG_PAGE_CACHE, self::TAG_PAYMENT, self::TAG_PLUGIN, self::TAG_EMAIL, self::TAG_COLLECT, self::TAG_PUBLISH, self::TAG_LANGUAGE, self::TAG_QUEUE, self::TAG_MESSAGE, self::TAG_REVIEW, self::TAG_SEARCH, self::TAG_POINTS, self::TAG_COUPON, self::TAG_RATING, self::TAG_THEME];
+            $tags = [self::TAG_CATE, self::TAG_TAG, self::TAG_CONFIG, self::TAG_CONTENT, self::TAG_SEO, self::TAG_MEMBER, self::TAG_AD, self::TAG_COMMENT, self::TAG_MODULE, self::TAG_PAGE_CACHE, self::TAG_PAYMENT, self::TAG_PLUGIN, self::TAG_EMAIL, self::TAG_COLLECT, self::TAG_PUBLISH, self::TAG_LANGUAGE, self::TAG_QUEUE, self::TAG_MESSAGE, self::TAG_REVIEW, self::TAG_SEARCH, self::TAG_POINTS, self::TAG_COUPON, self::TAG_RATING, self::TAG_THEME, self::TAG_PJAX_CACHE];
             foreach ($tags as $tag) {
                 Cache::tag($tag)->clear();
             }

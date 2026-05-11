@@ -60,7 +60,13 @@
                 </thead>
                 <tbody>
                     {if empty($orders)}
-                    <tr><td colspan="8" class="text-center text-muted py-4">暂无订单</td></tr>
+                    <tr><td colspan="8">
+                        <div class="ui-empty-state">
+                            <div class="ui-empty-icon"><i class="bi bi-receipt"></i></div>
+                            <div class="ui-empty-title">暂无订单</div>
+                            <div class="ui-empty-desc">当前没有符合条件的订单数据</div>
+                        </div>
+                    </td></tr>
                     {/if}
                     {foreach $orders as $order}
                     <tr>
@@ -87,11 +93,12 @@
 <script>
 $(function() {
     $('.btn-close-order').on('click', function() {
-        if (!confirm('确定要关闭此订单吗？')) return;
         var id = $(this).data('id');
-        $.post('/admin/order/close', {id: id}, function(res) {
-            if (res.code === 0) location.reload();
-            else alert(res.msg || '操作失败');
+        showConfirm('关闭订单', '确定要关闭此订单吗？', function() {
+            $.post('/admin/order/close', {id: id}, function(res) {
+                if (res.code === 0) location.reload();
+                else showToast(res.msg || '操作失败', 'danger');
+            });
         });
     });
 });

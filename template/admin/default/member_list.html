@@ -68,7 +68,13 @@
                 </tr>
                 {/volist}
                 {empty name="list"}
-                <tr><td colspan="9" class="text-center text-muted py-4">暂无会员</td></tr>
+                <tr><td colspan="9">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-people"></i></div>
+                        <div class="ui-empty-title">暂无会员</div>
+                        <div class="ui-empty-desc">当前没有符合条件的会员数据</div>
+                    </div>
+                </td></tr>
                 {/empty}
             </tbody>
         </table>
@@ -88,25 +94,28 @@
 <script>
 function toggleMemberStatus(id, statusText) {
     var msg = statusText === '正常' ? '确定禁用该会员？' : '确定启用该会员？';
-    if (!confirm(msg)) return;
-    $.post('/admin/member/toggleStatus', {id: id}, function(res) {
-        if (res.code === 0) { location.reload(); }
-        else { alert(res.msg || '操作失败'); }
-    }, 'json');
+    showConfirm('确认操作', msg, function() {
+        $.post('/admin/member/toggleStatus', {id: id}, function(res) {
+            if (res.code === 0) { location.reload(); }
+            else { showToast(res.msg || '操作失败', 'danger'); }
+        }, 'json');
+    });
 }
 function auditMember(id) {
-    if (!confirm('确定审核通过该会员？')) return;
-    $.post('/admin/member/audit', {id: id}, function(res) {
-        if (res.code === 0) { location.reload(); }
-        else { alert(res.msg || '操作失败'); }
-    }, 'json');
+    showConfirm('审核会员', '确定审核通过该会员？', function() {
+        $.post('/admin/member/audit', {id: id}, function(res) {
+            if (res.code === 0) { location.reload(); }
+            else { showToast(res.msg || '操作失败', 'danger'); }
+        }, 'json');
+    });
 }
 function deleteMember(id) {
-    if (!confirm('确定删除该会员？此操作不可恢复！')) return;
-    $.post('/admin/member/delete', {id: id}, function(res) {
-        if (res.code === 0) { location.reload(); }
-        else { alert(res.msg || '删除失败'); }
-    }, 'json');
+    showConfirm('删除会员', '确定删除该会员？此操作不可恢复！', function() {
+        $.post('/admin/member/delete', {id: id}, function(res) {
+            if (res.code === 0) { location.reload(); }
+            else { showToast(res.msg || '删除失败', 'danger'); }
+        }, 'json');
+    });
 }
 </script>
 {/block}

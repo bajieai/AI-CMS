@@ -83,7 +83,13 @@
                 </tr>
                 {/volist}
                 {empty name="list"}
-                <tr><td colspan="8" class="text-center text-muted py-4">暂无评论</td></tr>
+                <tr><td colspan="8">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-chat-square-text"></i></div>
+                        <div class="ui-empty-title">暂无评论</div>
+                        <div class="ui-empty-desc">当前没有符合条件的评论数据</div>
+                    </div>
+                </td></tr>
                 {/empty}
             </tbody>
         </table>
@@ -112,19 +118,20 @@ function auditComment(id, status) {
         if (res.success) {
             location.reload();
         } else {
-            alert(res.msg);
+            showToast(res.msg, 'danger');
         }
     });
 }
 
 function confirmDelete(id) {
-    if (!confirm('确定删除此评论？')) return;
-    $.post('/admin/comment/delete', {id: id}, function(res) {
-        if (res.success) {
-            location.reload();
-        } else {
-            alert(res.msg);
-        }
+    showConfirm('删除评论', '确定删除此评论？', function() {
+        $.post('/admin/comment/delete', {id: id}, function(res) {
+            if (res.success) {
+                location.reload();
+            } else {
+                showToast(res.msg, 'danger');
+            }
+        });
     });
 }
 
@@ -134,15 +141,26 @@ function batchAction(action) {
         ids.push($(this).val());
     });
     if (ids.length === 0) {
-        alert('请选择要操作的评论');
+        showToast('请选择要操作的评论', 'warning');
         return;
     }
-    if (action === 'delete' && !confirm('确定批量删除选中的评论？')) return;
+    if (action === 'delete') {
+        showConfirm('批量删除', '确定批量删除选中的 ' + ids.length + ' 条评论？', function() {
+            $.post('/admin/comment/batch', {ids: ids, action: action}, function(res) {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    showToast(res.msg, 'danger');
+                }
+            });
+        });
+        return;
+    }
     $.post('/admin/comment/batch', {ids: ids, action: action}, function(res) {
         if (res.success) {
             location.reload();
         } else {
-            alert(res.msg);
+            showToast(res.msg, 'danger');
         }
     });
 }

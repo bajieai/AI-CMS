@@ -21,7 +21,10 @@ return [
             // 端口
             'hostport' => env('database.hostport', '3306'),
             // 数据库连接参数
-            'params' => [],
+            'params' => [
+                // V2.9.4 性能优化：启用PDO持久连接，减少每次请求的TCP连接建立开销
+                \PDO::ATTR_PERSISTENT => true,
+            ],
             // 数据库编码默认采用utf8mb4
             'charset' => env('database.charset', 'utf8mb4'),
             // 数据库表前缀（安装时可配置）

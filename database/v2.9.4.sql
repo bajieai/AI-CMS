@@ -194,11 +194,11 @@ SET @exists_default_style = (
   SELECT COUNT(*)
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = @dbname
-    AND TABLE_NAME = 'i8j_category'
+    AND TABLE_NAME = 'i8j_cate'
     AND COLUMN_NAME = 'default_style'
 );
 SET @sql_add_style = IF(@exists_default_style = 0,
-  'ALTER TABLE `i8j_category` ADD COLUMN `default_style` varchar(20) NOT NULL DEFAULT ''formal'' COMMENT ''默认写作风格: formal/relaxed/professional/warm''',
+  'ALTER TABLE `i8j_cate` ADD COLUMN `default_style` varchar(20) NOT NULL DEFAULT ''formal'' COMMENT ''默认写作风格: formal/relaxed/professional/warm''',
   'SELECT "default_style column already exists" AS info'
 );
 PREPARE stmt_style FROM @sql_add_style;

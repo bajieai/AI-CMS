@@ -401,3 +401,109 @@ body {
 .tox-statusbar__branding {
     display: none !important;
 }
+
+/* ==================== V2.9.4 UI/UX 统一组件 ==================== */
+
+/* ---- Toast 增强 ---- */
+.ui-toast {
+    background: #fff;
+    color: #1e293b;
+    box-shadow: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+    border-radius: var(--radius-sm);
+    min-width: 240px;
+    font-size: .9rem;
+}
+.ui-toast .toast-body { padding: .65rem .5rem; }
+.ui-toast i.bi-check-circle-fill { color: #198754; }
+.ui-toast i.bi-x-circle-fill { color: #dc3545; }
+.ui-toast i.bi-exclamation-triangle-fill { color: #f59e0b; }
+.ui-toast i.bi-info-circle-fill { color: #0dcaf0; }
+.ui-toast i.spin { animation: ui-spin 1s linear infinite; }
+@keyframes ui-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ---- Loading 遮罩 ---- */
+.ui-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,.75);
+    backdrop-filter: blur(3px);
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .2s;
+}
+.ui-loading-box {
+    background: #fff;
+    padding: 1.5rem 2rem;
+    border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(0,0,0,.12);
+    text-align: center;
+}
+.ui-loading-text {
+    color: var(--text-secondary);
+    font-size: .88rem;
+    margin-top: .25rem;
+}
+
+/* ---- 空状态组件 ---- */
+.ui-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+.ui-empty-state .ui-empty-icon {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #f1f5f9;
+}
+.ui-empty-state .ui-empty-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: .35rem;
+}
+.ui-empty-state .ui-empty-desc {
+    font-size: .86rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+    max-width: 320px;
+}
+.ui-empty-state .ui-empty-action {
+    margin-top: .25rem;
+}
+
+/* ---- 固定操作栏（编辑页按钮统一右下）---- */
+.form-actions-fixed {
+    position: sticky;
+    bottom: 0;
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--border-color);
+    padding: .75rem 1.25rem;
+    margin: 0 -1.25rem -1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+    z-index: 1020;
+}
+.form-actions-fixed .btn { min-width: 80px; }
+
+/* ---- 搜索空状态 ---- */
+.ui-search-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+.ui-search-empty i { font-size: 2.5rem; color: #cbd5e1; margin-bottom: .75rem; display: block; }

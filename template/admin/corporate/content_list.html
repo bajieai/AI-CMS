@@ -143,7 +143,14 @@
                 </tr>
                 {/volist}
                 {empty name="list"}
-                <tr><td colspan="11" class="text-center text-muted py-4">暂无数据</td></tr>
+                <tr><td colspan="11">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-inbox"></i></div>
+                        <div class="ui-empty-title">暂无内容</div>
+                        <div class="ui-empty-desc">当前列表为空，点击右上角按钮添加新内容</div>
+                        <div class="ui-empty-action"><a href="/admin/content/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>添加内容</a></div>
+                    </div>
+                </td></tr>
                 {/empty}
             </tbody>
         </table>
@@ -185,17 +192,17 @@
 {block name="js"}
 <script>
 function publishItem(id) {
-    if (confirm('确定发布此内容？')) {
+    showConfirm('发布内容', '确定发布此内容？', function() {
         ajaxPost('/admin/content/publish/' + id, {});
-    }
+    });
 }
 function deleteItem(id) {
     confirmDelete('/admin/content/delete/' + id);
 }
 function copyItem(id) {
-    if (confirm('确定复制此内容？将创建一个草稿副本。')) {
+    showConfirm('复制内容', '确定复制此内容？将创建一个草稿副本。', function() {
         ajaxPost('/admin/content/copy/' + id, {});
-    }
+    });
 }
 
 // 批量操作
@@ -246,8 +253,9 @@ function batchAction(action) {
         return;
     }
     var msg = action === 'publish' ? '确定批量发布选中的 ' + ids.length + ' 项内容？' : '确定将选中的 ' + ids.length + ' 项内容移入回收站？';
-    if (!confirm(msg)) return;
-    ajaxPost('/admin/content/batch' + action.charAt(0).toUpperCase() + action.slice(1), { ids: ids });
+    showConfirm('批量操作', msg, function() {
+        ajaxPost('/admin/content/batch' + action.charAt(0).toUpperCase() + action.slice(1), { ids: ids });
+    });
 }
 
 function confirmMoveCate() {

@@ -1,9 +1,9 @@
 /**
- * AI-CMS 后台管理核心脚本 - V2.9.2
+ * AI-CMS 后台管理核心脚本 - V2.9.4
  * 主题: default / corporate (通用)
  * 依赖: jQuery, Bootstrap 5.3, PJAX
  *
- * 功能: 页面加载进度条 / CSRF自动注入 / AJAX封装 / Toast提示 / 确认弹窗 / 清除缓存 / 通知轮询
+ * 功能: 页面加载进度条 / CSRF自动注入 / AJAX封装 / Toast提示 / 确认弹窗 / 清除缓存 / 通知轮询 / Loading遮罩
  */
 (function () {
     'use strict';
@@ -59,14 +59,14 @@
                     if (settings.type && settings.type.toUpperCase() !== 'POST') {
                         $.ajax(settings);
                     } else {
-                        alert('页面会话已过期，请刷新页面后重试');
+                        showToast('页面会话已过期，请刷新页面后重试', 'warning');
                     }
                 }
             });
         }
     });
 
-    // ==================== 侧边栏切换（移动端） ====================
+    // ==================== 侧边栏切换（移动端）====================
     $('#sidebarToggle').on('click', function () {
         $('#sidebarWrapper').toggleClass('show');
         $('#sidebarOverlay').toggleClass('show');
@@ -76,15 +76,18 @@
         $(this).removeClass('show');
     });
 
-    // ==================== 通用AJAX封装（含CSRF自动恢复） ====================
+    // ==================== 通用AJAX封装（含CSRF自动恢复 + Loading）====================
     window.ajaxPost = function (url, data, callback, _retry) {
         var csrfToken = $('input[name="__token__"]').val();
+        var loadingTimer = setTimeout(function () { showLoading('处理中...'); }, 300);
         var ajaxOptions = {
             url: url,
             type: 'POST',
             data: data,
             dataType: 'json',
             success: function (res) {
+                clearTimeout(loadingTimer);
+                hideLoading();
                 if (res.code === 0) {
                     if (typeof callback === 'function') {
                         callback(res);
@@ -107,6 +110,8 @@
                 }
             },
             error: function (xhr) {
+                clearTimeout(loadingTimer);
+                hideLoading();
                 if (xhr.status === 403 && !_retry) {
                     refreshCsrfToken(function () {
                         ajaxPost(url, data, callback, true);
@@ -140,19 +145,66 @@
         });
     };
 
-    // ==================== Toast 提示 ====================
-    window.showToast = function (msg, type) {
+    // ==================== Toast 提示 (V2.9.4 增强版) ====================
+    var toastIcons = {
+        success: 'bi-check-circle-fill',
+        danger: 'bi-x-circle-fill',
+        warning: 'bi-exclamation-triangle-fill',
+        info: 'bi-info-circle-fill',
+        loading: 'bi-arrow-repeat spin'
+    };
+    var toastStackOffset = 0;
+    window.showToast = function (msg, type, duration) {
         type = type || 'success';
-        var html = '<div class="toast align-items-center text-bg-' + type + ' border-0 position-fixed top-0 end-0 m-3" role="alert" style="z-index:9999">' +
-            '<div class="d-flex"><div class="toast-body">' + msg + '</div>' +
-            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
+        duration = duration || (type === 'loading' ? 0 : 2500);
+        var icon = toastIcons[type] || toastIcons.info;
+        var id = 'toast_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+        var style = 'z-index:9999;transform:translateY(' + toastStackOffset + 'px);';
+        var html = '<div class="toast ui-toast align-items-center border-0 position-fixed top-0 end-0 m-3" role="alert" id="' + id + '" style="' + style + '">' +
+            '<div class="d-flex align-items-center"><i class="bi ' + icon + ' fs-5 me-2"></i>' +
+            '<div class="toast-body">' + msg + '</div>' +
+            (duration !== 0 ? '<button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast"></button>' : '') +
+            '</div></div>';
         $('body').append(html);
-        var $toast = $('body .toast').last();
-        var toast = new bootstrap.Toast($toast[0], { delay: 2000 });
+        var $toast = $('#' + id);
+        var toast = new bootstrap.Toast($toast[0], { delay: duration || 2500, autohide: duration !== 0 });
         toast.show();
-        $toast.on('hidden.bs.toast', function () { $(this).remove(); });
+        // 堆叠偏移：计算已有toast的高度
+        toastStackOffset += $toast.outerHeight() + 12;
+        $toast.on('hidden.bs.toast', function () {
+            toastStackOffset -= ($(this).outerHeight() + 12);
+            if (toastStackOffset < 0) toastStackOffset = 0;
+            $(this).remove();
+        });
+        return { el: $toast, hide: function () { toast.hide(); } };
     };
     $.toast = window.showToast;
+
+    // ==================== Loading 遮罩 (V2.9.4) ====================
+    var $loadingOverlay = null;
+    window.showLoading = function (text) {
+        text = text || '加载中...';
+        if ($loadingOverlay) $loadingOverlay.remove();
+        var html = '<div id="uiLoadingOverlay" class="ui-loading-overlay">' +
+            '<div class="ui-loading-box">' +
+            '<div class="spinner-border text-primary mb-2" role="status"></div>' +
+            '<div class="ui-loading-text">' + text + '</div>' +
+            '</div></div>';
+        $('body').append(html);
+        $loadingOverlay = $('#uiLoadingOverlay');
+    };
+    window.hideLoading = function () {
+        if ($loadingOverlay) {
+            $loadingOverlay.fadeOut(200, function () { $(this).remove(); });
+            $loadingOverlay = null;
+        }
+    };
+
+    // ==================== 快捷确认弹窗（替代原生alert）====================
+    window.showAlert = function (msg, type) {
+        type = type || 'info';
+        showToast(msg, type, 3000);
+    };
 
     // ==================== 确认删除 ====================
     window.confirmDelete = function (url) {
@@ -191,7 +243,7 @@
         ajaxPost('/api/cache/clear', {});
     };
 
-    // ==================== 通知轮询（60秒间隔） ====================
+    // ==================== 通知轮询（60秒间隔）====================
     (function pollNotification() {
         function fetchUnread() {
             $.ajax({
