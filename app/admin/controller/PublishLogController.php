@@ -3,45 +3,74 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
-use app\common\controller\AdminBaseController;
-use app\common\model\PublishLog;
 use app\common\service\PublishPlatformService;
+use app\common\model\PublishLog;
 
 /**
- * 发布记录管理后台控制器 - V2.5新增
+ * V2.9.4 发布状态看板控制器
  */
 class PublishLogController extends AdminBaseController
 {
+    /**
+     * 发布看板首页
+     */
     public function index()
     {
-        $list = PublishLog::with(['platform'])->order('id', 'desc')
-            ->paginate(['list_rows' => 20, 'path' => '/admin/publish_log/index']);
+        $platform = $this->request->get('platform', '');
+        $status = $this->request->get('status', '');
+        $page = (int) $this->request->get('page', 1);
+        $dateFrom = $this->request->get('date_from', '');
+        $dateTo = $this->request->get('date_to', '');
 
-        if ($this->isRealAjax()) {
-            return json(['code' => 0, 'msg' => 'success', 'data' => $list->toArray()]);
-        }
+        $filters = array_filter([
+            'platform' => $platform,
+            'status' => $status !== '' ? $status : '',
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ], function ($v) { return $v !== ''; });
 
-        $this->assign('list', $list);
-        return $this->view('/publish_log_index');
+        $result = PublishPlatformService::getPublishLogList($filters, $page, 20);
+        $summary = PublishPlatformService::getPublishSummary();
+
+        $this->assign('logs', $result['list']);
+        $this->assign('total', $result['total']);
+        $this->assign('page', $result['page']);
+        $this->assign('limit', $result['limit']);
+        $this->assign('summary', $summary);
+        $this->assign('filters', $filters);
+        $this->assign('platform_options', [
+            'weixin' => '微信公众号',
+            'toutiao' => '头条号',
+            'zhihu' => '知乎',
+        ]);
+
+        return $this->view('/publish_log');
     }
 
     /**
-     * 手动发布内容到平台
+     * 手动重试
      */
-    public function publish()
+    public function retry()
     {
-        $contentId = (int) $this->request->post('content_id', 0);
-        $platformId = (int) $this->request->post('platform_id', 0);
-
-        if ($contentId <= 0 || $platformId <= 0) {
+        $id = (int) $this->request->post('id', 0);
+        if ($id <= 0) {
             return json(['code' => 1, 'msg' => '参数错误']);
         }
 
         try {
-            $result = PublishPlatformService::publish($contentId, $platformId);
-            return json(['code' => 0, 'msg' => '发布成功', 'data' => $result]);
-        } catch (\Exception $e) {
-            return json(['code' => 1, 'msg' => $e->getMessage()]);
+            $result = PublishPlatformService::retryPublish($id);
+            return json(['code' => 0, 'msg' => '重试成功', 'data' => $result]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => '重试失败: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * 发布摘要API（供AJAX调用）
+     */
+    public function summary()
+    {
+        $summary = PublishPlatformService::getPublishSummary();
+        return json(['code' => 0, 'data' => $summary]);
     }
 }

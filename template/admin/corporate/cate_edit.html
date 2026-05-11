@@ -74,6 +74,24 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- V2.9.4: 默认写作风格 -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-transparent border-0 py-2"><i class="bi bi-pen me-1"></i>AI写作设置</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">默认写作风格</label>
+                                <select name="default_style" class="form-select">
+                                    <option value="default" {if ($info.default_style ?? 'default') == 'default'}selected{/if}>默认（专业内容创作）</option>
+                                    <option value="formal" {if ($info.default_style ?? '') == 'formal'}selected{/if}>正式（新闻/公告）</option>
+                                    <option value="relaxed" {if ($info.default_style ?? '') == 'relaxed'}selected{/if}>轻松（博客风格）</option>
+                                    <option value="professional" {if ($info.default_style ?? '') == 'professional'}selected{/if}>专业（技术/产品）</option>
+                                    <option value="warm" {if ($info.default_style ?? '') == 'warm'}selected{/if}>亲切（指导/客服）</option>
+                                </select>
+                                <small class="text-muted">AI写作时自动应用此栏目的默认风格，用户可手动覆盖</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="d-grid gap-2 d-md-flex mt-3">

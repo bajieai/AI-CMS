@@ -163,6 +163,60 @@
                 </div>
             </div>
 
+            <!-- 评分区域 -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="mb-0"><i class="bi bi-star me-1"></i>用户评分</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="display-4 fw-bold text-warning me-2">{$plugin.avg_rating|default='0'}</span>
+                        <div>
+                            <div class="text-warning mb-1">
+                                {:str_repeat('<i class="bi bi-star-fill"></i>', (int)$plugin['avg_rating']) . str_repeat('<i class="bi bi-star"></i>', 5 - (int)$plugin['avg_rating'])}
+                            </div>
+                            <small class="text-muted">{$plugin.rating_count|default=0} 人评价</small>
+                        </div>
+                    </div>
+
+                    {if $plugin.is_installed}
+                    <hr>
+                    <div class="rating-form">
+                        <label class="form-label fw-bold">我的评分</label>
+                        <div class="star-rating mb-2">
+                            {for start="1" end="5"}
+                            <i class="bi bi-star text-warning fs-4 star-btn" data-rating="{$start}" style="cursor:pointer;"></i>
+                            {/for}
+                            <input type="hidden" id="rating-value" value="0">
+                        </div>
+                        <textarea id="rating-content" class="form-control form-control-sm mb-2" rows="2" placeholder="说说你的使用体验（选填）" maxlength="500"></textarea>
+                        <button class="btn btn-sm btn-primary" id="btn-submit-rating" data-code="{$plugin.code}">
+                            <i class="bi bi-send"></i> 提交评分
+                        </button>
+                    </div>
+                    {/if}
+
+                    {if !empty($plugin.ratings)}
+                    <hr>
+                    <div class="ratings-list" style="max-height:300px;overflow-y:auto;">
+                        {foreach $plugin.ratings as $r}
+                        <div class="border-bottom py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-warning small">
+                                    {:str_repeat('<i class="bi bi-star-fill"></i>', $r['rating']) . str_repeat('<i class="bi bi-star"></i>', 5 - $r['rating'])}
+                                </div>
+                                <small class="text-muted">{$r.create_time|date='Y-m-d'}</small>
+                            </div>
+                            {if $r.content}
+                            <p class="small text-muted mb-0 mt-1">{$r.content}</p>
+                            {/if}
+                        </div>
+                        {/foreach}
+                    </div>
+                    {/if}
+                </div>
+            </div>
+
             {if !empty($plugin.versions) && is_array($plugin.versions)}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0">
@@ -198,6 +252,42 @@ $(function() {
     $('.screenshot-thumb').on('click', function() {
         var idx = $(this).data('slide-to');
         var carousel = bootstrap.Carousel.getOrCreateInstance(document.getElementById('screenshotCarousel'));
+        carousel.to(idx);
+        $('.screenshot-thumb').removeClass('border-primary');
+        $(this).addClass('border-primary');
+    });
+
+    var selectedRating = 0;
+    $('.star-btn').on('mouseenter', function() {
+        var r = $(this).data('rating');
+        $('.star-btn').each(function() {
+            $(this).removeClass('bi-star bi-star-fill').addClass($(this).data('rating') <= r ? 'bi-star-fill' : 'bi-star');
+        });
+    }).on('mouseleave', function() {
+        $('.star-btn').each(function() {
+            $(this).removeClass('bi-star bi-star-fill').addClass($(this).data('rating') <= selectedRating ? 'bi-star-fill' : 'bi-star');
+        });
+    }).on('click', function() {
+        selectedRating = $(this).data('rating');
+        $('#rating-value').val(selectedRating);
+        $('.star-btn').each(function() {
+            $(this).removeClass('bi-star bi-star-fill').addClass($(this).data('rating') <= selectedRating ? 'bi-star-fill' : 'bi-star');
+        });
+    });
+
+    $('#btn-submit-rating').on('click', function() {
+        var code = $(this).data('code');
+        var rating = parseInt($('#rating-value').val());
+        var content = $('#rating-content').val().trim();
+        if (rating < 1) { alert('请先选择评分'); return; }
+        var btn = $(this);
+        btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> 提交中...');
+        $.post('/admin/plugin_market/rate', {code: code, rating: rating, content: content}, function(res) {
+            if (res.code === 0) { alert('评分成功'); location.reload(); }
+            else { alert(res.msg || '评分失败'); btn.prop('disabled', false).html('<i class="bi bi-send"></i> 提交评分'); }
+        }).fail(function() { alert('网络错误'); btn.prop('disabled', false).html('<i class="bi bi-send"></i> 提交评分'); });
+    });
+});
         carousel.to(idx);
         $('.screenshot-thumb').removeClass('border-primary');
         $(this).addClass('border-primary');

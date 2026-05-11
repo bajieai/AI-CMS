@@ -5,6 +5,7 @@ namespace app\common\service;
 
 use think\facade\Config;
 use think\facade\Db;
+use app\common\model\BackupLog;
 
 /**
  * 数据库备份服务 - V2.9.3 增强版
@@ -38,6 +39,16 @@ class BackupService
             public_path() . 'uploads',
             public_path() . 'storage',
         ];
+        // V2.9.4: 可配置额外备份目录
+        $extraDirs = Config::get('backup_extra_dirs', '');
+        if (!empty($extraDirs)) {
+            foreach (explode(',', $extraDirs) as $dir) {
+                $dir = trim($dir);
+                if (is_dir($dir)) {
+                    $this->fileBackupDirs[] = $dir;
+                }
+            }
+        }
     }
 
     /**
@@ -142,6 +153,16 @@ class BackupService
 
         $gzip ? gzclose($handle) : fclose($handle);
 
+        // V2.9.4: 记录备份日志
+        try {
+            BackupLog::create([
+                'backup_type' => 'database',
+                'file_name' => $filename,
+                'file_size' => filesize($filepath),
+                'status' => BackupLog::STATUS_SUCCESS,
+            ]);
+        } catch (\Throwable) {}
+
         return [
             'filename' => $filename,
             'size' => filesize($filepath),
@@ -238,6 +259,16 @@ class BackupService
         }
 
         $zip->close();
+
+        // V2.9.4: 记录备份日志
+        try {
+            BackupLog::create([
+                'backup_type' => 'files',
+                'file_name' => $filename,
+                'file_size' => filesize($filepath),
+                'status' => BackupLog::STATUS_SUCCESS,
+            ]);
+        } catch (\Throwable) {}
 
         return [
             'filename' => $filename,

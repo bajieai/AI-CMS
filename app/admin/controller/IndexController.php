@@ -131,6 +131,10 @@ class IndexController extends AdminBaseController
             'disk_free' => $diskFree,
             'disk_total' => $diskTotal,
             'publish_queue' => $publishQueue,
+            // V2.9.4: 新增统计
+            'plugin_count' => \app\common\model\Plugin::count(),
+            'member_count' => \app\common\model\Member::count(),
+            'backup_count' => count(glob(runtime_path() . 'backup/*') ?: []),
         ]);
 
         return $this->view('/dashboard');

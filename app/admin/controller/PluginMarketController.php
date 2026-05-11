@@ -5,6 +5,8 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\service\PluginMarketService;
+use app\common\model\PluginRating;
+use app\common\model\Plugin as PluginModel;
 use think\facade\Config;
 
 /**
@@ -169,6 +171,58 @@ class PluginMarketController extends AdminBaseController
             'msg'  => 'success',
             'data' => $updates,
             'count'=> count($updates),
+        ]);
+    }
+
+    /**
+     * V2.9.4: 提交插件评分
+     */
+    public function rate()
+    {
+        $code = $this->request->post('code', '');
+        $rating = (int) $this->request->post('rating', 0);
+        $content = $this->request->post('content', '');
+
+        if (empty($code) || $rating < 1 || $rating > 5) {
+            return json(['code' => 1, 'msg' => '参数错误：插件标识和评分(1-5)必填']);
+        }
+
+        // 验证插件已安装
+        $localPlugin = PluginModel::where('code', $code)->find();
+        if (!$localPlugin) {
+            return json(['code' => 1, 'msg' => '仅已安装插件可评分']);
+        }
+
+        try {
+            // 获取当前管理员ID（从session中取）
+            $userId = (int) session('admin.id') ?: 1;
+            $result = PluginRating::submitRating($code, $userId, $rating, $content);
+            return json(['code' => 0, 'msg' => '评分成功', 'data' => $result->toArray()]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => '评分失败: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.4: 获取插件评分数据
+     */
+    public function getRating()
+    {
+        $code = $this->request->get('code', '');
+        if (empty($code)) {
+            return json(['code' => 1, 'msg' => '参数错误']);
+        }
+
+        $ratingInfo = PluginRating::getAverageRating($code);
+        $ratings = PluginRating::getRatings($code, 1, 10);
+
+        return json([
+            'code' => 0,
+            'data' => [
+                'avg_rating' => $ratingInfo['avg_rating'],
+                'total_count' => $ratingInfo['total_count'],
+                'ratings' => $ratings,
+            ],
         ]);
     }
 }

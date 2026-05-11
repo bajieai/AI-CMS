@@ -365,7 +365,7 @@ class MemberLevelService
     /**
      * 执行降级到满足条件的最高等级
      */
-    protected static function performDowngrade(int $memberId, array $levels, int $defaultLevelId): void
+    protected static function performDowngrade(int $memberId, array $levels, int $defaultLevelId, string $triggerCondition = 'points_insufficient'): void
     {
         $member = Member::find($memberId);
         if (!$member) return;
@@ -387,6 +387,18 @@ class MemberLevelService
             } catch (\Throwable) {}
             Db::name('member')->where('id', $memberId)->update($update);
             self::notifyLevelChange($memberId, $oldLevelId, $newLevelId);
+
+            // V2.9.4: 记录降级日志
+            try {
+                \app\common\model\MemberDowngradeLog::create([
+                    'user_id' => $memberId,
+                    'from_level' => $oldLevelId,
+                    'to_level' => $newLevelId,
+                    'action' => 'auto_downgrade',
+                    'trigger_condition' => $triggerCondition,
+                    'notified' => 1,
+                ]);
+            } catch (\Throwable) {}
         }
     }
 

@@ -82,7 +82,8 @@
                         <p class="card-text text-muted small" style="min-height:2.5em;">{$plugin.description|default='暂无描述'}</p>
                         <div class="small text-muted mb-2">
                             <span class="me-2"><i class="bi bi-tag"></i> {$plugin.version}</span>
-                            <span><i class="bi bi-person"></i> {$plugin.author|default='未知'}</span>
+                            <span class="me-2"><i class="bi bi-person"></i> {$plugin.author|default='未知'}</span>
+                            {if $plugin.avg_rating > 0}<span><i class="bi bi-star-fill text-warning"></i> {$plugin.avg_rating}</span>{/if}
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0">
@@ -135,7 +136,8 @@
                     <p class="card-text text-muted small">{$plugin.description|default='暂无描述'}</p>
                     <div class="small text-muted mb-2">
                         <span class="me-2"><i class="bi bi-tag"></i> {$plugin.version}</span>
-                        <span><i class="bi bi-person"></i> {$plugin.author|default='未知'}</span>
+                        <span class="me-2"><i class="bi bi-person"></i> {$plugin.author|default='未知'}</span>
+                        {if $plugin.avg_rating > 0}<span><i class="bi bi-star-fill text-warning"></i> {$plugin.avg_rating}</span>{/if}
                     </div>
                 </div>
                 <div class="card-footer bg-transparent">

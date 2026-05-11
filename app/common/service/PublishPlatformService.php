@@ -69,6 +69,8 @@ class PublishPlatformService
         $log = PublishLog::create([
             'content_id' => $contentId,
             'platform_id' => $platformId,
+            'platform' => $platform->name,
+            'action' => 'publish',
             'status' => 0,
         ]);
 
@@ -103,7 +105,7 @@ class PublishPlatformService
     }
 
     /**
-     * 重试失败的发布
+     * 重试失败的发布（V2.9.4增强：记录重试次数）
      */
     public static function retryPublish(int $logId): array
     {
@@ -114,6 +116,8 @@ class PublishPlatformService
 
         $log->status = 0;
         $log->error_msg = '';
+        $log->retry_count = ($log->retry_count ?? 0) + 1;
+        $log->action = 'retry';
         $log->save();
 
         return self::publish($log->content_id, $log->platform_id);
@@ -201,6 +205,100 @@ class PublishPlatformService
         } catch (\Throwable $e) {
             Log::warning("[AutoPublish] 自动分发失败 content_id={$contentId}: " . $e->getMessage());
         }
+    }
+
+    /**
+     * V2.9.4: 获取发布摘要统计
+     */
+    public static function getPublishSummary(): array
+    {
+        $stats = [];
+
+        // 按平台统计
+        $platformStats = PublishLog::field('platform, status, COUNT(*) as cnt')
+            ->where('platform', '<>', '')
+            ->group('platform, status')
+            ->select();
+
+        $platforms = [];
+        foreach ($platformStats as $stat) {
+            $name = $stat->platform;
+            if (!isset($platforms[$name])) {
+                $platforms[$name] = ['total' => 0, 'success' => 0, 'failed' => 0, 'pending' => 0, 'success_rate' => '0%'];
+            }
+            $platforms[$name]['total'] += $stat->cnt;
+            if ($stat->status == 1) $platforms[$name]['success'] = $stat->cnt;
+            if ($stat->status == 2) $platforms[$name]['failed'] = $stat->cnt;
+            if ($stat->status == 0) $platforms[$name]['pending'] = $stat->cnt;
+        }
+        foreach ($platforms as &$p) {
+            $p['success_rate'] = $p['total'] > 0 ? round($p['success'] / $p['total'] * 100, 1) . '%' : '0%';
+        }
+
+        // 兼容旧数据（无platform字段的）
+        $legacyStats = PublishLog::field('status, COUNT(*) as cnt')
+            ->where(function ($q) {
+                $q->whereNull('platform')->whereOr('platform', '');
+            })
+            ->group('status')
+            ->select();
+
+        $legacyTotal = 0;
+        foreach ($legacyStats as $stat) {
+            $legacyTotal += $stat->cnt;
+        }
+
+        // 全局统计
+        $total = PublishLog::count();
+        $success = PublishLog::where('status', 1)->count();
+        $failed = PublishLog::where('status', 2)->count();
+        $pending = PublishLog::where('status', 0)->count();
+
+        return [
+            'total' => $total,
+            'success' => $success,
+            'failed' => $failed,
+            'pending' => $pending,
+            'success_rate' => $total > 0 ? round($success / $total * 100, 1) . '%' : '0%',
+            'platforms' => $platforms,
+            'legacy_count' => $legacyTotal,
+        ];
+    }
+
+    /**
+     * V2.9.4: 获取发布日志列表（支持筛选+分页）
+     */
+    public static function getPublishLogList(array $filters = [], int $page = 1, int $limit = 20): array
+    {
+        $query = PublishLog::with(['content' => function ($q) {
+            $q->field('id,title');
+        }])->order('id', 'desc');
+
+        if (!empty($filters['platform'])) {
+            $query->where('platform', $filters['platform']);
+        }
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            $query->where('status', (int) $filters['status']);
+        }
+        if (!empty($filters['content_id'])) {
+            $query->where('content_id', (int) $filters['content_id']);
+        }
+        if (!empty($filters['date_from'])) {
+            $query->where('create_time', '>=', strtotime($filters['date_from']));
+        }
+        if (!empty($filters['date_to'])) {
+            $query->where('create_time', '<=', strtotime($filters['date_to'] . ' 23:59:59'));
+        }
+
+        $total = $query->count();
+        $list = $query->page($page, $limit)->select();
+
+        return [
+            'list' => $list->toArray(),
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+        ];
     }
 
     /**

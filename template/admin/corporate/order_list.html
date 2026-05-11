@@ -1,0 +1,99 @@
+{extend name="layout" /}
+{block name="title"}订单管理{/block}
+
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-receipt me-2"></i>订单管理</h4>
+    </div>
+
+    <!-- 筛选 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" action="/admin/order/index" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">订单号</label>
+                    <input type="text" name="keyword" class="form-control form-control-sm" value="{$keyword}" placeholder="搜索订单号">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">来源</label>
+                    <select name="source" class="form-select form-select-sm">
+                        <option value="">全部</option>
+                        <option value="plugin" {if $source == 'plugin'}selected{/if}>插件购买</option>
+                        <option value="template" {if $source == 'template'}selected{/if}>模板购买</option>
+                        <option value="member" {if $source == 'member'}selected{/if}>会员充值</option>
+                        <option value="content" {if $source == 'content'}selected{/if}>内容付费</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">状态</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">全部</option>
+                        <option value="0" {if $status === '0'}selected{/if}>待支付</option>
+                        <option value="1" {if $status === '1'}selected{/if}>已支付</option>
+                        <option value="2" {if $status === '2'}selected{/if}>已退款</option>
+                        <option value="3" {if $status === '3'}selected{/if}>已关闭</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 筛选</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 订单列表 -->
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>订单号</th>
+                        <th>用户ID</th>
+                        <th>来源</th>
+                        <th>金额</th>
+                        <th>状态</th>
+                        <th>支付方式</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {if empty($orders)}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无订单</td></tr>
+                    {/if}
+                    {foreach $orders as $order}
+                    <tr>
+                        <td><a href="/admin/order/detail/{$order.id}">{$order.order_no}</a></td>
+                        <td>{$order.user_id}</td>
+                        <td><span class="badge bg-info">{$order.source}</span></td>
+                        <td class="fw-bold">¥{$order.amount}</td>
+                        <td><span class="badge {$order.status_badge}">{$order.status_text}</span></td>
+                        <td>{$order.pay_method|default='-'}</td>
+                        <td>{$order.create_time|date='Y-m-d H:i'}</td>
+                        <td>
+                            {if $order.status == 0}
+                            <button class="btn btn-sm btn-outline-secondary btn-close-order" data-id="{$order.id}">关闭</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function() {
+    $('.btn-close-order').on('click', function() {
+        if (!confirm('确定要关闭此订单吗？')) return;
+        var id = $(this).data('id');
+        $.post('/admin/order/close', {id: id}, function(res) {
+            if (res.code === 0) location.reload();
+            else alert(res.msg || '操作失败');
+        });
+    });
+});
+</script>
+{/block}

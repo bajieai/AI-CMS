@@ -19,28 +19,45 @@ use think\facade\Log;
 class AiWritingService
 {
     /**
-     * 5种写作风格System Prompt
+     * 6种写作风格System Prompt（V2.9.4增强：新增relaxed/warm风格）
      */
     protected static array $stylePrompts = [
         'default'    => '你是一位专业的内容创作者，请根据用户要求撰写高质量文章。',
-        'formal'     => '你是一位正式的学术/商业写作专家。请使用正式、严谨的语言风格，避免口语化表达，注重逻辑性和专业性。',
-        'casual'     => '你是一位轻松有趣的博客作者。请使用通俗易懂、生动活泼的语言，适当加入比喻和例子，让读者感到亲切。',
+        'formal'     => '你是一位正式的学术/商业写作专家。请使用正式、严谨的语言风格，避免口语化表达，注重逻辑性和专业性。语言规范，用词准确，句式完整，客观中性。',
+        'relaxed'    => '你是一位轻松有趣的博客作者。请使用通俗易懂、生动活泼的语言，口语化表达，短句为主，适当使用语气词，有亲和力。让读者感到轻松愉快。',
+        'professional' => '你是一位技术/专业领域的资深作者。术语准确，逻辑严密，数据支撑，论证充分。注重内容的专业性和深度，适合产品介绍、技术文档等。',
+        'warm'       => '你是一位温暖的写作伙伴。请使用第二人称称呼读者，关怀语气，温暖正面。注重共情和引导，就像朋友之间交流一样亲切自然，适合使用指南、客服文章等。',
         'marketing'  => '你是一位资深的营销文案策划师。请使用吸引眼球、富有感染力的语言，突出产品/服务的核心价值，引导读者行动。',
         'technical'  => '你是一位技术文档工程师。请使用精确、简洁的技术语言，注重结构清晰、步骤明确，必要时提供代码示例。',
     ];
 
     /**
-     * 获取写作风格列表
+     * 获取写作风格列表（V2.9.4增强：6种风格）
      */
     public static function getStyles(): array
     {
         return [
-            ['key' => 'default', 'name' => '默认', 'desc' => '专业内容创作'],
-            ['key' => 'formal', 'name' => '正式', 'desc' => '学术/商业严谨风格'],
-            ['key' => 'casual', 'name' => '通俗', 'desc' => '轻松活泼博客风格'],
-            ['key' => 'marketing', 'name' => '营销', 'desc' => '吸引眼球文案风格'],
-            ['key' => 'technical', 'name' => '技术', 'desc' => '技术文档精确风格'],
+            ['key' => 'default', 'name' => '默认', 'desc' => '专业内容创作', 'preview' => '标准的文章写作风格，适用于大部分场景'],
+            ['key' => 'formal', 'name' => '正式', 'desc' => '新闻/公告严谨风格', 'preview' => '语言规范、客观中性，适合新闻动态、公告通知'],
+            ['key' => 'relaxed', 'name' => '轻松', 'desc' => '轻松活泼博客风格', 'preview' => '口语化、短句为主，适合博客、个人日记'],
+            ['key' => 'professional', 'name' => '专业', 'desc' => '技术/产品专业风格', 'preview' => '术语准确、逻辑严密，适合产品介绍、技术文档'],
+            ['key' => 'warm', 'name' => '亲切', 'desc' => '温暖关怀指导风格', 'preview' => '第二人称、关怀语气，适合使用指南、客服文章'],
+            ['key' => 'marketing', 'name' => '营销', 'desc' => '吸引眼球文案风格', 'preview' => '富有感染力、引导行动，适合营销推广'],
         ];
+    }
+
+    /**
+     * V2.9.4: 获取栏目的默认写作风格
+     */
+    public static function getCategoryStyle(int $cateId): string
+    {
+        if ($cateId <= 0) return 'default';
+        try {
+            $style = \think\facade\Db::name('category')->where('id', $cateId)->value('default_style');
+            return $style ?: 'default';
+        } catch (\Throwable) {
+            return 'default';
+        }
     }
 
     /**

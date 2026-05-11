@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.9.3
+# 八界AI-CMS V2.9.4
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.3-blue)
+![Version](https://img.shields.io/badge/version-2.9.4-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.3 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.3 定位"生态闭环 × 多渠道分发 × 运营深化"，聚焦数据备份恢复增强（生存功能）、多渠道分发稳定性提升、插件商店首页升级、会员权益补全四大方向，补全V2.9.2产品需求缺口，强化已有模块的生产就绪度。
+八界AI-CMS V2.9.4 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.4 定位"优化完善 × 商业化准备"，是V2.9.x系列收官之作，聚焦V2.9.3细节补全（发布看板+评分评价）、AI内容质量增强（可读性+SEO+敏感词+写作风格）、商业化基础能力（支付框架+许可证+付费阅读）、产品体验打磨（性能+安全+UI一致性）、系统运维就绪五大方向，为V3.0平台化升级铺路。
 
 ### 核心特性
 
@@ -45,11 +45,16 @@
 
 ### V2.9.3 新增特性
 
-- **数据备份恢复增强(M26, P0)** - BackupService重写：分块流式导出(chunk 1000)修复OOM+gzip压缩(gzopen流式写入)+文件备份(ZipArchive)+恢复安全保护(自动快照+二次确认+多行注释感知SQL分割)+BackupCommand CLI(crontab调度)+清理旧备份
-- **多渠道分发稳定性增强(M28, P0)** - ContentService自动同步钩子(publish后自动推送到已启用平台)+微信公众号formatContent增强(图片自适应+视频/表格转提示+标签清理)+头条号formatContent增强(结构化富文本适配)+refreshAllTokens()批量Token刷新+编辑页"同步到平台"按钮
-- **插件商店首页升级(M25续, P0)** - 横向分类标签导航(Pills)+推荐位卡片(前4个)+搜索栏增强+plugin-store.js前端组件(安装/上传/搜索防抖)+详情页(截图轮播+版本历史+系统要求+安装统计)+已安装卡片跳转管理页+双主题模板升级
-- **会员权益补全(M20续, P1)** - 会员等级进度页(4套前台模板default/corporate×pc/mobile)+AutoDowngradeCommand CLI(crontab每日触发)+7天缓冲期降级预警+isInGracePeriod()独立缓冲期判断+降级确认通知+grace_end_time字段
-- **V2.9.2遗留补全** - AiTranslationService.retryFailed()翻译失败重试+ZhihuPlatform注册到bootAdapters()+构造函数统一化
+- **V2.9.3功能** - 数据备份恢复增强(M26)+多渠道分发增强(M28)+插件商店首页升级(M25)+会员权益补全(M20)
+- **发布状态看板(M28续, P0)** - 发布记录列表+按平台/状态筛选+手动重试+发布摘要统计(成功率/各平台统计)
+- **插件评分评价(M25续, P0)** - 已安装插件1-5星评分+评语+平均分缓存展示(5分钟TTL)
+- **AI内容质量检测(M30, P0)** - 可读性评分(中文统计模型)+SEO友好度(6维度)+敏感词过滤(Trie+内置词库)+质量评分面板(AJAX+1秒防抖)
+- **AI写作风格选择(M30续, P0)** - 6种风格Prompt(默认/正式/轻松/专业/亲切/营销)+风格选择UI+栏目级预设(default_style字段)
+- **支付集成框架(M31, P1)** - PaymentService统一支付层+微信/支付宝适配器(沙箱模式)+订单管理+回调处理+支付配置页
+- **许可证管理框架(M32, P1)** - licenses表+本地/远程双验证+离线降级24h+后台发放/激活/吊销+插件license_check钩子
+- **付费阅读/打赏(M33, P1)** - 文章编辑页付费开关+价格设置+未付费用户看摘要+打赏按钮
+- **备份增强补全(M26续, P1)** - 备份目录可配置化(template+config)+备份日志(BackupLog)+已有下载功能
+- **会员降级日志(M20续, P1)** - MemberDowngradeLog记录降级操作+通知状态
 - **Bug修复与体验优化** - GLOB_BRACE Alpine兼容+nginx /admin重写修复+会员头像上传(后台+前台)+图标选择器+下拉溢出修复+默认头像+PWA提示7天冷却+logo尺寸统一+登录页动态logo
 
 ### V2.9.2 新增特性
@@ -425,6 +430,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.4 | 2026-05 | 优化完善×商业化准备: 发布看板+评分评价/AI质量检测+写作风格/支付框架+许可证+付费阅读/备份日志+降级日志 |
 | V2.9.3 | 2026-05 | 数据备份恢复增强(分块流式+gzip+文件备份+CLI+恢复安全保护)/多渠道分发增强(自动同步+formatContent+Token刷新)/插件商店首页(分类导航+推荐位+搜索+详情页+卡片跳转)/会员权益补全(等级进度页+自动降级CLI+isInGracePeriod+7天缓冲期) |
 | V2.9.2 | 2026-05 | AI深度翻译/SEO分发增强(Sitemap拆分+JSON-LD+hreflang)/插件市场/会员权益深化/PWA/H5移动端优化/数据导出增强/系统监控 |
 | V2.9.1 | 2026-05 | FluxProvider异步化/懒加载/CDN/CSS变量化/AI报告/API文档/评价媒体+回复/免邮券/AI配色/配图本地化/批量管理 |

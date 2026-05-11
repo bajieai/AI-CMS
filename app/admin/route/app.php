@@ -187,8 +187,34 @@ Route::post('language/aiTranslate$', '\app\admin\controller\LanguageController@a
 Route::post('publish/sync$', '\app\admin\controller\PublishPlatformController@sync');
 Route::post('publish/refreshTokens$', '\app\admin\controller\PublishPlatformController@refreshTokens');
 
+// V2.9.4: 发布状态看板
+Route::get('publish_log/index$', '\app\admin\controller\PublishLogController@index');
+Route::post('publish_log/retry$', '\app\admin\controller\PublishLogController@retry');
+Route::get('publish_log/summary$', '\app\admin\controller\PublishLogController@summary');
+
+// V2.9.4: 内容质量检测
+Route::post('quality_check/check$', '\app\admin\controller\QualityCheckController@check');
+
+// V2.9.4: 支付配置
+Route::get('pay_config/index$', '\app\admin\controller\PayConfigController@index');
+Route::post('pay_config/save$', '\app\admin\controller\PayConfigController@save');
+
+// V2.9.4: 订单管理
+Route::get('order/index$', '\app\admin\controller\OrderController@index');
+Route::get('order/detail/:id$', '\app\admin\controller\OrderController@detail');
+Route::post('order/close$', '\app\admin\controller\OrderController@close');
+
+// V2.9.4: 许可证管理
+Route::get('license/index$', '\app\admin\controller\LicenseController@index');
+Route::post('license/issue$', '\app\admin\controller\LicenseController@issue');
+Route::post('license/revoke$', '\app\admin\controller\LicenseController@revoke');
+Route::post('license/activate$', '\app\admin\controller\LicenseController@activate');
+
 // V2.9.3 M25: 插件商店
 Route::get('plugin_market/index$', '\app\admin\controller\PluginMarketController@index');
 Route::get('plugin_market/detail/:code$', '\app\admin\controller\PluginMarketController@detail');
 Route::post('plugin_market/install$', '\app\admin\controller\PluginMarketController@install');
 Route::get('plugin_market/checkUpdates$', '\app\admin\controller\PluginMarketController@checkUpdates');
+// V2.9.4: 插件评分
+Route::post('plugin_market/rate$', '\app\admin\controller\PluginMarketController@rate');
+Route::get('plugin_market/getRating$', '\app\admin\controller\PluginMarketController@getRating');

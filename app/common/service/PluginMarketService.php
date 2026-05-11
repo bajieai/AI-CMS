@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\Plugin as PluginModel;
+use app\common\model\PluginRating;
 use think\facade\Config;
 use think\facade\Log;
 
@@ -55,6 +56,10 @@ class PluginMarketService
                     $plugin['is_installed'] = 0;
                     $plugin['has_update'] = false;
                 }
+                // V2.9.4: 叠加本地评分数据
+                $ratingInfo = PluginRating::getAverageRating($code);
+                $plugin['avg_rating'] = $ratingInfo['avg_rating'];
+                $plugin['rating_count'] = $ratingInfo['total_count'];
             }
 
             return [
@@ -270,6 +275,14 @@ class PluginMarketService
                 $plugin['is_installed'] = 0;
                 $plugin['has_update'] = false;
             }
+
+            // V2.9.4: 叠加本地评分数据
+            $ratingInfo = PluginRating::getAverageRating($code);
+            $plugin['avg_rating'] = $ratingInfo['avg_rating'];
+            $plugin['rating_count'] = $ratingInfo['total_count'];
+
+            // V2.9.4: 获取评分列表
+            $plugin['ratings'] = PluginRating::getRatings($code, 1, 10);
 
             return ['success' => true, 'data' => $plugin];
         } catch (\Throwable $e) {

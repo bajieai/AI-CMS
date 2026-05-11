@@ -1,0 +1,97 @@
+{extend name="layout" /}
+{block name="title"}许可证管理{/block}
+
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-key me-2"></i>许可证管理</h4>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#issueModal">
+            <i class="bi bi-plus-circle me-1"></i>发放许可证
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>许可证编码</th>
+                        <th>产品类型</th>
+                        <th>产品编码</th>
+                        <th>类型</th>
+                        <th>状态</th>
+                        <th>绑定域名</th>
+                        <th>有效期至</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {if empty($licenses)}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无许可证</td></tr>
+                    {/if}
+                    {foreach $licenses as $lic}
+                    <tr>
+                        <td><code>{$lic.license_code}</code></td>
+                        <td><span class="badge bg-info">{$lic.product_type}</span></td>
+                        <td>{$lic.product_code}</td>
+                        <td><span class="badge bg-secondary">{$lic.license_type}</span></td>
+                        <td>
+                            {if $lic.status == 'active'}<span class="badge bg-success">活跃</span>
+                            {elseif $lic.status == 'suspended'}<span class="badge bg-warning">暂停</span>
+                            {elseif $lic.status == 'revoked'}<span class="badge bg-danger">已吊销</span>
+                            {elseif $lic.status == 'expired'}<span class="badge bg-secondary">已过期</span>
+                            {else}<span class="badge bg-secondary">{$lic.status}</span>{/if}
+                        </td>
+                        <td>{$lic.bind_domain|default='-'}</td>
+                        <td>{if $lic.valid_until > 0}{$lic.valid_until|date='Y-m-d'}{else}永久{/if}</td>
+                        <td>
+                            {if $lic.status == 'active'}
+                            <button class="btn btn-sm btn-outline-danger btn-revoke" data-id="{$lic.id}">吊销</button>
+                            {elseif $lic.status == 'revoked' || $lic.status == 'suspended'}
+                            <button class="btn btn-sm btn-outline-success btn-activate" data-id="{$lic.id}">激活</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 发放许可证弹窗 -->
+<div class="modal fade" id="issueModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">发放许可证</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">产品类型</label><select name="product_type" class="form-select" id="issue-product-type"><option value="plugin">插件</option><option value="template">模板</option></select></div>
+                <div class="mb-3"><label class="form-label">产品编码</label><input type="text" id="issue-product-code" class="form-control" placeholder="插件/模板的code"></div>
+                <div class="mb-3"><label class="form-label">用户ID</label><input type="number" id="issue-user-id" class="form-control" value="0"></div>
+                <div class="mb-3"><label class="form-label">许可证类型</label><select id="issue-license-type" class="form-select"><option value="standard">标准版</option><option value="pro">专业版</option><option value="lifetime">终身版</option></select></div>
+                <div class="mb-3"><label class="form-label">绑定域名</label><input type="text" id="issue-domain" class="form-control" placeholder="可选"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" id="btn-issue">发放</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function() {
+    $('#btn-issue').on('click', function() {
+        $.post('/admin/license/issue', {
+            product_type: $('#issue-product-type').val(),
+            product_code: $('#issue-product-code').val(),
+            user_id: $('#issue-user-id').val(),
+            license_type: $('#issue-license-type').val(),
+            bind_domain: $('#issue-domain').val()
+        }, function(res) {
+            if (res.code === 0) { alert('发放成功！许可证编码: ' + res.data.license_code); location.reload(); }
+            else alert(res.msg || '发放失败');
+        });
+    });
+    $(document).on('click', '.btn-revoke', function() { if (!confirm('确定吊销此许可证？')) return; $.post('/admin/license/revoke', {id: $(this).data('id')}, function(r) { if(r.code===0) location.reload(); else alert(r.msg); }); });
+    $(document).on('click', '.btn-activate', function() { if (!confirm('确定激活此许可证？')) return; $.post('/admin/license/activate', {id: $(this).data('id')}, function(r) { if(r.code===0) location.reload(); else alert(r.msg); }); });
+});
+</script>
+{/block}
