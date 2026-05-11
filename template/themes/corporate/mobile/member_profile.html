@@ -5,13 +5,20 @@
 {block name="content"}
 <div class="cm-main">
     <div class="cm-card text-center" style="padding:22px 16px;">
-        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e0e7ff,#c7d2fe);color:#4338ca;display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;margin-bottom:10px;box-shadow:0 4px 14px rgba(67,56,202,.25);">{$member.nickname|msubstr=0,1|upper}</div>
-        <h5 style="font-size:17px;font-weight:750;color:#1e293b;">{$member.nickname}</h5>
+        <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;margin:0 auto 10px;border:2px solid #e2e8f0;">
+            <img id="avatarPreview" src="{$member.avatar|default='/assets/img/default-avatar.png'}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/img/default-avatar.png'">
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('avatarInput').click()" style="font-size:12px;border-radius:20px;">
+            <i class="bi bi-camera me-1"></i>更换头像
+        </button>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        <h5 style="font-size:17px;font-weight:750;color:#1e293b;margin-top:8px;">{$member.nickname}</h5>
         <small style="color:#94a3b8;">@{$member.username}</small>
     </div>
 
     <div class="cm-card" style="padding:18px 14px;">
         <form id="profileForm">
+            <input type="hidden" name="avatar" id="avatarField" value="{$member.avatar|default=''}">
             <div class="cm-fg"><label style="font-size:12px;color:#94a3b8;font-weight:550;">用户名（不可修改）</label><input type="text" class="cm-input" value="{$member.username}" disabled style="background:#f1f5f9;"></div>
             <div class="cm-fg"><label style="font-size:12px;color:#94a3b8;font-weight:550;">昵称</label><input type="text" name="nickname" class="cm-input" value="{$member.nickname}"></div>
             <div class="cm-fg"><label style="font-size:12px;color:#94a3b8;font-weight:550;">邮箱</label><input type="email" class="cm-input" value="{$member.email}" disabled style="background:#f1f5f9;"></div>
@@ -21,4 +28,32 @@
     <div class="text-center mt-3"><a href="/member/logout" style="color:#ef4444;text-decoration:none;font-size:13.5px;"><i class="bi bi-box-arrow-right me-1"></i>退出登录</a></div>
 </div>
 {/block}
-{block name="js"}<script>$('#profileForm').on('submit',function(e){e.preventDefault();$.post('/member/profile',$(this).serialize(),function(r){showToast(r.msg||'保存成功','success');});});</script>{/block}
+{block name="js"}
+<script>
+function uploadAvatar(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var formData = new FormData();
+    formData.append('file', file);
+    $.ajax({
+        url: '/member/uploadAvatar',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.url) {
+                $('#avatarField').val(res.data.url);
+                $('#avatarPreview').attr('src', res.data.url);
+                showToast('头像上传成功', 'success');
+            } else {
+                showToast(res.msg || '上传失败', 'danger');
+            }
+        },
+        error: function() { showToast('网络错误', 'danger'); }
+    });
+    input.value = '';
+}
+$('#profileForm').on('submit',function(e){e.preventDefault();$.post('/member/profile',$(this).serialize(),function(r){showToast(r.msg||'保存成功','success');});});
+</script>
+{/block}

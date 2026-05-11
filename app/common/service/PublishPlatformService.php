@@ -7,6 +7,8 @@ use app\common\model\Content;
 use app\common\model\PublishPlatform;
 use app\common\model\PublishLog;
 use app\common\service\publish\PublishPlatformInterface;
+use think\facade\Config;
+use think\facade\Log;
 
 /**
  * 多平台发布服务 - V2.5
@@ -46,6 +48,7 @@ class PublishPlatformService
     {
         self::registerAdapter(new \app\common\service\publish\WechatMpPlatform());
         self::registerAdapter(new \app\common\service\publish\ToutiaoPlatform());
+        self::registerAdapter(new \app\common\service\publish\ZhihuPlatform());
     }
 
     /**
@@ -160,5 +163,79 @@ class PublishPlatformService
             $fields[$name] = $adapter->getConfigFields();
         }
         return $fields;
+    }
+
+    /**
+     * V2.9.3 M28: 内容保存后自动发布到已启用的平台
+     * 非阻塞：失败仅记录日志，不影响主流程
+     */
+    public static function autoPublishToPlatforms(int $contentId): void
+    {
+        try {
+            $enabled = Config::get('publish.auto_sync_enabled', 0);
+            if (!$enabled) {
+                return;
+            }
+
+            $platforms = PublishPlatform::where('is_enabled', 1)->select();
+            if ($platforms->isEmpty()) {
+                return;
+            }
+
+            foreach ($platforms as $platform) {
+                try {
+                    $adapter = self::getAdapter($platform->name);
+                    if (!$adapter) {
+                        continue;
+                    }
+                    // 验证配置完整性
+                    if (!$adapter->validateConfig($platform)) {
+                        continue;
+                    }
+                    // 异步发布（不阻塞）
+                    self::publish($contentId, $platform->id);
+                } catch (\Throwable $e) {
+                    Log::warning("[AutoPublish] 平台 {$platform->name} 同步失败 content_id={$contentId}: " . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning("[AutoPublish] 自动分发失败 content_id={$contentId}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.3 M28: 刷新所有平台的Token
+     * 目前主要支持头条号OAuth Token刷新
+     */
+    public static function refreshAllTokens(): array
+    {
+        if (empty(self::$adapters)) {
+            self::bootAdapters();
+        }
+
+        $platforms = PublishPlatform::where('is_enabled', 1)->select();
+        $results = [];
+
+        foreach ($platforms as $platform) {
+            $adapter = self::$adapters[$platform->name] ?? null;
+            if (!$adapter) {
+                continue;
+            }
+
+            try {
+                // 头条号有独立的Token刷新逻辑
+                if ($platform->name === 'toutiao' && method_exists($adapter, 'getValidAccessToken')) {
+                    $token = $adapter->getValidAccessToken($platform);
+                    $results[$platform->name] = ['success' => true, 'token_preview' => substr($token, 0, 8) . '...'];
+                } else {
+                    $results[$platform->name] = ['success' => true, 'msg' => '无需刷新'];
+                }
+            } catch (\Throwable $e) {
+                $results[$platform->name] = ['success' => false, 'error' => $e->getMessage()];
+                Log::warning("[TokenRefresh] {$platform->name} 刷新失败: " . $e->getMessage());
+            }
+        }
+
+        return $results;
     }
 }

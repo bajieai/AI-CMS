@@ -18,5 +18,9 @@ return [
         'email:recover'       => 'app\common\command\EmailQueueRecoverCommand',
         // V2.9.1 M14a: 配图异步轮询命令
         'image:poll'          => 'app\common\command\ImagePollCommand',
+        // V2.9.3 M26: 增强数据备份命令
+        'backup:run'          => 'app\common\command\BackupCommand',
+        // V2.9.3 M20: 会员自动降级命令
+        'member:auto-downgrade' => 'app\common\command\AutoDowngradeCommand',
     ],
 ];

@@ -7,6 +7,7 @@ use app\common\model\Content;
 use app\common\model\ContentExt;
 use app\common\model\ContentTag;
 use app\common\service\CacheService;
+use app\common\service\PublishPlatformService;
 use think\facade\Cache;
 use think\facade\Config;
 
@@ -151,6 +152,11 @@ class ContentService
             AiTranslationService::autoTranslate($content->id);
         }
 
+        // V2.9.3 M28: 自动同步到已启用平台（仅已发布内容）
+        if ($content->status == 2 && $content->translation_of == 0) {
+            PublishPlatformService::autoPublishToPlatforms($content->id);
+        }
+
         return true;
     }
 
@@ -234,6 +240,11 @@ class ContentService
         // V2.9.2 M19a: 自动翻译触发（防递归：翻译内容不触发二次翻译）
         if ($content->translation_of == 0) {
             AiTranslationService::autoTranslate($content->id);
+        }
+
+        // V2.9.3 M28: 自动同步到已启用平台（仅已发布内容）
+        if ($content->status == 2 && $content->translation_of == 0) {
+            PublishPlatformService::autoPublishToPlatforms($content->id);
         }
 
         return true;

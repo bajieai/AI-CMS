@@ -14,13 +14,13 @@ use think\facade\Log;
  */
 class ZhihuPlatform implements PublishPlatformInterface
 {
-    protected array $config;
-    protected Client $client;
-
-    public function __construct(array $config)
+    /**
+     * 构建HTTP客户端（从平台配置动态创建）
+     */
+    protected function buildClient(PublishPlatform $platform): Client
     {
-        $this->config = $config;
-        $this->client = new Client([
+        $config = json_decode($platform->config_json ?? '{}', true);
+        return new Client([
             'timeout' => 30,
             'headers' => [
                 'Authorization' => 'Bearer ' . ($config['access_token'] ?? ''),
@@ -59,6 +59,9 @@ class ZhihuPlatform implements PublishPlatformInterface
     public function publish(Content $content, PublishPlatform $platform): array
     {
         try {
+            $config = json_decode($platform->config_json ?? '{}', true);
+            $client = $this->buildClient($platform);
+
             $title = $content->title;
             $body  = $this->convertHtmlToZhihu($content->content);
             $excerpt = mb_substr(strip_tags($content->excerpt ?: $content->content), 0, 200);
@@ -70,11 +73,11 @@ class ZhihuPlatform implements PublishPlatformInterface
                 'cover_image' => $content->cover ?: '',
             ];
 
-            if (!empty($this->config['column_id'])) {
-                $params['column_id'] = $this->config['column_id'];
+            if (!empty($config['column_id'])) {
+                $params['column_id'] = $config['column_id'];
             }
 
-            $response = $this->client->post('https://www.zhihu.com/api/v4/articles', [
+            $response = $client->post('https://www.zhihu.com/api/v4/articles', [
                 'json' => $params,
             ]);
 

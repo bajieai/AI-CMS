@@ -181,10 +181,25 @@ class ToutiaoPlatform implements PublishPlatformInterface
     }
 
     /**
-     * 格式化内容为头条号格式
+     * V2.9.3 M28: 格式化内容为头条号格式（增强版）
      */
     protected function formatContent(string $html): string
     {
-        return strip_tags($html, '<p><br><strong><em><h1><h2><h3><img><a><ul><ol><li><blockquote><span>');
+        if (empty($html)) {
+            return '';
+        }
+
+        // 1. 图片增加自适应样式
+        $html = preg_replace('/<img([^>]*)src="([^"]*)"([^>]*)>/i', '<img$1src="$2"$3 style="max-width:100%;height:auto;display:block;margin:0.5em 0;">', $html);
+
+        // 2. 视频标签转提示（头条号视频需单独上传）
+        $html = preg_replace('/<video[^>]*src="([^"]*)"[^>]*>.*?<\/video>/i', '<p style="color:#999;font-size:14px;">[视频内容] 请前往原文查看视频</p>', $html);
+
+        // 3. 表格转提示
+        $html = preg_replace('/<table[^>]*>.*?<\/table>/is', '<p style="color:#999;">[表格内容] 请前往原文查看</p>', $html);
+
+        // 4. 清理不兼容标签，保留头条号支持的标签
+        $allowedTags = '<p><br><strong><em><h1><h2><h3><img><a><ul><ol><li><blockquote><span><div><section><pre><code>';
+        return strip_tags($html, $allowedTags);
     }
 }

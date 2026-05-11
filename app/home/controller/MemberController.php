@@ -6,7 +6,9 @@ namespace app\home\controller;
 use app\common\controller\FrontBaseController;
 use app\common\model\Notification as NotificationModel;
 use app\common\service\MemberFavoriteService;
+use app\common\service\MemberLevelService;
 use app\common\service\MemberService;
+use app\common\service\UploadService;
 use think\Request;
 
 /**
@@ -231,7 +233,7 @@ class MemberController extends FrontBaseController
             return redirect('/member/login');
         }
 
-        $list = \app\common\model\PointsExchange::where('member_id', $this->memberInfo['id'])
+        $list = \app\common\model\PointsExchange::where('user_id', $this->memberInfo['id'])
             ->order('id', 'desc')
             ->paginate(20);
 
@@ -239,6 +241,31 @@ class MemberController extends FrontBaseController
             'list' => $list,
             'member' => $this->memberInfo,
         ]);
+    }
+
+    /**
+     * 会员头像上传（AJAX）
+     */
+    public function uploadAvatar(Request $request)
+    {
+        if (!$this->isMemberLogin) {
+            return json(['code' => 1, 'msg' => '请先登录']);
+        }
+
+        $file = $request->file('file');
+        if (empty($file)) {
+            return json(['code' => 1, 'msg' => '请选择文件']);
+        }
+
+        try {
+            $service = new UploadService();
+            $result = $service->uploadImage($file);
+            // 自动保存到头像字段
+            $this->service->updateProfile((int) $this->memberInfo['id'], ['avatar' => $result['url']]);
+            return json(['code' => 0, 'msg' => '头像上传成功', 'data' => ['url' => $result['url']]]);
+        } catch (\Exception $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
     }
 
     /**
@@ -256,5 +283,29 @@ class MemberController extends FrontBaseController
             ->update(['is_read' => 1]);
 
         return json(['success' => true, 'msg' => '全部已读']);
+    }
+
+    /**
+     * V2.9.3 M20: 会员等级进度页
+     */
+    public function level()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $progress = MemberLevelService::getLevelProgress((int) $this->memberInfo['id']);
+        $levels = MemberLevelService::getList();
+        // 确保等级数据中可能存在但数据库无此字段的key有默认值，防止模板报错
+        foreach ($levels as &$lv) {
+            $lv['_daily_ai_quota'] = (int) ($lv['daily_ai_quota'] ?? 0);
+        }
+        unset($lv);
+
+        return $this->view('/member_level', [
+            'progress' => $progress,
+            'levels' => $levels,
+            'member' => $this->memberInfo,
+        ]);
     }
 }

@@ -273,6 +273,9 @@
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        {if condition="$info"}
+                        <button type="button" class="btn btn-outline-info" onclick="syncToPlatforms({$info.id})"><i class="bi bi-cloud-upload me-1"></i>同步到平台</button>
+                        {/if}
                         <a href="/admin/content/index" class="btn btn-outline-secondary">取消返回</a>
                     </div>
                     <!-- 自动保存指示器 -->
@@ -584,6 +587,15 @@ function startAutoSave() {
 // 编辑器就绪后启动自动保存
 tinymce.activeEditor && startAutoSave();
 setTimeout(startAutoSave, 2000);
+
+// ================= V2.9.3 M28: 同步到平台 =================
+function syncToPlatforms(contentId) {
+    showConfirm('同步到平台', '确定要将此内容同步到所有已启用的发布平台吗？', function() {
+        ajaxPost('/admin/publish/sync', { content_id: contentId }, function(res) {
+            showToast(res.msg, 'success');
+        });
+    });
+}
 
 // ================= V2.8 SEO一键优化 =================
 // SEO字段实时预览

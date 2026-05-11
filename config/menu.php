@@ -26,7 +26,7 @@ return [
             ['id' => 21, 'name' => '用户列表', 'url' => '/admin/user/index', 'permission' => 'user.*', 'active' => 'user', 'icon' => 'bi bi-people'],
             ['id' => 27, 'name' => '会员等级', 'url' => '/admin/member_level/index', 'permission' => 'member_level.*', 'active' => 'member_level', 'icon' => 'bi bi-award'],
             // V2.9.2 M20: 会员权益配置
-            ['id' => 271, 'name' => '权益配置', 'url' => '/admin/member_benefit/edit', 'permission' => 'member_benefit.*', 'active' => 'member_benefit', 'icon' => 'bi bi-stars'],
+            ['id' => 271, 'name' => '权益配置', 'url' => '/admin/member_benefit/index', 'permission' => 'member_benefit.*', 'active' => 'member_benefit', 'icon' => 'bi bi-stars'],
             ['id' => 272, 'name' => '会员等级管理', 'url' => '/admin/member_benefit/members', 'permission' => 'member_benefit.*', 'active' => 'member_benefit_members', 'icon' => 'bi bi-people'],
             ['id' => 28, 'name' => '积分规则', 'url' => '/admin/points_rule/index', 'permission' => 'points.*', 'active' => 'points_rule', 'icon' => 'bi bi-star'],
             // V2.7 积分商城

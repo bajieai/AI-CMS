@@ -12,9 +12,13 @@
 <body>
     <div class="login-card">
         <div class="login-header">
+            {if $site_logo}
+            <img src="{$site_logo}" alt="Logo" height="48" style="margin-bottom:8px;">
+            {else}
             <i class="bi bi-robot"></i>
-            <h4>AI-CMS</h4>
-            <p>AI驱动的企业信息管理系统</p>
+            {/if}
+            <h4>{$brand_name|default='AI-CMS'}</h4>
+            <p>{$site_description|default='AI驱动的企业信息管理系统'}</p>
         </div>
         <div class="login-body">
             <form id="loginForm" method="post" action="/admin/login">

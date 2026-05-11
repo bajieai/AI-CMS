@@ -1,25 +1,36 @@
 /**
- * PWA安装提示组件 - V2.9.2 M22a
+ * PWA安装提示组件 - V2.9.3
+ * 修复：关闭后刷新/跳转不再重复弹出
  */
 (function() {
     let deferredPrompt = null;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    // 监听beforeinstallprompt
+    // 检查是否已安装
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        return;
+    }
+
+    // 监听beforeinstallprompt（仅在未关闭时弹窗）
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
+        const dismissed = localStorage.getItem('pwa_dismissed');
+        if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) {
+            return; // 7天内不再提示
+        }
         deferredPrompt = e;
         showInstallPrompt();
     });
 
-    // 检查是否已安装
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-        return; // 已安装，不显示提示
-    }
-
     function showInstallPrompt() {
         if (document.getElementById('pwa-install-toast')) return;
+
+        // 再次检查关闭状态（防并发）
+        const dismissed = localStorage.getItem('pwa_dismissed');
+        if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) {
+            return;
+        }
 
         const toast = document.createElement('div');
         toast.id = 'pwa-install-toast';
@@ -52,12 +63,6 @@
                 deferredPrompt = null;
             });
         }
-    }
-
-    // 如果7天内未关闭，再次提示
-    const dismissed = localStorage.getItem('pwa_dismissed');
-    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) {
-        return;
     }
 
     // 注册Service Worker

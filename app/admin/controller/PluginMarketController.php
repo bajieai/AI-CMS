@@ -40,8 +40,31 @@ class PluginMarketController extends AdminBaseController
             $categories = $service->getCategories();
         }
 
+        // V2.9.3 M25: 推荐位（取前4个未安装或高版本插件）
+        $featured = [];
+        if (!empty($plugins)) {
+            foreach ($plugins as $p) {
+                if (!$p['is_installed'] || $p['has_update']) {
+                    $featured[] = $p;
+                }
+                if (count($featured) >= 4) break;
+            }
+            // 如果不足4个，补普通插件
+            if (count($featured) < 4) {
+                foreach ($plugins as $p) {
+                    $found = false;
+                    foreach ($featured as $f) {
+                        if (($f['code'] ?? '') === ($p['code'] ?? '')) { $found = true; break; }
+                    }
+                    if (!$found) { $featured[] = $p; }
+                    if (count($featured) >= 4) break;
+                }
+            }
+        }
+
         $this->assign('enabled', $enabled);
         $this->assign('plugins', $plugins);
+        $this->assign('featured', $featured);
         $this->assign('categories', $categories);
         $this->assign('keyword', $keyword);
         $this->assign('category', $category);
@@ -49,6 +72,34 @@ class PluginMarketController extends AdminBaseController
         $this->assign('total', $total);
 
         return $this->view('/plugin_market_index');
+    }
+
+    /**
+     * V2.9.3 M25: 插件详情页
+     */
+    public function detail()
+    {
+        $code = $this->request->param('code', '');
+        if (empty($code)) {
+            return redirect('/admin/plugin_market/index');
+        }
+
+        $service = new PluginMarketService();
+        $result = $service->getMarketDetail($code);
+
+        if (!$result['success']) {
+            $this->assign('error', $result['msg']);
+            $this->assign('plugin', null);
+        } else {
+            $this->assign('plugin', $result['data']);
+            $this->assign('error', '');
+        }
+
+        // 保留搜索/分类上下文以便返回
+        $this->assign('keyword', $this->request->get('keyword', ''));
+        $this->assign('category', $this->request->get('category', ''));
+
+        return $this->view('/plugin_market_detail');
     }
 
     /**

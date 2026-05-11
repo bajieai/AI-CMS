@@ -237,6 +237,48 @@ class PluginMarketService
     }
 
     /**
+     * V2.9.3 M25: 获取市场插件详情
+     */
+    public function getMarketDetail(string $code): array
+    {
+        $marketUrl = Config::get('plugin.market_url', '');
+        if (empty($marketUrl)) {
+            return ['success' => false, 'msg' => '插件市场未配置'];
+        }
+
+        try {
+            $client = new \GuzzleHttp\Client(['timeout' => 15]);
+            $response = $client->get($marketUrl . '/plugins/' . $code, [
+                'query' => ['cms_version' => config('app.version', '2.9.3')],
+            ]);
+
+            $body = json_decode((string) $response->getBody(), true);
+            if (!is_array($body) || empty($body['data'])) {
+                return ['success' => false, 'msg' => '插件不存在或市场返回格式错误'];
+            }
+
+            $plugin = $body['data'];
+
+            // 叠加本地安装状态
+            $localPlugin = PluginModel::where('code', $code)->find();
+            if ($localPlugin) {
+                $plugin['local_version'] = $localPlugin->version;
+                $plugin['is_installed'] = 1;
+                $plugin['has_update'] = version_compare($plugin['version'] ?? '1.0.0', $localPlugin->version, '>');
+            } else {
+                $plugin['local_version'] = '';
+                $plugin['is_installed'] = 0;
+                $plugin['has_update'] = false;
+            }
+
+            return ['success' => true, 'data' => $plugin];
+        } catch (\Throwable $e) {
+            Log::warning('[PluginMarket] 获取插件详情失败: ' . $e->getMessage());
+            return ['success' => false, 'msg' => '获取插件详情失败: ' . $e->getMessage()];
+        }
+    }
+
+    /**
      * 获取市场分类列表
      */
     public function getCategories(): array

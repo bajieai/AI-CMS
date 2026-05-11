@@ -5,6 +5,8 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\model\PublishPlatform;
+use app\common\service\PublishPlatformService;
+use think\facade\Request;
 
 /**
  * 发布平台管理后台控制器 - V2.5新增
@@ -74,6 +76,38 @@ class PublishPlatformController extends AdminBaseController
             return json(['code' => 0, 'msg' => '删除成功']);
         } catch (\Exception $e) {
             return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.3 M28: 手动同步内容到平台
+     */
+    public function sync()
+    {
+        $contentId = (int) Request::post('content_id', 0);
+        if ($contentId <= 0) {
+            return json(['code' => 1, 'msg' => '内容ID不能为空']);
+        }
+
+        try {
+            PublishPlatformService::autoPublishToPlatforms($contentId);
+            $this->recordLog('publish', '手动同步内容到平台 content_id=' . $contentId);
+            return json(['code' => 0, 'msg' => '同步任务已提交']);
+        } catch (\Exception $e) {
+            return json(['code' => 1, 'msg' => '同步失败: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.3 M28: 刷新所有平台Token
+     */
+    public function refreshTokens()
+    {
+        try {
+            $results = PublishPlatformService::refreshAllTokens();
+            return json(['code' => 0, 'msg' => 'Token刷新完成', 'data' => $results]);
+        } catch (\Exception $e) {
+            return json(['code' => 1, 'msg' => '刷新失败: ' . $e->getMessage()]);
         }
     }
 

@@ -8,8 +8,8 @@ use app\common\service\BackupService;
 use think\facade\Request;
 
 /**
- * 数据库备份控制器
- * 仅超级管理员可访问
+ * 数据库备份控制器 - V2.9.3 增强版
+ * 支持文件备份、完整备份、gzip压缩、恢复安全保护
  */
 class BackupController extends AdminBaseController
 {
@@ -31,16 +31,26 @@ class BackupController extends AdminBaseController
     public function create()
     {
         $type = Request::post('type', 'all');
-        $allowedTypes = ['all', 'structure', 'data'];
+        $gzip = (bool) Request::post('gzip', false);
+        $allowedTypes = ['all', 'structure', 'data', 'files', 'full'];
         if (!in_array($type, $allowedTypes)) {
             $type = 'all';
         }
 
         try {
             $backupService = new BackupService();
-            $result = $backupService->create($type);
 
-            $this->recordLog('backup', '创建数据库备份：' . $result['filename'] . ' (' . $result['size_text'] . ')');
+            if ($type === 'files') {
+                $result = $backupService->createFileBackup();
+                $this->recordLog('backup', '创建文件备份：' . $result['filename'] . ' (' . $result['size_text'] . ')');
+            } elseif ($type === 'full') {
+                $result = $backupService->createFullBackup($gzip);
+                $this->recordLog('backup', '创建完整备份：DB=' . $result['db']['filename'] . ', Files=' . $result['files']['filename']);
+            } else {
+                $result = $backupService->create($type, $gzip);
+                $this->recordLog('backup', '创建数据库备份：' . $result['filename'] . ' (' . $result['size_text'] . ')' . ($gzip ? ' [gzip]' : ''));
+            }
+
             return $this->success('备份成功', $result);
         } catch (\Exception $e) {
             return $this->error('备份失败：' . $e->getMessage());
@@ -48,21 +58,31 @@ class BackupController extends AdminBaseController
     }
 
     /**
-     * 恢复备份
+     * 恢复备份（带安全保护）
      */
     public function restore()
     {
         $filename = Request::post('filename', '');
+
         if (empty($filename)) {
             return $this->error('请选择备份文件');
         }
 
+        // 如果是.zip文件，不支持恢复
+        if (str_ends_with($filename, '.zip')) {
+            return $this->error('文件备份（.zip）不支持通过此处恢复，请手动解压');
+        }
+
         try {
             $backupService = new BackupService();
-            $backupService->restore($filename);
 
-            $this->recordLog('restore', '恢复数据库备份：' . $filename);
-            return $this->success('恢复成功');
+            // 安全保护：恢复前强制自动快照
+            $snapshot = $backupService->create('all', true);
+
+            $backupService->restore($filename, false);
+
+            $this->recordLog('restore', '恢复数据库备份：' . $filename . '（恢复前快照：' . $snapshot['filename'] . '）');
+            return $this->success('恢复成功（已自动创建快照: ' . $snapshot['filename'] . '）');
         } catch (\Exception $e) {
             return $this->error('恢复失败：' . $e->getMessage());
         }
@@ -80,7 +100,7 @@ class BackupController extends AdminBaseController
 
         $backupService = new BackupService();
         if ($backupService->delete($filename)) {
-            $this->recordLog('delete', '删除数据库备份：' . $filename);
+            $this->recordLog('delete', '删除备份：' . $filename);
             return $this->success('删除成功');
         }
 
@@ -104,6 +124,24 @@ class BackupController extends AdminBaseController
             return download($filepath, $filename);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
+        }
+    }
+
+    /**
+     * 清理旧备份
+     */
+    public function cleanup()
+    {
+        $keep = (int) Request::post('keep', 10);
+        $keep = max(1, min(50, $keep));
+
+        try {
+            $backupService = new BackupService();
+            $deleted = $backupService->cleanup($keep);
+            $this->recordLog('backup', "清理旧备份：删除 {$deleted} 个，保留最近 {$keep} 个");
+            return $this->success("已清理 {$deleted} 个旧备份");
+        } catch (\Exception $e) {
+            return $this->error('清理失败：' . $e->getMessage());
         }
     }
 }

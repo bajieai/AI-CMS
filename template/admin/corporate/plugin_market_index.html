@@ -9,6 +9,9 @@
             <a href="/admin/plugin/index" class="btn btn-outline-secondary me-2">
                 <i class="bi bi-box-seam"></i> 本地插件
             </a>
+            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-upload me-1"></i>上传ZIP安装
+            </button>
         </div>
     </div>
 
@@ -19,41 +22,106 @@
     </div>
     {/if}
 
-    <!-- 搜索与上传 -->
+    <!-- 搜索栏 -->
     <div class="card mb-3 border-0 shadow-sm">
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <form method="get" class="d-flex">
-                        <input type="text" name="keyword" class="form-control me-2" placeholder="搜索插件..." value="{$keyword}">
-                        <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
-                    </form>
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="text" name="keyword" class="form-control border-start-0" placeholder="搜索插件名称、描述..." value="{$keyword}">
+                        <button type="submit" class="btn btn-primary">搜索</button>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <select name="category" class="form-select" onchange="this.form.submit()">
-                        <option value="">全部分类</option>
-                        {volist name="categories" id="cat"}
-                        <option value="{$cat.code}" {if $category == $cat.code}selected{/if}>{$cat.name}</option>
-                        {/volist}
-                    </select>
+                <div class="col-md-7 text-end">
+                    <span class="text-muted small me-2">共 {$total} 个插件</span>
                 </div>
-                <div class="col-md-5 text-end">
-                    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                        <i class="bi bi-upload me-1"></i>上传ZIP安装
-                    </button>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 
+    <!-- 分类导航 -->
+    {if !empty($categories)}
+    <div class="mb-3">
+        <div class="nav nav-pills">
+            <a href="/admin/plugin_market/index" class="nav-link {if $category == ''}active bg-primary{/if}">
+                <i class="bi bi-grid-3x3-gap me-1"></i>全部
+            </a>
+            {volist name="categories" id="cat"}
+            <a href="/admin/plugin_market/index?category={$cat.code|urlencode}&keyword={$keyword|urlencode}" class="nav-link {if $category == $cat.code}active bg-primary{/if}">
+                {$cat.name}
+            </a>
+            {/volist}
+        </div>
+    </div>
+    {/if}
+
+    <!-- 推荐位 -->
+    {if !empty($featured)}
+    <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-stars text-warning me-2"></i>推荐插件</h5>
+        <div class="row">
+            {volist name="featured" id="plugin"}
+            <div class="col-md-3 mb-3">
+                <div class="card h-100 border-primary border-2 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0 fw-bold">
+                                <a href="/admin/plugin_market/detail/{$plugin.code}?keyword={$keyword|urlencode}&category={$category|urlencode}" class="text-decoration-none">{$plugin.name}</a>
+                            </h6>
+                            {if $plugin.is_installed}
+                                {if $plugin.has_update}
+                                    <span class="badge bg-warning">有更新</span>
+                                {else}
+                                    <span class="badge bg-success">已安装</span>
+                                {/if}
+                            {else}
+                                <span class="badge bg-primary">推荐</span>
+                            {/if}
+                        </div>
+                        <p class="card-text text-muted small" style="min-height:2.5em;">{$plugin.description|default='暂无描述'}</p>
+                        <div class="small text-muted mb-2">
+                            <span class="me-2"><i class="bi bi-tag"></i> {$plugin.version}</span>
+                            <span><i class="bi bi-person"></i> {$plugin.author|default='未知'}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        {if !$plugin.is_installed}
+                            <button class="btn btn-sm btn-primary w-100 btn-install"
+                                    data-code="{$plugin.code}"
+                                    data-url="{$plugin.download_url|default=''}">
+                                <i class="bi bi-cloud-download"></i> 一键安装
+                            </button>
+                        {elseif $plugin.has_update}
+                            <button class="btn btn-sm btn-warning w-100 btn-install"
+                                    data-code="{$plugin.code}"
+                                    data-url="{$plugin.download_url|default=''}">
+                                <i class="bi bi-arrow-up-circle"></i> 更新到 {$plugin.version}
+                            </button>
+                        {else}
+                            <a href="/admin/plugin/index" class="btn btn-sm btn-outline-success w-100">
+                                <i class="bi bi-gear"></i> 管理插件
+                            </a>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+    {/if}
+
     <!-- 插件列表 -->
+    <h5 class="mb-3"><i class="bi bi-grid me-2"></i>全部插件</h5>
     <div class="row">
         {volist name="plugins" id="plugin"}
         <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0">{$plugin.name}</h5>
+                        <h6 class="card-title mb-0">
+                            <a href="/admin/plugin_market/detail/{$plugin.code}?keyword={$keyword|urlencode}&category={$category|urlencode}" class="text-decoration-none">{$plugin.name}</a>
+                        </h6>
                         {if $plugin.is_installed}
                             {if $plugin.has_update}
                                 <span class="badge bg-warning">有更新</span>
@@ -72,21 +140,21 @@
                 </div>
                 <div class="card-footer bg-transparent">
                     {if !$plugin.is_installed}
-                        <button class="btn btn-sm btn-primary w-100 btn-install"
+                        <button class="btn btn-sm btn-outline-primary w-100 btn-install"
                                 data-code="{$plugin.code}"
                                 data-url="{$plugin.download_url|default=''}">
                             <i class="bi bi-cloud-download"></i> 一键安装
                         </button>
                     {elseif $plugin.has_update}
-                        <button class="btn btn-sm btn-warning w-100 btn-install"
+                        <button class="btn btn-sm btn-outline-warning w-100 btn-install"
                                 data-code="{$plugin.code}"
                                 data-url="{$plugin.download_url|default=''}">
                             <i class="bi bi-arrow-up-circle"></i> 更新到 {$plugin.version}
                         </button>
                     {else}
-                        <button class="btn btn-sm btn-outline-secondary w-100" disabled>
-                            <i class="bi bi-check-circle"></i> 已是最新版
-                        </button>
+                        <a href="/admin/plugin/index" class="btn btn-sm btn-outline-success w-100">
+                            <i class="bi bi-gear"></i> 管理插件
+                        </a>
                     {/if}
                 </div>
             </div>
@@ -98,7 +166,7 @@
     <div class="text-center py-5 text-muted">
         <i class="bi bi-inbox fs-1"></i>
         <p class="mt-2">暂无插件，或市场连接失败</p>
-        <p class="small">请检查网络连接，或使用左侧"上传ZIP安装"手动安装</p>
+        <p class="small">请检查网络连接，或使用"上传ZIP安装"手动安装</p>
     </div>
     {/if}
 </div>
@@ -133,50 +201,5 @@
 {/block}
 
 {block name="script"}
-<script>
-$(function() {
-    $('.btn-install').on('click', function() {
-        var $btn = $(this);
-        var code = $btn.data('code');
-        var url = $btn.data('url');
-        if (!url) { alert('缺少下载地址'); return; }
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> 安装中...');
-        $.post('/admin/plugin_market/install', {code: code, download_url: url}, function(res) {
-            if (res.code === 0) { alert(res.msg); location.reload(); }
-            else { alert(res.msg); $btn.prop('disabled', false).html('<i class="bi bi-cloud-download"></i> 重试'); }
-        }, 'json').fail(function() {
-            alert('网络错误，请重试');
-            $btn.prop('disabled', false).html('<i class="bi bi-cloud-download"></i> 重试');
-        });
-    });
-
-    $('#btnDoUpload').on('click', function() {
-        var form = document.getElementById('uploadForm');
-        var fileInput = form.querySelector('input[type="file"]');
-        if (!fileInput.files.length) { alert('请选择文件'); return; }
-        var $btn = $(this);
-        $('#uploadSpin').removeClass('d-none');
-        $btn.prop('disabled', true);
-        var formData = new FormData(form);
-        $.ajax({
-            url: '/admin/plugin_market/upload',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(res) {
-                $('#uploadSpin').addClass('d-none');
-                $btn.prop('disabled', false);
-                alert(res.msg);
-                if (res.code === 0) { $('#uploadModal').modal('hide'); location.reload(); }
-            },
-            error: function() {
-                $('#uploadSpin').addClass('d-none');
-                $btn.prop('disabled', false);
-                alert('上传失败，请重试');
-            }
-        });
-    });
-});
-</script>
+<script src="/assets/js/plugin-store.js"></script>
 {/block}

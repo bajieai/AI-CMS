@@ -1,0 +1,207 @@
+{extend name="layout" /}
+{block name="title"}插件详情 - {$plugin.name|default=''}{/block}
+
+{block name="content"}
+<div class="container-fluid">
+    {if $error}
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-circle me-2"></i>{$error}
+    </div>
+    <a href="/admin/plugin_market/index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> 返回市场
+    </a>
+    {else}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/plugin_market/index?keyword={$keyword|urlencode}&category={$category|urlencode}">插件市场</a></li>
+            <li class="breadcrumb-item active">{$plugin.name}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- 左侧：截图轮播 -->
+        <div class="col-lg-7 mb-4">
+            {if !empty($plugin.screenshots) && is_array($plugin.screenshots)}
+            <div id="screenshotCarousel" class="carousel slide mb-3 border-0 shadow-sm rounded overflow-hidden" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {volist name="plugin.screenshots" id="shot" key="k"}
+                    <div class="carousel-item {if $k == 0}active{/if}">
+                        <img src="{$shot}" class="d-block w-100" alt="截图{$k+1}" style="max-height:480px;object-fit:contain;background:#f8f9fa;">
+                    </div>
+                    {/volist}
+                </div>
+                {if count($plugin.screenshots) > 1}
+                <button class="carousel-control-prev" type="button" data-bs-target="#screenshotCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#screenshotCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+                {/if}
+            </div>
+            {if count($plugin.screenshots) > 1}
+            <div class="d-flex gap-2 overflow-auto pb-2">
+                {volist name="plugin.screenshots" id="shot" key="k"}
+                <img src="{$shot}" class="rounded shadow-sm screenshot-thumb {if $k == 0}border-primary{/if}"
+                     data-slide-to="{$k}" alt="缩略图{$k+1}"
+                     style="width:80px;height:60px;object-fit:cover;cursor:pointer;">
+                {/volist}
+            </div>
+            {/if}
+            {else}
+            <div class="bg-light rounded border-0 shadow-sm d-flex align-items-center justify-content-center" style="height:400px;">
+                <div class="text-center text-muted">
+                    <i class="bi bi-image fs-1"></i>
+                    <p class="mt-2">暂无截图</p>
+                </div>
+            </div>
+            {/if}
+
+            <!-- 详细描述 -->
+            <div class="card mt-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-file-text me-1"></i>插件介绍</h6>
+                    <div class="plugin-description">
+                        {$plugin.description_full|default=$plugin.description|default='暂无详细描述'|raw}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：信息面板 -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h4 class="mb-0">{$plugin.name}</h4>
+                        {if $plugin.is_installed}
+                            {if $plugin.has_update}
+                                <span class="badge bg-warning">有更新</span>
+                            {else}
+                                <span class="badge bg-success">已安装</span>
+                            {/if}
+                        {else}
+                            <span class="badge bg-secondary">未安装</span>
+                        {/if}
+                    </div>
+
+                    <p class="text-muted">{$plugin.description|default='暂无描述'}</p>
+
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted" style="width:100px;">版本</td>
+                            <td>
+                                <span class="badge bg-primary">{$plugin.version|default='1.0.0'}</span>
+                                {if $plugin.is_installed && $plugin.local_version}
+                                <span class="text-muted small ms-1">当前: v{$plugin.local_version}</span>
+                                {/if}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">作者</td>
+                            <td>{$plugin.author|default='未知'}</td>
+                        </tr>
+                        {if !empty($plugin.category)}
+                        <tr>
+                            <td class="text-muted">分类</td>
+                            <td>{$plugin.category}</td>
+                        </tr>
+                        {/if}
+                        {if !empty($plugin.license)}
+                        <tr>
+                            <td class="text-muted">许可证</td>
+                            <td>{$plugin.license}</td>
+                        </tr>
+                        {/if}
+                        {if !empty($plugin.homepage)}
+                        <tr>
+                            <td class="text-muted">主页</td>
+                            <td><a href="{$plugin.homepage}" target="_blank">{$plugin.homepage}</a></td>
+                        </tr>
+                        {/if}
+                        {if !empty($plugin.download_count)}
+                        <tr>
+                            <td class="text-muted">安装量</td>
+                            <td><i class="bi bi-download me-1"></i>{$plugin.download_count|default=0} 次</td>
+                        </tr>
+                        {/if}
+                        {if !empty($plugin.require)}
+                        <tr>
+                            <td class="text-muted">系统要求</td>
+                            <td>
+                                {if is_array($plugin.require)}
+                                    {foreach $plugin.require as $key => $val}
+                                    <span class="badge bg-light text-dark me-1 mb-1">{$key} >= {$val}</span>
+                                    {/foreach}
+                                {else}
+                                    <span class="text-muted">{$plugin.require}</span>
+                                {/if}
+                            </td>
+                        </tr>
+                        {/if}
+                    </table>
+                </div>
+
+                <div class="card-footer bg-transparent border-0">
+                    {if !$plugin.is_installed}
+                        <button class="btn btn-primary w-100 btn-install"
+                                data-code="{$plugin.code}"
+                                data-url="{$plugin.download_url|default=''}">
+                            <i class="bi bi-cloud-download me-1"></i> 一键安装
+                        </button>
+                    {elseif $plugin.has_update}
+                        <button class="btn btn-warning w-100 btn-install"
+                                data-code="{$plugin.code}"
+                                data-url="{$plugin.download_url|default=''}">
+                            <i class="bi bi-arrow-up-circle me-1"></i> 更新到 v{$plugin.version}
+                        </button>
+                    {else}
+                        <a href="/admin/plugin/index" class="btn btn-outline-success w-100">
+                            <i class="bi bi-gear me-1"></i> 管理插件
+                        </a>
+                    {/if}
+                </div>
+            </div>
+
+            {if !empty($plugin.versions) && is_array($plugin.versions)}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="mb-0"><i class="bi bi-clock-history me-1"></i>版本历史</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height:300px;overflow-y:auto;">
+                        {volist name="plugin.versions" id="ver"}
+                        <div class="list-group-item border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">v{$ver.version}</span>
+                                <span class="text-muted small">{$ver.date|default=''}</span>
+                            </div>
+                            {if !empty($ver.changelog)}
+                            <p class="text-muted small mb-0 mt-1">{$ver.changelog}</p>
+                            {/if}
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+            </div>
+            {/if}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="script"}
+<script src="/assets/js/plugin-store.js"></script>
+<script>
+$(function() {
+    $('.screenshot-thumb').on('click', function() {
+        var idx = $(this).data('slide-to');
+        var carousel = bootstrap.Carousel.getOrCreateInstance(document.getElementById('screenshotCarousel'));
+        carousel.to(idx);
+        $('.screenshot-thumb').removeClass('border-primary');
+        $(this).addClass('border-primary');
+    });
+});
+</script>
+{/block}

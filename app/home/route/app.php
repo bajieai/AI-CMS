@@ -63,3 +63,9 @@ Route::post('member/favoriteRemove$', '\app\home\controller\MemberController@fav
 Route::get('member/notification$', '\app\home\controller\MemberController@notification');
 Route::post('member/notificationRead$', '\app\home\controller\MemberController@notificationRead');
 Route::post('member/notificationReadAll$', '\app\home\controller\MemberController@notificationReadAll');
+
+// V2.9.3 M20: 会员等级进度页
+Route::get('member/level$', '\app\home\controller\MemberController@level');
+
+// V2.9.3: 会员头像上传
+Route::post('member/uploadAvatar$', '\app\home\controller\MemberController@uploadAvatar');

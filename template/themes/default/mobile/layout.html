@@ -24,7 +24,7 @@
 
 <!-- 顶部固定导航 -->
 <header class="m-navbar">
-    <a class="m-navbar-brand" href="/">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
+    <a class="m-navbar-brand" href="/">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
     <div class="m-navbar-actions">
         {if condition="count($enabled_languages) > 1"}
         <div class="dropdown" id="langSwitcher">

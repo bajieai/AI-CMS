@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.9.2
+# 八界AI-CMS V2.9.3
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.2-blue)
+![Version](https://img.shields.io/badge/version-2.9.3-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.2 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.2 定位"AI驱动 × 内容分发 × 生态基础"，聚焦多语言AI深度翻译、SEO分发增强、插件市场框架三大P0方向，同步推进会员等级权益深化、PWA离线支持、H5移动端优化、数据导出增强、系统监控等功能，构建AI-CMS从"功能完善"迈向"生态可扩展"的关键版本。
+八界AI-CMS V2.9.3 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.3 定位"生态闭环 × 多渠道分发 × 运营深化"，聚焦数据备份恢复增强（生存功能）、多渠道分发稳定性提升、插件商店首页升级、会员权益补全四大方向，补全V2.9.2产品需求缺口，强化已有模块的生产就绪度。
 
 ### 核心特性
 
@@ -16,8 +16,8 @@
 - **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式，支持AI批量生成
 - **多语言AI深度翻译** - AI翻译引擎+自动翻译钩子+翻译记忆缓存+批量翻译，翻译内容为独立Content记录
 - **SEO分发增强** - Sitemap索引拆分+Schema.org JSON-LD+Open Graph+多语言hreflang+搜索引擎Ping
-- **插件市场框架** - 在线浏览+一键安装+本地上传ZIP+更新检测，双轨安装架构
-- **会员等级权益深化** - 权益配置后台+签到积分倍率+购买折扣+VIP标识+手动降级+升降通知
+- **插件市场框架** - 在线浏览+一键安装+本地上传ZIP+更新检测，双轨安装架构，商店首页分类导航+推荐位+搜索
+- **会员等级权益深化** - 权益配置后台+签到积分倍率+购买折扣+VIP标识+手动降级+升降通知+自动降级CLI+7天缓冲期预警
 - **PWA离线支持** - manifest.json+Service Worker(StaleWhileRevalidate策略)+安装提示+iOS降级
 - **H5移动端优化** - 骨架屏+无限滚动+手势滑动+下拉刷新+图片查看器(2套mobile主题)
 - **数据导出增强** - 高级筛选+自定义字段+CSV/XLSX双格式+流式导出
@@ -42,6 +42,15 @@
 - **双主题后台** - default(经典) / corporate(企业) 两套后台主题自由切换
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
+
+### V2.9.3 新增特性
+
+- **数据备份恢复增强(M26, P0)** - BackupService重写：分块流式导出(chunk 1000)修复OOM+gzip压缩(gzopen流式写入)+文件备份(ZipArchive)+恢复安全保护(自动快照+二次确认+多行注释感知SQL分割)+BackupCommand CLI(crontab调度)+清理旧备份
+- **多渠道分发稳定性增强(M28, P0)** - ContentService自动同步钩子(publish后自动推送到已启用平台)+微信公众号formatContent增强(图片自适应+视频/表格转提示+标签清理)+头条号formatContent增强(结构化富文本适配)+refreshAllTokens()批量Token刷新+编辑页"同步到平台"按钮
+- **插件商店首页升级(M25续, P0)** - 横向分类标签导航(Pills)+推荐位卡片(前4个)+搜索栏增强+plugin-store.js前端组件(安装/上传/搜索防抖)+详情页(截图轮播+版本历史+系统要求+安装统计)+已安装卡片跳转管理页+双主题模板升级
+- **会员权益补全(M20续, P1)** - 会员等级进度页(4套前台模板default/corporate×pc/mobile)+AutoDowngradeCommand CLI(crontab每日触发)+7天缓冲期降级预警+isInGracePeriod()独立缓冲期判断+降级确认通知+grace_end_time字段
+- **V2.9.2遗留补全** - AiTranslationService.retryFailed()翻译失败重试+ZhihuPlatform注册到bootAdapters()+构造函数统一化
+- **Bug修复与体验优化** - GLOB_BRACE Alpine兼容+nginx /admin重写修复+会员头像上传(后台+前台)+图标选择器+下拉溢出修复+默认头像+PWA提示7天冷却+logo尺寸统一+登录页动态logo
 
 ### V2.9.2 新增特性
 
@@ -276,6 +285,7 @@ AI-CMS/
 │   └── v2.9.sql                #   V2.9增量更新
 │   └── v2.9.1.sql              #   V2.9.1增量更新
 │   └── v2.9.2.sql              #   V2.9.2增量更新
+│   └── v2.9.3.sql              #   V2.9.3增量更新
 ├── miniprogram/                # 微信小程序(V2.9: 11页面)
 │   ├── pages/                  #   页面(index/detail/search/login/mine/coupon/invite/signin/order/payment/category)
 │   └── utils/                  #   工具(API封装)
@@ -331,6 +341,10 @@ AI-CMS/
 | i8j_image_task | 配图异步任务表 | id,task_id,provider,poll_url,status,prompt,result,attempts,max_attempts,related_type,related_id,error_msg,retry_count,local_path |
 | i8j_ai_report | AI分析报告表 | id,type,title,period_start,period_end,raw_data,summary,findings,anomalies,recommendations,sections,status |
 | i8j_theme_config | 主题配置表 | id,theme,scope,scope_id,config_key,config_value,config_type,label,description,sort |
+| i8j_publish_platform | 发布平台表 | id,name,code,type,config_json,status,access_token,refresh_token,token_expire_time |
+| i8j_points_exchange | 积分兑换表 | id,user_id,product_id,points_cost,status,create_time |
+| i8j_member_level | 会员等级表 | id,name,min_points,max_points,icon,discount_rate,points_rate,daily_ai_quota,is_default |
+| i8j_member_benefit | 会员权益表 | id,level_id,benefit_type,benefit_key,benefit_value,description |
 
 ## 角色权限
 
@@ -411,6 +425,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.3 | 2026-05 | 数据备份恢复增强(分块流式+gzip+文件备份+CLI+恢复安全保护)/多渠道分发增强(自动同步+formatContent+Token刷新)/插件商店首页(分类导航+推荐位+搜索+详情页+卡片跳转)/会员权益补全(等级进度页+自动降级CLI+isInGracePeriod+7天缓冲期) |
 | V2.9.2 | 2026-05 | AI深度翻译/SEO分发增强(Sitemap拆分+JSON-LD+hreflang)/插件市场/会员权益深化/PWA/H5移动端优化/数据导出增强/系统监控 |
 | V2.9.1 | 2026-05 | FluxProvider异步化/懒加载/CDN/CSS变量化/AI报告/API文档/评价媒体+回复/免邮券/AI配色/配图本地化/批量管理 |
 | V2.9.0 | 2026-05 | AI模板定制化/FLUX+DALL-E配图/优惠券系统/评价评分/邀请奖励/小程序完善/模板可视化预研 |

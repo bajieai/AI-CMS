@@ -7,20 +7,21 @@
 <div class="section-padding" style="padding-top:2.5rem;">
     <div class="container" style="max-width:900px;">
         <!-- 用户信息卡（深色渐变） -->
-        <div style="background:linear-gradient(135deg,#1e293b 0%,#334155 100%);border-radius:16px;padding:2.5rem;margin-bottom:2rem;color:#fff;position:relative;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#1e293b 0%,#334155 100%);border-radius:16px;padding:2rem;margin-bottom:2rem;color:#fff;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-40px;right:-20px;width:140px;height:140px;background:rgba(59,130,246,.12);border-radius:50%;"></div>
             <div class="row align-items-center position-relative" style="z-index:1;">
                 <div class="col-auto me-4">
-                    <div style="width:80px;height:80px;background:linear-gradient(135deg,var(--color-accent),#6366f1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 6px 24px rgba(59,130,246,.35);">
-                        <i class="bi bi-person-fill"></i>
+                    <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,.3);">
+                        <img id="avatarPreview" src="{$member.avatar|default='/assets/img/default-avatar.png'}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/img/default-avatar.png'">
                     </div>
                 </div>
                 <div class="col flex-grow-1">
                     <h3 class="fw-bold mb-1" style="font-size:1.4rem;">{$member.nickname|default=$member.username}</h3>
                     <p class="opacity-70 mb-0 small">{$member.email} &middot; ID: {$member.id}</p>
-                </div>
-                <div class="col-auto text-end">
-                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,.14);font-size:.84rem;font-weight:600;">Lv.1 会员</span>
+                    <button type="button" class="btn btn-sm mt-2" style="background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:20px;" onclick="document.getElementById('avatarInput').click()">
+                        <i class="bi bi-camera me-1"></i>更换头像
+                    </button>
+                    <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
                 </div>
             </div>
         </div>
@@ -33,6 +34,7 @@
                     </div>
                     <div class="p-4">
                         <form id="profileForm">
+                            <input type="hidden" name="avatar" id="avatarField" value="{$member.avatar|default=''}">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold small" style="color:#64748b;">用户名（不可修改）</label>
                                 <input type="text" class="form-control" value="{$member.username}" disabled
@@ -66,6 +68,30 @@
 
 {block name="js"}
 <script>
+function uploadAvatar(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var formData = new FormData();
+    formData.append('file', file);
+    $.ajax({
+        url: '/member/uploadAvatar',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.url) {
+                $('#avatarField').val(res.data.url);
+                $('#avatarPreview').attr('src', res.data.url);
+                showToast('头像上传成功', 'success');
+            } else {
+                showToast(res.msg || '上传失败', 'danger');
+            }
+        },
+        error: function() { showToast('网络错误', 'danger'); }
+    });
+    input.value = '';
+}
 $('#profileForm').on('submit', function(e) { e.preventDefault(); $.post('/member/profile', $(this).serialize(), function(res) { alert(res.msg || '已更新'); }); });
 </script>
 {/block}

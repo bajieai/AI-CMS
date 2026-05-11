@@ -14,13 +14,25 @@ use app\common\service\MemberLevelService;
 class MemberBenefitController extends AdminBaseController
 {
     /**
+     * 权益配置 - 等级选择页
+     * 列出所有等级，点击进入具体权益编辑
+     */
+    public function index()
+    {
+        $levels = MemberLevelService::getList();
+        $this->assign('levels', $levels);
+        return $this->view('/member_benefit_index');
+    }
+
+    /**
      * 权益配置页
      */
     public function edit()
     {
         $id = (int) $this->request->get('id', 0);
         if ($id <= 0) {
-            return $this->error('参数错误');
+            // 无id参数时，跳转到等级列表页让用户选择
+            return redirect('/admin/member_level/index');
         }
 
         $level = MemberLevel::find($id);

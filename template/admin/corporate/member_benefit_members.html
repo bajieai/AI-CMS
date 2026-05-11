@@ -33,8 +33,8 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
+    <div class="card border-0 shadow-sm" style="overflow:visible;">
+        <div class="card-body p-0" style="overflow:visible;">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
@@ -64,10 +64,10 @@
                         <td>{$item.total_points|default=0}</td>
                         <td>
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown">
+                                <button class="btn btn-sm btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport">
                                     <i class="bi bi-arrow-down-circle"></i> 降级
                                 </button>
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu dropdown-menu-end">
                                     {volist name="levels" id="lv"}
                                     {if $lv.id != $item.level_id}
                                     <li>
@@ -94,7 +94,7 @@
 </div>
 {/block}
 
-{block name="script"}
+{block name="js"}
 <script>
 $(function() {
     $('.btn-downgrade').on('click', function() {

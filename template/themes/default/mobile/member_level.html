@@ -1,0 +1,77 @@
+{extend name="layout" /}
+
+{block name="title"}我的等级{/block}
+
+{block name="content"}
+<div class="m-content">
+    <!-- 当前等级 -->
+    <div class="m-card text-center" style="padding:28px 18px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:8px;">
+            <i class="bi bi-award"></i>
+        </div>
+        <div style="font-size:20px;font-weight:700;">{$progress.current.name}</div>
+        <div style="font-size:13px;opacity:.8;margin-top:2px;">当前等级</div>
+    </div>
+
+    <!-- 进度 -->
+    {if $progress.next}
+    <div class="m-card" style="margin-top:12px;padding:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+            <span>升级进度</span>
+            <span style="color:#888;">{$progress.current_points} / {$progress.next.min_points}</span>
+        </div>
+        <div style="height:14px;background:#e9ecef;border-radius:7px;overflow:hidden;">
+            <div style="width:{$progress.progress}%;height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:7px;transition:width .5s;"></div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:#666;margin-top:8px;">
+            距离 <strong>{$progress.next.name}</strong> 还需 {$progress.need_points} 积分
+        </div>
+    </div>
+    {else}
+    <div class="m-card text-center" style="margin-top:12px;padding:20px;">
+        <i class="bi bi-trophy-fill" style="font-size:28px;color:#f59e0b;"></i>
+        <div style="font-size:15px;font-weight:700;margin-top:6px;">恭喜！您已达到最高等级</div>
+    </div>
+    {/if}
+
+    <!-- 缓冲期警告 -->
+    {if $progress.grace}
+    <div class="m-card" style="margin-top:12px;padding:14px;background:#fff3cd;border:1px solid #ffecb5;">
+        <div style="display:flex;align-items:flex-start;gap:8px;">
+            <i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;font-size:18px;flex-shrink:0;"></i>
+            <div style="font-size:13px;">
+                <strong>等级降级预警</strong><br>
+                系统将在 <strong>{$progress.grace.days_left} 天</strong> 后自动降级。
+                <a href="/signin" style="color:#0d6efd;">去签到赚积分 &rarr;</a>
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    <!-- 等级阶梯 -->
+    <div class="m-card" style="margin-top:12px;padding:0;overflow:hidden;">
+        <div style="padding:12px 16px;font-weight:600;border-bottom:1px solid #eee;">
+            <i class="bi bi-ladder me-1"></i>等级体系
+        </div>
+        {volist name="levels" id="lv"}
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:10px;{if $lv.id == $progress.current.id}background:#f8f9fa;border-left:3px solid #667eea;{/if}{if $key > 0}border-top:1px solid #f1f5f9;{/if}">
+            <div style="width:32px;height:32px;border-radius:50%;background:{if $lv.id == $progress.current.id}linear-gradient(135deg,#667eea,#764ba2){else}#f1f5f9{/if};color:{if $lv.id == $progress.current.id}#fff{else}#64748b{/if};display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;flex-shrink:0;">
+                {$lv.sort}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:600;">{$lv.name}</div>
+                <div style="font-size:12px;color:#888;">
+                    需 {$lv.min_points} 积分
+                    {if $lv.discount > 0}&middot; {$lv.discount}折{/if}
+                </div>
+            </div>
+            {if $lv.id == $progress.current.id}
+            <span style="font-size:12px;color:#667eea;font-weight:600;">当前</span>
+            {elseif $lv.id == ($progress.next.id ?? 0)}
+            <span style="font-size:12px;color:#0dcaf0;">下一级</span>
+            {/if}
+        </div>
+        {/volist}
+    </div>
+</div>
+{/block}

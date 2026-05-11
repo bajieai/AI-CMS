@@ -98,13 +98,31 @@ class WechatMpPlatform implements PublishPlatformInterface
     }
 
     /**
-     * 格式化内容为微信公众号格式
+     * V2.9.3 M28: 格式化内容为微信公众号格式（增强版）
      */
     protected function formatContent(string $html): string
     {
-        $html = preg_replace('/<h([1-6])>/', '<h$1 style="font-weight:bold;margin:1em 0 0.5em;">', $html);
-        $html = preg_replace('/<p>/', '<p style="margin:0.5em 0;line-height:1.8;">', $html);
-        $html = preg_replace('/<img/', '<img style="max-width:100%;height:auto;"', $html);
+        if (empty($html)) {
+            return '';
+        }
+
+        // 1. 段落样式
+        $html = preg_replace('/<h([1-6])>/i', '<h$1 style="font-weight:bold;margin:1em 0 0.5em;">', $html);
+        $html = preg_replace('/<p>/i', '<p style="margin:0.5em 0;line-height:1.8;">', $html);
+
+        // 2. 图片自适应（保留src，增加样式）
+        $html = preg_replace('/<img([^>]*)src="([^"]*)"([^>]*)>/i', '<img$1src="$2"$3 style="max-width:100%;height:auto;display:block;margin:0.5em 0;">', $html);
+
+        // 3. 视频标签转公众号视频卡片（简化处理：保留视频封面链接提示）
+        $html = preg_replace('/<video[^>]*src="([^"]*)"[^>]*>.*?<\/video>/i', '<p style="color:#999;font-size:14px;">[视频内容] 请前往原文查看视频</p>', $html);
+
+        // 4. 表格转简单段落（公众号对table支持有限）
+        $html = preg_replace('/<table[^>]*>.*?<\/table>/is', '<p style="color:#999;">[表格内容] 请前往原文查看</p>', $html);
+
+        // 5. 清理不兼容标签
+        $allowedTags = '<p><br><h1><h2><h3><h4><h5><h6><strong><b><em><i><u><s><blockquote><pre><code><ul><ol><li><a><img><span><div><section>';
+        $html = strip_tags($html, $allowedTags);
+
         return $html;
     }
 }

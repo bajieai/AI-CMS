@@ -103,6 +103,7 @@ Route::post('backup/create$', '\app\admin\controller\BackupController@create');
 Route::post('backup/restore$', '\app\admin\controller\BackupController@restore');
 Route::post('backup/delete$', '\app\admin\controller\BackupController@delete');
 Route::get('backup/download$', '\app\admin\controller\BackupController@download');
+Route::post('backup/cleanup$', '\app\admin\controller\BackupController@cleanup');
 
 // V2.3 评论管理
 Route::get('comment/index$', '\app\admin\controller\CommentController@index');
@@ -181,3 +182,13 @@ Route::post('language/save$', '\app\admin\controller\LanguageController@save');
 Route::post('language/delete$', '\app\admin\controller\LanguageController@delete');
 Route::rule('language/translate$', '\app\admin\controller\LanguageController@translate', 'GET|POST');
 Route::post('language/aiTranslate$', '\app\admin\controller\LanguageController@aiTranslate');
+
+// V2.9.3 M28: 发布平台同步与Token刷新
+Route::post('publish/sync$', '\app\admin\controller\PublishPlatformController@sync');
+Route::post('publish/refreshTokens$', '\app\admin\controller\PublishPlatformController@refreshTokens');
+
+// V2.9.3 M25: 插件商店
+Route::get('plugin_market/index$', '\app\admin\controller\PluginMarketController@index');
+Route::get('plugin_market/detail/:code$', '\app\admin\controller\PluginMarketController@detail');
+Route::post('plugin_market/install$', '\app\admin\controller\PluginMarketController@install');
+Route::get('plugin_market/checkUpdates$', '\app\admin\controller\PluginMarketController@checkUpdates');

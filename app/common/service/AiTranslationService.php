@@ -326,6 +326,65 @@ class AiTranslationService
     }
 
     /**
+     * 重试/补全失败的翻译
+     * 检查原始内容缺失的目标语言翻译并补翻
+     */
+    public function retryFailed(array $contentIds, array $targetLangs): array
+    {
+        $contentIds = array_map('intval', $contentIds);
+        $results = [];
+        $totalRetry = 0;
+        $success = 0;
+        $failed = 0;
+
+        foreach ($contentIds as $contentId) {
+            $origin = Content::find($contentId);
+            if (!$origin || $origin->translation_of > 0) {
+                continue;
+            }
+
+            // 获取已有翻译的语言
+            $existingLangs = Content::where('translation_of', $contentId)
+                ->column('lang');
+            $existingLangs = array_filter($existingLangs);
+
+            // 找出缺失的语言
+            $missingLangs = array_diff($targetLangs, $existingLangs);
+            if (empty($missingLangs)) {
+                continue;
+            }
+
+            $totalRetry += count($missingLangs);
+
+            try {
+                $res = $this->translateContent($contentId, $missingLangs);
+                $success += count($res['results'] ?? []);
+                $failed += count($res['errors'] ?? []);
+                $results[$contentId] = [
+                    'missing' => $missingLangs,
+                    'status'  => empty($res['errors']) ? 'success' : 'partial',
+                    'errors'  => $res['errors'] ?? [],
+                ];
+            } catch (\Throwable $e) {
+                $failed += count($missingLangs);
+                $results[$contentId] = [
+                    'missing' => $missingLangs,
+                    'status'  => 'failed',
+                    'error'   => $e->getMessage(),
+                ];
+                Log::warning("[AiTranslation] retryFailed失败 content_id={$contentId}: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'total_retry' => $totalRetry,
+            'success'     => $success,
+            'failed'      => $failed,
+            'details'     => $results,
+        ];
+    }
+
+    /**
      * 检查自动翻译配置并触发
      * 由ContentService.create/update调用
      */
