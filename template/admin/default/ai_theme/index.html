@@ -1,0 +1,129 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_theme/index">AI中心</a></li>
+<li class="breadcrumb-item active">AI主题生成</li>
+{/block}
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-palette me-2"></i>AI 主题生成</h5>
+    <a href="/admin/ai_theme/generate" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>新建生成
+    </a>
+</div>
+
+<!-- 状态筛选 -->
+<div class="card bg-transparent mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/ai_theme/index" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <select name="status" class="form-select form-select-sm">
+                    {volist name="statusOptions" id="opt"}
+                    <option value="{$opt.value}" {if condition="$status == $opt.value"}selected{/if}>{$opt.label}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>筛选</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 列表 -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>主题名</th>
+                        <th>描述</th>
+                        <th>状态</th>
+                        <th>重试</th>
+                        <th>Token</th>
+                        <th>创建时间</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr>
+                        <td>{$item.id}</td>
+                        <td><code>{$item.theme_name}</code></td>
+                        <td class="text-truncate" style="max-width:200px;" title="{$item.description}">{$item.description}</td>
+                        <td>
+                            <span class="badge bg-{$item.status_style}">{$item.status_text}</span>
+                        </td>
+                        <td>{$item.retry_count}</td>
+                        <td>{$item.token_cost}</td>
+                        <td>{$item.created_at}</td>
+                        <td class="text-end">
+                            <a href="/admin/ai_theme/detail?id={$item.id}" class="btn btn-sm btn-outline-primary">详情</a>
+                            {if condition="$item.status == 1 || $item.status == 2"}
+                            <a href="/admin/ai_theme/tweak?id={$item.id}" class="btn btn-sm btn-outline-secondary">调色</a>
+                            {/if}
+                            {if condition="$item.status == 2"}
+                            <button class="btn btn-sm btn-success" onclick="publishTheme({$item.id})">发布</button>
+                            {/if}
+                            {if condition="$item.status == 1 || $item.status == 2"}
+                            <button class="btn btn-sm btn-danger" onclick="rejectTheme({$item.id})">拒绝</button>
+                            {/if}
+                            {if condition="$item.status == -1 || $item.status == -2 || $item.status == 4"}
+                            <button class="btn btn-sm btn-warning" onclick="retryTheme({$item.id})">重试</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无记录</td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {if condition="$total > $limit"}
+    <div class="card-footer">
+        {include file="shared/pagination" /}
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="script"}
+<script>
+function publishTheme(id) {
+    if (!confirm('确认发布此主题？')) return;
+    $.post('/admin/ai_theme/publish', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function rejectTheme(id) {
+    if (!confirm('确认拒绝此主题？')) return;
+    $.post('/admin/ai_theme/reject', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function retryTheme(id) {
+    if (!confirm('确认重新生成？')) return;
+    $.post('/admin/ai_theme/retry', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+</script>
+{/block}

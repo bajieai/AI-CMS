@@ -41,9 +41,17 @@ abstract class FrontBaseController extends \think\BaseController
 
     protected function initialize(): void
     {
+        // 检测预览模式（由ThemePreviewMiddleware设置）
+        $isPreview = $this->request->middleware('is_preview', false);
+
         // T0: 提前获取当前主题名（用于缓存隔离，不依赖configs加载）
         // getActiveTheme() 自身有 try/catch + Cache::remember + fallback default
         $activeTheme = TemplateService::getActiveTheme();
+
+        // 预览模式：禁用整页缓存，避免污染生产缓存
+        if ($isPreview) {
+            $this->enablePageCache = false;
+        }
 
         // T0.5: 获取当前语言（缓存key需包含语言维度）
         $currentLang = 'zh-CN';

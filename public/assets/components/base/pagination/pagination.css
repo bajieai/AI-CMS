@@ -1,0 +1,85 @@
+/**
+ * I8JPagination - 样式
+ * V3.0 Phase 2 UI组件库
+ */
+
+.i8j-pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.i8j-pagination__total {
+    font-size: 13px;
+    color: var(--i8j-text-secondary, #64748b);
+}
+
+.i8j-pagination__list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 4px;
+}
+
+.i8j-pagination__item button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--i8j-border, #e2e8f0);
+    border-radius: var(--i8j-radius-sm, 6px);
+    background: var(--i8j-bg, #fff);
+    color: var(--i8j-text, #1e293b);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.i8j-pagination__item button:hover:not(:disabled) {
+    border-color: var(--i8j-primary, #3b82f6);
+    color: var(--i8j-primary, #3b82f6);
+}
+
+.i8j-pagination__item--active button {
+    background: var(--i8j-primary, #3b82f6);
+    border-color: var(--i8j-primary, #3b82f6);
+    color: #fff;
+}
+
+.i8j-pagination__item--disabled button {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.i8j-pagination__item--ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    color: var(--i8j-text-secondary, #64748b);
+    font-size: 13px;
+    user-select: none;
+}
+
+.i8j-pagination__size select {
+    width: auto;
+    min-width: 90px;
+}
+
+.i8j-pagination__jumper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--i8j-text-secondary, #64748b);
+}
+
+.i8j-pagination__jumper input {
+    width: 56px;
+    text-align: center;
+}

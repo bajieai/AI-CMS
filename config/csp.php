@@ -30,10 +30,10 @@ return [
     // 各指令值为字符串数组，中间件会自动用空格拼接
     'directives' => [
         'default-src'     => ["'self'"],
-        'script-src'      => ["'self'", "'unsafe-inline'", "'unsafe-eval'", '*.googleapis.com', '*.gstatic.com'],
-        'style-src'       => ["'self'", "'unsafe-inline'", '*.googleapis.com'],
+        'script-src'      => ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'fonts.googleapis.com', 'fonts.gstatic.com'],
+        'style-src'       => ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
         'img-src'         => ["'self'", 'data:', 'blob:', '*.gravatar.com', '*.googleusercontent.com'],
-        'font-src'        => ["'self'", '*.gstatic.com'],
+        'font-src'        => ["'self'", 'fonts.gstatic.com'],
         'connect-src'     => ["'self'"],
         'frame-ancestors' => ["'self'"],
         'base-uri'        => ["'self'"],

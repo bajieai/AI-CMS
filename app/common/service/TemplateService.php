@@ -25,6 +25,9 @@ class TemplateService
     const CACHE_KEY_ADMIN_THEME = 'template_admin_theme';
     const CACHE_KEY_THEME = 'template_active_theme';
 
+    /** @var string|null 预览主题名（中间件设置，优先于数据库配置） */
+    protected static ?string $previewTheme = null;
+
     // ═══════════════════════════════════════════════
     //  后台模板方法
     // ═══════════════════════════════════════════════
@@ -128,19 +131,8 @@ class TemplateService
     // ═══════════════════════════════════════════════
 
     /**
-     * 获取当前激活的前台主题名
+     * 获取当前设备类型（基于 UA）
      */
-    public static function getActiveTheme(): string
-    {
-        return Cache::remember(self::CACHE_KEY_THEME, function () {
-            try {
-                $theme = ConfigModel::where('name', 'frontend_theme')->value('value');
-                return !empty($theme) ? $theme : self::DEFAULT_THEME;
-            } catch (\Throwable) {
-                return self::DEFAULT_THEME;
-            }
-        }, 3600);
-    }
 
     /**
      * 获取当前设备类型（基于 UA）
@@ -241,6 +233,42 @@ class TemplateService
         }
 
         return $themes;
+    }
+
+    /**
+     * 设置预览主题（由ThemePreviewMiddleware调用）
+     */
+    public static function setPreviewTheme(string $themeName): void
+    {
+        self::$previewTheme = $themeName;
+    }
+
+    /**
+     * 清除预览主题
+     */
+    public static function clearPreviewTheme(): void
+    {
+        self::$previewTheme = null;
+    }
+
+    /**
+     * 获取当前激活的前台主题名（支持预览覆写）
+     */
+    public static function getActiveTheme(): string
+    {
+        // 预览模式优先
+        if (self::$previewTheme !== null) {
+            return self::$previewTheme;
+        }
+
+        return Cache::remember(self::CACHE_KEY_THEME, function () {
+            try {
+                $theme = ConfigModel::where('name', 'frontend_theme')->value('value');
+                return !empty($theme) ? $theme : self::DEFAULT_THEME;
+            } catch (\Throwable) {
+                return self::DEFAULT_THEME;
+            }
+        }, 3600);
     }
 
     /**

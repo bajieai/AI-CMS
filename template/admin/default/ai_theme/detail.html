@@ -1,0 +1,183 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_theme/index">AI中心</a></li>
+<li class="breadcrumb-item active">审核详情</li>
+{/block}
+{block name="content"}
+<div class="row">
+    <!-- 左侧：基本信息 -->
+    <div class="col-lg-3">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">基本信息</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>ID:</strong> {$record.id}</p>
+                <p class="mb-1"><strong>主题名:</strong> <code>{$record.theme_name}</code></p>
+                <p class="mb-1"><strong>状态:</strong> <span class="badge bg-{$record.status_style}">{$record.status_text}</span></p>
+                <p class="mb-1"><strong>Token:</strong> {$record.token_cost}</p>
+                <p class="mb-1"><strong>重试:</strong> {$record.retry_count}</p>
+                <p class="mb-1"><strong>创建:</strong> {$record.created_at}</p>
+                <hr>
+                <p class="mb-1"><strong>描述:</strong></p>
+                <p class="text-muted small">{$record.description}</p>
+            </div>
+        </div>
+
+        <!-- 校验结果 -->
+        {if condition="!empty($validate_result)"}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">校验结果</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    {if condition="$validate_result.passed"}
+                    <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>通过</span>
+                    {else}
+                    <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>未通过</span>
+                    {/if}
+                </p>
+                <p class="text-muted small mb-0">{$validate_result.summary}</p>
+                {if condition="!empty($validate_result.errors)"}
+                <ul class="list-unstyled small mt-2 mb-0">
+                    {volist name="validate_result.errors" id="err"}
+                    <li class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>[{$err.rule_id}] {$err.message}</li>
+                    {/volist}
+                </ul>
+                {/if}
+            </div>
+        </div>
+        {/if}
+
+        <!-- 操作按钮 -->
+        <div class="d-grid gap-2">
+            {if condition="$record.status == 1 || $record.status == 2"}
+            <a href="/admin/ai_theme/tweak?id={$record.id}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-sliders me-1"></i>CSS变量配置
+            </a>
+            <button class="btn btn-success btn-sm" onclick="previewTheme({$record.id})">
+                <i class="bi bi-eye me-1"></i>预览主题
+            </button>
+            {/if}
+            {if condition="$record.status == 2"}
+            <button class="btn btn-primary btn-sm" onclick="publishTheme({$record.id})">
+                <i class="bi bi-check-lg me-1"></i>发布主题
+            </button>
+            {/if}
+            {if condition="$record.status == 1 || $record.status == 2"}
+            <button class="btn btn-danger btn-sm" onclick="rejectTheme({$record.id})">
+                <i class="bi bi-x-lg me-1"></i>拒绝
+            </button>
+            {/if}
+            {if condition="$record.status == -1 || $record.status == -2 || $record.status == 4"}
+            <button class="btn btn-warning btn-sm" onclick="retryTheme({$record.id})">
+                <i class="bi bi-arrow-clockwise me-1"></i>重新生成
+            </button>
+            {/if}
+        </div>
+    </div>
+
+    <!-- 右侧：文件树 + 代码浏览 -->
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">文件结构</h6>
+                {if condition="!empty($view_file)"}
+                <span class="text-muted small">{$view_file}</span>
+                {/if}
+            </div>
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    <!-- 文件树 -->
+                    <div class="col-md-3 border-end" style="max-height:600px; overflow-y:auto;">
+                        <div class="p-2">
+                            {php}
+                            function renderTree($tree, $prefix = '') {
+                                foreach ($tree as $name => $node) {
+                                    $isDir = isset($node['type']) && $node['type'] === 'dir';
+                                    $path = $prefix ? $prefix . '/' . $name : $name;
+                                    if ($isDir) {
+                                        echo '<div class="mb-1">';
+                                        echo '<span class="text-muted small"><i class="bi bi-folder-fill me-1"></i>' . htmlspecialchars($name) . '</span>';
+                                        echo '<div class="ms-3">';
+                                        renderTree($node['children'] ?? [], $path);
+                                        echo '</div></div>';
+                                    } else {
+                                        echo '<div class="mb-1">';
+                                        echo '<a href="?id=' . request()->param('id') . '&file=' . urlencode($path) . '" class="small text-decoration-none' . (request()->param('file') === $path ? ' fw-bold text-primary' : ' text-dark') . '">';
+                                        echo '<i class="bi bi-file-earmark-code me-1"></i>' . htmlspecialchars($name) . '</a>';
+                                        echo '</div>';
+                                    }
+                                }
+                            }
+                            renderTree($files_tree);
+                            {/php}
+                        </div>
+                    </div>
+                    <!-- 代码浏览 -->
+                    <div class="col-md-9" style="max-height:600px; overflow-y:auto;">
+                        {if condition="!empty($view_file)"}
+                        <pre class="m-0 p-3 bg-light small" style="min-height:600px;"><code>{$file_content|raw}</code></pre>
+                        {else}
+                        <div class="d-flex align-items-center justify-content-center text-muted" style="min-height:400px;">
+                            <div class="text-center">
+                                <i class="bi bi-folder2-open fs-1 mb-2 d-block"></i>
+                                点击左侧文件查看代码
+                            </div>
+                        </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+function previewTheme(id) {
+    $.get('/admin/ai_theme/preview_url', {id: id}, function(res) {
+        if (res.code === 0) {
+            window.open(res.data.preview_url, '_blank');
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function publishTheme(id) {
+    if (!confirm('确认发布此主题？发布后可在前台使用。')) return;
+    $.post('/admin/ai_theme/publish', {id: id, set_active: 0}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function rejectTheme(id) {
+    if (!confirm('确认拒绝此主题？')) return;
+    $.post('/admin/ai_theme/reject', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function retryTheme(id) {
+    if (!confirm('确认重新生成？')) return;
+    $.post('/admin/ai_theme/retry', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+</script>
+{/block}

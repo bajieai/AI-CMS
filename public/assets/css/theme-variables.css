@@ -1,0 +1,121 @@
+/**
+ * AI-CMS 全局CSS变量定义
+ * V3.0 Phase 2
+ *
+ * 34个CSS变量，覆盖颜色/字体/间距/圆角/阴影/过渡/布局
+ * 暗色模式：通过 @media (prefers-color-scheme: dark) 或 .dark-mode 类切换
+ */
+
+:root {
+    /* ═══════════════════════════════════════════════
+       颜色主色调 (6个)
+       ═══════════════════════════════════════════════ */
+    --i8j-primary:        #3b82f6;
+    --i8j-primary-hover:  #2563eb;
+    --i8j-primary-light:  #dbeafe;
+    --i8j-primary-dark:   #1d4ed8;
+    --i8j-secondary:      #64748b;
+    --i8j-accent:         #f59e0b;
+
+    /* ═══════════════════════════════════════════════
+       颜色语义 (4个)
+       ═══════════════════════════════════════════════ */
+    --i8j-success:  #22c55e;
+    --i8j-warning:  #f59e0b;
+    --i8j-danger:   #ef4444;
+    --i8j-info:     #3b82f6;
+
+    /* ═══════════════════════════════════════════════
+       中性色 (6个)
+       ═══════════════════════════════════════════════ */
+    --i8j-text:            #1e293b;
+    --i8j-text-secondary:  #64748b;
+    --i8j-text-muted:      #94a3b8;
+    --i8j-bg:              #ffffff;
+    --i8j-bg-secondary:    #f8fafc;
+    --i8j-bg-tertiary:     #f1f5f9;
+    --i8j-border:          #e2e8f0;
+    --i8j-divider:         #e2e8f0;
+
+    /* ═══════════════════════════════════════════════
+       字体 (4个)
+       ═══════════════════════════════════════════════ */
+    --i8j-font-family:      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --i8j-font-size:        14px;
+    --i8j-font-size-sm:     12px;
+    --i8j-font-size-lg:     16px;
+
+    /* ═══════════════════════════════════════════════
+       间距 (4个)
+       ═══════════════════════════════════════════════ */
+    --i8j-spacing-xs: 4px;
+    --i8j-spacing-sm: 8px;
+    --i8j-spacing-md: 16px;
+    --i8j-spacing-lg: 24px;
+
+    /* ═══════════════════════════════════════════════
+       圆角 (2个)
+       ═══════════════════════════════════════════════ */
+    --i8j-radius-sm: 4px;
+    --i8j-radius-md: 8px;
+
+    /* ═══════════════════════════════════════════════
+       阴影 (4个)
+       ═══════════════════════════════════════════════ */
+    --i8j-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --i8j-shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+    --i8j-shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    --i8j-shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+
+    /* ═══════════════════════════════════════════════
+       过渡 (2个)
+       ═══════════════════════════════════════════════ */
+    --i8j-transition-fast:   0.15s ease;
+    --i8j-transition-normal: 0.25s ease;
+
+    /* ═══════════════════════════════════════════════
+       布局 (2个)
+       ═══════════════════════════════════════════════ */
+    --i8j-max-width:      1200px;
+    --i8j-sidebar-width:  240px;
+}
+
+/* ═══════════════════════════════════════════════
+   暗色模式 - 系统偏好
+   ═══════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --i8j-text:            #f1f5f9;
+        --i8j-text-secondary:  #94a3b8;
+        --i8j-text-muted:      #64748b;
+        --i8j-bg:              #0f172a;
+        --i8j-bg-secondary:    #1e293b;
+        --i8j-bg-tertiary:     #334155;
+        --i8j-border:          #334155;
+        --i8j-divider:         #334155;
+        --i8j-primary-light:   #1e3a5f;
+        --i8j-shadow-sm:       0 1px 2px rgba(0,0,0,0.3);
+        --i8j-shadow-md:       0 4px 6px rgba(0,0,0,0.4);
+        --i8j-shadow-lg:       0 10px 15px rgba(0,0,0,0.5);
+        --i8j-shadow-xl:       0 20px 25px rgba(0,0,0,0.5);
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   暗色模式 - 手动切换（通过JS添加 .dark-mode 类）
+   ═══════════════════════════════════════════════ */
+.dark-mode {
+    --i8j-text:            #f1f5f9;
+    --i8j-text-secondary:  #94a3b8;
+    --i8j-text-muted:      #64748b;
+    --i8j-bg:              #0f172a;
+    --i8j-bg-secondary:    #1e293b;
+    --i8j-bg-tertiary:     #334155;
+    --i8j-border:          #334155;
+    --i8j-divider:         #334155;
+    --i8j-primary-light:   #1e3a5f;
+    --i8j-shadow-sm:       0 1px 2px rgba(0,0,0,0.3);
+    --i8j-shadow-md:       0 4px 6px rgba(0,0,0,0.4);
+    --i8j-shadow-lg:       0 10px 15px rgba(0,0,0,0.5);
+    --i8j-shadow-xl:       0 20px 25px rgba(0,0,0,0.5);
+}

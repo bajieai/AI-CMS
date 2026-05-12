@@ -39,6 +39,14 @@ return [
         ],
     ],
 
+    // ==================== AI主题生成配置（V3.0 Phase 2） ====================
+    'theme_generate' => [
+        'daily_limit'   => (int) env('ai.theme_generate.daily_limit', 50),
+        'timeout'       => (int) env('ai.theme_generate.timeout', 300),
+        'max_tokens'    => (int) env('ai.theme_generate.max_tokens', 8192),
+        'temperature'   => (float) env('ai.theme_generate.temperature', 0.5),
+    ],
+
     // ==================== AI配图配置（V2.9补全Flux/DALL-E） ====================
     'image' => [
         'default_provider'  => env('ai.image.default', 'tongyi_wanxiang'),
