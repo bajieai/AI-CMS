@@ -2,34 +2,39 @@
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-3.0.0-blue)
+![Version](https://img.shields.io/badge/version-3.0.0--alpha.2-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-6.0-green)
 
 ## 项目简介
 
-八界AI-CMS V3.0 Phase 1 是基于 ThinkPHP 6 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V3.0 是基于 ThinkPHP 6 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-**V3.0 Phase 1 定位：V2.9→V3.0过渡桥接**，在保留V2.9.x全部能力的基础上，完成微量缺口清零 + V3.0地基预研：
+**V3.0 Phase 2 定位：能力释放阶段**，将Phase 1搭建的地基转化为可用的核心功能：
 
-**Sprint 1 — 收尾清理：**
-1. **付费标识** — 首页/列表页付费文章标题旁显示🔒锁图标，4套模板统一
-2. **CSP配置化** — 硬编码CSP迁移到 `config/csp.php`，支持Report-Only/Enforce切换
-3. **存储层转义** — Comment/Member/Message模型钩子 + Service层收敛，消除双重转义
-4. **SQL安全审计** — Db::query/execute/whereRaw全量扫描 + 参数绑定修复 + 定期审计脚本
-5. **内容打赏** — 复用PaidService订单体系，完整流程（金额选择→支付→回调→通知）
-6. **个人消息扩展** — Notification体系type枚举扩展，零新建表
+**Sprint 4 — AI模板生成MVP：**
+1. **AI主题生成引擎** — AiThemeGenerateService + 复用AiProviderFactory 5大LLM Provider + 异步CLI模式
+2. **7状态异步任务** — AiThemeRecord模型 + `php think theme:generate` CLI命令 + 前端进度轮询
+3. **文件落盘+校验** — ThemeFileService白名单+防穿越 + ThemeValidatorService语法/XSS/CSS变量三重校验
+4. **预览沙箱** — ThemePreviewMiddleware中间件（`?preview=hash`），零路由修改，精准复刻实际渲染
+5. **审核后台** — AiThemeController 12个Action + 4个视图页面（生成/列表/详情/调色）
+6. **CSS变量配置面板** — 颜色选择器+实时预览，数据库存储（复用i8j_config表）
 
-**Sprint 2 — V3.0地基（预研）：**
-7. **AI模板可视化预研** — 方案C（AI生成模板文件）为主 + 方案A（CSS变量配置化）辅助
-8. **模板规范v1.0** — 目录结构/HTML标签/CSS变量/JS注册/theme.zip打包规范
-9. **UI组件库规划** — 基于V2.9.5 Toast/Empty/Skeleton升级为系统化组件库
-10. **架构升级评估** — PJAX增强（非SPA重构）/ CSS变量标准化 / PHP 8.3升级路径
+**Sprint 5 — UI组件库落地：**
+7. **组件基类+注册表** — I8JComponent生命周期 + I8JRegistry全局管理 + I8JTheme CSS变量适配器
+8. **5个组件** — Toast重构（队列/4位置）/ Modal（focus trap/Promise API）/ Pagination / SearchBar / ImageUpload
+9. **ESBuild打包** — `bin/build-components.sh` 双bundle输出（JS+CSS），旧API兼容层
 
-为V3.0核心开发（AI模板生成引擎）奠定规范与预研基础。
+**Sprint 6 — CSS变量标准化+架构升级：**
+10. **theme-variables.css** — 34个全局CSS变量 + 暗色模式支持
+11. **N+1扫描脚本** — `bin/audit-n1.php` SQL日志分析 + 代码静态扫描
+12. **CSP收紧** — `*.googleapis.com` → 具体子域名，缩小攻击面
 
 ### 核心特性
 
+- **🆕 AI主题生成** - 文字描述→LLM生成→自动校验→预览→审核发布，7状态异步任务管理
+- **🆕 UI组件库** - I8JComponent基类+注册表+5组件(Toast/Modal/Pagination/SearchBar/ImageUpload)，CSS变量驱动
+- **🆕 CSS变量标准化** - 34个全局变量+暗色模式，AI生成主题与手动调色统一体系
 - **多模型AI引擎** - DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 5大AI引擎，工厂模式+熔断降级
 - **AI智能写作** - 续写/改写/扩写/摘要 4种AI写作模式，支持AI批量生成
 - **多语言AI深度翻译** - AI翻译引擎+自动翻译钩子+翻译记忆缓存+批量翻译，翻译内容为独立Content记录
@@ -263,10 +268,12 @@ AI-CMS/
 │   │   ├── controller/         #   控制器(5步安装)
 │   │   └── view/               #   安装页面模板
 │   └── common/                 # 公共模块
+│       ├── command/            #   CLI命令(ThemeGenerate/ImagePoll/VipExpire等)
 │       ├── controller/         #   基类控制器(AdminBase/FrontBase)
-│       ├── middleware/         #   中间件
-│       ├── model/              #   数据模型
-│       ├── service/            #   业务服务(AI/支付/采集/发布/邮件/插件等)
+│       ├── middleware/         #   中间件(ThemePreview/FrontCsrf等)
+│       ├── model/              #   数据模型(AiThemeRecord/ImageTask等)
+│       ├── service/            #   业务服务(AI/支付/采集/发布/邮件/插件/主题等)
+│       │   └── theme/          #     主题服务(V3.0 Phase 2新增)
 │       ├── taglib/             #   模板标签引擎(I8j)
 │       ├── traits/             #   特性(CircuitBreakerTrait/RedisQueueTrait)
 │       └── helper.php          #   全局助手函数
@@ -302,6 +309,8 @@ AI-CMS/
 │   ├── admin.php               #   后台入口
 │   ├── install.php             #   安装入口
 │   ├── assets/                 #   公共静态资源(Bootstrap/jQuery/TinyMCE)
+│   │   ├── components/         #     UI组件库(V3.0 Phase 2: core/base/form)
+│   │   ├── css/                #     全局CSS(theme-variables.css)
 │   │   └── js/                 #     前台组件(front-toast.js/front-components.js/front-csrf.js)
 │   ├── skin/                   #   主题静态资源(V2.6新增)
 │   │   ├── admin/              #     后台CSS/JS/图片/字体
@@ -312,12 +321,15 @@ AI-CMS/
 │   ├── migrate.ps1             #   数据库一键迁移(PowerShell)
 │   ├── sql_audit.sh            #   SQL安全审计脚本(V3.0新增)
 │   ├── sql_audit.ps1           #   SQL安全审计脚本(V3.0新增)
+│   ├── audit-n1.php            #   N+1查询扫描脚本(V3.0 Phase 2新增)
+│   ├── build-components.sh     #   UI组件库ESBuild打包(V3.0 Phase 2新增)
 │   ├── ai-template-prompt.md   #   AI模板生成Prompt模板(V3.0新增)
 │   ├── validate-template.php   #   模板语法校验(V3.0新增)
 │   └── scan-template-xss.php   #   模板XSS扫描(V3.0新增)
 ├── database/                   # 数据库SQL
 │   ├── v2.4.sql ~ v2.9.5.sql   #   历史增量更新
-│   └── v3.0.sql                #   V3.0幂等升级脚本
+│   ├── v3.0.sql                #   V3.0 Phase 1幂等升级脚本
+│   └── v3.0-phase2.sql         #   V3.0 Phase 2幂等升级脚本
 ├── docs/                       # 项目文档(V3.0新增docs目录)
 │   ├── V2.9.6-产品需求.md       #   V3.0下一阶段PRD
 │   ├── V3.0-AI模板可视化-技术预研报告.md
@@ -326,8 +338,13 @@ AI-CMS/
 │   ├── V3.0-架构升级建议书.md
 │   ├── V3.0-CHANGELOG.md
 │   ├── V3.0-回归测试清单.md
+│   ├── V3.0-AI模板生成-使用指南.md  #   V3.0 Phase 2新增
 │   ├── V3.0-Phase1-技术方案.md
-│   └── V3.0-Phase1-架构评估与开发计划.md
+│   ├── V3.0-Phase1-架构评估与开发计划.md
+│   ├── V3.0-Phase2-产品需求.md
+│   ├── V3.0-Phase2-技术方案.md
+│   ├── V3.0-Phase2-架构评估与开发计划.md
+│   └── V3.0-Phase2-CodeBuddy建议回复.md
 ├── miniprogram/                # 微信小程序(V2.9: 11页面)
 │   ├── pages/                  #   页面
 │   └── utils/                  #   工具(API封装)
@@ -381,6 +398,7 @@ AI-CMS/
 | i8j_content_rating | 内容评价评分表 | id,content_id,member_id,rating,title,content,has_media,media_urls,is_anonymous,reply_count,like_count,status |
 | i8j_rating_reply | 评价回复表 | id,rating_id,user_id,member_id,content,create_time |
 | i8j_image_task | 配图异步任务表 | id,task_id,provider,poll_url,status,prompt,result,attempts,max_attempts,related_type,related_id,error_msg,retry_count,local_path |
+| i8j_ai_theme_record | AI主题生成记录(V3.0 Phase 2) | id,theme_name,description,style,industry,color_scheme,layout_type,status,provider,model,validate_result,published_at,preview_hash |
 | i8j_ai_report | AI分析报告表 | id,type,title,period_start,period_end,raw_data,summary,findings,anomalies,recommendations,sections,status |
 | i8j_theme_config | 主题配置表 | id,theme,scope,scope_id,config_key,config_value,config_type,label,description,sort |
 | i8j_publish_platform | 发布平台表 | id,name,code,type,config_json,status,access_token,refresh_token,token_expire_time |
@@ -467,6 +485,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V3.0 Phase 2 | 2026-05 | 能力释放: AI主题生成MVP(7状态异步+预览沙箱+审核后台+调色面板)/UI组件库(I8JComponent基类+5组件+ESBuild打包)/CSS变量标准化(34变量+暗色模式)/N+1扫描+CSP收紧 |
 | V3.0 Phase 1 | 2026-05 | V2.9→V3.0过渡桥接: 付费标识/CSP配置化+enforce切换/存储层htmlspecialchars/SQL全量审计/内容打赏补全/个人消息扩展/AI模板预研(方案C+A)/模板规范v1.0/UI组件库规划/架构升级评估 |
 | V2.9.5 | 2026-05 | 安全加固(XSS输出过滤+前台CSRF+SQL审计+上传MIME校验)/性能优化(Vary头+缓存预热+N+1修复+JSON加固)/付费阅读桥接(PaidService↔PaymentService双订单)/UI一致性(Toast+空状态+时间线+消息分类)/内容审批(单条+批量) |
 | V2.9.4 | 2026-05 | 优化完善×商业化准备: 发布看板+评分评价/AI质量检测+写作风格/支付框架+许可证+付费阅读/备份日志+降级日志 |
@@ -506,7 +525,7 @@ docker cp database/v3.0.sql aicms_mysql:/tmp/
 docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
 ```
 
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需先执行 `v2.9.5.sql` 再执行 `v3.0.sql`。
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需先执行 `v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql`。
 
 ## 常用Docker命令
 
