@@ -65,6 +65,13 @@ Route::post('system/customVarSave$', '\app\admin\controller\SystemController@cus
 Route::post('system/customVarDelete$', '\app\admin\controller\SystemController@customVarDelete');
 Route::rule('system/moduleControl$', '\app\admin\controller\SystemController@moduleControl', 'GET');
 Route::post('system/moduleToggle$', '\app\admin\controller\SystemController@moduleToggle');
+
+// V2.9.5: 主题管理路由（AJAX接口）
+Route::get('system/templates$', '\app\admin\controller\SystemController@templates');
+Route::post('system/setTheme$', '\app\admin\controller\SystemController@setTheme');
+Route::get('system/adminTemplates$', '\app\admin\controller\SystemController@adminTemplates');
+Route::post('system/setAdminTheme$', '\app\admin\controller\SystemController@setAdminTheme');
+Route::get('system/allTemplates$', '\app\admin\controller\SystemController@allTemplates');
 // 头条号OAuth
 Route::get('toutiaoOAuth/authorize$', '\app\admin\controller\ToutiaoOAuthController@authorize');
 Route::get('toutiaoOAuth/callback$', '\app\admin\controller\ToutiaoOAuthController@callback');
