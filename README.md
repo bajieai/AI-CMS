@@ -1,4 +1,4 @@
-# 八界AI-CMS V2.9.5
+# 八界AI-CMS V3.0
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
@@ -294,7 +294,9 @@ AI-CMS/
 │       ├── corporate/          #     企业主题(pc/mobile)
 │       └── shared/             #     共享模板片段(V3.0新增)
 │           ├── paid_badge.html #       付费标识
-│           └── reward_button.html #    打赏按钮
+│           ├── reward_button.html #    打赏按钮
+│           ├── empty_state.html #      空状态
+│           └── loading_spinner.html #  加载动画
 ├── public/                     # Web根目录
 │   ├── index.php               #   前台入口
 │   ├── admin.php               #   后台入口
@@ -310,17 +312,22 @@ AI-CMS/
 │   ├── migrate.ps1             #   数据库一键迁移(PowerShell)
 │   ├── sql_audit.sh            #   SQL安全审计脚本(V3.0新增)
 │   ├── sql_audit.ps1           #   SQL安全审计脚本(V3.0新增)
+│   ├── ai-template-prompt.md   #   AI模板生成Prompt模板(V3.0新增)
 │   ├── validate-template.php   #   模板语法校验(V3.0新增)
 │   └── scan-template-xss.php   #   模板XSS扫描(V3.0新增)
 ├── database/                   # 数据库SQL
-│   ├── v2.5.sql ~ v2.9.5.sql   #   历史增量更新
+│   ├── v2.4.sql ~ v2.9.5.sql   #   历史增量更新
 │   └── v3.0.sql                #   V3.0幂等升级脚本
 ├── docs/                       # 项目文档(V3.0新增docs目录)
+│   ├── V2.9.6-产品需求.md       #   V3.0下一阶段PRD
 │   ├── V3.0-AI模板可视化-技术预研报告.md
 │   ├── V3.0-模板规范-v1.0.md
 │   ├── V3.0-UI组件库设计文档.md
 │   ├── V3.0-架构升级建议书.md
-│   └── V3.0-CHANGELOG.md
+│   ├── V3.0-CHANGELOG.md
+│   ├── V3.0-回归测试清单.md
+│   ├── V3.0-Phase1-技术方案.md
+│   └── V3.0-Phase1-架构评估与开发计划.md
 ├── miniprogram/                # 微信小程序(V2.9: 11页面)
 │   ├── pages/                  #   页面
 │   └── utils/                  #   工具(API封装)
@@ -362,7 +369,7 @@ AI-CMS/
 | i8j_collect_source | 采集源 | id,name,url,rule_json,status |
 | i8j_publish_log | 发布日志 | id,content_id,platform,status,result |
 | i8j_email_template | 邮件模板 | id,name,subject,body,status |
-| i8j_paid_order | 付费订单 | id,member_id,content_id,amount,status |
+| i8j_paid_order | 付费订单 | id,member_id,content_id,amount,type(purchase/reward/download),status |
 | i8j_plugin | 插件表 | id,name,title,version,status,config |
 | i8j_email_queue | 邮件队列 | id,to_email,subject,status,retry_count,created_at |
 | i8j_user_chapter | 用户已购章节 | id,user_id,content_id,chapter_id,price |

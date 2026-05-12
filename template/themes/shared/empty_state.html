@@ -1,0 +1,6 @@
+{if condition="empty($list) || (is_array($list) && count($list) == 0)"}
+<div class="i8j-empty-state text-center py-5">
+    <i class="bi {if condition="isset($icon)"}{$icon}{else /}bi-inbox{/if}" style="font-size:2.5rem;color:#cbd5e1;"></i>
+    <p class="text-secondary mt-2 mb-0">{if condition="isset($text)"}{$text}{else /}暂无数据{/if}</p>
+</div>
+{/if}
