@@ -13,13 +13,20 @@
     var $bar = $loader.find('div');
 
     window.showPageLoader = function () {
-        $bar.css('width', '30%');
+        $bar.css({'width': '0%', 'transition': 'none'});
         $loader.css('opacity', '1');
-        setTimeout(function () { $bar.css('width', '70%'); }, 100);
+        // 强制重排确保0%生效，然后从0%平滑动画到70%，动画时间延长减少"卡顿"感知
+        $bar[0].offsetHeight;
+        $bar.css({'width': '70%', 'transition': 'width .8s ease-out'});
     };
     window.hidePageLoader = function () {
-        $bar.css('width', '100%');
-        setTimeout(function () { $loader.css('opacity', '0'); $bar.css('width', '0%'); }, 300);
+        $bar.css({'width': '100%', 'transition': 'width .15s linear'});
+        setTimeout(function () {
+            $loader.css('opacity', '0');
+            setTimeout(function () {
+                $bar.css({'width': '0%', 'transition': 'none'});
+            }, 200);
+        }, 200);
     };
     $(window).on('load', hidePageLoader);
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace app\api\controller\v1;
 
 use app\api\middleware\ApiMemberAuth;
-use app\api\middleware\PaidContentGuard;
+use app\common\middleware\PaidContentGuard;
 use app\common\model\Content as ContentModel;
 use app\common\service\PaidService;
 use app\common\traits\ApiScopeCheck;
@@ -27,7 +27,7 @@ class Content
         $this->requireScope('content:read');
 
         $page = (int) $request->get('page', 1);
-        $limit = (int) $request->get('limit', 10);
+        $limit = (int) $request->get('limit', 20);
         $cateId = (int) $request->get('cate_id', 0);
         $type = (int) $request->get('type', 0);
 
@@ -39,7 +39,8 @@ class Content
             $query->where('type', $type);
         }
 
-        $list = $query->order('create_time', 'desc')->page($page, $limit)->select();
+        // V2.9.5 N+1优化：预加载分类
+        $list = $query->with(['cate'])->order('create_time', 'desc')->page($page, $limit)->select();
 
         // V2.7: 从认证信息获取会员ID，GET参数member_id已弃用
         $memberId = ApiMemberAuth::getApiMemberId($request);

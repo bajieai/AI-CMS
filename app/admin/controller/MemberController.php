@@ -77,7 +77,11 @@ class MemberController extends AdminBaseController
         }
 
         $levels = MemberLevel::order('sort', 'asc')->select();
-        return $this->view('/member_edit', ['member' => $member, 'levels' => $levels]);
+
+        // V2.9.5 等级历史时间线
+        $timeline = \app\common\model\MemberDowngradeLog::getTimeline($id);
+
+        return $this->view('/member_edit', ['member' => $member, 'levels' => $levels, 'timeline' => $timeline]);
     }
 
     /**

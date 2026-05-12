@@ -43,8 +43,8 @@ class ContentController extends FrontBaseController
         // 增加浏览量
         $info->inc('views')->update();
 
-        // 获取相关内容
-        $related = Content::where('cate_id', $info->cate_id)
+        // 获取相关内容（V2.9.5 N+1优化：预加载分类）
+        $related = Content::with(['cate'])->where('cate_id', $info->cate_id)
             ->where('id', '<>', $id)
             ->where('status', 2)
             ->limit(4)

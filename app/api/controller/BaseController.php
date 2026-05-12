@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace app\api\controller;
 
-use think\Controller;
+use think\BaseController as ThinkController;
 
 /**
  * API基础控制器 - V2.9统一认证层
  */
-class BaseController extends Controller
+class BaseController extends ThinkController
 {
     /**
      * 从Token中获取会员ID
@@ -41,17 +41,27 @@ class BaseController extends Controller
 
     /**
      * 统一成功响应
+     * V2.9.5: 兼容 think\BaseController 签名，同时保留 API 层的 data-first 调用习惯
      */
-    protected function success($data = [], string $msg = 'success'): \think\Response
+    protected function success(string|array $msg = '', mixed $data = [], int $code = 0): \think\Response
     {
-        return json(['code' => 0, 'msg' => $msg, 'data' => $data]);
+        $flags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+
+        // 兼容旧调用：success($dataArray) 或 success($dataArray, $msg)
+        if (is_array($msg)) {
+            $data = $msg;
+            $msg = func_num_args() > 1 && is_string(func_get_arg(1)) ? func_get_arg(1) : 'success';
+        }
+
+        return json(['code' => $code, 'msg' => $msg, 'data' => $data], 200, [], $flags);
     }
 
     /**
      * 统一失败响应
      */
-    protected function error(string $msg = 'error', int $code = 1): \think\Response
+    protected function error(string $msg = 'error', int $code = 1, mixed $data = []): \think\Response
     {
-        return json(['code' => $code, 'msg' => $msg]);
+        $flags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+        return json(['code' => $code, 'msg' => $msg, 'data' => $data], 200, [], $flags);
     }
 }

@@ -65,9 +65,26 @@
         }
     }
 
-    // 注册Service Worker
+    // 注册Service Worker（强制检查更新，确保新策略尽快生效）
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch((err) => {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+            // 立即检查更新
+            reg.update();
+            // 如果有等待中的新Worker，立即激活
+            if (reg.waiting) {
+                reg.waiting.postMessage({type: 'SKIP_WAITING'});
+            }
+            // 监听新Worker安装完成
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                if (!newWorker) return;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        newWorker.postMessage({type: 'SKIP_WAITING'});
+                    }
+                });
+            });
+        }).catch((err) => {
             console.warn('SW注册失败:', err);
         });
     }

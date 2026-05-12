@@ -62,7 +62,8 @@
     <div class="card-body py-2 border-bottom bg-light" id="batchBar" style="display:none;">
         <div class="d-flex align-items-center gap-2">
             <span class="small text-muted">已选 <strong id="batchCount">0</strong> 项</span>
-            <button type="button" class="btn btn-sm btn-outline-success" onclick="batchAction('publish')"><i class="bi bi-check-circle me-1"></i>批量发布</button>
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="batchAction('audit')"><i class="bi bi-check-circle me-1"></i>批量通过</button>
+            <button type="button" class="btn btn-sm btn-outline-warning" onclick="batchAction('reject')"><i class="bi bi-x-circle me-1"></i>批量驳回</button>
             <button type="button" class="btn btn-sm btn-outline-primary" onclick="batchAction('moveCate')"><i class="bi bi-folder-symlink me-1"></i>移动分类</button>
             <button type="button" class="btn btn-sm btn-outline-danger" onclick="batchAction('delete')"><i class="bi bi-trash me-1"></i>移入回收站</button>
             <button type="button" class="btn btn-sm btn-link text-muted" onclick="cancelBatch()">取消</button>
@@ -134,7 +135,10 @@
                         <div class="btn-group btn-group-sm">
                             <a href="/admin/content/edit/{$vo.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
                             <button type="button" class="btn btn-outline-info" title="复制" onclick="copyItem({$vo.id})"><i class="bi bi-copy"></i></button>
-                            {if condition="$vo.status != 2"}
+                            {if condition="$vo.status == 1"}
+                            <button type="button" class="btn btn-outline-success" title="通过审核" onclick="auditItem({$vo.id})"><i class="bi bi-check-circle"></i></button>
+                            <button type="button" class="btn btn-outline-warning" title="驳回" onclick="rejectItem({$vo.id})"><i class="bi bi-x-circle"></i></button>
+                            {elseif condition="$vo.status != 2"}
                             <button type="button" class="btn btn-outline-success" title="发布" onclick="publishItem({$vo.id})"><i class="bi bi-check-circle"></i></button>
                             {/if}
                             <button type="button" class="btn btn-outline-danger" title="移入回收站" onclick="deleteItem({$vo.id})"><i class="bi bi-trash"></i></button>
@@ -196,6 +200,16 @@ function publishItem(id) {
         ajaxPost('/admin/content/publish/' + id, {});
     });
 }
+function auditItem(id) {
+    showConfirm('通过审核', '确定通过此内容的审核？', function() {
+        ajaxPost('/admin/content/audit/' + id, {});
+    });
+}
+function rejectItem(id) {
+    showConfirm('驳回内容', '确定驳回此内容？将退回草稿状态。', function() {
+        ajaxPost('/admin/content/reject/' + id, {});
+    });
+}
 function deleteItem(id) {
     confirmDelete('/admin/content/delete/' + id);
 }
@@ -252,9 +266,15 @@ function batchAction(action) {
         moveCateModal.show();
         return;
     }
-    var msg = action === 'publish' ? '确定批量发布选中的 ' + ids.length + ' 项内容？' : '确定将选中的 ' + ids.length + ' 项内容移入回收站？';
+    var msgs = {
+        audit:   '确定批量通过选中的 ' + ids.length + ' 项内容？',
+        reject:  '确定批量驳回选中的 ' + ids.length + ' 项内容？将退回草稿状态。',
+        publish: '确定批量发布选中的 ' + ids.length + ' 项内容？',
+        delete:  '确定将选中的 ' + ids.length + ' 项内容移入回收站？'
+    };
+    var msg = msgs[action] || '确定对选中的 ' + ids.length + ' 项内容执行此操作？';
     showConfirm('批量操作', msg, function() {
-        ajaxPost('/admin/content/batch' + action.charAt(0).toUpperCase() + action.slice(1), { ids: ids });
+        ajaxPost('/admin/content/batchAction', { action: action, ids: ids });
     });
 }
 

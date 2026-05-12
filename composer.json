@@ -32,7 +32,9 @@
     "scripts": {
         "post-autoload-dump": [
             "php think clear"
-        ]
+        ],
+        "migrate": "bin\\migrate.bat",
+        "migrate:ps1": "powershell -ExecutionPolicy Bypass -File bin\\migrate.ps1"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

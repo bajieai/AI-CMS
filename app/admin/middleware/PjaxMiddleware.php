@@ -3,54 +3,18 @@ declare(strict_types=1);
 
 namespace app\admin\middleware;
 
-use app\common\service\CacheService;
-use think\facade\Cache;
 use think\response\Json as JsonResponse;
 
-/**
- * PJAX 中间件
- *
- * V2.9.4 性能优化：
- * 1. PJAX JSON 响应缓存：缓存命中时跳过整个控制器执行+HTML解析，响应时间从50-150ms降至<5ms
- * 2. 配合 layout.html 的 {if !$is_pjax} 条件渲染：缓存未命中时，PJAX请求跳过sidebar/header/footer渲染
- */
 class PjaxMiddleware
 {
-    /**
-     * PJAX 响应缓存 TTL（秒） — 3分钟，平衡实时性与性能
-     */
-    protected int $cacheTtl = 180;
-
     public function handle($request, \Closure $next)
     {
+        $response = $next($request);
         $isPjax = !!$request->header('X-PJAX');
         if (!$isPjax) {
-            return $next($request);
+            return $response;
         }
 
-        // =====================================================
-        // V2.9.4 核心优化：PJAX JSON 响应缓存
-        // 缓存命中 → 跳过：控制器执行 + 模板渲染 + HTML解析
-        // 响应时间：50-150ms → <5ms
-        // =====================================================
-        $roleId  = (int) session('role_id');
-        $cacheKey = 'pjax_resp_' . $roleId . '_' . md5($request->url(true));
-
-        try {
-            $cached = Cache::get($cacheKey);
-            if ($cached !== null) {
-                // 缓存命中：动态补充 csrf_token（每次请求不同，不能缓存）
-                $cached['csrf_token'] = session('__token__');
-                return $this->createJsonResponse($cached);
-            }
-        } catch (\Throwable) {
-            // 缓存服务不可用时降级为正常流程
-        }
-
-        // =====================================================
-        // 缓存未命中：执行控制器获取完整HTML
-        // =====================================================
-        $response = $next($request);
         $content = $response->getContent();
         if (!is_string($content) || strlen($content) < 20) {
             return json([
@@ -98,27 +62,6 @@ class PjaxMiddleware
             'csrf_token' => session('__token__'),
         ];
 
-        // =====================================================
-        // 缓存解析结果（不含 csrf_token，每次请求动态获取）
-        // 使用 TAG_PJAX_CACHE 标签，支持按标签批量清除
-        // =====================================================
-        $cachePayload = $payload;
-        unset($cachePayload['csrf_token']);
-
-        try {
-            Cache::tag(CacheService::TAG_PJAX_CACHE)->set($cacheKey, $cachePayload, $this->cacheTtl);
-        } catch (\Throwable) {
-            // 缓存写入失败不影响响应
-        }
-
-        return $this->createJsonResponse($payload);
-    }
-
-    /**
-     * 创建 PJAX JSON 响应（统一响应头和编码选项）
-     */
-    protected function createJsonResponse(array $payload): \think\Response
-    {
         $jsonResponse = \think\Response::create($payload, 'json', 200);
         $jsonResponse->header([
             'Content-Type'  => 'application/json; charset=utf-8',
@@ -330,12 +273,9 @@ class PjaxMiddleware
             'function doPjax',             // PJAX核心函数（已在pjax.js中定义）
             'function updateSidebarActive', // 侧栏高亮
             'function showToast',          // 全局toast
-            'function showAlert',          // 全局alert替代
             'function ajaxPost',           // 全局ajax封装
             'function confirmDelete',      // 全局删除确认
             'function showConfirm',        // 全局确认框
-            'function showLoading',        // 全局loading遮罩
-            'function hideLoading',        // 全局loading遮罩
             'fetchUnread',                 // 未读消息轮询
             'showPageLoader',              // 页面加载进度条
             'hidePageLoader',              // 页面加载进度条

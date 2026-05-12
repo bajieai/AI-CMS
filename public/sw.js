@@ -36,6 +36,25 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+// 接收页面消息（登录/登出后清除缓存、强制更新）
+self.addEventListener('message', (event) => {
+    if (!event.data) return;
+    if (event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+    if (event.data.type === 'CLEAR_PAGES') {
+        caches.open(CACHE_NAME).then((cache) => {
+            cache.keys().then((requests) => {
+                const toDelete = requests.filter((req) => {
+                    const url = new URL(req.url);
+                    return req.mode === 'navigate' || url.pathname === '/';
+                });
+                return Promise.all(toDelete.map((req) => cache.delete(req)));
+            });
+        });
+    }
+});
+
 // 拦截请求
 self.addEventListener('fetch', (event) => {
     const { request } = event;
@@ -71,27 +90,27 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // 页面请求：StaleWhileRevalidate（先返缓存，后台更新）
+    // 页面请求：Network First（优先网络，确保登录状态等动态内容始终最新）
+    // V2.9.4 修复：原 StaleWhileRevalidate 会先返回旧缓存（含游客版本），
+    // 导致用户登录后首次访问已缓存页面时仍显示未登录状态。改为 Network First
+    // 后，在线时总是获取最新内容；离线时回退到缓存。
     if (request.mode === 'navigate' || request.destination === 'document') {
         event.respondWith(
-            caches.match(request).then((response) => {
-                const fetchPromise = fetch(request).then((networkResponse) => {
-                    if (networkResponse && networkResponse.status === 200) {
-                        const responseToCache = networkResponse.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(request, responseToCache);
-                        });
-                    }
-                    return networkResponse;
-                }).catch(() => {
-                    // 网络失败时，如果缓存也没有，返回离线页面
-                    if (!response) {
-                        return new Response('<h1>离线模式</h1><p>您当前处于离线状态，请连接网络后重试。</p>', {
-                            headers: { 'Content-Type': 'text/html' }
-                        });
-                    }
+            fetch(request).then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(request, responseToCache);
+                    });
+                }
+                return networkResponse;
+            }).catch(() => {
+                // 网络失败时回退缓存
+                return caches.match(request).then((cachedResponse) => {
+                    return cachedResponse || new Response('<h1>离线模式</h1><p>您当前处于离线状态，请连接网络后重试。</p>', {
+                        headers: { 'Content-Type': 'text/html' }
+                    });
                 });
-                return response || fetchPromise;
             })
         );
         return;

@@ -43,7 +43,12 @@
         <div class="row">
             <div class="col-lg-9">
                 <article>
-                    <h1 class="mb-3">{$info.title}</h1>
+                    <h1 class="mb-3">
+                        {$info.title}
+                        {if condition="$safe_content.is_paid_content"}
+                        <i class="bi bi-lock-fill text-warning fs-5" title="付费内容"></i>
+                        {/if}
+                    </h1>
                     <div class="text-muted mb-4">
                         <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
                         <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>
@@ -58,8 +63,37 @@
                     </div>
                     {/if}
 
+                    <!-- V2.9.5 付费内容安全展示 -->
                     <div class="content-body">
-                        {$info.content|raw}
+                        {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
+                        <div class="i8j-paywall-preview">{$safe_content.preview}</div>
+                        <div class="i8j-paywall-box text-center py-4 my-3 rounded" style="background:#f8fafc;border:1px dashed #cbd5e1;">
+                            <i class="bi bi-lock-fill text-warning fs-2 mb-2 d-block"></i>
+                            <p class="text-secondary mb-2">此内容为付费内容，解锁后可阅读全文</p>
+                            <p class="fw-bold text-primary mb-3">
+                                {if $safe_content.price > 0}
+                                    {if $info.paid_type == 'points'}
+                                        {$safe_content.price} 积分
+                                    {else}
+                                        &yen;{$safe_content.price}
+                                    {/if}
+                                {else}
+                                    免费
+                                {/if}
+                            </p>
+                            {if $isMemberLogin}
+                            <button type="button" class="btn btn-primary" onclick="unlockContent({$info.id})">
+                                <i class="bi bi-unlock me-1"></i>立即解锁
+                            </button>
+                            {else}
+                            <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>登录后解锁
+                            </a>
+                            {/if}
+                        </div>
+                        {else}
+                        {$safe_content.full|raw}
+                        {/if}
                     </div>
 
                     <!-- 互动数据 -->
@@ -233,6 +267,29 @@
 <!-- JSON-LD 结构化数据 -->
 <script type="application/ld+json">
 {$jsonLd|raw}
+</script>
+<!-- V2.9.5 付费内容解锁 -->
+<script>
+function unlockContent(contentId) {
+    if (!confirm('确认解锁该付费内容？')) return;
+    $.post('/home/paid/buy', {content_id: contentId, __token__: $('meta[name="csrf-token"]').attr('content')}, function(res) {
+        if (res.code === 0 || res.success) {
+            I8JToast.success('解锁成功，即将刷新页面');
+            setTimeout(function(){ location.reload(); }, 1200);
+        } else if (res.msg && res.msg.indexOf('支付') !== -1) {
+            // 真钱支付：跳转支付页
+            location.href = '/home/payment/pay?content_id=' + contentId;
+        } else {
+            I8JToast.error(res.msg || '解锁失败');
+        }
+    }, 'json').fail(function(xhr) {
+        if (xhr.status === 419) {
+            I8JToast.error('页面已过期，请刷新后重试');
+        } else {
+            I8JToast.error('请求失败，请稍后重试');
+        }
+    });
+}
 </script>
 {if condition="config('comment.comment_enabled') !== 0"}
 <script>

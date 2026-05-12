@@ -559,6 +559,14 @@ class ContentService
                     ]);
                     break;
 
+                // V2.9.5 内容审批：批量驳回（退回草稿）
+                case 'reject':
+                    $affected = Content::whereIn('id', $ids)->update([
+                        'status' => 0,
+                        'update_time' => time(),
+                    ]);
+                    break;
+
                 default:
                     return ['success' => false, 'msg' => '未知操作类型', 'affected' => 0];
             }

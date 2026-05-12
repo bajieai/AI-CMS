@@ -8,16 +8,39 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="card-title mb-0"><i class="bi bi-bell me-2"></i>消息通知</h4>
                         {if condition="$unread_count > 0"}
                         <button type="button" class="btn btn-outline-primary btn-sm" id="markAllRead">全部已读</button>
                         {/if}
                     </div>
+
+                    <!-- V2.9.5 消息分类筛选 -->
+                    <div class="mb-3">
+                        <div class="btn-group btn-group-sm flex-wrap" role="group">
+                            <a href="/member/notification" class="btn btn-outline-primary {if $current_type == ''}active{/if}">全部{if $unread_count > 0}<span class="badge bg-danger ms-1">{$unread_count}</span>{/if}</a>
+                            <a href="/member/notification?type=system" class="btn btn-outline-primary {if $current_type == 'system'}active{/if}">系统{if ($type_counts.system ?? 0) > 0}<span class="badge bg-danger ms-1">{$type_counts.system}</span>{/if}</a>
+                            <a href="/member/notification?type=level_upgrade" class="btn btn-outline-primary {if $current_type == 'level_upgrade'}active{/if}">等级{if ($type_counts.level_upgrade ?? 0) + ($type_counts.level_downgrade ?? 0) + ($type_counts.level_grace_warning ?? 0) > 0}<span class="badge bg-danger ms-1">{:($type_counts.level_upgrade ?? 0) + ($type_counts.level_downgrade ?? 0) + ($type_counts.level_grace_warning ?? 0)}</span>{/if}</a>
+                            <a href="/member/notification?type=comment_reply" class="btn btn-outline-primary {if $current_type == 'comment_reply'}active{/if}">评论{if ($type_counts.comment_reply ?? 0) > 0}<span class="badge bg-danger ms-1">{$type_counts.comment_reply}</span>{/if}</a>
+                        </div>
+                    </div>
+
                     {volist name="list" id="vo"}
                     <div class="d-flex align-items-start mb-3 pb-3 border-bottom {if condition='$vo.is_read == 0'}bg-light{/if}">
                         <div class="flex-shrink-0 me-3">
-                            <i class="bi bi-{if condition='$vo.is_read == 0'}bell-fill text-primary{else /}bell text-muted{/if} fs-4"></i>
+                            {php}
+                                $iconMap = [
+                                    'system' => 'gear',
+                                    'review' => 'clipboard-check',
+                                    'publish' => 'send',
+                                    'comment_reply' => 'chat-dots',
+                                    'level_upgrade' => 'arrow-up-circle',
+                                    'level_downgrade' => 'arrow-down-circle',
+                                    'level_grace_warning' => 'exclamation-triangle',
+                                ];
+                                $notifIcon = $iconMap[$vo.type] ?? 'bell';
+                            {/php}
+                            <i class="bi bi-{$notifIcon} {if condition='$vo.is_read == 0'}text-primary{else /}text-muted{/if} fs-4"></i>
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="mb-1 {if condition='$vo.is_read == 0'}fw-bold{/if}">{$vo.title}</h6>
@@ -30,11 +53,15 @@
                     </div>
                     {/volist}
                     {empty name="list"}
-                    <div class="text-center text-muted py-5">
+                    <div class="text-center text-muted py-5" id="notifEmpty">
                         <i class="bi bi-bell-slash fs-1"></i>
                         <p class="mt-2">暂无通知</p>
                     </div>
                     {/empty}
+
+                    {if condition="($list->hasPages() ?? false)"}
+                    <div class="d-flex justify-content-center mt-3">{$list->render()|raw}</div>
+                    {/if}
                 </div>
             </div>
         </div>

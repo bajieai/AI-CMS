@@ -10,7 +10,8 @@ use think\App;
 use think\facade\Cache;
 use think\facade\Config;
 
-
+// V2.9.2 Logo相关: 直接使用Config模型避免命名冲突
+use app\common\model\Config as CmsConfig;
 
 /**
  * 后台管理基类控制器
@@ -144,15 +145,18 @@ abstract class AdminBaseController extends \think\BaseController
             'default_charset' => 'utf-8',
             'default_return_type' => 'html',
         ], 'app');
-        // 3. Content-Type 由 ThinkPHP Response 对象自动处理（根据 default_charset 配置）
-        //    不再手动 header()，避免 PJAX JSON 响应时输出 html Content-Type
+        // 3. 发送 Content-Type 响应头（确保传输层不丢失编码信息）
+        header('Content-Type: text/html; charset=utf-8');
+        // 4. 设置数据库连接编码（确保 ORM 层写入时使用正确编码）
+        try {
+            \think\facade\Db::execute("SET NAMES utf8mb4");
+        } catch (\Throwable) {
+            // 数据库未连接时静默跳过
+        }
+
         // 注入当前用户角色信息到所有视图
         $roleId = (int) session('role_id');
         $this->app->view->assign('is_super_admin', $roleId === 1);
-
-        // V2.9.4 性能优化：PJAX请求标记注入（所有模板共用，包括直接fetch()的页面）
-        // 配合 layout.html 的 {if !$is_pjax} 条件渲染，PJAX请求跳过sidebar/header/footer
-        $this->app->view->assign('is_pjax', !!$this->request->header('X-PJAX'));
 
         // V2.4 多模板风格：注入后台主题变量到所有视图
         $adminTheme = TemplateService::getAdminTheme();
@@ -183,22 +187,18 @@ abstract class AdminBaseController extends \think\BaseController
         $this->app->view->assign('sidebarMenus', $filteredMenus);
 
         // V2.6 双栏菜单：注入菜单JSON数据供 admin-sidebar.js 使用
-        // V2.9.4 性能优化：菜单JSON缓存，避免每次请求重复 json_encode（40+菜单项约0.1-0.3ms）
-        $menuJsonKey = 'admin_menu_json_' . $roleId;
-        $menuDataJson = Cache::tag(CacheService::TAG_CONFIG)->remember($menuJsonKey, function () use ($filteredMenus) {
-            return json_encode($filteredMenus, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
-        }, 3600);
-        $this->app->view->assign('menuDataJson', $menuDataJson);
+        $this->app->view->assign('menuDataJson', json_encode($filteredMenus, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG));
 
-        // V2.9.2 注入网站Logo及相关配置到后台视图（从已加载的Config读取，避免每次DB查询）
-        $siteLogo  = Config::get('site.logo', '');
-        $iconOnly  = Config::get('logo.icon_only', '') === '1';
-        $brandName = Config::get('logo.name', '') ?: '八界AI-CMS';
+        // V2.9.2 注入网站Logo及相关配置到后台视图
+        $cmsConfigs = CmsConfig::whereIn('name', ['site_logo', 'logo_icon_only', 'logo_name'])->column('value', 'name');
+        $siteLogo   = $cmsConfigs['site_logo'] ?? '';
+        $iconOnly   = ($cmsConfigs['logo_icon_only'] ?? '') === '1';
+        $brandName  = $cmsConfigs['logo_name'] ?: '八界AI-CMS';
         $this->app->view->assign([
             'site_logo'      => $siteLogo,
             'logo_icon_only' => $iconOnly,
-            'logo_name'      => Config::get('logo.name', ''),
-            'brand_name'     => $brandName,
+            'logo_name'      => $cmsConfigs['logo_name'] ?? '',
+            'brand_name'     => $brandName,       // 自定义品牌名称
         ]);
     }
 
@@ -210,21 +210,6 @@ abstract class AdminBaseController extends \think\BaseController
     protected function isRealAjax(): bool
     {
         return $this->request->isAjax() && !$this->request->header('X-PJAX');
-    }
-
-    /**
-     * V2.9.4 性能优化：重写视图渲染，为 PJAX 请求注入 is_pjax 变量
-     * 配合 layout.html 的 {if !$is_pjax} 条件渲染，PJAX 请求跳过：
-     * - sidebar（双栏菜单L1+L2）
-     * - header（顶部栏+快捷操作+通知铃铛+用户下拉）
-     * - footer scripts（bootstrap/pjax/admin-sidebar/admin.js）
-     * - CSRF token + MENU_DATA 注入
-     * 减少 PJAX 缓存未命中时的模板渲染量 + HTML 解析量
-     */
-    protected function view(string $template = '', array $vars = [], int $code = 200, callable $filter = null): \think\Response
-    {
-        $vars['is_pjax'] = $vars['is_pjax'] ?? !!$this->request->header('X-PJAX');
-        return parent::view($template, $vars, $code, $filter);
     }
 
     /**
@@ -451,7 +436,7 @@ abstract class AdminBaseController extends \think\BaseController
             'code' => $code,
             'msg' => $msg,
             'data' => $data,
-        ]);
+        ], 200, [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -463,7 +448,7 @@ abstract class AdminBaseController extends \think\BaseController
             'code' => $code,
             'msg' => $msg,
             'data' => $data,
-        ]);
+        ], 200, [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -485,10 +470,6 @@ abstract class AdminBaseController extends \think\BaseController
                 'ip'      => $this->request->ip(),
                 'data'    => !empty($data) ? json_encode($data, JSON_UNESCAPED_UNICODE) : '',
             ]);
-
-            // V2.9.4 性能优化：写入操作后清除PJAX缓存，确保下次GET请求看到最新数据
-            // 批量清除比精确清除更安全，PJAX缓存重建成本低（首次GET请求时重建）
-            Cache::tag(CacheService::TAG_PJAX_CACHE)->clear();
         } catch (\Throwable $e) {
             // 日志记录失败不应影响主业务流程
             // 降级方案：写入PHP错误日志，确保操作可追溯

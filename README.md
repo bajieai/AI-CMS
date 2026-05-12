@@ -1,14 +1,22 @@
-# 八界AI-CMS V2.9.4
+# 八界AI-CMS V2.9.5
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.4-blue)
+![Version](https://img.shields.io/badge/version-2.9.5-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.4 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.4 定位"优化完善 × 商业化准备"，是V2.9.x系列收官之作，聚焦V2.9.3细节补全（发布看板+评分评价）、AI内容质量增强（可读性+SEO+敏感词+写作风格）、商业化基础能力（支付框架+许可证+付费阅读）、产品体验打磨（性能+安全+UI一致性）、系统运维就绪五大方向，为V3.0平台化升级铺路。
+八界AI-CMS V2.9.5 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.5 定位"安全加固 × 性能优化 × 付费桥接 × UI一致性"，聚焦五大方向：
+
+1. **安全加固** - XSS输出层过滤、前台CSRF防护、SQL注入审计修复、上传安全硬ening（MIME魔数+黑名单+UUID文件名）
+2. **性能优化** - 缓存Vary头一致性、Redis分层清除、N+1查询修复、API响应JSON加固、前端资源优化
+3. **付费阅读桥接** - PaidService ↔ PaymentService 双订单桥接（不合并订单体系），真钱支付与积分/VIP体系共存
+4. **UI/UX一致性** - 零依赖Toast组件、统一空状态/骨架屏/404组件、4套主题会员等级时间线、消息分类筛选
+5. **运营效率** - 轻量级内容审批（单条通过/驳回+批量操作）、个人消息分类与未读计数
+
+为V3.0平台化升级奠定坚实的安全与性能基座。
 
 ### 核心特性
 
@@ -281,6 +289,9 @@ AI-CMS/
 │   │   ├── admin/              #     后台CSS/JS/图片/字体
 │   │   └── themes/             #     前台主题CSS/JS/图片/字体
 │   └── uploads/                #   上传目录
+├── bin/                        # 实用脚本(V2.9.5新增)
+│   ├── migrate.bat             #   数据库一键迁移(Windows)
+│   └── migrate.ps1             #   数据库一键迁移(PowerShell)
 ├── database/                   # 数据库SQL
 │   ├── install.sql             #   建表SQL+初始数据
 │   ├── v2.5.sql                #   V2.5增量更新
@@ -291,6 +302,7 @@ AI-CMS/
 │   └── v2.9.1.sql              #   V2.9.1增量更新
 │   └── v2.9.2.sql              #   V2.9.2增量更新
 │   └── v2.9.3.sql              #   V2.9.3增量更新
+│   └── v2.9.5.sql              #   V2.9.5增量更新(幂等)
 ├── miniprogram/                # 微信小程序(V2.9: 11页面)
 │   ├── pages/                  #   页面(index/detail/search/login/mine/coupon/invite/signin/order/payment/category)
 │   └── utils/                  #   工具(API封装)
@@ -430,6 +442,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.5 | 2026-05 | 安全加固(XSS输出过滤+前台CSRF+SQL审计+上传MIME校验)/性能优化(Vary头+缓存预热+N+1修复+JSON加固)/付费阅读桥接(PaidService↔PaymentService双订单)/UI一致性(Toast+空状态+时间线+消息分类)/内容审批(单条+批量) |
 | V2.9.4 | 2026-05 | 优化完善×商业化准备: 发布看板+评分评价/AI质量检测+写作风格/支付框架+许可证+付费阅读/备份日志+降级日志 |
 | V2.9.3 | 2026-05 | 数据备份恢复增强(分块流式+gzip+文件备份+CLI+恢复安全保护)/多渠道分发增强(自动同步+formatContent+Token刷新)/插件商店首页(分类导航+推荐位+搜索+详情页+卡片跳转)/会员权益补全(等级进度页+自动降级CLI+isInGracePeriod+7天缓冲期) |
 | V2.9.2 | 2026-05 | AI深度翻译/SEO分发增强(Sitemap拆分+JSON-LD+hreflang)/插件市场/会员权益深化/PWA/H5移动端优化/数据导出增强/系统监控 |
@@ -452,6 +465,22 @@ AI-CMS/
 | 超级管理员 | admin | admin123 |
 
 > **安全提示**: 首次登录后请立即修改默认密码！
+
+## 数据库迁移
+
+```bash
+# Docker 环境（一键迁移，自动复制SQL到容器并执行）
+bin\migrate.bat                          # Windows - 自动选最新SQL
+bin\migrate.bat database\v2.9.5.sql      # Windows - 指定SQL文件
+.\bin\migrate.ps1                        # PowerShell - 自动选最新SQL
+.\bin\migrate.ps1 database\v2.9.5.sql    # PowerShell - 指定SQL文件
+
+# 手动方式（Docker环境）
+docker cp database/v2.9.5.sql aicms_mysql:/tmp/
+docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v2.9.5.sql"
+```
+
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。
 
 ## 常用Docker命令
 

@@ -77,16 +77,30 @@
                             <option value="2" {if condition="($info.status ?? 0) == 2"}selected{/if}>发布</option>
                         </select>
                     </div>
-                    <!-- V2.9.4: 付费阅读 -->
+                    <!-- V2.9.5: 付费阅读 -->
                     <div class="mb-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="is_paid" value="1" id="is_paid" {if condition="($info.is_paid ?? 0) == 1"}checked{/if}>
                             <label class="form-check-label" for="is_paid">付费阅读</label>
                         </div>
                     </div>
-                    <div class="mb-3" id="pay-price-group" style="display:{if condition="($info.is_paid ?? 0) == 1"}block{else}none{/if};">
-                        <label class="form-label">付费价格（元）</label>
-                        <input type="number" name="pay_price" class="form-control" step="0.01" min="0.01" value="{$info.pay_price ?? 0}" placeholder="设置阅读价格">
+                    <div id="pay-config-group" style="display:{if condition="($info.is_paid ?? 0) == 1"}block{else}none{/if};">
+                        <div class="mb-3">
+                            <label class="form-label">付费类型</label>
+                            <select name="paid_type" class="form-select">
+                                <option value="points" {if condition="($info.paid_type ?? 'points') == 'points'"}selected{/if}>积分</option>
+                                <option value="money" {if condition="($info.paid_type ?? '') == 'money'"}selected{/if}>真钱（微信/支付宝）</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">付费价格</label>
+                            <input type="number" name="paid_price" class="form-control" step="0.01" min="0" value="{$info.paid_price ?? ($info.pay_price ?? 0)}" placeholder="设置阅读价格">
+                            <div class="form-text">积分支付时填积分数量，真钱支付时填人民币金额</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">预览长度（字符）</label>
+                            <input type="number" name="preview_length" class="form-control" min="0" value="{$info.preview_length ?? 500}" placeholder="未付费用户可见的预览字符数">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">定时发布</label>
@@ -264,7 +278,7 @@
 {block name="js"}
 <script src="/assets/js/quality-check.js"></script>
 <script>
-$('#is_paid').on('change', function() { $('#pay-price-group').toggle($(this).is(':checked')); });
+$('#is_paid').on('change', function() { $('#pay-config-group').toggle($(this).is(':checked')); });
 // TinyMCE编辑器（完全本地化）
 tinymce.init({
     selector: '#editor',

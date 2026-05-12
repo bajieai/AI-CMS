@@ -191,19 +191,38 @@ class MemberController extends FrontBaseController
             return redirect('/member/login');
         }
 
-        $list = NotificationModel::where('receiver_type', 'member')
-            ->where('receiver_id', $this->memberInfo['id'])
-            ->order('create_time', 'desc')
-            ->select();
+        $memberId = $this->memberInfo['id'];
+        $type = $this->request->get('type', '');
+
+        $query = NotificationModel::where('receiver_type', 'member')
+            ->where('receiver_id', $memberId);
+
+        if ($type && in_array($type, ['system', 'review', 'publish', 'comment_reply', 'level_upgrade', 'level_downgrade', 'level_grace_warning'])) {
+            $query->where('type', $type);
+        }
+
+        $list = $query->order('create_time', 'desc')->paginate(20);
 
         $unreadCount = NotificationModel::where('receiver_type', 'member')
-            ->where('receiver_id', $this->memberInfo['id'])
+            ->where('receiver_id', $memberId)
             ->where('is_read', 0)
             ->count();
+
+        // V2.9.5 分类未读统计
+        $typeCounts = [];
+        try {
+            $typeCounts = NotificationModel::where('receiver_type', 'member')
+                ->where('receiver_id', $memberId)
+                ->where('is_read', 0)
+                ->group('type')
+                ->column('count(*)', 'type');
+        } catch (\Throwable) {}
 
         return $this->view('/member_notification', [
             'list' => $list,
             'unread_count' => $unreadCount,
+            'type_counts' => $typeCounts,
+            'current_type' => $type,
         ]);
     }
 
@@ -294,7 +313,8 @@ class MemberController extends FrontBaseController
             return redirect('/member/login');
         }
 
-        $progress = MemberLevelService::getLevelProgress((int) $this->memberInfo['id']);
+        $memberId = (int) $this->memberInfo['id'];
+        $progress = MemberLevelService::getLevelProgress($memberId);
         $levels = MemberLevelService::getList();
         // 确保等级数据中可能存在但数据库无此字段的key有默认值，防止模板报错
         foreach ($levels as &$lv) {
@@ -302,10 +322,14 @@ class MemberController extends FrontBaseController
         }
         unset($lv);
 
+        // V2.9.5 等级历史时间线
+        $timeline = \app\common\model\MemberDowngradeLog::getTimeline($memberId);
+
         return $this->view('/member_level', [
             'progress' => $progress,
             'levels' => $levels,
             'member' => $this->memberInfo,
+            'timeline' => $timeline,
         ]);
     }
 }

@@ -25,6 +25,14 @@ class PaidOrder extends Model
     ];
 
     /**
+     * V2.9.5 获取关联的PaymentService订单号
+     */
+    public function getPaymentOrderNo(): string
+    {
+        return $this->payment_order_no ?: '';
+    }
+
+    /**
      * 关联会员
      */
     public function member()

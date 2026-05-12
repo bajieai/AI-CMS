@@ -50,8 +50,15 @@
 $('#loginForm').on('submit', function(e) {
     e.preventDefault();
     $.post('/member/login', $(this).serialize(), function(res) {
-        if (res.success) location.href = '/member/profile';
-        else alert(res.msg);
+        if (res.success) {
+            // V2.9.4 修复：登录后清除Service Worker页面缓存，避免显示旧缓存
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({type: 'CLEAR_PAGES'});
+            }
+            location.href = '/member/profile';
+        } else {
+            alert(res.msg);
+        }
     });
 });
 </script>

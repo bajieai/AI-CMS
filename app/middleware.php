@@ -5,4 +5,6 @@
 return [
     // Session初始化中间件（必须首位，确保所有请求都能读写session）
     \think\middleware\SessionInit::class,
+    // V2.9.5 XSS输出过滤 + CSP安全头
+    \app\common\middleware\XssEscapeMiddleware::class,
 ];

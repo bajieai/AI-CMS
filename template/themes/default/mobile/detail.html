@@ -21,7 +21,12 @@
 </nav>
 
 <article>
-    <h1 style="font-size:19px;font-weight:700;margin-bottom:10px;line-height:1.35;">{$info.title}</h1>
+    <h1 style="font-size:19px;font-weight:700;margin-bottom:10px;line-height:1.35;">
+        {$info.title}
+        {if condition="$safe_content.is_paid_content"}
+        <i class="bi bi-lock-fill text-warning" style="font-size:16px;" title="付费内容"></i>
+        {/if}
+    </h1>
     <div style="color:#888;font-size:12.5px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;">
         <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
         <span><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>
@@ -34,8 +39,33 @@
     </div>
     {/if}
 
+    <!-- V2.9.5 付费内容安全展示 -->
     <div class="m-article-body">
-        {$info.content|raw}
+        {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
+        <div style="color:#555;line-height:1.7;margin-bottom:12px;">{$safe_content.preview}</div>
+        <div class="text-center py-3 my-2 rounded" style="background:#f8fafc;border:1px dashed #cbd5e1;">
+            <i class="bi bi-lock-fill text-warning fs-2 mb-1 d-block"></i>
+            <p class="text-secondary mb-1 small">此内容为付费内容，解锁后可阅读全文</p>
+            <p class="fw-bold text-primary mb-2">
+                {if $safe_content.price > 0}
+                    {if $info.paid_type == 'points'}
+                        {$safe_content.price} 积分
+                    {else}
+                        &yen;{$safe_content.price}
+                    {/if}
+                {else}
+                    免费
+                {/if}
+            </p>
+            {if $isMemberLogin}
+            <button type="button" class="btn btn-primary btn-sm" onclick="unlockContent({$info.id})">立即解锁</button>
+            {else}
+            <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary btn-sm">登录后解锁</a>
+            {/if}
+        </div>
+        {else}
+        {$safe_content.full|raw}
+        {/if}
     </div>
 
     <!-- 互动数据 -->

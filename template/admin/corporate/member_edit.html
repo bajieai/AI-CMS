@@ -83,6 +83,42 @@
                 </div>
             </div>
         </form>
+
+        <!-- V2.9.5 等级变更记录 -->
+        {if $member}
+        <hr class="my-4">
+        <h6 class="mb-3"><i class="bi bi-clock-history me-1"></i>等级变更记录</h6>
+        {empty name="timeline"}
+        <p class="text-muted small">暂无等级变更记录</p>
+        {else/}
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>操作</th>
+                        <th>原等级</th>
+                        <th>新等级</th>
+                        <th>触发条件</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="timeline" id="tl"}
+                    <tr>
+                        <td>{$tl.date}</td>
+                        <td>
+                            <span class="badge {if $tl.is_upgrade}bg-success{else}bg-danger{/if}">{$tl.action_text}</span>
+                        </td>
+                        <td>{$tl.from_level.name}</td>
+                        <td>{$tl.to_level.name}</td>
+                        <td>{$tl.trigger_condition}</td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        {/empty}
+        {/if}
     </div>
 </div>
 

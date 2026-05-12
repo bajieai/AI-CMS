@@ -69,7 +69,7 @@ class ImageTask extends Model
     public static function getPendingTasks(int $limit = 10): array
     {
         return self::where('status', self::STATUS_PENDING)
-            ->where('attempts', '<', Db::raw('max_attempts'))
+            ->whereColumn('attempts', '<', 'max_attempts')
             ->where('retry_count', '<', 3)
             ->order('create_time', 'asc')
             ->limit($limit)

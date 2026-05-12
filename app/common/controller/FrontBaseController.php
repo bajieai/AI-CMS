@@ -14,6 +14,7 @@ use think\App;
 use think\facade\Cache;
 use think\facade\Config;
 use think\facade\Cookie;
+use think\facade\Db;
 
 /**
  * 前台基类控制器
@@ -62,7 +63,12 @@ abstract class FrontBaseController extends \think\BaseController
             $cached = Cache::get($cacheKey);
             if ($cached !== null) {
                 $this->pageCacheKey = null; // 命中后不再写入
-                response($cached, 200, ['Content-Type' => 'text/html; charset=utf-8'])->send();
+                // V2.9.5 修复：缓存命中直出路径补全Vary:Cookie和Cache-Control头
+                response($cached, 200, [
+                    'Content-Type'  => 'text/html; charset=utf-8',
+                    'Cache-Control' => 'public, max-age=3600',
+                    'Vary'          => 'Cookie',
+                ])->send();
                 exit;
             }
             $this->pageCacheKey = $cacheKey;
@@ -238,6 +244,21 @@ abstract class FrontBaseController extends \think\BaseController
         // V2.9.1 M14c: 响应层CDN兜底 — 仅对src="/uploads/ 和 href="/uploads/ 做轻量str_replace
         $response = $this->applyCdnFallback($response);
 
+        // V2.9.4 修复：浏览器HTTP缓存需按登录状态区分，避免登录后仍显示游客缓存页面
+        if ($this->isMemberLogin) {
+            // 已登录用户：禁止浏览器缓存，每次请求都验证
+            $response->header([
+                'Cache-Control' => 'private, no-cache, must-revalidate',
+                'Vary'          => 'Cookie',
+            ]);
+        } else {
+            // 游客：允许公共缓存，但按 Cookie 区分缓存条目
+            $response->header([
+                'Cache-Control' => 'public, max-age=3600',
+                'Vary'          => 'Cookie',
+            ]);
+        }
+
         if (!empty($this->pageCacheKey)) {
             Cache::tag(CacheService::TAG_PAGE_CACHE)->set(
                 $this->pageCacheKey,
@@ -304,7 +325,7 @@ abstract class FrontBaseController extends \think\BaseController
             'code' => $code,
             'msg' => $msg,
             'data' => $data,
-        ]);
+        ], 200, [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -316,7 +337,7 @@ abstract class FrontBaseController extends \think\BaseController
             'code' => $code,
             'msg' => $msg,
             'data' => $data,
-        ]);
+        ], 200, [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
     }
 
     /**

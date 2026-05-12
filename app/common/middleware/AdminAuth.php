@@ -17,11 +17,10 @@ use think\Response;
 class AdminAuth
 {
     /**
-     * 静态标记：当前请求周期内 session 是否已手动初始化
-     * 避免同一请求内多次初始化（多中间件场景）
-     * V2.9.4 性能优化：替代反射检测 Store::$init 属性
+     * 缓存 ReflectionProperty 实例（类元数据，跨请求安全）
+     * 避免每次请求重复创建反射对象
      */
-    protected static bool $sessionInitialized = false;
+    protected static ?\ReflectionProperty $initProp = null;
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -60,51 +59,40 @@ class AdminAuth
      * 确保 session 已初始化
      * 在 app 级中间件中，全局的 SessionInit 可能还未执行，
      * 需要手动读取 cookie 中的 session ID 并初始化 session。
-     * 
-     * V2.9.4 性能优化：使用静态标记 + try-catch 替代反射检测
-     * - 静态标记：同一请求周期内只初始化一次
-     * - try-catch：检测 session 是否已初始化，无反射开销
+     *
+     * V2.9.4 修复：移除 static $sessionInitialized（PHP-FPM 跨请求持久化导致 bug）
+     * 改为每次请求都通过反射检测 Store::$init，同时缓存 ReflectionProperty 减少反射开销。
+     * 同一请求内若 Store::$init 已为 true（全局 SessionInit 已执行），直接跳过。
      */
     protected function ensureSessionInit(Request $request): void
     {
-        // 同一请求周期内只初始化一次
-        if (self::$sessionInitialized) {
-            return;
-        }
-
         $session = app('session');
-        
-        // 轻量级检测：尝试获取 session ID，如果已初始化则不会抛异常
+
+        // 使用反射检测 Store::$init 属性（true=已初始化, null=未初始化）
         try {
-            $session->getId();
-            // getId() 成功说明 session 已初始化
-            self::$sessionInitialized = true;
-            return;
+            if (self::$initProp === null) {
+                $ref = new \ReflectionClass($session);
+                self::$initProp = $ref->getProperty('init');
+                self::$initProp->setAccessible(true);
+            }
+            if (self::$initProp->getValue($session) === true) {
+                return;
+            }
         } catch (\Throwable) {
-            // 未初始化，继续初始化流程
+            // 反射失败，继续初始化流程
         }
 
         // 从 cookie 获取 session ID
         $cookieName = $session->getName();
         $sessionId = $request->cookie($cookieName);
-        
+
         if ($sessionId) {
             $session->setId($sessionId);
         }
-        
+
         $session->init();
-        
+
         // 将 session 绑定到 request
         $request->withSession($session);
-        
-        self::$sessionInitialized = true;
-    }
-
-    /**
-     * 重置初始化标记（用于测试或长生命周期进程）
-     */
-    public static function resetInitFlag(): void
-    {
-        self::$sessionInitialized = false;
     }
 }

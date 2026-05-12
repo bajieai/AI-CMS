@@ -6,6 +6,8 @@
     <title>{block name="title"}{$site_name|default='AI-CMS'}{/block}</title>
     <meta name="keywords" content="{block name='keywords'}{$site_keywords|default='AI,CMS,内容管理'}{/block}">
     <meta name="description" content="{block name='description'}{$site_description|default='AI驱动的企业信息管理系统'}{/block}">
+    <!-- V2.9.5 前台CSRF Token -->
+    <meta name="csrf-token" content="{:token()}">
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
     <!-- V2.9.2 M22a: PWA manifest -->
@@ -107,14 +109,21 @@
 </div>
 <footer class="cm-ft">&copy; 2025 AI-CMS V2.4 &middot; 企业商务主题</footer>
 
-<script src="/assets/js/bootstrap.bundle.min.js"></script>
-<script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    <!-- V2.9.5 前台通用组件 -->
+    <script src="/assets/js/front-toast.js?v=2.9.5"></script>
+    <script src="/assets/js/front-components.js?v=2.9.5"></script>
+    <!-- V2.9.5 前台CSRF自动注入 -->
+    <script src="/assets/js/front-csrf.js?v=2.9.5"></script>
 <!-- V2.9.2 前台移动端布局脚本（搜索/菜单/分类树/Toast/语言切换） -->
 <script src="{$skin}js/layout.js?v=2.9.2"></script>
 <!-- V2.9.1 M14b: 统一图片懒加载 -->
 <script src="/assets/js/lazyload.js"></script>
 <!-- V2.9.2 M22a: PWA安装提示 -->
 <script src="/assets/js/pwa-install.js"></script>
+<!-- V2.9.4: 注入会员ID用于缓存状态检测 -->
+<script>window.CMS_MEMBER_ID = {$member_info.id|default=0};</script>
 <!-- V2.9.2 M22b: 移动端增强 -->
 <script src="/assets/js/mobile-enhance.js"></script>
 <script src="/assets/js/mobile-swipe.js"></script>

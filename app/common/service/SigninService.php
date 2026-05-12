@@ -69,13 +69,14 @@ class SigninService
                 'create_time'      => time(),
             ]);
 
-            // 更新会员积分和签到信息
-            Db::name('member')->where('id', $memberId)->update([
-                'points'           => Db::raw('points + ' . $totalPoints),
-                'total_points'     => Db::raw('total_points + ' . $totalPoints),
-                'signin_count'     => $consecutiveDays,
-                'last_signin_date' => $today,
-            ]);
+            // 更新会员积分和签到信息（V2.9.5 修复：使用inc()替代Db::raw，消除SQL注入风险）
+            Db::name('member')->where('id', $memberId)
+                ->inc('points', $totalPoints)
+                ->inc('total_points', $totalPoints)
+                ->update([
+                    'signin_count'     => $consecutiveDays,
+                    'last_signin_date' => $today,
+                ]);
 
             // 积分日志（绕过模型严格字段检查）
             Db::name('points_log')->insert([

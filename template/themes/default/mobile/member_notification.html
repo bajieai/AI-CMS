@@ -6,17 +6,22 @@
 <div class="m-content">
     <h4 style="font-size:17px;font-weight:700;margin-bottom:12px;"><i class="bi bi-bell me-2"></i>通知中心</h4>
 
-    <!-- 标签切换 -->
+    <!-- V2.9.5 消息分类筛选 -->
     <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;">
-        <button type="button" class="btn btn-sm rounded-pill active notif-filter" data-status="" style="background:#0d6efd;color:#fff;border:none;font-size:13px;padding:6px 16px;white-space:nowrap;">全部</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill notif-filter" data-status="0" style="font-size:13px;padding:6px 16px;white-space:nowrap;">未读</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill notif-filter" data-status="1" style="font-size:13px;padding:6px 16px;white-space:nowrap;">已读</button>
+        <a href="/member/notification" class="btn btn-sm rounded-pill {if $current_type == ''}active{/if}" style="{if $current_type == ''}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">全部{if $unread_count > 0}<span class="badge bg-danger ms-1">{$unread_count}</span>{/if}</a>
+        <a href="/member/notification?type=system" class="btn btn-sm rounded-pill {if $current_type == 'system'}active{/if}" style="{if $current_type == 'system'}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">系统{if ($type_counts.system ?? 0) > 0}<span class="badge bg-danger ms-1">{$type_counts.system}</span>{/if}</a>
+        <a href="/member/notification?type=level_upgrade" class="btn btn-sm rounded-pill {if $current_type == 'level_upgrade'}active{/if}" style="{if $current_type == 'level_upgrade'}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">等级</a>
     </div>
 
     <div id="notifList">
         {volist name="list" id="item"}
+        {php}
+            $mIconMap = ['system'=>'gear','review'=>'clipboard-check','publish'=>'send','comment_reply'=>'chat-dots','level_upgrade'=>'arrow-up-circle','level_downgrade'=>'arrow-down-circle','level_grace_warning'=>'exclamation-triangle'];
+            $mIcon = $mIconMap[$item.type] ?? 'bell';
+        {/php}
         <div class="m-card" style="padding:12px 14px;{if condition="$item.is_read == 0"}border-left:3px solid #0d6efd;{/if}">
-            <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+                <i class="bi bi-{$mIcon}" style="font-size:18px;color:{if $item.is_read == 0}#0d6efd{else}#aaa{/if};flex-shrink:0;margin-top:2px;"></i>
                 <div style="flex:1;min-width:0;">
                     <h6 style="font-size:14px;font-weight:600;margin-bottom:3px;">{$item.title}</h6>
                     <p style="font-size:13px;color:#666;margin-bottom:4px;line-height:1.45;">{$item.content|msubstr=0,80}</p>
@@ -36,10 +41,4 @@
     <div class="m-pagination">{$list->render()|raw}</div>
     {/if}
 </div>
-{/block}
-{block name="js"}
-<script>
-$('.notif-filter').on('click',function(){var st=$(this).data('status')||'';$('.notif-filter').removeClass('active').css({background:'#fff',color:'#6c757d'});$(this).addClass('active').css({background:'#0d6efd',color:'#fff'});loadNotifs(st);});
-function loadNotifs(s){s=s||'';$.get('/member/notification',{is_read:s,ajax:1},function(r){if(r.code===0&&r.data){var h='';(r.data.list||[]).forEach(function(i){h+='<div class="m-card" style="padding:12px 14px;'+(i.is_read==0?'border-left:3px solid #0d6efd':'')+'"><h6 style="font-size:14px;font-weight:600;">'+i.title+'</h6><p style="font-size:13px;color:#666;">'+i.content+'</p><small style="font-size:11.5px;color:#aaa;">'+i.create_time+'</small></div>';}) $('#notifList').html(h||'<div class="m-empty"><i class="bi-bell-slash"></i><p>暂无通知</p></div>');}},'json');}
-</script>
 {/block}

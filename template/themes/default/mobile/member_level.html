@@ -48,6 +48,33 @@
     </div>
     {/if}
 
+    <!-- 等级历史时间线 V2.9.5 -->
+    <div class="m-card" style="margin-top:12px;padding:0;overflow:hidden;">
+        <div style="padding:12px 16px;font-weight:600;border-bottom:1px solid #eee;">
+            <i class="bi bi-clock-history me-1"></i>等级变更记录
+        </div>
+        {empty name="timeline"}
+        <div style="padding:16px;text-align:center;color:#888;font-size:13px;">暂无等级变更记录</div>
+        {else/}
+        {volist name="timeline" id="tl"}
+        <div style="padding:12px 16px;display:flex;align-items:flex-start;gap:10px;{if $key > 0}border-top:1px solid #f1f5f9;{/if}">
+            <div style="width:32px;height:32px;border-radius:50%;background:{if $tl.is_upgrade}#d1fae5{else}#fee2e2{/if};color:{if $tl.is_upgrade}#059669{else}#dc2626{/if};display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                <i class="bi {if $tl.is_upgrade}bi-arrow-up-circle{else}bi-arrow-down-circle{/if}"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                    <span style="font-size:14px;font-weight:600;">{$tl.action_text}</span>
+                    <span style="font-size:11px;color:#888;">{$tl.date}</span>
+                </div>
+                <div style="font-size:12px;color:#666;">
+                    {$tl.from_level.name} <i class="bi bi-arrow-right" style="font-size:10px;"></i> {$tl.to_level.name}
+                </div>
+            </div>
+        </div>
+        {/volist}
+        {/empty}
+    </div>
+
     <!-- 等级阶梯 -->
     <div class="m-card" style="margin-top:12px;padding:0;overflow:hidden;">
         <div style="padding:12px 16px;font-weight:600;border-bottom:1px solid #eee;">

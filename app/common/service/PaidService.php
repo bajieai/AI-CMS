@@ -156,7 +156,7 @@ class PaidService
 
         $orderSn = 'P' . date('YmdHis') . str_pad((string) $memberId, 6, '0', STR_PAD_LEFT) . rand(100, 999);
 
-        $order = PaidOrder::create([
+        $paidOrderData = [
             'order_sn'  => $orderSn,
             'member_id' => $memberId,
             'content_id' => $contentId,
@@ -164,7 +164,24 @@ class PaidService
             'price'     => $finalPrice,
             'pay_type'  => $orderPayType,
             'status'    => 0,
-        ]);
+        ];
+
+        // V2.9.5 双订单桥接：真钱支付时委托PaymentService创建统一支付订单
+        if ($orderPayType === 'money' && $finalPrice > 0) {
+            $paymentResult = PaymentService::createPayment(
+                $memberId,
+                'content',
+                (string) $contentId,
+                (float) $finalPrice,
+                'wechat' // 默认微信支付，前端可覆盖
+            );
+            if (!$paymentResult['success']) {
+                throw new \Exception('创建支付订单失败: ' . ($paymentResult['msg'] ?? '未知错误'));
+            }
+            $paidOrderData['payment_order_no'] = $paymentResult['order_no'];
+        }
+
+        $order = PaidOrder::create($paidOrderData);
 
         return $order->toArray();
     }
@@ -172,6 +189,7 @@ class PaidService
     /**
      * 完成支付
      * V2.5增强：支持微信支付订单完成
+     * V2.9.5增强：支持通过payment_order_no完成支付（桥接模式）
      */
     public static function completePayment(string $orderSn, int $memberId): bool
     {
@@ -184,12 +202,37 @@ class PaidService
             throw new \Exception('订单不存在或已处理');
         }
 
+        return self::doCompletePayment($order, $memberId);
+    }
+
+    /**
+     * V2.9.5 通过payment_order_no完成支付（支付回调桥接用）
+     */
+    public static function completePaymentByOrderNo(string $paymentOrderNo, int $memberId): bool
+    {
+        $order = PaidOrder::where('payment_order_no', $paymentOrderNo)
+            ->where('member_id', $memberId)
+            ->where('status', 0)
+            ->find();
+
+        if (!$order) {
+            throw new \Exception('订单不存在或已处理');
+        }
+
+        return self::doCompletePayment($order, $memberId);
+    }
+
+    /**
+     * 统一完成支付业务逻辑
+     */
+    protected static function doCompletePayment(\app\common\model\PaidOrder $order, int $memberId): bool
+    {
         Db::startTrans();
         try {
             if ($order->pay_type === 'points') {
                 PointsService::consume($memberId, (int) $order->price, 'purchase', $order->content_id, '购买付费内容');
             }
-            // 微信支付由回调处理，此处仅处理积分支付
+            // 真钱支付由PaymentService回调处理，此处仅处理积分支付
 
             $order->status = 1;
             $order->paid_at = time();

@@ -31,6 +31,20 @@ class MemberLevelService
             // V2.9.2 M20: 等级变更通知
             self::notifyLevelChange($memberId, $oldLevelId, $newLevel['id']);
 
+            // V2.9.5: 记录升级日志（时间线数据源）
+            try {
+                \app\common\model\MemberDowngradeLog::create([
+                    'user_id' => $memberId,
+                    'from_level' => $oldLevelId,
+                    'to_level' => $newLevel['id'],
+                    'action' => 'auto_upgrade',
+                    'trigger_condition' => 'points_reached',
+                    'notified' => 1,
+                ]);
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning("[MemberLevel] 升级日志写入失败 member_id={$memberId}: " . $e->getMessage());
+            }
+
             return true;
         }
 

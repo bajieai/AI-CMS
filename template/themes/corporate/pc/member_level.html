@@ -59,6 +59,40 @@
             </div>
             {/if}
 
+            <!-- 等级历史时间线 V2.9.5 -->
+            <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
+                <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">
+                    <i class="bi bi-clock-history me-1"></i>等级变更记录
+                </div>
+                <div class="card-body p-4">
+                    {empty name="timeline"}
+                    <p class="text-muted text-center mb-0">暂无等级变更记录</p>
+                    {else/}
+                    <div class="i8j-timeline">
+                        {volist name="timeline" id="tl"}
+                        <div class="d-flex mb-3 pb-3 {if $i < count($timeline)}border-bottom{/if}">
+                            <div class="flex-shrink-0 me-3 text-center" style="width:48px;">
+                                <div style="width:36px;height:36px;border-radius:50%;background:{if $tl.is_upgrade}#d1fae5{else}#fee2e2{/if};color:{if $tl.is_upgrade}#059669{else}#dc2626{/if};display:inline-flex;align-items:center;justify-content:center;">
+                                    <i class="bi {if $tl.is_upgrade}bi-arrow-up-circle{else}bi-arrow-down-circle{/if}"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold">{$tl.action_text}</span>
+                                    <small class="text-muted">{$tl.date}</small>
+                                </div>
+                                <p class="mb-0 small text-muted">
+                                    {$tl.from_level.name} <i class="bi bi-arrow-right mx-1"></i> {$tl.to_level.name}
+                                    {if $tl.trigger_condition}<span class="ms-2">({$tl.trigger_condition})</span>{/if}
+                                </p>
+                            </div>
+                        </div>
+                        {/volist}
+                    </div>
+                    {/empty}
+                </div>
+            </div>
+
             <!-- 等级阶梯 -->
             <div class="card shadow-sm border-0" style="border-radius:12px;">
                 <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">

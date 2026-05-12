@@ -100,6 +100,52 @@ class PaymentService
     }
 
     /**
+     * 收入统计（供后台收入看板使用）
+     */
+    public static function getRevenueStats(): array
+    {
+        $todayStart = strtotime('today');
+        $monthStart = strtotime(date('Y-m-01'));
+
+        // 今日收入
+        $todayRevenue = Order::where('status', Order::STATUS_PAID)
+            ->where('paid_time', '>=', $todayStart)
+            ->sum('amount') ?: 0;
+
+        // 今日订单数
+        $todayOrders = Order::where('status', Order::STATUS_PAID)
+            ->where('paid_time', '>=', $todayStart)
+            ->count();
+
+        // 本月收入
+        $monthRevenue = Order::where('status', Order::STATUS_PAID)
+            ->where('paid_time', '>=', $monthStart)
+            ->sum('amount') ?: 0;
+
+        // 本月订单数
+        $monthOrders = Order::where('status', Order::STATUS_PAID)
+            ->where('paid_time', '>=', $monthStart)
+            ->count();
+
+        // 总收入
+        $totalRevenue = Order::where('status', Order::STATUS_PAID)
+            ->sum('amount') ?: 0;
+
+        // 总订单数
+        $totalOrders = Order::where('status', Order::STATUS_PAID)
+            ->count();
+
+        return [
+            'today_revenue'  => round((float) $todayRevenue, 2),
+            'month_revenue'  => round((float) $monthRevenue, 2),
+            'total_revenue'  => round((float) $totalRevenue, 2),
+            'today_orders'   => (int) $todayOrders,
+            'month_orders'   => (int) $monthOrders,
+            'total_orders'   => (int) $totalOrders,
+        ];
+    }
+
+    /**
      * 查询订单支付状态
      */
     public static function queryOrder(string $orderNo): array

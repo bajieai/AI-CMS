@@ -308,6 +308,46 @@ class ContentController extends AdminBaseController
     }
 
     /**
+     * V2.9.5 通过审核
+     */
+    public function audit(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        $info->status = 2;
+        if ($info->save()) {
+            $this->recordLog('通过审核', $info->title ?? '');
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+            return $this->success('审核通过');
+        }
+        return $this->error('操作失败');
+    }
+
+    /**
+     * V2.9.5 驳回内容（退回草稿）
+     */
+    public function reject(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        $info->status = 0;
+        if ($info->save()) {
+            $this->recordLog('驳回内容', $info->title ?? '');
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+            return $this->success('已驳回，内容退回草稿状态');
+        }
+        return $this->error('操作失败');
+    }
+
+    /**
      * 回收站列表
      */
     public function recycleBin()
