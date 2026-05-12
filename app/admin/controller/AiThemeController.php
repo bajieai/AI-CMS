@@ -5,10 +5,12 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\middleware\ThemePreviewMiddleware;
+use app\common\model\AiThemeChatLog;
 use app\common\model\AiThemeRecord;
 use app\common\model\Config as ConfigModel;
 use app\common\service\theme\AiThemeGenerateService;
 use app\common\service\theme\ThemeFileService;
+use app\common\service\theme\ThemeVersionManager;
 use app\common\service\TemplateService;
 use think\facade\Cache;
 
@@ -19,7 +21,12 @@ use think\facade\Cache;
  */
 class AiThemeController extends AdminBaseController
 {
-    protected array $noNeedPermission = ['progress', 'preview_url'];
+    protected array $noNeedPermission = ['progress', 'preview_url', 'chat'];
+
+    /** @var \app\common\service\theme\AiThemeGenerateService */
+    protected AiThemeGenerateService $themeService;
+    /** @var \app\common\service\theme\ThemeVersionManager */
+    protected ThemeVersionManager $versionManager;
 
     /**
      * AI主题列表页（审核列表）
@@ -426,5 +433,259 @@ class AiThemeController extends AdminBaseController
         } catch (\Throwable $e) {
             return $this->error('重置失败: ' . $e->getMessage());
         }
+    }
+
+    // ==================== V3.0 Phase 3: AI模板增强 ====================
+
+    /**
+     * 多轮对话增量修改（AJAX，同步模式）
+     */
+    public function chat(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $id = (int) $this->request->post('id', 0);
+        $instruction = trim($this->request->post('instruction', ''));
+        $userId = (int) session('user_id');
+
+        if ($id <= 0) {
+            return $this->error('参数错误');
+        }
+        if (empty($instruction)) {
+            return $this->error('请输入修改指令');
+        }
+
+        // 设置较长的执行时间（同步模式需要等待LLM返回）
+        set_time_limit(120);
+
+        $service = new AiThemeGenerateService();
+        $result = $service->generateIncremental($id, $userId, $instruction);
+
+        if ($result['success']) {
+            return $this->success($result['message'], [
+                'changed_files'   => $result['changed_files'] ?? [],
+                'version'         => $result['version'] ?? 0,
+                'validate_errors' => $result['validate_errors'] ?? [],
+            ]);
+        }
+        return $this->error($result['message']);
+    }
+
+    /**
+     * 单文件重生成（AJAX，同步模式）
+     */
+    public function regenerateFile(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $id = (int) $this->request->post('id', 0);
+        $filePath = trim($this->request->post('file_path', ''));
+        $instruction = trim($this->request->post('instruction', ''));
+        $userId = (int) session('user_id');
+
+        if ($id <= 0 || empty($filePath)) {
+            return $this->error('参数错误');
+        }
+        if (empty($instruction)) {
+            return $this->error('请输入修改指令');
+        }
+
+        set_time_limit(120);
+
+        $service = new AiThemeGenerateService();
+        $result = $service->regenerateFile($id, $userId, $filePath, $instruction);
+
+        if ($result['success']) {
+            return $this->success($result['message'], [
+                'content'         => $result['content'] ?? '',
+                'version'         => $result['version'] ?? 0,
+                'validate_result' => $result['validate_result'] ?? [],
+            ]);
+        }
+        return $this->error($result['message']);
+    }
+
+    /**
+     * 版本回退（AJAX）
+     */
+    public function rollback(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $id = (int) $this->request->post('id', 0);
+        $identifier = $this->request->post('identifier', '');
+
+        if ($id <= 0 || empty($identifier)) {
+            return $this->error('参数错误');
+        }
+
+        $record = AiThemeRecord::find($id);
+        if (!$record) {
+            return $this->error('记录不存在');
+        }
+
+        $versionManager = new ThemeVersionManager();
+        $result = $versionManager->rollback($record->theme_name, $identifier);
+
+        if ($result['success']) {
+            // 更新文件树
+            $fileService = new ThemeFileService();
+            $themePath = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $record->theme_name;
+            $record->files_tree = $fileService->scanFilesTree($themePath);
+            $record->save();
+
+            return $this->success('回退成功');
+        }
+        return $this->error($result['message']);
+    }
+
+    /**
+     * 版本历史查询（AJAX）
+     */
+    public function versionHistory(): \think\Response
+    {
+        $id = (int) $this->request->param('id', 0);
+        $record = AiThemeRecord::find($id);
+
+        if (!$record) {
+            return $this->error('记录不存在');
+        }
+
+        $versionManager = new ThemeVersionManager();
+        $history = $versionManager->getVersionHistory($record->theme_name);
+
+        // 合并对话日志版本信息
+        $chatStats = AiThemeChatLog::getTokenStats($id);
+
+        return $this->success('ok', [
+            'versions'     => $history,
+            'current_version' => $record->getCurrentVersion(),
+            'chat_stats'   => $chatStats,
+        ]);
+    }
+
+    /**
+     * 版本差异对比（AJAX）
+     */
+    public function versionDiff(): \think\Response
+    {
+        $id = (int) $this->request->param('id', 0);
+        $from = $this->request->param('from', '');
+        $to = $this->request->param('to', '');
+
+        if ($id <= 0 || empty($from) || empty($to)) {
+            return $this->error('参数错误');
+        }
+
+        $record = AiThemeRecord::find($id);
+        if (!$record) {
+            return $this->error('记录不存在');
+        }
+
+        $versionManager = new ThemeVersionManager();
+        $result = $versionManager->diff($record->theme_name, $from, $to);
+
+        if ($result['success']) {
+            return $this->success('ok', [
+                'diff' => $result['diff'],
+            ]);
+        }
+        return $this->error($result['message']);
+    }
+
+    /**
+     * 主题管理页面
+     */
+    public function manage(): string
+    {
+        $page = (int) $this->request->param('page', 1);
+        $limit = 15;
+
+        $query = AiThemeRecord::order('created_at', 'desc');
+        $total = $query->count();
+        $list = $query->page($page, $limit)->select()->toArray();
+
+        // 扫描本地主题目录（非AI生成的）
+        $themeRoot = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes';
+        $localThemes = [];
+        if (is_dir($themeRoot)) {
+            $dirs = glob($themeRoot . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR);
+            foreach ($dirs as $dir) {
+                $name = basename($dir);
+                if (str_starts_with($name, '.')) continue;
+                $localThemes[] = [
+                    'name' => $name,
+                    'path' => $dir,
+                    'is_ai' => str_starts_with($name, 'ai-theme-'),
+                    'modified' => date('Y-m-d H:i:s', filemtime($dir)),
+                ];
+            }
+        }
+
+        $this->app->view->assign([
+            'list'        => $list,
+            'local_themes'=> $localThemes,
+            'total'       => $total,
+            'page'        => $page,
+            'limit'       => $limit,
+        ]);
+
+        return $this->app->view->fetch('ai_theme/manage');
+    }
+
+    /**
+     * 导出主题 ZIP
+     */
+    public function exportTheme(): \think\Response
+    {
+        $id = (int) $this->request->param('id', 0);
+        $record = AiThemeRecord::find($id);
+
+        if (!$record) {
+            return $this->error('记录不存在');
+        }
+
+        $packageService = new \app\common\service\theme\ThemePackageService();
+        $result = $packageService->exportTheme($record->theme_name);
+
+        if (!$result['success']) {
+            return $this->error($result['message']);
+        }
+
+        $zipPath = $result['path'];
+        $fileName = $record->theme_name . '.zip';
+
+        return download($zipPath, $fileName)->force(true);
+    }
+
+    /**
+     * 导入主题 ZIP
+     */
+    public function importTheme(): \think\Response
+    {
+        $file = $this->request->file('theme_zip');
+        if (!$file) {
+            return $this->error('请上传ZIP文件');
+        }
+
+        $ext = strtolower(pathinfo($file->getOriginalName(), PATHINFO_EXTENSION));
+        if ($ext !== 'zip') {
+            return $this->error('仅支持ZIP格式');
+        }
+
+        $tempPath = $file->getPathname();
+        $packageService = new \app\common\service\theme\ThemePackageService();
+        $result = $packageService->importTheme($tempPath);
+
+        if ($result['success']) {
+            return $this->success($result['message'], ['theme_name' => $result['theme_name']]);
+        }
+        return $this->error($result['message']);
     }
 }

@@ -103,6 +103,81 @@ class ThemeValidatorService
     }
 
     /**
+     * 单文件校验（用于局部重生成后校验）
+     *
+     * 仅对单个文件执行语法 + XSS 校验，不含 CSS 变量检查
+     *
+     * @param string $filePath 单个文件路径
+     * @return array 同 validate() 返回结构
+     */
+    public function validateFile(string $filePath): array
+    {
+        if (!is_file($filePath)) {
+            return [
+                'passed'    => false,
+                'errors'    => [['level' => 'error', 'message' => '文件不存在: ' . $filePath]],
+                'warnings'  => [],
+                'infos'     => [],
+                'summary'   => '文件不存在',
+                'xss_risks' => [],
+                'has_xss_high' => false,
+                'has_syntax_error' => true,
+            ];
+        }
+
+        // 1. 语法校验（单文件模式）
+        $syntaxResult = $this->validateSyntaxFile($filePath);
+
+        // 2. XSS扫描（单文件模式）
+        $xssResult = $this->scanXssFile($filePath);
+
+        $errors = array_filter($syntaxResult, fn($r) => $r['level'] === 'error');
+        $warnings = array_filter($syntaxResult, fn($r) => $r['level'] === 'warning');
+        $infos = array_filter($syntaxResult, fn($r) => $r['level'] === 'info');
+
+        $xssHigh = array_filter($xssResult, fn($r) => $r['level'] === 'high');
+        $hasSyntaxError = !empty($errors);
+        $hasXssHigh = !empty($xssHigh);
+
+        $summaryParts = [];
+        if ($hasSyntaxError) {
+            $summaryParts[] = '语法错误: ' . count($errors) . ' 项';
+        }
+        if ($hasXssHigh) {
+            $summaryParts[] = 'XSS高危: ' . count($xssHigh) . ' 项';
+        }
+
+        return [
+            'passed'    => !$hasSyntaxError && !$hasXssHigh,
+            'errors'    => array_values($errors),
+            'warnings'  => array_values($warnings),
+            'infos'     => array_values($infos),
+            'summary'   => empty($summaryParts) ? '单文件校验通过' : implode('，', $summaryParts),
+            'xss_risks' => array_values($xssResult),
+            'has_xss_high' => $hasXssHigh,
+            'has_syntax_error' => $hasSyntaxError,
+        ];
+    }
+
+    /**
+     * 单文件语法校验
+     */
+    public function validateSyntaxFile(string $filePath): array
+    {
+        $validator = new \app\common\command\TemplateValidator();
+        return $validator->validateFile($filePath);
+    }
+
+    /**
+     * 单文件XSS扫描
+     */
+    public function scanXssFile(string $filePath): array
+    {
+        $scanner = new \app\common\command\TemplateXssScanner();
+        return $scanner->scanFile($filePath);
+    }
+
+    /**
      * CSS变量规范检查
      *
      * 检查主题是否包含必要的CSS变量引用，以及变量名是否规范

@@ -36,6 +36,7 @@ class AiThemeRecord extends Model
         'options'        => 'json',
         'validate_result'=> 'json',
         'files_tree'     => 'json',
+        'prompt_log'     => 'string',
     ];
 
     // 状态常量
@@ -229,5 +230,53 @@ class AiThemeRecord extends Model
     public static function incrementRetry(int $id): void
     {
         self::where('id', $id)->inc('retry_count', 1)->update();
+    }
+
+    /**
+     * 获取当前版本号（用于增量修改）
+     */
+    public function getCurrentVersion(): int
+    {
+        return (int) ($this->getAttr('version') ?? 0);
+    }
+
+    /**
+     * 递增版本号
+     */
+    public function bumpVersion(): static
+    {
+        $this->setAttr('version', $this->getCurrentVersion() + 1);
+        return $this;
+    }
+
+    /**
+     * 获取关联的对话日志
+     */
+    public function chatLogs(): \think\model\relation\HasMany
+    {
+        return $this->hasMany(AiThemeChatLog::class, 'record_id', 'id');
+    }
+
+    /**
+     * 获取对话日志列表
+     */
+    public function getChatLogs(?int $version = null): array
+    {
+        return AiThemeChatLog::getLogsByRecord((int) $this->id, $version);
+    }
+
+    /**
+     * 检查是否允许增量修改
+     * 允许状态: PENDING_REVIEW / VALIDATED / PUBLISHED / REJECTED
+     */
+    public function canModify(): bool
+    {
+        $status = (int) $this->getAttr('status');
+        return in_array($status, [
+            self::STATUS_PENDING_REVIEW,
+            self::STATUS_VALIDATED,
+            self::STATUS_PUBLISHED,
+            self::STATUS_REJECTED,
+        ], true);
     }
 }

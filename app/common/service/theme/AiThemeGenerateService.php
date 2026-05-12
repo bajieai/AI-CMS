@@ -314,4 +314,271 @@ PROMPT;
         $todayCount = AiThemeRecord::getTodayCount();
         return max(0, $limit - $todayCount);
     }
+
+    // ==================== V3.0 Phase 3: 增量修改（同步模式） ====================
+
+    /**
+     * 增量修改（多轮对话）—— 同步模式
+     *
+     * @param int $recordId 主题记录ID
+     * @param int $userId 用户ID
+     * @param string $instruction 用户修改指令
+     * @return array ['success'=>bool, 'message'=>string, 'changed_files'=>array, 'validate_result'=>array]
+     */
+    public function generateIncremental(int $recordId, int $userId, string $instruction): array
+    {
+        $record = AiThemeRecord::find($recordId);
+        if (!$record) {
+            return ['success' => false, 'message' => '记录不存在'];
+        }
+
+        if (!$record->canModify()) {
+            return ['success' => false, 'message' => '当前状态不允许修改'];
+        }
+
+        $themeName = $record->theme_name;
+        $baseDir = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $themeName;
+
+        if (!is_dir($baseDir)) {
+            return ['success' => false, 'message' => '主题目录不存在'];
+        }
+
+        // 1. 版本备份
+        $versionManager = new ThemeVersionManager();
+        $backupResult = $versionManager->backupBeforeChange($themeName, $record->getCurrentVersion(), $instruction);
+        if (!$backupResult['success']) {
+            Log::warning("[AiThemeGenerate] 备份失败，继续执行: record_id={$recordId}");
+        }
+
+        // 2. 读取当前文件快照
+        $currentFiles = $this->scanThemeFiles($baseDir);
+
+        // 3. 构建 Prompt
+        $contextBuilder = new IncrementalContextBuilder();
+        $promptData = $contextBuilder->buildIncrementalPrompt($record, $instruction, $currentFiles);
+
+        // 4. 检查 Token 预算
+        if ($promptData['context_tokens'] > $contextBuilder->contextBudget) {
+            return ['success' => false, 'message' => '对话上下文过长，请新建对话'];
+        }
+
+        // 5. 记录用户消息
+        $currentVersion = $record->getCurrentVersion();
+        AiThemeChatLog::logMessage($recordId, $currentVersion, $userId, AiThemeChatLog::ROLE_USER, $instruction);
+
+        try {
+            // 6. 调用 LLM（同步，直接等待）
+            $maxTokens = (int) config('ai.theme_chat.max_tokens', 8192);
+            $llmResponse = $this->getProvider()->write($promptData['prompt'], [
+                'system_prompt' => $promptData['system_prompt'],
+                'max_tokens'    => $maxTokens,
+                'temperature'   => 0.3,
+            ]);
+
+            // 7. 解析响应
+            $files = $this->parseResponse($llmResponse);
+
+            if (empty($files)) {
+                throw new \RuntimeException('LLM 未返回有效文件内容');
+            }
+
+            // 8. 处理文件变更（写入/删除）
+            $changedFiles = [];
+            $writeFiles = [];
+            foreach ($files as $file) {
+                $path = $file['path'] ?? '';
+                $content = $file['content'] ?? '';
+                if (empty($path)) {
+                    continue;
+                }
+                if ($content === '[DELETE]') {
+                    $this->fileService->deleteThemeFile($baseDir, $path);
+                    $changedFiles[] = $path . ' (删除)';
+                } else {
+                    $writeFiles[] = $file;
+                    $changedFiles[] = $path;
+                }
+            }
+
+            // 9. 写入变更文件
+            if (!empty($writeFiles)) {
+                $this->fileService->writeThemeFiles($baseDir, $writeFiles);
+            }
+
+            // 10. 单文件校验（只校验变更的文件）
+            $validateErrors = [];
+            foreach ($writeFiles as $file) {
+                $filePath = $baseDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file['path']);
+                $fileResult = $this->validatorService->validateFile($filePath);
+                if (!$fileResult['passed']) {
+                    $validateErrors[] = $file['path'] . ': ' . $fileResult['summary'];
+                }
+            }
+
+            // 11. 版本号递增
+            $record->bumpVersion();
+            $record->save();
+
+            // 12. 记录 AI 响应
+            AiThemeChatLog::logMessage(
+                $recordId,
+                $record->getCurrentVersion(),
+                $userId,
+                AiThemeChatLog::ROLE_AI,
+                $llmResponse,
+                $changedFiles
+            );
+
+            // 13. 更新文件树
+            $newFilesTree = $this->fileService->scanFilesTree($baseDir);
+            $record->files_tree = $newFilesTree;
+            $record->save();
+
+            Log::info("[AiThemeGenerate] 增量修改成功: record_id={$recordId}, version={$record->version}, files=" . implode(',', $changedFiles));
+
+            return [
+                'success'         => true,
+                'message'         => empty($validateErrors) ? '修改成功' : '修改成功，部分文件校验未通过: ' . implode('; ', $validateErrors),
+                'changed_files'   => $changedFiles,
+                'version'         => $record->getCurrentVersion(),
+                'validate_errors' => $validateErrors,
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error("[AiThemeGenerate] 增量修改失败: record_id={$recordId}, error=" . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => '修改失败: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * 单文件重生成 —— 同步模式
+     *
+     * @param int $recordId 主题记录ID
+     * @param int $userId 用户ID
+     * @param string $filePath 目标文件相对路径
+     * @param string $instruction 修改指令
+     * @return array ['success'=>bool, 'message'=>string, 'content'=>string]
+     */
+    public function regenerateFile(int $recordId, int $userId, string $filePath, string $instruction): array
+    {
+        $record = AiThemeRecord::find($recordId);
+        if (!$record) {
+            return ['success' => false, 'message' => '记录不存在'];
+        }
+
+        if (!$record->canModify()) {
+            return ['success' => false, 'message' => '当前状态不允许修改'];
+        }
+
+        $themeName = $record->theme_name;
+        $baseDir = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $themeName;
+        $fullPath = $baseDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $filePath);
+
+        if (!is_file($fullPath)) {
+            return ['success' => false, 'message' => '文件不存在: ' . $filePath];
+        }
+
+        $fileContent = file_get_contents($fullPath) ?: '';
+
+        // 1. 版本备份
+        $versionManager = new ThemeVersionManager();
+        $backupResult = $versionManager->backupBeforeChange($themeName, $record->getCurrentVersion(), "修改 {$filePath}");
+
+        // 2. 构建 Prompt
+        $contextBuilder = new IncrementalContextBuilder();
+        $promptData = $contextBuilder->buildFileRegeneratePrompt($record, $filePath, $fileContent, $instruction);
+
+        // 3. 记录用户消息
+        $currentVersion = $record->getCurrentVersion();
+        AiThemeChatLog::logMessage($recordId, $currentVersion, $userId, AiThemeChatLog::ROLE_USER, "修改 {$filePath}: {$instruction}");
+
+        try {
+            // 4. 调用 LLM
+            $maxTokens = (int) config('ai.theme_chat.max_tokens', 8192);
+            $llmResponse = $this->getProvider()->write($promptData['prompt'], [
+                'system_prompt' => $promptData['system_prompt'],
+                'max_tokens'    => $maxTokens,
+                'temperature'   => 0.3,
+            ]);
+
+            // 5. 解析响应
+            $files = $this->parseResponse($llmResponse);
+
+            if (empty($files)) {
+                throw new \RuntimeException('LLM 未返回有效文件内容');
+            }
+
+            $newFile = $files[0];
+            $newContent = $newFile['content'] ?? '';
+
+            // 6. 写入文件
+            $this->fileService->writeThemeFiles($baseDir, [['path' => $filePath, 'content' => $newContent]]);
+
+            // 7. 单文件校验
+            $validateResult = $this->validatorService->validateFile($fullPath);
+
+            // 8. 版本号递增
+            $record->bumpVersion();
+            $record->save();
+
+            // 9. 记录 AI 响应
+            AiThemeChatLog::logMessage(
+                $recordId,
+                $record->getCurrentVersion(),
+                $userId,
+                AiThemeChatLog::ROLE_AI,
+                $llmResponse,
+                [$filePath]
+            );
+
+            // 10. 更新文件树
+            $newFilesTree = $this->fileService->scanFilesTree($baseDir);
+            $record->files_tree = $newFilesTree;
+            $record->save();
+
+            Log::info("[AiThemeGenerate] 单文件重生成成功: record_id={$recordId}, file={$filePath}, version={$record->version}");
+
+            return [
+                'success'          => true,
+                'message'          => $validateResult['passed'] ? '文件修改成功' : '文件已修改，校验未通过: ' . $validateResult['summary'],
+                'content'          => $newContent,
+                'validate_result'  => $validateResult,
+                'version'          => $record->getCurrentVersion(),
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error("[AiThemeGenerate] 单文件重生成失败: record_id={$recordId}, file={$filePath}, error=" . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => '文件修改失败: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * 扫描主题目录获取文件内容快照
+     */
+    protected function scanThemeFiles(string $baseDir): array
+    {
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($baseDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+            $relPath = str_replace($baseDir . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            $relPath = str_replace(DIRECTORY_SEPARATOR, '/', $relPath);
+            if (in_array($file->getExtension(), ['html', 'css', 'js', 'json'], true)) {
+                $files[$relPath] = file_get_contents($file->getPathname()) ?: '';
+            }
+        }
+
+        return $files;
+    }
 }

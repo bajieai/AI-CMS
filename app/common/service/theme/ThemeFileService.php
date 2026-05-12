@@ -227,6 +227,34 @@ class ThemeFileService
     }
 
     /**
+     * 删除主题中的单个文件
+     *
+     * @param string $baseDir 主题根目录
+     * @param string $relativePath 相对路径
+     * @return bool
+     */
+    public function deleteThemeFile(string $baseDir, string $relativePath): bool
+    {
+        if (!$this->isPathSafe($relativePath)) {
+            return false;
+        }
+
+        $targetPath = rtrim($baseDir, '/\\') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        $realPath = realpath($targetPath);
+        $themeRealPath = realpath($baseDir);
+
+        if ($realPath === false || $themeRealPath === false || !str_starts_with($realPath, $themeRealPath)) {
+            return false;
+        }
+
+        if (!is_file($realPath)) {
+            return false;
+        }
+
+        return unlink($realPath);
+    }
+
+    /**
      * 扫描主题目录生成文件树（用于审核后台浏览）
      */
     public function scanFilesTree(string $themePath): array

@@ -47,6 +47,14 @@ return [
         'temperature'   => (float) env('ai.theme_generate.temperature', 0.5),
     ],
 
+    // ==================== AI主题对话修改配置（V3.0 Phase 3） ====================
+    'theme_chat' => [
+        'max_rounds'     => (int) env('ai.theme_chat.max_rounds', 10),
+        'timeout'        => (int) env('ai.theme_chat.timeout', 60),
+        'max_tokens'     => (int) env('ai.theme_chat.max_tokens', 8192),
+        'context_budget' => (int) env('ai.theme_chat.context_budget', 15000),
+    ],
+
     // ==================== AI配图配置（V2.9补全Flux/DALL-E） ====================
     'image' => [
         'default_provider'  => env('ai.image.default', 'tongyi_wanxiang'),

@@ -14,6 +14,7 @@
             <div class="card-body">
                 <p class="mb-1"><strong>ID:</strong> {$record.id}</p>
                 <p class="mb-1"><strong>主题名:</strong> <code>{$record.theme_name}</code></p>
+                <p class="mb-1"><strong>版本:</strong> v{$record.version|default=0}</p>
                 <p class="mb-1"><strong>状态:</strong> <span class="badge bg-{$record.status_style}">{$record.status_text}</span></p>
                 <p class="mb-1"><strong>Token:</strong> {$record.token_cost}</p>
                 <p class="mb-1"><strong>重试:</strong> {$record.retry_count}</p>
@@ -78,7 +79,7 @@
         </div>
     </div>
 
-    <!-- 右侧：文件树 + 代码浏览 -->
+    <!-- 右侧：文件树 + 代码浏览 + AI助手 -->
     <div class="col-lg-9">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -93,7 +94,7 @@
                     <div class="col-md-3 border-end" style="max-height:600px; overflow-y:auto;">
                         <div class="p-2">
                             {php}
-                            function renderTree($tree, $prefix = '') {
+                            function renderTree($tree, $prefix = '', $canModify = false) {
                                 foreach ($tree as $name => $node) {
                                     $isDir = isset($node['type']) && $node['type'] === 'dir';
                                     $path = $prefix ? $prefix . '/' . $name : $name;
@@ -101,24 +102,37 @@
                                         echo '<div class="mb-1">';
                                         echo '<span class="text-muted small"><i class="bi bi-folder-fill me-1"></i>' . htmlspecialchars($name) . '</span>';
                                         echo '<div class="ms-3">';
-                                        renderTree($node['children'] ?? [], $path);
+                                        renderTree($node['children'] ?? [], $path, $canModify);
                                         echo '</div></div>';
                                     } else {
-                                        echo '<div class="mb-1">';
-                                        echo '<a href="?id=' . request()->param('id') . '&file=' . urlencode($path) . '" class="small text-decoration-none' . (request()->param('file') === $path ? ' fw-bold text-primary' : ' text-dark') . '">';
+                                        $isActive = request()->param('file') === $path;
+                                        echo '<div class="mb-1 d-flex align-items-center justify-content-between">';
+                                        echo '<a href="?id=' . request()->param('id') . '&file=' . urlencode($path) . '" class="small text-decoration-none' . ($isActive ? ' fw-bold text-primary' : ' text-dark') . '">';
                                         echo '<i class="bi bi-file-earmark-code me-1"></i>' . htmlspecialchars($name) . '</a>';
+                                        if ($canModify && in_array(pathinfo($path, PATHINFO_EXTENSION), ['html', 'css', 'js'])) {
+                                            echo '<button class="btn btn-link btn-sm p-0 ms-1 text-muted ai-modify-file" data-file="' . htmlspecialchars($path) . '" title="AI修改"><i class="bi bi-magic"></i></button>';
+                                        }
                                         echo '</div>';
                                     }
                                 }
                             }
-                            renderTree($files_tree);
+                            $canModify = in_array($record['status'], [1, 2, 3, 4]);
+                            renderTree($files_tree, '', $canModify);
                             {/php}
                         </div>
                     </div>
                     <!-- 代码浏览 -->
                     <div class="col-md-9" style="max-height:600px; overflow-y:auto;">
                         {if condition="!empty($view_file)"}
-                        <pre class="m-0 p-3 bg-light small" style="min-height:600px;"><code>{$file_content|raw}</code></pre>
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
+                            <span class="small text-muted">{$view_file}</span>
+                            {if condition="$canModify"}
+                            <button class="btn btn-sm btn-outline-primary ai-modify-file" data-file="{$view_file}">
+                                <i class="bi bi-magic me-1"></i>AI修改
+                            </button>
+                            {/if}
+                        </div>
+                        <pre class="m-0 p-3 bg-light small" style="min-height:560px;"><code>{$file_content|raw}</code></pre>
                         {else}
                         <div class="d-flex align-items-center justify-content-center text-muted" style="min-height:400px;">
                             <div class="text-center">
@@ -131,6 +145,11 @@
                 </div>
             </div>
         </div>
+
+        <!-- AI助手面板（仅可修改状态显示） -->
+        {if condition="$canModify"}
+        {include file="ai_theme/include/ai_assistant" /}
+        {/if}
     </div>
 </div>
 {/block}
@@ -179,5 +198,34 @@ function retryTheme(id) {
         }
     });
 }
+
+// AI助手初始化
+{if condition="$canModify"}
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.AiAssistant) {
+        AiAssistant.init({ recordId: {$record.id} });
+    }
+
+    // 文件树中的AI修改按钮
+    document.querySelectorAll('.ai-modify-file').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var filePath = this.dataset.file;
+            if (window.AiAssistant) {
+                AiAssistant.regenerateFile(filePath);
+            }
+        });
+    });
+
+    // 刷新文件树事件
+    document.addEventListener('ai-theme-refresh', function() {
+        setTimeout(function() {
+            location.reload();
+        }, 500);
+    });
+});
+{/if}
 </script>
+<script src="/assets/js/ai-assistant.js"></script>
 {/block}

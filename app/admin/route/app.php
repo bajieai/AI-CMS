@@ -225,3 +225,27 @@ Route::get('plugin_market/checkUpdates$', '\app\admin\controller\PluginMarketCon
 // V2.9.4: 插件评分
 Route::post('plugin_market/rate$', '\app\admin\controller\PluginMarketController@rate');
 Route::get('plugin_market/getRating$', '\app\admin\controller\PluginMarketController@getRating');
+
+// V3.0 Phase 2/3: AI主题生成路由
+Route::get('ai_theme/index$', '\app\admin\controller\AiThemeController@index');
+Route::get('ai_theme/generate$', '\app\admin\controller\AiThemeController@generate');
+Route::post('ai_theme/doGenerate$', '\app\admin\controller\AiThemeController@doGenerate');
+Route::get('ai_theme/progress$', '\app\admin\controller\AiThemeController@progress');
+Route::get('ai_theme/detail/:id$', '\app\admin\controller\AiThemeController@detail');
+Route::post('ai_theme/approve$', '\app\admin\controller\AiThemeController@approve');
+Route::post('ai_theme/publish$', '\app\admin\controller\AiThemeController@publish');
+Route::post('ai_theme/reject$', '\app\admin\controller\AiThemeController@reject');
+Route::post('ai_theme/retry$', '\app\admin\controller\AiThemeController@retry');
+Route::get('ai_theme/preview_url$', '\app\admin\controller\AiThemeController@preview_url');
+Route::get('ai_theme/tweak/:id$', '\app\admin\controller\AiThemeController@tweak');
+Route::post('ai_theme/save_tweak$', '\app\admin\controller\AiThemeController@save_tweak');
+Route::post('ai_theme/reset_tweak$', '\app\admin\controller\AiThemeController@reset_tweak');
+// V3.0 Phase 3: AI模板增强路由
+Route::post('ai_theme/chat$', '\app\admin\controller\AiThemeController@chat');
+Route::post('ai_theme/regenerateFile$', '\app\admin\controller\AiThemeController@regenerateFile');
+Route::post('ai_theme/rollback$', '\app\admin\controller\AiThemeController@rollback');
+Route::get('ai_theme/versionHistory/:id$', '\app\admin\controller\AiThemeController@versionHistory');
+Route::get('ai_theme/versionDiff$', '\app\admin\controller\AiThemeController@versionDiff');
+Route::get('ai_theme/exportTheme/:id$', '\app\admin\controller\AiThemeController@exportTheme');
+Route::post('ai_theme/importTheme$', '\app\admin\controller\AiThemeController@importTheme');
+Route::get('ai_theme/manage$', '\app\admin\controller\AiThemeController@manage');

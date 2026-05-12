@@ -1,13 +1,13 @@
 {if condition="$info.is_paid && $info.status == 2"}
-<div class="i8j-reward-box text-center py-3 my-3 rounded" style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px dashed #fdba74;">
-    <i class="bi bi-heart-fill" style="color:#f97316;font-size:1.25rem;"></i>
+<div class="i8j-reward-box text-center py-3 my-3 rounded" style="background:linear-gradient(135deg,var(--i8j-bg-secondary),var(--i8j-bg-tertiary,#f1f5f9));border:1px dashed var(--i8j-warning-light,#fdba74);">
+    <i class="bi bi-heart-fill" style="color:var(--i8j-warning);font-size:1.25rem;"></i>
     <p class="text-secondary small mb-2 mt-1">觉得内容不错？打赏支持作者</p>
     {if $isMemberLogin}
-    <button type="button" class="btn btn-sm" style="background:#f97316;color:#fff;border-radius:20px;font-weight:600;" onclick="rewardContent({$info.id})">
+    <button type="button" class="btn btn-sm" style="background:var(--i8j-warning);color:var(--i8j-bg);border-radius:20px;font-weight:600;" onclick="rewardContent({$info.id})">
         <i class="bi bi-gift me-1"></i>打赏
     </button>
     {else}
-    <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-sm" style="background:#f97316;color:#fff;border-radius:20px;font-weight:600;">
+    <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-sm" style="background:var(--i8j-warning);color:var(--i8j-bg);border-radius:20px;font-weight:600;">
         <i class="bi bi-gift me-1"></i>登录后打赏
     </a>
     {/if}
