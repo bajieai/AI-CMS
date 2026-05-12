@@ -436,7 +436,7 @@ abstract class AdminBaseController extends \think\BaseController
             'code' => $code,
             'msg' => $msg,
             'data' => $data,
-        ], 200, [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+        ], 200, [], ['json_encode_param' => JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE]);
     }
 
     /**
@@ -448,7 +448,7 @@ abstract class AdminBaseController extends \think\BaseController
             'code' => $code,
             'msg' => $msg,
             'data' => $data,
-        ], 200, [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+        ], 200, [], ['json_encode_param' => JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE]);
     }
 
     /**

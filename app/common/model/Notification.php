@@ -29,7 +29,9 @@ class Notification extends Model
             'publish' => '发布通知',
             'title' => '标题通知',
             'comment_reply' => '评论回复',
-            'content_approve' => '内容审核',
+            'content_approve' => '内容审核通过',
+            'content_reject' => '内容审核驳回',
+            'reward_receive' => '收到打赏',
         ];
         return $map[$data['type']] ?? '未知';
     }

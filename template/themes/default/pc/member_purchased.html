@@ -29,6 +29,7 @@
                                 {if $vo.pay_type == 'points'}<i class="bi bi-star me-1"></i>{$vo.price|default=0} 积分{else/}¥{$vo.price|default='0.00'}{/if}
                             </div>
                             <span class="badge bg-success">已支付</span>
+                            <span class="badge bg-info">{$vo.type_text}</span>
                         </div>
                     </div>
                 </a>

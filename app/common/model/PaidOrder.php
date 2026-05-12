@@ -25,6 +25,26 @@ class PaidOrder extends Model
     ];
 
     /**
+     * V2.9.5 type 枚举：content_purchase(内容购买) / reward(打赏) / download(下载付费)
+     */
+    public const TYPE_CONTENT_PURCHASE = 'content_purchase';
+    public const TYPE_REWARD           = 'reward';
+    public const TYPE_DOWNLOAD         = 'download';
+
+    /**
+     * V2.9.5 获取类型友好文案
+     */
+    public function getTypeTextAttr($value, $data): string
+    {
+        return match ($data['type'] ?? '') {
+            self::TYPE_CONTENT_PURCHASE => '内容购买',
+            self::TYPE_REWARD           => '打赏',
+            self::TYPE_DOWNLOAD         => '下载付费',
+            default                     => '其他',
+        };
+    }
+
+    /**
      * V2.9.5 获取关联的PaymentService订单号
      */
     public function getPaymentOrderNo(): string

@@ -83,7 +83,7 @@
                     <img src="https://placehold.co/400x200/f1f5f9/64748b?text=Product" class="card-img-top" alt="{$field.title}">
                     {/if}
                     <div class="card-body">
-                        <h5 class="card-title"><a href="{$field.url}" class="text-decoration-none stretched-link">{$field.title}</a></h5>
+                        <h5 class="card-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><a href="{$field.url}" class="text-decoration-none stretched-link">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}</h5>
                         <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{$field.create_time|date='Y-m-d'}</small>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                     <img src="https://placehold.co/400x250/334155/e2e8f0?text=Case" alt="{$field.title}">
                     {/if}
                     <div class="overlay">
-                        <h5>{$field.title}</h5>
+                        <h5 style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">{$field.title}{include file="shared/paid_badge" item="$field" /}</h5>
                         <p>{$field.excerpt|msubstr=0,50}</p>
                     </div>
                 </div>
@@ -140,8 +140,8 @@
                     {/if}
                     <div class="card-body">
                         <span class="badge bg-opacity-10 rounded-pill mb-2" style="background:var(--color-accent);color:#fff;font-size:.75rem;"><i class="bi bi-lightning-fill me-1"></i>头条</span>
-                        <h4 class="fw-bold" style="font-size:1.2rem;line-height:1.4;">
-                            <a href="{$field.url}" class="text-decoration-none stretched-link" style="color:#1e293b">{$field.title}</a>
+                        <h4 class="fw-bold" style="font-size:1.2rem;line-height:1.4;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                            <a href="{$field.url}" class="text-decoration-none stretched-link" style="color:#1e293b">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}
                         </h4>
                         <p class="text-muted small mb-2">{$field.excerpt|msubstr=0,120}</p>
                         <small class="text-muted"><i class="bi bi-clock me-1"></i>{$field.create_time|date='Y-m-d H:i'}</small>
@@ -157,8 +157,8 @@
                     {/if}
                     <div class="card-body p-3">
                         <small class="text-muted d-block mb-1"><i class="bi bi-clock me-1"></i>{$field.create_time|date='m-d'}</small>
-                        <h6 class="card-title" style="font-size:0.95rem;">
-                            <a href="{$field.url}" class="text-decoration-none stretched-link">{$field.title}</a>
+                        <h6 class="card-title" style="font-size:0.95rem;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                            <a href="{$field.url}" class="text-decoration-none stretched-link">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}
                         </h6>
                         <p class="card-text" style="font-size:.85rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{$field.excerpt|msubstr=0,70}</p>
                     </div>

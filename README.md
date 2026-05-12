@@ -2,21 +2,31 @@
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.5-blue)
+![Version](https://img.shields.io/badge/version-3.0.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
-![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
+![ThinkPHP](https://img.shields.io/badge/ThinkPHP-6.0-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.5 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。V2.9.5 定位"安全加固 × 性能优化 × 付费桥接 × UI一致性"，聚焦五大方向：
+八界AI-CMS V3.0 Phase 1 是基于 ThinkPHP 6 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-1. **安全加固** - XSS输出层过滤、前台CSRF防护、SQL注入审计修复、上传安全硬ening（MIME魔数+黑名单+UUID文件名）
-2. **性能优化** - 缓存Vary头一致性、Redis分层清除、N+1查询修复、API响应JSON加固、前端资源优化
-3. **付费阅读桥接** - PaidService ↔ PaymentService 双订单桥接（不合并订单体系），真钱支付与积分/VIP体系共存
-4. **UI/UX一致性** - 零依赖Toast组件、统一空状态/骨架屏/404组件、4套主题会员等级时间线、消息分类筛选
-5. **运营效率** - 轻量级内容审批（单条通过/驳回+批量操作）、个人消息分类与未读计数
+**V3.0 Phase 1 定位：V2.9→V3.0过渡桥接**，在保留V2.9.x全部能力的基础上，完成微量缺口清零 + V3.0地基预研：
 
-为V3.0平台化升级奠定坚实的安全与性能基座。
+**Sprint 1 — 收尾清理：**
+1. **付费标识** — 首页/列表页付费文章标题旁显示🔒锁图标，4套模板统一
+2. **CSP配置化** — 硬编码CSP迁移到 `config/csp.php`，支持Report-Only/Enforce切换
+3. **存储层转义** — Comment/Member/Message模型钩子 + Service层收敛，消除双重转义
+4. **SQL安全审计** — Db::query/execute/whereRaw全量扫描 + 参数绑定修复 + 定期审计脚本
+5. **内容打赏** — 复用PaidService订单体系，完整流程（金额选择→支付→回调→通知）
+6. **个人消息扩展** — Notification体系type枚举扩展，零新建表
+
+**Sprint 2 — V3.0地基（预研）：**
+7. **AI模板可视化预研** — 方案C（AI生成模板文件）为主 + 方案A（CSS变量配置化）辅助
+8. **模板规范v1.0** — 目录结构/HTML标签/CSS变量/JS注册/theme.zip打包规范
+9. **UI组件库规划** — 基于V2.9.5 Toast/Empty/Skeleton升级为系统化组件库
+10. **架构升级评估** — PJAX增强（非SPA重构）/ CSS变量标准化 / PHP 8.3升级路径
+
+为V3.0核心开发（AI模板生成引擎）奠定规范与预研基础。
 
 ### 核心特性
 
@@ -180,8 +190,8 @@
 
 | 层级 | 技术 | 说明 |
 |------|------|------|
-| 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
-| 语言 | PHP 8.2+ | 严格类型声明 |
+| 后端框架 | ThinkPHP 6 | 多应用模式(admin/home/api/install/common) |
+| 语言 | PHP 8.1+ | 严格类型声明 |
 | 数据库 | MySQL 8.0 | 49+张数据表，前缀 i8j_ |
 | 缓存 | Redis | CacheService标签体系(17标签) |
 | Session | PHP原生文件Session | 24小时过期 |
@@ -262,6 +272,7 @@ AI-CMS/
 │       └── helper.php          #   全局助手函数
 ├── config/                     # 框架全局配置
 │   ├── app.php                 #   应用配置
+│   ├── csp.php                 #   CSP策略配置(V3.0新增)
 │   ├── database.php            #   数据库配置
 │   ├── template.php            #   模板引擎(含I8j标签库)
 │   ├── session.php             #   Session配置
@@ -272,6 +283,7 @@ AI-CMS/
 │   ├── payment.php             #   支付配置
 │   ├── storage.php             #   对象存储配置
 │   ├── meilisearch.php         #   MeiliSearch配置
+│   ├── upload_security.php     #   上传安全配置
 │   └── info_type_fields.php    #   扩展字段定义
 ├── template/                   # 模板目录
 │   ├── admin/                  #   后台模板
@@ -279,40 +291,46 @@ AI-CMS/
 │   │   └── corporate/          #     企业主题
 │   └── themes/                 #   前台主题
 │       ├── default/            #     默认主题(pc/mobile)
-│       └── corporate/          #     企业主题(pc/mobile)
+│       ├── corporate/          #     企业主题(pc/mobile)
+│       └── shared/             #     共享模板片段(V3.0新增)
+│           ├── paid_badge.html #       付费标识
+│           └── reward_button.html #    打赏按钮
 ├── public/                     # Web根目录
 │   ├── index.php               #   前台入口
 │   ├── admin.php               #   后台入口
 │   ├── install.php             #   安装入口
 │   ├── assets/                 #   公共静态资源(Bootstrap/jQuery/TinyMCE)
+│   │   └── js/                 #     前台组件(front-toast.js/front-components.js/front-csrf.js)
 │   ├── skin/                   #   主题静态资源(V2.6新增)
 │   │   ├── admin/              #     后台CSS/JS/图片/字体
 │   │   └── themes/             #     前台主题CSS/JS/图片/字体
 │   └── uploads/                #   上传目录
-├── bin/                        # 实用脚本(V2.9.5新增)
+├── bin/                        # 实用脚本
 │   ├── migrate.bat             #   数据库一键迁移(Windows)
-│   └── migrate.ps1             #   数据库一键迁移(PowerShell)
+│   ├── migrate.ps1             #   数据库一键迁移(PowerShell)
+│   ├── sql_audit.sh            #   SQL安全审计脚本(V3.0新增)
+│   ├── sql_audit.ps1           #   SQL安全审计脚本(V3.0新增)
+│   ├── validate-template.php   #   模板语法校验(V3.0新增)
+│   └── scan-template-xss.php   #   模板XSS扫描(V3.0新增)
 ├── database/                   # 数据库SQL
-│   ├── install.sql             #   建表SQL+初始数据
-│   ├── v2.5.sql                #   V2.5增量更新
-│   ├── v2.6.sql                #   V2.6增量更新
-│   ├── v2.7.sql                #   V2.7增量更新
-│   └── v2.8.sql                #   V2.8增量更新
-│   └── v2.9.sql                #   V2.9增量更新
-│   └── v2.9.1.sql              #   V2.9.1增量更新
-│   └── v2.9.2.sql              #   V2.9.2增量更新
-│   └── v2.9.3.sql              #   V2.9.3增量更新
-│   └── v2.9.5.sql              #   V2.9.5增量更新(幂等)
+│   ├── v2.5.sql ~ v2.9.5.sql   #   历史增量更新
+│   └── v3.0.sql                #   V3.0幂等升级脚本
+├── docs/                       # 项目文档(V3.0新增docs目录)
+│   ├── V3.0-AI模板可视化-技术预研报告.md
+│   ├── V3.0-模板规范-v1.0.md
+│   ├── V3.0-UI组件库设计文档.md
+│   ├── V3.0-架构升级建议书.md
+│   └── V3.0-CHANGELOG.md
 ├── miniprogram/                # 微信小程序(V2.9: 11页面)
-│   ├── pages/                  #   页面(index/detail/search/login/mine/coupon/invite/signin/order/payment/category)
+│   ├── pages/                  #   页面
 │   └── utils/                  #   工具(API封装)
 ├── plugin/                     # 插件目录
 ├── docker/                     # Docker配置
 │   ├── php/Dockerfile          #   PHP-FPM镜像
-│   ├── nginx/                  #   Nginx配置(含/skin/路径)
+│   ├── nginx/                  #   Nginx配置
 │   └── mysql/                  #   MySQL配置
 ├── deploy/                     # 生产部署配置
-│   └── nginx/aicms.conf       #   Nginx生产配置模板(含/skin/路径)
+│   └── nginx/aicms.conf        #   Nginx生产配置模板
 ├── .env.example                #   环境变量模板
 ├── .gitignore                  #   Git忽略规则
 ├── composer.json               #   Composer依赖
@@ -442,6 +460,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V3.0 Phase 1 | 2026-05 | V2.9→V3.0过渡桥接: 付费标识/CSP配置化+enforce切换/存储层htmlspecialchars/SQL全量审计/内容打赏补全/个人消息扩展/AI模板预研(方案C+A)/模板规范v1.0/UI组件库规划/架构升级评估 |
 | V2.9.5 | 2026-05 | 安全加固(XSS输出过滤+前台CSRF+SQL审计+上传MIME校验)/性能优化(Vary头+缓存预热+N+1修复+JSON加固)/付费阅读桥接(PaidService↔PaymentService双订单)/UI一致性(Toast+空状态+时间线+消息分类)/内容审批(单条+批量) |
 | V2.9.4 | 2026-05 | 优化完善×商业化准备: 发布看板+评分评价/AI质量检测+写作风格/支付框架+许可证+付费阅读/备份日志+降级日志 |
 | V2.9.3 | 2026-05 | 数据备份恢复增强(分块流式+gzip+文件备份+CLI+恢复安全保护)/多渠道分发增强(自动同步+formatContent+Token刷新)/插件商店首页(分类导航+推荐位+搜索+详情页+卡片跳转)/会员权益补全(等级进度页+自动降级CLI+isInGracePeriod+7天缓冲期) |
@@ -471,16 +490,16 @@ AI-CMS/
 ```bash
 # Docker 环境（一键迁移，自动复制SQL到容器并执行）
 bin\migrate.bat                          # Windows - 自动选最新SQL
-bin\migrate.bat database\v2.9.5.sql      # Windows - 指定SQL文件
+bin\migrate.bat database\v3.0.sql        # Windows - 指定SQL文件
 .\bin\migrate.ps1                        # PowerShell - 自动选最新SQL
-.\bin\migrate.ps1 database\v2.9.5.sql    # PowerShell - 指定SQL文件
+.\bin\migrate.ps1 database\v3.0.sql      # PowerShell - 指定SQL文件
 
 # 手动方式（Docker环境）
-docker cp database/v2.9.5.sql aicms_mysql:/tmp/
-docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v2.9.5.sql"
+docker cp database/v3.0.sql aicms_mysql:/tmp/
+docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
 ```
 
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需先执行 `v2.9.5.sql` 再执行 `v3.0.sql`。
 
 ## 常用Docker命令
 

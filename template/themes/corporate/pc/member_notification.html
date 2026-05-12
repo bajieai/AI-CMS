@@ -16,6 +16,8 @@
                 <a href="/member/notification?type=system" class="btn btn-outline-dark {if $current_type == 'system'}active{/if}">系统{if ($type_counts.system ?? 0) > 0}<span class="badge bg-danger ms-1">{$type_counts.system}</span>{/if}</a>
                 <a href="/member/notification?type=level_upgrade" class="btn btn-outline-dark {if $current_type == 'level_upgrade'}active{/if}">等级</a>
                 <a href="/member/notification?type=comment_reply" class="btn btn-outline-dark {if $current_type == 'comment_reply'}active{/if}">评论</a>
+                <a href="/member/notification?type=content_audit" class="btn btn-outline-dark {if $current_type == 'content_audit'}active{/if}">审核</a>
+                <a href="/member/notification?type=reward_receive" class="btn btn-outline-dark {if $current_type == 'reward_receive'}active{/if}">打赏</a>
             </div>
         </div>
 
@@ -23,7 +25,7 @@
             <!-- 通知时间线 -->
             {volist name="list" id="vo"}
             {php}
-                $cIconMap = ['system'=>'gear','review'=>'clipboard-check','publish'=>'send','comment_reply'=>'chat-dots','level_upgrade'=>'arrow-up-circle','level_downgrade'=>'arrow-down-circle','level_grace_warning'=>'exclamation-triangle'];
+                $cIconMap = ['system'=>'gear','review'=>'clipboard-check','publish'=>'send','comment_reply'=>'chat-dots','level_upgrade'=>'arrow-up-circle','level_downgrade'=>'arrow-down-circle','level_grace_warning'=>'exclamation-triangle','content_approve'=>'check-circle','content_reject'=>'x-circle','reward_receive'=>'gift'];
                 $cIcon = $cIconMap[$vo.type] ?? 'bell';
             {/php}
             <div class="d-flex gap-3 mb-4 position-relative ps-4" style="border-left:3px solid #e2e8f0;padding-left:1.75rem;">

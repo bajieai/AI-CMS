@@ -96,6 +96,31 @@ class NotificationService
     }
 
     /**
+     * V2.9.5 内容审核通过通知
+     */
+    public function notifyContentApprove(int $authorId, int $contentId): void
+    {
+        $this->send('member', $authorId, 'content_approve', '内容审核通过', '您发布的内容已通过审核，现已上线。', '/content/detail/id/' . $contentId);
+    }
+
+    /**
+     * V2.9.5 内容审核驳回通知
+     */
+    public function notifyContentReject(int $authorId, int $contentId, string $reason = ''): void
+    {
+        $msg = $reason ? "原因：{$reason}" : '请修改后重新提交。';
+        $this->send('member', $authorId, 'content_reject', '内容审核未通过', $msg, '/member/content');
+    }
+
+    /**
+     * V2.9.5 收到打赏通知
+     */
+    public function notifyRewardReceive(int $authorId, float $amount): void
+    {
+        $this->send('member', $authorId, 'reward_receive', '收到打赏', "恭喜！您收到了 ¥{$amount} 的打赏。", '/member/purchased');
+    }
+
+    /**
      * 获取通知列表
      */
     public function getList(string $receiverType, int $receiverId, int $isRead = null, int $page = 1, int $limit = 10): array

@@ -6,6 +6,7 @@ namespace app\common\middleware;
 use Closure;
 use think\Request;
 use think\Response;
+use think\facade\Config;
 
 /**
  * V2.9.5 XSS输出过滤中间件
@@ -56,31 +57,47 @@ class XssEscapeMiddleware
     }
 
     /**
-     * 添加安全响应头
+     * 添加安全响应头（从 config/csp.php 读取配置）
      */
     protected function addSecurityHeaders(Response $response, bool $isHtml): void
     {
-        $headers = [
+        $cspConfig = Config::get('csp', []);
+
+        // 1. 固定安全头（始终生效）
+        $securityHeaders = $cspConfig['headers'] ?? [
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options'        => 'SAMEORIGIN',
             'Referrer-Policy'        => 'strict-origin-when-cross-origin',
         ];
 
-        if ($isHtml) {
-            // CSP 报告模式（先观察，确认无第三方资源误报后切换为强制模式）
-            $csp = "default-src 'self'; "
-                . "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com *.gstatic.com; "
-                . "style-src 'self' 'unsafe-inline' *.googleapis.com; "
-                . "img-src 'self' data: blob: *.gravatar.com *.googleusercontent.com; "
-                . "font-src 'self' *.gstatic.com; "
-                . "connect-src 'self'; "
-                . "frame-ancestors 'self'; "
-                . "base-uri 'self'; "
-                . "form-action 'self';";
-            $headers['Content-Security-Policy-Report-Only'] = $csp;
+        // 2. CSP 头（仅 HTML 响应，且未关闭）
+        if ($isHtml && !empty($cspConfig['enabled'])) {
+            $csp = $this->buildCsp($cspConfig['directives'] ?? []);
+            if ($csp !== '') {
+                $enforce = !empty($cspConfig['enforce']);
+                $headerName = $enforce
+                    ? 'Content-Security-Policy'
+                    : 'Content-Security-Policy-Report-Only';
+                $securityHeaders[$headerName] = $csp;
+            }
         }
 
-        $response->header($headers);
+        $response->header($securityHeaders);
+    }
+
+    /**
+     * 将 directives 数组拼接为 CSP 策略字符串
+     */
+    protected function buildCsp(array $directives): string
+    {
+        $parts = [];
+        foreach ($directives as $directive => $values) {
+            if (empty($values)) {
+                continue;
+            }
+            $parts[] = $directive . ' ' . implode(' ', $values);
+        }
+        return implode('; ', $parts);
     }
 
     /**

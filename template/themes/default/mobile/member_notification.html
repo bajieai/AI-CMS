@@ -11,12 +11,14 @@
         <a href="/member/notification" class="btn btn-sm rounded-pill {if $current_type == ''}active{/if}" style="{if $current_type == ''}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">全部{if $unread_count > 0}<span class="badge bg-danger ms-1">{$unread_count}</span>{/if}</a>
         <a href="/member/notification?type=system" class="btn btn-sm rounded-pill {if $current_type == 'system'}active{/if}" style="{if $current_type == 'system'}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">系统{if ($type_counts.system ?? 0) > 0}<span class="badge bg-danger ms-1">{$type_counts.system}</span>{/if}</a>
         <a href="/member/notification?type=level_upgrade" class="btn btn-sm rounded-pill {if $current_type == 'level_upgrade'}active{/if}" style="{if $current_type == 'level_upgrade'}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">等级</a>
+        <a href="/member/notification?type=content_audit" class="btn btn-sm rounded-pill {if $current_type == 'content_audit'}active{/if}" style="{if $current_type == 'content_audit'}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">审核</a>
+        <a href="/member/notification?type=reward_receive" class="btn btn-sm rounded-pill {if $current_type == 'reward_receive'}active{/if}" style="{if $current_type == 'reward_receive'}background:#0d6efd;color:#fff;border:none;{else}background:#fff;color:#6c757d;border:1px solid #dee2e6;{/if}font-size:13px;padding:6px 16px;white-space:nowrap;">打赏</a>
     </div>
 
     <div id="notifList">
         {volist name="list" id="item"}
         {php}
-            $mIconMap = ['system'=>'gear','review'=>'clipboard-check','publish'=>'send','comment_reply'=>'chat-dots','level_upgrade'=>'arrow-up-circle','level_downgrade'=>'arrow-down-circle','level_grace_warning'=>'exclamation-triangle'];
+            $mIconMap = ['system'=>'gear','review'=>'clipboard-check','publish'=>'send','comment_reply'=>'chat-dots','level_upgrade'=>'arrow-up-circle','level_downgrade'=>'arrow-down-circle','level_grace_warning'=>'exclamation-triangle','content_approve'=>'check-circle','content_reject'=>'x-circle','reward_receive'=>'gift'];
             $mIcon = $mIconMap[$item.type] ?? 'bell';
         {/php}
         <div class="m-card" style="padding:12px 14px;{if condition="$item.is_read == 0"}border-left:3px solid #0d6efd;{/if}">

@@ -197,8 +197,11 @@ class MemberController extends FrontBaseController
         $query = NotificationModel::where('receiver_type', 'member')
             ->where('receiver_id', $memberId);
 
-        if ($type && in_array($type, ['system', 'review', 'publish', 'comment_reply', 'level_upgrade', 'level_downgrade', 'level_grace_warning'])) {
+        $validTypes = ['system', 'review', 'publish', 'comment_reply', 'level_upgrade', 'level_downgrade', 'level_grace_warning', 'content_approve', 'content_reject', 'reward_receive'];
+        if ($type && in_array($type, $validTypes)) {
             $query->where('type', $type);
+        } elseif ($type === 'content_audit') {
+            $query->whereIn('type', ['content_approve', 'content_reject']);
         }
 
         $list = $query->order('create_time', 'desc')->paginate(20);

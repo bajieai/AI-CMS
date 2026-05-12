@@ -52,9 +52,11 @@ class PointsArchiveCommand extends Command
         $createSql = "CREATE TABLE IF NOT EXISTS {$archiveTable} LIKE {$logTable}";
         Db::execute($createSql);
 
-        // 迁移数据
-        $insertSql = "INSERT INTO {$archiveTable} SELECT * FROM {$logTable} WHERE create_time >= {$startTime} AND create_time < {$endTime}";
-        $migrated = Db::execute($insertSql);
+        // 迁移数据（V2.9.5 安全修复：时间条件使用参数绑定，防止潜在SQL注入）
+        $migrated = Db::execute(
+            "INSERT INTO `{$archiveTable}` SELECT * FROM `{$logTable}` WHERE create_time >= ? AND create_time < ?",
+            [$startTime, $endTime]
+        );
 
         // 删除原表数据
         $deleted = Db::name('points_log')

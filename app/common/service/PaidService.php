@@ -160,7 +160,7 @@ class PaidService
             'order_sn'  => $orderSn,
             'member_id' => $memberId,
             'content_id' => $contentId,
-            'type'      => 'content',
+            'type'      => PaidOrder::TYPE_CONTENT_PURCHASE,
             'price'     => $finalPrice,
             'pay_type'  => $orderPayType,
             'status'    => 0,
@@ -180,6 +180,58 @@ class PaidService
             }
             $paidOrderData['payment_order_no'] = $paymentResult['order_no'];
         }
+
+        $order = PaidOrder::create($paidOrderData);
+
+        return $order->toArray();
+    }
+
+    /**
+     * V2.9.5 创建打赏订单
+     * 复用 PaymentService 支付链路，跳过优惠/等级/积分折扣逻辑
+     * @param int $memberId 打赏者ID
+     * @param int $contentId 被打赏内容ID
+     * @param float $amount 打赏金额（元），范围 0.01 ~ 999
+     * @param string $payType 支付方式（默认 wechat）
+     * @return array 订单信息
+     * @throws \Exception
+     */
+    public static function createRewardOrder(int $memberId, int $contentId, float $amount, string $payType = 'wechat'): array
+    {
+        // 金额校验
+        if ($amount < 0.01 || $amount > 999) {
+            throw new \Exception('打赏金额需在 0.01 ~ 999 元之间');
+        }
+
+        $content = Content::find($contentId);
+        if (!$content || $content->status != 2) {
+            throw new \Exception('内容不存在或未发布');
+        }
+
+        $orderSn = 'R' . date('YmdHis') . str_pad((string) $memberId, 6, '0', STR_PAD_LEFT) . rand(100, 999);
+
+        $paidOrderData = [
+            'order_sn'   => $orderSn,
+            'member_id'  => $memberId,
+            'content_id' => $contentId,
+            'type'       => PaidOrder::TYPE_REWARD,
+            'price'      => $amount,
+            'pay_type'   => 'money',
+            'status'     => 0,
+        ];
+
+        // 委托 PaymentService 创建统一支付订单
+        $paymentResult = PaymentService::createPayment(
+            $memberId,
+            'reward',
+            (string) $contentId,
+            $amount,
+            $payType
+        );
+        if (!$paymentResult['success']) {
+            throw new \Exception('创建支付订单失败: ' . ($paymentResult['msg'] ?? '未知错误'));
+        }
+        $paidOrderData['payment_order_no'] = $paymentResult['order_no'];
 
         $order = PaidOrder::create($paidOrderData);
 
@@ -414,7 +466,7 @@ class PaidService
         // 检查是否有独立的下载付费订单
         $hasDownloadOrder = PaidOrder::where('member_id', $memberId)
             ->where('content_id', $contentId)
-            ->where('type', 'download')
+            ->where('type', PaidOrder::TYPE_DOWNLOAD)
             ->where('status', 1)
             ->count() > 0;
 
@@ -429,7 +481,8 @@ class PaidService
      */
     public static function getPurchasedList(int $memberId, int $page = 1, int $limit = 20): array
     {
-        return PaidOrder::where('member_id', $memberId)
+        return PaidOrder::with(['content' => ['cate']])
+            ->where('member_id', $memberId)
             ->where('status', 1)
             ->order('paid_at', 'desc')
             ->page($page, $limit)

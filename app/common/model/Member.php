@@ -33,6 +33,14 @@ class Member extends Model
         return password_hash($value, PASSWORD_DEFAULT);
     }
 
+    /**
+     * V2.9.5 昵称存储转义，防止XSS
+     */
+    public function setNicknameAttr($value): string
+    {
+        return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+    }
+
     public function getStatusTextAttr($value, $data): string
     {
         return match ((int) $data['status']) {

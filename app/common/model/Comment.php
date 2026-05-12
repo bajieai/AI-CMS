@@ -24,6 +24,15 @@ class Comment extends Model
         'status' => 'integer',
     ];
 
+    /**
+     * V2.9.5 评论内容存储净化：先 strip_tags 去除标签，再 htmlspecialchars 转义实体
+     */
+    public function setContentAttr($value): string
+    {
+        $cleaned = strip_tags((string) $value);
+        return htmlspecialchars($cleaned, ENT_QUOTES, 'UTF-8');
+    }
+
     public function getStatusTextAttr($value, $data): string
     {
         $map = [0 => '待审', 1 => '已通过', -1 => '已拒绝'];

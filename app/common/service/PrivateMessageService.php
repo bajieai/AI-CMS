@@ -53,7 +53,7 @@ class PrivateMessageService
                 'conversation_id' => $conversation->id,
                 'from_user_id' => $fromUserId,
                 'to_user_id' => $toUserId,
-                'content' => htmlspecialchars(trim($content), ENT_QUOTES, 'UTF-8'),
+                'content' => trim($content),
                 'create_time' => time(),
             ]);
 

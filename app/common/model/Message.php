@@ -22,4 +22,12 @@ class Message extends Model
         'to_user_id' => 'integer',
         'is_read' => 'integer',
     ];
+
+    /**
+     * V2.9.5 私信内容存储转义，防止XSS
+     */
+    public function setContentAttr($value): string
+    {
+        return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+    }
 }

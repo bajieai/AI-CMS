@@ -20,9 +20,12 @@
                     </div>
                     {/if}
                     <div class="card-body p-3 d-flex flex-column">
-                        <span class="badge align-self-start rounded-pill mb-2 px-3" style="{if condition="$vo.status == 'paid'}background:#dcfce7;color:#16a34a;{else/}background:#fee2e2;color:#991b1b;{/if} font-size:.76rem;width:fit-content;">
-                            {if condition="$vo.status == 'paid'"}已完成{else/}{$vo.status|default='待支付'}{/if}
-                        </span>
+                        <div class="d-flex gap-2 align-items-center mb-2">
+                            <span class="badge rounded-pill px-3" style="{if condition="$vo.status == 'paid'"}background:#dcfce7;color:#16a34a;{else/}background:#fee2e2;color:#991b1b;{/if} font-size:.76rem;width:fit-content;">
+                                {if condition="$vo.status == 'paid'"}已完成{else/}{$vo.status|default='待支付'}{/if}
+                            </span>
+                            <span class="badge rounded-pill px-3" style="background:#e0f2fe;color:#0284c7;font-size:.76rem;width:fit-content;">{$vo.type_text}</span>
+                        </div>
                         <h6 class="card-title fw-bold mb-2" style="font-size:.96rem;line-height:1.38;">
                             <a href="{$vo.url}" class="text-decoration-none stretched-link" style="color:#1e293b">{$vo.title}</a>
                         </h6>

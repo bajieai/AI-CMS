@@ -302,6 +302,14 @@ class ContentController extends AdminBaseController
             $this->recordLog('发布内容', $info->title ?? '');
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+            // V2.9.5 通知作者
+            if (!empty($info->user_id)) {
+                try {
+                    (new \app\common\service\NotificationService())->notifyContentApprove($info->user_id, $info->id);
+                } catch (\Throwable $e) {
+                    \think\facade\Log::warning("发布通知发送失败: " . $e->getMessage());
+                }
+            }
             return $this->success('发布成功');
         }
         return $this->error('发布失败');
@@ -322,6 +330,14 @@ class ContentController extends AdminBaseController
             $this->recordLog('通过审核', $info->title ?? '');
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+            // V2.9.5 通知作者
+            if (!empty($info->user_id)) {
+                try {
+                    (new \app\common\service\NotificationService())->notifyContentApprove($info->user_id, $info->id);
+                } catch (\Throwable $e) {
+                    \think\facade\Log::warning("审核通知发送失败: " . $e->getMessage());
+                }
+            }
             return $this->success('审核通过');
         }
         return $this->error('操作失败');
@@ -342,6 +358,14 @@ class ContentController extends AdminBaseController
             $this->recordLog('驳回内容', $info->title ?? '');
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+            // V2.9.5 通知作者
+            if (!empty($info->user_id)) {
+                try {
+                    (new \app\common\service\NotificationService())->notifyContentReject($info->user_id, $info->id);
+                } catch (\Throwable $e) {
+                    \think\facade\Log::warning("驳回通知发送失败: " . $e->getMessage());
+                }
+            }
             return $this->success('已驳回，内容退回草稿状态');
         }
         return $this->error('操作失败');

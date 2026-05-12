@@ -60,7 +60,7 @@
                             <img data-src="{$vo.cover}" class="card-img-top lazyload" alt="{$vo.title}" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                             {/if}
                             <div class="card-body">
-                                <h5 class="card-title"><a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a></h5>
+                                <h5 class="card-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a>{include file="shared/paid_badge" item="$vo" /}</h5>
                                 <p class="card-text text-muted small">{$vo.excerpt|msubstr=0,100}</p>
                             </div>
                             <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">

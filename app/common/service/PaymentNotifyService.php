@@ -31,6 +31,9 @@ class PaymentNotifyService
                 case 'content':
                     self::notifyContentPurchase($order);
                     break;
+                case 'reward':
+                    self::notifyReward($order);
+                    break;
                 default:
                     Log::info("[PaymentNotify] 未知订单来源: {$order->source}");
             }
@@ -127,7 +130,7 @@ class PaymentNotifyService
                         'order_sn'   => 'P' . date('YmdHis') . str_pad((string) $order->user_id, 6, '0', STR_PAD_LEFT) . rand(100, 999),
                         'member_id'  => $order->user_id,
                         'content_id' => $contentId,
-                        'type'       => 'content',
+                        'type'       => PaidOrder::TYPE_CONTENT_PURCHASE,
                         'price'      => $order->amount,
                         'pay_type'   => 'money',
                         'status'     => 1,
@@ -139,6 +142,55 @@ class PaymentNotifyService
             }
         } catch (\Throwable $e) {
             Log::error("[PaymentNotify] 内容购买业务同步失败: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.5 打赏支付成功通知
+     */
+    protected static function notifyReward(Order $order): void
+    {
+        Log::info("[PaymentNotify] 打赏支付成功: user={$order->user_id} content={$order->source_id} order={$order->order_no}");
+
+        try {
+            // 查找关联的 PaidOrder 并完成业务
+            $paidOrder = PaidOrder::where('payment_order_no', $order->order_no)
+                ->where('status', 0)
+                ->find();
+            if ($paidOrder) {
+                PaidService::completePaymentByOrderNo($order->order_no, $order->user_id);
+                Log::info("[PaymentNotify] 打赏PaidOrder已同步完成: paid_order_sn={$paidOrder->order_sn}");
+            } else {
+                // 兜底：直接创建已完成的打赏记录
+                $contentId = (int) $order->source_id;
+                if ($contentId > 0) {
+                    PaidOrder::create([
+                        'order_sn'   => 'R' . date('YmdHis') . str_pad((string) $order->user_id, 6, '0', STR_PAD_LEFT) . rand(100, 999),
+                        'member_id'  => $order->user_id,
+                        'content_id' => $contentId,
+                        'type'       => PaidOrder::TYPE_REWARD,
+                        'price'      => $order->amount,
+                        'pay_type'   => 'money',
+                        'status'     => 1,
+                        'paid_at'    => time(),
+                        'payment_order_no' => $order->order_no,
+                    ]);
+                    Log::info("[PaymentNotify] 已兜底创建打赏PaidOrder记录: content_id={$contentId}");
+                }
+            }
+
+            // V2.9.5: 触发内容作者打赏收到通知
+            $content = \app\common\model\Content::find((int) $order->source_id);
+            if ($content && $content->user_id > 0) {
+                try {
+                    $notifyService = new NotificationService();
+                    $notifyService->notifyRewardReceive($content->user_id, (float) $order->amount);
+                } catch (\Throwable $e) {
+                    Log::warning("[PaymentNotify] 打赏通知发送失败: " . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error("[PaymentNotify] 打赏业务同步失败: " . $e->getMessage());
         }
     }
 }
