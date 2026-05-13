@@ -1,60 +1,60 @@
 {extend name="layout" /}
 
-{block name="title"}每日签到{/block}
+{block name="title"}姣忔棩绛惧埌{/block}
 
 {block name="content"}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <!-- 签到状态卡片 -->
+            <!-- 绛惧埌鐘舵€佸崱鐗?-->
             <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
                 <div class="card-body p-4" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:12px;color:#fff">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4 class="mb-1">每日签到</h4>
+                            <h4 class="mb-1">姣忔棩绛惧埌</h4>
                             <div style="opacity:.85;font-size:.9rem">
                                 {if $member.level}<span class="badge bg-light text-dark me-1">{$member.level.name}</span>{/if}
-                                当前积分：<strong>{$member.points|default=0}</strong>
+                                褰撳墠绉垎锛?strong>{$member.points|default=0}</strong>
                             </div>
                         </div>
                         <div class="text-end">
                             <div style="font-size:2.5rem;font-weight:700">{$consecutive_days|default=0}</div>
-                            <div style="font-size:.78rem;opacity:.8">连续签到天数</div>
+                            <div style="font-size:.78rem;opacity:.8">杩炵画绛惧埌澶╂暟</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 签到按钮 -->
+            <!-- 绛惧埌鎸夐挳 -->
             <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
                 <div class="card-body p-4 text-center">
                     {if $today_signed}
                     <div class="mb-3">
                         <i class="bi bi-check-circle-fill" style="font-size:3rem;color:#43e97b"></i>
                     </div>
-                    <h5 class="text-success">今日已签到</h5>
-                    <div class="text-muted" style="font-size:.9rem">获得 <strong class="text-primary">+{$today_points|default=0}</strong> 积分</div>
+                    <h5 class="text-success">浠婃棩宸茬鍒?/h5>
+                    <div class="text-muted" style="font-size:.9rem">鑾峰緱 <strong class="text-primary">+{$today_points|default=0}</strong> 绉垎</div>
                     {else/}
                     <div class="mb-3">
                         <i class="bi bi-calendar-check" style="font-size:3rem;color:var(--primary)"></i>
                     </div>
-                    <h5 class="mb-3">今日尚未签到</h5>
+                    <h5 class="mb-3">浠婃棩灏氭湭绛惧埌</h5>
                     <button class="btn btn-primary btn-lg px-5" id="btnSignin" style="border-radius:50px;font-size:1.1rem">
-                        <i class="bi bi-hand-thumbs-up me-2"></i>立即签到
+                        <i class="bi bi-hand-thumbs-up me-2"></i>绔嬪嵆绛惧埌
                     </button>
                     {/if}
                 </div>
             </div>
 
-            <!-- 签到日历 -->
+            <!-- 绛惧埌鏃ュ巻 -->
             <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
                 <div class="card-header" style="background:transparent;border-bottom:1px solid #e2e8f0;font-weight:600">
-                    <i class="bi bi-calendar3 me-1"></i>{$current_month} 签到日历
+                    <i class="bi bi-calendar3 me-1"></i>{$current_month} 绛惧埌鏃ュ巻
                 </div>
                 <div class="card-body p-3">
-                    <div class="row g-1 text-center mb-2" style="font-size:.78rem;color:#94a3b8">
-                        <div class="col">日</div><div class="col">一</div><div class="col">二</div>
-                        <div class="col">三</div><div class="col">四</div><div class="col">五</div><div class="col">六</div>
+                    <div class="row g-1 text-center mb-2" style="font-size:.78rem;color:var(--i8j-text-secondary,#94a3b8)">
+                        <div class="col">鏃?/div><div class="col">涓€</div><div class="col">浜?/div>
+                        <div class="col">涓?/div><div class="col">鍥?/div><div class="col">浜?/div><div class="col">鍏?/div>
                     </div>
                     <div class="row g-1 text-center">
                         {for start="1" end="$calendar_offset"}
@@ -73,20 +73,20 @@
                 </div>
             </div>
 
-            <!-- 奖励规则 -->
+            <!-- 濂栧姳瑙勫垯 -->
             <div class="card shadow-sm" style="border:none;border-radius:12px">
                 <div class="card-header" style="background:transparent;border-bottom:1px solid #e2e8f0;font-weight:600">
-                    <i class="bi bi-gift me-1"></i>签到奖励规则
+                    <i class="bi bi-gift me-1"></i>绛惧埌濂栧姳瑙勫垯
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid #f1f5f9">
-                        <span>每日签到</span><span class="text-primary fw-bold">+{$rules.signin|default=5} 积分</span>
+                        <span>姣忔棩绛惧埌</span><span class="text-primary fw-bold">+{$rules.signin|default=5} 绉垎</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid #f1f5f9">
-                        <span>连续3天</span><span class="text-primary fw-bold">额外 +{$rules.signin_3days|default=10} 积分</span>
+                        <span>杩炵画3澶?/span><span class="text-primary fw-bold">棰濆 +{$rules.signin_3days|default=10} 绉垎</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2">
-                        <span>连续7天</span><span class="text-primary fw-bold">额外 +{$rules.signin_7days|default=30} 积分</span>
+                        <span>杩炵画7澶?/span><span class="text-primary fw-bold">棰濆 +{$rules.signin_7days|default=30} 绉垎</span>
                     </div>
                 </div>
             </div>
@@ -99,14 +99,14 @@
 <script>
 $('#btnSignin').click(function(){
     var btn=$(this);
-    btn.prop('disabled',true).html('<span class="spinner-border spinner-border-sm me-2"></span>签到中...');
+    btn.prop('disabled',true).html('<span class="spinner-border spinner-border-sm me-2"></span>绛惧埌涓?..');
     $.post('/signin/do',{},function(d){
         if(d.success){
-            btn.html('<i class="bi bi-check-circle me-2"></i>签到成功！+'+d.data.points+'积分')
+            btn.html('<i class="bi bi-check-circle me-2"></i>绛惧埌鎴愬姛锛?'+d.data.points+'绉垎')
                 .removeClass('btn-primary').addClass('btn-success');
             setTimeout(()=>location.reload(),1500);
         } else {
-            btn.prop('disabled',false).html('<i class="bi bi-hand-thumbs-up me-2"></i>立即签到');
+            btn.prop('disabled',false).html('<i class="bi bi-hand-thumbs-up me-2"></i>绔嬪嵆绛惧埌');
             alert(d.msg);
         }
     });

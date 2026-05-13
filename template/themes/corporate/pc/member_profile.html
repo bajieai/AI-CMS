@@ -1,13 +1,13 @@
 {extend name="layout" /}
 
-{block name="title"}个人中心{/block}
+{block name="title"}涓汉涓績{/block}
 
 {block name="content"}
 
 <div class="section-padding" style="padding-top:2.5rem;">
     <div class="container" style="max-width:900px;">
-        <!-- 用户信息卡（深色渐变） -->
-        <div style="background:linear-gradient(135deg,#1e293b 0%,#334155 100%);border-radius:16px;padding:2rem;margin-bottom:2rem;color:#fff;position:relative;overflow:hidden;">
+        <!-- 鐢ㄦ埛淇℃伅鍗★紙娣辫壊娓愬彉锛?-->
+        <div style="background:linear-gradient(135deg,var(--i8j-text,#1e293b) 0%,var(--i8j-text,#334155) 100%);border-radius:16px;padding:2rem;margin-bottom:2rem;color:#fff;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-40px;right:-20px;width:140px;height:140px;background:rgba(59,130,246,.12);border-radius:50%;"></div>
             <div class="row align-items-center position-relative" style="z-index:1;">
                 <div class="col-auto me-4">
@@ -19,43 +19,43 @@
                     <h3 class="fw-bold mb-1" style="font-size:1.4rem;">{$member.nickname|default=$member.username}</h3>
                     <p class="opacity-70 mb-0 small">{$member.email} &middot; ID: {$member.id}</p>
                     <button type="button" class="btn btn-sm mt-2" style="background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:20px;" onclick="document.getElementById('avatarInput').click()">
-                        <i class="bi bi-camera me-1"></i>更换头像
+                        <i class="bi bi-camera me-1"></i>鏇存崲澶村儚
                     </button>
                     <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
                 </div>
             </div>
         </div>
-        <!-- 编辑表单 -->
+        <!-- 缂栬緫琛ㄥ崟 -->
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div class="card border-0" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);">
                     <div style="padding:1.75rem 2rem;border-bottom:1px solid #f1f5f9;">
-                        <h5 class="mb-0 fw-bold" style="color:#1e293b;"><i class="bi bi-gear me-2" style="color:var(--color-accent);"></i>基本信息</h5>
+                        <h5 class="mb-0 fw-bold" style="color:var(--i8j-text,#1e293b);"><i class="bi bi-gear me-2" style="color:var(--color-accent);"></i>鍩烘湰淇℃伅</h5>
                     </div>
                     <div class="p-4">
                         <form id="profileForm">
                             <input type="hidden" name="avatar" id="avatarField" value="{$member.avatar|default=''}">
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small" style="color:#64748b;">用户名（不可修改）</label>
+                                <label class="form-label fw-semibold small" style="color:var(--i8j-text-secondary,#64748b);">鐢ㄦ埛鍚嶏紙涓嶅彲淇敼锛?/label>
                                 <input type="text" class="form-control" value="{$member.username}" disabled
-                                       style="border-radius:10px;background:#f8fafc;border-color:#e2e8f0;">
+                                       style="border-radius:10px;background:var(--i8j-bg-secondary,#f8fafc);border-color:var(--i8j-border,#e2e8f0);">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small" style="color:#64748b;">昵称</label>
-                                <input type="text" name="nickname" class="form-control" value="{$member.nickname}" style="border-radius:10px;border-color:#e2e8f0;">
+                                <label class="form-label fw-semibold small" style="color:var(--i8j-text-secondary,#64748b);">鏄电О</label>
+                                <input type="text" name="nickname" class="form-control" value="{$member.nickname}" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);">
                             </div>
                             <div class="mb-4">
-                                <label class="form-label fw-semibold small" style="color:#64748b;">邮箱（不可修改）</label>
+                                <label class="form-label fw-semibold small" style="color:var(--i8j-text-secondary,#64748b);">閭锛堜笉鍙慨鏀癸級</label>
                                 <input type="email" class="form-control" value="{$member.email}" disabled
-                                       style="border-radius:10px;background:#f8fafc;border-color:#e2e8f0;">
+                                       style="border-radius:10px;background:var(--i8j-bg-secondary,#f8fafc);border-color:var(--i8j-border,#e2e8f0);">
                             </div>
                             <button type="submit" class="btn px-4" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:700;">
-                                <i class="bi bi-check-lg me-1"></i>保存修改
+                                <i class="bi bi-check-lg me-1"></i>淇濆瓨淇敼
                             </button>
                         </form>
-                        <hr class="my-4" style="border-color:#f1f5f9;">
+                        <hr class="my-4" style="border-color:var(--i8j-border,#f1f5f9);">
                         <div class="text-center">
-                            <a href="/member/logout" class="text-danger text-decoration-none small fw-bold"><i class="bi bi-box-arrow-right me-1"></i>退出登录</a>
+                            <a href="/member/logout" class="text-danger text-decoration-none small fw-bold"><i class="bi bi-box-arrow-right me-1"></i>閫€鍑虹櫥褰?/a>
                         </div>
                     </div>
                 </div>
@@ -83,15 +83,15 @@ function uploadAvatar(input) {
             if (res.code === 0 && res.data && res.data.url) {
                 $('#avatarField').val(res.data.url);
                 $('#avatarPreview').attr('src', res.data.url);
-                showToast('头像上传成功', 'success');
+                showToast('澶村儚涓婁紶鎴愬姛', 'success');
             } else {
-                showToast(res.msg || '上传失败', 'danger');
+                showToast(res.msg || '涓婁紶澶辫触', 'danger');
             }
         },
-        error: function() { showToast('网络错误', 'danger'); }
+        error: function() { showToast('缃戠粶閿欒', 'danger'); }
     });
     input.value = '';
 }
-$('#profileForm').on('submit', function(e) { e.preventDefault(); $.post('/member/profile', $(this).serialize(), function(res) { alert(res.msg || '已更新'); }); });
+$('#profileForm').on('submit', function(e) { e.preventDefault(); $.post('/member/profile', $(this).serialize(), function(res) { alert(res.msg || '宸叉洿鏂?); }); });
 </script>
 {/block}

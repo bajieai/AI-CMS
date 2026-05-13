@@ -19,16 +19,16 @@
     padding: 10px 12px; color: #475569; text-decoration: none;
     font-size: 14px; border-radius: 6px; transition: .15s;
 }
-.chapter-list a:hover { background: #f8fafc; color: #0f172a; }
-.chapter-list a.active { background: #eff6ff; color: #0369a1; font-weight: 500; }
+.chapter-list a:hover { background: var(--i8j-bg-secondary,#f8fafc); color: #0f172a; }
+.chapter-list a.active { background: var(--i8j-bg-secondary,#eff6ff); color: #0369a1; font-weight: 500; }
 .chapter-list .ch-icon { font-size: 12px; width: 18px; text-align: center; }
-.chapter-list .ch-status-free { color: #10b981; }
-.chapter-list .ch-status-lock { color: #94a3b8; }
-.chapter-list .ch-price { margin-left: auto; font-size: 12px; color: #ef4444; font-weight: 500; }
+.chapter-list .ch-status-free { color: var(--i8j-success,#10b981); }
+.chapter-list .ch-status-lock { color: var(--i8j-text-secondary,#94a3b8); }
+.chapter-list .ch-price { margin-left: auto; font-size: 12px; color: var(--i8j-danger,#ef4444); font-weight: 500; }
 .chapter-main { flex: 1; min-width: 0; }
 .chapter-header { margin-bottom: 24px; }
 .chapter-title { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-.chapter-meta { color: #64748b; font-size: 14px; }
+.chapter-meta { color: var(--i8j-text-secondary,#64748b); font-size: 14px; }
 .chapter-body { line-height: 1.8; font-size: 16px; color: #334155; }
 .chapter-body img { max-width: 100%; border-radius: 8px; }
 .chapter-body p { margin-bottom: 1em; }
@@ -43,7 +43,7 @@
     padding-top: 60px; margin-top: -40px; text-align: center;
 }
 .lock-box {
-    background: #fff; border: 1px dashed #cbd5e1;
+    background: var(--i8j-bg,#fff); border: 1px dashed #cbd5e1;
     border-radius: 12px; padding: 32px; max-width: 400px; margin: 0 auto;
 }
 .book-banner {
@@ -58,11 +58,11 @@
 {block name="content"}
 <div class="container py-4">
     <div class="chapter-layout">
-        <!-- 左侧目录 -->
+        <!-- 宸︿晶鐩綍 -->
         <aside class="chapter-sidebar">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0"><i class="bi bi-list-ul me-1"></i>章节目录</h6>
+                    <h6 class="mb-0"><i class="bi bi-list-ul me-1"></i>绔犺妭鐩綍</h6>
                 </div>
                 <div class="card-body p-0">
                     <ul class="chapter-list" id="chapterList">
@@ -78,7 +78,7 @@
                                 {/if}
                                 <span class="text-truncate" style="max-width:140px;">{$ch.title}</span>
                                 {if condition="!$ch.is_unlocked && !$ch.is_free"}
-                                <span class="ch-price">{$ch.price}积分</span>
+                                <span class="ch-price">{$ch.price}绉垎</span>
                                 {/if}
                             </a>
                         </li>
@@ -88,21 +88,21 @@
             </div>
         </aside>
 
-        <!-- 右侧内容 -->
+        <!-- 鍙充晶鍐呭 -->
         <main class="chapter-main">
             {if condition="$is_vip"}
-            <div class="mb-3"><span class="vip-badge"><i class="bi bi-stars"></i> VIP免费阅读</span></div>
+            <div class="mb-3"><span class="vip-badge"><i class="bi bi-stars"></i> VIP鍏嶈垂闃呰</span></div>
             {/if}
 
-            <!-- 整本购买横幅 -->
+            <!-- 鏁存湰璐拱妯箙 -->
             {if condition="count($chapters) >= 3 && !$can_access && !$is_vip"}
             <div class="book-banner">
                 <div>
-                    <strong class="text-primary">购买整本更优惠</strong>
-                    <div class="small text-muted mt-1">解锁全部 {count($chapters)} 章内容</div>
+                    <strong class="text-primary">璐拱鏁存湰鏇翠紭鎯?/strong>
+                    <div class="small text-muted mt-1">瑙ｉ攣鍏ㄩ儴 {count($chapters)} 绔犲唴瀹?/div>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" onclick="buyBook({$parent.id})">
-                    <i class="bi bi-bag-check me-1"></i>整本购买
+                    <i class="bi bi-bag-check me-1"></i>鏁存湰璐拱
                 </button>
             </div>
             {/if}
@@ -113,7 +113,7 @@
                         <h1 class="chapter-title">{$chapter.chapter_title|default=$chapter.title}</h1>
                         <div class="chapter-meta">
                             <span class="me-3"><i class="bi bi-book me-1"></i>{$parent.title}</span>
-                            <span><i class="bi bi-eye me-1"></i>{$chapter.views|default=0} 阅读</span>
+                            <span><i class="bi bi-eye me-1"></i>{$chapter.views|default=0} 闃呰</span>
                         </div>
                     </header>
 
@@ -125,14 +125,14 @@
                     <div class="lock-overlay">
                         <div class="lock-box">
                             <i class="bi bi-lock display-5 text-muted"></i>
-                            <h5 class="mt-3 mb-2">本章为付费内容</h5>
-                            <p class="text-muted small mb-3">购买后可阅读完整内容</p>
+                            <h5 class="mt-3 mb-2">鏈珷涓轰粯璐瑰唴瀹?/h5>
+                            <p class="text-muted small mb-3">璐拱鍚庡彲闃呰瀹屾暣鍐呭</p>
                             <button type="button" class="btn btn-primary" onclick="buyChapter({$chapter.id})">
-                                <i class="bi bi-cart me-1"></i>购买本章
+                                <i class="bi bi-cart me-1"></i>璐拱鏈珷
                             </button>
                             {if condition="count($chapters) >= 3"}
                             <button type="button" class="btn btn-outline-primary ms-2" onclick="buyBook({$parent.id})">
-                                购买整本
+                                璐拱鏁存湰
                             </button>
                             {/if}
                         </div>
@@ -141,7 +141,7 @@
                 </div>
             </article>
 
-            <!-- 上下章导航 -->
+            <!-- 涓婁笅绔犲鑸?-->
             <div class="d-flex justify-content-between mt-4">
                 {if condition="$prev_chapter"}
                 <a href="/chapter/read/{$parent.id}/{$prev_chapter.id}" class="btn btn-outline-secondary">
@@ -164,28 +164,28 @@
 {block name="js"}
 <script>
 function buyChapter(chapterId) {
-    if (!confirm('确定购买本章？')) return;
+    if (!confirm('纭畾璐拱鏈珷锛?)) return;
     $.post('/chapter/buyChapter', { chapter_id: chapterId }, function(res) {
         if (res.code === 0) {
-            alert('购买成功！');
+            alert('璐拱鎴愬姛锛?);
             location.reload();
         } else if (res.code === 2) {
-            if (confirm('请先登录')) location.href = '/member/login';
+            if (confirm('璇峰厛鐧诲綍')) location.href = '/member/login';
         } else {
-            alert(res.msg || '购买失败');
+            alert(res.msg || '璐拱澶辫触');
         }
     }, 'json');
 }
 function buyBook(parentId) {
-    if (!confirm('确定购买整本？')) return;
+    if (!confirm('纭畾璐拱鏁存湰锛?)) return;
     $.post('/chapter/buyBook', { parent_id: parentId }, function(res) {
         if (res.code === 0) {
-            alert('购买成功！');
+            alert('璐拱鎴愬姛锛?);
             location.reload();
         } else if (res.code === 2) {
-            if (confirm('请先登录')) location.href = '/member/login';
+            if (confirm('璇峰厛鐧诲綍')) location.href = '/member/login';
         } else {
-            alert(res.msg || '购买失败');
+            alert(res.msg || '璐拱澶辫触');
         }
     }, 'json');
 }

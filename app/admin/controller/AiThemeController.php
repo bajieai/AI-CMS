@@ -641,27 +641,43 @@ class AiThemeController extends AdminBaseController
 
     /**
      * 导出主题 ZIP
+     *
+     * 支持两种调用方式：
+     * - /admin/ai_theme/exportTheme/:id      (AI主题，通过记录ID)
+     * - /admin/ai_theme/exportTheme?id=0&theme_name=xxx (本地主题，直接名称)
      */
     public function exportTheme(): \think\Response
     {
         $id = (int) $this->request->param('id', 0);
-        $record = AiThemeRecord::find($id);
+        $themeName = '';
 
-        if (!$record) {
-            return $this->error('记录不存在');
+        if ($id > 0) {
+            $record = AiThemeRecord::find($id);
+            if (!$record) {
+                return $this->error('记录不存在');
+            }
+            $themeName = $record->theme_name;
+        } else {
+            $themeName = trim($this->request->param('theme_name', ''));
+            if (empty($themeName)) {
+                return $this->error('参数错误，请指定主题名称');
+            }
+            // 安全校验：防止路径穿越
+            if (str_contains($themeName, '..') || str_contains($themeName, '/') || str_contains($themeName, '\\')) {
+                return $this->error('无效的主题名称');
+            }
         }
 
         $packageService = new \app\common\service\theme\ThemePackageService();
-        $result = $packageService->exportTheme($record->theme_name);
+        $result = $packageService->exportTheme($themeName);
 
         if (!$result['success']) {
             return $this->error($result['message']);
         }
 
         $zipPath = $result['path'];
-        $fileName = $record->theme_name . '.zip';
 
-        return download($zipPath, $fileName)->force(true);
+        return download($zipPath, $themeName . '.zip')->force(true);
     }
 
     /**

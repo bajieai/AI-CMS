@@ -1,18 +1,18 @@
 {extend name="layout" /}
 
-{block name="title"}搜索: {$keyword} - {$site_name}{/block}
+{block name="title"}鎼滅储: {$keyword} - {$site_name}{/block}
 
 {block name="content"}
 <section class="py-4">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">首页</a></li>
-                <li class="breadcrumb-item active">搜索结果</li>
+                <li class="breadcrumb-item"><a href="/">棣栭〉</a></li>
+                <li class="breadcrumb-item active">鎼滅储缁撴灉</li>
             </ol>
         </nav>
 
-        <h4 class="mb-4">搜索：<span class="text-primary">{$keyword}</span></h4>
+        <h4 class="mb-4">鎼滅储锛?span class="text-primary">{$keyword}</span></h4>
 
         <div class="row g-3">
             {volist name="list" id="vo"}
@@ -29,11 +29,11 @@
         </div>
 
         {empty name="list"}
-        <div class="text-center py-5" style="background:#f8fafc;border-radius:12px;margin-top:1rem;">
+        <div class="text-center py-5" style="background:var(--i8j-bg-secondary,#f8fafc);border-radius:12px;margin-top:1rem;">
             <i class="bi bi-search fs-1" style="color:#cbd5e1;"></i>
-            <h5 class="text-muted mt-3 fw-bold" style="color:#64748b;">未找到相关内容</h5>
-            <p class="text-muted small mt-1 mb-3">试试更换关键词或浏览其他分类</p>
-            <a href="/" class="btn btn-outline-primary btn-sm"><i class="bi bi-house me-1"></i>返回首页</a>
+            <h5 class="text-muted mt-3 fw-bold" style="color:var(--i8j-text-secondary,#64748b);">鏈壘鍒扮浉鍏冲唴瀹?/h5>
+            <p class="text-muted small mt-1 mb-3">璇曡瘯鏇存崲鍏抽敭璇嶆垨娴忚鍏朵粬鍒嗙被</p>
+            <a href="/" class="btn btn-outline-primary btn-sm"><i class="bi bi-house me-1"></i>杩斿洖棣栭〉</a>
         </div>
         {/empty}
 

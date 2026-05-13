@@ -1,37 +1,37 @@
 {extend name="layout" /}
 
-{block name="title"}我的积分{/block}
+{block name="title"}鎴戠殑绉垎{/block}
 
 {block name="content"}
 
 <div class="section-padding" style="padding-top:2.5rem;">
     <div class="container" style="max-width:900px;">
-        <!-- 积分概览 -->
+        <!-- 绉垎姒傝 -->
         <div class="row g-4 mb-4">
             <div class="col-md-6">
-                <div class="card border-0" style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:16px;padding:2rem;color:#fff;position:relative;overflow:hidden;">
+                <div class="card border-0" style="background:linear-gradient(135deg,var(--i8j-text,#1e293b),var(--i8j-text,#334155));border-radius:16px;padding:2rem;color:#fff;position:relative;overflow:hidden;">
                     <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(59,130,246,.15);border-radius:50%;"></div>
                     <div class="position-relative" style="z-index:1;">
-                        <small class="opacity-70 d-block mb-1">当前可用积分</small>
+                        <small class="opacity-70 d-block mb-1">褰撳墠鍙敤绉垎</small>
                         <h2 class="mb-0 fw-bold" style="font-size:2.5rem;" id="currentPoints">{if condition="$points"}{$points}{else}0{/if}</h2>
-                        <small class="opacity-60 d-block mt-1">累计获得 +{if condition="$totalEarned"}{$totalEarned}{else}0{/if}</small>
+                        <small class="opacity-60 d-block mt-1">绱鑾峰緱 +{if condition="$totalEarned"}{$totalEarned}{else}0{/if}</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card border-0 h-100" style="border-radius:16px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;justify-content:center;padding:2rem;text-align:center;">
-                    <i class="bi bi-trophy-fill display-4" style="color:#f59e0b;"></i>
-                    <h5 class="fw-bold mt-2 mb-1" style="color:#1e293b;">等级权益</h5>
-                    <p class="text-muted small mb-0">继续赚取积分解锁更多特权</p>
+                    <i class="bi bi-trophy-fill display-4" style="color:var(--i8j-warning,#f59e0b);"></i>
+                    <h5 class="fw-bold mt-2 mb-1" style="color:var(--i8j-text,#1e293b);">绛夌骇鏉冪泭</h5>
+                    <p class="text-muted small mb-0">缁х画璧氬彇绉垎瑙ｉ攣鏇村鐗规潈</p>
                 </div>
             </div>
         </div>
 
-        <!-- 积分记录列表 -->
+        <!-- 绉垎璁板綍鍒楄〃 -->
         <div class="card border-0" style="border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden;">
             <div style="padding:1.25rem 1.75rem;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2" style="color:var(--color-accent);"></i>积分记录</h5>
-                <span class="badge rounded-pill" style="background:#eff6ff;color:#3b82f6;">最新</span>
+                <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2" style="color:var(--color-accent);"></i>绉垎璁板綍</h5>
+                <span class="badge rounded-pill" style="background:var(--i8j-bg-secondary,#eff6ff);color:var(--i8j-primary,#3b82f6);">鏈€鏂?/span>
             </div>
             <div class="p-4">
                 <div id="pointsList">
@@ -41,7 +41,7 @@
                             <span class="badge me-2 rounded-pill" style="{if condition="$vo.change > 0}background:#dcfce7;color:#16a34a;{else/}background:#fee2e2;color:#991b1b;{/if} font-size:.76rem;">
                                 {if condition="$vo.change > 0"}+{else}-{/if}{$vo.change|abs}
                             </span>
-                            <strong style="color:#1e293b;font-size:.93rem;">{$vo.remark|default='系统操作'}</strong>
+                            <strong style="color:var(--i8j-text,#1e293b);font-size:.93rem;">{$vo.remark|default='绯荤粺鎿嶄綔'}</strong>
                             <small class="d-block text-muted mt-1" style="font-size:.8rem;">{$vo.create_time}</small>
                         </div>
                         <span class="fw-bold" style="color:{if condition="$vo.change > 0"}#16a34a{else}#ef4444{/if};font-size:1.05rem;">
@@ -50,7 +50,7 @@
                     </div>
                     {/volist}
                     {empty name="list"}
-                    <div class="text-center text-muted py-5"><i class="bi bi-inbox fs-1 opacity-50 d-block mb-2"></i>暂无积分记录</div>
+                    <div class="text-center text-muted py-5"><i class="bi bi-inbox fs-1 opacity-50 d-block mb-2"></i>鏆傛棤绉垎璁板綍</div>
                     {/empty}
                 </div>
                 {if condition="($list->hasPages() ?? false)"}

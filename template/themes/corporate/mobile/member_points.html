@@ -1,27 +1,27 @@
 {extend name="layout" /}
 
-{block name="title"}我的积分{/block}
+{block name="title"}鎴戠殑绉垎{/block}
 
 {block name="content"}
 <div class="cm-main">
     <div class="cm-card text-center" style="padding:28px 18px;background:linear-gradient(135deg,#e0e7ff,#c7d2fe);border-radius:14px;">
         <div style="font-size:40px;font-weight:800;color:#4338ca;letter-spacing:-.02em;">{$points}</div>
-        <div style="color:#64748b;font-size:14px;margin-top:6px;">当前积分</div>
-        <div style="margin-top:12px;font-size:12.5px;color:#94a3b8;">连续签到 {$sign_days} 天 &nbsp;|&nbsp; 累计 {$total_signins} 次</div>
+        <div style="color:var(--i8j-text-secondary,#64748b);font-size:14px;margin-top:6px;">褰撳墠绉垎</div>
+        <div style="margin-top:12px;font-size:12.5px;color:var(--i8j-text-secondary,#94a3b8);">杩炵画绛惧埌 {$sign_days} 澶?&nbsp;|&nbsp; 绱 {$total_signins} 娆?/div>
     </div>
 
     <div class="cm-card" style="padding:16px;text-align:center;margin-top:12px;">
-        {if condition="$can_sign"}<button id="siBtn" class="cm-btn cm-btn-pri" style="max-width:200px;margin:0 auto;"><i class="bi bi-calendar-check me-2"></i>立即签到</button>{else /}<p style="margin:0;color:#059669;font-size:14px;"><i class="bi bi-check-circle-fill me-1"></i>今日已签到 ✅</p>{/if}
+        {if condition="$can_sign"}<button id="siBtn" class="cm-btn cm-btn-pri" style="max-width:200px;margin:0 auto;"><i class="bi bi-calendar-check me-2"></i>绔嬪嵆绛惧埌</button>{else /}<p style="margin:0;color:#059669;font-size:14px;"><i class="bi bi-check-circle-fill me-1"></i>浠婃棩宸茬鍒?鉁?/p>{/if}
     </div>
 
-    <h5 style="font-size:15px;font-weight:700;color:#1e293b;margin:18px 0 10px;">积分明细</h5>
+    <h5 style="font-size:15px;font-weight:700;color:var(--i8j-text,#1e293b);margin:18px 0 10px;">绉垎鏄庣粏</h5>
     {volist name="logs" id="vo"}
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9;font-size:13.5px;">
         <span>{$vo.remark}</span><span style="font-weight:650;color:{if condition="$vo.points > 0"}#059669{else/}#dc2626{/if};">{if condition="$vo.points > 0"}+{/if}{$vo.points}</span>
         <small style="color:#cbd5e1;font-size:11px;">{$vo.create_time|date='m-d H:i'}</small>
     </div>
     {/volist}
-    {empty name="logs"}<div class="cm-empty"><i class="bi bi-receipt"></i><p>暂无记录</p></div>{/empty}
+    {empty name="logs"}<div class="cm-empty"><i class="bi bi-receipt"></i><p>鏆傛棤璁板綍</p></div>{/empty}
 </div>
 {/block}
-{block name="js"}<script>$('#siBtn').on('click',function(){var b=$(this);b.prop('disabled',true).text('签到中...');$.post('/member/signIn',{},function(r){if(r.code===0){showToast(r.msg,'success');location.reload();}else{b.prop('disabled',false).text('立即签到');showToast(r.msg||'失败','danger');}});});</script>{/block}
+{block name="js"}<script>$('#siBtn').on('click',function(){var b=$(this);b.prop('disabled',true).text('绛惧埌涓?..');$.post('/member/signIn',{},function(r){if(r.code===0){showToast(r.msg,'success');location.reload();}else{b.prop('disabled',false).text('绔嬪嵆绛惧埌');showToast(r.msg||'澶辫触','danger');}});});</script>{/block}

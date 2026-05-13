@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}个人中心{/block}
+{block name="title"}涓汉涓績{/block}
 
 {block name="content"}
 <div class="cm-main">
@@ -9,23 +9,23 @@
             <img id="avatarPreview" src="{$member.avatar|default='/assets/img/default-avatar.png'}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/img/default-avatar.png'">
         </div>
         <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('avatarInput').click()" style="font-size:12px;border-radius:20px;">
-            <i class="bi bi-camera me-1"></i>更换头像
+            <i class="bi bi-camera me-1"></i>鏇存崲澶村儚
         </button>
         <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
-        <h5 style="font-size:17px;font-weight:750;color:#1e293b;margin-top:8px;">{$member.nickname}</h5>
-        <small style="color:#94a3b8;">@{$member.username}</small>
+        <h5 style="font-size:17px;font-weight:750;color:var(--i8j-text,#1e293b);margin-top:8px;">{$member.nickname}</h5>
+        <small style="color:var(--i8j-text-secondary,#94a3b8);">@{$member.username}</small>
     </div>
 
     <div class="cm-card" style="padding:18px 14px;">
         <form id="profileForm">
             <input type="hidden" name="avatar" id="avatarField" value="{$member.avatar|default=''}">
-            <div class="cm-fg"><label style="font-size:12px;color:#94a3b8;font-weight:550;">用户名（不可修改）</label><input type="text" class="cm-input" value="{$member.username}" disabled style="background:#f1f5f9;"></div>
-            <div class="cm-fg"><label style="font-size:12px;color:#94a3b8;font-weight:550;">昵称</label><input type="text" name="nickname" class="cm-input" value="{$member.nickname}"></div>
-            <div class="cm-fg"><label style="font-size:12px;color:#94a3b8;font-weight:550;">邮箱</label><input type="email" class="cm-input" value="{$member.email}" disabled style="background:#f1f5f9;"></div>
-            <button type="submit" class="cm-btn cm-btn-pri">保存修改</button>
+            <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">鐢ㄦ埛鍚嶏紙涓嶅彲淇敼锛?/label><input type="text" class="cm-input" value="{$member.username}" disabled style="background:var(--i8j-bg-secondary,#f1f5f9);"></div>
+            <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">鏄电О</label><input type="text" name="nickname" class="cm-input" value="{$member.nickname}"></div>
+            <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">閭</label><input type="email" class="cm-input" value="{$member.email}" disabled style="background:var(--i8j-bg-secondary,#f1f5f9);"></div>
+            <button type="submit" class="cm-btn cm-btn-pri">淇濆瓨淇敼</button>
         </form>
     </div>
-    <div class="text-center mt-3"><a href="/member/logout" style="color:#ef4444;text-decoration:none;font-size:13.5px;"><i class="bi bi-box-arrow-right me-1"></i>退出登录</a></div>
+    <div class="text-center mt-3"><a href="/member/logout" style="color:var(--i8j-danger,#ef4444);text-decoration:none;font-size:13.5px;"><i class="bi bi-box-arrow-right me-1"></i>閫€鍑虹櫥褰?/a></div>
 </div>
 {/block}
 {block name="js"}
@@ -45,15 +45,15 @@ function uploadAvatar(input) {
             if (res.code === 0 && res.data && res.data.url) {
                 $('#avatarField').val(res.data.url);
                 $('#avatarPreview').attr('src', res.data.url);
-                showToast('头像上传成功', 'success');
+                showToast('澶村儚涓婁紶鎴愬姛', 'success');
             } else {
-                showToast(res.msg || '上传失败', 'danger');
+                showToast(res.msg || '涓婁紶澶辫触', 'danger');
             }
         },
-        error: function() { showToast('网络错误', 'danger'); }
+        error: function() { showToast('缃戠粶閿欒', 'danger'); }
     });
     input.value = '';
 }
-$('#profileForm').on('submit',function(e){e.preventDefault();$.post('/member/profile',$(this).serialize(),function(r){showToast(r.msg||'保存成功','success');});});
+$('#profileForm').on('submit',function(e){e.preventDefault();$.post('/member/profile',$(this).serialize(),function(r){showToast(r.msg||'淇濆瓨鎴愬姛','success');});});
 </script>
 {/block}

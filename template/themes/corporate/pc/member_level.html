@@ -1,14 +1,14 @@
 {extend name="layout" /}
 
-{block name="title"}我的等级{/block}
+{block name="title"}鎴戠殑绛夌骇{/block}
 
 {block name="content"}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <!-- 当前等级概览 -->
+            <!-- 褰撳墠绛夌骇姒傝 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
-                <div class="card-body p-4 text-center" style="background:linear-gradient(135deg,#0f172a 0%,#334155 100%);border-radius:12px;color:#fff;">
+                <div class="card-body p-4 text-center" style="background:linear-gradient(135deg,#0f172a 0%,var(--i8j-text,#334155) 100%);border-radius:12px;color:#fff;">
                     <div class="mb-2">
                         {if $progress.current.icon}
                         <img src="{$progress.current.icon}" alt="" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.1);padding:8px;object-fit:contain;" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-flex';">
@@ -18,55 +18,55 @@
                         </div>
                     </div>
                     <h4 class="mb-1">{$progress.current.name}</h4>
-                    <p class="mb-0 opacity-75">当前等级</p>
+                    <p class="mb-0 opacity-75">褰撳墠绛夌骇</p>
                 </div>
             </div>
 
-            <!-- 进度详情 -->
+            <!-- 杩涘害璇︽儏 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-body p-4">
                     {if $progress.next}
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold">升级进度</span>
-                        <span class="text-muted small">{$progress.current_points} / {$progress.next.min_points} 积分</span>
+                        <span class="fw-bold">鍗囩骇杩涘害</span>
+                        <span class="text-muted small">{$progress.current_points} / {$progress.next.min_points} 绉垎</span>
                     </div>
                     <div class="progress mb-3" style="height:20px;border-radius:10px;background:#e2e8f0;">
-                        <div class="progress-bar" role="progressbar" style="width: {$progress.progress}%;background:linear-gradient(90deg,#0f172a,#334155);border-radius:10px;" aria-valuenow="{$progress.progress}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" role="progressbar" style="width: {$progress.progress}%;background:linear-gradient(90deg,#0f172a,var(--i8j-text,#334155));border-radius:10px;" aria-valuenow="{$progress.progress}" aria-valuemin="0" aria-valuemax="100">
                             {$progress.progress}%
                         </div>
                     </div>
                     <div class="text-center text-muted small">
-                        距离 <strong>{$progress.next.name}</strong> 还需 {$progress.need_points} 积分
+                        璺濈 <strong>{$progress.next.name}</strong> 杩橀渶 {$progress.need_points} 绉垎
                     </div>
                     {else}
                     <div class="text-center py-3">
                         <i class="bi bi-trophy-fill text-warning" style="font-size:2rem;"></i>
-                        <p class="mt-2 mb-0 fw-bold">恭喜！您已达到最高等级</p>
+                        <p class="mt-2 mb-0 fw-bold">鎭枩锛佹偍宸茶揪鍒版渶楂樼瓑绾?/p>
                     </div>
                     {/if}
                 </div>
             </div>
 
-            <!-- 缓冲期警告 -->
+            <!-- 缂撳啿鏈熻鍛?-->
             {if $progress.grace}
             <div class="alert alert-warning d-flex align-items-center mb-4" role="alert" style="border-radius:12px;">
                 <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
                 <div>
-                    <strong>等级降级预警</strong><br>
-                    您的积分已不满足当前等级要求，系统将在 <strong>{$progress.grace.days_left} 天</strong> 后自动降级。
-                    <a href="/signin" class="alert-link">去签到赚积分 &rarr;</a>
+                    <strong>绛夌骇闄嶇骇棰勮</strong><br>
+                    鎮ㄧ殑绉垎宸蹭笉婊¤冻褰撳墠绛夌骇瑕佹眰锛岀郴缁熷皢鍦?<strong>{$progress.grace.days_left} 澶?/strong> 鍚庤嚜鍔ㄩ檷绾с€?
+                    <a href="/signin" class="alert-link">鍘荤鍒拌禋绉垎 &rarr;</a>
                 </div>
             </div>
             {/if}
 
-            <!-- 等级历史时间线 V2.9.5 -->
+            <!-- 绛夌骇鍘嗗彶鏃堕棿绾?V2.9.5 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">
-                    <i class="bi bi-clock-history me-1"></i>等级变更记录
+                    <i class="bi bi-clock-history me-1"></i>绛夌骇鍙樻洿璁板綍
                 </div>
                 <div class="card-body p-4">
                     {empty name="timeline"}
-                    <p class="text-muted text-center mb-0">暂无等级变更记录</p>
+                    <p class="text-muted text-center mb-0">鏆傛棤绛夌骇鍙樻洿璁板綍</p>
                     {else/}
                     <div class="i8j-timeline">
                         {volist name="timeline" id="tl"}
@@ -93,32 +93,32 @@
                 </div>
             </div>
 
-            <!-- 等级阶梯 -->
+            <!-- 绛夌骇闃舵 -->
             <div class="card shadow-sm border-0" style="border-radius:12px;">
                 <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">
-                    <i class="bi bi-ladder me-1"></i>等级体系
+                    <i class="bi bi-ladder me-1"></i>绛夌骇浣撶郴
                 </div>
                 <div class="list-group list-group-flush">
                     {volist name="levels" id="lv"}
                     <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3 {if $lv.id == $progress.current.id}bg-light border-start border-4 border-dark{/if}">
                         <div class="d-flex align-items-center">
-                            <div class="me-3" style="width:40px;height:40px;border-radius:50%;background:{if $lv.id == $progress.current.id}linear-gradient(135deg,#0f172a,#334155){else}#f8fafc{/if};color:{if $lv.id == $progress.current.id}#fff{else}#64748b{/if};display:inline-flex;align-items:center;justify-content:center;font-weight:bold;">
+                            <div class="me-3" style="width:40px;height:40px;border-radius:50%;background:{if $lv.id == $progress.current.id}linear-gradient(135deg,#0f172a,var(--i8j-text,#334155)){else}#f8fafc{/if};color:{if $lv.id == $progress.current.id}#fff{else}#64748b{/if};display:inline-flex;align-items:center;justify-content:center;font-weight:bold;">
                                 {$lv.sort}
                             </div>
                             <div>
                                 <div class="fw-bold">{$lv.name}</div>
                                 <div class="text-muted small">
                                     {if $lv.is_vip}<span class="badge bg-warning text-dark me-1">VIP</span>{/if}
-                                    需 {$lv.min_points} 积分
-                                    {if $lv.discount > 0}&middot; 折扣 {$lv.discount}折{/if}
-                                    {if $lv._daily_ai_quota > 0}&middot; 每日AI {$lv._daily_ai_quota} 次{/if}
+                                    闇€ {$lv.min_points} 绉垎
+                                    {if $lv.discount > 0}&middot; 鎶樻墸 {$lv.discount}鎶榹/if}
+                                    {if $lv._daily_ai_quota > 0}&middot; 姣忔棩AI {$lv._daily_ai_quota} 娆/if}
                                 </div>
                             </div>
                         </div>
                         {if $lv.id == $progress.current.id}
-                        <span class="badge bg-dark">当前</span>
+                        <span class="badge bg-dark">褰撳墠</span>
                         {elseif $lv.id == ($progress.next.id ?? 0)}
-                        <span class="badge bg-secondary">下一级</span>
+                        <span class="badge bg-secondary">涓嬩竴绾?/span>
                         {/if}
                     </div>
                     {/volist}
