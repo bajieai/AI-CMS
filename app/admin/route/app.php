@@ -251,6 +251,11 @@ Route::get('ai_theme/versionDiff$', '\app\admin\controller\AiThemeController@ver
 Route::get('ai_theme/exportTheme/:id$', '\app\admin\controller\AiThemeController@exportTheme');
 Route::post('ai_theme/importTheme$', '\app\admin\controller\AiThemeController@importTheme');
 Route::get('ai_theme/manage$', '\app\admin\controller\AiThemeController@manage');
+// V3.1-下一阶段 Sprint 14: 批量生成路由
+Route::get('ai_theme/batch_generate$', '\app\admin\controller\AiThemeController@batchGenerate');
+Route::post('ai_theme/doBatchGenerate$', '\app\admin\controller\AiThemeController@doBatchGenerate');
+Route::get('ai_theme/batchProgress$', '\app\admin\controller\AiThemeController@batchProgress');
+Route::post('ai_theme/qualityScore$', '\app\admin\controller\AiThemeController@qualityScore');
 
 // V3.1: 数据看板来源分析
 Route::get('dashboard/getSourceAnalysis$', '\app\admin\controller\DashboardController@getSourceAnalysis');

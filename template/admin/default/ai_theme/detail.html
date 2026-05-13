@@ -25,6 +25,59 @@
             </div>
         </div>
 
+        <!-- 质量评分 -->
+        {if condition="$record.quality_score > 0"}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">质量评分</h6>
+                <span class="badge bg-{$record.quality_score >= 80 ? 'success' : ($record.quality_score >= 60 ? 'warning' : 'danger')}">{$record.quality_score}分</span>
+            </div>
+            <div class="card-body">
+                {php}$qd = $record['quality_detail'] ?? [];{/php}
+                {if condition="!empty($qd)"}
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>结构完整性</span>
+                        <span class="text-muted">{$qd.structure|default=0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>CSS变量引用</span>
+                        <span class="text-muted">{$qd.css_variable|default=0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>硬编码检测</span>
+                        <span class="text-muted">{$qd.hardcoded|default=0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>页面完整性</span>
+                        <span class="text-muted">{$qd.pages|default=0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>代码简洁度</span>
+                        <span class="text-muted">{$qd.cleanliness|default=0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>相似度检测</span>
+                        <span class="text-muted">{$qd.similarity|default=0}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>总分</span>
+                        <span>{$qd.total|default=0}</span>
+                    </div>
+                    {if condition="!empty($qd.warnings)"}
+                    <div class="mt-2">
+                        {volist name="qd.warnings" id="w"}
+                        <div class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>{$w}</div>
+                        {/volist}
+                    </div>
+                    {/if}
+                </div>
+                {/if}
+            </div>
+        </div>
+        {/if}
+
         <!-- 校验结果 -->
         {if condition="!empty($validate_result)"}
         <div class="card mb-3">

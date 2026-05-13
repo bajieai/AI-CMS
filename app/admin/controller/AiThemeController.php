@@ -37,11 +37,15 @@ class AiThemeController extends AdminBaseController
     {
         $page = (int) $this->request->param('page', 1);
         $status = $this->request->param('status', '');
+        $batchId = trim($this->request->param('batch_id', ''));
         $limit = 15;
 
         $query = AiThemeRecord::order('created_at', 'desc');
         if ($status !== '') {
             $query->where('status', (int) $status);
+        }
+        if ($batchId !== '') {
+            $query->where('batch_id', $batchId);
         }
 
         $total = $query->count();
@@ -315,6 +319,7 @@ class AiThemeController extends AdminBaseController
             'view_file'   => $viewFile,
             'file_content'=> $fileContent,
             'validate_result'=> $record->validate_result ?: [],
+            'quality_detail' => $record->quality_detail ?: [],
         ]);
 
         return $this->app->view->fetch('ai_theme/detail');
