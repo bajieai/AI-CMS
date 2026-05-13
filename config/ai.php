@@ -60,6 +60,9 @@ return [
         'default_provider'  => env('ai.image.default', 'tongyi_wanxiang'),
         'fallback_provider' => env('ai.image.fallback', 'flux'),
         'timeout'           => (int) env('ai.image.timeout', 30),
+        // V3.1: 配图配额控制
+        'daily_limit'       => (int) env('ai.image.daily_limit', 50),
+        'max_batch_count'   => (int) env('ai.image.max_batch_count', 5),
         'providers'        => [
             'tongyi_wanxiang' => [
                 'enabled'  => (bool) env('ai.image.tongyi.enabled', true),
@@ -81,6 +84,30 @@ return [
                 'base_url' => env('ai.image.dalle.base_url', 'https://api.openai.com/v1'),
                 'timeout'  => (int) env('ai.image.dalle.timeout', 30),
             ],
+        ],
+    ],
+
+    // ==================== AI多写作风格配置（V3.1新增） ====================
+    'writing_styles' => [
+        'formal' => [
+            'name' => '正式风格',
+            'system_prompt' => '你是一位专业的内容编辑。请使用正式、严谨、权威的语言风格撰写内容。避免口语化表达，使用规范的语法和词汇，适合企业官网、新闻发布等正式场景。',
+        ],
+        'casual' => [
+            'name' => '轻松风格',
+            'system_prompt' => '你是一位亲切的内容创作者。请使用轻松、自然、口语化的语言风格撰写内容。像朋友一样与读者交流，适合博客、社交媒体等非正式场景。',
+        ],
+        'professional' => [
+            'name' => '专业风格',
+            'system_prompt' => '你是一位行业专家。请使用专业、深度、有洞察力的语言风格撰写内容。使用行业术语，提供有价值的分析和见解，适合技术文档、行业报告等场景。',
+        ],
+        'humorous' => [
+            'name' => '幽默风格',
+            'system_prompt' => '你是一位幽默风趣的作家。请使用幽默、有趣、富有创意的语言风格撰写内容。适当使用比喻、双关等修辞手法，让读者会心一笑，适合娱乐、生活类内容。',
+        ],
+        'concise' => [
+            'name' => '简洁风格',
+            'system_prompt' => '你是一位高效的内容编辑。请使用简洁、精炼、直切要点的语言风格撰写内容。删除冗余词汇，每句话都有明确的信息量，适合快速阅读、摘要等场景。',
         ],
     ],
 ];

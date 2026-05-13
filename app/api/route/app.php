@@ -5,6 +5,12 @@ use think\facade\Route;
 // AI生成
 Route::post('ai/generate', '\app\api\controller\AiController@generate');
 
+// V3.1: AI批量配图+SEO评分+写作风格+社交分享
+Route::post('ai/batch_image', '\app\api\controller\AiController@batchImage');
+Route::post('ai/seo_score', '\app\api\controller\AiController@seoScore');
+Route::get('ai/styles', '\app\api\controller\AiController@styles');
+Route::post('ai/share', '\app\api\controller\AiController@share');
+
 // 图片上传
 Route::post('upload/image', '\app\api\controller\UploadController@image');
 

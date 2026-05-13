@@ -91,9 +91,14 @@
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between align-items-center">
                             <span>封面图</span>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="aiGenerateImage()" id="btnAiImage">
-                                <i class="bi bi-image me-1"></i>AI配图
-                            </button>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" onclick="aiGenerateImage()" id="btnAiImage">
+                                    <i class="bi bi-image me-1"></i>AI配图
+                                </button>
+                                <button type="button" class="btn btn-outline-info" onclick="openBatchImageModal()" id="btnBatchAiImage">
+                                    <i class="bi bi-images me-1"></i>批量配图
+                                </button>
+                            </div>
                         </label>
                         <div class="input-group">
                             <input type="text" name="cover" id="coverInput" class="form-control" value="{$info.cover ?? ''}" placeholder="图片URL">
@@ -159,11 +164,27 @@
                     <div class="card border-warning mb-3">
                         <div class="card-header py-2 bg-warning text-dark d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-search me-1"></i>SEO设置</span>
-                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="seoOptimize()" id="btnSeo">
-                                <i class="bi bi-magic me-1"></i>一键优化
-                            </button>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-sm btn-outline-dark" onclick="seoOptimize()" id="btnSeo">
+                                    <i class="bi bi-magic me-1"></i>一键优化
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="calculateSeoScore()" id="btnSeoScore">
+                                    <i class="bi bi-bar-chart me-1"></i>评分
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body py-2">
+                            <!-- V3.1 SEO评分条 -->
+                            <div id="seoScoreArea" class="mb-2" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">SEO评分</small>
+                                    <small class="fw-bold" id="seoScoreValue">0分</small>
+                                </div>
+                                <div class="progress" style="height:8px;">
+                                    <div class="progress-bar" id="seoScoreBar" style="width:0%"></div>
+                                </div>
+                                <div class="mt-1" id="seoScoreSuggestions"></div>
+                            </div>
                             <div class="mb-2">
                                 <label class="form-label small">SEO标题</label>
                                 <input type="text" name="seo_title" id="seoTitle" class="form-control form-control-sm" value="{$info.seo_title ?? ''}" placeholder="留空则使用文章标题">
@@ -254,7 +275,12 @@
                     {/if}
                     <!-- AI辅助写作 -->
                     <div class="card bg-light mb-3">
-                        <div class="card-header py-2"><i class="bi bi-robot me-1"></i>AI 辅助</div>
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-robot me-1"></i>AI 辅助</span>
+                            <select id="aiWritingStyle" class="form-select form-select-sm" style="width:auto;min-width:100px;">
+                                <option value="">默认风格</option>
+                            </select>
+                        </div>
                         <div class="card-body py-2">
                             <div class="mb-2">
                                 <textarea id="aiPrompt" class="form-control form-control-sm" rows="2" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿&#10;快捷键：Ctrl+Shift+C续写 / X改写 / E扩写 / U总结"></textarea>
@@ -304,10 +330,169 @@
                 <a href="/admin/content/index" class="btn btn-outline-secondary">取消返回</a>
                 {if condition="$info"}
                 <button type="button" class="btn btn-outline-info" onclick="syncToPlatforms({$info.id})"><i class="bi bi-cloud-upload me-1"></i>同步到平台</button>
+                <button type="button" class="btn btn-outline-success" onclick="openShareModal({$info.id})"><i class="bi bi-share me-1"></i>分享</button>
                 {/if}
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- V3.1: 批量配图弹窗 -->
+<div class="modal fade" id="batchImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-images me-1"></i>AI批量配图</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">配图策略</label>
+                    <select id="batchImageStrategy" class="form-select">
+                        <option value="auto">自动推荐（根据段落数自动配图）</option>
+                        <option value="manual">手动设置</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="batchImageCountGroup">
+                    <label class="form-label">配图数量</label>
+                    <input type="number" id="batchImageCount" class="form-control" value="3" min="1" max="5">
+                    <div class="form-text">最多5张，建议根据段落数设置</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">配图风格</label>
+                    <select id="batchImageStyle" class="form-select">
+                        <option value="realistic">写实</option>
+                        <option value="illustration">插画</option>
+                        <option value="watercolor">水彩</option>
+                        <option value="3d_render">3D</option>
+                        <option value="pixel_art">像素</option>
+                    </select>
+                </div>
+                <!-- 进度条 -->
+                <div id="batchImageProgressArea" style="display:none;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small id="batchImageProgressText">正在生成第 1/3 张...</small>
+                        <small id="batchImageQuotaText"></small>
+                    </div>
+                    <div class="progress mb-2" style="height:10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="batchImageProgressBar" style="width:0%"></div>
+                    </div>
+                    <div class="alert alert-info mb-0 py-1" id="batchImageStatusText">
+                        <i class="bi bi-hourglass-split me-1"></i>AI正在生成图片，请耐心等待...
+                    </div>
+                </div>
+                <!-- 结果预览 -->
+                <div id="batchImageResults" class="d-flex gap-2 flex-wrap mt-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="startBatchImage()" id="btnStartBatchImage">
+                    <i class="bi bi-images me-1"></i>开始配图
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V3.1: 分享弹窗 -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-share me-1"></i>分享内容</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">分享链接</label>
+                    <div class="input-group">
+                        <input type="text" id="shareUrl" class="form-control" readonly>
+                        <button type="button" class="btn btn-outline-primary" onclick="copyShareUrl()">
+                            <i class="bi bi-clipboard"></i>复制
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3" id="shareCardPreview">
+                    <label class="form-label">分享卡片预览</label>
+                    <div class="border rounded p-3">
+                        <div class="fw-bold text-truncate" id="shareCardTitle"></div>
+                        <div class="text-muted small text-truncate mt-1" id="shareCardDesc"></div>
+                        <div class="mt-2">
+                            <img id="shareCardImage" src="" class="img-fluid rounded" style="max-height:120px;display:none;">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="#" id="shareWeibo" target="_blank" class="btn btn-outline-danger">
+                        <i class="bi bi-share me-1"></i>分享到微博
+                    </a>
+                    <a href="#" id="shareQQ" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-chat-dots me-1"></i>分享到QQ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V3.1: SEO对比弹窗 -->
+<div class="modal fade" id="seoCompareModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-arrow-left-right me-1"></i>SEO优化前后对比</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-secondary">
+                            <div class="card-header py-1 bg-secondary text-white">优化前</div>
+                            <div class="card-body py-2">
+                                <div class="mb-2">
+                                    <small class="text-muted">标题</small>
+                                    <div id="seoCompareOldTitle" class="text-truncate"></div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">关键词</small>
+                                    <div id="seoCompareOldKeywords" class="text-truncate"></div>
+                                </div>
+                                <div>
+                                    <small class="text-muted">描述</small>
+                                    <div id="seoCompareOldDesc" class="small"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-header py-1 bg-success text-white">优化后</div>
+                            <div class="card-body py-2">
+                                <div class="mb-2">
+                                    <small class="text-muted">标题</small>
+                                    <div id="seoCompareNewTitle" class="text-truncate fw-bold text-success"></div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">关键词</small>
+                                    <div id="seoCompareNewKeywords" class="text-truncate fw-bold text-success"></div>
+                                </div>
+                                <div>
+                                    <small class="text-muted">描述</small>
+                                    <div id="seoCompareNewDesc" class="small fw-bold text-success"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="applySeoOptimize()">
+                    <i class="bi bi-check-lg me-1"></i>应用优化结果
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 {/block}
@@ -519,10 +704,11 @@ function aiGenerate(mode) {
     var $btn = $('#btnAi');
     $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>生成中...');
     var csrfToken = $('input[name="__token__"]').val();
+    var style = $('#aiWritingStyle').val();
     var ajaxOpts = {
         url: '/api/ai/generate',
         type: 'POST',
-        data: { prompt: prompt, template: 'continue' },
+        data: { prompt: prompt, template: 'continue', style: style },
         dataType: 'json',
         success: function(res) {
             $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>AI 生成内容');
@@ -628,7 +814,7 @@ function syncToPlatforms(contentId) {
     });
 }
 
-// ================= V2.8 SEO一键优化 =================
+// ================= V2.8 SEO一键优化 + V3.1增强 =================
 // SEO字段实时预览
 $('#seoTitle, #seoKeywords, #seoDescription').on('input', function() {
     updateSeoPreview();
@@ -638,31 +824,41 @@ function updateSeoPreview() {
     var title = $('#seoTitle').val().trim() || $('[name="title"]').val().trim() || '标题';
     var description = $('#seoDescription').val().trim() || $('[name="excerpt"]').val().trim() || '描述';
     var url = window.location.origin + ($('[name="id"]').val() ? '/news/' + $('[name="id"]').val() : '/preview');
-    
+
     $('#previewTitle').text(title);
     $('#previewUrl').text(url);
     $('#previewDescription').text(description.substring(0, 150));
     $('#seoPreview').show();
 }
 
+// V3.1: 存储优化前的SEO数据用于对比
+var seoBeforeData = null;
+
 // SEO一键优化
 function seoOptimize() {
     var content = tinymce.activeEditor.getContent({format: 'text'});
     var title = $('[name="title"]').val().trim();
-    
+
     if (!content) {
         showToast('请先输入内容', 'warning');
         return;
     }
-    
+
+    // 保存优化前数据
+    seoBeforeData = {
+        title: $('#seoTitle').val().trim() || title,
+        keywords: $('#seoKeywords').val().trim(),
+        description: $('#seoDescription').val().trim()
+    };
+
     var $btn = $('#btnSeo');
     $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>优化中...');
-    
+
     var csrfToken = $('input[name="__token__"]').val();
     $.ajax({
         url: '/api/ai/seo',
         type: 'POST',
-        data: { 
+        data: {
             content: content.substring(0, 2000),
             title: title,
             keywords: ''
@@ -671,18 +867,8 @@ function seoOptimize() {
         success: function(res) {
             $btn.prop('disabled', false).html('<i class="bi bi-magic me-1"></i>一键优化');
             if (res.code === 0 && res.data) {
-                // 自动填充空字段
-                if (!$(#seoTitle').val().trim() && res.data.title) {
-                    $('#seoTitle').val(res.data.title);
-                }
-                if (!$(#seoKeywords').val().trim() && res.data.keywords) {
-                    $('#seoKeywords').val(Array.isArray(res.data.keywords) ? res.data.keywords.join(',') : res.data.keywords);
-                }
-                if (!$(#seoDescription').val().trim() && res.data.description) {
-                    $('#seoDescription').val(res.data.description);
-                }
-                updateSeoPreview();
-                showToast('SEO优化完成', 'success');
+                // V3.1: 显示对比弹窗而非直接填充
+                showSeoCompareModal(seoBeforeData, res.data);
             } else {
                 showToast(res.msg || '优化失败', 'danger');
             }
@@ -694,8 +880,121 @@ function seoOptimize() {
     });
 }
 
+// V3.1: 显示SEO对比弹窗
+function showSeoCompareModal(oldData, newData) {
+    $('#seoCompareOldTitle').text(oldData.title || '（无）');
+    $('#seoCompareOldKeywords').text(oldData.keywords || '（无）');
+    $('#seoCompareOldDesc').text(oldData.description || '（无）');
+
+    $('#seoCompareNewTitle').text(newData.title || '（无）');
+    $('#seoCompareNewKeywords').text(
+        Array.isArray(newData.keywords) ? newData.keywords.join(', ') : (newData.keywords || '（无）')
+    );
+    $('#seoCompareNewDesc').text(newData.description || '（无）');
+
+    // 存储新数据供应用时使用
+    window.seoNewData = newData;
+
+    var modal = new bootstrap.Modal(document.getElementById('seoCompareModal'));
+    modal.show();
+}
+
+// V3.1: 应用SEO优化结果
+function applySeoOptimize() {
+    var data = window.seoNewData;
+    if (!data) return;
+
+    if (data.title) $('#seoTitle').val(data.title);
+    if (data.keywords) {
+        $('#seoKeywords').val(Array.isArray(data.keywords) ? data.keywords.join(',') : data.keywords);
+    }
+    if (data.description) $('#seoDescription').val(data.description);
+
+    updateSeoPreview();
+    calculateSeoScore();
+
+    var modalEl = document.getElementById('seoCompareModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    showToast('SEO优化结果已应用', 'success');
+}
+
+// V3.1: SEO评分纯算法
+function calculateSeoScore() {
+    var title = $('[name="title"]').val().trim();
+    var content = tinymce.activeEditor.getContent();
+    var seoTitle = $('#seoTitle').val().trim();
+    var seoDesc = $('#seoDescription').val().trim();
+    var seoKeywords = $('#seoKeywords').val().trim();
+
+    var $btn = $('#btnSeoScore');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>评分中...');
+
+    $.ajax({
+        url: '/api/ai/seo_score',
+        type: 'POST',
+        data: {
+            title: title,
+            content: content,
+            seo_title: seoTitle,
+            seo_description: seoDesc,
+            seo_keywords: seoKeywords
+        },
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-bar-chart me-1"></i>评分');
+            if (res.code === 0 && res.data) {
+                renderSeoScore(res.data);
+            } else {
+                showToast(res.msg || '评分失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-bar-chart me-1"></i>评分');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+// V3.1: 渲染SEO评分UI
+function renderSeoScore(data) {
+    var score = data.score || 0;
+    var barClass = score >= 80 ? 'bg-success' : (score >= 60 ? 'bg-warning' : 'bg-danger');
+    var textClass = score >= 80 ? 'text-success' : (score >= 60 ? 'text-warning' : 'text-danger');
+
+    $('#seoScoreValue').text(score + '分').attr('class', 'fw-bold ' + textClass);
+    $('#seoScoreBar').attr('class', 'progress-bar ' + barClass).css('width', score + '%');
+
+    var sugHtml = '';
+    if (data.suggestions && data.suggestions.length > 0) {
+        sugHtml += '<ul class="mb-0 ps-3 small">';
+        data.suggestions.forEach(function(s) {
+            sugHtml += '<li>' + escapeHtml(s) + '</li>';
+        });
+        sugHtml += '</ul>';
+    } else {
+        sugHtml = '<div class="small text-success"><i class="bi bi-check-circle me-1"></i>SEO表现优秀！</div>';
+    }
+    $('#seoScoreSuggestions').html(sugHtml);
+    $('#seoScoreArea').show();
+}
+
 // 页面加载后初始化SEO预览
 setTimeout(updateSeoPreview, 500);
+
+// V3.1: 加载写作风格列表
+$(function() {
+    $.get('/api/ai/styles', function(res) {
+        if (res.code === 0 && res.data && res.data.list) {
+            var options = '<option value="">默认风格</option>';
+            res.data.list.forEach(function(s) {
+                options += '<option value="' + s.key + '">' + s.name + '</option>';
+            });
+            $('#aiWritingStyle').html(options);
+        }
+    });
+});
 
 // ================= V2.8 AI质量检测 =================
 var qualityCheckTimer = null;
@@ -880,16 +1179,22 @@ function showQualityModal(data) {
         html += '<div class="alert alert-info">';
         html += '<h6><i class="bi bi-lightbulb me-1"></i>改进建议</h6>';
         html += '<ul class="mb-0 ps-3">';
-        data.suggestions.forEach(function(s) {
-            html += '<li>' + escapeHtml(s) + '</li>';
+        data.suggestions.forEach(function(s, idx) {
+            html += '<li class="mb-1 d-flex justify-content-between align-items-start">';
+            html += '<span>' + escapeHtml(s) + '</span>';
+            html += '<button type="button" class="btn btn-xs btn-outline-primary ms-2" style="font-size:10px;padding:1px 4px;" onclick="applyQualitySuggestion(' + idx + ', \'' + escapeHtml(s).replace(/'/g, "\\'") + '\')">执行</button>';
+            html += '</li>';
         });
         html += '</ul>';
         html += '</div>';
     }
-    
+
     html += '</div>';
     html += '<div class="modal-footer">';
     html += '<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">关闭</button>';
+    html += '<button type="button" class="btn btn-primary btn-sm" onclick="aiQualityAutoFix()">';
+    html += '<i class="bi bi-magic me-1"></i>一键优化全部';
+    html += '</button>';
     html += '</div>';
     html += '</div>';
     html += '</div>';
@@ -1022,6 +1327,251 @@ function deleteChapterRow(btn) {
         },
         error: function() { showToast('网络错误', 'danger'); }
     });
+}
+
+// ================= V3.1: 批量配图功能 =================
+function openBatchImageModal() {
+    $('#batchImageResults').empty();
+    $('#batchImageProgressArea').hide();
+    $('#btnStartBatchImage').prop('disabled', false).show();
+    var modal = new bootstrap.Modal(document.getElementById('batchImageModal'));
+    modal.show();
+}
+
+function startBatchImage() {
+    var editor = tinymce.activeEditor;
+    if (!editor) { showToast('编辑器未就绪', 'warning'); return; }
+
+    var title = $('[name="title"]').val().trim();
+    var content = editor.getContent({format: 'text'});
+    if (!title && !content) {
+        showToast('请先输入标题或内容', 'warning'); return;
+    }
+
+    var strategy = $('#batchImageStrategy').val();
+    var count = parseInt($('#batchImageCount').val()) || 3;
+    var style = $('#batchImageStyle').val() || 'realistic';
+    var maxCount = 5;
+    if (count > maxCount) count = maxCount;
+
+    // 自动策略：根据段落数计算
+    if (strategy === 'auto') {
+        var paragraphs = content.split(/\n+/).filter(function(p) { return p.trim().length > 20; });
+        count = Math.min(Math.max(1, Math.floor(paragraphs.length / 3)), maxCount);
+    }
+
+    var $btn = $('#btnStartBatchImage');
+    $btn.prop('disabled', true).hide();
+    $('#batchImageProgressArea').show();
+    $('#batchImageResults').empty();
+
+    var results = [];
+    var current = 0;
+
+    function generateNext() {
+        if (current >= count) {
+            $('#batchImageProgressText').text('配图完成！共 ' + count + ' 张');
+            $('#batchImageStatusText').html('<i class="bi bi-check-circle me-1"></i>全部生成完成，点击下方图片可插入编辑器');
+            $('#batchImageProgressBar').removeClass('progress-bar-animated').css('width', '100%');
+            $btn.prop('disabled', false).show().html('<i class="bi bi-check-lg me-1"></i>完成');
+            return;
+        }
+
+        var progress = Math.round((current / count) * 100);
+        $('#batchImageProgressBar').css('width', progress + '%');
+        $('#batchImageProgressText').text('正在生成第 ' + (current + 1) + '/' + count + ' 张...');
+        $('#batchImageStatusText').html('<i class="bi bi-hourglass-split me-1"></i>AI正在生成第 ' + (current + 1) + ' 张图片...');
+
+        $.ajax({
+            url: '/api/ai/batch_image',
+            type: 'POST',
+            data: {
+                title: title,
+                content: content,
+                style: style,
+                paragraph_index: current
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.code === 0 && res.data && res.data.url) {
+                    results.push(res.data);
+                    appendBatchImageResult(res.data, current);
+                    if (res.data.quota) {
+                        $('#batchImageQuotaText').text('今日剩余 ' + res.data.quota.remaining + '/' + res.data.quota.limit);
+                    }
+                } else {
+                    showToast('第' + (current + 1) + '张生成失败: ' + (res.msg || '未知错误'), 'warning');
+                }
+                current++;
+                setTimeout(generateNext, 500);
+            },
+            error: function() {
+                showToast('第' + (current + 1) + '张网络错误', 'warning');
+                current++;
+                setTimeout(generateNext, 500);
+            }
+        });
+    }
+
+    generateNext();
+}
+
+function appendBatchImageResult(data, index) {
+    var html = '<div class="position-relative batch-img-item" style="cursor:pointer;" data-url="' + data.url + '" data-index="' + index + '">';
+    html += '<img src="' + data.url + '" class="img-thumbnail" style="max-height:80px;">';
+    html += '<span class="position-absolute top-0 start-0 badge bg-dark" style="font-size:9px;">' + (index + 1) + '</span>';
+    html += '<div class="position-absolute bottom-0 end-0 btn-group btn-group-sm" style="display:none;">';
+    html += '<button type="button" class="btn btn-primary" title="插入编辑器" onclick="insertImageToEditor(\'' + data.url + '\', ' + index + ')"><i class="bi bi-plus-lg"></i></button>';
+    html += '<button type="button" class="btn btn-success" title="设为封面" onclick="selectAiImage(\'' + data.url + '\')"><i class="bi bi-image"></i></button>';
+    html += '</div>';
+    html += '</div>';
+
+    $('#batchImageResults').append(html);
+
+    // 悬停显示操作按钮
+    $('#batchImageResults .batch-img-item').off('mouseenter mouseleave').hover(
+        function() { $(this).find('.btn-group').show(); },
+        function() { $(this).find('.btn-group').hide(); }
+    );
+}
+
+// V3.1: 插入图片到编辑器指定段落位置
+function insertImageToEditor(url, paragraphIndex) {
+    var editor = tinymce.activeEditor;
+    if (!editor) { showToast('编辑器未就绪', 'warning'); return; }
+
+    var content = editor.getContent();
+    var paragraphs = content.split(/<p>/i).filter(function(p) { return p.trim(); });
+
+    var imgHtml = '<p style="text-align:center;"><img src="' + url + '" alt="配图" style="max-width:100%;height:auto;" /></p>';
+
+    if (paragraphs.length > paragraphIndex + 1) {
+        // 在对应段落后插入
+        var insertPos = 0;
+        var count = 0;
+        var tempContent = content;
+        var regex = /<p[^>]*>/gi;
+        var match;
+        while ((match = regex.exec(tempContent)) !== null) {
+            if (count === paragraphIndex + 1) {
+                insertPos = match.index;
+                break;
+            }
+            count++;
+        }
+        if (insertPos > 0) {
+            var newContent = content.substring(0, insertPos) + imgHtml + content.substring(insertPos);
+            editor.setContent(newContent);
+        } else {
+            editor.setContent(content + imgHtml);
+        }
+    } else {
+        editor.setContent(content + imgHtml);
+    }
+    showToast('图片已插入编辑器', 'success');
+}
+
+// ================= V3.1: 社交分享功能 =================
+function openShareModal(contentId) {
+    var title = $('[name="title"]').val().trim();
+    var desc = $('[name="excerpt"]').val().trim();
+    var cover = $('#coverInput').val().trim();
+    var url = window.location.origin + '/content/' + contentId;
+
+    $('#shareUrl').val(url);
+    $('#shareCardTitle').text(title || '未命名内容');
+    $('#shareCardDesc').text(desc || '暂无描述');
+    if (cover) {
+        $('#shareCardImage').attr('src', cover).show();
+    } else {
+        $('#shareCardImage').hide();
+    }
+
+    // 预生成分享链接
+    $.ajax({
+        url: '/api/ai/share',
+        type: 'POST',
+        data: { title: title, description: desc, url: url, cover: cover },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0 && res.data) {
+                $('#shareWeibo').attr('href', res.data.weibo || '#');
+                $('#shareQQ').attr('href', res.data.qq || '#');
+            }
+        }
+    });
+
+    var modal = new bootstrap.Modal(document.getElementById('shareModal'));
+    modal.show();
+}
+
+function copyShareUrl() {
+    var url = $('#shareUrl').val();
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+            showToast('链接已复制到剪贴板', 'success');
+        });
+    } else {
+        var input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('链接已复制到剪贴板', 'success');
+    }
+}
+
+// ================= V3.1: 质量检测建议一键执行 =================
+function applyQualitySuggestion(index, suggestion) {
+    var editor = tinymce.activeEditor;
+    if (!editor) return;
+
+    // 根据建议类型执行不同操作
+    if (suggestion.indexOf('标题') !== -1 || suggestion.indexOf('关键词') !== -1) {
+        showToast('请在SEO设置区手动调整标题和关键词', 'info');
+        $('#seoTitle')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (suggestion.indexOf('图片') !== -1 || suggestion.indexOf('配图') !== -1 || suggestion.indexOf('ALT') !== -1) {
+        showToast('请使用AI配图功能添加图片', 'info');
+        $('#btnAiImage')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (suggestion.indexOf('段落') !== -1 || suggestion.indexOf('结构') !== -1) {
+        // 自动添加小标题
+        var content = editor.getContent({format: 'text'});
+        var paragraphs = content.split('\n').filter(function(p) { return p.trim().length > 10; });
+        if (paragraphs.length > 3) {
+            var newContent = editor.getContent();
+            // 简单处理：在每3个段落前加h3标签
+            var parts = newContent.split(/<p>/i);
+            var result = parts[0] || '';
+            for (var i = 1; i < parts.length; i++) {
+                if (i % 3 === 1 && i > 1) {
+                    result += '<h3>第' + Math.ceil(i / 3) + '部分</h3><p>' + parts[i];
+                } else {
+                    result += '<p>' + parts[i];
+                }
+            }
+            editor.setContent(result);
+            showToast('已自动优化文章结构', 'success');
+        }
+    } else {
+        showToast('该建议需要手动调整', 'info');
+    }
+}
+
+// V3.1: 一键优化全部质量建议
+function aiQualityAutoFix() {
+    var editor = tinymce.activeEditor;
+    if (!editor) return;
+
+    if (confirm('将使用AI对内容进行自动优化，是否继续？')) {
+        var content = editor.getContent({format: 'text'});
+        $('#aiPrompt').val('请优化以下内容，使其更具可读性和SEO友好性，保持原有信息不变：\n\n' + content.substring(0, 1000));
+        aiGenerate('replace');
+
+        var modalEl = document.getElementById('qualityModal');
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
 }
 
 function escapeHtml(text) {
