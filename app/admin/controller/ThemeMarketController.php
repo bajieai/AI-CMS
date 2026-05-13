@@ -5,9 +5,14 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\middleware\ThemePreviewMiddleware;
+use app\common\model\ThemeInfo;
+use app\common\model\ThemeLog;
+use app\common\model\ThemeRate;
 use app\common\service\ThemeMarketService;
 use app\common\service\theme\RemoteTemplateSource;
+use app\common\service\theme\ThemeUpdateService;
 use app\common\service\TemplateService;
+use think\facade\Log;
 
 /**
  * 模板市场管理后台控制器 - V3.1 Sprint 15 增强版
@@ -233,5 +238,370 @@ class ThemeMarketController extends AdminBaseController
         } catch (\Throwable $e) {
             return $this->error($e->getMessage());
         }
+    }
+
+    // ========== V3.1 Sprint 16: 评分收藏 ==========
+
+    /**
+     * 提交评分（AJAX）
+     */
+    public function rate(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $themeId = (int) $this->request->post('theme_id', 0);
+        $rating  = (int) $this->request->post('rating', 0);
+        $comment = trim($this->request->post('comment', ''));
+        $userId  = (int) session('user_id');
+
+        if ($themeId <= 0 || $rating < 1 || $rating > 5) {
+            return $this->error('参数错误');
+        }
+
+        try {
+            $result = ThemeRate::rate($userId, $themeId, $rating, $comment);
+            // 记录日志
+            $theme = ThemeInfo::find($themeId);
+            ThemeLog::record($themeId, 'rate', $userId, [
+                'code'    => $theme ? $theme->code : '',
+                'rating'  => $rating,
+                'comment' => $comment,
+            ]);
+            return $this->success('评分成功', $result);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    /**
+     * 切换收藏（AJAX）
+     */
+    public function favorite(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $themeId = (int) $this->request->post('theme_id', 0);
+        $userId  = (int) session('user_id');
+
+        if ($themeId <= 0) {
+            return $this->error('参数错误');
+        }
+
+        try {
+            $result = ThemeRate::toggleFavorite($userId, $themeId);
+            return $this->success('操作成功', $result);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    /**
+     * 获取主题评分统计（AJAX）
+     */
+    public function rateStats(): \think\Response
+    {
+        $themeId = (int) $this->request->param('theme_id', 0);
+        if ($themeId <= 0) {
+            return $this->error('参数错误');
+        }
+
+        try {
+            $stats = ThemeRate::getThemeStats($themeId);
+            $userId = (int) session('user_id');
+            $userRate = ThemeRate::getUserRate($userId, $themeId);
+            return $this->success('ok', [
+                'stats'     => $stats,
+                'user_rate' => $userRate,
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    // ========== V3.1 Sprint 16: 版本检测 ==========
+
+    /**
+     * 获取更新红点通知（AJAX）
+     */
+    public function updateBadge(): \think\Response
+    {
+        try {
+            $service = new ThemeUpdateService();
+            $badge = $service->getBadge();
+            return $this->success('ok', $badge);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    /**
+     * 批量检测更新（AJAX）
+     */
+    public function updateCheck(): \think\Response
+    {
+        try {
+            $service = new ThemeUpdateService();
+            $result = $service->checkAll();
+            return $this->success('ok', $result);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    // ========== V3.1 Sprint 16: 日志查询 ==========
+
+    /**
+     * 主题操作日志页面
+     */
+    public function logs(): string
+    {
+        $page = (int) $this->request->param('page', 1);
+        $action = trim($this->request->param('action', ''));
+        $themeId = (int) $this->request->param('theme_id', 0);
+
+        $filter = [];
+        if ($action) $filter['action'] = $action;
+        if ($themeId) $filter['theme_id'] = $themeId;
+
+        $result = ThemeLog::getAllLogs($filter, $page, 20);
+        $actionMap = ThemeLog::getActionMap();
+
+        $this->app->view->assign([
+            'list'       => $result['list'],
+            'total'      => $result['total'],
+            'page'       => $page,
+            'action'     => $action,
+            'theme_id'   => $themeId,
+            'action_map' => $actionMap,
+        ]);
+
+        return $this->app->view->fetch('theme_market_logs');
+    }
+
+    /**
+     * 主题操作日志API（AJAX分页）
+     */
+    public function logList(): \think\Response
+    {
+        $page = (int) $this->request->param('page', 1);
+        $action = trim($this->request->param('action', ''));
+        $themeId = (int) $this->request->param('theme_id', 0);
+
+        $filter = [];
+        if ($action) $filter['action'] = $action;
+        if ($themeId) $filter['theme_id'] = $themeId;
+
+        try {
+            $result = ThemeLog::getAllLogs($filter, $page, 20);
+            return $this->success('ok', $result);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    // ========== V3.1 Sprint 16: 分类管理 ==========
+
+    /**
+     * 分类管理页面
+     */
+    public function categories(): string
+    {
+        $categories = config('ai.theme_industry_categories', []);
+        $this->app->view->assign('categories', $categories);
+        return $this->app->view->fetch('theme_market_categories');
+    }
+
+    /**
+     * 保存分类配置（AJAX）
+     */
+    public function saveCategory(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $key = trim($this->request->post('key', ''));
+        $name = trim($this->request->post('name', ''));
+        $color = trim($this->request->post('color', '#6c757d'));
+        $icon = trim($this->request->post('icon', 'bi-folder'));
+        $sort = (int) $this->request->post('sort', 0);
+
+        if (empty($key) || empty($name)) {
+            return $this->error('标识和名称不能为空');
+        }
+
+        // 读取现有配置
+        $configPath = config_path() . 'ai.php';
+        $categories = config('ai.theme_industry_categories', []);
+
+        $categories[$key] = [
+            'name'  => $name,
+            'color' => $color,
+            'icon'  => $icon,
+            'sort'  => $sort,
+        ];
+
+        // 按sort排序
+        uasort($categories, function ($a, $b) {
+            return ($a['sort'] ?? 0) <=> ($b['sort'] ?? 0);
+        });
+
+        // 写回配置文件（简单字符串替换）
+        try {
+            if (is_file($configPath) && is_writable($configPath)) {
+                $content = file_get_contents($configPath);
+                $pattern = "/('theme_industry_categories'\s*=>\s*\[)[^\]]*(\],)/s";
+                $export = var_export($categories, true);
+                $export = str_replace(["\r\n", "\r"], "\n", $export);
+                $replacement = "'theme_industry_categories' => " . $export . ",";
+                $content = preg_replace($pattern, $replacement, $content);
+                if ($content) {
+                    file_put_contents($configPath, $content, LOCK_EX);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('保存分类配置失败: ' . $e->getMessage());
+        }
+
+        $this->recordLog('修改分类', "key={$key}, name={$name}");
+        return $this->success('保存成功', ['key' => $key]);
+    }
+
+    /**
+     * 删除分类（AJAX）
+     */
+    public function deleteCategory(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $key = trim($this->request->post('key', ''));
+        if (empty($key)) {
+            return $this->error('参数错误');
+        }
+
+        $categories = config('ai.theme_industry_categories', []);
+        if (!isset($categories[$key])) {
+            return $this->error('分类不存在');
+        }
+
+        unset($categories[$key]);
+
+        try {
+            $configPath = config_path() . 'ai.php';
+            if (is_file($configPath) && is_writable($configPath)) {
+                $content = file_get_contents($configPath);
+                $pattern = "/('theme_industry_categories'\s*=>\s*\[)[^\]]*(\],)/s";
+                $export = var_export($categories, true);
+                $export = str_replace(["\r\n", "\r"], "\n", $export);
+                $replacement = "'theme_industry_categories' => " . $export . ",";
+                $content = preg_replace($pattern, $replacement, $content);
+                if ($content) {
+                    file_put_contents($configPath, $content, LOCK_EX);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('删除分类配置失败: ' . $e->getMessage());
+        }
+
+        $this->recordLog('删除分类', "key={$key}");
+        return $this->success('删除成功');
+    }
+
+    // ========== V3.1 Sprint 16: 主题详情 ==========
+
+    /**
+     * 获取主题详情（AJAX，含文件信息）
+     */
+    public function detail(): \think\Response
+    {
+        $code = trim($this->request->param('code', ''));
+        $type = trim($this->request->param('type', 'frontend'));
+
+        if (empty($code)) {
+            return $this->error('参数错误');
+        }
+
+        $themeDir = $type === 'frontend'
+            ? template_path() . 'themes' . DIRECTORY_SEPARATOR . $code
+            : template_path() . 'admin' . DIRECTORY_SEPARATOR . $code;
+
+        if (!is_dir($themeDir)) {
+            return $this->error('主题目录不存在');
+        }
+
+        // 获取theme.json
+        $meta = [];
+        $jsonFile = $themeDir . DIRECTORY_SEPARATOR . 'theme.json';
+        if (is_file($jsonFile)) {
+            $meta = json_decode(file_get_contents($jsonFile), true) ?: [];
+        }
+
+        // 计算文件大小和数量
+        $fileCount = 0;
+        $totalSize = 0;
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($themeDir, \RecursiveDirectoryIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $fileCount++;
+                $size = $file->getSize();
+                $totalSize += $size;
+                $relPath = str_replace($themeDir . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $files[] = [
+                    'path' => $relPath,
+                    'size' => $size,
+                    'mtime'=> $file->getMTime(),
+                ];
+            }
+        }
+
+        // 按大小排序取前20
+        usort($files, function ($a, $b) {
+            return $b['size'] <=> $a['size'];
+        });
+
+        // 获取数据库记录
+        $info = ThemeInfo::where('code', $code)->where('type', $type)->find();
+
+        // 检测更新
+        $updateInfo = ['has_update' => false];
+        if ($info) {
+            $service = new ThemeUpdateService();
+            $updateInfo = $service->checkOne($code);
+        }
+
+        return $this->success('ok', [
+            'code'       => $code,
+            'type'       => $type,
+            'meta'       => $meta,
+            'file_count' => $fileCount,
+            'total_size' => $totalSize,
+            'total_size_formatted' => self::formatSize($totalSize),
+            'files'      => array_slice($files, 0, 20),
+            'mtime'      => filemtime($themeDir),
+            'mtime_formatted' => date('Y-m-d H:i:s', filemtime($themeDir)),
+            'db_info'    => $info ? $info->toArray() : null,
+            'update'     => $updateInfo,
+        ]);
+    }
+
+    /**
+     * 格式化文件大小
+     */
+    protected static function formatSize(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $unitIndex = 0;
+        while ($bytes >= 1024 && $unitIndex < count($units) - 1) {
+            $bytes /= 1024;
+            $unitIndex++;
+        }
+        return round($bytes, 2) . ' ' . $units[$unitIndex];
     }
 }

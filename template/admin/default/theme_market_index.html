@@ -11,9 +11,18 @@
                 <span class="ms-2" id="sourceBadge">
                     <span class="badge bg-light text-dark border">加载中...</span>
                 </span>
+                <span class="ms-2" id="updateBadge" style="display:none;">
+                    <span class="badge bg-danger"><i class="bi bi-bell me-1"></i><span id="updateCount">0</span>个更新</span>
+                </span>
             </p>
         </div>
         <div>
+            <a href="/admin/theme_market/logs" class="btn btn-outline-info btn-sm me-2">
+                <i class="bi bi-journal-text me-1"></i>日志
+            </a>
+            <a href="/admin/theme_market/categories" class="btn btn-outline-secondary btn-sm me-2">
+                <i class="bi bi-tags me-1"></i>分类
+            </a>
             <button class="btn btn-outline-secondary btn-sm me-2" onclick="refreshList()">
                 <i class="bi bi-arrow-clockwise me-1"></i>刷新
             </button>
@@ -155,6 +164,61 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
                 <button type="button" class="btn btn-primary" id="btnInstallFromPreview">安装此模板</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailTitle">模板详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="text-muted mt-2">加载中...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="btnRateDetail">评分</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 评分弹窗 -->
+<div class="modal fade" id="rateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">评分</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <h6 id="rateThemeName" class="mb-2"></h6>
+                    <div id="rateStars" class="fs-3 rating-stars cursor-pointer">
+                        <i class="bi bi-star" data-val="1"></i>
+                        <i class="bi bi-star" data-val="2"></i>
+                        <i class="bi bi-star" data-val="3"></i>
+                        <i class="bi bi-star" data-val="4"></i>
+                        <i class="bi bi-star" data-val="5"></i>
+                    </div>
+                    <p class="text-muted small mt-1" id="rateHint">点击星星评分</p>
+                </div>
+                <div class="mb-3">
+                    <textarea class="form-control" id="rateComment" rows="2" placeholder="写下您的评价（可选）"></textarea>
+                </div>
+                <div id="rateStatsArea" class="small text-muted border-top pt-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSubmitRate" disabled>提交评分</button>
             </div>
         </div>
     </div>
@@ -309,12 +373,13 @@ function renderList() {
             '</div>' +
             '<div class="small text-muted mt-1"><i class="bi bi-download me-1"></i>' + (t.install_count || 0) + ' 次安装</div>' +
             '</div>' +
-            '<div class="card-footer bg-transparent d-flex gap-2">' +
-            previewBtn +
-            installBtn +
-            '</div>' +
-            '</div>' +
-            '</div>'
+                '<div class="card-footer bg-transparent d-flex gap-2">' +
+                '<button class="btn btn-outline-info btn-sm" onclick="openDetail(\'' + t.code + '\', \'' + (t.type || 'frontend') + '\')">详情</button>' +
+                previewBtn +
+                installBtn +
+                '</div>' +
+                '</div>' +
+                '</div>'
         );
     });
 }
@@ -461,6 +526,207 @@ $('#btnInstallFromPreview').on('click', function() {
     if (t) {
         openInstall(t.code, t.name, t.source || 'prebuilt', t.download_url || '');
     }
+});
+
+// ========== V3.1 Sprint 16: 详情弹窗 ==========
+
+function openDetail(code, type) {
+    $('#detailTitle').text('模板详情: ' + code);
+    $('#detailBody').html(
+        '<div class="text-center py-4">' +
+        '<div class="spinner-border text-primary"></div>' +
+        '<p class="text-muted mt-2">加载中...</p></div>'
+    );
+    $('#detailModal').modal('show');
+
+    $.get('/admin/theme_market/detail', { code: code, type: type }, function(res) {
+        if (res.code === 0) {
+            renderDetail(res.data);
+        } else {
+            $('#detailBody').html('<div class="alert alert-danger">' + res.msg + '</div>');
+        }
+    }).fail(function() {
+        $('#detailBody').html('<div class="alert alert-danger">加载失败</div>');
+    });
+}
+
+function renderDetail(data) {
+    const meta = data.meta || {};
+    const db = data.db_info || {};
+    const files = data.files || [];
+    const update = data.update || {};
+
+    let fileRows = '';
+    files.forEach(function(f) {
+        fileRows += '<tr><td class="small text-truncate" style="max-width:300px;" title="' + f.path + '">' + f.path + '</td>' +
+            '<td class="small text-muted text-end">' + formatSize(f.size) + '</td>' +
+            '<td class="small text-muted text-end">' + new Date(f.mtime * 1000).toLocaleDateString() + '</td></tr>';
+    });
+
+    let updateHtml = '';
+    if (update.has_update) {
+        updateHtml = '<div class="alert alert-warning py-2 small">' +
+            '<i class="bi bi-arrow-up-circle me-1"></i>有新版本 ' + update.latest + '（当前 ' + update.current + '）' +
+            '</div>';
+    } else {
+        updateHtml = '<span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>已是最新版本</span>';
+    }
+
+    const stars = renderStars(db.avg_rating || 0);
+    const favoriteBtn = db.id
+        ? '<button class="btn btn-sm btn-outline-warning" onclick="toggleFavorite(' + db.id + ', this)"><i class="bi bi-star"></i> 收藏</button>'
+        : '';
+
+    $('#detailBody').html(
+        '<div class="row">' +
+        '<div class="col-md-6">' +
+        '<h6>' + (meta.name || data.code) + '</h6>' +
+        '<p class="text-muted small">' + (meta.description || '暂无描述') + '</p>' +
+        '<div class="mb-2">' + stars + '</div>' +
+        '<div class="small text-muted mb-2">' +
+        '<div><i class="bi bi-person me-1"></i>作者: ' + (meta.author || '未知') + '</div>' +
+        '<div><i class="bi bi-tag me-1"></i>版本: ' + (meta.version || '1.0.0') + '</div>' +
+        '<div><i class="bi bi-folder me-1"></i>文件数: ' + data.file_count + '</div>' +
+        '<div><i class="bi bi-hdd me-1"></i>总大小: ' + data.total_size_formatted + '</div>' +
+        '<div><i class="bi bi-clock me-1"></i>修改: ' + data.mtime_formatted + '</div>' +
+        '</div>' +
+        '<div class="mb-2">' + updateHtml + '</div>' +
+        '<div>' + favoriteBtn + '</div>' +
+        '</div>' +
+        '<div class="col-md-6">' +
+        '<h6>主要文件</h6>' +
+        '<div style="max-height:280px;overflow-y:auto;">' +
+        '<table class="table table-sm table-borderless">' +
+        '<thead class="table-light"><tr><th>文件</th><th class="text-end">大小</th><th class="text-end">修改</th></tr></thead>' +
+        '<tbody>' + fileRows + '</tbody></table></div>' +
+        '</div></div>'
+    );
+
+    // 绑定评分按钮
+    $('#btnRateDetail').off('click').on('click', function() {
+        $('#detailModal').modal('hide');
+        openRateModal(db.id, meta.name || data.code);
+    }).toggle(!!db.id);
+}
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// ========== V3.1 Sprint 16: 评分弹窗 ==========
+
+let rateTarget = { themeId: 0, name: '', selectedRating: 0 };
+
+function openRateModal(themeId, name) {
+    rateTarget = { themeId: themeId, name: name, selectedRating: 0 };
+    $('#rateThemeName').text(name);
+    $('#rateComment').val('');
+    $('#btnSubmitRate').prop('disabled', true);
+    $('#rateHint').text('点击星星评分');
+    updateStarDisplay(0);
+
+    // 加载评分统计
+    $.get('/admin/theme_market/rateStats', { theme_id: themeId }, function(res) {
+        if (res.code === 0) {
+            renderRateStats(res.data.stats, res.data.user_rate);
+        }
+    });
+
+    $('#rateModal').modal('show');
+}
+
+function renderRateStats(stats, userRate) {
+    let html = '<div class="d-flex justify-content-between align-items-center mb-1">' +
+        '<span>平均 ' + stats.avg + ' 分</span><span>' + stats.total + ' 人评分</span></div>';
+    for (let i = 5; i >= 1; i--) {
+        const count = stats.distribution[i] || 0;
+        const pct = stats.total > 0 ? Math.round(count / stats.total * 100) : 0;
+        html += '<div class="d-flex align-items-center small mb-1">' +
+            '<span style="width:30px;">' + i + '星</span>' +
+            '<div class="progress flex-grow-1 mx-2" style="height:6px;">' +
+            '<div class="progress-bar bg-warning" style="width:' + pct + '%"></div></div>' +
+            '<span style="width:30px;text-align:right;">' + count + '</span></div>';
+    }
+    if (userRate) {
+        html += '<div class="mt-1 text-primary small">您已评 ' + userRate.rating + ' 星</div>';
+        rateTarget.selectedRating = userRate.rating;
+        updateStarDisplay(userRate.rating);
+        $('#btnSubmitRate').prop('disabled', false);
+    }
+    $('#rateStatsArea').html(html);
+}
+
+$('#rateStars').on('click', 'i', function() {
+    const val = parseInt($(this).data('val'));
+    rateTarget.selectedRating = val;
+    updateStarDisplay(val);
+    $('#btnSubmitRate').prop('disabled', false);
+    $('#rateHint').text(val + ' 星');
+});
+
+function updateStarDisplay(rating) {
+    $('#rateStars i').each(function() {
+        const val = parseInt($(this).data('val'));
+        $(this).removeClass('bi-star-fill bi-star').addClass(val <= rating ? 'bi-star-fill' : 'bi-star');
+    });
+}
+
+$('#btnSubmitRate').on('click', function() {
+    if (!rateTarget.selectedRating) return;
+    const $btn = $(this);
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>提交中...');
+
+    $.post('/admin/theme_market/rate', {
+        theme_id: rateTarget.themeId,
+        rating: rateTarget.selectedRating,
+        comment: $('#rateComment').val()
+    }, function(res) {
+        $('#rateModal').modal('hide');
+        $btn.prop('disabled', false).text('提交评分');
+        if (res.code === 0) {
+            I8JToast.success('评分成功');
+            loadTemplates();
+        } else {
+            I8JToast.error(res.msg);
+        }
+    }).fail(function() {
+        $btn.prop('disabled', false).text('提交评分');
+        I8JToast.error('评分失败');
+    });
+});
+
+// 收藏
+function toggleFavorite(themeId, btn) {
+    $.post('/admin/theme_market/favorite', { theme_id: themeId }, function(res) {
+        if (res.code === 0) {
+            const fav = res.data.is_favorite;
+            $(btn).html(fav ? '<i class="bi bi-star-fill"></i> 已收藏' : '<i class="bi bi-star"></i> 收藏');
+            $(btn).toggleClass('btn-warning', fav).toggleClass('btn-outline-warning', !fav);
+            I8JToast.success(fav ? '已收藏' : '已取消收藏');
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+// ========== V3.1 Sprint 16: 更新红点 ==========
+
+function loadUpdateBadge() {
+    $.get('/admin/theme_market/updateBadge', function(res) {
+        if (res.code === 0 && res.data.show) {
+            $('#updateCount').text(res.data.count);
+            $('#updateBadge').show();
+        } else {
+            $('#updateBadge').hide();
+        }
+    });
+}
+
+// 初始加载时检测更新
+$(function() {
+    loadUpdateBadge();
 });
 </script>
 {/block}

@@ -269,6 +269,18 @@ Route::get('theme_market/backups$', '\app\admin\controller\ThemeMarketController
 Route::post('theme_market/rollback$', '\app\admin\controller\ThemeMarketController@rollback');
 Route::post('theme_market/scan$', '\app\admin\controller\ThemeMarketController@scan');
 Route::get('theme_market/checkUpdate$', '\app\admin\controller\ThemeMarketController@checkUpdate');
+// V3.1 Sprint 16: 评分收藏+版本检测+日志+分类+详情
+Route::post('theme_market/rate$', '\app\admin\controller\ThemeMarketController@rate');
+Route::post('theme_market/favorite$', '\app\admin\controller\ThemeMarketController@favorite');
+Route::get('theme_market/rateStats$', '\app\admin\controller\ThemeMarketController@rateStats');
+Route::get('theme_market/updateBadge$', '\app\admin\controller\ThemeMarketController@updateBadge');
+Route::get('theme_market/updateCheck$', '\app\admin\controller\ThemeMarketController@updateCheck');
+Route::get('theme_market/detail$', '\app\admin\controller\ThemeMarketController@detail');
+Route::get('theme_market/logs$', '\app\admin\controller\ThemeMarketController@logs');
+Route::get('theme_market/logList$', '\app\admin\controller\ThemeMarketController@logList');
+Route::get('theme_market/categories$', '\app\admin\controller\ThemeMarketController@categories');
+Route::post('theme_market/saveCategory$', '\app\admin\controller\ThemeMarketController@saveCategory');
+Route::post('theme_market/deleteCategory$', '\app\admin\controller\ThemeMarketController@deleteCategory');
 
 // V3.1: 数据看板来源分析
 Route::get('dashboard/getSourceAnalysis$', '\app\admin\controller\DashboardController@getSourceAnalysis');

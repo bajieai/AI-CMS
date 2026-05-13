@@ -383,14 +383,7 @@ class ThemeMarketService
         try {
             $theme = ThemeInfo::where('code', $code)->find();
             $themeId = $theme ? $theme->id : 0;
-            $db = \think\facade\Db::name('theme_log');
-            $db->insert([
-                'theme_id'    => $themeId,
-                'action'      => $action,
-                'user_id'     => $userId,
-                'detail'      => json_encode($detail, JSON_UNESCAPED_UNICODE),
-                'create_time' => time(),
-            ]);
+            \app\common\model\ThemeLog::record($themeId, $action, $userId, $detail);
         } catch (\Throwable $e) {
             Log::warning('ThemeMarketService: 日志记录失败 ' . $e->getMessage());
         }
