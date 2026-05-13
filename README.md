@@ -10,7 +10,7 @@
 
 八界AI-CMS V3.1 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-**V3.1 定位：AI内容增强阶段**，在V3.0体验完善基础上，深度强化AI配图、SEO优化、质量检测、社交分享和写作风格五大AI驱动能力。
+**V3.1 定位：AI内容增强 + 模板生态阶段**，在V3.0体验完善基础上，深度强化AI配图、SEO优化、质量检测、社交分享、写作风格五大AI驱动能力，以及模板批量生产、市场前台、管理增强三大模板生态能力。
 
 **Sprint 11 — AI配图增强：**
 1. **批量配图** — 前端串行调用+进度条，自动构建图片Prompt，配图直接插入编辑器正文段落之间
@@ -28,14 +28,41 @@
 9. **社交分享** — 后台编辑页分享Modal(微博/QQ/复制)+卡片预览，前台详情页分享统计埋点
 10. **5种可配置写作风格** — config/ai.php配置驱动(正式/轻松/专业/幽默/简洁)，后台风格下拉选择
 
+**Sprint 14 — 模板批量生产流水线：**
+11. **BatchThemeGenerateService** — 批量编排（行业分类+变体描述+进度追踪），CLI命令`php think theme:batch`，断点续传
+12. **ThemeQualityService** — 纯算法5+1维度质量自检（结构30+CSS变量25+硬编码20+页面15+简洁5+相似度5）
+13. **人工审核工作流** — 待审核列表，批量通过，质量评分，生成→审核→发布闭环
+14. **模板安装安全校验** — ZIP Slip防护，路径穿越检测
+
+**Sprint 15 — 模板市场前台：**
+15. **10套预埋模板** — 5行业×2套，统一Design Token，离线可安装
+16. **RemoteTemplateSource** — OSS静态JSON获取+CDN下载+10min缓存+离线降级
+17. **模板市场UI** — 骨架屏+分类Tab+卡片网格+搜索排序+空状态+已安装标记
+18. **一键安装+回滚** — 预埋本地复制/远程下载→校验→应用→切换引导，安装前自动备份
+
+**Sprint 16 — 模板管理增强：**
+19. **ThemeRate评分收藏** — 1-5星评分+收藏+平均评分同步，uk_user_theme唯一索引
+20. **ThemeUpdateService** — 本地vs远程版本比对+24h缓存+红点Badge通知
+21. **详情弹窗增强** — 文件列表/大小/修改时间/版本检测/收藏按钮
+22. **分类管理后台** — CRUD+颜色选择器+图标+排序
+23. **日志监控** — 主题操作日志（install/rollback/update/rate/switch/uninstall）+查询页面
+
+**Phase 3.5L — 轻量发布：**
+24. **ThemeFileService安全测试** — 11用例PHPUnit（路径穿越4+扩展名白名单3+写入验证2+回滚1+文件树扫描1）
+25. **SEO评分缓存回写** — 3触发点（编辑保存/AI优化后/批量优化后自动保存seo_score字段）
+26. **编码根治方案** — 7层防护体系，GBK双编码乱码清零
+
 ### 核心特性
 
 - **🆕 AI配图增强(V3.1)** - 批量配图+自动插入段落+发布自动配图+日配额控制，前端串行进度条
-- **🆕 AI SEO评分(V3.1)** - 纯算法0-100评分(5维度加权)，前后对比面板，批量SEO优化(3篇并发控制)
+- **🆕 AI SEO评分(V3.1)** - 纯算法0-100评分(5维度加权)，前后对比面板，批量SEO优化(3篇并发控制)，自动缓存回写
 - **🆕 质量检测卡片(V3.1)** - 维度评分条+改进建议一键执行+一键优化全部
 - **🆕 社交分享增强(V3.1)** - 后台分享Modal(微博/QQ/复制/卡片预览)+前台分享统计埋点
 - **🆕 5种写作风格(V3.1)** - 可配置写作风格(正式/轻松/专业/幽默/简洁)，config驱动
 - **🆕 来源分析饼图(V3.1)** - Dashboard ECharts来源分析(直接/搜索/社交/外部)，7/30天切换
+- **🆕 模板批量生产(V3.1-下一阶段)** - 5行业批量生成+质量自检6维度+人工审核闭环+CLI断点续传
+- **🆕 模板市场前台(V3.1-下一阶段)** - 10套预埋模板+RemoteTemplateSource(OSS/CDN/缓存/降级)+骨架屏+分类Tab+搜索排序+一键安装+回滚
+- **🆕 模板管理增强(V3.1-下一阶段)** - ThemeRate评分收藏+版本检测红点+详情弹窗(文件/大小/版本)+分类CRUD+操作日志
 
 - **🆕 AI模板对话迭代** - 多轮对话式修改+局部重生成+版本管理(git备份/回退/差异对比)，AI助手面板
 - **🆕 暗色模式全站** - 43+模板硬编码颜色→CSS变量替换，shared片段改造，scan-hardcoded-colors扫描脚本
@@ -431,6 +458,10 @@ AI-CMS/
 | i8j_ai_theme_chat_log | AI主题对话日志(V3.0 Phase 3) | id,record_id,role,content,files_changed,version,token_count,model,provider |
 | i8j_ai_report | AI分析报告表 | id,type,title,period_start,period_end,raw_data,summary,findings,anomalies,recommendations,sections,status |
 | i8j_theme_config | 主题配置表 | id,theme,scope,scope_id,config_key,config_value,config_type,label,description,sort |
+| i8j_theme_info | 主题信息表(V3.1-下一阶段) | id,code,name,type,version,author,description,thumbnail,is_installed,installed_version,industry,style_tag,is_market,market_url,avg_rating,install_count,screenshots |
+| i8j_theme_rate | 主题评分收藏表(S16) | id,user_id,theme_id,rating,is_favorite,comment,create_time,update_time |
+| i8j_theme_log | 主题操作日志表(S14+S16) | id,theme_id,action,user_id,detail,create_time |
+| i8j_ai_theme_record | AI主题生成记录 | id,theme_name,description,style,industry,color_scheme,layout_type,status,provider,model,validate_result,batch_id,quality_score,quality_detail,published_at,preview_hash |
 | i8j_publish_platform | 发布平台表 | id,name,code,type,config_json,status,access_token,refresh_token,token_expire_time |
 | i8j_points_exchange | 积分兑换表 | id,user_id,product_id,points_cost,status,create_time |
 | i8j_member_level | 会员等级表 | id,name,min_points,max_points,icon,discount_rate,points_rate,daily_ai_quota,is_default |
@@ -519,7 +550,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
-| V3.1 | 2026-05-13 | AI内容增强: 批量配图+发布自动配图+日配额控制/SEO评分算法(0-100)+前后对比+批量SEO(3并发)+来源分析饼图/质量卡片+建议执行+社交分享Modal+前台分享统计/5种可配置写作风格 |
+| V3.1.0 | 2026-05-14 | AI内容增强: 批量配图+发布自动配图+日配额控制/SEO评分算法(0-100)+前后对比+批量SEO(3并发)+来源分析饼图/质量卡片+建议执行+社交分享Modal+前台分享统计/5种可配置写作风格。模板生态: 批量生产流水线(5行业+质量自检+审核闭环)/市场前台(10套预埋+OSS/CDN+一键安装+回滚)/管理增强(评分收藏+版本检测+分类CRUD+日志)。Phase 3.5L: 安全测试11用例+SEO缓存回写3触发点+编码根治7层防护 |
 | V3.0 Phase 3 | 2026-05-13 | 体验完善+生态基座: AI模板对话迭代(多轮对话+局部重生成+版本管理)/暗色模式全站(43+文件CSS变量替换)/8新组件(Tabs/Dropdown/DatePicker/DataTable等13组件)/多bundle打包(4bundle)/主题导入导出(ThemePackageService)/测试基础设施(PHPUnit+Playwright)/路由补全(21路由) |
 | V3.0 Phase 2 | 2026-05-12 | 能力释放: AI主题生成MVP(7状态异步+预览沙箱+审核后台+调色面板)/UI组件库(I8JComponent基类+5组件+ESBuild打包)/CSS变量标准化(34变量+暗色模式)/N+1扫描+CSP收紧 |
 | V3.0 Phase 1 | 2026-05 | V2.9→V3.0过渡桥接: 付费标识/CSP配置化+enforce切换/存储层htmlspecialchars/SQL全量审计/内容打赏补全/个人消息扩展/AI模板预研(方案C+A)/模板规范v1.0/UI组件库规划/架构升级评估 |
@@ -561,7 +592,7 @@ docker cp database/v3.0.sql aicms_mysql:/tmp/
 docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
 ```
 
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql`。
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql` → `v3.1_next.sql`。
 
 ## 常用Docker命令
 

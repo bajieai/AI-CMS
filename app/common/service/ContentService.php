@@ -257,7 +257,7 @@ class ContentService
      * V3.1 Phase 3.5L: SEO评分缓存回写
      * 计算并缓存SEO评分到数据库
      */
-    protected function cacheSeoScore(Content $content): void
+    public static function cacheSeoScore(Content $content): void
     {
         try {
             $aiService = new AiService();
