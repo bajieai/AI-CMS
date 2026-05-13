@@ -38,6 +38,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin -
 # 配置PHP-FPM（覆盖默认配置以支持Docker网络）
 COPY www.conf /usr/local/etc/php-fpm.d/zzz-custom.conf
 
+# ===== 编码根治：强制UTF-8（防止Windows环境PHP默认GBK导致乱码）=====
+COPY php.ini /usr/local/etc/php/conf.d/zzz-ai-cms-encoding.ini
+
 # 设置工作目录
 WORKDIR /var/www/html
 

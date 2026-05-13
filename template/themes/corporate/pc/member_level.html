@@ -6,7 +6,7 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <!-- 褰撳墠等级姒傝 -->
+            <!-- 当前等级姒傝 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-body p-4 text-center" style="background:linear-gradient(135deg,#0f172a 0%,var(--i8j-text,#334155) 100%);border-radius:12px;color:#fff;">
                     <div class="mb-2">
@@ -18,16 +18,16 @@
                         </div>
                     </div>
                     <h4 class="mb-1">{$progress.current.name}</h4>
-                    <p class="mb-0 opacity-75">褰撳墠等级</p>
+                    <p class="mb-0 opacity-75">当前等级</p>
                 </div>
             </div>
 
-            <!-- 杩涘害详情 -->
+            <!-- 进度详情 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-body p-4">
                     {if $progress.next}
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold">鍗囩骇杩涘害</span>
+                        <span class="fw-bold">升级进度</span>
                         <span class="text-muted small">{$progress.current_points} / {$progress.next.min_points} 积分</span>
                     </div>
                     <div class="progress mb-3" style="height:20px;border-radius:10px;background:#e2e8f0;">
@@ -36,12 +36,12 @@
                         </div>
                     </div>
                     <div class="text-center text-muted small">
-                        璺濈 <strong>{$progress.next.name}</strong> 杩橀渶 {$progress.need_points} 积分
+                        距离 <strong>{$progress.next.name}</strong> 还需 {$progress.need_points} 积分
                     </div>
                     {else}
                     <div class="text-center py-3">
                         <i class="bi bi-trophy-fill text-warning" style="font-size:2rem;"></i>
-                        <p class="mt-2 mb-0 fw-bold">鎭枩锛佹偍宸茶揪鍒版渶楂樼瓑绾?/p>
+                        <p class="mt-2 mb-0 fw-bold">恭喜！您已达到最高等级</p>
                     </div>
                     {/if}
                 </div>
@@ -52,21 +52,21 @@
             <div class="alert alert-warning d-flex align-items-center mb-4" role="alert" style="border-radius:12px;">
                 <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
                 <div>
-                    <strong>等级闄嶇骇棰勮</strong><br>
-                    鎮ㄧ殑积分宸蹭笉婊¤冻褰撳墠等级瑕佹眰锛岀郴缁熷皢鍦?<strong>{$progress.grace.days_left} 澶?/strong> 鍚庤嚜鍔ㄩ檷绾с€?
+                    <strong>等级降级预警</strong><br>
+                    您的积分已不满足当前等级要求，系统将在<strong>{$progress.grace.days_left} 澶</strong> 后自动降级
                     <a href="/signin" class="alert-link">鍘荤鍒拌禋积分 &rarr;</a>
                 </div>
             </div>
             {/if}
 
-            <!-- 等级鍘嗗彶鏃堕棿绾?V2.9.5 -->
+            <!-- 等级历史时间线V2.9.5 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">
-                    <i class="bi bi-clock-history me-1"></i>等级鍙樻洿璁板綍
+                    <i class="bi bi-clock-history me-1"></i>等级变更记录
                 </div>
                 <div class="card-body p-4">
                     {empty name="timeline"}
-                    <p class="text-muted text-center mb-0">暂无等级鍙樻洿璁板綍</p>
+                    <p class="text-muted text-center mb-0">暂无等级变更记录</p>
                     {else/}
                     <div class="i8j-timeline">
                         {volist name="timeline" id="tl"}
@@ -93,10 +93,10 @@
                 </div>
             </div>
 
-            <!-- 等级闃舵 -->
+            <!-- 等级阶段 -->
             <div class="card shadow-sm border-0" style="border-radius:12px;">
                 <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">
-                    <i class="bi bi-ladder me-1"></i>等级浣撶郴
+                    <i class="bi bi-ladder me-1"></i>等级体系
                 </div>
                 <div class="list-group list-group-flush">
                     {volist name="levels" id="lv"}
@@ -109,16 +109,16 @@
                                 <div class="fw-bold">{$lv.name}</div>
                                 <div class="text-muted small">
                                     {if $lv.is_vip}<span class="badge bg-warning text-dark me-1">VIP</span>{/if}
-                                    闇€ {$lv.min_points} 积分
-                                    {if $lv.discount > 0}&middot; 鎶樻墸 {$lv.discount}鎶榹/if}
-                                    {if $lv._daily_ai_quota > 0}&middot; 姣忔棩AI {$lv._daily_ai_quota} 娆/if}
+                                    需 {$lv.min_points} 积分
+                                    {if $lv.discount > 0}&middot; 折扣 {$lv.discount}折{/if}
+                                    {if $lv._daily_ai_quota > 0}&middot; 濮ｅ繑妫〢I {$lv._daily_ai_quota} 濞嗩攣/if}
                                 </div>
                             </div>
                         </div>
                         {if $lv.id == $progress.current.id}
-                        <span class="badge bg-dark">褰撳墠</span>
+                        <span class="badge bg-dark">当前</span>
                         {elseif $lv.id == ($progress.next.id ?? 0)}
-                        <span class="badge bg-secondary">涓嬩竴绾?/span>
+                        <span class="badge bg-secondary">下一级</span>
                         {/if}
                     </div>
                     {/volist}
@@ -128,3 +128,5 @@
     </div>
 </div>
 {/block}
+
+

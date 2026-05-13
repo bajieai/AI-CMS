@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}鐢ㄦ埛涓績 - {$site_name}{/block}
+{block name="title"}用户中績 - {$site_name}{/block}
 
 {block name="content"}
 
@@ -9,7 +9,7 @@
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-7">
                 <div class="card border-0 overflow-hidden" style="border-radius:16px;box-shadow:var(--shadow-card);">
-                    <!-- 澶撮儴锛氭繁鑹茶儗鏅?-->
+                    <!-- 头部：深色背景?-->
                     <div style="background:linear-gradient(135deg,var(--i8j-text,#1e293b) 0%,var(--i8j-text,#334155) 100%);padding:2.25rem;text-align:center;color:#fff;position:relative;overflow:hidden;">
                         <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:90px;height:90px;background:rgba(59,130,246,.15);border-radius:50%;"></div>
                         <div style="position:relative;z-index:1;display:inline-block;padding-top:.5rem;">
@@ -18,35 +18,35 @@
                             </div>
                             <h4 class="mb-0 fw-bold" style="font-size:1.2rem;">{$info.nickname|default=$info.username}</h4>
                             <span class="badge rounded-pill mt-2 px-3 py-1" style="background:rgba(255,255,255,.15);color:#fff;font-size:.78rem;font-weight:600;">
-                                {if condition="$info.role_id == 1"}瓒呯骇管理鍛?
-                                {elseif condition="$info.role_id == 2"}管理鍛?
+                                {if condition="$info.role_id == 1"}超级管理员
+                                {elseif condition="$info.role_id == 2"}管理员
                                 {else}编辑
                                 {/if}
                             </span>
                         </div>
                     </div>
-                    <!-- 淇℃伅鍒楄〃 -->
+                    <!-- 信息列表 -->
                     <div style="padding:2rem;">
                         <ul class="list-unstyled mb-4">
                             <li class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px dashed #f1f5f9;font-size:.92rem;">
-                                <span style="color:var(--i8j-text-secondary,#64748b);"><i class="bi bi-person me-2 opacity-50"></i>鐢ㄦ埛鍚?/span>
+                                <span style="color:var(--i8j-text-secondary,#64748b);"><i class="bi bi-person me-2 opacity-50"></i>用户名</span>
                                 <span class="fw-semibold" style="color:var(--i8j-text,#1e293b);">{$info.username}</span>
                             </li>
                             <li class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px dashed #f1f5f9;font-size:.92rem;">
-                                <span style="color:var(--i8j-text-secondary,#64748b);"><i class="bi bi-envelope me-2 opacity-50"></i>閭</span>
+                                <span style="color:var(--i8j-text-secondary,#64748b);"><i class="bi bi-envelope me-2 opacity-50"></i>邮</span>
                                 <span class="fw-semibold" style="color:var(--i8j-text,#1e293b);">{$info.email|default='鏈缃?}</span>
                             </li>
                             <li class="d-flex justify-content-between align-items-center py-3 font-size:.92rem;" style="border:none;">
-                                <span style="color:var(--i8j-text-secondary,#64748b);"><i class="bi bi-calendar3 me-2 opacity-50"></i>娉ㄥ唽鏃堕棿</span>
+                                <span style="color:var(--i8j-text-secondary,#64748b);"><i class="bi bi-calendar3 me-2 opacity-50"></i>注册时间</span>
                                 <span class="fw-semibold" style="color:var(--i8j-text,#1e293b);">{$info.create_time|date='Y-m-d H:i'}</span>
                             </li>
                         </ul>
                         <div class="d-grid gap-3 mt-3">
                             <a href="/admin/user/profile" class="btn btn-sm px-3" style="background:var(--color-accent);color:#fff;border-radius:20px;font-weight:600;">
-                                <i class="bi bi-pencil me-1"></i>编辑璧勬枡
+                                <i class="bi bi-pencil me-1"></i>编辑资料
                             </a>
-                            <a href="/admin/logout" onclick="return confirm('确定閫€鍑虹櫥褰曪紵')" class="btn btn-sm px-3" style="background:var(--i8j-bg,#fff);border:1px solid #e2e8f0;border-radius:20px;font-weight:600;color:var(--i8j-text-secondary,#64748b);">
-                                <i class="bi bi-box-arrow-right me-1"></i>閫€鍑虹櫥褰?
+                            <a href="/admin/logout" onclick="return confirm('确定退出登录？')" class="btn btn-sm px-3" style="background:var(--i8j-bg,#fff);border:1px solid #e2e8f0;border-radius:20px;font-weight:600;color:var(--i8j-text-secondary,#64748b);">
+                                <i class="bi bi-box-arrow-right me-1"></i>退出登录
                             </a>
                         </div>
                     </div>

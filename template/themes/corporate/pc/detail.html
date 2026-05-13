@@ -7,7 +7,7 @@
 {block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
 
 {block name="meta_extra"}
-<!-- V2.8 OGP绀句氦分享鍏冩爣绛?-->
+<!-- V2.8 OGP绀句氦分享元标签-->
 <meta property="og:title" content="{$info.seo_title ?: $info.title}">
 <meta property="og:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
 {if condition="$info.cover"}<meta property="og:image" content="{$info.cover}">{/if}
@@ -17,7 +17,7 @@
 <!-- V2.9.2 M19b: Schema.org JSON-LD -->
 {:app\common\service\SchemaService::article($info)}
 <!-- V2.9.2 M19b: BreadcrumbList -->
-{:app\common\service\SchemaService::breadcrumb(['首页'=>$site_url,'分类'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
+{:app\common\service\SchemaService::breadcrumb(['棣栭〉'=>$site_url,'鍒嗙被'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
 {/block}
 
 {block name="content"}
@@ -25,15 +25,15 @@
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="/">棣栭〉</a></li>
                 <li class="breadcrumb-item">
                     <a href="{$type_url}">
                         {if condition="$info.type == 1"}产品中心{/if}
-                        {if condition="$info.type == 2"}成功案例{/if}
-                        {if condition="$info.type == 3"}新闻鍔ㄦ€亄/if}
-                        {if condition="$info.type == 4"}资料下载{/if}
-                        {if condition="$info.type == 5"}人才招聘{/if}
-                        {if condition="$info.type == 6"}单页{/if}
+                        {if condition="$info.type == 2"}鎴愬姛妗堜緥{/if}
+                        {if condition="$info.type == 3"}新闻动态{/if}
+                        {if condition="$info.type == 4"}璧勬枡中嬭浇{/if}
+                        {if condition="$info.type == 5"}浜烘墠鎷涜仒{/if}
+                        {if condition="$info.type == 6"}卡曢〉{/if}
                     </a>
                 </li>
                 <li class="breadcrumb-item active">{$info.title}</li>
@@ -69,7 +69,7 @@
                         <div class="i8j-paywall-preview">{$safe_content.preview}</div>
                         <div class="i8j-paywall-box text-center py-4 my-3 rounded" style="background:var(--i8j-bg-secondary,#f8fafc);border:1px dashed #cbd5e1;">
                             <i class="bi bi-lock-fill text-warning fs-2 mb-2 d-block"></i>
-                            <p class="text-secondary mb-2">姝ゅ唴瀹逛负浠樿垂内容锛岃В閿佸悗鍙槄璇诲叏鏂?/p>
+                            <p class="text-secondary mb-2">此内容为付费内容，解锁后可阅读全文</p>
                             <p class="fw-bold text-primary mb-3">
                                 {if $safe_content.price > 0}
                                     {if $info.paid_type == 'points'}
@@ -78,16 +78,16 @@
                                         &yen;{$safe_content.price}
                                     {/if}
                                 {else}
-                                    鍏嶈垂
+                                    免费
                                 {/if}
                             </p>
                             {if $isMemberLogin}
                             <button type="button" class="btn btn-primary" onclick="unlockContent({$info.id})">
-                                <i class="bi bi-unlock me-1"></i>绔嬪嵆瑙ｉ攣
+                                <i class="bi bi-unlock me-1"></i>立嬪嵆瑙ｉ攣
                             </button>
                             {else}
                             <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary">
-                                <i class="bi bi-box-arrow-in-right me-1"></i>鐧诲綍鍚庤В閿?
+                                <i class="bi bi-box-arrow-in-right me-1"></i>登录后解锁
                             </a>
                             {/if}
                         </div>
@@ -98,7 +98,7 @@
 
                     <!-- 浜掑姩鏁版嵁 -->
                     <div class="d-flex align-items-center gap-3 mt-4 mb-3 py-2 border-top border-bottom">
-                        <span class="text-muted small"><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 璧?/span>
+                        <span class="text-muted small"><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 璧</span>
                         <span class="text-muted small"><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
                     </div>
                     
@@ -128,7 +128,7 @@
                 <section class="mt-4" id="ratingSection">
                     <h5 class="mb-3"><i class="bi bi-star me-1"></i>璇勪环璇勫垎</h5>
                     
-                    <!-- 璇勫垎缁熻 -->
+                    <!-- 鐠囧嫬鍨庣紒鐔活吀 -->
                     <div class="row mb-4" id="ratingStats">
                         <div class="col-md-3 text-center">
                             <h2 class="text-warning mb-0" id="avgRating">0.0</h2>
@@ -136,19 +136,19 @@
                         </div>
                         <div class="col-md-9">
                             <div class="mb-1" id="starStats">
-                                <!-- JS鍔ㄦ€佺敓鎴?-->
+                                <!-- JS动态生成 -->
                             </div>
-                            <small class="text-muted" id="ratingCount">鍏?鏉¤瘎浠?/small>
+                            <small class="text-muted" id="ratingCount">共鏉¤瘎浠</small>
                         </div>
                     </div>
 
-                    <!-- 璇勪环鍒楄〃 -->
+                    <!-- 璇勪环列表 -->
                     <div id="ratingList"></div>
                     <nav id="ratingPagination" class="mt-3"></nav>
 
                     <!-- 提交璇勪环琛ㄥ崟 -->
                     <div class="card mt-4" id="ratingFormCard">
-                        <div class="card-header">鍙戣〃璇勪环</div>
+                        <div class="card-header">可戣〃璇勪环</div>
                         <div class="card-body">
                             <form id="ratingForm">
                                 <input type="hidden" name="content_id" value="{$info.id}">
@@ -166,9 +166,9 @@
                                     </div>
                                 </div>
 
-                                <!-- 鏍囬 -->
+                                <!-- 标题 -->
                                 <div class="mb-3">
-                                    <input type="text" name="title" class="form-control form-control-sm" placeholder="璇勪环鏍囬锛堝彲閫夛級">
+                                    <input type="text" name="title" class="form-control form-control-sm" placeholder="评价标题（可选）">
                                 </div>
 
                                 <!-- 内容 -->
@@ -176,9 +176,9 @@
                                     <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="分享鎮ㄧ殑浣跨敤浣撻獙..."></textarea>
                                 </div>
 
-                                <!-- 濯掍綋上传 - V2.9.1 M15a -->
+                                <!-- 媒体上传 - V2.9.1 M15a -->
                                 <div class="mb-3">
-                                    <label class="form-label small text-muted">上传鍥剧墖锛堝彲閫夛級</label>
+                                    <label class="form-label small text-muted">上传图片（可选）</label>
                                     <div id="ratingMediaUploader"></div>
                                 </div>
 
@@ -210,22 +210,22 @@
                                 {if condition="!$isMemberLogin"}
                                 <div class="row mb-2">
                                     <div class="col-md-6">
-                                        <input type="text" name="nickname" class="form-control form-control-sm" placeholder="鏄电О" required>
+                                        <input type="text" name="nickname" class="form-control form-control-sm" placeholder="閺勭數袨" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="email" name="email" class="form-control form-control-sm" placeholder="閭锛堜笉鍏紑锛?>
+                                        <input type="email" name="email" class="form-control form-control-sm" placeholder="邮箱（不公开）">
                                     </div>
                                 </div>
                                 {/if}
                                 <div class="mb-2">
-                                    <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="鍙戣〃浣犵殑鐪嬫硶..." required></textarea>
+                                    <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="可戣〃浣犵殑鐪嬫硶..." required></textarea>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-sm">提交评论</button>
                             </form>
                         </div>
                     </div>
 
-                    <!-- 评论鍒楄〃 -->
+                    <!-- 评论列表 -->
                     <div id="commentList"></div>
                     <nav id="commentPagination" class="mt-3"></nav>
                 </section>
@@ -235,7 +235,7 @@
             <!-- 渚ц竟鏍?-->
             <div class="col-lg-3">
                 <div class="card mb-3">
-                    <div class="card-header"><i class="bi bi-lightning me-1"></i>鐩稿叧内容</div>
+                    <div class="card-header"><i class="bi bi-lightning me-1"></i>相关内容</div>
                     <div class="list-group list-group-flush">
                         {volist name="related" id="vo"}
                         <a href="{$vo.url}" class="list-group-item list-group-item-action">
@@ -244,7 +244,7 @@
                         </a>
                         {/volist}
                         {empty name="related"}
-                        <div class="list-group-item text-muted small">暂无鐩稿叧内容</div>
+                        <div class="list-group-item text-muted small">暂无相关内容</div>
                         {/empty}
                     </div>
                 </div>
@@ -271,7 +271,7 @@
 </script>
 {if condition="config('comment.comment_enabled') !== 0"}
 <script>
-// 鍔犺浇评论鍒楄〃
+// 加载评论列表
 function loadComments(page) {
     page = page || 1;
     $.get('/home/comment/list', {content_id: {$info.id}, page: page}, function(res) {
@@ -300,11 +300,11 @@ $('#commentForm').on('submit', function(e) {
     e.preventDefault();
     $.post('/home/comment/submit', $(this).serialize(), function(res) {
         if (res.code === 0) {
-            showToast('评论提交鎴愬姛锛岀瓑寰呭鏍?, 'success');
+            showToast('评论提交成功，等待审核, 'success');
             $('#commentForm')[0].reset();
             loadComments(1);
         } else {
-            showToast(res.msg || '评论澶辫触', 'danger');
+            showToast(res.msg || '评论失败', 'danger');
         }
     }, 'json');
 });
@@ -321,7 +321,7 @@ var ratingUploader = new RatingMediaUploader({
     maxFiles: 5
 });
 
-// 鍔犺浇璇勪环鍒楄〃鍜岀粺璁?
+// 加载评价列表和统计
 function loadRatings(page) {
     page = page || 1;
     $.get('/api/rating/list', {content_id: {$info.id}, page: page, limit: 10}, function(res) {
@@ -330,9 +330,9 @@ function loadRatings(page) {
             (res.data.list || []).forEach(function(item) {
                 var stars = '';
                 for (var i = 1; i <= 5; i++) {
-                    stars += i <= item.rating ? '鈽? : '鈽?;
+                    stars += i <= item.rating ? '☆ : '☆;
                 }
-                var nickname = item.is_anonymous ? '鍖垮悕鐢ㄦ埛' : (item.member_nickname || '鐢ㄦ埛#' + item.member_id);
+                var nickname = item.is_anonymous ? '匿名用户' : (item.member_nickname || '用户#' + item.member_id);
                 var vipBadge = item.vip_badge ? '<span class="badge bg-warning ms-1"><i class="bi ' + item.vip_badge + '"></i></span>' : '';
                 html += '<div class="card mb-2"><div class="card-body"><div class="d-flex justify-content-between mb-2">';
                 html += '<div><strong>' + nickname + vipBadge + '</strong> <span class="text-warning">' + stars + '</span></div>';
@@ -353,7 +353,7 @@ function loadRatings(page) {
             });
             $('#ratingList').html(html || '<p class="text-muted">暂无璇勪环</p>');
             
-            // 分页
+            // 鍒嗛〉
             var total = res.data.total || 0;
             var totalPages = Math.ceil(total / 10);
             if (totalPages > 1) {
@@ -367,16 +367,16 @@ function loadRatings(page) {
         }
     }, 'json');
     
-    // 鍔犺浇缁熻
+    // 閸旂姾娴囩紒鐔活吀
     $.get('/api/rating/stats', {content_id: {$info.id}}, function(res) {
         if (res.code === 1 && res.data) {
             $('#avgRating').text(res.data.average || '0.0');
-            $('#ratingCount').text('鍏? + (res.data.count || 0) + '鏉¤瘎浠?);
+            $('#ratingCount').text('共 + (res.data.count || 0) + '鏉¤瘎浠?);
             
             var starHtml = '';
             for (var i = 5; i >= 1; i--) {
                 var count = res.data.stars[i] || 0;
-                starHtml += '<div class="d-flex align-items-center mb-1"><small class="me-2">' + i + '鏄?/small><div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar bg-warning" style="width:' + (res.data.count > 0 ? (count/res.data.count*100) : 0) + '%"></div></div><small class="ms-2">' + count + '</small></div>';
+                starHtml += '<div class="d-flex align-items-center mb-1"><small class="me-2">' + i + '是</small><div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar bg-warning" style="width:' + (res.data.count > 0 ? (count/res.data.count*100) : 0) + '%"></div></div><small class="ms-2">' + count + '</small></div>';
             }
             $('#starStats').html(starHtml);
         }
@@ -392,7 +392,7 @@ function likeRating(ratingId) {
     }, 'json');
 }
 
-// 璇勫垎杈撳叆
+// 鐠囧嫬鍨庢潏鎾冲弳
 $('.rating-input i').css('cursor', 'pointer').css('color', '#e2e8f0');
 $('.rating-input i').hover(function() {
     var rating = $(this).data('rating');
@@ -417,18 +417,18 @@ $('#ratingForm').on('submit', function(e) {
     e.preventDefault();
     var rating = $('#ratingValue').val();
     if (rating == 0) {
-        showToast('璇烽€夋嫨璇勫垎', 'warning');
+        showToast('璇烽态夋嫨璇勫垎', 'warning');
         return;
     }
     $.post('/api/rating/submit', $(this).serialize(), function(res) {
         if (res.code === 1) {
-            showToast(res.msg || '璇勪环鎴愬姛', 'success');
+            showToast(res.msg || '评价成功', 'success');
             $('#ratingForm')[0].reset();
             $('#ratingValue').val(0);
             $('.rating-input i').css('color', '#e2e8f0');
             loadRatings(1);
         } else {
-            showToast(res.msg || '提交澶辫触', 'danger');
+            showToast(res.msg || '提交失败', 'danger');
         }
     }, 'json');
 });
@@ -438,3 +438,5 @@ loadRatings(1);
 </script>
 {/if}
 {/block}
+
+

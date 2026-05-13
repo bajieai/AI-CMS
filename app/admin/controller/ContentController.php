@@ -667,6 +667,27 @@ class ContentController extends AdminBaseController
             }
         }
 
+        // V3.1 Phase 3.5L: 批量SEO优化后缓存评分
+        foreach ($ids as $id) {
+            try {
+                $content = Content::find($id);
+                if ($content) {
+                    $aiService = new \app\common\service\AiService();
+                    $result = $aiService->calculateSeoScore(
+                        $content->title ?? '',
+                        $content->content ?? '',
+                        $content->seo_title ?? '',
+                        $content->seo_description ?? '',
+                        $content->seo_keywords ?? ''
+                    );
+                    $score = (int) ($result['score'] ?? 0);
+                    Content::where('id', $id)->update(['seo_score' => $score]);
+                }
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning("批量SEO评分缓存失败 content_id={$id}: " . $e->getMessage());
+            }
+        }
+
         $cacheService = new CacheService();
         $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
         $this->recordLog('批量SEO优化', "成功:{$success}, 失败:{$fail}, 并发控制:{$concurrency}篇/批");

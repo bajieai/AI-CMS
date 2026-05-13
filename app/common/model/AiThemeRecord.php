@@ -37,6 +37,9 @@ class AiThemeRecord extends Model
         'validate_result'=> 'json',
         'files_tree'     => 'json',
         'prompt_log'     => 'string',
+        'batch_id'       => 'string',
+        'quality_score'  => 'integer',
+        'quality_detail' => 'json',
     ];
 
     // 状态常量

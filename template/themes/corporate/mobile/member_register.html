@@ -1,20 +1,20 @@
 {extend name="layout" /}
 
-{block name="title"}会员娉ㄥ唽{/block}
+{block name="title"}会员注册{/block}
 
 {block name="content"}
 <div class="cm-main">
     <div class="cm-card" style="padding:26px 20px;margin-top:8px;">
-        <h4 class="text-center mb-4" style="font-size:18px;font-weight:800;color:var(--i8j-text,#1e293b);">会员娉ㄥ唽</h4>
+        <h4 class="text-center mb-4" style="font-size:18px;font-weight:800;color:var(--i8j-text,#1e293b);">会员注册</h4>
         <form id="registerForm">
-            <div class="cm-fg"><input type="text" name="username" class="cm-input" placeholder="鐢ㄦ埛鍚嶏紙蹇呭～锛? required></div>
-            <div class="cm-fg"><input type="email" name="email" class="cm-input" placeholder="閭锛堝繀濉級" required></div>
-            <div class="cm-fg"><input type="password" name="password" class="cm-input" placeholder="瀵嗙爜锛堝繀濉級" required></div>
-            <div class="cm-fg"><input type="text" name="nickname" class="cm-input" placeholder="鏄电О锛堥€夊～锛?></div>
-            <button type="submit" class="cm-btn cm-btn-pri" style="margin-top:4px;"><i class="bi bi-person-plus me-2"></i>娉?鍐?/button>
+            <div class="cm-fg"><input type="text" name="username" class="cm-input" placeholder="用户名（必填） required></div>
+            <div class="cm-fg"><input type="email" name="email" class="cm-input" placeholder="邮箱（必填）" required></div>
+            <div class="cm-fg"><input type="password" name="password" class="cm-input" placeholder="密码（必填）" required></div>
+            <div class="cm-fg"><input type="text" name="nickname" class="cm-input" placeholder="昵称（选填）></div>
+            <button type="submit" class="cm-btn cm-btn-pri" style="margin-top:4px;"><i class="bi bi-person-plus me-2"></i>注册</button>
         </form>
-        <div class="text-center mt-3"><a href="/member/login" style="font-size:13.5px;color:var(--i8j-primary,#3b82f6);text-decoration:none;">宸叉湁璐﹀彿锛熺珛鍗崇櫥褰?/a></div>
+        <div class="text-center mt-3"><a href="/member/login" style="font-size:13.5px;color:var(--i8j-primary,#3b82f6);text-decoration:none;">已有账号？立即登录</a></div>
     </div>
 </div>
 {/block}
-{block name="js"}<script>$('#registerForm').on('submit',function(e){e.preventDefault();$.post('/member/register',$(this).serialize(),function(r){if(r.success){showToast('娉ㄥ唽鎴愬姛','success');setTimeout(function(){location.href='/member/login';},1200);}else showToast(r.msg||'娉ㄥ唽澶辫触','danger');});});</script>{/block}
+{block name="js"}<script>$('#registerForm').on('submit',function(e){e.preventDefault();$.post('/member/register',$(this).serialize(),function(r){if(r.success){showToast('注册成功','success');setTimeout(function(){location.href='/member/login';},1200);}else showToast(r.msg||'注册失败','danger');});});</script>{/block}

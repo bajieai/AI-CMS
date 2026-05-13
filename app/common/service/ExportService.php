@@ -232,7 +232,7 @@ class ExportService
             ],
             'member' => [
                 'model'  => \app\common\model\Member::class,
-                'fields' => ['id', 'username', 'nickname', 'phone', 'email', 'points', 'total_points', 'level_id', 'create_time'],
+                'fields' => ['id', 'username', 'nickname', 'email', 'points', 'total_points', 'level_id', 'create_time'],
                 'relations' => ['level' => 'name'],
             ],
             'order' => [
@@ -277,7 +277,7 @@ class ExportService
             'type' => '类型', 'status' => '状态', 'views' => '浏览量',
             'like_count' => '点赞数', 'comment_count' => '评论数',
             'create_time' => '创建时间', 'update_time' => '更新时间',
-            'username' => '用户名', 'nickname' => '昵称', 'phone' => '手机号',
+            'username' => '用户名', 'nickname' => '昵称', 'email' => '邮箱',
             'email' => '邮箱', 'points' => '积分', 'total_points' => '总积分',
             'level_id' => '等级ID', 'level_name' => '等级',
             'order_sn' => '订单号', 'member_id' => '会员ID',

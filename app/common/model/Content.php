@@ -46,6 +46,7 @@ class Content extends Model
         'chapter_count' => 'integer',
         'chapter_title' => 'string',
         'quality_score' => 'integer',
+        'seo_score' => 'integer',
         'lang' => 'string',
         'translation_of' => 'integer',
     ];

@@ -58,11 +58,11 @@
 {block name="content"}
 <div class="container py-4">
     <div class="chapter-layout">
-        <!-- 宸︿晶鐩綍 -->
+        <!-- 左侧目录 -->
         <aside class="chapter-sidebar">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0"><i class="bi bi-list-ul me-1"></i>绔犺妭鐩綍</h6>
+                    <h6 class="mb-0"><i class="bi bi-list-ul me-1"></i>章节目录</h6>
                 </div>
                 <div class="card-body p-0">
                     <ul class="chapter-list" id="chapterList">
@@ -88,21 +88,21 @@
             </div>
         </aside>
 
-        <!-- 鍙充晶内容 -->
+        <!-- 右侧内容 -->
         <main class="chapter-main">
             {if condition="$is_vip"}
-            <div class="mb-3"><span class="vip-badge"><i class="bi bi-stars"></i> VIP鍏嶈垂阅读</span></div>
+            <div class="mb-3"><span class="vip-badge"><i class="bi bi-stars"></i> VIP免费阅读</span></div>
             {/if}
 
-            <!-- 鏁存湰璐拱妯箙 -->
+            <!-- 整本购买模版 -->
             {if condition="count($chapters) >= 3 && !$can_access && !$is_vip"}
             <div class="book-banner">
                 <div>
-                    <strong class="text-primary">璐拱鏁存湰鏇翠紭鎯?/strong>
-                    <div class="small text-muted mt-1">瑙ｉ攣全部 {count($chapters)} 绔犲唴瀹?/div>
+                    <strong class="text-primary">购买整本更优惠</strong>
+                    <div class="small text-muted mt-1">瑙ｉ攣全部 {count($chapters)} 章内容</div>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" onclick="buyBook({$parent.id})">
-                    <i class="bi bi-bag-check me-1"></i>鏁存湰璐拱
+                    <i class="bi bi-bag-check me-1"></i>整本购买
                 </button>
             </div>
             {/if}
@@ -125,14 +125,14 @@
                     <div class="lock-overlay">
                         <div class="lock-box">
                             <i class="bi bi-lock display-5 text-muted"></i>
-                            <h5 class="mt-3 mb-2">鏈珷涓轰粯璐瑰唴瀹?/h5>
-                            <p class="text-muted small mb-3">璐拱鍚庡彲阅读瀹屾暣内容</p>
+                            <h5 class="mt-3 mb-2">本章为付费内容</h5>
+                            <p class="text-muted small mb-3">购买后可阅读完整内容</p>
                             <button type="button" class="btn btn-primary" onclick="buyChapter({$chapter.id})">
-                                <i class="bi bi-cart me-1"></i>璐拱鏈珷
+                                <i class="bi bi-cart me-1"></i>购买本章
                             </button>
                             {if condition="count($chapters) >= 3"}
                             <button type="button" class="btn btn-outline-primary ms-2" onclick="buyBook({$parent.id})">
-                                璐拱鏁存湰
+                                购买整本
                             </button>
                             {/if}
                         </div>
@@ -141,7 +141,7 @@
                 </div>
             </article>
 
-            <!-- 涓婁笅绔犲鑸?-->
+            <!-- 中婁笅立犲鑸?-->
             <div class="d-flex justify-content-between mt-4">
                 {if condition="$prev_chapter"}
                 <a href="/chapter/read/{$parent.id}/{$prev_chapter.id}" class="btn btn-outline-secondary">
@@ -164,28 +164,28 @@
 {block name="js"}
 <script>
 function buyChapter(chapterId) {
-    if (!confirm('确定璐拱鏈珷锛?)) return;
+    if (!confirm('确定购买本章）)) return;
     $.post('/chapter/buyChapter', { chapter_id: chapterId }, function(res) {
         if (res.code === 0) {
-            alert('璐拱鎴愬姛锛?);
+            alert('购买成功）);
             location.reload();
         } else if (res.code === 2) {
-            if (confirm('璇峰厛鐧诲綍')) location.href = '/member/login';
+            if (confirm('璇峰厛登录')) location.href = '/member/login';
         } else {
-            alert(res.msg || '璐拱澶辫触');
+            alert(res.msg || '购买失败');
         }
     }, 'json');
 }
 function buyBook(parentId) {
-    if (!confirm('确定璐拱鏁存湰锛?)) return;
+    if (!confirm('确定购买整本）)) return;
     $.post('/chapter/buyBook', { parent_id: parentId }, function(res) {
         if (res.code === 0) {
-            alert('璐拱鎴愬姛锛?);
+            alert('购买成功）);
             location.reload();
         } else if (res.code === 2) {
-            if (confirm('璇峰厛鐧诲綍')) location.href = '/member/login';
+            if (confirm('璇峰厛登录')) location.href = '/member/login';
         } else {
-            alert(res.msg || '璐拱澶辫触');
+            alert(res.msg || '购买失败');
         }
     }, 'json');
 }

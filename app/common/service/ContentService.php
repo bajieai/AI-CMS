@@ -247,7 +247,35 @@ class ContentService
             PublishPlatformService::autoPublishToPlatforms($content->id);
         }
 
+        // V3.1 Phase 3.5L: SEO评分缓存回写
+        $this->cacheSeoScore($content);
+
         return true;
+    }
+
+    /**
+     * V3.1 Phase 3.5L: SEO评分缓存回写
+     * 计算并缓存SEO评分到数据库
+     */
+    protected function cacheSeoScore(Content $content): void
+    {
+        try {
+            $aiService = new AiService();
+            $result = $aiService->calculateSeoScore(
+                $content->title ?? '',
+                $content->content ?? '',
+                $content->seo_title ?? '',
+                $content->seo_description ?? '',
+                $content->seo_keywords ?? ''
+            );
+            $score = (int) ($result['score'] ?? 0);
+            if ($score !== (int) ($content->seo_score ?? 0)) {
+                $content->seo_score = $score;
+                $content->save();
+            }
+        } catch (\Throwable $e) {
+            \think\facade\Log::warning("SEO评分缓存失败 content_id={$content->id}: " . $e->getMessage());
+        }
     }
 
     /**
@@ -427,6 +455,9 @@ class ContentService
             if ($updated) {
                 $content->save();
             }
+
+            // V3.1 Phase 3.5L: SEO评分缓存回写（触发点2：AI优化后）
+            $this->cacheSeoScore($content);
 
             return [
                 'success' => true,

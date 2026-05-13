@@ -93,7 +93,7 @@ class MemberBenefitController extends AdminBaseController
             $query->where('level_id', $levelId);
         }
         if ($keyword) {
-            $query->where('nickname|username|phone', 'like', '%' . $keyword . '%');
+            $query->where('nickname|username|email', 'like', '%' . $keyword . '%');
         }
 
         $list = $query->paginate($pageSize);

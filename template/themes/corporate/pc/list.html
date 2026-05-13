@@ -33,7 +33,7 @@
                 <li class="breadcrumb-item active">
                     {if condition="$type == 1"}产品中心{/if}
                     {if condition="$type == 2"}成功案例{/if}
-                    {if condition="$type == 3"}新闻鍔ㄦ€亄/if}
+                    {if condition="$type == 3"}新闻动态{/if}
                     {if condition="$type == 4"}资料下载{/if}
                     {if condition="$type == 5"}人才招聘{/if}
                 </li>
@@ -46,10 +46,10 @@
                 {if condition="$current_cate"}
                     {$current_cate.name}
                 {else /}
-                    {if condition="$type == 1"}产品中心{elseif condition="$type == 2"}成功案例{elseif condition="$type == 3"}新闻鍔ㄦ€亄elseif condition="$type == 4"}资料下载{elseif condition="$type == 5"}人才招聘{else}全部内容{/if}
+                    {if condition="$type == 1"}产品中心{elseif condition="$type == 2"}成功案例{elseif condition="$type == 3"}新闻动态{/elseif condition="$type == 4"}资料下载{elseif condition="$type == 5"}人才招聘{else}全部内容{/if}
                 {/if}
             </h1>
-            <!-- 分类绛涢€夛紙濡傛湁分类鏍戯級 -->
+            <!-- 分类筛选夛紙濡傛湁分类鏍戯級 -->
             {if condition="!empty($cate_tree_html)"}
             <div class="dropdown">
                 <button class="btn btn-sm px-3" style="background:var(--i8j-bg-secondary,#f1f5f9);border:1px solid #e2e8f0;border-radius:20px;color:#475569;font-weight:500;" type="button" data-bs-toggle="dropdown">
@@ -62,7 +62,7 @@
             {/if}
         </div>
 
-        <!-- 全宽 3鍒楀崱鐗?Grid -->
+        <!-- 全宽 3列卡片?Grid -->
         <div class="row g-4">
             {volist name="list" id="vo"}
             <div class="col-md-6 col-lg-4">
@@ -96,8 +96,8 @@
         {empty name="list"}
         <div class="text-center py-6" style="padding:5rem 0;background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;">
             <i class="bi bi-inbox display-4 text-muted opacity-50"></i>
-            <h5 class="text-muted mt-3 fw-bold opacity-75">暂无鐩稿叧内容</h5>
-            <p class="text-muted small mt-1 opacity-60">璇曡瘯鍏朵粬分类鎴栧叧閿瘝搜索</p>
+            <h5 class="text-muted mt-3 fw-bold opacity-75">暂无相关内容</h5>
+            <p class="text-muted small mt-1 opacity-60">试试其他分类或关键词搜索</p>
             <a href="/" class="btn mt-2" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>返回首页</a>
         </div>
         {/empty}

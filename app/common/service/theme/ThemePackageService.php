@@ -113,9 +113,19 @@ class ThemePackageService
                 return ['success' => false, 'theme_name' => '', 'message' => 'ZIP内文件数量超过' . $this->maxFileCount . '个限制'];
             }
 
-            // 安全检查：路径穿越 + 扩展名白名单
+            // 安全检查：路径穿越 + 扩展名白名单 + ZIP Slip防护
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $entryName = $zip->getNameIndex($i);
+
+                // ZIP Slip防护：解压后的真实路径必须在目标目录内
+                $extractedPath = realpath($tempDir) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $entryName);
+                $extractedReal = realpath(dirname($extractedPath));
+                $tempReal = realpath($tempDir);
+                if ($extractedReal === false || $tempReal === false || !str_starts_with($extractedReal, $tempReal)) {
+                    $zip->close();
+                    $this->cleanup($tempDir, $zipPath);
+                    return ['success' => false, 'theme_name' => '', 'message' => 'ZIP包含不安全的文件路径(Slip攻击): ' . $entryName];
+                }
 
                 if (str_contains($entryName, '..')) {
                     $zip->close();

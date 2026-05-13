@@ -9,7 +9,9 @@ use app\common\model\AiThemeChatLog;
 use app\common\model\AiThemeRecord;
 use app\common\model\Config as ConfigModel;
 use app\common\service\theme\AiThemeGenerateService;
+use app\common\service\theme\BatchThemeGenerateService;
 use app\common\service\theme\ThemeFileService;
+use app\common\service\theme\ThemeQualityService;
 use app\common\service\theme\ThemeVersionManager;
 use app\common\service\TemplateService;
 use think\facade\Cache;
@@ -85,6 +87,126 @@ class AiThemeController extends AdminBaseController
         ]);
 
         return $this->app->view->fetch('ai_theme/generate');
+    }
+
+    /**
+     * V3.1-下一阶段 Sprint 14: 批量生成页面
+     */
+    public function batchGenerate(): string
+    {
+        $batchService = new BatchThemeGenerateService();
+        $industries = $batchService->getAllIndustries();
+        $dailyLimit = (int) config('ai.theme_generate.daily_limit', 50);
+
+        // 获取最近的批次列表
+        $recentBatches = AiThemeRecord::whereNotNull('batch_id')
+            ->group('batch_id')
+            ->order('created_at', 'desc')
+            ->limit(10)
+            ->column('batch_id');
+
+        $batchProgress = [];
+        foreach ($recentBatches as $bid) {
+            $batchProgress[] = $batchService->getBatchProgress($bid);
+        }
+
+        $this->app->view->assign([
+            'industries'     => $industries,
+            'daily_limit'    => $dailyLimit,
+            'batch_progress' => $batchProgress,
+        ]);
+
+        return $this->app->view->fetch('ai_theme/batch_generate');
+    }
+
+    /**
+     * V3.1-下一阶段 Sprint 14: 提交批量生成请求（AJAX）
+     */
+    public function doBatchGenerate(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $userId = (int) session('user_id');
+        $industry = trim($this->request->post('industry', ''));
+        $count = (int) $this->request->post('count', 10);
+        $options = $this->request->post('options', []);
+
+        if (empty($industry)) {
+            return $this->error('请选择行业类型');
+        }
+
+        $count = min(30, max(1, $count));
+
+        $batchService = new BatchThemeGenerateService();
+
+        try {
+            $result = $batchService->createBatch($userId, $industry, $count, $options);
+            if ($result['success']) {
+                return $this->success($result['message'], [
+                    'batch_id' => $result['batch_id'],
+                    'tasks'    => $result['tasks'],
+                ]);
+            }
+            return $this->error($result['message']);
+        } catch (\Throwable $e) {
+            return $this->error('创建批量任务失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * V3.1-下一阶段 Sprint 14: 批量生成进度查询（AJAX）
+     */
+    public function batchProgress(): \think\Response
+    {
+        $batchId = trim($this->request->param('batch_id', ''));
+        if (empty($batchId)) {
+            return $this->error('参数错误');
+        }
+
+        $batchService = new BatchThemeGenerateService();
+        $progress = $batchService->getBatchProgress($batchId);
+
+        if (!$progress['exists']) {
+            return $this->error('批次不存在');
+        }
+
+        return $this->success('ok', $progress);
+    }
+
+    /**
+     * V3.1-下一阶段 Sprint 14: 质量评分（AJAX）
+     */
+    public function qualityScore(): \think\Response
+    {
+        $id = (int) $this->request->param('id', 0);
+        $record = AiThemeRecord::find($id);
+
+        if (!$record) {
+            return $this->error('记录不存在');
+        }
+
+        $themePath = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $record->theme_name;
+        if (!is_dir($themePath)) {
+            return $this->error('主题目录不存在');
+        }
+
+        try {
+            $options = json_decode($record->options, true) ?: [];
+            $industry = $options['industry'] ?? '';
+            $qualityService = new ThemeQualityService();
+            $result = $qualityService->score($themePath, $industry);
+
+            // 缓存评分结果
+            $record->quality_score = $result['total'];
+            $record->quality_detail = $result;
+            $record->save();
+
+            return $this->success('评分完成', $result);
+        } catch (\Throwable $e) {
+            return $this->error('评分失败: ' . $e->getMessage());
+        }
     }
 
     /**

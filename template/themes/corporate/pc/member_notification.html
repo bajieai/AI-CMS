@@ -7,29 +7,29 @@
 <div class="section-padding" style="padding-top:2.5rem;">
     <div class="container" style="max-width:900px;">
         <h2 class="fw-bold mb-1" style="font-size:1.65rem;color:var(--i8j-text,#1e293b);"><i class="bi bi-bell me-2" style="color:var(--i8j-warning,#f59e0b);"></i>消息通知</h2>
-        <p class="text-muted mb-4" style="font-size:.95rem;">绯荤粺通知鍜岀珯鍐呮秷鎭?/p>
+        <p class="text-muted mb-4" style="font-size:.95rem;">系统通知和站内消息</p>
 
-        <!-- V2.9.5 消息分类绛涢€?-->
+        <!-- V2.9.5 消息分类筛选-->
         <div class="mb-4">
             <div class="btn-group btn-group-sm" role="group">
                 <a href="/member/notification" class="btn btn-outline-dark {if $current_type == ''}active{/if}">全部{if $unread_count > 0}<span class="badge bg-danger ms-1">{$unread_count}</span>{/if}</a>
-                <a href="/member/notification?type=system" class="btn btn-outline-dark {if $current_type == 'system'}active{/if}">绯荤粺{if ($type_counts.system ?? 0) > 0}<span class="badge bg-danger ms-1">{$type_counts.system}</span>{/if}</a>
+                <a href="/member/notification?type=system" class="btn btn-outline-dark {if $current_type == 'system'}active{/if}">系统{if ($type_counts.system ?? 0) > 0}<span class="badge bg-danger ms-1">{$type_counts.system}</span>{/if}</a>
                 <a href="/member/notification?type=level_upgrade" class="btn btn-outline-dark {if $current_type == 'level_upgrade'}active{/if}">等级</a>
                 <a href="/member/notification?type=comment_reply" class="btn btn-outline-dark {if $current_type == 'comment_reply'}active{/if}">评论</a>
-                <a href="/member/notification?type=content_audit" class="btn btn-outline-dark {if $current_type == 'content_audit'}active{/if}">瀹℃牳</a>
-                <a href="/member/notification?type=reward_receive" class="btn btn-outline-dark {if $current_type == 'reward_receive'}active{/if}">鎵撹祻</a>
+                <a href="/member/notification?type=content_audit" class="btn btn-outline-dark {if $current_type == 'content_audit'}active{/if}">审核</a>
+                <a href="/member/notification?type=reward_receive" class="btn btn-outline-dark {if $current_type == 'reward_receive'}active{/if}">打赏</a>
             </div>
         </div>
 
         <div id="notificationList">
-            <!-- 通知鏃堕棿绾?-->
+            <!-- 閫氱煡閺冨爼妫跨痪?-->
             {volist name="list" id="vo"}
             {php}
                 $cIconMap = ['system'=>'gear','review'=>'clipboard-check','publish'=>'send','comment_reply'=>'chat-dots','level_upgrade'=>'arrow-up-circle','level_downgrade'=>'arrow-down-circle','level_grace_warning'=>'exclamation-triangle','content_approve'=>'check-circle','content_reject'=>'x-circle','reward_receive'=>'gift'];
                 $cIcon = $cIconMap[$vo.type] ?? 'bell';
             {/php}
             <div class="d-flex gap-3 mb-4 position-relative ps-4" style="border-left:3px solid #e2e8f0;padding-left:1.75rem;">
-                <!-- 鍦嗙偣 -->
+                <!-- 圆点 -->
                 <div style="position:absolute;left:-8.5px;top:6px;width:14px;height:14px;border-radius:50%;background:{if condition="$vo.is_read == 0"}#94a3b8{else}#cbd5e1{/if};border:3px solid #fff;"></div>
                 <div class="card border-0 flex-grow-1" style="border-radius:10px;box-shadow:var(--shadow-card);padding:1.25rem 1.5rem;{if condition="$vo.is_read == 0"}background:#fffbeb;border-left:4px solid var(--color-accent);{/if}">
                     <div class="d-flex justify-content-between align-items-start">
@@ -46,8 +46,8 @@
             {empty name="list"}
             <div class="text-center py-6" style="background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;">
                 <i class="bi bi-check-circle display-4 text-muted opacity-40"></i>
-                <h5 class="text-muted mt-3 fw-bold opacity-70">暂无鏂伴€氱煡</h5>
-                <p class="text-muted small opacity-50">鎵€鏈夋秷鎭凡璇?/p>
+                <h5 class="text-muted mt-3 fw-bold opacity-70">暂无新通知</h5>
+                <p class="text-muted small opacity-50">鎵态鏈夋秷鎭凡璇</p>
             </div>
             {/empty}
         </div>
@@ -59,3 +59,5 @@
 </div>
 
 {/block}
+
+

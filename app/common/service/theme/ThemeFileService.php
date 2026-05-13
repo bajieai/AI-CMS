@@ -68,6 +68,10 @@ class ThemeFileService
                 throw new \RuntimeException('不允许的文件类型: ' . $relativePath);
             }
 
+            // 写入文件前：UTF-8编码安全校验
+            // 防止GBK双编码损坏（UTF-8中文被错误按GBK解码后重新UTF-8编码）
+            $content = $this->ensureUtf8Encoding($content, $relativePath);
+
             // 写入文件
             $targetPath = $absBaseDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
             $targetDir = dirname($targetPath);
@@ -280,6 +284,196 @@ class ThemeFileService
         }
 
         return $tree;
+    }
+
+    /**
+     * 确保内容是有效的UTF-8编码，修复可能的GBK双编码损坏
+     *
+     * 问题背景：在Windows中文环境下，LLM返回的UTF-8中文可能被PHP的
+     * mbstring/internal_encoding(GBK)错误解码，导致双编码损坏。
+     * 例如："动态"的UTF-8字节E58AA8E68081被当作GBK解读为"鍔ㄦ€"
+     *
+     * 安全加固（V3.1编码根治）：
+     * - 强制设置 mb_internal_encoding 确保后续 mb_* 操作安全
+     * - 扩展文件类型覆盖
+     * - 多重编码校验 + 修复
+     *
+     * @param string $content 文件内容
+     * @param string $relativePath 文件相对路径（用于日志）
+     * @return string 修复后的内容
+     */
+    protected function ensureUtf8Encoding(string $content, string $relativePath): string
+    {
+        // ===== 编码根治：确保当前环境编码安全 =====
+        @mb_internal_encoding('UTF-8');
+
+        // 只对文本文件进行编码校验（扩展文件类型覆盖）
+        $ext = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+        if (!in_array($ext, ['html', 'css', 'js', 'json', 'xml', 'svg', 'php', 'tpl'], true)) {
+            return $content;
+        }
+
+        // 检查内容是否为有效的UTF-8
+        if (mb_check_encoding($content, 'UTF-8')) {
+            // 即使是有效UTF-8，也检查是否包含GBK双编码损坏的特征
+            $content = $this->fixGarbledChinese($content, $relativePath);
+            // 额外规范化：规范化Unicode组合字符
+            $content = \Normalizer::normalize($content, \Normalizer::FORM_C);
+            return $content;
+        }
+
+        // 如果不是有效UTF-8，尝试从GBK转换
+        $converted = @mb_convert_encoding($content, 'UTF-8', 'GBK');
+        if ($converted !== false && mb_check_encoding($converted, 'UTF-8')) {
+            Log::warning("[ThemeFileService] 文件编码非UTF-8，已从GBK转换: {$relativePath}");
+            // 再次检查转换后的内容是否还有GBK双编码损坏
+            $converted = $this->fixGarbledChinese($converted, $relativePath);
+            return $converted;
+        }
+
+        // 尝试自动检测编码
+        $detected = @mb_detect_encoding($content, ['UTF-8', 'GBK', 'GB2312', 'ISO-8859-1', 'ASCII'], true);
+        if ($detected && $detected !== 'UTF-8') {
+            $converted = @mb_convert_encoding($content, 'UTF-8', $detected);
+            if ($converted !== false) {
+                Log::warning("[ThemeFileService] 文件编码自动检测为{$detected}，已转换: {$relativePath}");
+                return $converted;
+            }
+        }
+
+        // 最后手段：强制标记为UTF-8
+        Log::error("[ThemeFileService] 文件编码无法识别，强制标记UTF-8: {$relativePath}");
+        return mb_convert_encoding($content, 'UTF-8', 'UTF-8');
+    }
+
+    /**
+     * 修复GBK双编码损坏的中文
+     *
+     * 检测原理：如果一段文本的UTF-8字节按GBK解读后，再按UTF-8编码，
+     * 得到的字符都是常用汉字，则原始文本很可能是GBK双编码损坏的。
+     *
+     * @param string $content 文件内容
+     * @param string $relativePath 文件路径（用于日志）
+     * @return string 修复后的内容
+     */
+    protected function fixGarbledChinese(string $content, string $relativePath): string
+    {
+        // 检测是否包含典型的乱码字符范围
+        // GBK双编码产生的字符主要在 U+3400-U+9FFF 范围内的罕见字
+        // 正常中文文本中极少出现这些字符的组合
+        if (!preg_match('/[\x{3400}-\x{4DBF}\x{20000}-\x{2A6DF}]/u', $content)) {
+            return $content; // 不包含可疑字符，直接返回
+        }
+
+        $fixed = '';
+        $len = mb_strlen($content, 'UTF-8');
+        $garbledBuf = '';
+        $fixCount = 0;
+
+        for ($i = 0; $i < $len; $i++) {
+            $char = mb_substr($content, $i, 1, 'UTF-8');
+            $ord = mb_ord($char, 'UTF-8');
+
+            if ($this->isLikelyGarbledChar($char, $ord)) {
+                $garbledBuf .= $char;
+            } else {
+                if ($garbledBuf !== '') {
+                    $reversed = $this->tryReverseGarbled($garbledBuf);
+                    if ($reversed !== $garbledBuf) {
+                        $fixCount++;
+                    }
+                    $fixed .= $reversed;
+                    $garbledBuf = '';
+                }
+                $fixed .= $char;
+            }
+        }
+
+        if ($garbledBuf !== '') {
+            $reversed = $this->tryReverseGarbled($garbledBuf);
+            if ($reversed !== $garbledBuf) {
+                $fixCount++;
+            }
+            $fixed .= $reversed;
+        }
+
+        if ($fixCount > 0) {
+            Log::info("[ThemeFileService] 修复GBK双编码损坏: {$relativePath}, 修复{$fixCount}处");
+        }
+
+        return $fixed;
+    }
+
+    /**
+     * 判断字符是否可能是GBK双编码损坏产生的乱码
+     */
+    protected function isLikelyGarbledChar(string $char, int $ord): bool
+    {
+        // ASCII字符不会是乱码
+        if ($ord < 0x80) return false;
+
+        // 只检查可能产生乱码的Unicode范围
+        // GBK双编码主要产生 CJK Extension A (U+3400-U+4DBF) 和部分罕见CJK字符
+        if (!(($ord >= 0x3400 && $ord <= 0x4DBF) ||
+              ($ord >= 0xF900 && $ord <= 0xFAFF) ||
+              ($ord >= 0x20000 && $ord <= 0x2A6DF))) {
+            return false;
+        }
+
+        // 尝试逆转：将当前UTF-8字符的字节按GBK重新解读
+        $bytes = @mb_convert_encoding($char, 'GBK', 'UTF-8');
+        if ($bytes === false || $bytes === '') return false;
+
+        $reversed = @mb_convert_encoding($bytes, 'UTF-8', 'GBK');
+        if ($reversed === false || $reversed === $char) return false;
+
+        // 检查逆转后的字符是否为常用汉字
+        $revOrd = mb_ord($reversed, 'UTF-8');
+        return $revOrd >= 0x4E00 && $revOrd <= 0x9FFF;
+    }
+
+    /**
+     * 尝试逆转GBK双编码损坏
+     */
+    protected function tryReverseGarbled(string $garbled): string
+    {
+        $bytes = @mb_convert_encoding($garbled, 'GBK', 'UTF-8');
+        if ($bytes === false || $bytes === '') return $garbled;
+
+        $reversed = @mb_convert_encoding($bytes, 'UTF-8', 'GBK');
+        if ($reversed === false || $reversed === '') return $garbled;
+
+        // 验证逆转后的文本是否全部为有效字符
+        if (!$this->isValidReversedText($reversed)) {
+            return $garbled;
+        }
+
+        return $reversed;
+    }
+
+    /**
+     * 验证逆转后的文本是否全部为有效中文/标点/ASCII
+     */
+    protected function isValidReversedText(string $text): bool
+    {
+        $len = mb_strlen($text, 'UTF-8');
+        for ($i = 0; $i < $len; $i++) {
+            $ch = mb_substr($text, $i, 1, 'UTF-8');
+            $ord = mb_ord($ch, 'UTF-8');
+
+            $valid = (
+                ($ord >= 0x4E00 && $ord <= 0x9FFF) ||   // CJK常用汉字
+                ($ord >= 0x3000 && $ord <= 0x303F) ||   // CJK标点
+                ($ord >= 0xFF00 && $ord <= 0xFFEF) ||   // 全角字符
+                ($ord >= 0x0020 && $ord <= 0x007E) ||   // ASCII可打印
+                ($ord >= 0x00A0 && $ord <= 0x00FF) ||   // Latin-1
+                $ord === 0x000A || $ord === 0x000D || $ord === 0x0009 ||  // 换行/回车/制表
+                in_array($ch, ['—', "\xE2\x80\x98", "\xE2\x80\x99", "\xE2\x80\x9C", "\xE2\x80\x9D", '…', '·', '€', '£', '¥'])
+            );
+
+            if (!$valid) return false;
+        }
+        return true;
     }
 
     /**

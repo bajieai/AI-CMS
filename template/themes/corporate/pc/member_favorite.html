@@ -7,7 +7,7 @@
 <div class="section-padding" style="padding-top:2.5rem;">
     <div class="container" style="max-width:1140px;">
         <h2 class="fw-bold mb-1" style="font-size:1.65rem;color:var(--i8j-text,#1e293b);"><i class="bi bi-heart me-2" style="color:var(--i8j-danger,#ef4444);"></i>我的收藏</h2>
-        <p class="text-muted mb-4" style="font-size:.95rem;">鎮ㄦ敹钘忕殑鎵€鏈夊唴瀹归兘鍦ㄨ繖閲?/p>
+        <p class="text-muted mb-4" style="font-size:.95rem;">您收藏的所有内容都在这里</p>
 
         <div class="row g-4">
             {volist name="list" id="vo"}
@@ -40,8 +40,8 @@
         <div class="text-center py-6" style="background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;margin-top:2rem;">
             <i class="bi bi-heart display-4 text-muted opacity-40"></i>
             <h5 class="text-muted mt-3 fw-bold opacity-70">暂无收藏内容</h5>
-            <p class="text-muted small opacity-50 mb-3">鍘诲彂鐜版劅鍏磋叮鐨勫唴瀹瑰苟收藏鍚?/p>
-            <a href="/" class="btn" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>鍘婚€涢€?/a>
+            <p class="text-muted small opacity-50 mb-3">去发现感兴趣的内容并收藏吧</p>
+            <a href="/" class="btn" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>鍘婚态涢态</a>
         </div>
         {/empty}
 
@@ -56,6 +56,6 @@
 {block name="js"}
 <style>.card:hover{transform:translateY(-5px)!important;box-shadow:var(--shadow-card-hover)!important}.card:hover img{transform:scale(1.06)}</style>
 <script>
-function unfav(id){ if(confirm('确定取消收藏锛?))$.post('/member/favorite/remove',{id:id},function(r){if(r.code===0)location.reload();});}
+function unfav(id){ if(confirm('确定取消收藏）))$.post('/member/favorite/remove',{id:id},function(r){if(r.code===0)location.reload();});}
 </script>
 {/block}
