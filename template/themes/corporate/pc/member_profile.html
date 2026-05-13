@@ -25,7 +25,7 @@
                 </div>
             </div>
         </div>
-        <!-- 缂栬緫琛ㄥ崟 -->
+        <!-- 编辑琛ㄥ崟 -->
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div class="card border-0" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);">
@@ -36,7 +36,7 @@
                         <form id="profileForm">
                             <input type="hidden" name="avatar" id="avatarField" value="{$member.avatar|default=''}">
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small" style="color:var(--i8j-text-secondary,#64748b);">鐢ㄦ埛鍚嶏紙涓嶅彲淇敼锛?/label>
+                                <label class="form-label fw-semibold small" style="color:var(--i8j-text-secondary,#64748b);">鐢ㄦ埛鍚嶏紙涓嶅彲修改锛?/label>
                                 <input type="text" class="form-control" value="{$member.username}" disabled
                                        style="border-radius:10px;background:var(--i8j-bg-secondary,#f8fafc);border-color:var(--i8j-border,#e2e8f0);">
                             </div>
@@ -50,7 +50,7 @@
                                        style="border-radius:10px;background:var(--i8j-bg-secondary,#f8fafc);border-color:var(--i8j-border,#e2e8f0);">
                             </div>
                             <button type="submit" class="btn px-4" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:700;">
-                                <i class="bi bi-check-lg me-1"></i>淇濆瓨淇敼
+                                <i class="bi bi-check-lg me-1"></i>保存修改
                             </button>
                         </form>
                         <hr class="my-4" style="border-color:var(--i8j-border,#f1f5f9);">
@@ -83,9 +83,9 @@ function uploadAvatar(input) {
             if (res.code === 0 && res.data && res.data.url) {
                 $('#avatarField').val(res.data.url);
                 $('#avatarPreview').attr('src', res.data.url);
-                showToast('澶村儚涓婁紶鎴愬姛', 'success');
+                showToast('澶村儚上传鎴愬姛', 'success');
             } else {
-                showToast(res.msg || '涓婁紶澶辫触', 'danger');
+                showToast(res.msg || '上传澶辫触', 'danger');
             }
         },
         error: function() { showToast('缃戠粶閿欒', 'danger'); }

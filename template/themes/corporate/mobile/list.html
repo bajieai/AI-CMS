@@ -1,19 +1,19 @@
 {extend name="layout" /}
 
 {block name="title"}
-{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name} - {$site_name}{else /}{if condition="$type==1"}浜у搧涓績{elseif condition="$type==2"/}鎴愬姛妗堜緥{elseif condition="$type==3"/}鏂伴椈鍔ㄦ€亄elseif condition="$type==4"/}璧勬枡涓嬭浇{elseif condition="$type==5"/}浜烘墠鎷涜仒{else /}鍗曢〉{/if} - {$site_name}{/if}
+{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name} - {$site_name}{else /}{if condition="$type==1"}产品中心{elseif condition="$type==2"/}成功案例{elseif condition="$type==3"/}新闻鍔ㄦ€亄elseif condition="$type==4"/}资料下载{elseif condition="$type==5"/}人才招聘{else /}单页{/if} - {$site_name}{/if}
 {/block}
 
 {block name="content"}
-<nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">棣栭〉</a></li><li class="breadcrumb-item active">{if condition="$type==1"}浜у搧涓績{elseif condition="$type==2"/}鎴愬姛妗堜緥{elseif condition="$type==3"/}鏂伴椈鍔ㄦ€亄elseif condition="$type==4"/}璧勬枡涓嬭浇{elseif condition="$type==5"/}浜烘墠鎷涜仒{/if}</li></ol></nav>
+<nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">首页</a></li><li class="breadcrumb-item active">{if condition="$type==1"}产品中心{elseif condition="$type==2"/}成功案例{elseif condition="$type==3"/}新闻鍔ㄦ€亄elseif condition="$type==4"/}资料下载{elseif condition="$type==5"/}人才招聘{/if}</li></ol></nav>
 
 {$cate_tree_html|raw}
 
 {volist name="list" id="vo"}
-<div class="cm-card">{if condition="$vo.cover"}<img data-src="{$vo.cover}" class="cm-card-img lazyload" onerror="this.style.display='none'" style="max-height:170px;object-fit:cover;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">{/if}<div class="cm-card-bd"><h5 class="cm-card-tit" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$vo.url}">{$vo.title}</a>{include file="shared/paid_badge" /}</h5><p class="cm-card-txt">{$vo.excerpt|msubstr=0,80}</p><div class="cm-card-meta"><span><i class="bi bi-calendar3 me-1"></i>{$vo.create_time|date='Y-m-d'}</span><a href="{$vo.url}" style="color:var(--i8j-primary,#3b82f6);text-decoration:none;font-weight:550;font-size:11.5px;padding:3px 10px;border-radius:12px;border:1px solid #e2e8f0;">鏌ョ湅</a></div></div></div>
+<div class="cm-card">{if condition="$vo.cover"}<img data-src="{$vo.cover}" class="cm-card-img lazyload" onerror="this.style.display='none'" style="max-height:170px;object-fit:cover;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">{/if}<div class="cm-card-bd"><h5 class="cm-card-tit" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$vo.url}">{$vo.title}</a>{include file="shared/paid_badge" /}</h5><p class="cm-card-txt">{$vo.excerpt|msubstr=0,80}</p><div class="cm-card-meta"><span><i class="bi bi-calendar3 me-1"></i>{$vo.create_time|date='Y-m-d'}</span><a href="{$vo.url}" style="color:var(--i8j-primary,#3b82f6);text-decoration:none;font-weight:550;font-size:11.5px;padding:3px 10px;border-radius:12px;border:1px solid #e2e8f0;">查看</a></div></div></div>
 {/volist}
 
-{empty name="list"}<div class="cm-empty"><i class="bi bi-inbox"></i><p>鏆傛棤鐩稿叧鍐呭</p></div>{/empty}
+{empty name="list"}<div class="cm-empty"><i class="bi bi-inbox"></i><p>暂无鐩稿叧内容</p></div>{/empty}
 
 {if condition="($list->hasPages() ?? false)"}<div class="m-pagination">{$list->render()|raw}</div>{/if}
 {/block}

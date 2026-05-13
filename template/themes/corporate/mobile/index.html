@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}{$site_name} - 棣栭〉{/block}
+{block name="title"}{$site_name} - 首页{/block}
 
 {block name="content"}
 <!-- 杞挱 -->
@@ -22,7 +22,7 @@
 
 {empty name="__LIST__"}
 <!-- 浼佷笟椋嶩ero -->
-<div class="cm-hero"><h1>AI 椹卞姩鐨勪紒涓氫俊鎭鐞?/h1><p>楂樻晥绠＄悊浜у搧銆佹渚嬨€佹柊闂荤瓑澶氱被鍨嬪唴瀹癸紝AI鏅鸿兘鍐欎綔鍔╁姏浼佷笟鏁板瓧鍖栧崌绾?/p><a href="/product" class="btn">浜嗚В鏇村 &rarr;</a></div>
+<div class="cm-hero"><h1>AI 椹卞姩鐨勪紒涓氫俊鎭鐞?/h1><p>楂樻晥管理产品銆佹渚嬨€佹柊闂荤瓑澶氱被鍨嬪唴瀹癸紝AI智能写作助力企业数字化升级/p><a href="/product" class="btn">浜嗚В更多 &rarr;</a></div>
 {/empty}
 
 <!-- 鏈嶅姟鍗＄墖 -->
@@ -33,14 +33,14 @@
     <div class="cm-svc-icon"><i class="bi bi-box-seam"></i></div>
     <h5 style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">{$field.title}{include file="shared/paid_badge" /}</h5>
     <p>{$field.excerpt|msubstr=0,60}</p>
-        <a href="{$field.url}" style="color:var(--i8j-primary,#3b82f6);text-decoration:none;font-weight:600;font-size:13px;">浜嗚В璇︽儏 &rarr;</a>
+        <a href="{$field.url}" style="color:var(--i8j-primary,#3b82f6);text-decoration:none;font-weight:600;font-size:13px;">浜嗚В详情 &rarr;</a>
     </div>
     {/i8j:infolist}
 </section>
 
-<!-- 妗堜緥灞曠ず -->
+<!-- 案例灞曠ず -->
 <section style="margin-top:20px;">
-    <h3 class="cm-sect-tit">鎴愬姛妗堜緥</h3>
+    <h3 class="cm-sect-tit">成功案例</h3>
     <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
         {i8j:infolist type="case" limit="4"}
         <div class="cm-case-card" style="min-width:260px;flex-shrink:0;">
@@ -51,9 +51,9 @@
     </div>
 </section>
 
-<!-- 鏂伴椈鍔ㄦ€?-->
+<!-- 新闻动态-->
 <section style="margin-top:20px;margin-bottom:8px;">
-    <h3 class="cm-sect-tit">鏂伴椈鍔ㄦ€?/h3>
+    <h3 class="cm-sect-tit">新闻动态/h3>
     {i8j:infolist type="news" limit="4"}
     <div class="cm-card">
         <div class="cm-card-bd">
@@ -63,6 +63,6 @@
         </div>
     </div>
     {/i8j:infolist}
-    <div style="text-align:center;margin-top:14px;"><a href="/news" class="btn btn-sm rounded-pill px-4" style="color:var(--i8j-primary,#3b82f6);border:1px solid #e2e8f0;background:var(--i8j-bg,#fff);text-decoration:none;font-weight:600;">鏌ョ湅鍏ㄩ儴 &raquo;</a></div>
+    <div style="text-align:center;margin-top:14px;"><a href="/news" class="btn btn-sm rounded-pill px-4" style="color:var(--i8j-primary,#3b82f6);border:1px solid #e2e8f0;background:var(--i8j-bg,#fff);text-decoration:none;font-weight:600;">查看全部 &raquo;</a></div>
 </section>
 {/block}

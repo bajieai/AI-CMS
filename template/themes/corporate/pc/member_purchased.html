@@ -1,13 +1,13 @@
 {extend name="layout" /}
 
-{block name="title"}宸茶喘鍐呭{/block}
+{block name="title"}宸茶喘内容{/block}
 
 {block name="content"}
 
 <div class="section-padding" style="padding-top:2.5rem;">
     <div class="container" style="max-width:1140px;">
-        <h2 class="fw-bold mb-1" style="font-size:1.65rem;color:var(--i8j-text,#1e293b);"><i class="bi bi-bag-check me-2" style="color:var(--i8j-success,#22c55e);"></i>宸茶喘鍐呭</h2>
-        <p class="text-muted mb-4" style="font-size:.95rem;">鎮ㄨ喘涔扮殑鍏ㄩ儴浠樿垂鍐呭</p>
+        <h2 class="fw-bold mb-1" style="font-size:1.65rem;color:var(--i8j-text,#1e293b);"><i class="bi bi-bag-check me-2" style="color:var(--i8j-success,#22c55e);"></i>宸茶喘内容</h2>
+        <p class="text-muted mb-4" style="font-size:.95rem;">鎮ㄨ喘涔扮殑全部浠樿垂内容</p>
 
         <div class="row g-4">
             {volist name="list" id="vo"}
@@ -42,7 +42,7 @@
         {empty name="list"}
         <div class="text-center py-6" style="background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;margin-top:2rem;">
             <i class="bi bi-bag-x display-4 text-muted opacity-40"></i>
-            <h5 class="text-muted mt-3 fw-bold opacity-70">鏆傛棤宸茶喘鍐呭</h5>
+            <h5 class="text-muted mt-3 fw-bold opacity-70">暂无宸茶喘内容</h5>
             <p class="text-muted small opacity-50">鍘诲彂鐜颁紭璐ㄤ粯璐瑰唴瀹瑰惂</p>
             <a href="/" class="btn mt-3" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>娴忚鍟嗗煄</a>
         </div>

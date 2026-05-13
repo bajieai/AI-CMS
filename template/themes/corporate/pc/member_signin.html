@@ -26,7 +26,7 @@
                 <div class="card border-0 text-center" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:1.5rem;background:var(--i8j-bg,#fff);">
                     <i class="bi bi-gift display-3" style="color:var(--i8j-primary,#8b5cf6);"></i>
                     <h5 class="fw-bold mt-2 mb-0" id="todayPoints" style="font-size:1.75rem;color:var(--i8j-text,#1e293b);">+10</h5>
-                    <small class="text-muted">浠婃棩绉垎濂栧姳</small>
+                    <small class="text-muted">浠婃棩积分濂栧姳</small>
                 </div>
             </div>
         </div>
@@ -59,9 +59,9 @@
                 <table class="table table-borderless align-middle" style="font-size:.92rem;">
                     <thead><tr><th width="30%">鏉′欢</th><th>濂栧姳</th></tr></thead>
                     <tbody>
-                        <tr><td>姣忔棩绛惧埌</td><td><span class="badge bg-success rounded-pill">+10 绉垎</span></td></tr>
-                        <tr><td>杩炵画7澶?/td><td><span class="badge bg-warning rounded-pill">棰濆 +50 绉垎</span></td></tr>
-                        <tr><td>杩炵画30澶?/td><td><span class="badge bg-danger rounded-pill">棰濆 +300 绉垎</span></td></tr>
+                        <tr><td>姣忔棩绛惧埌</td><td><span class="badge bg-success rounded-pill">+10 积分</span></td></tr>
+                        <tr><td>杩炵画7澶?/td><td><span class="badge bg-warning rounded-pill">棰濆 +50 积分</span></td></tr>
+                        <tr><td>杩炵画30澶?/td><td><span class="badge bg-danger rounded-pill">棰濆 +300 积分</span></td></tr>
                         <tr><td>鏂閲嶇疆</td><td><span class="text-danger small">杩炵画澶╂暟褰掗浂锛岄噸鏂拌绠?/span></td></tr>
                     </tbody>
                 </table>
@@ -76,7 +76,7 @@
 <script>
 function doSignin() {
     $.post('/member/signin', {}, function(res) {
-        if (res.code === 0) { showToast('绛惧埌鎴愬姛锛?' + (res.data.points||10) + ' 绉垎宸插埌璐?, 'success'); loadSigninInfo(); }
+        if (res.code === 0) { showToast('绛惧埌鎴愬姛锛?' + (res.data.points||10) + ' 积分宸插埌璐?, 'success'); loadSigninInfo(); }
         else alert(res.msg);
     });
 }

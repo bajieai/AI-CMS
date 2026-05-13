@@ -4,12 +4,12 @@
 {if condition="$current_cate"}
     {$current_cate.seo_title ?: $current_cate.name} - {$site_name}
 {else /}
-    {if condition="$type == 1"}浜у搧涓績
-    {elseif condition="$type == 2"/}鎴愬姛妗堜緥
-    {elseif condition="$type == 3"/}鏂伴椈鍔ㄦ€?
-    {elseif condition="$type == 4"/}璧勬枡涓嬭浇
-    {elseif condition="$type == 5"/}浜烘墠鎷涜仒
-    {else /}鍗曢〉
+    {if condition="$type == 1"}产品中心
+    {elseif condition="$type == 2"/}成功案例
+    {elseif condition="$type == 3"/}新闻动态
+    {elseif condition="$type == 4"/}资料下载
+    {elseif condition="$type == 5"/}人才招聘
+    {else /}单页
     {/if} - {$site_name}
 {/if}
 {/block}
@@ -26,34 +26,34 @@
 
 <section class="section-padding" style="padding-top:2.5rem;">
     <div class="container" style="max-width:1140px;">
-        <!-- 闈㈠寘灞?-->
+        <!-- 面包屑-->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/"><i class="bi bi-house me-1"></i>棣栭〉</a></li>
+                <li class="breadcrumb-item"><a href="/"><i class="bi bi-house me-1"></i>首页</a></li>
                 <li class="breadcrumb-item active">
-                    {if condition="$type == 1"}浜у搧涓績{/if}
-                    {if condition="$type == 2"}鎴愬姛妗堜緥{/if}
-                    {if condition="$type == 3"}鏂伴椈鍔ㄦ€亄/if}
-                    {if condition="$type == 4"}璧勬枡涓嬭浇{/if}
-                    {if condition="$type == 5"}浜烘墠鎷涜仒{/if}
+                    {if condition="$type == 1"}产品中心{/if}
+                    {if condition="$type == 2"}成功案例{/if}
+                    {if condition="$type == 3"}新闻鍔ㄦ€亄/if}
+                    {if condition="$type == 4"}资料下载{/if}
+                    {if condition="$type == 5"}人才招聘{/if}
                 </li>
             </ol>
         </nav>
 
-        <!-- 椤甸潰鏍囬 -->
+        <!-- 页面标题 -->
         <div class="d-flex align-items-center justify-content-between mb-4">
             <h1 style="font-size:1.75rem;font-weight:800;color:var(--i8j-text,#1e293b);">
                 {if condition="$current_cate"}
                     {$current_cate.name}
                 {else /}
-                    {if condition="$type == 1"}浜у搧涓績{elseif condition="$type == 2"}鎴愬姛妗堜緥{elseif condition="$type == 3"}鏂伴椈鍔ㄦ€亄elseif condition="$type == 4"}璧勬枡涓嬭浇{elseif condition="$type == 5"}浜烘墠鎷涜仒{else}鍏ㄩ儴鍐呭{/if}
+                    {if condition="$type == 1"}产品中心{elseif condition="$type == 2"}成功案例{elseif condition="$type == 3"}新闻鍔ㄦ€亄elseif condition="$type == 4"}资料下载{elseif condition="$type == 5"}人才招聘{else}全部内容{/if}
                 {/if}
             </h1>
-            <!-- 鍒嗙被绛涢€夛紙濡傛湁鍒嗙被鏍戯級 -->
+            <!-- 分类绛涢€夛紙濡傛湁分类鏍戯級 -->
             {if condition="!empty($cate_tree_html)"}
             <div class="dropdown">
                 <button class="btn btn-sm px-3" style="background:var(--i8j-bg-secondary,#f1f5f9);border:1px solid #e2e8f0;border-radius:20px;color:#475569;font-weight:500;" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-funnel me-1"></i>绛涢€夊垎绫?<i class="bi bi-chevron-down ms-1 small"></i>
+                    <i class="bi bi-funnel me-1"></i>筛选分类<i class="bi bi-chevron-down ms-1 small"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-2" style="min-width:240px;box-shadow:var(--shadow-card-hover);">
                     {$cate_tree_html|raw}
@@ -62,7 +62,7 @@
             {/if}
         </div>
 
-        <!-- 鍏ㄥ 3鍒楀崱鐗?Grid -->
+        <!-- 全宽 3鍒楀崱鐗?Grid -->
         <div class="row g-4">
             {volist name="list" id="vo"}
             <div class="col-md-6 col-lg-4">
@@ -96,13 +96,13 @@
         {empty name="list"}
         <div class="text-center py-6" style="padding:5rem 0;background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;">
             <i class="bi bi-inbox display-4 text-muted opacity-50"></i>
-            <h5 class="text-muted mt-3 fw-bold opacity-75">鏆傛棤鐩稿叧鍐呭</h5>
-            <p class="text-muted small mt-1 opacity-60">璇曡瘯鍏朵粬鍒嗙被鎴栧叧閿瘝鎼滅储</p>
-            <a href="/" class="btn mt-2" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>杩斿洖棣栭〉</a>
+            <h5 class="text-muted mt-3 fw-bold opacity-75">暂无鐩稿叧内容</h5>
+            <p class="text-muted small mt-1 opacity-60">璇曡瘯鍏朵粬分类鎴栧叧閿瘝搜索</p>
+            <a href="/" class="btn mt-2" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>返回首页</a>
         </div>
         {/empty}
 
-        <!-- 鍒嗛〉 -->
+        <!-- 分页 -->
         {if condition="($list->hasPages() ?? false)"}
         <div class="mt-5 d-flex justify-content-center">
             <nav>{$list->render()|raw}</nav>

@@ -1,12 +1,12 @@
 {extend name="layout" /}
 
-{block name="title"}鎴戠殑绛夌骇{/block}
+{block name="title"}我的等级{/block}
 
 {block name="content"}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <!-- 褰撳墠绛夌骇姒傝 -->
+            <!-- 褰撳墠等级姒傝 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-body p-4 text-center" style="background:linear-gradient(135deg,#0f172a 0%,var(--i8j-text,#334155) 100%);border-radius:12px;color:#fff;">
                     <div class="mb-2">
@@ -18,17 +18,17 @@
                         </div>
                     </div>
                     <h4 class="mb-1">{$progress.current.name}</h4>
-                    <p class="mb-0 opacity-75">褰撳墠绛夌骇</p>
+                    <p class="mb-0 opacity-75">褰撳墠等级</p>
                 </div>
             </div>
 
-            <!-- 杩涘害璇︽儏 -->
+            <!-- 杩涘害详情 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-body p-4">
                     {if $progress.next}
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="fw-bold">鍗囩骇杩涘害</span>
-                        <span class="text-muted small">{$progress.current_points} / {$progress.next.min_points} 绉垎</span>
+                        <span class="text-muted small">{$progress.current_points} / {$progress.next.min_points} 积分</span>
                     </div>
                     <div class="progress mb-3" style="height:20px;border-radius:10px;background:#e2e8f0;">
                         <div class="progress-bar" role="progressbar" style="width: {$progress.progress}%;background:linear-gradient(90deg,#0f172a,var(--i8j-text,#334155));border-radius:10px;" aria-valuenow="{$progress.progress}" aria-valuemin="0" aria-valuemax="100">
@@ -36,7 +36,7 @@
                         </div>
                     </div>
                     <div class="text-center text-muted small">
-                        璺濈 <strong>{$progress.next.name}</strong> 杩橀渶 {$progress.need_points} 绉垎
+                        璺濈 <strong>{$progress.next.name}</strong> 杩橀渶 {$progress.need_points} 积分
                     </div>
                     {else}
                     <div class="text-center py-3">
@@ -52,21 +52,21 @@
             <div class="alert alert-warning d-flex align-items-center mb-4" role="alert" style="border-radius:12px;">
                 <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
                 <div>
-                    <strong>绛夌骇闄嶇骇棰勮</strong><br>
-                    鎮ㄧ殑绉垎宸蹭笉婊¤冻褰撳墠绛夌骇瑕佹眰锛岀郴缁熷皢鍦?<strong>{$progress.grace.days_left} 澶?/strong> 鍚庤嚜鍔ㄩ檷绾с€?
-                    <a href="/signin" class="alert-link">鍘荤鍒拌禋绉垎 &rarr;</a>
+                    <strong>等级闄嶇骇棰勮</strong><br>
+                    鎮ㄧ殑积分宸蹭笉婊¤冻褰撳墠等级瑕佹眰锛岀郴缁熷皢鍦?<strong>{$progress.grace.days_left} 澶?/strong> 鍚庤嚜鍔ㄩ檷绾с€?
+                    <a href="/signin" class="alert-link">鍘荤鍒拌禋积分 &rarr;</a>
                 </div>
             </div>
             {/if}
 
-            <!-- 绛夌骇鍘嗗彶鏃堕棿绾?V2.9.5 -->
+            <!-- 等级鍘嗗彶鏃堕棿绾?V2.9.5 -->
             <div class="card shadow-sm mb-4 border-0" style="border-radius:12px;">
                 <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">
-                    <i class="bi bi-clock-history me-1"></i>绛夌骇鍙樻洿璁板綍
+                    <i class="bi bi-clock-history me-1"></i>等级鍙樻洿璁板綍
                 </div>
                 <div class="card-body p-4">
                     {empty name="timeline"}
-                    <p class="text-muted text-center mb-0">鏆傛棤绛夌骇鍙樻洿璁板綍</p>
+                    <p class="text-muted text-center mb-0">暂无等级鍙樻洿璁板綍</p>
                     {else/}
                     <div class="i8j-timeline">
                         {volist name="timeline" id="tl"}
@@ -93,10 +93,10 @@
                 </div>
             </div>
 
-            <!-- 绛夌骇闃舵 -->
+            <!-- 等级闃舵 -->
             <div class="card shadow-sm border-0" style="border-radius:12px;">
                 <div class="card-header bg-white" style="border-bottom:1px solid #e2e8f0;font-weight:600;border-radius:12px 12px 0 0;">
-                    <i class="bi bi-ladder me-1"></i>绛夌骇浣撶郴
+                    <i class="bi bi-ladder me-1"></i>等级浣撶郴
                 </div>
                 <div class="list-group list-group-flush">
                     {volist name="levels" id="lv"}
@@ -109,7 +109,7 @@
                                 <div class="fw-bold">{$lv.name}</div>
                                 <div class="text-muted small">
                                     {if $lv.is_vip}<span class="badge bg-warning text-dark me-1">VIP</span>{/if}
-                                    闇€ {$lv.min_points} 绉垎
+                                    闇€ {$lv.min_points} 积分
                                     {if $lv.discount > 0}&middot; 鎶樻墸 {$lv.discount}鎶榹/if}
                                     {if $lv._daily_ai_quota > 0}&middot; 姣忔棩AI {$lv._daily_ai_quota} 娆/if}
                                 </div>

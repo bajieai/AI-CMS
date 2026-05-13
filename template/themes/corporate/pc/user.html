@@ -18,9 +18,9 @@
                             </div>
                             <h4 class="mb-0 fw-bold" style="font-size:1.2rem;">{$info.nickname|default=$info.username}</h4>
                             <span class="badge rounded-pill mt-2 px-3 py-1" style="background:rgba(255,255,255,.15);color:#fff;font-size:.78rem;font-weight:600;">
-                                {if condition="$info.role_id == 1"}瓒呯骇绠＄悊鍛?
-                                {elseif condition="$info.role_id == 2"}绠＄悊鍛?
-                                {else}缂栬緫
+                                {if condition="$info.role_id == 1"}瓒呯骇管理鍛?
+                                {elseif condition="$info.role_id == 2"}管理鍛?
+                                {else}编辑
                                 {/if}
                             </span>
                         </div>
@@ -43,9 +43,9 @@
                         </ul>
                         <div class="d-grid gap-3 mt-3">
                             <a href="/admin/user/profile" class="btn btn-sm px-3" style="background:var(--color-accent);color:#fff;border-radius:20px;font-weight:600;">
-                                <i class="bi bi-pencil me-1"></i>缂栬緫璧勬枡
+                                <i class="bi bi-pencil me-1"></i>编辑璧勬枡
                             </a>
-                            <a href="/admin/logout" onclick="return confirm('纭畾閫€鍑虹櫥褰曪紵')" class="btn btn-sm px-3" style="background:var(--i8j-bg,#fff);border:1px solid #e2e8f0;border-radius:20px;font-weight:600;color:var(--i8j-text-secondary,#64748b);">
+                            <a href="/admin/logout" onclick="return confirm('确定閫€鍑虹櫥褰曪紵')" class="btn btn-sm px-3" style="background:var(--i8j-bg,#fff);border:1px solid #e2e8f0;border-radius:20px;font-weight:600;color:var(--i8j-text-secondary,#64748b);">
                                 <i class="bi bi-box-arrow-right me-1"></i>閫€鍑虹櫥褰?
                             </a>
                         </div>

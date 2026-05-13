@@ -4,12 +4,12 @@
 {if condition="$current_cate"}
     {$current_cate.seo_title ?: $current_cate.name} - {$site_name}
 {else /}
-    {if condition="$type == 1"}浜у搧涓績
-    {elseif condition="$type == 2"/}鎴愬姛妗堜緥
-    {elseif condition="$type == 3"/}鏂伴椈鍔ㄦ€?
-    {elseif condition="$type == 4"/}璧勬枡涓嬭浇
-    {elseif condition="$type == 5"/}浜烘墠鎷涜仒
-    {else /}鍗曢〉
+    {if condition="$type == 1"}产品中心
+    {elseif condition="$type == 2"/}成功案例
+    {elseif condition="$type == 3"/}新闻动态
+    {elseif condition="$type == 4"/}资料下载
+    {elseif condition="$type == 5"/}人才招聘
+    {else /}单页
     {/if} - {$site_name}
 {/if}
 {/block}
@@ -27,14 +27,14 @@
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">棣栭〉</a></li>
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
                 <li class="breadcrumb-item active">
-                    {if condition="$type == 1"}浜у搧涓績{/if}
-                    {if condition="$type == 2"}鎴愬姛妗堜緥{/if}
-                    {if condition="$type == 3"}鏂伴椈鍔ㄦ€亄/if}
-                    {if condition="$type == 4"}璧勬枡涓嬭浇{/if}
-                    {if condition="$type == 5"}浜烘墠鎷涜仒{/if}
-                    {if condition="$type == 6"}鍗曢〉{/if}
+                    {if condition="$type == 1"}产品中心{/if}
+                    {if condition="$type == 2"}成功案例{/if}
+                    {if condition="$type == 3"}新闻鍔ㄦ€亄/if}
+                    {if condition="$type == 4"}资料下载{/if}
+                    {if condition="$type == 5"}人才招聘{/if}
+                    {if condition="$type == 6"}单页{/if}
                 </li>
             </ol>
         </nav>
@@ -43,14 +43,14 @@
             <!-- 渚ц竟鏍?-->
             <div class="col-lg-3 mb-3">
                 <div class="card">
-                    <div class="card-header bg-primary text-white"><i class="bi bi-folder2 me-1"></i>鍒嗙被</div>
+                    <div class="card-header bg-primary text-white"><i class="bi bi-folder2 me-1"></i>分类</div>
                     <div class="list-group list-group-flush bg-light" id="cateTree">
                         {$cate_tree_html|raw}
                     </div>
                 </div>
             </div>
 
-            <!-- 鍐呭鍒楄〃 -->
+            <!-- 内容列表 -->
             <div class="col-lg-9">
                 <div class="row g-3">
                     {volist name="list" id="vo"}
@@ -65,7 +65,7 @@
                             </div>
                             <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
                                 <small class="text-muted">{$vo.create_time|date='Y-m-d'}</small>
-                                <a href="{$vo.url}" class="btn btn-sm btn-outline-primary">鏌ョ湅璇︽儏</a>
+                                <a href="{$vo.url}" class="btn btn-sm btn-outline-primary">查看详情</a>
                             </div>
                         </div>
                     </div>
@@ -75,9 +75,9 @@
                 {empty name="list"}
                 <div class="text-center py-5" style="background:var(--i8j-bg-secondary,#f8fafc);border-radius:12px;margin-top:1rem;">
                     <i class="bi bi-inbox fs-1" style="color:#cbd5e1;"></i>
-                    <h5 class="text-muted mt-3 fw-bold" style="color:var(--i8j-text-secondary,#64748b);">鏆傛棤鐩稿叧鍐呭</h5>
-                    <p class="text-muted small mt-1 mb-3">璇ュ垎绫讳笅鏆傛椂娌℃湁鏂囩珷锛岀湅鐪嬪叾浠栧垎绫诲惂</p>
-                    <a href="/" class="btn btn-outline-primary btn-sm"><i class="bi bi-house me-1"></i>杩斿洖棣栭〉</a>
+                    <h5 class="text-muted mt-3 fw-bold" style="color:var(--i8j-text-secondary,#64748b);">暂无鐩稿叧内容</h5>
+                    <p class="text-muted small mt-1 mb-3">该分类讳笅鏆傛椂娌℃湁文章锛岀湅鐪嬪叾浠栧垎绫诲惂</p>
+                    <a href="/" class="btn btn-outline-primary btn-sm"><i class="bi bi-house me-1"></i>返回首页</a>
                 </div>
                 {/empty}
 
