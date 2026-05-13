@@ -12,6 +12,8 @@
 
 **V3.1 定位：AI内容增强 + 模板生态阶段**，在V3.0体验完善基础上，深度强化AI配图、SEO优化、质量检测、社交分享、写作风格五大AI驱动能力，以及模板批量生产、市场前台、管理增强三大模板生态能力。
 
+> **注意**：V3.1-下一阶段（Sprint 14-16）的10套预埋模板当前仅含`theme.json`元数据骨架，实际HTML/CSS/JS模板文件需通过AI批量生成（`php think theme:batch`）或人工添加后才能使用"一键安装"功能。
+
 **Sprint 11 — AI配图增强：**
 1. **批量配图** — 前端串行调用+进度条，自动构建图片Prompt，配图直接插入编辑器正文段落之间
 2. **发布自动配图** — 发布时无封面图自动调AI生成，config开关控制
@@ -371,6 +373,8 @@ AI-CMS/
 │   ├── build-components.sh     #   UI组件库ESBuild多bundle打包(V3.0)
 │   ├── build-components.ps1    #   UI组件库ESBuild打包-Windows(V3.0 Phase 3)
 │   ├── scan-hardcoded-colors.sh #  硬编码颜色扫描脚本(Phase 3)
+│   ├── fix_encoding.php        #   编码修复工具(V3.1参考)
+│   ├── verify_encoding.php     #   编码验证脚本(V3.1)
 │   ├── ai-template-prompt.md   #   AI模板生成Prompt模板(V3.0)
 │   ├── validate-template.php   #   模板语法校验(V3.0)
 │   └── scan-template-xss.php   #   模板XSS扫描(V3.0)
