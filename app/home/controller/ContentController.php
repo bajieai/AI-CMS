@@ -10,6 +10,7 @@ use app\common\model\Member;
 use app\common\model\MemberLevel;
 use app\common\service\SeoService;
 use app\common\service\PaidService;
+use think\facade\Db;
 
 /**
  * 前台内容控制器 - V2.5增强
@@ -176,5 +177,38 @@ class ContentController extends FrontBaseController
         } catch (\Throwable) {
             return false;
         }
+    }
+
+    /**
+     * V3.1: 社交分享统计
+     * POST /home/content/share
+     */
+    public function share()
+    {
+        $contentId = (int) $this->request->post('content_id', 0);
+        $platform = $this->request->post('platform', ''); // weibo/qq/wechat/twitter/copy
+        if ($contentId <= 0) {
+            return json(['code' => 1, 'msg' => '参数错误']);
+        }
+
+        $content = Content::find($contentId);
+        if (empty($content) || $content->status != 2) {
+            return json(['code' => 1, 'msg' => '内容不存在']);
+        }
+
+        // 记录分享行为到visit_log
+        try {
+            Db::name('visit_log')->insert([
+                'content_id'  => $contentId,
+                'ip'          => request()->ip(),
+                'source_type' => 'social',
+                'referrer'    => $platform,
+                'device'      => 'share',
+                'user_agent'  => request()->header('user-agent', ''),
+                'create_time' => time(),
+            ]);
+        } catch (\Throwable) {}
+
+        return json(['code' => 0, 'msg' => '记录成功']);
     }
 }

@@ -204,6 +204,25 @@ class DashboardController extends AdminBaseController
     }
 
     /**
+     * V3.1: 来源分析接口
+     */
+    public function getSourceAnalysis()
+    {
+        try {
+            $days = (int) $this->request->get('days', 30);
+            if ($days > 90) $days = 90;
+            $startTime = strtotime("-{$days} days");
+            $endTime = time();
+
+            $data = \app\common\service\DashboardService::getSourceAnalysis($startTime, $endTime);
+
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * 设备分布
      */
     public function getDeviceStats()

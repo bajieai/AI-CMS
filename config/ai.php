@@ -63,6 +63,8 @@ return [
         // V3.1: 配图配额控制
         'daily_limit'       => (int) env('ai.image.daily_limit', 50),
         'max_batch_count'   => (int) env('ai.image.max_batch_count', 5),
+        // V3.1: 发布时自动配图（需手动开启）
+        'auto_on_publish'   => (bool) env('ai.image.auto_on_publish', false),
         'providers'        => [
             'tongyi_wanxiang' => [
                 'enabled'  => (bool) env('ai.image.tongyi.enabled', true),

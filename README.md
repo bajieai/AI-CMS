@@ -1,36 +1,41 @@
-# 八界AI-CMS V3.0
+# 八界AI-CMS V3.1
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)
+![Version](https://img.shields.io/badge/version-3.1.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V3.0 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V3.1 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-**V3.0 Phase 3 定位：体验完善+生态基座阶段**，将AI模板生成从"能生成"升级为"能对话迭代"，同时完成暗色模式全站适配、组件库扩展至13个、回归测试自动化和主题导入导出地基。
+**V3.1 定位：AI内容增强阶段**，在V3.0体验完善基础上，深度强化AI配图、SEO优化、质量检测、社交分享和写作风格五大AI驱动能力。
 
-**Sprint 7 — AI模板增强 + 暗色模式：**
-1. **多轮对话式修改** — `generateIncremental()` 同步模式 + `IncrementalContextBuilder` Token预算管理 + AI助手面板
-2. **局部重生成** — `regenerateFile()` 单文件替换 + `validateFile()` 单文件校验
-3. **版本管理** — `ThemeVersionManager` git备份/回退/差异对比 + 文件拷贝降级
-4. **暗色模式全站适配** — 43+模板文件硬编码颜色→CSS变量替换 + shared片段改造
-5. **对话日志** — AiThemeChatLog模型 + `i8j_ai_theme_chat_log` 表，审计追踪
+**Sprint 11 — AI配图增强：**
+1. **批量配图** — 前端串行调用+进度条，自动构建图片Prompt，配图直接插入编辑器正文段落之间
+2. **发布自动配图** — 发布时无封面图自动调AI生成，config开关控制
+3. **日配额控制** — 基于Cache的每日限额(默认50次/天/用户)，防止AI额度滥用
 
-**Sprint 8 — 组件库扩展：**
-6. **8个新组件** — Tabs/Dropdown/DatePicker/Progress/Badge/Skeleton/Breadcrumb/DataTable
-7. **多bundle打包** — ESBuild输出core/data/form/full 4个bundle，按需加载
-8. **组件演示页** — 14组件完整交互演示
+**Sprint 12 — AI SEO增强 + 来源分析：**
+4. **SEO评分算法** — 纯算法零AI成本(5维度:标题30%+关键词20%+描述20%+内容长度15%+图片ALT15%)，毫秒响应
+5. **SEO前后对比面板** — 双栏Modal展示优化前后差异，一键应用
+6. **批量SEO优化** — 列表页批量选择+AI填充空SEO字段，3篇并发控制+2秒间隔防限流
+7. **来源分析饼图** — Dashboard新增ECharts来源分析(直接/搜索/社交/外部)，7/30天切换
 
-**Sprint 9 — 回归测试 + 市场地基：**
-9. **PHPUnit** — phpunit.xml + ThemeValidator/AiThemeRecord单元测试 + fixtures
-10. **Playwright** — Toast组件E2E测试 + 配置框架
-11. **主题导入导出** — ThemePackageService ZIP打包/解包 + 安全校验 + manage.html管理页面
-12. **路由补全** — AiThemeController 21个路由全部注册（Phase2 13个 + Phase3 8个）
+**Sprint 13 — 质量检测 + 社交分享 + 写作风格：**
+8. **质量评分卡片UI** — 维度评分条+改进建议一键执行+一键优化全部
+9. **社交分享** — 后台编辑页分享Modal(微博/QQ/复制)+卡片预览，前台详情页分享统计埋点
+10. **5种可配置写作风格** — config/ai.php配置驱动(正式/轻松/专业/幽默/简洁)，后台风格下拉选择
 
 ### 核心特性
+
+- **🆕 AI配图增强(V3.1)** - 批量配图+自动插入段落+发布自动配图+日配额控制，前端串行进度条
+- **🆕 AI SEO评分(V3.1)** - 纯算法0-100评分(5维度加权)，前后对比面板，批量SEO优化(3篇并发控制)
+- **🆕 质量检测卡片(V3.1)** - 维度评分条+改进建议一键执行+一键优化全部
+- **🆕 社交分享增强(V3.1)** - 后台分享Modal(微博/QQ/复制/卡片预览)+前台分享统计埋点
+- **🆕 5种写作风格(V3.1)** - 可配置写作风格(正式/轻松/专业/幽默/简洁)，config驱动
+- **🆕 来源分析饼图(V3.1)** - Dashboard ECharts来源分析(直接/搜索/社交/外部)，7/30天切换
 
 - **🆕 AI模板对话迭代** - 多轮对话式修改+局部重生成+版本管理(git备份/回退/差异对比)，AI助手面板
 - **🆕 暗色模式全站** - 43+模板硬编码颜色→CSS变量替换，shared片段改造，scan-hardcoded-colors扫描脚本
@@ -346,7 +351,8 @@ AI-CMS/
 │   ├── v2.4.sql ~ v2.9.5.sql   #   历史增量更新
 │   ├── v3.0.sql                #   V3.0 Phase 1幂等升级脚本
 │   ├── v3.0-phase2.sql         #   V3.0 Phase 2幂等升级脚本
-│   └── v3.0-phase3.sql         #   V3.0 Phase 3幂等升级脚本
+│   ├── v3.0-phase3.sql         #   V3.0 Phase 3幂等升级脚本
+│   └── v3.1.sql                #   V3.1幂等升级脚本(seo_score+配额+风格配置)
 ├── docs/                       # 项目文档(V3.0新增docs目录)
 │   ├── V2.9.6-产品需求.md       #   V3.0下一阶段PRD
 │   ├── V3.0-AI模板可视化-技术预研报告.md
@@ -443,6 +449,10 @@ AI-CMS/
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | /api/ai/generate | AI内容生成（Session认证） |
+| POST | /api/ai/batch_image | AI批量配图（V3.1，Session认证） |
+| POST | /api/ai/seo_score | SEO评分纯算法（V3.1，Session认证） |
+| GET | /api/ai/styles | 获取写作风格列表（V3.1） |
+| POST | /api/ai/share | 社交分享链接生成（V3.1，Session认证） |
 | POST | /api/upload/image | 图片上传 |
 | POST | /api/cache/clear | 清除缓存（超管专用） |
 | GET | /api/csrf/token | 获取CSRF Token（AJAX恢复） |
@@ -509,6 +519,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V3.1 | 2026-05-13 | AI内容增强: 批量配图+发布自动配图+日配额控制/SEO评分算法(0-100)+前后对比+批量SEO(3并发)+来源分析饼图/质量卡片+建议执行+社交分享Modal+前台分享统计/5种可配置写作风格 |
 | V3.0 Phase 3 | 2026-05-13 | 体验完善+生态基座: AI模板对话迭代(多轮对话+局部重生成+版本管理)/暗色模式全站(43+文件CSS变量替换)/8新组件(Tabs/Dropdown/DatePicker/DataTable等13组件)/多bundle打包(4bundle)/主题导入导出(ThemePackageService)/测试基础设施(PHPUnit+Playwright)/路由补全(21路由) |
 | V3.0 Phase 2 | 2026-05-12 | 能力释放: AI主题生成MVP(7状态异步+预览沙箱+审核后台+调色面板)/UI组件库(I8JComponent基类+5组件+ESBuild打包)/CSS变量标准化(34变量+暗色模式)/N+1扫描+CSP收紧 |
 | V3.0 Phase 1 | 2026-05 | V2.9→V3.0过渡桥接: 付费标识/CSP配置化+enforce切换/存储层htmlspecialchars/SQL全量审计/内容打赏补全/个人消息扩展/AI模板预研(方案C+A)/模板规范v1.0/UI组件库规划/架构升级评估 |
@@ -550,7 +561,7 @@ docker cp database/v3.0.sql aicms_mysql:/tmp/
 docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
 ```
 
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql`。
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql`。
 
 ## 常用Docker命令
 

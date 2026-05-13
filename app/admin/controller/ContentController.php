@@ -288,13 +288,27 @@ class ContentController extends AdminBaseController
     }
 
     /**
-     * 发布内容
+     * 发布内容（V3.1: 自动配图增强）
      */
     public function publish(int $id)
     {
         $info = Content::find($id);
         if (empty($info)) {
             return $this->error('内容不存在');
+        }
+
+        // V3.1: 发布自动配图 — 如果无封面图则尝试AI生成
+        if (empty($info->cover) && ThinkConfig::get('ai.image.auto_on_publish', false)) {
+            try {
+                $aiService = new \app\common\service\AiService();
+                $prompt = $aiService->buildImagePrompt($info->title ?? '', $info->content ?? '');
+                $imageResult = $aiService->generateImage($prompt, ['style' => 'realistic']);
+                if (!empty($imageResult['url'])) {
+                    $info->cover = $imageResult['url'];
+                }
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning("发布自动配图失败: " . $e->getMessage());
+            }
         }
 
         $info->status = 2;
@@ -619,7 +633,7 @@ class ContentController extends AdminBaseController
     }
 
     /**
-     * V2.8: 批量SEO优化（AI自动填充空SEO字段）
+     * V2.8+V3.1: 批量SEO优化（AI自动填充空SEO字段，3篇并发控制+间隔2秒）
      */
     public function batchSeoOptimize()
     {
@@ -628,22 +642,34 @@ class ContentController extends AdminBaseController
             return $this->error('请选择要操作的内容');
         }
 
+        // V3.1: 限制并发数量，避免AI API限流
+        $ids = array_slice($ids, 0, 10); // 单次最多10篇
+        $concurrency = 3; // 3篇并发
+        $interval = 2;    // 间隔2秒
+
         $service = new ContentService();
         $success = 0;
         $fail = 0;
+        $batch = 0;
 
         foreach ($ids as $id) {
+            $batch++;
             $result = $service->autoFillSeo((int) $id);
             if ($result['success']) {
                 $success++;
             } else {
                 $fail++;
             }
+
+            // V3.1: 每处理concurrency篇后暂停interval秒
+            if ($batch % $concurrency === 0 && $batch < count($ids)) {
+                sleep($interval);
+            }
         }
 
         $cacheService = new CacheService();
         $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
-        $this->recordLog('批量SEO优化', "成功:{$success}, 失败:{$fail}");
+        $this->recordLog('批量SEO优化', "成功:{$success}, 失败:{$fail}, 并发控制:{$concurrency}篇/批");
         return $this->success("批量SEO优化完成，成功 {$success} 条，失败 {$fail} 条");
     }
 }

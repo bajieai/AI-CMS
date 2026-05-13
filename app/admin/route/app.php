@@ -26,6 +26,8 @@ Route::post('content/copy/:id$', '\app\admin\controller\ContentController@copy')
 Route::post('content/batchPublish$', '\app\admin\controller\ContentController@batchPublish');
 Route::post('content/batchDelete$', '\app\admin\controller\ContentController@batchDelete');
 Route::post('content/batchMoveCate$', '\app\admin\controller\ContentController@batchMoveCate');
+// V3.1: 批量SEO优化
+Route::post('content/batchSeoOptimize$', '\app\admin\controller\ContentController@batchSeoOptimize');
 Route::post('content/autoSave/:id$', '\app\admin\controller\ContentController@autoSave');
 Route::get('content/versions/:id$', '\app\admin\controller\ContentController@versions');
 Route::post('content/rollback/:versionId$', '\app\admin\controller\ContentController@rollback');
@@ -249,3 +251,6 @@ Route::get('ai_theme/versionDiff$', '\app\admin\controller\AiThemeController@ver
 Route::get('ai_theme/exportTheme/:id$', '\app\admin\controller\AiThemeController@exportTheme');
 Route::post('ai_theme/importTheme$', '\app\admin\controller\AiThemeController@importTheme');
 Route::get('ai_theme/manage$', '\app\admin\controller\AiThemeController@manage');
+
+// V3.1: 数据看板来源分析
+Route::get('dashboard/getSourceAnalysis$', '\app\admin\controller\DashboardController@getSourceAnalysis');

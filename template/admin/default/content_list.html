@@ -66,6 +66,7 @@
             <button type="button" class="btn btn-sm btn-outline-warning" onclick="batchAction('reject')"><i class="bi bi-x-circle me-1"></i>批量驳回</button>
             <button type="button" class="btn btn-sm btn-outline-primary" onclick="batchAction('moveCate')"><i class="bi bi-folder-symlink me-1"></i>移动分类</button>
             <button type="button" class="btn btn-sm btn-outline-danger" onclick="batchAction('delete')"><i class="bi bi-trash me-1"></i>移入回收站</button>
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="batchAction('seoOptimize')"><i class="bi bi-magic me-1"></i>批量SEO优化</button>
             <button type="button" class="btn btn-sm btn-link text-muted" onclick="cancelBatch()">取消</button>
         </div>
     </div>
@@ -264,11 +265,13 @@ function batchAction(action) {
         audit:   '确定批量通过选中的 ' + ids.length + ' 项内容？',
         reject:  '确定批量驳回选中的 ' + ids.length + ' 项内容？将退回草稿状态。',
         publish: '确定批量发布选中的 ' + ids.length + ' 项内容？',
-        delete:  '确定将选中的 ' + ids.length + ' 项内容移入回收站？'
+        delete:  '确定将选中的 ' + ids.length + ' 项内容移入回收站？',
+        seoOptimize: '确定对选中的 ' + ids.length + ' 项内容进行AI SEO优化？将自动填充空SEO字段。'
     };
     var msg = msgs[action] || '确定对选中的 ' + ids.length + ' 项内容执行此操作？';
+    var url = action === 'seoOptimize' ? '/admin/content/batchSeoOptimize' : '/admin/content/batchAction';
     showConfirm('批量操作', msg, function() {
-        ajaxPost('/admin/content/batchAction', { action: action, ids: ids });
+        ajaxPost(url, { action: action, ids: ids });
     });
 }
 
