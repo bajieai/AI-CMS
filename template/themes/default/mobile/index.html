@@ -40,7 +40,7 @@
                 <img data-src="{$field.cover}" class="m-card-img lazyload" alt="" onerror="this.style.display='none'" style="height:110px;object-fit:cover;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 {/if}
                 <div class="m-card-body" style="padding:8px 10px;">
-                    <h6 class="m-card-tit" style="font-size:13px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$field.url}">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}</h6>
+                    <h6 class="m-card-tit" style="font-size:13px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$field.url}">{$field.title}</a>{include file="shared/paid_badge" /}</h6>
                     <small class="text-muted" style="font-size:11px;">{$field.create_time|date='Y-m-d'}</small>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                 <img data-src="{$field.cover}" class="m-card-img lazyload" alt="" style="height:100px;object-fit:cover;" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 {/if}
                 <div class="m-card-body" style="padding:8px 10px;">
-                    <h6 class="m-card-tit" style="font-size:13px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$field.url}">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}</h6>
+                    <h6 class="m-card-tit" style="font-size:13px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$field.url}">{$field.title}</a>{include file="shared/paid_badge" /}</h6>
                     <p class="m-card-text" style="font-size:12px;">{$field.excerpt|msubstr=0,40}</p>
                 </div>
             </div>
@@ -77,7 +77,7 @@
     <div class="m-card">
     <div class="m-card-body">
         <small class="m-badge m-badge-primary" style="margin-bottom:4px;">{$field.create_time|date='m-d'}</small>
-        <h6 class="m-card-tit" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$field.url}">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}</h6>
+        <h6 class="m-card-tit" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$field.url}">{$field.title}</a>{include file="shared/paid_badge" /}</h6>
         <p class="m-card-text">{$field.excerpt|msubstr=0,60}</p>
     </div>
     </div>

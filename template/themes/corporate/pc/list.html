@@ -78,7 +78,7 @@
                         <span class="badge align-self-start mb-2 rounded-pill" style="background:var(--i8j-bg-secondary,#eff6ff);color:var(--i8j-primary,#3b82f6);font-size:.72rem;width:fit-content;">{$vo.cate.name}</span>
                         {/if}
                         <h5 class="card-title mb-2" style="font-weight:700;line-height:1.45;font-size:1.02rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                            <a href="{$vo.url}" class="text-decoration-none stretched-link" style="color:var(--i8j-text,#1e293b)">{$vo.title}</a>{include file="shared/paid_badge" item="$vo" /}
+                            <a href="{$vo.url}" class="text-decoration-none stretched-link" style="color:var(--i8j-text,#1e293b)">{$vo.title}</a>{include file="shared/paid_badge" /}
                         </h5>
                         <p class="card-text text-muted flex-grow-1" style="font-size:.88rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6;">
                             {$vo.excerpt|msubstr=0,120}

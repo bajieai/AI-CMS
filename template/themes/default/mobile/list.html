@@ -29,7 +29,7 @@
     <img data-src="{$vo.cover}" class="m-card-img lazyload" alt="{$vo.title}" onerror="this.style.display='none'" style="max-height:180px;object-fit:cover;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
     {/if}
     <div class="m-card-body">
-        <h5 class="m-card-tit" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$vo.url}">{$vo.title}</a>{include file="shared/paid_badge" item="$vo" /}</h5>
+        <h5 class="m-card-tit" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><a href="{$vo.url}">{$vo.title}</a>{include file="shared/paid_badge" /}</h5>
         <p class="m-card-text">{$vo.excerpt|msubstr=0,80}</p>
         <div class="m-card-meta">
             <span><i class="bi bi-calendar3 me-1"></i>{$vo.create_time|date='Y-m-d'}</span>

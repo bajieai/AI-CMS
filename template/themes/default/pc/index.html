@@ -58,7 +58,7 @@
                     <img src="https://placehold.co/400x200/e9ecef/6c757d?text=Product" class="card-img-top" alt="{$field.title}">
                     {/if}
                     <div class="card-body p-2">
-                        <h6 class="card-title mb-1" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}</h6>
+                        <h6 class="card-title mb-1" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a>{include file="shared/paid_badge" /}</h6>
                         <small class="text-muted">{$field.create_time|date='Y-m-d'}</small>
                     </div>
                 </div>
@@ -85,7 +85,7 @@
                     <img src="/assets/images/placeholder-case.svg" class="card-img-top" alt="{$field.title}">
                     {/if}
                     <div class="card-body">
-                        <h6 class="card-title" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}</h6>
+                        <h6 class="card-title" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a>{include file="shared/paid_badge" /}</h6>
                         <p class="card-text small text-muted">{$field.excerpt|msubstr=0,60}</p>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <small class="text-muted">{$field.create_time|date='Y-m-d'}</small>
-                        <h6 class="card-title mt-1" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a>{include file="shared/paid_badge" item="$field" /}</h6>
+                        <h6 class="card-title mt-1" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><a href="{$field.url}" class="text-decoration-none">{$field.title}</a>{include file="shared/paid_badge" /}</h6>
                         <p class="card-text small text-muted">{$field.excerpt|msubstr=0,80}</p>
                     </div>
                 </div>
