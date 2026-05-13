@@ -1,0 +1,25 @@
+{
+    "name": "博客杂志风格",
+    "description": "适用于个人博客，杂志风格，适合图文混排。米色系主色调，多栏布局。",
+    "author": "八界AI",
+    "version": "1.0.0",
+    "industry": "blog",
+    "style_tag": "杂志风",
+    "supports": ["pc", "mobile"],
+    "colors": {
+        "primary": "#b45309",
+        "secondary": "#d97706",
+        "bg": "#fffbeb",
+        "bg_secondary": "#fef3c7",
+        "text": "#451a03",
+        "text_secondary": "#92400e",
+        "border": "#fde68a",
+        "accent": "#f59e0b"
+    },
+    "options": {
+        "show_breadcrumb": false,
+        "show_sidebar": true,
+        "hero_enabled": true,
+        "articles_per_page": 12
+    }
+}

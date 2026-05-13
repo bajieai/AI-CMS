@@ -1,0 +1,17 @@
+{
+    "version": "1.0.0",
+    "description": "AI-CMS V3.1 预埋模板索引 — 10套官方模板（5行业×2套），离线可安装",
+    "updated_at": "2026-05-13",
+    "templates": [
+        {"code": "enterprise-modern", "name": "企业现代简约", "industry": "enterprise", "style_tag": "现代简约"},
+        {"code": "enterprise-pro",    "name": "企业商务专业", "industry": "enterprise", "style_tag": "商务专业"},
+        {"code": "ecommerce-promo",   "name": "电商购物促销", "industry": "ecommerce", "style_tag": "购物促销"},
+        {"code": "ecommerce-luxury",  "name": "电商大牌质感", "industry": "ecommerce", "style_tag": "大牌质感"},
+        {"code": "blog-literary",     "name": "博客文艺清新", "industry": "blog", "style_tag": "文艺清新"},
+        {"code": "blog-magazine",     "name": "博客杂志风格", "industry": "blog", "style_tag": "杂志风"},
+        {"code": "portal-news",       "name": "门户新闻资讯", "industry": "portal", "style_tag": "新闻资讯"},
+        {"code": "portal-portal",     "name": "门户综合风格", "industry": "portal", "style_tag": "综合门户"},
+        {"code": "education-academic","name": "教育学术严谨", "industry": "education", "style_tag": "学术严谨"},
+        {"code": "education-vibrant", "name": "教育活力风格", "industry": "education", "style_tag": "活泼活力"}
+    ]
+}

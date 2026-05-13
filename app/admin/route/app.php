@@ -257,5 +257,18 @@ Route::post('ai_theme/doBatchGenerate$', '\app\admin\controller\AiThemeControlle
 Route::get('ai_theme/batchProgress$', '\app\admin\controller\AiThemeController@batchProgress');
 Route::post('ai_theme/qualityScore$', '\app\admin\controller\AiThemeController@qualityScore');
 
+// V3.1 Sprint 15: 模板市场路由
+Route::get('theme_market/index$', '\app\admin\controller\ThemeMarketController@index');
+Route::get('theme_market/list$', '\app\admin\controller\ThemeMarketController@list');
+Route::post('theme_market/refresh$', '\app\admin\controller\ThemeMarketController@refresh');
+Route::post('theme_market/install$', '\app\admin\controller\ThemeMarketController@install');
+Route::post('theme_market/switch$', '\app\admin\controller\ThemeMarketController@switch');
+Route::post('theme_market/uninstall$', '\app\admin\controller\ThemeMarketController@uninstall');
+Route::get('theme_market/previewUrl$', '\app\admin\controller\ThemeMarketController@previewUrl');
+Route::get('theme_market/backups$', '\app\admin\controller\ThemeMarketController@backups');
+Route::post('theme_market/rollback$', '\app\admin\controller\ThemeMarketController@rollback');
+Route::post('theme_market/scan$', '\app\admin\controller\ThemeMarketController@scan');
+Route::get('theme_market/checkUpdate$', '\app\admin\controller\ThemeMarketController@checkUpdate');
+
 // V3.1: 数据看板来源分析
 Route::get('dashboard/getSourceAnalysis$', '\app\admin\controller\DashboardController@getSourceAnalysis');

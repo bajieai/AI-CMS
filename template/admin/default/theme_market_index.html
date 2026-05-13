@@ -1,99 +1,466 @@
-﻿{extend name="/layout" /}
+﻿{extend name="layout" /}
 {block name="title"}模板市场 - AI-CMS{/block}
 {block name="content"}
 <div class="container-fluid py-4">
+    <!-- 顶部栏 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">模板市场</h4>
         <div>
-            <button class="btn btn-outline-primary btn-sm" onclick="scanThemes()">
-                <i class="bi bi-arrow-repeat"></i> 扫描同步
+            <h4 class="mb-0"><i class="bi bi-shop me-2"></i>模板市场</h4>
+            <p class="text-muted small mb-0 mt-1">
+                当前主题：<code>{$current_theme}</code>
+                <span class="ms-2" id="sourceBadge">
+                    <span class="badge bg-light text-dark border">加载中...</span>
+                </span>
+            </p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary btn-sm me-2" onclick="refreshList()">
+                <i class="bi bi-arrow-clockwise me-1"></i>刷新
             </button>
-            <button class="btn btn-outline-info btn-sm" onclick="checkUpdates()">
-                <i class="bi bi-cloud-download"></i> 检查更新
+            <button class="btn btn-outline-primary btn-sm" onclick="scanThemes()">
+                <i class="bi bi-arrow-repeat me-1"></i>扫描同步
             </button>
         </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3">
+    <!-- 降级提示条（离线时显示） -->
+    <div class="alert alert-warning d-none" id="offlineAlert">
+        <i class="bi bi-wifi-off me-2"></i>
+        <strong>离线模式</strong>：当前无法连接远程模板市场，仅显示本地预埋模板。部分功能受限。
+        <button class="btn btn-sm btn-outline-warning ms-2" onclick="refreshList()">重试</button>
+    </div>
+
+    <!-- 搜索 + 排序 -->
+    <div class="row g-2 mb-3">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="searchInput" placeholder="搜索模板名称、描述...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="sortSelect">
+                <option value="default">默认排序</option>
+                <option value="rating_desc">评分从高到低</option>
+                <option value="install_desc">安装量从高到低</option>
+                <option value="name_asc">名称A-Z</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 分类Tab -->
+    <ul class="nav nav-pills mb-3" id="categoryTabs">
         <li class="nav-item">
-            <a class="nav-link {if $type=='frontend'}active{/if}" href="?type=frontend">前台主题</a>
+            <a class="nav-link active" href="javascript:void(0)" data-category="">全部</a>
         </li>
+        {foreach $categories as $key=>$cat}
         <li class="nav-item">
-            <a class="nav-link {if $type=='admin'}active{/if}" href="?type=admin">后台主题</a>
+            <a class="nav-link" href="javascript:void(0)" data-category="{$key}">{$cat.name}</a>
         </li>
+        {/foreach}
     </ul>
 
-    <div class="row" id="themeList">
-        {volist name="themes" id="vo"}
+    <!-- 骨架屏 -->
+    <div class="row" id="skeletonArea">
+        {for start="1" end="9"}
         <div class="col-md-4 col-lg-3 mb-4">
             <div class="card h-100">
-                <div class="card-body text-center">
-                    {if $vo.thumbnail}
-                    <img src="{$vo.thumbnail}" class="card-img-top mb-3" style="max-height:160px;object-fit:cover;" alt="{$vo.name}">
-                    {else/}
-                    <div class="bg-light rounded mb-3 d-flex align-items-center justify-content-center" style="height:160px;">
-                        <i class="bi bi-palette2" style="font-size:3rem;color:#ccc;"></i>
-                    </div>
-                    {/if}
-                    <h6 class="card-title">{$vo.name}</h6>
-                    <p class="text-muted small mb-1">{$vo.code}</p>
-                    <p class="text-muted small mb-2">v{$vo.version} {if $vo.author}by {$vo.author}{/if}</p>
-                    <p class="small">{$vo.description|default='暂无描述'}</p>
+                <div class="card-img-top bg-light" style="height:160px;">
+                    <div class="skeleton w-100 h-100"></div>
                 </div>
-                <div class="card-footer bg-transparent d-flex justify-content-between">
-                    {if $vo.is_installed}
-                    <span class="badge bg-success">已安装</span>
-                    <button class="btn btn-outline-danger btn-sm" onclick="uninstall({$vo.id})">卸载</button>
-                    {else/}
-                    <span class="badge bg-secondary">未安装</span>
-                    <button class="btn btn-outline-primary btn-sm" onclick="installTheme('{$vo.code}')">安装</button>
-                    {/if}
+                <div class="card-body">
+                    <div class="skeleton skeleton-text w-75 mb-2"></div>
+                    <div class="skeleton skeleton-text w-100 mb-1"></div>
+                    <div class="skeleton skeleton-text w-50"></div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="skeleton skeleton-text w-100"></div>
                 </div>
             </div>
         </div>
-        {/volist}
-        {if empty($themes)}
-        <div class="col-12 text-center text-muted py-5">
-            <i class="bi bi-palette2" style="font-size:3rem;"></i>
-            <p class="mt-2">暂无主题，点击"扫描同步"检测已有主题</p>
+        {/for}
+    </div>
+
+    <!-- 模板列表 -->
+    <div class="row d-none" id="themeList"></div>
+
+    <!-- 空状态 -->
+    <div class="text-center text-muted py-5 d-none" id="emptyState">
+        <i class="bi bi-palette2" style="font-size:3rem;"></i>
+        <p class="mt-2">没有找到匹配的模板</p>
+        <button class="btn btn-outline-primary btn-sm" onclick="clearFilter()">清除筛选</button>
+    </div>
+</div>
+
+<!-- 安装确认弹窗 -->
+<div class="modal fade" id="installModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">安装模板</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>确认安装模板 <strong id="installName"></strong>？</p>
+                <p class="text-muted small">安装前将自动备份当前同名主题（如有）。</p>
+                <div id="installProgress" class="d-none">
+                    <div class="progress mb-2" style="height:8px;">
+                        <div class="progress-bar progress-bar-animated" style="width:100%"></div>
+                    </div>
+                    <p class="small text-muted mb-0">正在安装，请稍候...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmInstall">确认安装</button>
+            </div>
         </div>
-        {/if}
+    </div>
+</div>
+
+<!-- 切换引导弹窗 -->
+<div class="modal fade" id="switchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">安装成功</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
+                <p class="mt-3">模板 <strong id="switchName"></strong> 安装成功！</p>
+                <p class="text-muted small">是否立即切换为此主题？</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">稍后切换</button>
+                <button type="button" class="btn btn-success" id="btnConfirmSwitch">
+                    <i class="bi bi-check-lg me-1"></i>立即使用
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预览弹窗 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewTitle">模板预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="height:70vh;">
+                <iframe id="previewFrame" src="" class="w-100 h-100 border-0"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="btnInstallFromPreview">安装此模板</button>
+            </div>
+        </div>
     </div>
 </div>
 {/block}
 
-{block name="js"}
-{/block}
-{block name="js"}
+{block name="script"}
+<style>
+.skeleton { background: #e2e8f0; animation: pulse 1.5s ease-in-out infinite; border-radius: 4px; }
+.skeleton-text { height: 1em; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+.theme-card { transition: transform .2s, box-shadow .2s; }
+.theme-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+.theme-card .card-img-top { background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+.installed-badge { position: absolute; top: 8px; right: 8px; z-index: 2; }
+.rating-stars { color: #f59e0b; }
+</style>
+
 <script>
-function scanThemes() {
-    $.post('/admin/theme_market/scan', {}, function(res) {
-        if (res.code === 0) { location.reload(); }
-        else { alert(res.msg); }
-    });
-}
+let allTemplates = [];
+let currentCategory = '';
+let currentSort = 'default';
+let searchKeyword = '';
+let installTarget = null;
 
-function checkUpdates() {
-    $.get('/admin/theme_market/checkUpdate', function(res) {
+// 初始加载
+$(function() {
+    loadTemplates();
+});
+
+// 网络监听（离线降级）
+window.addEventListener('offline', function() {
+    $('#offlineAlert').removeClass('d-none');
+});
+window.addEventListener('online', function() {
+    $('#offlineAlert').addClass('d-none');
+    loadTemplates();
+});
+
+function loadTemplates() {
+    $('#skeletonArea').removeClass('d-none');
+    $('#themeList').addClass('d-none');
+    $('#emptyState').addClass('d-none');
+
+    $.get('/admin/theme_market/list', function(res) {
+        $('#skeletonArea').addClass('d-none');
         if (res.code === 0) {
-            alert(res.data.length > 0 ? '发现' + res.data.length + '个更新' : '当前已是最新版本');
-        } else { alert(res.msg); }
+            allTemplates = res.data.templates || [];
+            const source = res.data.source || 'local';
+            const fetchedAt = res.data.fetched_at || 0;
+
+            // 更新来源徽章
+            const sourceMap = {
+                'remote': { cls: 'bg-success', text: '远程市场' },
+                'cache':  { cls: 'bg-info',    text: '缓存数据' },
+                'local':  { cls: 'bg-secondary', text: '本地模式' }
+            };
+            const s = sourceMap[source] || sourceMap['local'];
+            const timeText = fetchedAt > 0 ? ' (' + new Date(fetchedAt * 1000).toLocaleTimeString() + ')' : '';
+            $('#sourceBadge').html('<span class="badge ' + s.cls + '">' + s.text + timeText + '</span>');
+
+            if (source === 'local' && !navigator.onLine) {
+                $('#offlineAlert').removeClass('d-none');
+            }
+
+            renderList();
+        } else {
+            I8JToast.error(res.msg || '加载失败');
+            $('#emptyState').removeClass('d-none');
+        }
+    }).fail(function() {
+        $('#skeletonArea').addClass('d-none');
+        $('#offlineAlert').removeClass('d-none');
+        allTemplates = [];
+        renderList();
     });
 }
 
-function uninstall(id) {
-    if (!confirm('确定要卸载此主题吗？')) return;
-    $.post('/admin/theme_market/uninstall', {id: id}, function(res) {
-        if (res.code === 0) { location.reload(); }
-        else { alert(res.msg); }
+function renderList() {
+    let list = [...allTemplates];
+
+    // 分类筛选
+    if (currentCategory) {
+        list = list.filter(t => t.industry === currentCategory);
+    }
+
+    // 搜索
+    if (searchKeyword) {
+        const kw = searchKeyword.toLowerCase();
+        list = list.filter(t =>
+            (t.name || '').toLowerCase().includes(kw) ||
+            (t.description || '').toLowerCase().includes(kw) ||
+            (t.style_tag || '').toLowerCase().includes(kw)
+        );
+    }
+
+    // 排序
+    switch (currentSort) {
+        case 'rating_desc':
+            list.sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0));
+            break;
+        case 'install_desc':
+            list.sort((a, b) => (b.install_count || 0) - (a.install_count || 0));
+            break;
+        case 'name_asc':
+            list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh'));
+            break;
+    }
+
+    const $container = $('#themeList');
+    $container.empty();
+
+    if (list.length === 0) {
+        $container.addClass('d-none');
+        $('#emptyState').removeClass('d-none');
+        return;
+    }
+
+    $('#emptyState').addClass('d-none');
+    $container.removeClass('d-none');
+
+    list.forEach(function(t) {
+        const isInstalled = t.is_installed;
+        const stars = renderStars(t.avg_rating || 0);
+        const thumbnail = t.thumbnail || '';
+        const thumbHtml = thumbnail
+            ? '<img src="' + thumbnail + '" class="card-img-top" style="height:160px;object-fit:cover;" alt="' + t.name + '">'
+            : '<div class="card-img-top" style="height:160px;"><i class="bi bi-palette2" style="font-size:3rem;color:#ccc;"></i></div>';
+        const installBtn = isInstalled
+            ? '<button class="btn btn-outline-success btn-sm w-100" onclick="switchTheme(\'' + t.code + '\')"' + (t.code === '{$current_theme}' ? ' disabled' : '') + '>' + (t.code === '{$current_theme}' ? '正在使用' : '切换') + '</button>'
+            : '<button class="btn btn-primary btn-sm w-100" onclick="openInstall(\'' + t.code + '\', \'' + t.name + '\', \'' + (t.source || 'prebuilt') + '\', \'' + (t.download_url || '') + '\')">安装</button>';
+        const previewBtn = isInstalled
+            ? '<button class="btn btn-outline-secondary btn-sm" onclick="previewTheme(\'' + t.code + '\')">预览</button>'
+            : '';
+        const badgeHtml = isInstalled
+            ? '<span class="badge bg-success installed-badge"><i class="bi bi-check-lg me-1"></i>已安装</span>'
+            : '';
+        const industryMap = {:json_encode($categories)};
+        const indName = industryMap[t.industry] ? industryMap[t.industry].name : (t.industry || '其他');
+
+        $container.append(
+            '<div class="col-md-4 col-lg-3 mb-4">' +
+            '<div class="card h-100 theme-card position-relative">' +
+            badgeHtml +
+            thumbHtml +
+            '<div class="card-body">' +
+            '<h6 class="card-title mb-1">' + t.name + '</h6>' +
+            '<p class="text-muted small mb-1">' + (t.description || '暂无描述').substring(0, 50) + '...</p>' +
+            '<div class="d-flex align-items-center justify-content-between small">' +
+            '<span class="badge bg-light text-dark border">' + indName + '</span>' +
+            '<span class="rating-stars">' + stars + '</span>' +
+            '</div>' +
+            '<div class="small text-muted mt-1"><i class="bi bi-download me-1"></i>' + (t.install_count || 0) + ' 次安装</div>' +
+            '</div>' +
+            '<div class="card-footer bg-transparent d-flex gap-2">' +
+            previewBtn +
+            installBtn +
+            '</div>' +
+            '</div>' +
+            '</div>'
+        );
     });
 }
 
-function installTheme(code) {
-    $.post('/admin/theme_market/install', {source_path: code}, function(res) {
-        if (res.code === 0) { location.reload(); }
-        else { alert(res.msg); }
+function renderStars(rating) {
+    let s = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= Math.round(rating)) s += '<i class="bi bi-star-fill"></i>';
+        else s += '<i class="bi bi-star"></i>';
+    }
+    return s + ' <span class="text-muted">' + (rating > 0 ? rating.toFixed(1) : '暂无') + '</span>';
+}
+
+// 分类Tab
+$('#categoryTabs').on('click', 'a', function(e) {
+    e.preventDefault();
+    $('#categoryTabs a').removeClass('active');
+    $(this).addClass('active');
+    currentCategory = $(this).data('category') || '';
+    renderList();
+});
+
+// 搜索
+$('#searchInput').on('input', function() {
+    searchKeyword = $(this).val().trim();
+    renderList();
+});
+
+// 排序
+$('#sortSelect').on('change', function() {
+    currentSort = $(this).val();
+    renderList();
+});
+
+function clearFilter() {
+    $('#searchInput').val('');
+    searchKeyword = '';
+    $('#categoryTabs a').removeClass('active');
+    $('#categoryTabs a:first').addClass('active');
+    currentCategory = '';
+    $('#sortSelect').val('default');
+    currentSort = 'default';
+    renderList();
+}
+
+// 刷新
+function refreshList() {
+    $.post('/admin/theme_market/refresh', function(res) {
+        if (res.code === 0) {
+            allTemplates = res.data.templates || [];
+            renderList();
+            I8JToast.success('刷新成功');
+        } else {
+            I8JToast.error(res.msg);
+        }
+    }).fail(function() {
+        I8JToast.error('刷新失败，请检查网络');
     });
 }
+
+function scanThemes() {
+    $.post('/admin/theme_market/scan', function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            loadTemplates();
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+// 安装
+function openInstall(code, name, source, downloadUrl) {
+    installTarget = { code: code, name: name, source: source, downloadUrl: downloadUrl };
+    $('#installName').text(name);
+    $('#installProgress').addClass('d-none');
+    $('#btnConfirmInstall').prop('disabled', false).text('确认安装');
+    $('#installModal').modal('show');
+}
+
+$('#btnConfirmInstall').on('click', function() {
+    if (!installTarget) return;
+    const $btn = $(this);
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>安装中...');
+    $('#installProgress').removeClass('d-none');
+
+    $.post('/admin/theme_market/install', {
+        code: installTarget.code,
+        source: installTarget.source,
+        download_url: installTarget.downloadUrl,
+        type: 'frontend'
+    }, function(res) {
+        $('#installModal').modal('hide');
+        if (res.code === 0) {
+            I8JToast.success(res.msg || '安装成功');
+            // 显示切换引导
+            $('#switchName').text(installTarget.name);
+            $('#switchModal').modal('show');
+            loadTemplates();
+        } else {
+            I8JToast.error(res.msg || '安装失败');
+        }
+    }).fail(function() {
+        $('#installModal').modal('hide');
+        I8JToast.error('安装失败，请检查网络');
+    });
+});
+
+// 切换主题
+function switchTheme(code) {
+    $.post('/admin/theme_market/switch', { code: code, type: 'frontend' }, function(res) {
+        if (res.code === 0) {
+            I8JToast.success('切换成功');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+$('#btnConfirmSwitch').on('click', function() {
+    if (!installTarget) return;
+    switchTheme(installTarget.code);
+    $('#switchModal').modal('hide');
+});
+
+// 预览
+function previewTheme(code) {
+    $.get('/admin/theme_market/previewUrl', { code: code }, function(res) {
+        if (res.code === 0) {
+            $('#previewFrame').attr('src', res.data.preview_url);
+            $('#previewTitle').text('预览: ' + code);
+            $('#previewModal').modal('show');
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+$('#btnInstallFromPreview').on('click', function() {
+    $('#previewModal').modal('hide');
+    const code = $('#previewTitle').text().replace('预览: ', '').trim();
+    const t = allTemplates.find(x => x.code === code);
+    if (t) {
+        openInstall(t.code, t.name, t.source || 'prebuilt', t.download_url || '');
+    }
+});
 </script>
 {/block}
