@@ -30,9 +30,10 @@ class ThemePackageService
      * 将主题打包为 ZIP
      *
      * @param string $themeName 主题名称
+     * @param bool   $includeCustomization 是否包含定制数据（V2.9.7 Phase 2）
      * @return array ['success'=>bool, 'path'=>string, 'message'=>string]
      */
-    public function exportTheme(string $themeName): array
+    public function exportTheme(string $themeName, bool $includeCustomization = true): array
     {
         $themePath = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $themeName;
         if (!is_dir($themePath)) {
@@ -64,9 +65,18 @@ class ThemePackageService
                 }
             }
 
+            // V2.9.7 Phase 2: 包含定制数据
+            if ($includeCustomization) {
+                $customData = $this->getCustomizationData($themeName);
+                if (!empty($customData)) {
+                    $zip->addFromString('_customization.json', json_encode($customData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                    $count++;
+                }
+            }
+
             $zip->close();
 
-            Log::info("[ThemePackage] 导出成功: {$themeName}, {$count} 个文件 -> {$zipPath}");
+            Log::info("[ThemePackage] 导出成功: {$themeName}, {$count} 个文件" . ($includeCustomization ? '(含定制)' : '') . " -> {$zipPath}");
             return ['success' => true, 'path' => $zipPath, 'message' => "打包完成，共 {$count} 个文件"];
 
         } catch (\Throwable $e) {
@@ -168,6 +178,13 @@ class ThemePackageService
             // 移动临时目录到目标位置
             rename($tempDir, $targetDir);
 
+            // V2.9.7 Phase 2: 还原定制数据
+            $customizationFile = $targetDir . DIRECTORY_SEPARATOR . '_customization.json';
+            if (file_exists($customizationFile)) {
+                $this->restoreCustomizationData($themeName, $customizationFile);
+                @unlink($customizationFile); // 还原后删除，不留在主题目录中
+            }
+
             // 清理上传的 ZIP
             @unlink($zipPath);
 
@@ -226,5 +243,78 @@ class ThemePackageService
             @rmdir($dir);
         }
         if ($zipPath && file_exists($zipPath)) @unlink($zipPath);
+    }
+
+    /**
+     * V2.9.7 Phase 2: 获取主题的定制数据（所有变体）
+     */
+    protected function getCustomizationData(string $themeName): array
+    {
+        $variants = \app\common\model\ThemeCustomization::where('theme_id', $themeName)
+            ->select()
+            ->toArray();
+
+        if (empty($variants)) {
+            return [];
+        }
+
+        return [
+            'version' => '2.9.7',
+            'theme_id' => $themeName,
+            'exported_at' => date('Y-m-d H:i:s'),
+            'variants' => $variants,
+        ];
+    }
+
+    /**
+     * V2.9.7 Phase 2: 还原定制数据
+     */
+    protected function restoreCustomizationData(string $themeName, string $jsonPath): void
+    {
+        $content = file_get_contents($jsonPath);
+        $data = json_decode($content, true);
+
+        if (empty($data) || empty($data['variants'])) {
+            Log::warning("[ThemePackage] 无定制数据可还原: {$themeName}");
+            return;
+        }
+
+        foreach ($data['variants'] as $variant) {
+            $exists = \app\common\model\ThemeCustomization::where('theme_id', $themeName)
+                ->where('variant_name', $variant['variant_name'] ?? 'default')
+                ->find();
+
+            if ($exists) {
+                // 跳过已存在的变体（不覆盖）
+                Log::info("[ThemePackage] 跳过已存在变体: {$themeName}/{$variant['variant_name']}");
+                continue;
+            }
+
+            \app\common\model\ThemeCustomization::create([
+                'theme_id'     => $themeName,
+                'variant_name' => $variant['variant_name'] ?? 'default',
+                'custom_data'  => $variant['custom_data'] ?? [],
+                'is_active'    => $variant['is_active'] ?? 0,
+            ]);
+
+            Log::info("[ThemePackage] 还原变体: {$themeName}/{$variant['variant_name']}");
+        }
+    }
+
+    /**
+     * V2.9.7 Phase 2: 检查导入冲突
+     */
+    public function checkImportConflict(string $themeName): array
+    {
+        $targetDir = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $themeName;
+        $themeExists = is_dir($targetDir);
+        $customExists = \app\common\model\ThemeCustomization::where('theme_id', $themeName)->count() > 0;
+
+        return [
+            'theme_exists'      => $themeExists,
+            'custom_exists'     => $customExists,
+            'has_conflict'      => $themeExists,
+            'suggestion'        => $themeExists ? '同名主题已存在，可选择覆盖或重命名' : '无冲突',
+        ];
     }
 }

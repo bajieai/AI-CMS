@@ -41,6 +41,9 @@ abstract class FrontBaseController extends \think\BaseController
 
     protected function initialize(): void
     {
+        // V2.9.7 AI模板兼容：模板中访问空数组key不抛异常
+        
+
         // 检测预览模式（由ThemePreviewMiddleware设置）
         $isPreview = $this->request->middleware('is_preview', false);
 
@@ -184,12 +187,23 @@ abstract class FrontBaseController extends \think\BaseController
             'logo_icon_only'   => ($configs['logo_icon_only'] ?? '') === '1',
             'logo_name'        => $configs['logo_name'] ?? '',
             'brand_name'       => !empty($configs['logo_name']) ? $configs['logo_name'] : '八界AI-CMS',
+            // V2.9.7 AI主题兼容：导航高亮/分页高亮用
+            'current_page'     => '',
+            'current'          => '',
+
+                            ]);
+
+        // V2.9.7 AI主题变量兜底（手动）
+        $this->app->view->assign([
+            'year'             => date('Y'),
+            'page'             => 1,
+            'total_pages'     => 1,
         ]);
+
+        // V2.9.7 AI主题兼容：自动注入AI模板中缺失变量的默认值
+        $this->injectAiTemplateFallbacks($activeTheme);
     }
 
-    /**
-     * 从Cookie Token解析当前会员
-     */
     protected function resolveMember(): void
     {
         $token = Cookie::get('member_token');
@@ -355,6 +369,7 @@ abstract class FrontBaseController extends \think\BaseController
     protected function getThemeCssVars(string $theme): array
     {
         $defaults = [
+            // 颜色（10个，原有）
             '--primary'          => '#3b82f6',
             '--secondary'       => '#64748b',
             '--accent'          => '#f59e0b',
@@ -365,6 +380,19 @@ abstract class FrontBaseController extends \think\BaseController
             '--border'          => '#e2e8f0',
             '--radius'          => '8px',
             '--shadow'          => '0 1px 3px rgba(0,0,0,.1)',
+            // 字体（2个，V2.9.7新增）
+            '--font-heading'    => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            '--font-body'       => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            // 布局（3个，V2.9.7新增）
+            '--sidebar-pos'     => 'left',
+            '--content-width'   => '1200px',
+            '--header-style'    => 'full',
+            // Logo（2个，V2.9.7新增）
+            '--logo-url'        => '',
+            '--logo-max-height' => '40px',
+            // 按钮（2个，V2.9.7新增）
+            '--btn-primary-bg'     => 'var(--primary)',
+            '--btn-primary-hover'  => '#1d4ed8',
         ];
 
         try {
@@ -381,5 +409,71 @@ abstract class FrontBaseController extends \think\BaseController
         }
 
         return $defaults;
+    }
+
+    /**
+     * V2.9.7 AI主题兼容：自动注入AI模板中缺失变量的默认值（空数组）
+     *
+     * AI生成的模板常使用CMS不存在的自定义变量（如$flash_sale_products等），
+     * 该方法通过扫描主题模板文件中的{volist name="..."}提取变量名，
+     * 为未定义变量注入空数组，防止Undefined variable报错。
+     */
+    protected function injectAiTemplateFallbacks(string $themeName): void
+    {
+        $device = TemplateService::getDeviceType();
+        $themeDir = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes'
+            . DIRECTORY_SEPARATOR . $themeName
+            . DIRECTORY_SEPARATOR . $device;
+
+        if (!is_dir($themeDir)) {
+            return;
+        }
+
+        // 两种变量采集：
+        // $loopVars  → {volist name="xxx"} — 需要注入 [] 以便空循环不报错
+        // $outputVars → {$xxx} / {$xxx.yyy} — 不注入 (|default= 已处理)
+        $loopVars = [];
+        $files = glob($themeDir . DIRECTORY_SEPARATOR . '*.html');
+        foreach ($files as $file) {
+            $content = file_get_contents($file);
+            // 1. 采集 {volist name="xxx"} 的变量
+            if (preg_match_all('/\{volist\s+name\s*=\s*"([^"]+)"[^}]*\}/i', $content, $matches)) {
+                foreach ($matches[1] as $expr) {
+                    $parts = explode('.', $expr);
+                    $rootVar = $parts[0];
+                    if (!empty($rootVar)) {
+                        $loopVars[$rootVar] = true;
+                    }
+                }
+            }
+        }
+
+        // 排除CMS系统已定义的变量
+        $systemVars = ['site_name', 'site_keywords', 'site_description', 'site_logo',
+            'isMemberLogin', 'is_member_login', 'member_info',
+            'seo_title', 'seo_keywords', 'seo_description',
+            'custom', 'enabled_modules', 'active_theme', 'theme_assets', 'skin',
+            'current_lang', 'enabled_languages', 'theme_css_vars',
+            'cdn_enabled', 'cdn_domain', 'lang_switcher_enabled', 'lang_sitewide',
+            'logo_icon_only', 'logo_name', 'brand_name',
+            'i', 'field', 'key', 'vo', '__LIST__', '__NOLAYOUT__',
+            '__CONTENT__', '__BLOCK__', 'Think', 'category', 'product',
+            'info', 'pages', 'member', 'config'];
+
+        foreach ($systemVars as $v) {
+            unset($loopVars[$v]);
+        }
+
+        // 注入空数组（仅限 {volist} 变量，跳过已存在的）
+        $assignData = [];
+        foreach (array_keys($loopVars) as $varName) {
+            if (!isset($this->app->view->{$varName})) {
+                $assignData[$varName] = [];
+            }
+        }
+
+        if (!empty($assignData)) {
+            $this->app->view->assign($assignData);
+        }
     }
 }

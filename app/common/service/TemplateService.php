@@ -196,10 +196,20 @@ class TemplateService
             return [];
         }
 
+        // 需要排除的非主题目录
+        $excludeDirs = ['shared'];
+
         $themes = [];
         $dirs = glob($themesDir . '*', GLOB_ONLYDIR);
         foreach ($dirs as $dir) {
             $name = basename($dir);
+
+            // 跳过非主题目录
+            if (in_array($name, $excludeDirs, true)) {
+                continue;
+            }
+
+            $configFile = $dir . DIRECTORY_SEPARATOR . 'theme.json';
             $configFile = $dir . DIRECTORY_SEPARATOR . 'theme.json';
             $config = [];
             if (is_file($configFile)) {

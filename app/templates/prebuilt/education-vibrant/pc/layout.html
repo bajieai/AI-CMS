@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site_name|default='学术绿韵'}</title>
+    <meta name="keywords" content="{$site_keywords|default='在线课程,教育培训,学术'}">
+    <meta name="description" content="{$site_description|default='学术严谨的在线教育平台'}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="/">
+                    <img src="/assets/placeholder/logo.png" alt="{$site_name|default='学术绿韵'}">
+                </a>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="/" {if $current_page == 'index'}class="active"{/if}>首页</a></li>
+                    <li><a href="/course" {if $current_page == 'list'}class="active"{/if}>课程中心</a></li>
+                    <li><a href="/about">关于我们</a></li>
+                    <li><a href="/contact">联系我们</a></li>
+                </ul>
+            </nav>
+            <div class="header-right">
+                <a href="/login" class="btn btn-login">登录</a>
+                <a href="/register" class="btn btn-register">注册</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="main">
+        {__CONTENT__}
+    </main>
+
+    <!-- 底部版权 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>关于我们</h4>
+                    <p>致力于提供高质量的在线教育服务，培养学术精英。</p>
+                </div>
+                <div class="footer-col">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="/course">课程中心</a></li>
+                        <li><a href="/teacher">师资力量</a></li>
+                        <li><a href="/faq">常见问题</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>联系我们</h4>
+                    <p>电话：400-888-8888</p>
+                    <p>邮箱：info@example.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 {$site_name|default='学术绿韵'} All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+﻿{extend name="layout" /}
+
+{block name="content"}
+<!-- 面包屑导航 -->
+<div class="breadcrumb">
+    <a href="/">首页</a>
+    <span>&gt;</span>
+    <a href="{$category.url}">{$category.title}</a>
+</div>
+
+<!-- 列表页内容 -->
+<section class="list-section">
+    <div class="list-grid">
+        <!-- 左侧主栏 -->
+        <div class="main-column">
+            <h1 class="list-title">{$category.title}</h1>
+            <div class="category-desc">{$category.description}</div>
+
+            <!-- 文章列表 -->
+            <ul class="article-list">
+                {volist name="article_list" id="article"}
+                <li class="article-item">
+                    <a href="{$article.url}" class="article-link">
+                        <div class="article-thumb">
+                            <img src="{$article.thumb|default='{$skin}images/list-thumb.jpg'}" alt="{$article.title}">
+                        </div>
+                        <div class="article-info">
+                            <h2>{$article.title}</h2>
+                            <p class="article-summary">{$article.summary}</p>
+                            <div class="article-meta">
+                                <span class="author">{$article.author|default='编辑'}</span>
+                                <span class="date">{$article.create_time|date='Y-m-d H:i'}</span>
+                                <span class="views">阅读 {$article.views}</span>
+                                {if condition="$article.comment_count"}
+                                <span class="comments">评论 {$article.comment_count}</span>
+                                {/if}
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {/volist}
+            </ul>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                {$page|raw}
+            </div>
+        </div>
+
+        <!-- 右侧边栏 -->
+        <aside class="sidebar">
+            <!-- 子分类 -->
+            <div class="widget sub-category">
+                <h3 class="widget-title">子分类</h3>
+                <ul class="sub-category-list">
+                    {volist name="sub_category_list" id="sub"}
+                    <li><a href="{$sub.url}">{$sub.title}</a></li>
+                    {/volist}
+                </ul>
+            </div>
+
+            <!-- 推荐文章 -->
+            <div class="widget recommend-articles">
+                <h3 class="widget-title">推荐文章</h3>
+                <ul class="recommend-list">
+                    {volist name="recommend_list" id="item"}
+                    <li class="recommend-item">
+                        <a href="{$item.url}">
+                            <img src="{$item.thumb|default='{$skin}images/recommend-thumb.jpg'}" alt="{$item.title}">
+                            <h4>{$item.title}</h4>
+                        </a>
+                    </li>
+                    {/volist}
+                </ul>
+            </div>
+
+            <!-- 广告位 -->
+            <div class="widget ad-widget">
+                <a href="/ad/2">
+                    <img src="{$skin}images/ad-list.jpg" alt="广告">
+                </a>
+            </div>
+        </aside>
+    </div>
+</section>
+{/block}

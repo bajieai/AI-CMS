@@ -1,18 +1,25 @@
-# 八界AI-CMS V3.1
+# 八界AI-CMS V2.9.7
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-3.1.0-blue)
+![Version](https://img.shields.io/badge/version-2.9.7-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V3.1 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.7 "模力定制" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-**V3.1 定位：AI内容增强 + 模板生态阶段**，在V3.0体验完善基础上，深度强化AI配图、SEO优化、质量检测、社交分享、写作风格五大AI驱动能力，以及模板批量生产、市场前台、管理增强三大模板生态能力。
+**V2.9.7 定位：模板可视化定制阶段**，在V3.1模板生态95%交付基础上，先修复6个AI主题系统性缺陷使模板生成质量达标，再实现模板可视化定制、导出/导入含定制数据、数据分析三大能力闭环。
 
-> **注意**：V3.1-下一阶段（Sprint 14-16）的10套预埋模板当前仅含`theme.json`元数据骨架，实际HTML/CSS/JS模板文件需通过AI批量生成（`php think theme:batch`）或人工添加后才能使用"一键安装"功能。
+**核心新功能 — 模力定制：**
+1. **可视化定制面板** — 左右分栏(设置+预览)，Pickr颜色选择器(8色+24预设)，6组中文字体预设，3项布局选项，Logo上传+高度调节
+2. **零侵入CSS注入** — ThemeCustomMiddleware中间件在`</head>`前注入覆盖层，不修改任何模板文件
+3. **19个CSS变量** — 颜色10+字体2+布局3+Logo2+按钮2，白名单防XSS
+4. **iframe实时预览** — postMessage通信+防抖300ms+设备切换(桌面/平板/手机)
+5. **变体管理** — 保存/重置/另存为/激活多变体
+6. **导出含定制数据** — `_customization.json`打包所有变体，导入自动还原
+7. **数据分析** — ECharts图表(安装排行+趋势+定制偏好+评分分布)+CSV导出
 
 **Sprint 11 — AI配图增强：**
 1. **批量配图** — 前端串行调用+进度条，自动构建图片Prompt，配图直接插入编辑器正文段落之间
@@ -554,6 +561,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.7 | 2026-05-15 | **模力定制**: AI主题6缺陷根治(Prompt完善+验证器+搜索高亮)/模板可视化定制(19个CSS变量+Pickr颜色选择器+6组字体预设+布局选项+Logo上传+iframe实时预览+postMessage+变体管理)/导出导入含定制数据/数据分析(安装排行+趋势+定制偏好+评分分布+ECharts+CSV导出) |
 | V3.1.0 | 2026-05-14 | AI内容增强: 批量配图+发布自动配图+日配额控制/SEO评分算法(0-100)+前后对比+批量SEO(3并发)+来源分析饼图/质量卡片+建议执行+社交分享Modal+前台分享统计/5种可配置写作风格。模板生态: 批量生产流水线(5行业+质量自检+审核闭环)/市场前台(10套预埋+OSS/CDN+一键安装+回滚)/管理增强(评分收藏+版本检测+分类CRUD+日志)。Phase 3.5L: 安全测试11用例+SEO缓存回写3触发点+编码根治7层防护 |
 | V3.0 Phase 3 | 2026-05-13 | 体验完善+生态基座: AI模板对话迭代(多轮对话+局部重生成+版本管理)/暗色模式全站(43+文件CSS变量替换)/8新组件(Tabs/Dropdown/DatePicker/DataTable等13组件)/多bundle打包(4bundle)/主题导入导出(ThemePackageService)/测试基础设施(PHPUnit+Playwright)/路由补全(21路由) |
 | V3.0 Phase 2 | 2026-05-12 | 能力释放: AI主题生成MVP(7状态异步+预览沙箱+审核后台+调色面板)/UI组件库(I8JComponent基类+5组件+ESBuild打包)/CSS变量标准化(34变量+暗色模式)/N+1扫描+CSP收紧 |

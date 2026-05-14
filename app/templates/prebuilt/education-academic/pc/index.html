@@ -1,0 +1,121 @@
+{include file="pc/layout" /}
+{__CONTENT__}
+
+<!-- 首页内容 -->
+<div class="page-home">
+    <!-- 英雄区 -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">探索学术新境界</h1>
+                <p class="hero-subtitle">汇聚顶尖教育资源，开启智慧学习之旅</p>
+                <div class="hero-actions">
+                    <a href="/course" class="btn btn-primary btn-lg">立即学习</a>
+                    <a href="/about" class="btn btn-outline btn-lg">了解更多</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 特色课程 -->
+    <section class="section section-featured">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">热门课程</h2>
+                <p class="section-desc">精选优质课程，助力学术成长</p>
+            </div>
+            <div class="course-grid">
+                {volist name="courseList" id="course" key="key" mod="3"}
+                <div class="course-card">
+                    <div class="course-image">
+                        <img src="/assets/placeholder/course_{$key}.jpg" alt="{$course.title}">
+                        <span class="course-tag">{$course.category}</span>
+                    </div>
+                    <div class="course-info">
+                        <h3 class="course-title">{$course.title}</h3>
+                        <p class="course-desc">{$course.description}</p>
+                        <div class="course-meta">
+                            <span class="course-teacher">讲师：{$course.teacher}</span>
+                            <span class="course-price">{$course.price}</span>
+                        </div>
+                        <a href="/course/{$course.id}" class="btn btn-primary btn-sm">查看详情</a>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </section>
+
+    <!-- 师资力量 -->
+    <section class="section section-teachers">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">名师团队</h2>
+                <p class="section-desc">汇聚行业精英，引领学术前沿</p>
+            </div>
+            <div class="teacher-grid">
+                {volist name="teacherList" id="teacher" key="key" mod="4"}
+                <div class="teacher-card">
+                    <div class="teacher-avatar">
+                        <img src="/assets/placeholder/teacher_{$key}.jpg" alt="{$teacher.name}">
+                    </div>
+                    <h3 class="teacher-name">{$teacher.name}</h3>
+                    <p class="teacher-title">{$teacher.title}</p>
+                    <p class="teacher-desc">{$teacher.description}</p>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </section>
+
+    <!-- 数据统计 -->
+    <section class="section section-stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">精品课程</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">200+</span>
+                    <span class="stat-label">优秀讲师</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">10000+</span>
+                    <span class="stat-label">在学学员</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">98%</span>
+                    <span class="stat-label">满意度</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 最新资讯 -->
+    <section class="section section-news">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">最新资讯</h2>
+                <p class="section-desc">了解学术动态，把握教育前沿</p>
+            </div>
+            <div class="news-grid">
+                {volist name="newsList" id="news" key="key" mod="3"}
+                <article class="news-card">
+                    <div class="news-image">
+                        <img src="/assets/placeholder/news_{$key}.jpg" alt="{$news.title}">
+                    </div>
+                    <div class="news-content">
+                        <span class="news-date">{$news.create_time|date='Y-m-d',###}</span>
+                        <h3 class="news-title">{$news.title}</h3>
+                        <p class="news-excerpt">{$news.summary}</p>
+                        <a href="/news/{$news.id}" class="news-link">阅读全文 →</a>
+                    </div>
+                </article>
+                {/volist}
+            </div>
+        </div>
+    </section>
+</div>
+
+{include file="pc/footer" /}

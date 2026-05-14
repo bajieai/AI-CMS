@@ -88,7 +88,7 @@ class BatchThemeGenerateService
      */
     public function executeBatch(string $batchId, bool $resume = true): array
     {
-        $records = AiThemeRecord::where('options', 'like', '%"batch_id":"' . $batchId . '"%')
+        $records = AiThemeRecord::where('batch_id', $batchId)
             ->order('id', 'asc')
             ->select();
 
@@ -154,7 +154,7 @@ class BatchThemeGenerateService
      */
     public function getBatchProgress(string $batchId): array
     {
-        $records = AiThemeRecord::where('options', 'like', '%"batch_id":"' . $batchId . '"%')
+        $records = AiThemeRecord::where('batch_id', $batchId)
             ->order('id', 'asc')
             ->select();
 

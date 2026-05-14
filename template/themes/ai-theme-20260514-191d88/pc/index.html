@@ -1,0 +1,67 @@
+﻿{extend name="layout" /}
+
+{block name="content"}
+<section class="hero">
+    <div class="container hero__inner">
+        <div class="hero__content">
+            <h1 class="hero__title">用文字记录生活</h1>
+            <p class="hero__desc">在喧嚣的世界里，寻找一片宁静的角落，让思想自由生长。</p>
+            <a href="/list" class="btn btn--primary">开始阅读</a>
+        </div>
+        <div class="hero__image">
+            <img src="{$skin}images/hero.jpg" alt="文艺清新插图" class="hero__img">
+        </div>
+    </div>
+</section>
+
+<section class="featured-posts">
+    <div class="container">
+        <h2 class="section-title">精选文章</h2>
+        <div class="post-grid">
+            {volist name="featured_posts" id="post" empty="暂无精选文章"}
+            <article class="post-card">
+                <a href="/detail/{$post.id}" class="post-card__link">
+                    <div class="post-card__image">
+                        <img src="{$post.thumb|default='{$skin}images/post1.jpg'}" alt="{$post.title}" class="post-card__img">
+                    </div>
+                    <div class="post-card__body">
+                        <h3 class="post-card__title">{$post.title}</h3>
+                        <p class="post-card__excerpt">{$post.description|mb_substr=0,100}</p>
+                        <div class="post-card__meta">
+                            <span class="post-card__date">{$post.create_time|date='Y-m-d'}</span>
+                            <span class="post-card__category">{$post.category_name|default='未分类'}</span>
+                        </div>
+                    </div>
+                </a>
+            </article>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<section class="latest-posts">
+    <div class="container">
+        <h2 class="section-title">最新文章</h2>
+        <div class="post-list">
+            {volist name="latest_posts" id="post" empty="暂无文章"}
+            <article class="post-item">
+                <a href="/detail/{$post.id}" class="post-item__link">
+                    <div class="post-item__image">
+                        <img src="{$post.thumb|default='{$skin}images/post2.jpg'}" alt="{$post.title}" class="post-item__img">
+                    </div>
+                    <div class="post-item__body">
+                        <h3 class="post-item__title">{$post.title}</h3>
+                        <p class="post-item__excerpt">{$post.description|mb_substr=0,150}</p>
+                        <div class="post-item__meta">
+                            <span class="post-item__date">{$post.create_time|date='Y-m-d'}</span>
+                            <span class="post-item__category">{$post.category_name|default='未分类'}</span>
+                            <span class="post-item__views">阅读 {$post.views|default=0}</span>
+                        </div>
+                    </div>
+                </a>
+            </article>
+            {/volist}
+        </div>
+    </div>
+</section>
+{/block}

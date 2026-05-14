@@ -1,0 +1,11 @@
+{
+    "name": "现代简约企业官网",
+    "version": "1.0.0",
+    "description": "蓝色系现代简约风格企业官网主题",
+    "author": "AI-CMS",
+    "type": "pc",
+    "color": "blue",
+    "responsive": true,
+    "pages": ["index", "list", "detail"],
+    "layout": "pc/layout.html"
+}

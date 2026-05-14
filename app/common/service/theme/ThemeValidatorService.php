@@ -203,10 +203,10 @@ class ThemeValidatorService
         }
 
         $requiredVars = [
-            '--i8j-primary' => '主色调',
-            '--i8j-bg'      => '背景色',
-            '--i8j-text'    => '文字色',
-            '--i8j-border'  => '边框色',
+            '--primary' => '主色调',
+            '--bg'      => '背景色',
+            '--text'    => '文字色',
+            '--border'  => '边框色',
         ];
 
         $foundVars = [];
@@ -219,10 +219,10 @@ class ThemeValidatorService
                 }
             }
 
-            // 检查不规范的 var() 用法（如缺少回退值不是硬性要求，仅info）
-            if (str_contains($content, 'var(--i8j-')) {
+            // 检查 var() 用法
+            if (str_contains($content, 'var(--')) {
                 $matches = [];
-                if (preg_match_all('/var\(--i8j-[a-z-]+\)/', $content, $matches)) {
+                if (preg_match_all('/var\(--[a-z-]+\)/', $content, $matches)) {
                     // 发现CSS变量引用，记录但不报错
                 }
             }

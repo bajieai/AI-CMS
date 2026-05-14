@@ -1,0 +1,74 @@
+﻿{include file="layout" /}
+{__CONTENT__}
+<!-- 详情页内容 -->
+<section class="page-banner">
+    <div class="container">
+        <h1 class="page-title">{$article.title|default='文章详情'}</h1>
+        <nav class="breadcrumb">
+            <a href="/">首页</a>
+            <span class="separator">/</span>
+            <a href="{$category_url}">{$category_title|default='资讯中心'}</a>
+            <span class="separator">/</span>
+            <span class="current">{$article.title|default='文章详情'}</span>
+        </nav>
+    </div>
+</section>
+
+<section class="section detail-page">
+    <div class="container">
+        <div class="detail-main">
+            <article class="detail-content">
+                <div class="detail-meta">
+                    <span><i class="far fa-calendar-alt"></i> {$article.create_time|date='Y-m-d'}</span>
+                    <span><i class="far fa-user"></i> {$article.author|default='管理员'}</span>
+                    <span><i class="far fa-eye"></i> {$article.hits|default=0}</span>
+                    <span><i class="far fa-comment"></i> {$article.comments|default=0}</span>
+                </div>
+                <div class="detail-body">
+                    {$article.content|raw}
+                </div>
+                <div class="detail-tags">
+                    {volist name="article.tags" id="vo"}
+                    <span class="tag">{$vo}</span>
+                    {/volist}
+                </div>
+                <div class="detail-nav">
+                    <div class="prev">
+                        {if condition="$prev_article"}
+                        <a href="{$prev_article.url}">
+                            <i class="fas fa-chevron-left"></i> 上一篇：{$prev_article.title}
+                        </a>
+                        {else}
+                        <span>上一篇：没有了</span>
+                        {/if}
+                    </div>
+                    <div class="next">
+                        {if condition="$next_article"}
+                        <a href="{$next_article.url}">
+                            下一篇：{$next_article.title} <i class="fas fa-chevron-right"></i>
+                        </a>
+                        {else}
+                        <span>下一篇：没有了</span>
+                        {/if}
+                    </div>
+                </div>
+            </article>
+            <aside class="detail-sidebar">
+                <div class="sidebar-widget">
+                    <h3 class="widget-title">相关文章</h3>
+                    <ul class="related-list">
+                        {volist name="related_articles" id="vo" limit="5"}
+                        <li>
+                            <a href="{$vo.url}">
+                                <img src="{$vo.thumb|default='{$skin}images/news1.jpg'}" alt="{$vo.title}">
+                                <span class="related-title">{$vo.title}</span>
+                            </a>
+                        </li>
+                        {/volist}
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{/__CONTENT__}

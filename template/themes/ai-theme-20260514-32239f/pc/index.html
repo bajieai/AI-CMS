@@ -1,0 +1,124 @@
+﻿{extend name="layout" /}
+
+{block name="content"}
+<!-- 首页英雄区域 -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">智慧企业 数字未来</h1>
+            <p class="hero-desc">以科技创新驱动企业数字化转型，打造智能高效的商业新生态</p>
+            <div class="hero-actions">
+                <a href="/product.html" class="btn btn-primary">了解更多</a>
+                <a href="/contact.html" class="btn btn-outline">立即咨询</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="{$skin}images/hero-banner.jpg" alt="企业数字化转型">
+        </div>
+    </div>
+</section>
+
+<!-- 核心优势 -->
+<section class="features section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">核心优势</h2>
+            <p class="section-desc">以技术为驱动，以客户为中心，持续创新</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <img src="{$skin}images/icon-tech.svg" alt="技术创新">
+                </div>
+                <h3 class="feature-title">技术创新</h3>
+                <p class="feature-desc">持续投入研发，掌握核心技术，保持行业领先</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <img src="{$skin}images/icon-service.svg" alt="专业服务">
+                </div>
+                <h3 class="feature-title">专业服务</h3>
+                <p class="feature-desc">7x24小时技术支持，快速响应客户需求</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <img src="{$skin}images/icon-quality.svg" alt="品质保障">
+                </div>
+                <h3 class="feature-title">品质保障</h3>
+                <p class="feature-desc">严格质量管理体系，确保产品和服务品质</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 产品展示 -->
+<section class="products section section-bg">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">产品中心</h2>
+            <p class="section-desc">提供全方位的企业数字化解决方案</p>
+        </div>
+        <div class="products-grid">
+            {volist name="productList" id="item" key="k" length="6"}
+            <div class="product-card">
+                <a href="/product/{$item.id}.html">
+                    <div class="product-image">
+                        <img src="{$item.thumb|default='{$skin}images/product-{$k}.jpg'}" alt="{$item.title}">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">{$item.title}</h3>
+                        <p class="product-desc">{$item.description|mb_substr=0,60}</p>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<!-- 新闻动态 -->
+<section class="news section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">新闻动态</h2>
+            <p class="section-desc">了解最新行业资讯和企业动态</p>
+        </div>
+        <div class="news-list">
+            {volist name="newsList" id="item" key="k" length="4"}
+            <article class="news-item">
+                <div class="news-date">
+                    <span class="news-day">{$item.create_time|date='d'}</span>
+                    <span class="news-month">{$item.create_time|date='Y-m'}</span>
+                </div>
+                <div class="news-content">
+                    <h3 class="news-title">
+                        <a href="/news/{$item.id}.html">{$item.title}</a>
+                    </h3>
+                    <p class="news-desc">{$item.description|mb_substr=0,120}</p>
+                </div>
+            </article>
+            {/volist}
+        </div>
+        <div class="section-actions">
+            <a href="/news.html" class="btn btn-primary">查看更多</a>
+        </div>
+    </div>
+</section>
+
+<!-- 合作伙伴 -->
+<section class="partners section section-bg">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">合作伙伴</h2>
+            <p class="section-desc">与优秀企业携手共进</p>
+        </div>
+        <div class="partners-grid">
+            {volist name="partnerList" id="item" key="k" length="8"}
+            <div class="partner-item">
+                <img src="{$item.logo|default='{$skin}images/partner-{$k}.png'}" alt="{$item.title}">
+            </div>
+            {/volist}
+        </div>
+    </div>
+</section>
+{/block}

@@ -229,6 +229,7 @@
 <style>
 .skeleton { background: #e2e8f0; animation: pulse 1.5s ease-in-out infinite; border-radius: 4px; }
 .skeleton-text { height: 1em; }
+mark { background: #fef08a; padding: 0 2px; border-radius: 2px; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
 .theme-card { transition: transform .2s, box-shadow .2s; }
 .theme-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
@@ -353,11 +354,18 @@ function renderList() {
         const previewBtn = isInstalled
             ? '<button class="btn btn-outline-secondary btn-sm" onclick="previewTheme(\'' + t.code + '\')">预览</button>'
             : '';
+        // V2.9.7: 已安装主题显示定制按钮
+        const customBtn = isInstalled
+            ? '<button class="btn btn-outline-primary btn-sm" onclick="openCustomizer(\'' + t.code + '\')"><i class="bi bi-palette-fill me-1"></i>定制</button>'
+            : '';
         const badgeHtml = isInstalled
             ? '<span class="badge bg-success installed-badge"><i class="bi bi-check-lg me-1"></i>已安装</span>'
             : '';
         const industryMap = {:json_encode($categories)};
         const indName = industryMap[t.industry] ? industryMap[t.industry].name : (t.industry || '其他');
+        // V2.9.7: 搜索关键词高亮
+        const displayName = searchKeyword ? highlightText(t.name || '', searchKeyword) : (t.name || '');
+        const displayDesc = searchKeyword ? highlightText((t.description || '暂无描述').substring(0, 50) + '...', searchKeyword) : ((t.description || '暂无描述').substring(0, 50) + '...');
 
         $container.append(
             '<div class="col-md-4 col-lg-3 mb-4">' +
@@ -365,8 +373,8 @@ function renderList() {
             badgeHtml +
             thumbHtml +
             '<div class="card-body">' +
-            '<h6 class="card-title mb-1">' + t.name + '</h6>' +
-            '<p class="text-muted small mb-1">' + (t.description || '暂无描述').substring(0, 50) + '...</p>' +
+            '<h6 class="card-title mb-1">' + displayName + '</h6>' +
+            '<p class="text-muted small mb-1">' + displayDesc + '</p>' +
             '<div class="d-flex align-items-center justify-content-between small">' +
             '<span class="badge bg-light text-dark border">' + indName + '</span>' +
             '<span class="rating-stars">' + stars + '</span>' +
@@ -376,6 +384,7 @@ function renderList() {
                 '<div class="card-footer bg-transparent d-flex gap-2">' +
                 '<button class="btn btn-outline-info btn-sm" onclick="openDetail(\'' + t.code + '\', \'' + (t.type || 'frontend') + '\')">详情</button>' +
                 previewBtn +
+                customBtn +
                 installBtn +
                 '</div>' +
                 '</div>' +
@@ -506,6 +515,11 @@ $('#btnConfirmSwitch').on('click', function() {
     $('#switchModal').modal('hide');
 });
 
+// V2.9.7: 打开定制面板
+function openCustomizer(code) {
+    window.open('/admin/theme_custom/panel?theme=' + encodeURIComponent(code), '_blank');
+}
+
 // 预览
 function previewTheme(code) {
     $.get('/admin/theme_market/previewUrl', { code: code }, function(res) {
@@ -613,6 +627,14 @@ function formatSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// V2.9.7: 搜索关键词高亮
+function highlightText(text, keyword) {
+    if (!keyword) return text;
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp('(' + escaped + ')', 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
 }
 
 // ========== V3.1 Sprint 16: 评分弹窗 ==========

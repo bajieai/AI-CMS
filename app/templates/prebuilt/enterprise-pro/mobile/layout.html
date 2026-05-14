@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{$site.title|default='现代简约企业官网'}</title>
+    <meta name="keywords" content="{$site.keywords|default='企业官网,现代简约,蓝色系'}">
+    <meta name="description" content="{$site.description|default='现代简约风格企业官网'}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        :root {
+            --i8j-primary: #1a73e8;
+            --i8j-primary-dark: #1557b0;
+            --i8j-primary-light: #4a90d9;
+            --i8j-bg: #ffffff;
+            --i8j-bg-secondary: #f5f7fa;
+            --i8j-text: #333333;
+            --i8j-text-light: #666666;
+            --i8j-border: #e0e0e0;
+            --i8j-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --i8j-radius: 8px;
+            --i8j-transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- 移动端顶部导航 -->
+    <header class="mobile-header">
+        <div class="mobile-header-inner">
+            <div class="mobile-logo">
+                <a href="/">
+                    <img src="/assets/placeholder/logo.png" alt="{$site.title|default='网站Logo'}" class="mobile-logo-img">
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="菜单">
+                <span class="menu-icon"></span>
+                <span class="menu-icon"></span>
+                <span class="menu-icon"></span>
+            </button>
+        </div>
+        <nav class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-list">
+                <li class="mobile-nav-item"><a href="/" class="mobile-nav-link active">首页</a></li>
+                <li class="mobile-nav-item"><a href="/list.html" class="mobile-nav-link">关于我们</a></li>
+                <li class="mobile-nav-item"><a href="/list.html" class="mobile-nav-link">产品中心</a></li>
+                <li class="mobile-nav-item"><a href="/list.html" class="mobile-nav-link">新闻动态</a></li>
+                <li class="mobile-nav-item"><a href="/list.html" class="mobile-nav-link">联系我们</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="site-main">
+        {__CONTENT__}
+    </main>
+
+    <!-- 移动端底部 -->
+    <footer class="mobile-footer">
+        <div class="container">
+            <div class="mobile-footer-info">
+                <p>{$site.title|default='企业官网'}</p>
+                <p>电话：{$site.phone|default='400-888-8888'}</p>
+                <p>邮箱：{$site.email|default='info@example.com'}</p>
+            </div>
+            <div class="mobile-footer-bottom">
+                <p>&copy; 2024 {$site.title|default='企业官网'} All Rights Reserved.</p>
+                <p><a href="https://beian.miit.gov.cn/" target="_blank">{$site.beian|default='京ICP备xxxxxxxx号'}</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

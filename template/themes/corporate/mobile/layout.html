@@ -29,7 +29,7 @@
     <a class="cm-brand" href="/">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
     <div class="cm-actions">
         <!-- V2.9 语言切换器（动态） -->
-        {if condition="count($enabled_languages) > 1"}
+        {if condition="$lang_switcher_enabled && count($enabled_languages) > 1"}
         <div class="dropdown" id="langSwitcher">
             <button class="cm-btn" data-bs-toggle="dropdown" title="切换语言"><i class="bi bi-globe"></i></button>
             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" id="langList">
@@ -123,10 +123,19 @@
 <!-- V2.9.2 M22a: PWA安装提示 -->
 <script src="/assets/js/pwa-install.js"></script>
 <!-- V2.9.4: 注入会员ID用于缓存状态检测 -->
-<script>window.CMS_MEMBER_ID = {$member_info.id|default=0};</script>
-<!-- V2.9.2 M22b: 移动端增强 -->
-<script src="/assets/js/mobile-enhance.js"></script>
-<script src="/assets/js/mobile-swipe.js"></script>
-{block name="js"}{/block}
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    var path = window.location.pathname;
+    // Only target primary nav links (inside lists), exclude brand/home logo
+    document.querySelectorAll('header nav a[href], .navbar-nav a.nav-link').forEach(function(el) {
+        var href = el.getAttribute('href');
+        if (href && path === href) {
+            el.classList.add('active');
+        }
+    });
+});
+</script>
+<!-- V2.9.7 主题定制预览 postMessage 监听 -->
+<script src="/assets/js/theme-custom-listener.js"></script>
 </body>
 </html>

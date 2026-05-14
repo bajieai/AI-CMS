@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site.title|default='现代简约企业官网'}</title>
+    <meta name="keywords" content="{$site.keywords|default='企业官网,现代简约,蓝色系'}">
+    <meta name="description" content="{$site.description|default='现代简约风格企业官网'}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        :root {
+            --i8j-primary: #1a73e8;
+            --i8j-primary-dark: #1557b0;
+            --i8j-primary-light: #4a90d9;
+            --i8j-bg: #ffffff;
+            --i8j-bg-secondary: #f5f7fa;
+            --i8j-text: #333333;
+            --i8j-text-light: #666666;
+            --i8j-border: #e0e0e0;
+            --i8j-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --i8j-radius: 8px;
+            --i8j-transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <div class="logo">
+                <a href="/">
+                    <img src="/assets/placeholder/logo.png" alt="{$site.title|default='网站Logo'}" class="logo-img">
+                </a>
+            </div>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="/" class="nav-link active">首页</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">关于我们</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">产品中心</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">新闻动态</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">联系我们</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="菜单">
+                <span class="menu-icon"></span>
+                <span class="menu-icon"></span>
+                <span class="menu-icon"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="site-main">
+        {__CONTENT__}
+    </main>
+
+    <!-- 底部 -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="footer-info">
+                <div class="footer-logo">
+                    <img src="/assets/placeholder/logo-white.png" alt="{$site.title|default='网站Logo'}" class="footer-logo-img">
+                </div>
+                <p class="footer-desc">{$site.description|default='现代简约风格企业官网，致力于为客户提供优质服务'}</p>
+                <div class="footer-contact">
+                    <p>电话：{$site.phone|default='400-888-8888'}</p>
+                    <p>邮箱：{$site.email|default='info@example.com'}</p>
+                    <p>地址：{$site.address|default='北京市朝阳区某某大厦'}</p>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="footer-link-group">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="/">首页</a></li>
+                        <li><a href="/list.html">关于我们</a></li>
+                        <li><a href="/list.html">产品中心</a></li>
+                        <li><a href="/list.html">新闻动态</a></li>
+                    </ul>
+                </div>
+                <div class="footer-link-group">
+                    <h4>服务支持</h4>
+                    <ul>
+                        <li><a href="/list.html">帮助中心</a></li>
+                        <li><a href="/list.html">下载中心</a></li>
+                        <li><a href="/list.html">常见问题</a></li>
+                        <li><a href="/list.html">在线反馈</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 {$site.title|default='企业官网'} All Rights Reserved. <a href="https://beian.miit.gov.cn/" target="_blank">{$site.beian|default='京ICP备xxxxxxxx号'}</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

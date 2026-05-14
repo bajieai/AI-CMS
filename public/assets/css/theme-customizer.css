@@ -1,0 +1,292 @@
+/* V2.9.7 主题定制面板样式 */
+
+/* 整体布局 */
+.theme-customizer-wrap {
+    background: #f8fafc;
+}
+
+.custom-header {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+.custom-panel {
+    width: 380px;
+    min-width: 380px;
+    background: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 0 24px 0;
+}
+
+.panel-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+.panel-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.panel-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+/* 区块 */
+.panel-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+/* 颜色网格 */
+.color-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.color-row {
+    display: flex;
+    flex-direction: column;
+}
+
+.color-row label {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.color-row .d-flex {
+    align-items: center;
+}
+
+.pickr-wrapper {
+    position: relative;
+}
+
+.pickr-wrapper .pcr-button {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+    border: 2px solid #e2e8f0 !important;
+    cursor: pointer;
+}
+
+.hex-input {
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+/* 字体预览 */
+.font-preview {
+    font-size: 16px;
+    color: #334155;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px dashed #e2e8f0;
+    transition: font-family 0.2s;
+}
+
+/* 布局选项 */
+.layout-options {
+    display: flex;
+    gap: 8px;
+}
+
+.layout-opt {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #fff;
+}
+
+.layout-opt:hover {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+
+.layout-opt.active {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.layout-opt span {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.layout-opt.active span {
+    color: #1d4ed8;
+    font-weight: 500;
+}
+
+/* 布局图标 */
+.layout-icon {
+    display: flex;
+    width: 48px;
+    height: 32px;
+    gap: 2px;
+}
+
+.sidebar-left, .sidebar-right {
+    width: 12px;
+    background: #cbd5e1;
+    border-radius: 2px;
+}
+
+.content-area {
+    flex: 1;
+    background: #e2e8f0;
+    border-radius: 2px;
+}
+
+.content-full {
+    flex: 1;
+    background: #e2e8f0;
+    border-radius: 2px;
+}
+
+.width-icon {
+    width: 48px;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    padding: 1px;
+}
+
+.width-bar {
+    height: 100%;
+    background: #94a3b8;
+    border-radius: 1px;
+}
+
+.header-icon {
+    width: 48px;
+    height: 28px;
+}
+
+.header-full {
+    height: 100%;
+    background: linear-gradient(180deg, #94a3b8 0%, #94a3b8 30%, #e2e8f0 30%, #e2e8f0 50%, #cbd5e1 50%);
+    border-radius: 2px;
+}
+
+.header-minimal {
+    height: 100%;
+    background: linear-gradient(180deg, #94a3b8 0%, #94a3b8 15%, #e2e8f0 15%);
+    border-radius: 2px;
+}
+
+/* Logo上传 */
+.logo-upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #94a3b8;
+}
+
+.logo-upload-area:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #eff6ff;
+}
+
+.logo-upload-area i {
+    font-size: 1.5rem;
+}
+
+/* 预览区 */
+.preview-area {
+    background: #f1f5f9;
+}
+
+.preview-iframe {
+    transition: width 0.3s;
+}
+
+/* 设备预览尺寸 */
+.preview-iframe.device-desktop {
+    width: 100%;
+}
+
+.preview-iframe.device-tablet {
+    width: 768px;
+}
+
+.preview-iframe.device-mobile {
+    width: 375px;
+}
+
+/* 变体列表 */
+.variant-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.variant-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.variant-item:hover {
+    background: #f1f5f9;
+}
+
+.variant-item.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 500;
+}
+
+.variant-item .badge {
+    font-size: 10px;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-section {
+    animation: fadeIn 0.2s ease;
+}

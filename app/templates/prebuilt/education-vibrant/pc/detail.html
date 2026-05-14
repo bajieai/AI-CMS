@@ -1,0 +1,98 @@
+{include file="pc/layout.html"}
+
+<!-- 详情页内容 -->
+<section class="course-detail">
+    <div class="container">
+        <div class="detail-header">
+            <div class="detail-image">
+                <img src="{$course.cover|default='/assets/placeholder/course-detail.jpg'}" alt="{$course.title}">
+            </div>
+            <div class="detail-info">
+                <h1>{$course.title}</h1>
+                <p class="detail-desc">{$course.description}</p>
+                <div class="detail-meta">
+                    <div class="meta-item">
+                        <span class="label">授课教师：</span>
+                        <span class="value">{$course.teacher}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="label">课程分类：</span>
+                        <span class="value">{$course.category}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="label">学习人数：</span>
+                        <span class="value">{$course.students} 人</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="label">课程时长：</span>
+                        <span class="value">{$course.duration} 小时</span>
+                    </div>
+                </div>
+                <div class="detail-price">
+                    <span class="price">{if $course.price > 0}￥{$course.price}{else}免费{/if}</span>
+                    <a href="/course/{$course.id}/enroll" class="btn btn-primary">立即报名</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-content">
+            <!-- 课程大纲 -->
+            <section class="curriculum">
+                <h2>课程大纲</h2>
+                <div class="curriculum-list">
+                    {volist name="course.chapters" id="chapter" key="key"}
+                    <div class="chapter">
+                        <h3>第{$key}章：{$chapter.title}</h3>
+                        <ul>
+                            {volist name="chapter.lessons" id="lesson"}
+                            <li>
+                                <span class="lesson-title">{$lesson.title}</span>
+                                <span class="lesson-duration">{$lesson.duration} 分钟</span>
+                            </li>
+                            {/volist}
+                        </ul>
+                    </div>
+                    {/volist}
+                </div>
+            </section>
+
+            <!-- 教师介绍 -->
+            <section class="teacher-info">
+                <h2>教师介绍</h2>
+                <div class="teacher-detail">
+                    <div class="teacher-avatar">
+                        <img src="{$course.teacher_avatar|default='/assets/placeholder/teacher.jpg'}" alt="{$course.teacher}">
+                    </div>
+                    <div class="teacher-bio">
+                        <h3>{$course.teacher}</h3>
+                        <p>{$course.teacher_bio}</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 学员评价 -->
+            <section class="reviews">
+                <h2>学员评价</h2>
+                <div class="reviews-list">
+                    {volist name="course.reviews" id="review"}
+                    <div class="review-item">
+                        <div class="review-header">
+                            <img src="{$review.avatar|default='/assets/placeholder/student.jpg'}" alt="{$review.name}">
+                            <div>
+                                <h4>{$review.name}</h4>
+                                <div class="rating">
+                                    {for start="1" end="6"}
+                                    <span class="star {if $i <= $review.rating}active{/if}">★</span>
+                                    {/for}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="review-content">{$review.content}</p>
+                        <span class="review-date">{$review.create_time}</span>
+                    </div>
+                    {/volist}
+                </div>
+            </section>
+        </div>
+    </div>
+</section>

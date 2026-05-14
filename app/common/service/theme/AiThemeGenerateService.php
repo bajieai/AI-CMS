@@ -69,6 +69,10 @@ class AiThemeGenerateService
         $record->description = $description;
         $record->options    = $options;
         $record->status     = AiThemeRecord::STATUS_GENERATING;
+        // 同步batch_id到独立列（便于查询）
+        if (!empty($options['batch_id'])) {
+            $record->batch_id = $options['batch_id'];
+        }
         $record->save();
 
         Log::info("[AiThemeGenerate] 任务创建: record_id={$record->id}, theme_name={$themeName}");
@@ -120,6 +124,9 @@ class AiThemeGenerateService
 
             // 4. 文件落盘
             $writeResult = $this->fileService->writeThemeFiles($baseDir, $files);
+
+            // 4.5 自动创建皮肤目录（public/skin/themes/{theme}/pc/）
+            $this->ensureSkinAssets($themeName, $baseDir);
 
             // 5. 校验流水线
             $validateResult = $this->validatorService->validate($baseDir);
@@ -199,6 +206,122 @@ class AiThemeGenerateService
     }
 
     /**
+     * 自动创建主题皮肤目录（public/skin/themes/）
+     * 确保浏览器可通过 {$skin} 访问 CSS/JS/图片资源
+     */
+    protected function ensureSkinAssets(string $themeName, string $baseDir): void
+    {
+        $skinBase = root_path() . 'public' . DIRECTORY_SEPARATOR . 'skin'
+            . DIRECTORY_SEPARATOR . 'themes'
+            . DIRECTORY_SEPARATOR . $themeName;
+
+        // === 修复layout.html: {__CONTENT__} → {block name="content"}{/block} ===
+        foreach (['pc', 'mobile'] as $device) {
+            $layoutFile = $baseDir . DIRECTORY_SEPARATOR . $device . DIRECTORY_SEPARATOR . 'layout.html';
+            if (file_exists($layoutFile)) {
+                $content = file_get_contents($layoutFile);
+                if (strpos($content, '{__CONTENT__}') !== false) {
+                    $content = str_replace('{__CONTENT__}', '{block name="content"}{/block}', $content);
+                    file_put_contents($layoutFile, $content, LOCK_EX);
+                    Log::info("[AiThemeGenerate] 修复{$device}/layout.html: __CONTENT__→block");
+                }
+            }
+        }
+
+        // === 读取theme.json获取主题色 ===
+        $themeColor = '#3b82f6';
+        $jsonPath = $baseDir . DIRECTORY_SEPARATOR . 'theme.json';
+        if (file_exists($jsonPath)) {
+            $json = json_decode(file_get_contents($jsonPath), true);
+            if (!empty($json['color'])) {
+                $themeColor = $json['color'];
+            }
+        }
+        // 命名色转十六进制
+        $namedColors = [
+            'red' => '#e53935', 'green' => '#43a047', 'blue' => '#1a73e8',
+            'yellow' => '#fdd835', 'orange' => '#fb8c00', 'purple' => '#8e24aa', 'pink' => '#d81b60',
+        ];
+        if (isset($namedColors[$themeColor])) {
+            $themeColor = $namedColors[$themeColor];
+        }
+
+        // === 为pc和mobile创建皮肤目录+文件 ===
+        foreach (['pc', 'mobile'] as $device) {
+            $skinDir = $skinBase . DIRECTORY_SEPARATOR . $device;
+
+            // 创建子目录
+            foreach (['css', 'js', 'images'] as $subDir) {
+                $dir = $skinDir . DIRECTORY_SEPARATOR . $subDir;
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+            }
+
+            // style.css
+            $cssFile = $skinDir . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'style.css';
+            if (!file_exists($cssFile)) {
+                $css = ":root {\n"
+                    . "    --primary: {$themeColor};\n"
+                    . "    --bg: #ffffff;\n"
+                    . "    --bg-alt: #f5f5f5;\n"
+                    . "    --text: #333333;\n"
+                    . "    --border: #e0e0e0;\n"
+                    . "    --radius: 8px;\n"
+                    . "    --shadow: 0 2px 8px rgba(0,0,0,0.1);\n"
+                    . "}\n"
+                    . "* { margin: 0; padding: 0; box-sizing: border-box; }\n"
+                    . "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }\n"
+                    . "a { color: var(--primary); text-decoration: none; }\n"
+                    . ".top-bar { background: var(--primary); color: #fff; text-align: center; padding: 10px 0; font-size: 14px; }\n"
+                    . ".main-content .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }\n"
+                    . ".main-content section { padding: 40px 0; }\n"
+                    . ".main-content section:nth-child(even) { background: var(--bg-alt); }\n"
+                    . ".product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }\n"
+                    . ".product-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }\n"
+                    . ".category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }\n"
+                    . ".mobile-menu { display: none; }\n"
+                    . ".mobile-menu.active { display: block; position: fixed; top: 60px; left: 0; right: 0; background: #fff; z-index: 99; }\n"
+                    . ".menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 10px; }\n"
+                    . "@media (max-width: 768px) { .menu-toggle { display: block; } .header-nav { display: none; } }\n";
+                file_put_contents($cssFile, $css, LOCK_EX);
+                Log::info("[AiThemeGenerate] 创建style.css: {$device}, color={$themeColor}");
+            }
+
+            // main.js
+            $jsFile = $skinDir . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'main.js';
+            if (!file_exists($jsFile)) {
+                $js = "document.addEventListener('DOMContentLoaded',function(){\n"
+                    . "var b=document.getElementById('menuToggle'),m=document.getElementById('mobileMenu');\n"
+                    . "if(b&&m){b.addEventListener('click',function(){m.classList.toggle('active')})}\n"
+                    . "});\n";
+                file_put_contents($jsFile, $js, LOCK_EX);
+            }
+
+            // 占位图片（logo.png + 通用）
+            $imgDir = $skinDir . DIRECTORY_SEPARATOR . 'images';
+            $placeholders = [
+                'logo.png', 'banner1.png', 'banner2.png',
+                'category1.png', 'category2.png', 'category3.png', 'category4.png', 'category5.png',
+                'product1.png', 'product2.png', 'product3.png',
+            ];
+            foreach ($placeholders as $img) {
+                $imgPath = $imgDir . DIRECTORY_SEPARATOR . $img;
+                if (!file_exists($imgPath)) {
+                    $label = pathinfo($img, PATHINFO_FILENAME);
+                    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">'
+                        . '<rect width="200" height="200" fill="' . $themeColor . '" opacity="0.1"/>'
+                        . '<text x="100" y="105" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="' . $themeColor . '" opacity="0.5">' . htmlspecialchars($label) . '</text>'
+                        . '</svg>';
+                    file_put_contents($imgPath, $svg, LOCK_EX);
+                }
+            }
+        }
+
+        Log::info("[AiThemeGenerate] 皮肤目录初始化完成: theme={$themeName}");
+    }
+
+    /**
      * 构建生成Prompt
      */
     protected function buildPrompt(string $description, array $options): string
@@ -223,12 +346,118 @@ class AiThemeGenerateService
 - 需要页面: {$pagesText}
 
 ## 技术约束
-1. 使用ThinkPHP模板引擎语法（{volist}循环、{if}条件、{include}引入）
+1. 使用ThinkPHP模板引擎语法（{volist}循环、{if}条件、{include}引入、{extend}继承、{block}区块）
 2. 必须包含独立的 layout.html 作为布局模板
-3. CSS使用CSS变量（如 --i8j-primary, --i8j-bg, --i8j-text 等）
-4. 图片使用占位符（如 /assets/placeholder/xxx.jpg）
-5. JS使用原生JavaScript，不依赖jQuery等外部库
-6. 所有模板文件使用UTF-8编码
+3. 重要：PC端页面模板中使用 {extend name="layout" /} 而非 {extend name="pc/layout" /}（引擎的 view_path 已定位到 pc/ 目录，因此路径无需重复 pc/ 段）；同理 {include file="layout" /} 而非 {include file="pc/layout" /}
+4. layout.html中用 {block name="content"}{/block} 标记主要内容区域，子模板用 {block name="content"}...{/block} 覆盖
+5. CSS样式写在layout.html的&lt;style&gt;标签内，使用CSS变量（如 --primary, --bg, --text 等）
+6. 如需引用外部静态资源（CSS/JS/图片），必须使用 {\$skin} 模板变量前缀！
+   正确示例：href="{\$skin}css/style.css"、src="{\$skin}js/main.js"、src="{\$skin}images/logo.png"
+   错误示例：href="/assets/css/style.css"、src="/assets/js/main.js"
+   {\$skin} 在运行时解析为 /skin/themes/{主题名}/{设备类型}/，对应 public/skin/ 目录
+7. 图片占位符使用 {\$skin}images/xxx.png 路径（系统会自动生成占位图）
+8. JS使用原生JavaScript，不依赖jQuery等外部库
+9. 所有模板文件使用UTF-8编码
+
+## 禁止使用的错误语法（严格遵守！）
+以下语法在ThinkPHP模板引擎中无效或会导致编译错误，绝对不能使用：
+- ❌ {__CONTENT__} — 用 {block name="content"}{/block} 替代
+- ❌ {/elseif condition="..."} — elseif 无闭合标签，正确写法是 {elseif condition="..."}
+- ❌ {\$var|date='Y-m-d',###} — 去掉 ,###，正确写法是 {\$var|date='Y-m-d'}
+- ❌ {elseif condition="..."/} — 去掉末尾 /，正确写法是 {elseif condition="..."}
+- ❌ /assets/css/ 或 /assets/js/ — 用 {\$skin}css/ 或 {\$skin}js/ 替代
+- ❌ {include file="pc/xxx"} — 用 {include file="xxx"} 替代（view_path 已含 pc/）
+
+## CMS可用模板变量清单（只使用以下变量，不要自创变量！）
+系统已注入以下模板变量，可直接在模板中使用：
+
+### 全局变量（所有页面可用）
+- {\$site_name} — 网站名称
+- {\$site_keywords} — 网站关键词
+- {\$site_description} — 网站描述
+- {\$site_logo} — 网站Logo图片URL
+- {\$brand_name} — 品牌名称
+- {\$skin} — 主题资源路径前缀（如 /skin/themes/xxx/pc/）
+- {\$current_lang} — 当前语言
+- {\$year} — 当前年份
+- {\$current_page} — 当前页面标识（用于导航高亮）
+
+### 内容列表变量（列表页可用，由控制器注入）
+- {\$category} — 当前分类信息数组
+- {\$category.id} / {\$category.name} / {\$category.subtitle}
+- {\$pages} — 分页信息
+- {volist name="list" id="vo"} — 内容列表循环
+  - {\$vo.id} / {\$vo.title} / {\$vo.subtitle} / {\$vo.image}
+  - {\$vo.description} / {\$vo.create_time} / {\$vo.url}
+
+### 内容详情变量（详情页可用）
+- {\$info} — 内容详情数组
+- {\$info.id} / {\$info.title} / {\$info.content} / {\$info.image}
+- {\$info.create_time} / {\$info.author} / {\$info.source}
+- {\$info.keywords} / {\$info.description}
+
+### 会员变量
+- {\$isMemberLogin} — 是否已登录（布尔值）
+- {\$member_info} — 会员信息数组
+
+### SEO变量
+- {\$seo_title} / {\$seo_keywords} / {\$seo_description}
+
+### CSS变量（已在layout.html的:root中声明，可直接在CSS中使用）
+- var(--primary) — 主色
+- var(--secondary) — 辅色
+- var(--accent) — 强调色
+- var(--bg) — 背景色
+- var(--bg-secondary) — 次背景色
+- var(--text) — 文字色
+- var(--text-secondary) — 次文字色
+- var(--border) — 边框色
+- var(--radius) — 圆角
+- var(--shadow) — 阴影
+
+## 正确模板示例
+
+### layout.html 示例结构
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{\$site_name|default='AI-CMS'}</title>
+    <link href="{\$skin}css/style.css" rel="stylesheet">
+    <style>:root{{--primary:var(--primary);...}}</style>
+</head>
+<body>
+    <header>导航栏（使用{\$site_name}、{\$site_logo}）</header>
+    <main>{block name="content"}{/block}</main>
+    <footer>© {\$year} {\$site_name}</footer>
+    <script src="{\$skin}js/main.js"></script>
+</body>
+</html>
+```
+
+### index.html 示例结构
+```
+{extend name="layout" /}
+{block name="content"}
+<section>首页内容（不使用{volist}循环CMS不存在的变量）</section>
+{/block}
+```
+
+### list.html 示例结构
+```
+{extend name="layout" /}
+{block name="content"}
+<h1>{\$category.name|default='文章列表'}</h1>
+{volist name="list" id="vo"}
+<article>
+    <h2>{\$vo.title}</h2>
+    <p>{\$vo.description}</p>
+    <time>{\$vo.create_time|date='Y-m-d'}</time>
+</article>
+{/volist}
+{/block}
+```
 
 ## 输出格式要求
 请按以下格式返回每个文件：
@@ -237,22 +466,13 @@ class AiThemeGenerateService
 文件内容
 ```
 
-例如：
-```file:pc/layout.html
-<!DOCTYPE html>
-<html>
-<head>...</head>
-<body>...</body>
-</html>
-```
-
 必须包含的文件：
-- theme.json（主题元信息）
-- pc/layout.html（PC端布局）
-- pc/index.html（PC端首页）
+- theme.json（主题元信息，含color字段指定主色调、name字段指定中文主题名）
+- pc/layout.html（PC端布局模板，CSS写在&lt;style&gt;标签内）
+- pc/index.html（PC端首页，使用{extend}继承layout，{block}覆盖内容区）
+- pc/list.html（PC端列表页，使用{volist name="list"}循环内容列表）
+- pc/detail.html（PC端详情页，使用{\$info}显示内容详情）
 - mobile/layout.html（移动端布局，如需要）
-- assets/css/style.css（样式文件）
-- assets/js/main.js（脚本文件）
 
 请确保生成完整、可直接运行的模板代码。
 PROMPT;

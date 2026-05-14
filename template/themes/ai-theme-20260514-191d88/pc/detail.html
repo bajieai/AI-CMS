@@ -1,0 +1,47 @@
+﻿{extend name="layout" /}
+
+{block name="content"}
+<article class="post-detail">
+    <div class="container">
+        <div class="post-detail__header">
+            <h1 class="post-detail__title">{$post.title}</h1>
+            <div class="post-detail__meta">
+                <span class="post-detail__date">{$post.create_time|date='Y-m-d'}</span>
+                <span class="post-detail__category">{$post.category_name|default='未分类'}</span>
+                <span class="post-detail__views">阅读 {$post.views|default=0}</span>
+            </div>
+        </div>
+
+        <div class="post-detail__featured-image">
+            <img src="{$post.thumb|default='{$skin}images/detail.jpg'}" alt="{$post.title}" class="post-detail__img">
+        </div>
+
+        <div class="post-detail__content">
+            {$post.content|raw}
+        </div>
+
+        <div class="post-detail__footer">
+            <div class="post-detail__tags">
+                {volist name="post.tags" id="tag"}
+                <a href="/list?tag={$tag.id}" class="tag">{$tag.name}</a>
+                {/volist}
+            </div>
+
+            <div class="post-detail__navigation">
+                {if condition="$prev_post"}
+                <a href="/detail/{$prev_post.id}" class="post-nav post-nav--prev">
+                    <span class="post-nav__label">上一篇</span>
+                    <span class="post-nav__title">{$prev_post.title}</span>
+                </a>
+                {/if}
+                {if condition="$next_post"}
+                <a href="/detail/{$next_post.id}" class="post-nav post-nav--next">
+                    <span class="post-nav__label">下一篇</span>
+                    <span class="post-nav__title">{$next_post.title}</span>
+                </a>
+                {/if}
+            </div>
+        </div>
+    </div>
+</article>
+{/block}

@@ -1,0 +1,70 @@
+{extend name="pc/layout" /}
+
+{block name="main"}
+<article class="detail-article">
+    <div class="container">
+        <div class="article-header">
+            <h1 class="article-title">{$article.title}</h1>
+            <div class="article-meta">
+                <span class="meta-date">{$article.create_time|date='Y年m月d日',###}</span>
+                <span class="meta-category">{$article.category|default='随笔'}</span>
+                <span class="meta-views">{$article.views|default=0} 阅读</span>
+            </div>
+        </div>
+
+        <div class="article-featured-image">
+            <img src="/assets/placeholder/detail-{$article.id}.jpg" alt="{$article.title}">
+        </div>
+
+        <div class="article-content">
+            {$article.content|raw}
+        </div>
+
+        <div class="article-footer">
+            <div class="article-tags">
+                {volist name="article.tags" id="tag" empty=""}
+                <a href="/tag/{$tag.id}" class="tag">{$tag.name}</a>
+                {/volist}
+            </div>
+
+            <div class="article-share">
+                <span>分享到：</span>
+                <a href="javascript:void(0)" class="share-btn" data-share="weibo">微博</a>
+                <a href="javascript:void(0)" class="share-btn" data-share="wechat">微信</a>
+                <a href="javascript:void(0)" class="share-btn" data-share="twitter">Twitter</a>
+            </div>
+        </div>
+
+        <div class="article-navigation">
+            {if condition="$prev_article"}
+            <a href="/article/{$prev_article.id}" class="nav-prev">
+                <span class="nav-label">上一篇</span>
+                <span class="nav-title">{$prev_article.title}</span>
+            </a>
+            {/if}
+            {if condition="$next_article"}
+            <a href="/article/{$next_article.id}" class="nav-next">
+                <span class="nav-label">下一篇</span>
+                <span class="nav-title">{$next_article.title}</span>
+            </a>
+            {/if}
+        </div>
+
+        <div class="article-comments">
+            <h3 class="comments-title">评论</h3>
+            {volist name="comments" id="comment" empty="暂无评论"}
+            <div class="comment-item">
+                <div class="comment-avatar">
+                    <img src="/assets/placeholder/avatar-{$i}.jpg" alt="{$comment.author}">
+                </div>
+                <div class="comment-body">
+                    <div class="comment-author">{$comment.author}</div>
+                    <div class="comment-date">{$comment.create_time|date='Y-m-d H:i',###}</div>
+                    <div class="comment-content">{$comment.content}</div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</article>
+{/block}

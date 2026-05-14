@@ -1,0 +1,123 @@
+{extend name="pc/layout" /}
+
+{block name="content"}
+<!-- 轮播区域 -->
+<section class="carousel-section">
+    <div class="carousel">
+        <div class="carousel-inner">
+            {volist name="carousel_list" id="item" key="k"}
+            <div class="carousel-item {if condition='$k == 1'}active{/if}">
+                <a href="{$item.url}">
+                    <img src="{$item.image|default='/assets/placeholder/banner.jpg'}" alt="{$item.title}">
+                    <div class="carousel-caption">
+                        <h3>{$item.title}</h3>
+                        <p>{$item.description}</p>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+        <button class="carousel-prev">&lt;</button>
+        <button class="carousel-next">&gt;</button>
+        <div class="carousel-indicators">
+            {volist name="carousel_list" id="item" key="k"}
+            <span class="indicator {if condition='$k == 1'}active{/if}" data-index="{$k}"></span>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<!-- 新闻列表区域 -->
+<section class="news-section">
+    <div class="news-grid">
+        <!-- 左侧主栏 -->
+        <div class="main-column">
+            <!-- 头条新闻 -->
+            <div class="headline-news">
+                <h2 class="section-title">头条新闻</h2>
+                <div class="headline-item">
+                    <a href="{$headline.url}">
+                        <img src="{$headline.image|default='/assets/placeholder/news-large.jpg'}" alt="{$headline.title}">
+                        <h3>{$headline.title}</h3>
+                        <p>{$headline.summary}</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 最新新闻列表 -->
+            <div class="latest-news">
+                <h2 class="section-title">最新新闻</h2>
+                <ul class="news-list">
+                    {volist name="latest_news_list" id="news"}
+                    <li class="news-item">
+                        <a href="{$news.url}" class="news-link">
+                            <div class="news-thumb">
+                                <img src="{$news.thumb|default='/assets/placeholder/news-thumb.jpg'}" alt="{$news.title}">
+                            </div>
+                            <div class="news-info">
+                                <h3>{$news.title}</h3>
+                                <p class="news-summary">{$news.summary}</p>
+                                <div class="news-meta">
+                                    <span class="category">{$news.category}</span>
+                                    <span class="date">{$news.create_time|date='Y-m-d'}</span>
+                                    <span class="views">阅读 {$news.views}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    {/volist}
+                </ul>
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                {$page|raw}
+            </div>
+        </div>
+
+        <!-- 右侧边栏 -->
+        <aside class="sidebar">
+            <!-- 热门新闻 -->
+            <div class="widget hot-news">
+                <h3 class="widget-title">热门新闻</h3>
+                <ul class="hot-list">
+                    {volist name="hot_news_list" id="news" key="k"}
+                    <li class="hot-item">
+                        <span class="hot-rank {if condition='$k <= 3'}top{/if}">{$k}</span>
+                        <a href="{$news.url}">{$news.title}</a>
+                        <span class="hot-views">{$news.views} 阅读</span>
+                    </li>
+                    {/volist}
+                </ul>
+            </div>
+
+            <!-- 分类导航 -->
+            <div class="widget category-nav">
+                <h3 class="widget-title">新闻分类</h3>
+                <ul class="category-list">
+                    {volist name="category_list" id="cat"}
+                    <li><a href="{$cat.url}">{$cat.title} ({$cat.count})</a></li>
+                    {/volist}
+                </ul>
+            </div>
+
+            <!-- 广告位 -->
+            <div class="widget ad-widget">
+                <a href="/ad/1">
+                    <img src="/assets/placeholder/ad-sidebar.jpg" alt="广告">
+                </a>
+            </div>
+
+            <!-- 标签云 -->
+            <div class="widget tag-cloud">
+                <h3 class="widget-title">热门标签</h3>
+                <div class="tags">
+                    {volist name="tag_list" id="tag"}
+                    <a href="{$tag.url}" class="tag-item">{$tag.name}</a>
+                    {/volist}
+                </div>
+            </div>
+        </aside>
+    </div>
+</section>
+{/block}

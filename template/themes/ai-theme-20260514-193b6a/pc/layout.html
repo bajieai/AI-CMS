@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site_name|default='AI-CMS电商促销'}</title>
+    <link rel="stylesheet" href="{$skin}css/style.css">
+    </head>
+<body>
+    <header class="header">
+        <div class="header-top">
+            <div class="container">
+                <div class="logo">
+                    <a href="/"><img src="{$skin}images/logo.png" alt="{$site_name|default='AI-CMS'}"></a>
+                </div>
+                <nav class="nav">
+                    <ul>
+                        <li><a href="/">首页</a></li>
+                        <li><a href="/list.html">促销商品</a></li>
+                        <li><a href="/list.html?category=hot">热销爆款</a></li>
+                        <li><a href="/list.html?category=new">新品上市</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions">
+                    <a href="/cart.html" class="cart-btn">购物车</a>
+                    <a href="/login.html" class="login-btn">登录</a>
+                </div>
+            </div>
+        </div>
+        <div class="header-banner">
+            <div class="container">
+                <div class="sale-tag">限时特惠</div>
+                <div class="countdown">
+                    <span>距结束:</span>
+                    <span id="countdown-timer">00:00:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="main-content">
+        {block name="content"}{/block}
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="/about.html">关于我们</a>
+                <a href="/contact.html">联系我们</a>
+                <a href="/help.html">帮助中心</a>
+                <a href="/privacy.html">隐私政策</a>
+            </div>
+            <div class="footer-info">
+                <p>&copy; 2024 {$site_name|default='AI-CMS'} 版权所有</p>
+                <p>ICP备案号: 京ICP备xxxxxxxx号</p>
+            </div>
+        </div>
+    </footer>
+    <script src="{$skin}js/main.js"></script>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+    var path = window.location.pathname;
+    // Only target primary nav links (inside lists), exclude brand/home logo
+    document.querySelectorAll('header nav a[href], .navbar-nav a.nav-link').forEach(function(el) {
+        var href = el.getAttribute('href');
+        if (href && path === href) {
+            el.classList.add('active');
+        }
+    });
+});
+</script>
+</body>
+</html>

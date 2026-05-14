@@ -22,5 +22,8 @@ return [
         'backup:run'          => 'app\common\command\BackupCommand',
         // V2.9.3 M20: 会员自动降级命令
         'member:auto-downgrade' => 'app\common\command\AutoDowngradeCommand',
+        // V2.9.6 P0: 预埋模板批量化生成
+        'theme:batch'           => 'app\common\command\ThemeBatchGenerate',
+        'theme:generate'        => 'app\common\command\ThemeGenerateCommand',
     ],
 ];

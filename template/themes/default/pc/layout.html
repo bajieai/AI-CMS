@@ -19,7 +19,7 @@
     <!-- V2.6 前台主题样式（从内联提取到外部CSS文件） -->
     <link href="{$skin}css/style.css?v=2.6" rel="stylesheet">
     <!-- V2.9 M11 模板可视化：CSS自定义变量（后台模板设计器可覆盖） -->
-    <style>:root{--primary:{$theme_css_vars['--primary']|default='#3b82f6'};--secondary:{$theme_css_vars['--secondary']|default='#64748b'};--accent:{$theme_css_vars['--accent']|default='#f59e0b'};--bg:{$theme_css_vars['--bg']|default='#ffffff'};--bg-secondary:{$theme_css_vars['--bg-secondary']|default='#f8fafc'};--text:{$theme_css_vars['--text']|default='#1e293b'};--text-secondary:{$theme_css_vars['--text-secondary']|default='#64748b'};--border:{$theme_css_vars['--border']|default='#e2e8f0'};--radius:{$theme_css_vars['--radius']|default='8px'};--shadow:{$theme_css_vars['--shadow']|default='0 1px 3px rgba(0,0,0,.1)'}}</style>
+    <style>:root{--primary:{$theme_css_vars['--primary']|default='#3b82f6'};--secondary:{$theme_css_vars['--secondary']|default='#64748b'};--accent:{$theme_css_vars['--accent']|default='#f59e0b'};--bg:{$theme_css_vars['--bg']|default='#ffffff'};--bg-secondary:{$theme_css_vars['--bg-secondary']|default='#f8fafc'};--text:{$theme_css_vars['--text']|default='#1e293b'};--text-secondary:{$theme_css_vars['--text-secondary']|default='#64748b'};--border:{$theme_css_vars['--border']|default='#e2e8f0'};--radius:{$theme_css_vars['--radius']|default='8px'};--shadow:{$theme_css_vars['--shadow']|default='0 1px 3px rgba(0,0,0,.1)'};--font-heading:{$theme_css_vars['--font-heading']|default="'Noto Sans SC', sans-serif"};--font-body:{$theme_css_vars['--font-body']|default="'Noto Sans SC', sans-serif"};--sidebar-pos:{$theme_css_vars['--sidebar-pos']|default='left'};--content-width:{$theme_css_vars['--content-width']|default='1200px'};--header-style:{$theme_css_vars['--header-style']|default='full'};--logo-max-height:{$theme_css_vars['--logo-max-height']|default='40px'};--btn-primary-bg:{$theme_css_vars['--btn-primary-bg']|default='var(--primary)'};--btn-primary-hover:{$theme_css_vars['--btn-primary-hover']|default='#1d4ed8'}}</style>
     {block name="css"}{/block}
 </head>
 <body>
@@ -50,7 +50,7 @@
                     <li class="nav-item"><a class="nav-link" href="/job">人才招聘</a></li>
                 </ul>
                 <!-- V2.9 语言切换器（动态） -->
-                {if condition="count($enabled_languages) > 1"}
+                {if condition="$lang_switcher_enabled && count($enabled_languages) > 1"}
                 <div class="dropdown ms-2" id="langSwitcher">
                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-globe"></i> <span id="currentLang">{$current_lang|default='zh-CN'}</span>
@@ -137,18 +137,19 @@
     <!-- V2.9.5 前台CSRF自动注入 -->
     <script src="/assets/js/front-csrf.js?v=2.9.5"></script>
     <!-- V2.7 PV打点 -->
-    <script>window.CMS_MEMBER_ID = {$member_info.id|default=0};</script>
-    <script src="/assets/js/visit-tracker.js?v=2.7" async></script>
-    <!-- V2.8 社交分享组件 -->
-    <script src="/assets/js/social-share.js" defer></script>
-    <!-- V2.9 语言切换器（当前语言初始化） -->
-    <script>window._currentLang = '{$current_lang|default="zh-CN"}';</script>
-    <!-- V2.9.2 前台布局脚本（分类树/搜索联想/语言切换） -->
-    <script src="{$skin}js/layout.js?v=2.9.2" defer></script>
-    {block name="js"}{/block}
-<!-- V2.9.1 M14b: 统一图片懒加载 -->
-<script src="/assets/js/lazyload.js"></script>
-<!-- V2.9.2 M22a: PWA安装提示 -->
-<script src="/assets/js/pwa-install.js"></script>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+    var path = window.location.pathname;
+    // Only target primary nav links (inside lists), exclude brand/home logo
+    document.querySelectorAll('header nav a[href], .navbar-nav a.nav-link').forEach(function(el) {
+        var href = el.getAttribute('href');
+        if (href && path === href) {
+            el.classList.add('active');
+        }
+    });
+});
+</script>
+<!-- V2.9.7 主题定制预览 postMessage 监听 -->
+<script src="/assets/js/theme-custom-listener.js"></script>
 </body>
 </html>

@@ -1,0 +1,149 @@
+﻿{include file="layout" /}
+{__CONTENT__}
+<!-- 首页内容 -->
+<!-- Banner轮播 -->
+<section class="banner">
+    <div class="banner-slider" id="bannerSlider">
+        <div class="banner-slide active">
+            <div class="banner-bg" style="background-image: url('{$skin}images/banner1.jpg');"></div>
+            <div class="container banner-content">
+                <h1 class="banner-title">创新科技 引领未来</h1>
+                <p class="banner-desc">我们致力于为企业提供最前沿的数字化解决方案</p>
+                <a href="#" class="btn btn-primary">了解更多</a>
+            </div>
+        </div>
+        <div class="banner-slide">
+            <div class="banner-bg" style="background-image: url('{$skin}images/banner2.jpg');"></div>
+            <div class="container banner-content">
+                <h1 class="banner-title">专业服务 值得信赖</h1>
+                <p class="banner-desc">十年行业经验，服务超过500家企业客户</p>
+                <a href="#" class="btn btn-primary">立即咨询</a>
+            </div>
+        </div>
+        <div class="banner-slide">
+            <div class="banner-bg" style="background-image: url('{$skin}images/banner3.jpg');"></div>
+            <div class="container banner-content">
+                <h1 class="banner-title">携手共进 共创辉煌</h1>
+                <p class="banner-desc">与您一起探索商业新可能</p>
+                <a href="#" class="btn btn-primary">联系我们</a>
+            </div>
+        </div>
+    </div>
+    <div class="banner-dots" id="bannerDots">
+        <span class="dot active" data-index="0"></span>
+        <span class="dot" data-index="1"></span>
+        <span class="dot" data-index="2"></span>
+    </div>
+</section>
+
+<!-- 特色服务 -->
+<section class="section features">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">核心优势</h2>
+            <p class="section-desc">我们以专业技术和优质服务赢得客户信赖</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h3 class="feature-title">快速响应</h3>
+                <p class="feature-desc">24小时在线服务，快速响应客户需求</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">安全可靠</h3>
+                <p class="feature-desc">多重安全保障机制，确保数据安全</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h3 class="feature-title">专业定制</h3>
+                <p class="feature-desc">根据企业需求提供个性化解决方案</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="feature-title">持续优化</h3>
+                <p class="feature-desc">持续跟踪服务，不断优化提升效果</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 关于我们 -->
+<section class="section about">
+    <div class="container about-inner">
+        <div class="about-image">
+            <img src="{$skin}images/about.jpg" alt="关于我们">
+        </div>
+        <div class="about-content">
+            <h2 class="section-title">关于我们</h2>
+            <p>我们是一家专注于企业数字化转型的科技公司，拥有多年的行业经验和专业技术团队。我们致力于为客户提供全方位的数字化解决方案，帮助企业实现业务增长和效率提升。</p>
+            <p>我们的团队由经验丰富的技术专家、产品经理和设计师组成，能够从战略规划到技术实施，为客户提供端到端的服务。</p>
+            <a href="#" class="btn btn-outline">了解更多</a>
+        </div>
+    </div>
+</section>
+
+<!-- 最新动态 -->
+<section class="section news">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">最新动态</h2>
+            <p class="section-desc">了解我们最新的行业资讯和公司动态</p>
+        </div>
+        <div class="news-grid">
+            {volist name="news_list" id="vo" limit="3"}
+            <article class="news-card">
+                <div class="news-image">
+                    <img src="{$vo.thumb|default='{$skin}images/news1.jpg'}" alt="{$vo.title}">
+                </div>
+                <div class="news-content">
+                    <div class="news-meta">
+                        <span class="news-date"><i class="far fa-calendar-alt"></i> {$vo.create_time|date='Y-m-d'}</span>
+                        <span class="news-category">{$vo.category_title|default='行业动态'}</span>
+                    </div>
+                    <h3 class="news-title"><a href="{$vo.url}">{$vo.title}</a></h3>
+                    <p class="news-desc">{$vo.description|mb_substr=0,100}</p>
+                    <a href="{$vo.url}" class="news-more">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<!-- 合作伙伴 -->
+<section class="section partners">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">合作伙伴</h2>
+            <p class="section-desc">与优秀企业携手共进</p>
+        </div>
+        <div class="partner-grid">
+            {volist name="partner_list" id="vo" limit="6"}
+            <div class="partner-item">
+                <img src="{$vo.logo|default='{$skin}images/partner1.png'}" alt="{$vo.name}">
+            </div>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<!-- 联系我们 -->
+<section class="section contact-cta">
+    <div class="container">
+        <div class="cta-content">
+            <h2>准备好开始了吗？</h2>
+            <p>立即联系我们，获取专属解决方案</p>
+            <a href="#" class="btn btn-primary btn-lg">立即咨询</a>
+        </div>
+    </div>
+</section>
+{/__CONTENT__}

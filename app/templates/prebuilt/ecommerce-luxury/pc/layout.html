@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site_name|default='AI-CMS电商促销'}</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        :root {
+            --i8j-primary: #e74c3c;
+            --i8j-secondary: #c0392b;
+            --i8j-bg: #fdf2f2;
+            --i8j-text: #2c3e50;
+            --i8j-link: #e74c3c;
+            --i8j-border: #f5c6cb;
+            --i8j-hover: #ff6b6b;
+            --i8j-shadow: rgba(231, 76, 60, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top">
+            <div class="container">
+                <div class="logo">
+                    <a href="/"><img src="/assets/placeholder/logo.png" alt="{$site_name|default='AI-CMS'}"></a>
+                </div>
+                <nav class="nav">
+                    <ul>
+                        <li><a href="/">首页</a></li>
+                        <li><a href="/list.html">促销商品</a></li>
+                        <li><a href="/list.html?category=hot">热销爆款</a></li>
+                        <li><a href="/list.html?category=new">新品上市</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions">
+                    <a href="/cart.html" class="cart-btn">购物车</a>
+                    <a href="/login.html" class="login-btn">登录</a>
+                </div>
+            </div>
+        </div>
+        <div class="header-banner">
+            <div class="container">
+                <div class="sale-tag">限时特惠</div>
+                <div class="countdown">
+                    <span>距结束:</span>
+                    <span id="countdown-timer">00:00:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="main-content">
+        {__CONTENT__}
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="/about.html">关于我们</a>
+                <a href="/contact.html">联系我们</a>
+                <a href="/help.html">帮助中心</a>
+                <a href="/privacy.html">隐私政策</a>
+            </div>
+            <div class="footer-info">
+                <p>&copy; 2024 {$site_name|default='AI-CMS'} 版权所有</p>
+                <p>ICP备案号: 京ICP备xxxxxxxx号</p>
+            </div>
+        </div>
+    </footer>
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

@@ -31,9 +31,9 @@ class ThemeMarketService
         $result = ['added' => 0, 'updated' => 0];
 
         // 扫描前台主题
-        $frontendThemes = self::scanThemeDir(template_path() . 'themes', 'frontend');
+        $frontendThemes = self::scanThemeDir(root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes', 'frontend');
         // 扫描后台主题
-        $adminThemes = self::scanThemeDir(template_path() . 'admin', 'admin');
+        $adminThemes = self::scanThemeDir(root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin', 'admin');
 
         foreach (array_merge($frontendThemes, $adminThemes) as $theme) {
             $existing = ThemeInfo::where('code', $theme['code'])->where('type', $theme['type'])->find();
@@ -125,7 +125,7 @@ class ThemeMarketService
         // 合并本地已安装信息到列表
         $templates = [];
         foreach ($result['templates'] as $t) {
-            $t['is_installed'] = isset($installedCodes[$t['code']]) || is_dir(template_path() . 'themes' . DIRECTORY_SEPARATOR . $t['code']);
+            $t['is_installed'] = isset($installedCodes[$t['code']]) || is_dir(root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $t['code']);
             $templates[] = $t;
         }
 
@@ -189,8 +189,8 @@ class ThemeMarketService
         }
 
         $targetDir = $type === 'frontend'
-            ? template_path() . 'themes' . DIRECTORY_SEPARATOR . $code
-            : template_path() . 'admin' . DIRECTORY_SEPARATOR . $code;
+            ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $code
+            : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $code;
 
         if (is_dir($targetDir)) {
             throw new \Exception("主题 {$code} 已存在");
@@ -219,7 +219,7 @@ class ThemeMarketService
             if (!$importResult['success']) {
                 throw new \Exception('模板解压失败: ' . $importResult['message']);
             }
-            $sourcePath = template_path() . 'themes' . DIRECTORY_SEPARATOR . $importResult['theme_name'];
+            $sourcePath = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $importResult['theme_name'];
             // 如果解压后的名称与code不同，需要重命名
             if ($importResult['theme_name'] !== $code && is_dir($sourcePath)) {
                 $renamedPath = dirname($sourcePath) . DIRECTORY_SEPARATOR . $code;
@@ -263,8 +263,8 @@ class ThemeMarketService
         }
 
         $themeDir = $type === 'frontend'
-            ? template_path() . 'themes' . DIRECTORY_SEPARATOR . $code
-            : template_path() . 'admin' . DIRECTORY_SEPARATOR . $code;
+            ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $code
+            : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $code;
 
         if (!is_dir($themeDir)) {
             throw new \Exception('主题目录不存在');
@@ -287,8 +287,8 @@ class ThemeMarketService
     public static function rollbackTheme(string $code, string $backupId, string $type = 'frontend'): array
     {
         $themeDir = $type === 'frontend'
-            ? template_path() . 'themes' . DIRECTORY_SEPARATOR . $code
-            : template_path() . 'admin' . DIRECTORY_SEPARATOR . $code;
+            ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $code
+            : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $code;
 
         $backupService = new ThemeBackupService();
         $result = $backupService->rollback($backupId, $themeDir);
@@ -330,8 +330,8 @@ class ThemeMarketService
 
         // 删除主题目录
         $dir = $theme->type === 'frontend'
-            ? template_path() . 'themes' . DIRECTORY_SEPARATOR . $theme->code
-            : template_path() . 'admin' . DIRECTORY_SEPARATOR . $theme->code;
+            ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $theme->code
+            : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $theme->code;
 
         if (is_dir($dir) && $theme->code !== 'default') {
             self::rrmdir($dir);

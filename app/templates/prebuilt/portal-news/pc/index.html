@@ -1,0 +1,118 @@
+{extend name="pc/layout" /}
+
+{block name="content"}
+<!-- 轮播区域 -->
+<section class="hero-slider">
+    <div class="container">
+        <div class="slider-wrapper" id="sliderWrapper">
+            <div class="slider-track">
+                {volist name="slider_list" id="slide" key="i"}
+                <div class="slide-item {if $i == 1}active{/if}">
+                    <a href="{$slide.url}">
+                        <img src="{$slide.image|default='/assets/placeholder/slide.jpg'}" alt="{$slide.title}">
+                        <div class="slide-caption">
+                            <h2>{$slide.title}</h2>
+                            <p>{$slide.description}</p>
+                        </div>
+                    </a>
+                </div>
+                {/volist}
+            </div>
+            <div class="slider-controls">
+                <button class="slider-prev" id="sliderPrev">‹</button>
+                <button class="slider-next" id="sliderNext">›</button>
+            </div>
+            <div class="slider-dots" id="sliderDots">
+                {volist name="slider_list" id="slide" key="i"}
+                <span class="dot {if $i == 1}active{/if}" data-index="{$i}"></span>
+                {/volist}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 热门新闻 -->
+<section class="hot-news">
+    <div class="container">
+        <div class="section-header">
+            <h2>热门新闻</h2>
+            <a href="/hot" class="more-link">查看更多 ›</a>
+        </div>
+        <div class="hot-news-grid">
+            {volist name="hot_news_list" id="news" key="i"}
+            <article class="hot-news-item {if $i <= 3}top-three{/if}">
+                <div class="news-rank">{$i}</div>
+                <a href="{$news.url}">
+                    <h3>{$news.title}</h3>
+                    <p class="news-meta">
+                        <span class="date">{$news.create_time|date='Y-m-d'}</span>
+                        <span class="views">阅读 {$news.views}</span>
+                    </p>
+                </a>
+            </article>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<!-- 最新资讯 -->
+<section class="latest-news">
+    <div class="container">
+        <div class="section-header">
+            <h2>最新资讯</h2>
+            <div class="category-tabs">
+                {volist name="category_list" id="cat" key="i"}
+                <a href="{$cat.url}" class="tab {if $i == 1}active{/if}">{$cat.title}</a>
+                {/volist}
+            </div>
+        </div>
+        <div class="news-list">
+            {volist name="news_list" id="news"}
+            <article class="news-item">
+                <div class="news-image">
+                    <a href="{$news.url}">
+                        <img src="{$news.thumb|default='/assets/placeholder/news.jpg'}" alt="{$news.title}">
+                    </a>
+                </div>
+                <div class="news-content">
+                    <h3><a href="{$news.url}">{$news.title}</a></h3>
+                    <p class="news-summary">{$news.summary|mb_substr=0,120}</p>
+                    <p class="news-meta">
+                        <span class="category">{$news.category_name}</span>
+                        <span class="date">{$news.create_time|date='Y-m-d H:i'}</span>
+                        <span class="author">{$news.author|default='编辑'}</span>
+                        <span class="views">阅读 {$news.views}</span>
+                    </p>
+                </div>
+            </article>
+            {/volist}
+        </div>
+        <div class="pagination">
+            {$page|raw}
+        </div>
+    </div>
+</section>
+
+<!-- 专题推荐 -->
+<section class="featured-topics">
+    <div class="container">
+        <div class="section-header">
+            <h2>专题推荐</h2>
+            <a href="/topics" class="more-link">更多专题 ›</a>
+        </div>
+        <div class="topics-grid">
+            {volist name="topic_list" id="topic"}
+            <div class="topic-item">
+                <a href="{$topic.url}">
+                    <img src="{$topic.image|default='/assets/placeholder/topic.jpg'}" alt="{$topic.title}">
+                    <div class="topic-overlay">
+                        <h3>{$topic.title}</h3>
+                        <p>{$topic.description}</p>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</section>
+{/block}

@@ -1,0 +1,70 @@
+﻿{include file="layout" /}
+{__CONTENT__}
+<!-- 列表页内容 -->
+<section class="page-banner">
+    <div class="container">
+        <h1 class="page-title">{$category_title|default='资讯中心'}</h1>
+        <nav class="breadcrumb">
+            <a href="/">首页</a>
+            <span class="separator">/</span>
+            <span class="current">{$category_title|default='资讯中心'}</span>
+        </nav>
+    </div>
+</section>
+
+<section class="section list-page">
+    <div class="container">
+        <div class="list-sidebar">
+            <div class="sidebar-widget">
+                <h3 class="widget-title">分类导航</h3>
+                <ul class="sidebar-nav">
+                    {volist name="category_list" id="vo"}
+                    <li class="{if condition="$current_category == $vo['id']"}active{/if}">
+                        <a href="{$vo.url}">{$vo.title}</a>
+                    </li>
+                    {/volist}
+                </ul>
+            </div>
+            <div class="sidebar-widget">
+                <h3 class="widget-title">热门文章</h3>
+                <ul class="hot-list">
+                    {volist name="hot_articles" id="vo" limit="5"}
+                    <li>
+                        <a href="{$vo.url}">
+                            <span class="hot-num">{$i}</span>
+                            <span class="hot-title">{$vo.title}</span>
+                        </a>
+                    </li>
+                    {/volist}
+                </ul>
+            </div>
+        </div>
+        <div class="list-main">
+            <div class="article-list">
+                {volist name="article_list" id="vo"}
+                <article class="article-item">
+                    <div class="article-image">
+                        <a href="{$vo.url}">
+                            <img src="{$vo.thumb|default='{$skin}images/news1.jpg'}" alt="{$vo.title}">
+                        </a>
+                    </div>
+                    <div class="article-content">
+                        <h2 class="article-title"><a href="{$vo.url}">{$vo.title}</a></h2>
+                        <div class="article-meta">
+                            <span><i class="far fa-calendar-alt"></i> {$vo.create_time|date='Y-m-d'}</span>
+                            <span><i class="far fa-eye"></i> {$vo.hits|default=0}</span>
+                            <span><i class="far fa-comment"></i> {$vo.comments|default=0}</span>
+                        </div>
+                        <p class="article-desc">{$vo.description|mb_substr=0,150}</p>
+                        <a href="{$vo.url}" class="article-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </article>
+                {/volist}
+            </div>
+            <div class="pagination">
+                {$pages|raw}
+            </div>
+        </div>
+    </div>
+</section>
+{/__CONTENT__}

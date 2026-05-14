@@ -37,7 +37,7 @@ class ThemeBatchGenerate extends Command
             ->addOption('resume', 'r', Option::VALUE_NONE, '断点续传模式（跳过已完成任务）')
             ->addOption('batch-id', 'b', Option::VALUE_OPTIONAL, '执行已有批次ID', '')
             ->addOption('progress', 'p', Option::VALUE_NONE, '查看批次进度')
-            ->addOption('quality', 'q', Option::VALUE_NONE, '生成完成后执行质量评分');
+            ->addOption('quality', 'Q', Option::VALUE_NONE, '生成完成后执行质量评分');
     }
 
     protected function execute(Input $input, Output $output)
@@ -152,7 +152,7 @@ class ThemeBatchGenerate extends Command
     {
         $output->writeln('[' . date('Y-m-d H:i:s') . "] 开始质量评分...");
 
-        $records = \app\common\model\AiThemeRecord::where('options', 'like', '%"batch_id":"' . $batchId . '"%')
+        $records = \app\common\model\AiThemeRecord::where('batch_id', $batchId)
             ->whereIn('status', [1, 2, 3]) // PENDING_REVIEW / VALIDATED / PUBLISHED
             ->select();
 

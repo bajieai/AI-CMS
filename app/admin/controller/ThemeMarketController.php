@@ -41,7 +41,7 @@ class ThemeMarketController extends AdminBaseController
             'categories'     => $categories,
         ]);
 
-        return $this->app->view->fetch('theme_market_index');
+        return $this->app->view->fetch('/theme_market_index');
     }
 
     /**
@@ -155,7 +155,7 @@ class ThemeMarketController extends AdminBaseController
             return $this->error('参数错误');
         }
 
-        $themeDir = template_path() . 'themes' . DIRECTORY_SEPARATOR . $code;
+        $themeDir = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $code;
         if (!is_dir($themeDir)) {
             return $this->error('主题目录不存在');
         }
@@ -379,7 +379,7 @@ class ThemeMarketController extends AdminBaseController
             'action_map' => $actionMap,
         ]);
 
-        return $this->app->view->fetch('theme_market_logs');
+        return $this->app->view->fetch('/theme_market_logs');
     }
 
     /**
@@ -412,7 +412,7 @@ class ThemeMarketController extends AdminBaseController
     {
         $categories = config('ai.theme_industry_categories', []);
         $this->app->view->assign('categories', $categories);
-        return $this->app->view->fetch('theme_market_categories');
+        return $this->app->view->fetch('/theme_market_categories');
     }
 
     /**
@@ -528,8 +528,8 @@ class ThemeMarketController extends AdminBaseController
         }
 
         $themeDir = $type === 'frontend'
-            ? template_path() . 'themes' . DIRECTORY_SEPARATOR . $code
-            : template_path() . 'admin' . DIRECTORY_SEPARATOR . $code;
+            ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $code
+            : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $code;
 
         if (!is_dir($themeDir)) {
             return $this->error('主题目录不存在');

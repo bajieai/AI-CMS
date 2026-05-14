@@ -1,0 +1,117 @@
+{include file="pc/layout.html"}
+
+<!-- 首页内容 -->
+<!-- 横幅区域 -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>探索知识的无限可能</h1>
+            <p>严谨的学术态度，专业的课程体系，助力每一位学习者成长</p>
+            <a href="/course" class="btn btn-primary">立即学习</a>
+        </div>
+        <div class="hero-image">
+            <img src="/assets/placeholder/hero.jpg" alt="学术探索">
+        </div>
+    </div>
+</section>
+
+<!-- 特色亮点 -->
+<section class="features">
+    <div class="container">
+        <h2 class="section-title">为什么选择我们</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <img src="/assets/placeholder/icon-academic.png" alt="学术严谨">
+                </div>
+                <h3>学术严谨</h3>
+                <p>由顶尖学者团队精心设计课程内容</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <img src="/assets/placeholder/icon-interactive.png" alt="互动教学">
+                </div>
+                <h3>互动教学</h3>
+                <p>实时答疑，小组讨论，深度学习体验</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <img src="/assets/placeholder/icon-certificate.png" alt="权威认证">
+                </div>
+                <h3>权威认证</h3>
+                <p>完成课程可获得官方认证证书</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 热门课程 -->
+<section class="courses">
+    <div class="container">
+        <h2 class="section-title">热门课程</h2>
+        <div class="courses-grid">
+            {volist name="hot_courses" id="course" key="key" mod="4"}
+            <div class="course-card">
+                <div class="course-image">
+                    <img src="{$course.cover|default='/assets/placeholder/course.jpg'}" alt="{$course.title}">
+                    <span class="course-category">{$course.category}</span>
+                </div>
+                <div class="course-info">
+                    <h3><a href="/course/{$course.id}">{$course.title}</a></h3>
+                    <p class="course-desc">{$course.description|mb_substr=0,100}</p>
+                    <div class="course-meta">
+                        <span class="teacher">{$course.teacher}</span>
+                        <span class="students">{$course.students} 人学习</span>
+                    </div>
+                    <div class="course-footer">
+                        <span class="price">{if $course.price > 0}￥{$course.price}{else}免费{/if}</span>
+                        <a href="/course/{$course.id}" class="btn btn-sm">查看详情</a>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<!-- 师资力量 -->
+<section class="teachers">
+    <div class="container">
+        <h2 class="section-title">师资力量</h2>
+        <div class="teachers-grid">
+            {volist name="teachers" id="teacher" key="key" mod="4"}
+            <div class="teacher-card">
+                <div class="teacher-avatar">
+                    <img src="{$teacher.avatar|default='/assets/placeholder/teacher.jpg'}" alt="{$teacher.name}">
+                </div>
+                <h3>{$teacher.name}</h3>
+                <p class="teacher-title">{$teacher.title}</p>
+                <p class="teacher-desc">{$teacher.description|mb_substr=0,80}</p>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</section>
+
+<!-- 学员评价 -->
+<section class="testimonials">
+    <div class="container">
+        <h2 class="section-title">学员评价</h2>
+        <div class="testimonials-grid">
+            {volist name="testimonials" id="item" key="key" mod="3"}
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <p>"{$item.content}"</p>
+                </div>
+                <div class="testimonial-author">
+                    <img src="{$item.avatar|default='/assets/placeholder/student.jpg'}" alt="{$item.name}">
+                    <div>
+                        <h4>{$item.name}</h4>
+                        <span>{$item.course}</span>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</section>

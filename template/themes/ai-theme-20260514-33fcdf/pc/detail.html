@@ -1,0 +1,85 @@
+﻿{include file="layout"}
+
+<!-- 详情页内容 -->
+<div class="page-detail">
+    <!-- 页面标题 -->
+    <section class="page-banner">
+        <div class="container">
+            <h1 class="page-title">{$detail.title|default='内容详情'}</h1>
+            <nav class="breadcrumb">
+                <a href="/">首页</a>
+                <span class="breadcrumb-sep">/</span>
+                <a href="/list.html">{$category.name|default='产品中心'}</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current">{$detail.title}</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- 文章内容 -->
+    <section class="section detail-content">
+        <div class="container">
+            <article class="detail-article">
+                <header class="detail-header">
+                    <h1 class="detail-title">{$detail.title}</h1>
+                    <div class="detail-meta">
+                        <span class="detail-author">作者：{$detail.author|default='管理员'}</span>
+                        <span class="detail-date">发布时间：{$detail.create_time|date='Y-m-d H:i'}</span>
+                        <span class="detail-views">浏览量：{$detail.views|default=0}</span>
+                    </div>
+                </header>
+                <div class="detail-body">
+                    {$detail.content|raw}
+                </div>
+                <footer class="detail-footer">
+                    <div class="detail-tags">
+                        {volist name="detail.tags" id="tag"}
+                        <a href="/list.html?tag={$tag}" class="tag">{$tag}</a>
+                        {/volist}
+                    </div>
+                    <div class="detail-share">
+                        <span>分享到：</span>
+                        <button class="share-btn" data-type="weibo">微博</button>
+                        <button class="share-btn" data-type="wechat">微信</button>
+                        <button class="share-btn" data-type="qq">QQ</button>
+                    </div>
+                </footer>
+            </article>
+
+            <!-- 上一篇/下一篇 -->
+            <nav class="detail-nav">
+                <div class="detail-prev">
+                    {if condition="$prev"}
+                    <a href="/detail.html?id={$prev.id}">上一篇：{$prev.title}</a>
+                    {else}
+                    <span>上一篇：没有了</span>
+                    {/if}
+                </div>
+                <div class="detail-next">
+                    {if condition="$next"}
+                    <a href="/detail.html?id={$next.id}">下一篇：{$next.title}</a>
+                    {else}
+                    <span>下一篇：没有了</span>
+                    {/if}
+                </div>
+            </nav>
+
+            <!-- 相关推荐 -->
+            <section class="related-section">
+                <h2 class="related-title">相关推荐</h2>
+                <div class="related-grid">
+                    {volist name="related" id="item" key="key" empty="<p>暂无相关推荐</p>"}
+                    <div class="related-card">
+                        <a href="/detail.html?id={$item.id}">
+                            <div class="related-img">
+                                <img src="{$item.thumb|default='{$skin}images/product1.jpg'}" alt="{$item.title}">
+                            </div>
+                            <h3 class="related-name">{$item.title}</h3>
+                        </a>
+                    </div>
+                    {/volist}
+                </div>
+            </section>
+        </div>
+    </section>
+</div>

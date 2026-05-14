@@ -1,0 +1,68 @@
+{include file="pc/layout.html"}
+
+<!-- 列表页内容 -->
+<div class="page-list">
+    <!-- 页面标题 -->
+    <section class="page-banner">
+        <div class="container">
+            <h1 class="page-title">{$category.name|default='产品中心'}</h1>
+            <p class="page-desc">{$category.description|default='浏览我们的产品与服务'}</p>
+            <nav class="breadcrumb">
+                <a href="/">首页</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current">{$category.name|default='产品中心'}</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- 分类导航 -->
+    <section class="section category-nav">
+        <div class="container">
+            <ul class="category-list">
+                {volist name="categories" id="cat" key="key"}
+                <li class="category-item {if condition='$cat.id eq $category.id'}active{/if}">
+                    <a href="/list.html?id={$cat.id}">{$cat.name}</a>
+                </li>
+                {/volist}
+            </ul>
+        </div>
+    </section>
+
+    <!-- 内容列表 -->
+    <section class="section content-list">
+        <div class="container">
+            <div class="list-grid">
+                {volist name="list" id="item" key="key" empty="<div class='empty-state'><p>暂无内容</p></div>"}
+                <article class="list-card">
+                    <a href="/detail.html?id={$item.id}">
+                        <div class="list-card-img">
+                            <img src="{$item.thumb|default='/assets/placeholder/product1.jpg'}" alt="{$item.title}">
+                        </div>
+                        <div class="list-card-body">
+                            <h3 class="list-card-title">{$item.title}</h3>
+                            <p class="list-card-desc">{$item.description|mb_substr=0,100}</p>
+                            <div class="list-card-meta">
+                                <span class="list-card-date">{$item.create_time|date='Y-m-d'}</span>
+                                <span class="list-card-more">查看详情 →</span>
+                            </div>
+                        </div>
+                    </a>
+                </article>
+                {/volist}
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                {if condition="$page gt 1"}
+                <a href="/list.html?page={$page-1}" class="pagination-prev">上一页</a>
+                {/if}
+                {volist name="pages" id="p"}
+                <a href="/list.html?page={$p}" class="pagination-item {if condition='$p eq $page'}active{/if}">{$p}</a>
+                {/volist}
+                {if condition="$page lt $totalPages"}
+                <a href="/list.html?page={$page+1}" class="pagination-next">下一页</a>
+                {/if}
+            </div>
+        </div>
+    </section>
+</div>

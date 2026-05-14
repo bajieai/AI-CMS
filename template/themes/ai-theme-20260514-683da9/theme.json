@@ -1,0 +1,12 @@
+{
+  "name": "学术绿洲 - 教育培训主题",
+  "version": "1.0.0",
+  "description": "适合在线课程、教育培训机构的学术严谨风格主题，绿色系配色，响应式布局",
+  "author": "AI-CMS",
+  "type": "pc",
+  "color": "green",
+  "pages": ["index", "list", "detail"],
+  "dependencies": {
+    "thinkphp": ">=6.0"
+  }
+}

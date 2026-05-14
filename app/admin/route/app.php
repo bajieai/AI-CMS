@@ -282,5 +282,28 @@ Route::get('theme_market/categories$', '\app\admin\controller\ThemeMarketControl
 Route::post('theme_market/saveCategory$', '\app\admin\controller\ThemeMarketController@saveCategory');
 Route::post('theme_market/deleteCategory$', '\app\admin\controller\ThemeMarketController@deleteCategory');
 
+// V2.9.7 Phase 1: 主题定制路由
+Route::get('theme_custom/defaults$', '\app\admin\controller\ThemeCustomController@defaults');
+Route::get('theme_custom/customization$', '\app\admin\controller\ThemeCustomController@customization');
+Route::post('theme_custom/save$', '\app\admin\controller\ThemeCustomController@save');
+Route::post('theme_custom/activate$', '\app\admin\controller\ThemeCustomController@activate');
+Route::post('theme_custom/reset$', '\app\admin\controller\ThemeCustomController@reset');
+Route::post('theme_custom/saveAs$', '\app\admin\controller\ThemeCustomController@saveAs');
+Route::get('theme_custom/variants$', '\app\admin\controller\ThemeCustomController@variants');
+Route::get('theme_custom/presets$', '\app\admin\controller\ThemeCustomController@presets');
+Route::post('theme_custom/preview$', '\app\admin\controller\ThemeCustomController@preview');
+Route::get('theme_custom/panel$', '\app\admin\controller\ThemeCustomController@panel');
+Route::post('theme_custom/uploadLogo$', '\app\admin\controller\ThemeCustomController@uploadLogo');
+Route::get('theme_custom/export$', '\app\admin\controller\ThemeCustomController@export');
+Route::get('theme_custom/checkConflict$', '\app\admin\controller\ThemeCustomController@checkConflict');
+
+// V2.9.7 Phase 3: 主题数据分析路由
+Route::get('theme_analysis/index$', '\app\admin\controller\ThemeAnalysisController@index');
+Route::get('theme_analysis/installRanking$', '\app\admin\controller\ThemeAnalysisController@installRanking');
+Route::get('theme_analysis/installTrend$', '\app\admin\controller\ThemeAnalysisController@installTrend');
+Route::get('theme_analysis/customPreference$', '\app\admin\controller\ThemeAnalysisController@customPreference');
+Route::get('theme_analysis/scoreDistribution$', '\app\admin\controller\ThemeAnalysisController@scoreDistribution');
+Route::get('theme_analysis/exportCsv$', '\app\admin\controller\ThemeAnalysisController@exportCsv');
+
 // V3.1: 数据看板来源分析
 Route::get('dashboard/getSourceAnalysis$', '\app\admin\controller\DashboardController@getSourceAnalysis');

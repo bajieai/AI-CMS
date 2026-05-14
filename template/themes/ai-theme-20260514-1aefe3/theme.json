@@ -1,0 +1,9 @@
+{
+  "name": "文艺清新绿",
+  "version": "1.0.0",
+  "description": "文艺清新风格个人博客主题，绿色系，单列阅读布局",
+  "author": "AI-CMS",
+  "type": "pc",
+  "color": "green",
+  "layout": "single-column"
+}
