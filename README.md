@@ -13,6 +13,8 @@
 **V2.9.8 定位：缺陷修复 + AI主题质量深化 + 定制体验打磨**，在V2.9.7模板可视化定制三大能力闭环基础上，修缺陷、提质量、磨体验。
 
 **V2.9.8 核心新功能 — 模力精修：**
+
+*第一轮 — 缺陷修复 + AI质量深化 + 定制打磨（12/12项）：*
 1. **字体本地化** — 5组中文字体子集化woff2本地嵌入+font-display:swap，离线/内网可用
 2. **撤销/重做** — UndoManager 30步栈+Ctrl+Z/Ctrl+Shift+Z快捷键+保存点+未保存提示
 3. **AfterGenerate钩子** — AI生成后自动同步CSS资产+从class名推导CSS骨架+透明PNG占位图
@@ -21,6 +23,17 @@
 6. **CSS质量Prompt增强** — buildPrompt()增加7项CSS质量约束+4项禁止项
 7. **预设快捷应用** — 5套系统配色预设(活力橙/沉稳黑/清新绿/暖木棕/冷静蓝)+theme.json presets+一键应用+撤销联动
 8. **导出预览** — 导出前确认弹框+修改字段摘要(颜色/字体/布局/Logo)
+
+*第二轮 — AI主题视觉升级 + 面板体验打磨 + 模板能力补充（9项+6小优化）：*
+9. **Prompt行业风格加强** — 4行业配置(config/theme_styles.php)+buildIndustryPrompt()+CSS组件Prompt，AI模板从"通用"→"行业专属"
+10. **CSS组件模式库** — CssComponentLibrary独立类(10组件:vars/hero/card/button/nav/grid/spacing/price/article/footer)，CSS质量从60分→80分
+11. **评分器9维度+双线制** — +visual_design+layout_completeness，新模板65分/历史模板60分差异化阈值
+12. **预设5→12套+智能推荐** — 科技紫/玫瑰金/自然绿/深海蓝/日落橙/极夜黑/樱花粉+color_schema文本匹配推荐+推荐标签
+13. **新手引导+折叠面板** — OnboardingGuide 3步引导条+CollapsibleSection分步折叠+实时预览反馈(闪烁+Toast)
+14. **导出后快捷操作** — 3按钮弹框(预览新模板/浏览市场/继续编辑)
+15. **模板变量扩展至10页面** — 标签页/栏目页/自定义404/关于增强+{$contactEmail}/{$contactPhone}
+16. **撤销栈超时清空** — visibilitychange事件+15分钟未操作自动清空
+17. **恢复默认API+安装引导+分析页时间筛选** — defaultVars()/OnboardingGuide.init()/installTrendRange(7d/30d/90d/自定义)
 
 **Sprint 11 — AI配图增强：**
 1. **批量配图** — 前端串行调用+进度条，自动构建图片Prompt，配图直接插入编辑器正文段落之间
@@ -68,10 +81,16 @@
 - **🆕 撤销/重做(V2.9.8)** - UndoManager 30步栈+Ctrl+Z/Ctrl+Shift+Z+保存点+未保存提示+预览联动
 - **🆕 AfterGenerate钩子(V2.9.8)** - AI生成后自动同步CSS资产+class名推导CSS骨架+透明PNG占位图
 - **🆕 自动重试增强(V2.9.8)** - 3次指数退避+动态temperature+5类错误分类+每日20次上限
-- **🆕 CSS质量评分(V2.9.8)** - 7维度加权评分+60分及格线+低质量进人工审核队列+Prompt质量约束
-- **🆕 预设快捷应用(V2.9.8)** - 5套系统配色预设+theme.json presets+一键应用+撤销联动
-- **🆕 导出预览(V2.9.8)** - 导出前确认弹框+修改字段摘要(颜色/字体/布局/Logo)
+- **🆕 CSS质量评分(V2.9.8)** - 7→9维度加权评分+60/65分双线制+低质量进人工审核队列+Prompt质量约束
+- **🆕 预设快捷应用(V2.9.8)** - 5→12套系统配色预设+智能推荐+theme.json presets+一键应用+撤销联动+恢复默认
+- **🆕 导出预览(V2.9.8)** - 导出前确认弹框+修改字段摘要(颜色/字体/布局/Logo)+导出后3按钮快捷操作
 - **🆕 Pickr深色模式(V2.9.8)** - @media(prefers-color-scheme:dark)+[data-theme="dark"]双重覆盖
+- **🆕 Prompt行业风格(V2.9.8第二轮)** - 4行业配置config/theme_styles.php+行业Prompt构造+CSS组件提示
+- **🆕 CSS组件模式库(V2.9.8第二轮)** - CssComponentLibrary 10组件模式(vars/hero/card/button/nav/grid/spacing/price/article/footer)
+- **🆕 新手引导+折叠面板(V2.9.8第二轮)** - OnboardingGuide 3步引导+CollapsibleSection折叠+实时预览反馈
+- **🆕 模板变量扩展(V2.9.8第二轮)** - 5→10页面覆盖(标签/栏目/404/关于+contact字段)+自定义404路由
+- **🆕 撤销栈超时(V2.9.8第二轮)** - 15分钟未操作visibilitychange自动清空
+- **🆕 分析页时间筛选(V2.9.8第二轮)** - installTrendRange(7d/30d/90d/自定义)
 - **🆕 AI配图增强(V3.1)** - 批量配图+自动插入段落+发布自动配图+日配额控制，前端串行进度条
 - **🆕 AI SEO评分(V3.1)** - 纯算法0-100评分(5维度加权)，前后对比面板，批量SEO优化(3篇并发控制)，自动缓存回写
 - **🆕 质量检测卡片(V3.1)** - 维度评分条+改进建议一键执行+一键优化全部
@@ -578,7 +597,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
-| V2.9.8 | 2026-05-15 | **模力精修**: 字体本地化(5组woff2+theme-fonts.css+离线可用)/撤销重做(UndoManager 30步栈+快捷键+保存点)/AfterGenerate钩子(extractAssetPaths+skeletonCss+透明占位图)/自动重试增强(3次退避+动态temperature+5类错误分类+每日20次上限)/CSS质量7维度评分器(60分及格+低质量人工审核队列)/CSS质量Prompt增强(7项约束+4项禁止)/预设快捷应用(5套系统预设+theme.json解析+撤销联动)/导出预览(confirm弹框+修改字段摘要)/Pickr深色模式/postMessage HTTPS文档/定制率基数修复/checkConflict修复 |
+| V2.9.8 | 2026-05-15 | **模力精修** — 两轮交付：第一轮(12/12): 字体本地化(5组woff2)/撤销重做(UndoManager 30步栈)/AfterGenerate钩子/自动重试增强(3次退避+动态temperature)/CSS质量7维度评分器(60分及格)/CSS质量Prompt增强/预设快捷应用(5套)/导出预览/Pickr深色模式/postMessage文档。第二轮(9+6项): Prompt行业风格加强(4行业配置)/CSS组件模式库(CssComponentLibrary 10组件)/评分器9维度+双线制(新65/历史60)/预设5→12套+智能推荐/3步新手引导+折叠面板/导出后3按钮快捷操作/模板变量5→10页面/撤销栈15分钟清空/恢复默认API+安装引导+分析页时间筛选 |
 | V2.9.7 | 2026-05-15 | **模力定制**: AI主题6缺陷根治(Prompt完善+验证器+搜索高亮)/模板可视化定制(19个CSS变量+Pickr颜色选择器+6组字体预设+布局选项+Logo上传+iframe实时预览+postMessage+变体管理)/导出导入含定制数据/数据分析(安装排行+趋势+定制偏好+评分分布+ECharts+CSV导出) |
 | V3.1.0 | 2026-05-14 | AI内容增强: 批量配图+发布自动配图+日配额控制/SEO评分算法(0-100)+前后对比+批量SEO(3并发)+来源分析饼图/质量卡片+建议执行+社交分享Modal+前台分享统计/5种可配置写作风格。模板生态: 批量生产流水线(5行业+质量自检+审核闭环)/市场前台(10套预埋+OSS/CDN+一键安装+回滚)/管理增强(评分收藏+版本检测+分类CRUD+日志)。Phase 3.5L: 安全测试11用例+SEO缓存回写3触发点+编码根治7层防护 |
 | V3.0 Phase 3 | 2026-05-13 | 体验完善+生态基座: AI模板对话迭代(多轮对话+局部重生成+版本管理)/暗色模式全站(43+文件CSS变量替换)/8新组件(Tabs/Dropdown/DatePicker/DataTable等13组件)/多bundle打包(4bundle)/主题导入导出(ThemePackageService)/测试基础设施(PHPUnit+Playwright)/路由补全(21路由) |
