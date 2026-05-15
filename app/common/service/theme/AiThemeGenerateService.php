@@ -86,7 +86,7 @@ class AiThemeGenerateService
      * @param int $recordId 任务记录ID
      * @return array ['success'=>bool, 'message'=>string, 'record_id'=>int]
      */
-    public function executeTask(int $recordId): array
+    public function executeTask(int $recordId, ?float $overrideTemp = null): array
     {
         $record = AiThemeRecord::find($recordId);
         if (!$record) {
@@ -107,7 +107,7 @@ class AiThemeGenerateService
             // 2. 调用LLM生成
             $systemPrompt = $this->getSystemPrompt();
             $maxTokens = (int) config('ai.theme_generate.max_tokens', 8192);
-            $temperature = (float) config('ai.theme_generate.temperature', 0.5);
+            $temperature = $overrideTemp ?? (float) config('ai.theme_generate.temperature', 0.5);
 
             $llmResponse = $this->getProvider()->write($prompt, [
                 'system_prompt' => $systemPrompt,
@@ -175,9 +175,9 @@ class AiThemeGenerateService
     }
 
     /**
-     * 重新执行失败的任务
+     * V2.9.8 B-2: 重新执行失败的任务（增强版：3次指数退避+动态temperature+错误分类+每日上限）
      */
-    public function retryTask(int $recordId): array
+    public function retryTask(int $recordId, int $maxRetries = 3): array
     {
         $record = AiThemeRecord::find($recordId);
         if (!$record) {
@@ -194,15 +194,96 @@ class AiThemeGenerateService
             return ['success' => false, 'message' => '当前状态不允许重试'];
         }
 
-        // 重置状态为生成中
-        $record->status = AiThemeRecord::STATUS_GENERATING;
-        $record->retry_count = (int) $record->retry_count + 1;
-        $record->error_msg = null;
+        // 每日重试上限检查
+        $dailyLimit = (int) config('ai.retry_daily_limit', 20);
+        $todayCount = AiThemeRecord::where('retry_count', '>', 0)
+            ->whereDay('update_time', date('Y-m-d'))
+            ->count();
+        if ($todayCount >= $dailyLimit) {
+            Log::warning("[AiThemeGenerate] 每日重试上限触发: {$todayCount}/{$dailyLimit}");
+            return ['success' => false, 'message' => '今日重试次数已达上限(' . $dailyLimit . ')，请明日再试'];
+        }
+
+        $backoff = [1, 3, 5];      // 退避间隔（秒）
+        $temperatures = [0.7, 0.8, 0.9]; // 动态temperature
+        $errors = [];
+        $attempts = 0;
+
+        for ($i = 0; $i <= $maxRetries; $i++) {
+            if ($i > 0) {
+                $sleepTime = $backoff[min($i - 1, count($backoff) - 1)];
+                Log::info("[AiThemeGenerate] 重试退避: record_id={$recordId}, attempt={$i}, sleep={$sleepTime}s");
+                sleep($sleepTime);
+            }
+
+            // 重置状态
+            $record->status = AiThemeRecord::STATUS_GENERATING;
+            $record->retry_count = (int) $record->retry_count + 1;
+            $record->error_msg = null;
+            $record->save();
+
+            $temp = $i > 0 ? $temperatures[min($i - 1, count($temperatures) - 1)] : null;
+            $result = $this->executeTask($recordId, $temp);
+            $attempts++;
+
+            if ($result['success'] && ($result['validate']['passed'] ?? false)) {
+                Log::info("[AiThemeGenerate] 重试成功: record_id={$recordId}, attempts={$attempts}");
+                return [
+                    'success' => true,
+                    'message' => '重试成功（第' . $attempts . '次）',
+                    'record_id' => $recordId,
+                    'attempts' => $attempts,
+                ];
+            }
+
+            // 错误分类
+            $errMsg = $result['message'] ?? '未知错误';
+            $errors[] = [
+                'attempt' => $attempts,
+                'type' => $this->classifyError($errMsg, $result),
+                'message' => $errMsg,
+            ];
+
+            Log::warning("[AiThemeGenerate] 重试失败: record_id={$recordId}, attempt={$attempts}, type={$errors[count($errors)-1]['type']}");
+        }
+
+        // 全部失败
+        $lastError = $errors[count($errors) - 1]['message'] ?? '重试次数已耗尽';
+        $record->status = AiThemeRecord::STATUS_GENERATE_FAILED;
+        $record->error_msg = "[重试{$attempts}次均失败] " . $lastError;
         $record->save();
 
-        Log::info("[AiThemeGenerate] 任务重试: record_id={$recordId}, retry_count={$record->retry_count}");
+        return [
+            'success' => false,
+            'message' => '重试' . $attempts . '次后仍失败: ' . $lastError,
+            'record_id' => $recordId,
+            'attempts' => $attempts,
+            'errors' => $errors,
+        ];
+    }
 
-        return $this->executeTask($recordId);
+    /**
+     * 错误分类
+     */
+    protected function classifyError(string $error, array $result = []): string
+    {
+        $lower = strtolower($error);
+        if (str_contains($lower, 'timeout') || str_contains($lower, 'timed out') || str_contains($lower, '连接超时')) {
+            return 'llm_timeout';
+        }
+        if (str_contains($lower, 'refused') || str_contains($lower, 'safety') || str_contains($lower, 'rejected')) {
+            return 'llm_rejected';
+        }
+        if (str_contains($lower, 'tpl-ai-') || str_contains($lower, '语法') || str_contains($lower, 'syntax')) {
+            return 'syntax_validation';
+        }
+        if (str_contains($lower, 'quality_low') || str_contains($lower, '质量')) {
+            return 'quality_failed';
+        }
+        if (!$result['success'] ?? true) {
+            return 'generation_failed';
+        }
+        return 'unknown';
     }
 
     /**
@@ -318,7 +399,221 @@ class AiThemeGenerateService
             }
         }
 
+        // V2.9.8 B-1: AfterGenerate钩子扩展
+        try {
+            $this->extractAssetPathsAndSync($themeName, $baseDir);
+            $this->generateSkeletonCss($themeName, $baseDir);
+            $this->generateTransparentPlaceholders($themeName);
+            Log::info("[AiThemeGenerate] AfterGenerate钩子完成: theme={$themeName}");
+        } catch (\Throwable $e) {
+            Log::warning("[AiThemeGenerate] AfterGenerate钩子异常: theme={$themeName}, error=" . $e->getMessage());
+        }
+
         Log::info("[AiThemeGenerate] 皮肤目录初始化完成: theme={$themeName}");
+    }
+
+    /**
+     * V2.9.8 B-1: 从HTML提取CSS/JS路径并同步到皮肤目录
+     */
+    protected function extractAssetPathsAndSync(string $themeName, string $baseDir): void
+    {
+        $skinBase = root_path() . 'public' . DIRECTORY_SEPARATOR . 'skin'
+            . DIRECTORY_SEPARATOR . 'themes'
+            . DIRECTORY_SEPARATOR . $themeName;
+
+        $cssPaths = [];
+        $jsPaths = [];
+
+        foreach (['pc', 'mobile'] as $device) {
+            $htmlDir = $baseDir . DIRECTORY_SEPARATOR . $device;
+            if (!is_dir($htmlDir)) continue;
+
+            foreach (glob($htmlDir . '/*.html') as $htmlFile) {
+                $content = file_get_contents($htmlFile);
+                // 提取CSS路径
+                if (preg_match_all('/href=["\']([^"\']+\.css[^"\']*?)["\']/i', $content, $m)) {
+                    foreach ($m[1] as $path) {
+                        $normalized = $this->normalizeSkinPath($path, $themeName);
+                        if ($normalized) $cssPaths[] = $normalized;
+                    }
+                }
+                // 提取JS路径
+                if (preg_match_all('/src=["\']([^"\']+\.js[^"\']*?)["\']/i', $content, $m)) {
+                    foreach ($m[1] as $path) {
+                        $normalized = $this->normalizeSkinPath($path, $themeName);
+                        if ($normalized) $jsPaths[] = $normalized;
+                    }
+                }
+            }
+        }
+
+        // 创建空占位文件
+        foreach (array_unique($cssPaths) as $path) {
+            $fullPath = $skinBase . DIRECTORY_SEPARATOR . 'pc' . DIRECTORY_SEPARATOR . $path;
+            $dir = dirname($fullPath);
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+            if (!file_exists($fullPath)) {
+                file_put_contents($fullPath, "/* Auto-generated CSS placeholder for {$themeName} */\n", LOCK_EX);
+            }
+        }
+        foreach (array_unique($jsPaths) as $path) {
+            $fullPath = $skinBase . DIRECTORY_SEPARATOR . 'pc' . DIRECTORY_SEPARATOR . $path;
+            $dir = dirname($fullPath);
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+            if (!file_exists($fullPath)) {
+                file_put_contents($fullPath, "/* Auto-generated JS placeholder for {$themeName} */\n", LOCK_EX);
+            }
+        }
+    }
+
+    /**
+     * 规范化皮肤路径（{$skin} → 相对路径）
+     */
+    protected function normalizeSkinPath(string $path, string $themeName): ?string
+    {
+        // 处理 {$skin} 变量
+        if (strpos($path, '{$skin}') !== false || strpos($path, '{\\$skin}') !== false) {
+            $path = preg_replace('/\{\\?\$skin\}/', '', $path);
+            $path = ltrim($path, '/');
+        }
+        // 只保留相对路径
+        if (strpos($path, 'http') === 0 || strpos($path, '//') === 0) {
+            return null;
+        }
+        $path = ltrim($path, '/');
+        // 过滤掉 assets/lib/ 等外部资源
+        if (strpos($path, 'assets/') === 0 || strpos($path, 'skin/') === 0) {
+            return null;
+        }
+        return $path;
+    }
+
+    /**
+     * V2.9.8 B-1: 从HTML class名推导基础CSS骨架
+     */
+    protected function generateSkeletonCss(string $themeName, string $baseDir): void
+    {
+        $classes = [];
+        foreach (['pc', 'mobile'] as $device) {
+            $htmlDir = $baseDir . DIRECTORY_SEPARATOR . $device;
+            if (!is_dir($htmlDir)) continue;
+            foreach (glob($htmlDir . '/*.html') as $htmlFile) {
+                $content = file_get_contents($htmlFile);
+                if (preg_match_all('/class=["\']([^"\']+)["\']/i', $content, $m)) {
+                    foreach ($m[1] as $classAttr) {
+                        foreach (explode(' ', $classAttr) as $c) {
+                            $c = trim($c);
+                            if ($c && !str_starts_with($c, 'tpl-') && !str_starts_with($c, 'ai-')) {
+                                $classes[] = $c;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $classes = array_unique($classes);
+
+        // 按命名模式分类
+        $patterns = [
+            'layout'  => '/^(container|wrapper|layout|grid|row|col|main-wrap)/i',
+            'header'  => '/^(header|nav|navbar|menu|topbar|site-header)/i',
+            'content' => '/^(content|main|article|post|section|page|entry)/i',
+            'footer'  => '/^(footer|bottom|copyright|site-footer)/i',
+            'widget'  => '/^(widget|sidebar|aside|panel|card|box)/i',
+            'button'  => '/^(btn|button|submit)/i',
+        ];
+
+        $groups = array_fill_keys(array_keys($patterns), []);
+        foreach ($classes as $class) {
+            foreach ($patterns as $group => $pattern) {
+                if (preg_match($pattern, $class)) {
+                    $groups[$group][] = $class;
+                    break;
+                }
+            }
+        }
+
+        // 读取themeColor
+        $themeColor = '#3b82f6';
+        $jsonPath = $baseDir . DIRECTORY_SEPARATOR . 'theme.json';
+        if (file_exists($jsonPath)) {
+            $json = json_decode(file_get_contents($jsonPath), true);
+            if (!empty($json['color'])) $themeColor = $json['color'];
+        }
+        $namedColors = ['red'=>'#e53935','green'=>'#43a047','blue'=>'#1a73e8','yellow'=>'#fdd835','orange'=>'#fb8c00','purple'=>'#8e24aa','pink'=>'#d81b60'];
+        if (isset($namedColors[$themeColor])) $themeColor = $namedColors[$themeColor];
+
+        $cssLines = ["/* V2.9.8 Auto-generated skeleton CSS for {$themeName} */", ""];
+        $added = [];
+
+        $rules = [
+            'layout'  => "{ max-width: 1200px; margin: 0 auto; padding: 0 15px; }",
+            'header'  => "{ background: {$themeColor}; color: #fff; padding: 15px 0; }",
+            'content' => "{ padding: 40px 0; }",
+            'footer'  => "{ background: #f8f9fa; padding: 20px 0; text-align: center; color: #666; }",
+            'widget'  => "{ background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; }",
+            'button'  => "{ display: inline-block; padding: 8px 16px; background: {$themeColor}; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; }",
+        ];
+
+        foreach ($groups as $group => $groupClasses) {
+            if (empty($groupClasses)) continue;
+            $cssLines[] = "/* {$group} */";
+            foreach ($groupClasses as $class) {
+                if (isset($added[$class])) continue;
+                $added[$class] = true;
+                $cssLines[] = ".{$class} " . ($rules[$group] ?? "{ }");
+            }
+            $cssLines[] = "";
+        }
+
+        // 追加hover和响应式
+        $cssLines[] = "/* V2.9.8 B-1: 交互与响应式骨架 */";
+        $cssLines[] = ".btn:hover, .button:hover { opacity: 0.9; transform: translateY(-1px); }";
+        $cssLines[] = ".card:hover, .widget:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }";
+        $cssLines[] = "@media (max-width: 768px) { .container, .wrapper { padding: 0 10px; } }";
+        $cssLines[] = "";
+
+        $skinBase = root_path() . 'public' . DIRECTORY_SEPARATOR . 'skin'
+            . DIRECTORY_SEPARATOR . 'themes'
+            . DIRECTORY_SEPARATOR . $themeName;
+        foreach (['pc', 'mobile'] as $device) {
+            $cssFile = $skinBase . DIRECTORY_SEPARATOR . $device . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'style.css';
+            if (file_exists($cssFile)) {
+                $existing = file_get_contents($cssFile);
+                if (strpos($existing, 'Auto-generated skeleton') === false) {
+                    file_put_contents($cssFile, $existing . "\n" . implode("\n", $cssLines), LOCK_EX);
+                }
+            }
+        }
+    }
+
+    /**
+     * V2.9.8 B-1: 生成1x1透明PNG占位图（替代彩色SVG）
+     */
+    protected function generateTransparentPlaceholders(string $themeName): void
+    {
+        // 1x1 transparent PNG (base64 encoded)
+        $transparentPng = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+        $skinBase = root_path() . 'public' . DIRECTORY_SEPARATOR . 'skin'
+            . DIRECTORY_SEPARATOR . 'themes'
+            . DIRECTORY_SEPARATOR . $themeName;
+
+        foreach (['pc', 'mobile'] as $device) {
+            $imgDir = $skinBase . DIRECTORY_SEPARATOR . $device . DIRECTORY_SEPARATOR . 'images';
+            if (!is_dir($imgDir)) continue;
+            foreach (glob($imgDir . '/*') as $file) {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if (in_array($ext, ['svg', 'png', 'jpg', 'jpeg'])) {
+                    // 如果现有占位图是SVG（彩色），替换为透明PNG
+                    $content = file_get_contents($file);
+                    if (strpos($content, '<svg') !== false || strpos($content, '<SVG') !== false) {
+                        $newPath = preg_replace('/\.svg$/i', '.png', $file);
+                        file_put_contents($newPath, $transparentPng, LOCK_EX);
+                        @unlink($file);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -414,6 +709,43 @@ class AiThemeGenerateService
 - var(--border) — 边框色
 - var(--radius) — 圆角
 - var(--shadow) — 阴影
+
+## V2.9.8 B-3: CSS质量要求（强制性最低标准）
+生成的CSS必须满足以下视觉质量标准，否则会被判定为低质量：
+
+1. **CSS变量使用**（至少10次var()引用）
+   - :root中声明--primary/--bg/--text等，并在多处使用var()引用
+   
+2. **过渡动画**（至少3处transition/animation）
+   - 按钮:hover时transition: all 0.3s
+   - 卡片:hover时transform: translateY(-2px) + box-shadow变化
+   - 导航链接:hover时颜色渐变
+   
+3. **盒子阴影**（至少1处box-shadow）
+   - 卡片阴影: box-shadow: 0 2px 8px rgba(0,0,0,0.1)
+   - 或按钮悬停发光效果
+   
+4. **响应式媒体查询**（至少1组@media）
+   - @media (max-width: 768px) { ...移动端适配... }
+   
+5. **颜色层次**（至少4种不同色值）
+   - 主色 + 辅色 + 背景色 + 文字色 + 强调色，各有明度变化
+   - 避免全站只有1-2种颜色
+   
+6. **交互伪类**（至少3处:hover/:active/:focus）
+   - 按钮必须有:hover（加深/发光）和:active（缩小）
+   - 导航必须有:hover + .active高亮
+   - 输入框必须有:focus（边框变色）
+   
+7. **间距体系**（至少5处一致的padding/margin）
+   - 使用统一的间距值（如8px/16px/24px/32px）
+   - 避免随机杂乱的间距
+
+### CSS禁止项（会导致质量评分降低）
+- ❌ 纯色平铺背景无纹理/渐变/卡片分区
+- ❌ 按钮无:hover效果
+- ❌ 导航栏无当前页面高亮
+- ❌ 内容区域无统一间距
 
 ## 正确模板示例
 

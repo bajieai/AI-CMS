@@ -194,6 +194,22 @@ class ThemeCustomController extends AdminBaseController
     }
 
     /**
+     * V2.9.8 C-1: 获取配色预设（系统+theme.json）
+     * GET /admin/theme_custom/colorPresets?theme=xxx
+     */
+    public function colorPresets()
+    {
+        $themeId = $this->request->param('theme', '');
+        if (empty($themeId)) {
+            return json(['code' => 1, 'msg' => '缺少theme参数']);
+        }
+        return json([
+            'code' => 0,
+            'data' => $this->customService->getAvailablePresets($themeId),
+        ]);
+    }
+
+    /**
      * 生成预览CSS（不保存，仅用于预览）
      * POST /admin/theme_custom/preview
      * Body: {data: {"--primary": "#xxx", ...}}
@@ -301,6 +317,86 @@ class ThemeCustomController extends AdminBaseController
         }
 
         return download($zipPath, $themeId . '_custom.zip');
+    }
+
+    /**
+     * V2.9.8 C-2: 导出预览——分析修改字段
+     * GET /admin/theme_custom/previewExport?theme=xxx
+     */
+    public function previewExport()
+    {
+        $themeId = $this->request->param('theme', '');
+        if (empty($themeId)) {
+            return json(['code' => 1, 'msg' => '缺少theme参数']);
+        }
+
+        $custom = $this->customService->getActiveCustomization($themeId);
+        if (empty($custom)) {
+            return json(['code' => 0, 'data' => ['has_customization' => false, 'message' => '无定制数据']]);
+        }
+
+        $variants = $this->customService->getVariants($themeId);
+        $activeVariant = '';
+        foreach ($variants as $v) {
+            if ($v['is_active'] ?? false) {
+                $activeVariant = $v['variant_name'];
+                break;
+            }
+        }
+
+        $modified = $this->analyzeModifiedFields($custom);
+        $summary = $this->buildExportSummary($modified);
+
+        return json(['code' => 0, 'data' => [
+            'has_customization' => true,
+            'theme_name' => $themeId,
+            'variant_count' => count($variants),
+            'active_variant' => $activeVariant,
+            'modified_fields' => $modified,
+            'summary' => $summary,
+        ]]);
+    }
+
+    /**
+     * 分析哪些字段被修改了
+     */
+    protected function analyzeModifiedFields(array $custom): array
+    {
+        $modified = ['colors' => [], 'fonts' => [], 'layout' => [], 'logo' => false];
+        $colorVars = ['--primary','--secondary','--accent','--bg','--bg-secondary','--text','--text-secondary','--border','--btn-primary-bg','--btn-primary-hover'];
+        $fontVars = ['--font-heading','--font-body'];
+        $layoutVars = ['--sidebar-pos','--content-width','--header-style'];
+
+        foreach ($custom as $key => $val) {
+            if (empty($val)) continue;
+            if (in_array($key, $colorVars, true)) $modified['colors'][] = $key;
+            elseif (in_array($key, $fontVars, true)) $modified['fonts'][] = $key;
+            elseif (in_array($key, $layoutVars, true)) $modified['layout'][] = $key;
+            elseif ($key === '--logo-url') $modified['logo'] = true;
+            elseif ($key === '--logo-max-height') $modified['logo'] = true;
+        }
+        return $modified;
+    }
+
+    /**
+     * 构建导出摘要文本
+     */
+    protected function buildExportSummary(array $modified): string
+    {
+        $parts = [];
+        if (!empty($modified['colors'])) {
+            $parts[] = '颜色调整(' . count($modified['colors']) . '项)';
+        }
+        if (!empty($modified['fonts'])) {
+            $parts[] = '字体变更(' . count($modified['fonts']) . '项)';
+        }
+        if (!empty($modified['layout'])) {
+            $parts[] = '布局调整(' . count($modified['layout']) . '项)';
+        }
+        if ($modified['logo']) {
+            $parts[] = 'Logo已上传';
+        }
+        return empty($parts) ? '无定制修改' : implode(' + ', $parts);
     }
 
     /**

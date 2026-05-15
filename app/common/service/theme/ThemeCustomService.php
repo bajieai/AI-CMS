@@ -162,6 +162,23 @@ class ThemeCustomService
     }
 
     /**
+     * V2.9.8 C-1: 获取可用预设（系统预设 + theme.json presets）
+     *
+     * @param string $themeId
+     * @return array ['system'=>[], 'theme'=>[]]
+     */
+    public function getAvailablePresets(string $themeId): array
+    {
+        $themeJson = $this->readThemeJson($themeId);
+        $themePresets = $themeJson['presets'] ?? [];
+
+        return [
+            'system' => ThemeCustomization::SYSTEM_PRESETS,
+            'theme'  => $themePresets,
+        ];
+    }
+
+    /**
      * 生成预览CSS（不保存，仅用于预览）
      *
      * @param array $customData

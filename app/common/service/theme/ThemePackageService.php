@@ -313,8 +313,10 @@ class ThemePackageService
         return [
             'theme_exists'      => $themeExists,
             'custom_exists'     => $customExists,
-            'has_conflict'      => $themeExists,
-            'suggestion'        => $themeExists ? '同名主题已存在，可选择覆盖或重命名' : '无冲突',
+            'has_conflict'      => $themeExists || $customExists,
+            'suggestion'        => ($themeExists || $customExists)
+                ? '同名主题或定制数据已存在，可选择覆盖或重命名'
+                : '无冲突',
         ];
     }
 }

@@ -221,10 +221,8 @@ function loadScoreDistribution() {
         const dist = d.distribution || [];
         const names = dist.map(function(item) { return item.rating + '星'; });
         const values = dist.map(function(item) { return item.count; });
-        const total = values.reduce(function(a, b) { return a + b; }, 0);
-        const customCount = parseInt($('#statCustomThemes').text()) || 0;
-        const rate = total > 0 ? Math.round(customCount / total * 100) : 0;
-        $('#statCustomRate').text(rate + '%');
+        // V2.9.8: 定制率由后端计算（安装总数为分母），前端直接使用
+        $('#statCustomRate').text(d.customization_rate || '-');
 
         const chart = echarts.init(document.getElementById('chartScore'));
         chart.setOption({

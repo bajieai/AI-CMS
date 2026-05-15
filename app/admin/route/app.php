@@ -291,10 +291,12 @@ Route::post('theme_custom/reset$', '\app\admin\controller\ThemeCustomController@
 Route::post('theme_custom/saveAs$', '\app\admin\controller\ThemeCustomController@saveAs');
 Route::get('theme_custom/variants$', '\app\admin\controller\ThemeCustomController@variants');
 Route::get('theme_custom/presets$', '\app\admin\controller\ThemeCustomController@presets');
+Route::get('theme_custom/colorPresets$', '\app\admin\controller\ThemeCustomController@colorPresets');
 Route::post('theme_custom/preview$', '\app\admin\controller\ThemeCustomController@preview');
 Route::get('theme_custom/panel$', '\app\admin\controller\ThemeCustomController@panel');
 Route::post('theme_custom/uploadLogo$', '\app\admin\controller\ThemeCustomController@uploadLogo');
 Route::get('theme_custom/export$', '\app\admin\controller\ThemeCustomController@export');
+Route::get('theme_custom/previewExport$', '\app\admin\controller\ThemeCustomController@previewExport');
 Route::get('theme_custom/checkConflict$', '\app\admin\controller\ThemeCustomController@checkConflict');
 
 // V2.9.7 Phase 3: 主题数据分析路由

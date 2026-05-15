@@ -6,6 +6,7 @@ namespace app\admin\controller;
 use app\common\model\ThemeLog;
 use app\common\model\ThemeRate;
 use app\common\model\ThemeCustomization;
+use app\common\model\ThemeInfo;
 use think\facade\Db;
 
 /**
@@ -138,10 +139,16 @@ class ThemeAnalysisController extends AdminBaseController
         }
 
         $customizedThemes = count($themeIds);
+        $installedCount   = ThemeInfo::where('is_installed', 1)->count();
+        $customizationRate = $installedCount > 0
+            ? round($customizedThemes / $installedCount * 100, 1) . '%'
+            : '-';
 
         return json(['code' => 0, 'data' => [
             'total_customizations' => count($customizations),
             'customized_themes'    => $customizedThemes,
+            'customization_rate'   => $customizationRate,
+            'installed_count'      => $installedCount,
             'color_changes'        => $colorChanges,
             'font_changes'         => $fontChanges,
             'layout_changes'       => $layoutChanges,

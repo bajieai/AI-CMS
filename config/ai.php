@@ -47,6 +47,9 @@ return [
         'temperature'   => (float) env('ai.theme_generate.temperature', 0.5),
     ],
 
+    // V2.9.8 B-2: 自动重试每日上限
+    'retry_daily_limit' => (int) env('ai.retry_daily_limit', 20),
+
     // ==================== 行业分类配置（V3.1-下一阶段 Sprint 14） ====================
     'theme_industry_categories' => [
         'enterprise' => [

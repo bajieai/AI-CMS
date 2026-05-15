@@ -17,8 +17,135 @@
         debounceTimer: null,
     };
 
+    // V2.9.8 A-2: 撤销/重做管理器
+    const UndoManager = {
+        stack: [],
+        redoStack: [],
+        pointer: -1,
+        maxDepth: 30,
+        savePointIndex: -1,
+        debounceTimer: null,
+
+        // 深拷贝（structuredClone优先，降级JSON）
+        clone(obj) {
+            if (typeof window.structuredClone === 'function') {
+                try { return window.structuredClone(obj); } catch(e) {}
+            }
+            return JSON.parse(JSON.stringify(obj));
+        },
+
+        // 捕获当前状态的快照
+        snapshot() {
+            return {
+                customization: this.clone(state.customization),
+                currentVariant: state.currentVariant,
+            };
+        },
+
+        // 推入撤销栈（防抖150ms）
+        push() {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                this._doPush();
+            }, 150);
+        },
+
+        _doPush() {
+            const snap = this.snapshot();
+            // 如果与当前状态相同，不重复记录
+            if (this.pointer >= 0) {
+                const last = this.stack[this.pointer];
+                if (JSON.stringify(last.customization) === JSON.stringify(snap.customization)) {
+                    return;
+                }
+            }
+            // 丢弃pointer之后的状态（重做栈）
+            if (this.pointer < this.stack.length - 1) {
+                this.stack = this.stack.slice(0, this.pointer + 1);
+            }
+            this.stack.push(snap);
+            // 超出深度时丢弃最旧的
+            if (this.stack.length > this.maxDepth) {
+                this.stack.shift();
+                if (this.savePointIndex >= 0) this.savePointIndex--;
+            } else {
+                this.pointer++;
+            }
+            this.redoStack = [];
+            this.updateUI();
+        },
+
+        // 撤销
+        undo() {
+            if (!this.canUndo()) return;
+            this.pointer--;
+            this._restore(this.stack[this.pointer]);
+            this.updateUI();
+        },
+
+        // 重做
+        redo() {
+            if (!this.canRedo()) return;
+            this.pointer++;
+            if (this.pointer < this.stack.length) {
+                this._restore(this.stack[this.pointer]);
+            }
+            this.updateUI();
+        },
+
+        _restore(snap) {
+            state.customization = this.clone(snap.customization);
+            applyCustomizationToUI();
+            sendCustomToPreview();
+        },
+
+        canUndo() { return this.pointer > 0; },
+        canRedo() { return this.pointer < this.stack.length - 1; },
+
+        hasUnsavedChanges() {
+            return this.pointer !== this.savePointIndex;
+        },
+
+        markSavePoint() {
+            this.savePointIndex = this.pointer;
+            this.updateUI();
+        },
+
+        clear() {
+            this.stack = [];
+            this.redoStack = [];
+            this.pointer = -1;
+            this.savePointIndex = -1;
+            this.updateUI();
+        },
+
+        updateUI() {
+            const undoBtn = document.getElementById('btnUndo');
+            const redoBtn = document.getElementById('btnRedo');
+            const undoCount = document.getElementById('undoCount');
+            const redoCount = document.getElementById('redoCount');
+            const saveStatus = document.getElementById('saveStatus');
+            if (undoBtn) undoBtn.disabled = !this.canUndo();
+            if (redoBtn) redoBtn.disabled = !this.canRedo();
+            if (undoCount) undoCount.textContent = this.pointer > 0 ? this.pointer : '';
+            if (redoCount) redoCount.textContent = this.pointer < this.stack.length - 1 ? (this.stack.length - 1 - this.pointer) : '';
+            if (saveStatus) {
+                saveStatus.textContent = this.hasUnsavedChanges() ? '● 未保存' : '✓ 已保存';
+                saveStatus.style.color = this.hasUnsavedChanges() ? '#ef4444' : '#22c55e';
+            }
+        },
+
+        init() {
+            // 初始状态入栈
+            this.stack.push(this.snapshot());
+            this.pointer = 0;
+            this.savePointIndex = 0;
+            this.updateUI();
+        }
+    };
+
     // === 初始化 ===
-    $(document).ready(function() {
+        $(document).ready(function() {
         const params = new URLSearchParams(window.location.search);
         state.themeId = params.get('theme') || '';
 
@@ -32,8 +159,34 @@
         loadPresets();
         setupEventListeners();
         loadPreview();
-        // 设置导出按钮链接
-        $('#exportBtn').attr('href', '/admin/theme_custom/export?theme=' + encodeURIComponent(state.themeId));
+        // V2.9.8 C-2: 导出按钮绑定预览确认
+        $('#exportBtn').on('click', function(e) {
+            e.preventDefault();
+            handleExportWithPreview();
+        });
+
+        // V2.9.8 A-2: 初始化撤销栈
+        UndoManager.init();
+
+        // V2.9.8 A-2: 键盘快捷键 Ctrl+Z / Ctrl+Shift+Z
+        $(document).on('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    UndoManager.redo();
+                } else {
+                    UndoManager.undo();
+                }
+            }
+        });
+
+        // V2.9.8 A-2: 关闭前未保存提示
+        window.addEventListener('beforeunload', function(e) {
+            if (UndoManager.hasUnsavedChanges()) {
+                e.preventDefault();
+                e.returnValue = '有未保存的定制变更，确定要离开吗？';
+            }
+        });
     });
 
     // === API调用 ===
@@ -76,7 +229,78 @@
                 state.presets = res.data || {};
             }
         });
+        // V2.9.8 C-1: 加载配色预设
+        apiGet('theme_custom/colorPresets', { theme: state.themeId }).done(function(res) {
+            if (res.code === 0) {
+                renderColorPresets(res.data || {});
+            }
+        });
     }
+
+    // V2.9.8 C-1: 渲染配色预设卡片
+    function renderColorPresets(data) {
+        const $container = $('#presetGrid');
+        if (!$container.length) return;
+        $container.empty();
+
+        const systemPresets = data.system || [];
+        const themePresets = data.theme || [];
+        const all = [];
+
+        systemPresets.forEach(function(p, i) {
+            all.push({ type: 'system', index: i, preset: p });
+        });
+        themePresets.forEach(function(p, i) {
+            all.push({ type: 'theme', index: i, preset: p });
+        });
+
+        if (all.length === 0) {
+            $container.append('<div class="text-muted small">暂无预设方案</div>');
+            return;
+        }
+
+        all.forEach(function(item) {
+            const p = item.preset;
+            const color = p.preview_color || (p.css_vars && p.css_vars['--primary']) || '#3b82f6';
+            $container.append(
+                '<div class="preset-card" onclick="applyColorPreset(' + item.index + ', \'' + item.type + '\')" title="' + (p.description || p.name) + '">' +
+                '<div class="preset-swatch" style="background:' + color + ';"></div>' +
+                '<div class="preset-name">' + p.name + '</div>' +
+                '</div>'
+            );
+        });
+    }
+
+    // V2.9.8 C-1: 应用配色预设
+    window.applyColorPreset = function(index, type) {
+        apiGet('theme_custom/colorPresets', { theme: state.themeId }).done(function(res) {
+            if (res.code !== 0) return;
+            const data = res.data || {};
+            const presets = type === 'system' ? (data.system || []) : (data.theme || []);
+            const preset = presets[index];
+            if (!preset || !preset.css_vars) return;
+
+            // A-2: 撤销联动——应用前推入撤销栈
+            UndoManager.push();
+
+            Object.entries(preset.css_vars).forEach(function(entry) {
+                const key = entry[0];
+                const value = entry[1];
+                state.customization[key] = value;
+                // 同步更新Pickr颜色
+                if (state.pickrs[key] && !value.startsWith('var(')) {
+                    try { state.pickrs[key].setColor(value); } catch(e) {}
+                }
+                // 同步更新HEX输入框
+                const hid = 'hex-' + key.replace(/^--/, '').replace(/-/g, '_');
+                $('#' + hid).val(value);
+            });
+
+            applyCustomizationToUI();
+            debouncedPreview();
+            showToast('已应用预设: ' + preset.name, 'success');
+        });
+    };
 
     // === 渲染颜色选择器 ===
     function renderColorPickers() {
@@ -168,6 +392,7 @@
             const hex = color.toHEXA().toString();
             $('#' + hid).val(hex);
             state.customization[varName] = hex;
+            UndoManager.push();
             debouncedPreview();
         });
 
@@ -179,6 +404,7 @@
             if (/^#[0-9a-fA-F]{6}$/.test(val)) {
                 pickr.setColor(val);
                 state.customization[varName] = val;
+                UndoManager.push();
                 debouncedPreview();
             }
         });
@@ -205,6 +431,7 @@
             if (preset) {
                 state.customization['--font-heading'] = preset.heading;
                 $('#headingPreview').css('font-family', preset.heading);
+                UndoManager.push();
                 debouncedPreview();
             }
         });
@@ -215,6 +442,7 @@
             if (preset) {
                 state.customization['--font-body'] = preset.body;
                 $('#bodyPreview').css('font-family', preset.body);
+                UndoManager.push();
                 debouncedPreview();
             }
         });
@@ -241,6 +469,7 @@
             $container.find('.layout-opt').removeClass('active');
             $(this).addClass('active');
             state.customization[cssVar] = String($(this).data('value'));
+            UndoManager.push();
             debouncedPreview();
         });
     }
@@ -372,6 +601,7 @@
             data: JSON.stringify(state.customization),
         }).done(function(res) {
             if (res.success || res.code === 0) {
+                UndoManager.markSavePoint();
                 showToast('定制已保存并应用', 'success');
                 refreshPreview();
             } else {
@@ -390,6 +620,8 @@
                 showToast('已重置为默认', 'success');
                 state.customization = {};
                 applyCustomizationToUI();
+                UndoManager.clear();
+                UndoManager.init();
                 const cssVars = state.defaults.css_vars || {};
                 Object.entries(state.pickrs).forEach(function(entry) {
                     if (cssVars[entry[0]] && cssVars[entry[0]].default) {
@@ -493,6 +725,7 @@
             const val = $(this).val();
             $('#logoHeightVal').text(val);
             state.customization['--logo-max-height'] = val + 'px';
+            UndoManager.push();
             debouncedPreview();
         });
 
@@ -535,6 +768,7 @@
                 $('#logoPreviewImg').attr('src', res.data.url);
                 $('#logoPreviewWrap').show();
                 $('#logoUploadArea').hide();
+                UndoManager.push();
                 debouncedPreview();
                 showToast('Logo上传成功', 'success');
             } else {
@@ -551,7 +785,37 @@
         $('#logoPreviewWrap').hide();
         $('#logoUploadArea').show();
         $('#logoFileInput').val('');
+        UndoManager.push();
         debouncedPreview();
+    };
+
+    // V2.9.8 C-2: 导出前预览确认
+    window.handleExportWithPreview = function() {
+        $.getJSON('/admin/theme_custom/previewExport?theme=' + encodeURIComponent(state.themeId), function(res) {
+            if (res.code !== 0) {
+                showToast(res.msg || '预览加载失败', 'danger');
+                return;
+            }
+            const d = res.data || {};
+            if (!d.has_customization) {
+                // 无定制数据，直接导出
+                window.location.href = '/admin/theme_custom/export?theme=' + encodeURIComponent(state.themeId);
+                return;
+            }
+            const confirmed = confirm(
+                '导出确认\n\n' +
+                '主题: ' + d.theme_name + '\n' +
+                '激活变体: ' + (d.active_variant || 'default') + '\n' +
+                '变体数量: ' + d.variant_count + '\n\n' +
+                '定制摘要: ' + d.summary + '\n\n' +
+                '确定要导出吗？'
+            );
+            if (confirmed) {
+                window.location.href = '/admin/theme_custom/export?theme=' + encodeURIComponent(state.themeId);
+            }
+        }).fail(function() {
+            showToast('预览请求失败', 'danger');
+        });
     };
 
     // === Toast提示 ===

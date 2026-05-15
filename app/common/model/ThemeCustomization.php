@@ -71,6 +71,72 @@ class ThemeCustomization extends Model
     ];
 
     /**
+     * V2.9.8 C-1: 系统级5套配色预设
+     */
+    public const SYSTEM_PRESETS = [
+        [
+            'name' => '活力橙',
+            'description' => '充满活力的暖橙色系',
+            'preview_color' => '#F97316',
+            'css_vars' => [
+                '--primary' => '#F97316', '--primary-hover' => '#EA580C',
+                '--accent' => '#FCD34D', '--bg' => '#FFF7ED',
+                '--bg-secondary' => '#FFEDD5', '--text' => '#431407',
+                '--text-secondary' => '#9A3412', '--border' => '#FED7AA',
+                '--shadow' => '0 2px 8px rgba(249,115,22,0.15)',
+            ],
+        ],
+        [
+            'name' => '沉稳黑',
+            'description' => '高端黑金风格',
+            'preview_color' => '#1F2937',
+            'css_vars' => [
+                '--primary' => '#1F2937', '--primary-hover' => '#374151',
+                '--accent' => '#F59E0B', '--bg' => '#111827',
+                '--bg-secondary' => '#1F2937', '--text' => '#F9FAFB',
+                '--text-secondary' => '#9CA3AF', '--border' => '#374151',
+                '--shadow' => '0 2px 16px rgba(0,0,0,0.3)',
+            ],
+        ],
+        [
+            'name' => '清新绿',
+            'description' => '自然的绿色系',
+            'preview_color' => '#10B981',
+            'css_vars' => [
+                '--primary' => '#10B981', '--primary-hover' => '#059669',
+                '--accent' => '#6EE7B7', '--bg' => '#ECFDF5',
+                '--bg-secondary' => '#D1FAE5', '--text' => '#064E3B',
+                '--text-secondary' => '#047857', '--border' => '#A7F3D0',
+                '--shadow' => '0 2px 8px rgba(16,185,129,0.15)',
+            ],
+        ],
+        [
+            'name' => '暖木棕',
+            'description' => '温暖的木质调',
+            'preview_color' => '#8B5CF6',
+            'css_vars' => [
+                '--primary' => '#8B5CF6', '--primary-hover' => '#7C3AED',
+                '--accent' => '#C4B5FD', '--bg' => '#F5F3FF',
+                '--bg-secondary' => '#EDE9FE', '--text' => '#1E1B4B',
+                '--text-secondary' => '#5B21B6', '--border' => '#DDD6FE',
+                '--shadow' => '0 2px 8px rgba(139,92,246,0.15)',
+            ],
+        ],
+        [
+            'name' => '冷静蓝',
+            'description' => '专业的蓝色系',
+            'preview_color' => '#3B82F6',
+            'css_vars' => [
+                '--primary' => '#3B82F6', '--primary-hover' => '#2563EB',
+                '--accent' => '#93C5FD', '--bg' => '#EFF6FF',
+                '--bg-secondary' => '#DBEAFE', '--text' => '#1E3A5F',
+                '--text-secondary' => '#1D4ED8', '--border' => '#BFDBFE',
+                '--shadow' => '0 2px 8px rgba(59,130,246,0.15)',
+            ],
+        ],
+    ];
+
+    /**
      * 获取主题的激活定制
      *
      * @param string $themeId 主题目录名

@@ -38,6 +38,10 @@ class ThemeValidatorService
         // 3. CSS变量规范检查
         $cssVarResult = $this->checkCssVars($themePath);
 
+        // 4. V2.9.8 B-3: CSS质量评分
+        $qualityResult = $this->cssQualityScore($themePath);
+        $qualityPassed = ($qualityResult['total_score'] ?? 0) >= 60;
+
         // 汇总结果
         $errors = array_merge(
             array_filter($syntaxResult, fn($r) => $r['level'] === 'error'),
@@ -51,6 +55,17 @@ class ThemeValidatorService
             array_filter($syntaxResult, fn($r) => $r['level'] === 'info'),
             array_filter($cssVarResult, fn($r) => $r['level'] === 'info')
         );
+
+        // 质量低于60分加入warnings（不阻断，进入人工审核队列）
+        if (!$qualityPassed) {
+            $warnings[] = [
+                'rule_id' => 'CSS-QUALITY-001',
+                'file'    => 'style.css',
+                'level'   => 'warning',
+                'message' => "CSS质量评分不足: {$qualityResult['total_score']}分（及格线60分），进入人工审核队列",
+                'quality' => $qualityResult,
+            ];
+        }
 
         $xssHigh = array_filter($xssResult, fn($r) => $r['level'] === 'high');
         $xssMedium = array_filter($xssResult, fn($r) => $r['level'] === 'medium');
@@ -71,6 +86,9 @@ class ThemeValidatorService
         if (!empty($warnings)) {
             $summaryParts[] = '警告: ' . count($warnings) . ' 项';
         }
+        if ($qualityPassed) {
+            $summaryParts[] = 'CSS质量: ' . $qualityResult['total_score'] . '分';
+        }
 
         return [
             'passed'    => !$hasSyntaxError && !$hasXssHigh,
@@ -81,6 +99,8 @@ class ThemeValidatorService
             'xss_risks' => array_values($xssResult),
             'has_xss_high' => $hasXssHigh,
             'has_syntax_error' => $hasSyntaxError,
+            'css_quality' => $qualityResult,
+            'quality_passed' => $qualityPassed,
         ];
     }
 
@@ -240,5 +260,126 @@ class ThemeValidatorService
         }
 
         return $results;
+    }
+
+    /**
+     * V2.9.8 B-3: CSS质量7维度评分
+     *
+     * @param string $themePath 主题目录或CSS文件路径
+     * @return array ['total_score'=>float, 'dimensions'=>array, 'passed'=>bool, 'level'=>string]
+     */
+    public function cssQualityScore(string $themePath): array
+    {
+        $css = $this->extractCssContent($themePath);
+        if (empty($css)) {
+            return ['total_score' => 0, 'dimensions' => [], 'passed' => false, 'level' => 'low'];
+        }
+
+        $dimensions = [
+            'css_variables' => ['weight' => 20, 'min' => 10, 'score' => $this->countCssVarUsage($css)],
+            'transitions'   => ['weight' => 15, 'min' => 3,  'score' => $this->countTransitions($css)],
+            'box_shadows'   => ['weight' => 10, 'min' => 1,  'score' => $this->countBoxShadows($css)],
+            'media_queries' => ['weight' => 15, 'min' => 1,  'score' => $this->countMediaQueries($css)],
+            'color_depth'   => ['weight' => 20, 'min' => 4,  'score' => $this->countUniqueColors($css)],
+            'pseudo_states' => ['weight' => 10, 'min' => 3,  'score' => $this->countPseudoClasses($css)],
+            'spacing'       => ['weight' => 10, 'min' => 5,  'score' => $this->countSpacingDeclarations($css)],
+        ];
+
+        $totalScore = 0;
+        $resultDimensions = [];
+        foreach ($dimensions as $dim => $config) {
+            $dimScore = $config['min'] > 0
+                ? min(100, ($config['score'] / $config['min']) * 100)
+                : ($config['score'] > 0 ? 100 : 0);
+            $resultDimensions[$dim] = [
+                'detected' => $config['score'],
+                'required' => $config['min'],
+                'score'    => round($dimScore, 1),
+                'weight'   => $config['weight'],
+                'weighted' => round($dimScore * $config['weight'] / 100, 1),
+            ];
+            $totalScore += $dimScore * $config['weight'] / 100;
+        }
+
+        $totalScore = round($totalScore, 1);
+        return [
+            'total_score' => $totalScore,
+            'dimensions'  => $resultDimensions,
+            'passed'      => $totalScore >= 60,
+            'level'       => $totalScore >= 80 ? 'excellent' : ($totalScore >= 60 ? 'good' : 'low'),
+        ];
+    }
+
+    /**
+     * 提取主题目录下所有CSS内容
+     */
+    protected function extractCssContent(string $themePath): string
+    {
+        $css = '';
+        if (is_file($themePath)) {
+            return file_get_contents($themePath);
+        }
+        if (!is_dir($themePath)) return '';
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($themePath, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'css') {
+                $css .= file_get_contents($file->getPathname()) . "\n";
+            }
+            if ($file->isFile() && $file->getExtension() === 'html') {
+                $content = file_get_contents($file->getPathname());
+                // 提取<style>标签内容
+                if (preg_match_all('/<style[^>]*>(.*?)<\/style>/si', $content, $m)) {
+                    foreach ($m[1] as $style) {
+                        $css .= $style . "\n";
+                    }
+                }
+            }
+        }
+        return $css;
+    }
+
+    protected function countCssVarUsage(string $css): int
+    {
+        preg_match_all('/var\(--[a-zA-Z0-9_-]+\)/', $css, $m);
+        return count($m[0]);
+    }
+
+    protected function countTransitions(string $css): int
+    {
+        preg_match_all('/(?:transition|animation)\s*:/i', $css, $m);
+        return count($m[0]);
+    }
+
+    protected function countBoxShadows(string $css): int
+    {
+        preg_match_all('/(?:box-shadow|text-shadow)\s*:/i', $css, $m);
+        return count($m[0]);
+    }
+
+    protected function countMediaQueries(string $css): int
+    {
+        preg_match_all('/@media\s/', $css, $m);
+        return count($m[0]);
+    }
+
+    protected function countUniqueColors(string $css): int
+    {
+        preg_match_all('/#(?:[0-9a-fA-F]{3,8})\b|rgba?\s*\([^)]+\)/i', $css, $m);
+        return count(array_unique(array_map('strtolower', $m[0])));
+    }
+
+    protected function countPseudoClasses(string $css): int
+    {
+        preg_match_all('/:(?:hover|active|focus|visited|focus-within|focus-visible)/i', $css, $m);
+        return count($m[0]);
+    }
+
+    protected function countSpacingDeclarations(string $css): int
+    {
+        preg_match_all('/(?:padding|margin)\s*:\s*\d+/', $css, $m);
+        return count($m[0]);
     }
 }

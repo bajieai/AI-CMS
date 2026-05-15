@@ -69,15 +69,16 @@ class ThemeCustomMiddleware
             return $response;
         }
 
-        // 在</head>前注入<style>标签
+        // 在</head>前注入字体CSS + 定制CSS覆盖层
         $content = $response->getContent();
-        $injectTag = "<style class=\"theme-custom-override\">\n/* V2.9.7 Theme Customization */\n{$overrideCss}\n</style>";
+        $fontLink = '<link rel="stylesheet" href="/assets/css/theme-fonts.css">';
+        $injectTag = $fontLink . "\n<style class=\"theme-custom-override\">\n/* V2.9.8 Theme Customization */\n{$overrideCss}\n</style>";
 
         if (str_contains($content, '</head>')) {
             $content = str_replace('</head>', $injectTag . "\n</head>", $content);
             $response->content($content);
 
-            Log::debug("[ThemeCustomMiddleware] 注入定制CSS: theme={$themeId}");
+            Log::debug("[ThemeCustomMiddleware] 注入字体CSS+定制CSS: theme={$themeId}");
         }
 
         return $response;

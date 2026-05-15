@@ -15,6 +15,15 @@
             <span id="themeBadge" class="badge bg-light text-dark border"></span>
         </div>
         <div class="d-flex align-items-center gap-2">
+            <!-- V2.9.8 A-2: 撤销/重做 -->
+            <button id="btnUndo" class="btn btn-outline-secondary btn-sm" onclick="UndoManager.undo()" title="撤销 (Ctrl+Z)" disabled>
+                <i class="bi bi-arrow-counterclockwise me-1"></i>撤销<span id="undoCount" class="ms-1 badge bg-secondary" style="font-size:0.6em;"></span>
+            </button>
+            <button id="btnRedo" class="btn btn-outline-secondary btn-sm" onclick="UndoManager.redo()" title="重做 (Ctrl+Shift+Z)" disabled>
+                <i class="bi bi-arrow-clockwise me-1"></i>重做<span id="redoCount" class="ms-1 badge bg-secondary" style="font-size:0.6em;"></span>
+            </button>
+            <span id="saveStatus" class="small text-muted" style="font-size:0.75rem;"></span>
+            <div class="vr mx-1"></div>
             <button class="btn btn-outline-secondary btn-sm" onclick="handleReset()" title="重置为默认">
                 <i class="bi bi-arrow-counterclockwise me-1"></i>重置
             </button>
@@ -39,6 +48,14 @@
                 <div class="panel-section" id="variantSection" style="display:none;">
                     <h6 class="section-title"><i class="bi bi-layers me-2"></i>变体管理</h6>
                     <div id="variantList" class="variant-list"></div>
+                </div>
+
+                <!-- V2.9.8 C-1: 预设方案 -->
+                <div class="panel-section">
+                    <h6 class="section-title"><i class="bi bi-palette2 me-2"></i>预设方案</h6>
+                    <div class="preset-grid" id="presetGrid">
+                        <!-- 动态生成 -->
+                    </div>
                 </div>
 
                 <!-- 颜色设置 -->
