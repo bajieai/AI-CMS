@@ -1,25 +1,26 @@
-# 八界AI-CMS V2.9.7
+# 八界AI-CMS V2.9.8
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.7-blue)
+![Version](https://img.shields.io/badge/version-2.9.8-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.7 "模力定制" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.8 "模力精修" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.7 定位：模板可视化定制阶段**，在V3.1模板生态95%交付基础上，先修复6个AI主题系统性缺陷使模板生成质量达标，再实现模板可视化定制、导出/导入含定制数据、数据分析三大能力闭环。
+**V2.9.8 定位：缺陷修复 + AI主题质量深化 + 定制体验打磨**，在V2.9.7模板可视化定制三大能力闭环基础上，修缺陷、提质量、磨体验。
 
-**核心新功能 — 模力定制：**
-1. **可视化定制面板** — 左右分栏(设置+预览)，Pickr颜色选择器(8色+24预设)，6组中文字体预设，3项布局选项，Logo上传+高度调节
-2. **零侵入CSS注入** — ThemeCustomMiddleware中间件在`</head>`前注入覆盖层，不修改任何模板文件
-3. **19个CSS变量** — 颜色10+字体2+布局3+Logo2+按钮2，白名单防XSS
-4. **iframe实时预览** — postMessage通信+防抖300ms+设备切换(桌面/平板/手机)
-5. **变体管理** — 保存/重置/另存为/激活多变体
-6. **导出含定制数据** — `_customization.json`打包所有变体，导入自动还原
-7. **数据分析** — ECharts图表(安装排行+趋势+定制偏好+评分分布)+CSV导出
+**V2.9.8 核心新功能 — 模力精修：**
+1. **字体本地化** — 5组中文字体子集化woff2本地嵌入+font-display:swap，离线/内网可用
+2. **撤销/重做** — UndoManager 30步栈+Ctrl+Z/Ctrl+Shift+Z快捷键+保存点+未保存提示
+3. **AfterGenerate钩子** — AI生成后自动同步CSS资产+从class名推导CSS骨架+透明PNG占位图
+4. **自动重试增强** — 3次指数退避(1s/3s/5s)+动态temperature(0.7/0.8/0.9)+5类错误分类+每日20次上限
+5. **CSS质量评分器** — 7维度加权评分(变量/过渡/阴影/媒体查询/颜色/伪类/间距)+60分及格线+低质量人工审核队列
+6. **CSS质量Prompt增强** — buildPrompt()增加7项CSS质量约束+4项禁止项
+7. **预设快捷应用** — 5套系统配色预设(活力橙/沉稳黑/清新绿/暖木棕/冷静蓝)+theme.json presets+一键应用+撤销联动
+8. **导出预览** — 导出前确认弹框+修改字段摘要(颜色/字体/布局/Logo)
 
 **Sprint 11 — AI配图增强：**
 1. **批量配图** — 前端串行调用+进度条，自动构建图片Prompt，配图直接插入编辑器正文段落之间
@@ -63,6 +64,14 @@
 
 ### 核心特性
 
+- **🆕 字体本地化(V2.9.8)** - 5组中文字体子集化woff2嵌入本地+font-display:swap，离线/内网可用
+- **🆕 撤销/重做(V2.9.8)** - UndoManager 30步栈+Ctrl+Z/Ctrl+Shift+Z+保存点+未保存提示+预览联动
+- **🆕 AfterGenerate钩子(V2.9.8)** - AI生成后自动同步CSS资产+class名推导CSS骨架+透明PNG占位图
+- **🆕 自动重试增强(V2.9.8)** - 3次指数退避+动态temperature+5类错误分类+每日20次上限
+- **🆕 CSS质量评分(V2.9.8)** - 7维度加权评分+60分及格线+低质量进人工审核队列+Prompt质量约束
+- **🆕 预设快捷应用(V2.9.8)** - 5套系统配色预设+theme.json presets+一键应用+撤销联动
+- **🆕 导出预览(V2.9.8)** - 导出前确认弹框+修改字段摘要(颜色/字体/布局/Logo)
+- **🆕 Pickr深色模式(V2.9.8)** - @media(prefers-color-scheme:dark)+[data-theme="dark"]双重覆盖
 - **🆕 AI配图增强(V3.1)** - 批量配图+自动插入段落+发布自动配图+日配额控制，前端串行进度条
 - **🆕 AI SEO评分(V3.1)** - 纯算法0-100评分(5维度加权)，前后对比面板，批量SEO优化(3篇并发控制)，自动缓存回写
 - **🆕 质量检测卡片(V3.1)** - 维度评分条+改进建议一键执行+一键优化全部
@@ -317,12 +326,13 @@ AI-CMS/
 │       ├── middleware/         #   中间件(ThemePreview/FrontCsrf等)
 │       ├── model/              #   数据模型(AiThemeRecord/ImageTask等)
 │       ├── service/            #   业务服务(AI/支付/采集/发布/邮件/插件/主题等)
-│       │   └── theme/          #     主题服务(V3.0 Phase 2-3)
-│       │       ├── AiThemeGenerateService.php  # AI主题生成+增量修改(V3.0)
+│       │   └── theme/          #     主题服务(V3.0 Phase 2-3 + V2.9.8)
+│       │       ├── AiThemeGenerateService.php  # AI主题生成+V2.9.8 AfterGenerate钩子+重试增强+Prompt质量
 │       │       ├── IncrementalContextBuilder.php # 对话上下文管理(Phase 3)
 │       │       ├── ThemeVersionManager.php     # 版本管理-git备份/回退(Phase 3)
-│       │       ├── ThemePackageService.php     # 主题ZIP导入导出(Phase 3)
-│       │       ├── ThemeValidatorService.php   # 校验流水线+单文件校验
+│       │       ├── ThemePackageService.php     # 主题ZIP导入导出+V2.9.8冲突检测修复
+│       │       ├── ThemeValidatorService.php   # 校验流水线+V2.9.8 CSS质量7维度评分器
+│       │       ├── ThemeCustomService.php      # V2.9.8 预设读取getAvailablePresets()
 │       │       └── ThemeFileService.php        # 文件落盘服务
 │       ├── taglib/             #   模板标签引擎(I8j)
 │       ├── traits/             #   特性(CircuitBreakerTrait/RedisQueueTrait)
@@ -365,8 +375,10 @@ AI-CMS/
 │   │   │   ├── form/           #       表单组件(SearchBar/ImageUpload/DatePicker)
 │   │   │   ├── data/           #       数据组件(DataTable/Skeleton)
 │   │   │   └── nav/            #       导航组件(Breadcrumb)
-│   │   ├── css/                #     全局CSS(theme-variables.css)
-│   │   └── js/                 #     前台组件(front-toast.js/front-components.js/front-csrf.js)
+│   │   ├── css/                #     全局CSS(theme-variables.css+theme-fonts.css+theme-customizer.css)
+│   │   ├── fonts/              #     V2.9.8 本地字体woff2(Noto Sans/Serif/LXGW/Ma Shan/Inter)
+│   │   └── js/                 #     前台组件+定制器(theme-customizer.js含UndoManager+预设+导出预览)
+│   │   └── js/                 #     前台组件+定制器(theme-customizer.js含UndoManager+预设+导出预览)
 │   ├── skin/                   #   主题静态资源(V2.6新增)
 │   │   ├── admin/              #     后台CSS/JS/图片/字体
 │   │   └── themes/             #     前台主题CSS/JS/图片/字体
@@ -392,6 +404,11 @@ AI-CMS/
 │   ├── v3.0-phase3.sql         #   V3.0 Phase 3幂等升级脚本
 │   └── v3.1.sql                #   V3.1幂等升级脚本(seo_score+配额+风格配置)
 ├── docs/                       # 项目文档(V3.0新增docs目录)
+│   ├── V2.9.8-产品需求.md       #   V2.9.8 PRD(12项功能)
+│   ├── V2.9.8-技术方案.md       #   V2.9.8 技术方案
+│   ├── V2.9.8-可行性评估与开发计划.md  # V2.9.8 可行性评估(3项架构优化)
+│   ├── V2.9.8-产品功能报告.md   #   V2.9.8 功能报告(12/12)
+│   ├── deploy-https-postmessage.md  # V2.9.8 HTTPS postMessage配置指南
 │   ├── V2.9.6-产品需求.md       #   V3.0下一阶段PRD
 │   ├── V3.0-AI模板可视化-技术预研报告.md
 │   ├── V3.0-模板规范-v1.0.md
@@ -561,6 +578,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.8 | 2026-05-15 | **模力精修**: 字体本地化(5组woff2+theme-fonts.css+离线可用)/撤销重做(UndoManager 30步栈+快捷键+保存点)/AfterGenerate钩子(extractAssetPaths+skeletonCss+透明占位图)/自动重试增强(3次退避+动态temperature+5类错误分类+每日20次上限)/CSS质量7维度评分器(60分及格+低质量人工审核队列)/CSS质量Prompt增强(7项约束+4项禁止)/预设快捷应用(5套系统预设+theme.json解析+撤销联动)/导出预览(confirm弹框+修改字段摘要)/Pickr深色模式/postMessage HTTPS文档/定制率基数修复/checkConflict修复 |
 | V2.9.7 | 2026-05-15 | **模力定制**: AI主题6缺陷根治(Prompt完善+验证器+搜索高亮)/模板可视化定制(19个CSS变量+Pickr颜色选择器+6组字体预设+布局选项+Logo上传+iframe实时预览+postMessage+变体管理)/导出导入含定制数据/数据分析(安装排行+趋势+定制偏好+评分分布+ECharts+CSV导出) |
 | V3.1.0 | 2026-05-14 | AI内容增强: 批量配图+发布自动配图+日配额控制/SEO评分算法(0-100)+前后对比+批量SEO(3并发)+来源分析饼图/质量卡片+建议执行+社交分享Modal+前台分享统计/5种可配置写作风格。模板生态: 批量生产流水线(5行业+质量自检+审核闭环)/市场前台(10套预埋+OSS/CDN+一键安装+回滚)/管理增强(评分收藏+版本检测+分类CRUD+日志)。Phase 3.5L: 安全测试11用例+SEO缓存回写3触发点+编码根治7层防护 |
 | V3.0 Phase 3 | 2026-05-13 | 体验完善+生态基座: AI模板对话迭代(多轮对话+局部重生成+版本管理)/暗色模式全站(43+文件CSS变量替换)/8新组件(Tabs/Dropdown/DatePicker/DataTable等13组件)/多bundle打包(4bundle)/主题导入导出(ThemePackageService)/测试基础设施(PHPUnit+Playwright)/路由补全(21路由) |
@@ -604,7 +622,7 @@ docker cp database/v3.0.sql aicms_mysql:/tmp/
 docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
 ```
 
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql` → `v3.1_next.sql`。
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.8零DDL变更，无需执行SQL。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql` → `v3.1_next.sql`。
 
 ## 常用Docker命令
 
