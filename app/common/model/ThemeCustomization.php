@@ -71,13 +71,16 @@ class ThemeCustomization extends Model
     ];
 
     /**
-     * V2.9.8 C-1: 系统级5套配色预设
+     * V2.9.8 C-1/B-1: 系统级12套配色预设（5→12套扩展）
      */
     public const SYSTEM_PRESETS = [
+        // === 第一轮5套（保持不变） ===
         [
+            'key' => 'vibrant',
             'name' => '活力橙',
             'description' => '充满活力的暖橙色系',
             'preview_color' => '#F97316',
+            'preview_gradient' => 'linear-gradient(135deg, #F97316, #FCD34D)',
             'css_vars' => [
                 '--primary' => '#F97316', '--primary-hover' => '#EA580C',
                 '--accent' => '#FCD34D', '--bg' => '#FFF7ED',
@@ -87,9 +90,11 @@ class ThemeCustomization extends Model
             ],
         ],
         [
+            'key' => 'calm',
             'name' => '沉稳黑',
             'description' => '高端黑金风格',
             'preview_color' => '#1F2937',
+            'preview_gradient' => 'linear-gradient(135deg, #1F2937, #374151)',
             'css_vars' => [
                 '--primary' => '#1F2937', '--primary-hover' => '#374151',
                 '--accent' => '#F59E0B', '--bg' => '#111827',
@@ -99,9 +104,11 @@ class ThemeCustomization extends Model
             ],
         ],
         [
+            'key' => 'fresh',
             'name' => '清新绿',
             'description' => '自然的绿色系',
             'preview_color' => '#10B981',
+            'preview_gradient' => 'linear-gradient(135deg, #10B981, #6EE7B7)',
             'css_vars' => [
                 '--primary' => '#10B981', '--primary-hover' => '#059669',
                 '--accent' => '#6EE7B7', '--bg' => '#ECFDF5',
@@ -111,9 +118,11 @@ class ThemeCustomization extends Model
             ],
         ],
         [
+            'key' => 'warm',
             'name' => '暖木棕',
             'description' => '温暖的木质调',
             'preview_color' => '#8B5CF6',
+            'preview_gradient' => 'linear-gradient(135deg, #8B5CF6, #C4B5FD)',
             'css_vars' => [
                 '--primary' => '#8B5CF6', '--primary-hover' => '#7C3AED',
                 '--accent' => '#C4B5FD', '--bg' => '#F5F3FF',
@@ -123,15 +132,116 @@ class ThemeCustomization extends Model
             ],
         ],
         [
+            'key' => 'cool',
             'name' => '冷静蓝',
             'description' => '专业的蓝色系',
             'preview_color' => '#3B82F6',
+            'preview_gradient' => 'linear-gradient(135deg, #3B82F6, #93C5FD)',
             'css_vars' => [
                 '--primary' => '#3B82F6', '--primary-hover' => '#2563EB',
                 '--accent' => '#93C5FD', '--bg' => '#EFF6FF',
                 '--bg-secondary' => '#DBEAFE', '--text' => '#1E3A5F',
                 '--text-secondary' => '#1D4ED8', '--border' => '#BFDBFE',
                 '--shadow' => '0 2px 8px rgba(59,130,246,0.15)',
+            ],
+        ],
+        // === V2.9.8 B-1: 第二轮新增7套 ===
+        [
+            'key' => 'tech_purple',
+            'name' => '科技紫',
+            'description' => '科技、SaaS、前沿风格',
+            'preview_color' => '#7C3AED',
+            'preview_gradient' => 'linear-gradient(135deg, #7C3AED, #A78BFA)',
+            'css_vars' => [
+                '--primary' => '#7C3AED', '--primary-hover' => '#5B21B6',
+                '--accent' => '#A78BFA', '--bg' => '#FAFAFA',
+                '--bg-secondary' => '#F5F3FF', '--text' => '#1E1B4B',
+                '--text-secondary' => '#6D28D9', '--border' => '#DDD6FE',
+                '--shadow' => '0 2px 8px rgba(124,58,237,0.12)',
+            ],
+        ],
+        [
+            'key' => 'rose_gold',
+            'name' => '玫瑰金',
+            'description' => '时尚、美妆、女性风格',
+            'preview_color' => '#E11D48',
+            'preview_gradient' => 'linear-gradient(135deg, #E11D48, #FDA4AF)',
+            'css_vars' => [
+                '--primary' => '#E11D48', '--primary-hover' => '#BE123C',
+                '--accent' => '#FDA4AF', '--bg' => '#FFF1F2',
+                '--bg-secondary' => '#FFE4E6', '--text' => '#4C0519',
+                '--text-secondary' => '#9F1239', '--border' => '#FECDD3',
+                '--shadow' => '0 2px 8px rgba(225,29,72,0.1)',
+            ],
+        ],
+        [
+            'key' => 'nature_green',
+            'name' => '自然绿',
+            'description' => '环保、健康、户外风格',
+            'preview_color' => '#059669',
+            'preview_gradient' => 'linear-gradient(135deg, #059669, #6EE7B7)',
+            'css_vars' => [
+                '--primary' => '#059669', '--primary-hover' => '#047857',
+                '--accent' => '#6EE7B7', '--bg' => '#F0FDF4',
+                '--bg-secondary' => '#DCFCE7', '--text' => '#022C22',
+                '--text-secondary' => '#065F46', '--border' => '#BBF7D0',
+                '--shadow' => '0 2px 6px rgba(5,150,105,0.1)',
+            ],
+        ],
+        [
+            'key' => 'deep_blue',
+            'name' => '深海蓝',
+            'description' => '金融、教育、专业风格',
+            'preview_color' => '#1D4ED8',
+            'preview_gradient' => 'linear-gradient(135deg, #1D4ED8, #60A5FA)',
+            'css_vars' => [
+                '--primary' => '#1D4ED8', '--primary-hover' => '#1E3A8A',
+                '--accent' => '#60A5FA', '--bg' => '#FFFFFF',
+                '--bg-secondary' => '#EFF6FF', '--text' => '#1E293B',
+                '--text-secondary' => '#475569', '--border' => '#BFDBFE',
+                '--shadow' => '0 1px 4px rgba(29,78,216,0.08)',
+            ],
+        ],
+        [
+            'key' => 'sunset_orange',
+            'name' => '日落橙',
+            'description' => '餐饮、生活、活力风格',
+            'preview_color' => '#EA580C',
+            'preview_gradient' => 'linear-gradient(135deg, #EA580C, #FDBA74)',
+            'css_vars' => [
+                '--primary' => '#EA580C', '--primary-hover' => '#C2410C',
+                '--accent' => '#FDBA74', '--bg' => '#FFF7ED',
+                '--bg-secondary' => '#FFEDD5', '--text' => '#431407',
+                '--text-secondary' => '#9A3412', '--border' => '#FED7AA',
+                '--shadow' => '0 2px 8px rgba(234,88,12,0.1)',
+            ],
+        ],
+        [
+            'key' => 'midnight_black',
+            'name' => '极夜黑',
+            'description' => '高端、设计、极简风格',
+            'preview_color' => '#111827',
+            'preview_gradient' => 'linear-gradient(135deg, #111827, #374151)',
+            'css_vars' => [
+                '--primary' => '#111827', '--primary-hover' => '#374151',
+                '--accent' => '#6B7280', '--bg' => '#FFFFFF',
+                '--bg-secondary' => '#F9FAFB', '--text' => '#111827',
+                '--text-secondary' => '#6B7280', '--border' => '#E5E7EB',
+                '--shadow' => '0 1px 2px rgba(0,0,0,0.05)',
+            ],
+        ],
+        [
+            'key' => 'sakura_pink',
+            'name' => '樱花粉',
+            'description' => '社交、女性、年轻风格',
+            'preview_color' => '#DB2777',
+            'preview_gradient' => 'linear-gradient(135deg, #DB2777, #F9A8D4)',
+            'css_vars' => [
+                '--primary' => '#DB2777', '--primary-hover' => '#BE185D',
+                '--accent' => '#F9A8D4', '--bg' => '#FDF2F8',
+                '--bg-secondary' => '#FCE7F3', '--text' => '#4C0519',
+                '--text-secondary' => '#9D174D', '--border' => '#FBCFE8',
+                '--shadow' => '0 2px 8px rgba(219,39,119,0.08)',
             ],
         ],
     ];

@@ -297,4 +297,53 @@ class ThemeCustomService
         }
         return $mapped;
     }
+
+    /**
+     * V2.9.8 B-1: 智能推荐预设（文本匹配）
+     * 从theme.json读取color_schema信息，匹配最接近的预设
+     */
+    public function recommendPreset(string $themeId): ?string
+    {
+        $themeJson = $this->readThemeJson($themeId);
+        $schema = $themeJson['color_schema'] ?? ($themeJson['color'] ?? '');
+
+        if (empty($schema)) {
+            return null;
+        }
+
+        // 色彩倾向 → 预设key匹配
+        $schemaMap = [
+            'blue'    => 'cool',
+            'corporate_blue' => 'deep_blue',
+            'dark'    => 'calm',
+            'black'   => 'midnight_black',
+            'warm'    => 'warm',
+            'orange'  => 'sunset_orange',
+            'green'   => 'nature_green',
+            'fresh'   => 'fresh',
+            'purple'  => 'tech_purple',
+            'pink'    => 'sakura_pink',
+            'red'     => 'rose_gold',
+            'rose'    => 'rose_gold',
+            'vibrant' => 'vibrant',
+            'tech'    => 'tech_purple',
+            'deep'    => 'deep_blue',
+        ];
+
+        foreach ($schemaMap as $keyword => $presetKey) {
+            if (stripos($schema, $keyword) !== false) {
+                return $presetKey;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * V2.9.8 C-2/B-1: 获取模板默认CSS变量值（恢复默认用）
+     */
+    public function getDefaultVars(string $themeId): array
+    {
+        return $this->getDefaults($themeId);
+    }
 }

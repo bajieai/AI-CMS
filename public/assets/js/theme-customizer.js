@@ -833,4 +833,273 @@
         setTimeout(function() { $toast.remove(); }, 3000);
     }
 
+    // =====================================================
+    // V2.9.8 第二轮增强：B-1 预设12色卡 + 智能推荐 + 恢复默认
+    // =====================================================
+
+    // B-1: 增强预设渲染（6×2网格 + 渐变预览 + 推荐标签）
+    function renderEnhancedColorPresets(data, recommendedKey) {
+        const $container = $('#presetGrid');
+        if (!$container.length) return;
+        $container.empty().addClass('preset-grid--12');
+
+        const systemPresets = data.system || [];
+        const themePresets = data.theme || [];
+        const all = [];
+
+        systemPresets.forEach(function(p, i) {
+            all.push({ type: 'system', index: i, preset: p, key: p.key || ('sys_' + i) });
+        });
+        themePresets.forEach(function(p, i) {
+            all.push({ type: 'theme', index: i, preset: p, key: p.key || ('theme_' + i) });
+        });
+
+        if (all.length === 0) {
+            $container.append('<div class="text-muted small">暂无预设方案</div>');
+            return;
+        }
+
+        all.forEach(function(item) {
+            const p = item.preset;
+            const color = p.preview_color || (p.css_vars && p.css_vars['--primary']) || '#3b82f6';
+            const gradient = p.preview_gradient || color;
+            const isRecommended = recommendedKey && item.key === recommendedKey;
+
+            $container.append(
+                '<div class="preset-card' + (isRecommended ? ' recommended' : '') + '" onclick="applyColorPreset(' + item.index + ', \'' + item.type + '\')" title="' + (p.description || p.name) + '">' +
+                '<div class="preset-color" style="background:' + gradient + ';">' +
+                (isRecommended ? '<span class="preset-tag">推荐</span>' : '') +
+                '</div>' +
+                '<div class="preset-name">' + p.name + '</div>' +
+                '</div>'
+            );
+        });
+    }
+
+    // B-1: 加载智能推荐
+    function loadRecommendedPreset() {
+        apiGet('theme_custom/recommendPreset', { theme: state.themeId }).done(function(res) {
+            if (res.code === 0 && res.data && res.data.recommended_preset) {
+                state.recommendedPreset = res.data.recommended_preset;
+            }
+            // 重新渲染预设（带推荐标签）
+            apiGet('theme_custom/colorPresets', { theme: state.themeId }).done(function(res2) {
+                if (res2.code === 0) {
+                    renderEnhancedColorPresets(res2.data || {}, state.recommendedPreset);
+                }
+            });
+        });
+    }
+
+    // B-1/C-2: 恢复默认配色
+    window.resetToDefaults = function() {
+        if (!confirm('确定要恢复模板默认配色吗？')) return;
+
+        UndoManager.push();
+        apiGet('theme_custom/defaultVars', { theme: state.themeId }).done(function(res) {
+            if (res.code !== 0) return;
+            const defaultVars = res.data.default_vars || {};
+            const cssVars = defaultVars.css_vars || {};
+
+            Object.entries(cssVars).forEach(function(entry) {
+                const key = entry[0];
+                const meta = entry[1];
+                if (meta.default && !meta.default.startsWith('var(')) {
+                    state.customization[key] = meta.default;
+                    if (state.pickrs[key]) {
+                        state.pickrs[key].setColor(meta.default);
+                    }
+                }
+            });
+
+            debouncedPreview();
+            showToast('已恢复为默认配色', 'success');
+        });
+    };
+
+    // =====================================================
+    // V2.9.8 第二轮增强：B-2 新手引导 + 面板折叠 + 实时反馈
+    // =====================================================
+
+    // B-2: 3步新手引导
+    const OnboardingGuide = {
+        steps: [
+            { icon: '🎨', title: '选配色', desc: '从预设方案或色盘中选择喜欢的配色' },
+            { icon: '📝', title: '调字体', desc: '调整标题和正文的字体系列和大小' },
+            { icon: '💾', title: '保存预览', desc: '一键保存修改，预览整体效果' },
+        ],
+        currentStep: 0,
+        dismissed: localStorage.getItem('onboarding_dismissed') === '1',
+
+        init: function() {
+            if (this.dismissed) return;
+            const $guide = $('#onboarding-guide');
+            if (!$guide.length) return;
+            this.render();
+        },
+
+        render: function() {
+            const $guide = $('#onboarding-guide');
+            if (!$guide.length || this.dismissed) {
+                if ($guide.length) $guide.hide();
+                return;
+            }
+            $guide.show().html(
+                '<div class="onboarding-bar">' +
+                '<div class="onboarding-steps">' +
+                this.steps.map(function(step, i) {
+                    return '<div class="onboarding-step' + (i <= OnboardingGuide.currentStep ? ' active' : '') + '">' +
+                        '<span class="step-icon">' + step.icon + '</span>' +
+                        '<span class="step-label">' + step.title + '</span>' +
+                        (i < OnboardingGuide.steps.length - 1 ? '<span class="step-arrow">→</span>' : '') +
+                        '</div>';
+                }).join('') +
+                '</div>' +
+                '<button class="onboarding-close" onclick="OnboardingGuide.dismiss()">✕</button>' +
+                '</div>'
+            );
+        },
+
+        nextStep: function() {
+            if (this.currentStep < this.steps.length - 1) {
+                this.currentStep++;
+                this.render();
+            }
+        },
+
+        dismiss: function() {
+            this.dismissed = true;
+            localStorage.setItem('onboarding_dismissed', '1');
+            this.render();
+        },
+    };
+    window.OnboardingGuide = OnboardingGuide;
+
+    // B-2: 折叠面板
+    const CollapsibleSection = {
+        init: function() {
+            $('.section-collapsible').each(function(index) {
+                const $section = $(this);
+                const $header = $section.find('.section-header');
+                const $body = $section.find('.section-body');
+
+                // 默认第一个（颜色设置）展开
+                if (index === 0) {
+                    $header.addClass('expanded');
+                    $body.css('max-height', $body[0].scrollHeight + 'px');
+                } else {
+                    $header.removeClass('expanded');
+                    $body.css('max-height', '0');
+                }
+
+                $header.off('click').on('click', function() {
+                    const isExpanded = $header.toggleClass('expanded').hasClass('expanded');
+                    $body.css('max-height', isExpanded ? $body[0].scrollHeight + 'px' : '0');
+                });
+            });
+        },
+    };
+
+    // B-2: 实时预览反馈（闪烁+Toast）
+    function showPreviewFeedback(changedVar, newValue) {
+        const $frame = $('#previewFrame');
+        if ($frame.length) {
+            $frame.css({
+                'transition': 'box-shadow 0.3s ease',
+                'box-shadow': '0 0 0 2px var(--primary, #2563EB), 0 0 12px rgba(37,99,235,0.3)'
+            });
+            setTimeout(function() { $frame.css('box-shadow', 'none'); }, 600);
+        }
+
+        // 浮动提示
+        const $toast = $('<div class="custom-toast">✓ 预览已更新</div>');
+        $('body').append($toast);
+        setTimeout(function() { $toast.remove(); }, 2000);
+
+        // 推进引导步
+        if (!OnboardingGuide.dismissed) {
+            OnboardingGuide.nextStep();
+        }
+    }
+
+    // =====================================================
+    // V2.9.8 第二轮增强：B-3 导出后快捷操作
+    // =====================================================
+
+    // B-3: 增强导出成功弹框
+    window.handleExportEnhanced = function() {
+        apiGet('theme_custom/previewExport', { theme: state.themeId }).done(function(res) {
+            if (res.code !== 0) return;
+            const d = res.data || {};
+
+            if (!d.has_customization) {
+                window.location.href = '/admin/theme_custom/export?theme=' + encodeURIComponent(state.themeId);
+                return;
+            }
+
+            const confirmed = confirm(
+                '✅ 导出确认\n\n' +
+                '主题: ' + (d.theme_name || '') + '\n' +
+                '定制摘要: ' + (d.summary || '') + '\n\n' +
+                '确定要导出吗？'
+            );
+            if (confirmed) {
+                window.location.href = '/admin/theme_custom/export?theme=' + encodeURIComponent(state.themeId);
+            }
+        });
+    };
+
+    // B-3: 导出成功后快捷操作按钮
+    window.showExportSuccessActions = function(themeId) {
+        const $modal = $(
+            '<div class="modal fade" tabindex="-1">' +
+            '<div class="modal-dialog modal-sm modal-dialog-centered">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header"><h5 class="modal-title">✅ 导出成功</h5></div>' +
+            '<div class="modal-body">' +
+            '<div class="d-grid gap-2">' +
+            '<button class="btn btn-primary" onclick="window.open(\'/theme/preview/' + themeId + '\', \'_blank\');$(this).closest(\'.modal\').modal(\'hide\')">👁 预览新模板</button>' +
+            '<button class="btn btn-outline-primary" onclick="window.location.href=\'/admin/market\';$(this).closest(\'.modal\').modal(\'hide\')">🏪 浏览市场</button>' +
+            '<button class="btn btn-outline-secondary" onclick="$(this).closest(\'.modal\').modal(\'hide\')">✏ 继续编辑</button>' +
+            '</div></div></div></div></div>'
+        );
+        $('body').append($modal);
+        $modal.modal('show');
+        $modal.on('hidden.bs.modal', function() { $modal.remove(); });
+    };
+
+    // =====================================================
+    // V2.9.8 第二轮增强：C-2 撤销栈15分钟清空
+    // =====================================================
+
+    // C-2: 撤销栈超时清空
+    (function() {
+        let panelCloseTime = null;
+        const FIFTEEN_MINUTES = 15 * 60 * 1000;
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                panelCloseTime = Date.now();
+            } else {
+                if (panelCloseTime && (Date.now() - panelCloseTime > FIFTEEN_MINUTES)) {
+                    UndoManager.clear();
+                    UndoManager.init();
+                    panelCloseTime = null;
+                }
+            }
+        });
+    })();
+
+    // === 初始化第二轮增强 ===
+    $(document).ready(function() {
+        // B-1: 加载增强预设+智能推荐
+        setTimeout(loadRecommendedPreset, 500);
+
+        // B-2: 初始化新手引导
+        OnboardingGuide.init();
+
+        // B-2: 初始化折叠面板
+        CollapsibleSection.init();
+    });
+
 })();

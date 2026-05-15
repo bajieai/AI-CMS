@@ -298,11 +298,14 @@ Route::post('theme_custom/uploadLogo$', '\app\admin\controller\ThemeCustomContro
 Route::get('theme_custom/export$', '\app\admin\controller\ThemeCustomController@export');
 Route::get('theme_custom/previewExport$', '\app\admin\controller\ThemeCustomController@previewExport');
 Route::get('theme_custom/checkConflict$', '\app\admin\controller\ThemeCustomController@checkConflict');
+Route::get('theme_custom/recommendPreset$', '\app\admin\controller\ThemeCustomController@recommendPreset');
+Route::get('theme_custom/defaultVars$', '\app\admin\controller\ThemeCustomController@defaultVars');
 
 // V2.9.7 Phase 3: 主题数据分析路由
 Route::get('theme_analysis/index$', '\app\admin\controller\ThemeAnalysisController@index');
 Route::get('theme_analysis/installRanking$', '\app\admin\controller\ThemeAnalysisController@installRanking');
 Route::get('theme_analysis/installTrend$', '\app\admin\controller\ThemeAnalysisController@installTrend');
+Route::get('theme_analysis/installTrendRange$', '\app\admin\controller\ThemeAnalysisController@installTrendRange');
 Route::get('theme_analysis/customPreference$', '\app\admin\controller\ThemeAnalysisController@customPreference');
 Route::get('theme_analysis/scoreDistribution$', '\app\admin\controller\ThemeAnalysisController@scoreDistribution');
 Route::get('theme_analysis/exportCsv$', '\app\admin\controller\ThemeAnalysisController@exportCsv');

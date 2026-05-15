@@ -72,3 +72,6 @@ Route::post('member/uploadAvatar$', '\app\home\controller\MemberController@uploa
 
 // V3.1: 社交分享统计
 Route::post('content/share$', '\app\home\controller\ContentController@share');
+
+// V2.9.8 C-1: 自定义404页面
+Route::get('404.html$', '\app\home\controller\IndexController@error404');

@@ -128,8 +128,8 @@ class AiThemeGenerateService
             // 4.5 自动创建皮肤目录（public/skin/themes/{theme}/pc/）
             $this->ensureSkinAssets($themeName, $baseDir);
 
-            // 5. 校验流水线
-            $validateResult = $this->validatorService->validate($baseDir);
+            // 5. 校验流水线（新模板，使用65分阈值）
+            $validateResult = $this->validatorService->validate($baseDir, true);
 
             // 6. 更新记录状态
             if ($validateResult['passed']) {
@@ -489,10 +489,26 @@ class AiThemeGenerateService
     }
 
     /**
-     * V2.9.8 B-1: 从HTML class名推导基础CSS骨架
+     * V2.9.8 B-1/A-2: 从HTML class名推导基础CSS骨架（增强版）
+     * 集成CssComponentLibrary行业组件模式
      */
     protected function generateSkeletonCss(string $themeName, string $baseDir): void
     {
+        // 读取行业类型（从options或theme.json）
+        $industryType = 'corporate'; // 默认
+        $jsonPath = $baseDir . DIRECTORY_SEPARATOR . 'theme.json';
+        if (file_exists($jsonPath)) {
+            $json = json_decode(file_get_contents($jsonPath), true);
+            if (!empty($json['industry_type'])) {
+                $industryType = $json['industry_type'];
+            }
+        }
+
+        // V2.9.8 A-2: 使用CssComponentLibrary生成行业组件CSS
+        $library = new CssComponentLibrary();
+        $componentCss = $library->getAllCssForIndustry($industryType);
+
+        // 保留原有的class推导逻辑（作为补充）
         $classes = [];
         foreach (['pc', 'mobile'] as $device) {
             $htmlDir = $baseDir . DIRECTORY_SEPARATOR . $device;
@@ -534,18 +550,17 @@ class AiThemeGenerateService
         }
 
         // 读取themeColor
-        $themeColor = '#3b82f6';
-        $jsonPath = $baseDir . DIRECTORY_SEPARATOR . 'theme.json';
+        $themeColor = '#2563EB';
         if (file_exists($jsonPath)) {
-            $json = json_decode(file_get_contents($jsonPath), true);
-            if (!empty($json['color'])) $themeColor = $json['color'];
+            $json2 = json_decode(file_get_contents($jsonPath), true);
+            if (!empty($json2['color'])) $themeColor = $json2['color'];
         }
         $namedColors = ['red'=>'#e53935','green'=>'#43a047','blue'=>'#1a73e8','yellow'=>'#fdd835','orange'=>'#fb8c00','purple'=>'#8e24aa','pink'=>'#d81b60'];
         if (isset($namedColors[$themeColor])) $themeColor = $namedColors[$themeColor];
 
-        $cssLines = ["/* V2.9.8 Auto-generated skeleton CSS for {$themeName} */", ""];
+        // class推导CSS（仅补充组件库未覆盖的动态class名）
+        $derivedCssLines = [];
         $added = [];
-
         $rules = [
             'layout'  => "{ max-width: 1200px; margin: 0 auto; padding: 0 15px; }",
             'header'  => "{ background: {$themeColor}; color: #fff; padding: 15px 0; }",
@@ -557,21 +572,26 @@ class AiThemeGenerateService
 
         foreach ($groups as $group => $groupClasses) {
             if (empty($groupClasses)) continue;
-            $cssLines[] = "/* {$group} */";
             foreach ($groupClasses as $class) {
                 if (isset($added[$class])) continue;
                 $added[$class] = true;
-                $cssLines[] = ".{$class} " . ($rules[$group] ?? "{ }");
+                // 仅添加组件库中未定义的class
+                $derivedCssLines[] = ".{$class} " . ($rules[$group] ?? "{ }");
             }
-            $cssLines[] = "";
+        }
+
+        // 合并：组件库CSS + class推导CSS
+        $finalCss = $componentCss;
+        if (!empty($derivedCssLines)) {
+            $finalCss .= "\n/* V2.9.8 A-2: Dynamic class mappings */\n";
+            $finalCss .= implode("\n", $derivedCssLines) . "\n";
         }
 
         // 追加hover和响应式
-        $cssLines[] = "/* V2.9.8 B-1: 交互与响应式骨架 */";
-        $cssLines[] = ".btn:hover, .button:hover { opacity: 0.9; transform: translateY(-1px); }";
-        $cssLines[] = ".card:hover, .widget:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }";
-        $cssLines[] = "@media (max-width: 768px) { .container, .wrapper { padding: 0 10px; } }";
-        $cssLines[] = "";
+        $finalCss .= "\n/* V2.9.8: 交互与响应式骨架 */\n";
+        $finalCss .= ".btn:hover, .button:hover { opacity: 0.9; transform: translateY(-1px); }\n";
+        $finalCss .= ".card:hover, .widget:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }\n";
+        $finalCss .= "@media (max-width: 768px) { .container, .wrapper { padding: 0 10px; } }\n";
 
         $skinBase = root_path() . 'public' . DIRECTORY_SEPARATOR . 'skin'
             . DIRECTORY_SEPARATOR . 'themes'
@@ -580,8 +600,8 @@ class AiThemeGenerateService
             $cssFile = $skinBase . DIRECTORY_SEPARATOR . $device . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'style.css';
             if (file_exists($cssFile)) {
                 $existing = file_get_contents($cssFile);
-                if (strpos($existing, 'Auto-generated skeleton') === false) {
-                    file_put_contents($cssFile, $existing . "\n" . implode("\n", $cssLines), LOCK_EX);
+                if (strpos($existing, 'Component Library') === false) {
+                    file_put_contents($cssFile, $existing . "\n" . $finalCss, LOCK_EX);
                 }
             }
         }
@@ -625,8 +645,15 @@ class AiThemeGenerateService
         $colorScheme = $options['color_scheme'] ?? '蓝色系';
         $layoutType = $options['layout_type'] ?? '响应式';
         $pageTypes = $options['page_types'] ?? ['首页', '列表页', '详情页'];
+        $industryType = $options['industry_type'] ?? config('theme_styles.default_industry', 'corporate');
 
         $pagesText = implode('、', $pageTypes);
+
+        // V2.9.8 A-1: 行业风格Prompt
+        $industryPrompt = $this->buildIndustryPrompt($industryType);
+
+        // V2.9.8 A-1: 模板变量扩展
+        $variableExtensions = $this->buildExtendedVariables();
 
         return <<<PROMPT
 请为AI-CMS内容管理系统生成一套完整的网站前台主题模板。
@@ -639,6 +666,11 @@ class AiThemeGenerateService
 - 色系: {$colorScheme}
 - 布局: {$layoutType}
 - 需要页面: {$pagesText}
+- 行业类型: {$industryType}
+
+{$industryPrompt}
+
+{$variableExtensions}
 
 ## 技术约束
 1. 使用ThinkPHP模板引擎语法（{volist}循环、{if}条件、{include}引入、{extend}继承、{block}区块）
@@ -807,6 +839,123 @@ class AiThemeGenerateService
 - mobile/layout.html（移动端布局，如需要）
 
 请确保生成完整、可直接运行的模板代码。
+PROMPT;
+    }
+
+    /**
+     * V2.9.8 A-1: 构建行业风格Prompt
+     */
+    protected function buildIndustryPrompt(string $industryType): string
+    {
+        $config = config('theme_styles.industries.' . $industryType);
+        if (!$config) {
+            $config = config('theme_styles.industries.' . config('theme_styles.default_industry', 'corporate'));
+        }
+        if (!$config) {
+            return '';
+        }
+
+        $patterns = $config['design_patterns'];
+        $colors = $config['color_suggestions'] ?? [];
+        $elements = array_keys(array_filter($config['css_key_elements'] ?? []));
+        $elementsText = !empty($elements) ? implode('、', $elements) : 'container、card、button';
+
+        // 构建色彩建议
+        $colorSuggestion = '';
+        if (!empty($colors)) {
+            $colorSuggestion = "\n### 建议色值（可微调，保持风格一致）\n";
+            foreach ($colors as $key => $value) {
+                $label = match($key) {
+                    'primary' => '主色',
+                    'primary_light' => '浅主色',
+                    'primary_dark' => '深主色',
+                    'bg' => '背景色',
+                    'bg_section' => '区块背景',
+                    'text' => '正文色',
+                    'text_muted' => '次要文字',
+                    default => $key,
+                };
+                $colorSuggestion .= "- --{$key}: {$value} ({$label})\n";
+            }
+        }
+
+        return <<<PROMPT
+
+## 行业风格指引：{$config['name']}
+
+### 设计模式（必须遵循）
+请严格按照以下行业设计模式生成模板：
+
+**色彩方案**：{$patterns['color_schema']}
+**排版规范**：{$patterns['typography']}
+**组件要求**：{$patterns['components']}
+**整体氛围**：{$patterns['atmosphere']}
+{$colorSuggestion}
+
+### 关键CSS元素（必须包含）
+以下CSS组件必须在生成模板中出现：{$elementsText}
+
+### CSS变量体系（最少10个）
+使用CSS变量定义所有颜色和关键尺寸：
+--primary (主色), --primary-light (浅主色), --primary-dark (深主色),
+--bg (背景), --bg-secondary (次背景), --text (正文色),
+--text-muted (次要文字), --border (边框色), --radius (圆角),
+--shadow (阴影), --shadow-hover (悬停阴影), --transition (过渡)
+{$this->buildCssComponentPrompt($industryType)}
+
+### 兜底指令
+如果无法完全理解上述设计模式指引，至少确保：CSS变量不少于10个、至少3处过渡效果、至少1组媒体查询、按钮有hover效果、卡片有阴影。
+
+PROMPT;
+    }
+
+    /**
+     * V2.9.8 A-1/A-2: 构建CSS组件模式Prompt
+     */
+    protected function buildCssComponentPrompt(string $industryType): string
+    {
+        $componentMap = [
+            'corporate' => 'Hero全宽渐变区、三列卡片特色区、按钮系统(主/次/轮廓)、固定导航栏、响应式网格、section交替背景、多列页脚',
+            'ecommerce' => '商品网格(3-4列)、价格/促销标签(.price/.badge-sale)、醒目CTA按钮、搜索栏、分类导航侧栏、轮播Banner',
+            'blog' => '文章卡片(.article-card)、侧边栏组件(.sidebar-widget)、标签云(.tag-cloud)、阅读宽度限制(max-width:720px)、面包屑导航',
+            'portal' => '多栏布局(3-4列)、滚动新闻条(.news-ticker)、链接矩阵(.link-matrix)、密集信息布局、多级导航、搜索框',
+        ];
+
+        $components = $componentMap[$industryType] ?? $componentMap['corporate'];
+
+        return <<<PROMPT
+
+### 行业专属CSS组件模式
+请在CSS中实现以下组件样式：{$components}
+
+PROMPT;
+    }
+
+    /**
+     * V2.9.8 C-1: 构建扩展模板变量Prompt
+     */
+    protected function buildExtendedVariables(): string
+    {
+        return <<<PROMPT
+
+## V2.9.8 C-1: 扩展模板变量（除已有变量外，以下变量也可使用）
+
+### 标签聚合页变量
+- {\$tagName} — 标签名称，如"技术"、"生活"
+- {\$tagList} — 该标签下的文章列表（HTML格式）
+
+### 栏目页变量
+- {\$categoryName} — 栏目名称，如"公司新闻"
+- {\$categoryDesc} — 栏目描述文字
+
+### 关于页增强变量
+- {\$contactEmail} — 联系邮箱
+- {\$contactPhone} — 联系电话
+
+### 建议生成的额外页面
+- tag.html（标签聚合页，使用{\$tagName}和{\$tagList}变量）
+- category.html（栏目页，使用{\$categoryName}和{\$categoryDesc}变量）
+
 PROMPT;
     }
 

@@ -210,6 +210,40 @@ class ThemeCustomController extends AdminBaseController
     }
 
     /**
+     * V2.9.8 B-1: 智能推荐预设
+     * GET /admin/theme_custom/recommendPreset?theme=xxx
+     */
+    public function recommendPreset()
+    {
+        $themeId = $this->request->param('theme', '');
+        if (empty($themeId)) {
+            return json(['code' => 1, 'msg' => '缺少theme参数']);
+        }
+        $recommended = $this->customService->recommendPreset($themeId);
+        return json([
+            'code' => 0,
+            'data' => ['recommended_preset' => $recommended],
+        ]);
+    }
+
+    /**
+     * V2.9.8 C-2: 获取模板默认CSS变量值（恢复默认用）
+     * GET /admin/theme_custom/defaultVars?theme=xxx
+     */
+    public function defaultVars()
+    {
+        $themeId = $this->request->param('theme', '');
+        if (empty($themeId)) {
+            return json(['code' => 1, 'msg' => '缺少theme参数']);
+        }
+        $defaults = $this->customService->getDefaultVars($themeId);
+        return json([
+            'code' => 0,
+            'data' => ['default_vars' => $defaults],
+        ]);
+    }
+
+    /**
      * 生成预览CSS（不保存，仅用于预览）
      * POST /admin/theme_custom/preview
      * Body: {data: {"--primary": "#xxx", ...}}

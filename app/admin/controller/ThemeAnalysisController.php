@@ -251,6 +251,47 @@ class ThemeAnalysisController extends AdminBaseController
     }
 
     /**
+     * V2.9.8 C-2: 安装趋势（支持时间范围筛选）
+     * GET /admin/theme_analysis/installTrendRange?range=7d|30d|90d|custom&from=2026-01-01&to=2026-05-15
+     */
+    public function installTrendRange()
+    {
+        $dateRange = $this->request->param('range', '30d');
+        $dateFrom = match($dateRange) {
+            '7d'   => date('Y-m-d', strtotime('-7 days')),
+            '30d'  => date('Y-m-d', strtotime('-30 days')),
+            '90d'  => date('Y-m-d', strtotime('-90 days')),
+            'custom' => $this->request->param('from', date('Y-m-d', strtotime('-30 days'))),
+            default => date('Y-m-d', strtotime('-30 days')),
+        };
+        $dateTo = $this->request->param('to', date('Y-m-d'));
+
+        $fromTimestamp = strtotime($dateFrom . ' 00:00:00');
+        $toTimestamp = strtotime($dateTo . ' 23:59:59');
+
+        $trend = ThemeLog::where('action', 'install')
+            ->whereBetween('create_time', [$fromTimestamp, $toTimestamp])
+            ->field([
+                'FROM_UNIXTIME(create_time, "%Y-%m-%d") as date',
+                'COUNT(*) as count',
+            ])
+            ->group('date')
+            ->order('date', 'asc')
+            ->select()
+            ->toArray();
+
+        return json([
+            'code' => 0,
+            'data' => [
+                'trend'      => $trend,
+                'date_range' => $dateRange,
+                'date_from'  => $dateFrom,
+                'date_to'    => $dateTo,
+            ],
+        ]);
+    }
+
+    /**
      * 获取主题名称映射
      */
     protected function getThemeNames(array $themeIds): array

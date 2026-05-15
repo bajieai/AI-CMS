@@ -381,3 +381,185 @@
 [data-theme="dark"] .pcr-app .pcr-swatches > button {
     border-color: #585b70 !important;
 }
+
+/* =====================================================
+   V2.9.8 第二轮增强：B-1 预设12色卡网格
+   ===================================================== */
+.preset-grid--12 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.preset-card {
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    position: relative;
+}
+.preset-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.preset-card.active {
+    border-color: var(--primary, #2563EB);
+    box-shadow: 0 0 0 2px var(--primary-light, #DBEAFE);
+}
+.preset-card.recommended::after {
+    content: '推荐';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--primary, #2563EB);
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    z-index: 1;
+}
+.preset-color {
+    height: 32px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+.preset-tag {
+    background: var(--primary, #2563EB);
+    color: #fff;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin: 3px;
+}
+.preset-name {
+    font-size: 11px;
+    text-align: center;
+    padding: 4px 0;
+    color: var(--text-muted, #64748B);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* =====================================================
+   V2.9.8 第二轮增强：B-2 新手引导条
+   ===================================================== */
+.onboarding-bar {
+    background: linear-gradient(135deg, var(--primary-light, #DBEAFE), #fff);
+    border: 1px solid var(--primary, #2563EB);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    animation: slideDown 0.3s ease;
+}
+.onboarding-steps {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.onboarding-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted, #64748B);
+    transition: all 0.3s;
+}
+.onboarding-step.active {
+    color: var(--text, #1E293B);
+    font-weight: 600;
+}
+.step-arrow {
+    color: var(--text-muted, #64748B);
+    opacity: 0.5;
+}
+.onboarding-close {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    background: none;
+    border: none;
+    font-size: 16px;
+}
+.onboarding-close:hover { opacity: 1; }
+
+@keyframes slideDown {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* =====================================================
+   V2.9.8 第二轮增强：B-2 折叠面板
+   ===================================================== */
+.section-collapsible {
+    border-bottom: 1px solid var(--border, #E2E8F0);
+    margin-bottom: 0;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    font-weight: 500;
+}
+.section-header:hover { background: rgba(0,0,0,0.03); }
+.section-header:after {
+    content: '▶';
+    font-size: 10px;
+    transition: transform 0.2s;
+    color: var(--text-muted, #64748B);
+}
+.section-header.expanded:after {
+    transform: rotate(90deg);
+}
+.section-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+    padding: 0 12px;
+}
+.section-body.expanded {
+    padding: 0 12px 12px;
+}
+
+/* =====================================================
+   V2.9.8 第二轮增强：B-2 实时预览反馈Toast
+   ===================================================== */
+.custom-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--primary, #2563EB);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    animation: toastIn 0.3s ease;
+    z-index: 1000;
+}
+@keyframes toastIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* =====================================================
+   V2.9.8 第二轮增强：B-3 导出快捷操作按钮
+   ===================================================== */
+.export-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+.export-actions .btn {
+    flex: 1;
+    font-size: 0.813rem;
+}

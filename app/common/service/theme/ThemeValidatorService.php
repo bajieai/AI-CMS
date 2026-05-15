@@ -27,7 +27,7 @@ class ThemeValidatorService
      *     'xss_risks' => array,      // XSS风险项
      * ]
      */
-    public function validate(string $themePath): array
+    public function validate(string $themePath, bool $isNewTemplate = false): array
     {
         // 1. 语法与标签配对校验
         $syntaxResult = $this->validateSyntax($themePath);
@@ -39,7 +39,7 @@ class ThemeValidatorService
         $cssVarResult = $this->checkCssVars($themePath);
 
         // 4. V2.9.8 B-3: CSS质量评分
-        $qualityResult = $this->cssQualityScore($themePath);
+        $qualityResult = $this->cssQualityScore($themePath, $isNewTemplate);
         $qualityPassed = ($qualityResult['total_score'] ?? 0) >= 60;
 
         // 汇总结果
@@ -263,50 +263,126 @@ class ThemeValidatorService
     }
 
     /**
-     * V2.9.8 B-3: CSS质量7维度评分
+     * V2.9.8 A-3: CSS质量9维度评分（增强版）
+     * 新增视觉设计分+布局完整分，双线制阈值（新模板65/历史模板60）
      *
      * @param string $themePath 主题目录或CSS文件路径
+     * @param bool $isNewTemplate 是否为新生成模板（影响阈值：新65/历史60）
      * @return array ['total_score'=>float, 'dimensions'=>array, 'passed'=>bool, 'level'=>string]
      */
-    public function cssQualityScore(string $themePath): array
+    public function cssQualityScore(string $themePath, bool $isNewTemplate = false): array
     {
         $css = $this->extractCssContent($themePath);
         if (empty($css)) {
-            return ['total_score' => 0, 'dimensions' => [], 'passed' => false, 'level' => 'low'];
+            return ['total_score' => 0, 'dimensions' => [], 'passed' => false, 'level' => 'low', 'threshold' => 0];
         }
 
+        // 原有7维度（微调权重以适配新维度）
         $dimensions = [
-            'css_variables' => ['weight' => 20, 'min' => 10, 'score' => $this->countCssVarUsage($css)],
-            'transitions'   => ['weight' => 15, 'min' => 3,  'score' => $this->countTransitions($css)],
+            'css_variables' => ['weight' => 15, 'min' => 10, 'score' => $this->countCssVarUsage($css)],
+            'transitions'   => ['weight' => 10, 'min' => 3,  'score' => $this->countTransitions($css)],
             'box_shadows'   => ['weight' => 10, 'min' => 1,  'score' => $this->countBoxShadows($css)],
             'media_queries' => ['weight' => 15, 'min' => 1,  'score' => $this->countMediaQueries($css)],
-            'color_depth'   => ['weight' => 20, 'min' => 4,  'score' => $this->countUniqueColors($css)],
+            'color_depth'   => ['weight' => 15, 'min' => 4,  'score' => $this->countUniqueColors($css)],
             'pseudo_states' => ['weight' => 10, 'min' => 3,  'score' => $this->countPseudoClasses($css)],
             'spacing'       => ['weight' => 10, 'min' => 5,  'score' => $this->countSpacingDeclarations($css)],
         ];
 
-        $totalScore = 0;
+        // V2.9.8 A-3: 新增2维度
+        $visualDesign = $this->detectVisualDesign($css);
+        $layoutComplete = $this->detectLayoutCompleteness($css);
+
+        $dimensions['visual_design'] = ['weight' => 10, 'min' => 3, 'score' => $visualDesign['count']];
+        $dimensions['layout_completeness'] = ['weight' => 10, 'min' => 3, 'score' => $layoutComplete['count']];
+
+        // 总权重105%，归一化到100分
+        $totalWeight = 0;
+        $rawScore = 0;
         $resultDimensions = [];
         foreach ($dimensions as $dim => $config) {
             $dimScore = $config['min'] > 0
                 ? min(100, ($config['score'] / $config['min']) * 100)
                 : ($config['score'] > 0 ? 100 : 0);
-            $resultDimensions[$dim] = [
+            $totalWeight += $config['weight'];
+            $rawScore += $dimScore * $config['weight'] / 100;
+
+            $dimResult = [
                 'detected' => $config['score'],
                 'required' => $config['min'],
                 'score'    => round($dimScore, 1),
                 'weight'   => $config['weight'],
                 'weighted' => round($dimScore * $config['weight'] / 100, 1),
             ];
-            $totalScore += $dimScore * $config['weight'] / 100;
+
+            // 为新维度附加详情
+            if ($dim === 'visual_design') {
+                $dimResult['details'] = $visualDesign['attrs_used'];
+            }
+            if ($dim === 'layout_completeness') {
+                $dimResult['details'] = $layoutComplete['types_present'];
+            }
+
+            $resultDimensions[$dim] = $dimResult;
         }
 
-        $totalScore = round($totalScore, 1);
+        // 归一化（105% → 100%）
+        $totalScore = $totalWeight > 0 ? round($rawScore / ($totalWeight / 100), 1) : 0;
+
+        // V2.9.8 A-3: 双线制阈值
+        $threshold = $isNewTemplate ? 65 : 60;
+
+        // 质量等级
+        $level = 'low';
+        if ($totalScore >= 85) $level = 'excellent';
+        elseif ($totalScore >= 75) $level = 'good';
+        elseif ($totalScore >= $threshold) $level = 'pass';
+
         return [
             'total_score' => $totalScore,
             'dimensions'  => $resultDimensions,
-            'passed'      => $totalScore >= 60,
-            'level'       => $totalScore >= 80 ? 'excellent' : ($totalScore >= 60 ? 'good' : 'low'),
+            'passed'      => $totalScore >= $threshold,
+            'level'       => $level,
+            'threshold'   => $threshold,
+            'is_new_template' => $isNewTemplate,
+        ];
+    }
+
+    /**
+     * V2.9.8 A-3: 视觉设计分检测
+     * 检测CSS中的设计属性：渐变、圆角、阴影、变换、透明度
+     */
+    protected function detectVisualDesign(string $css): array
+    {
+        $designAttrs = [
+            'gradient'      => preg_match_all('/linear-gradient|radial-gradient|conic-gradient/i', $css, $m),
+            'border_radius' => preg_match_all('/border-radius\s*:/i', $css, $m),
+            'box_shadow'    => preg_match_all('/box-shadow\s*:/i', $css, $m),
+            'transform'     => preg_match_all('/transform\s*:/i', $css, $m),
+            'opacity'       => preg_match_all('/opacity\s*:/i', $css, $m),
+        ];
+
+        return [
+            'attrs_used' => array_filter($designAttrs, fn($v) => $v > 0),
+            'count'      => count(array_filter($designAttrs)),
+        ];
+    }
+
+    /**
+     * V2.9.8 A-3: 布局完整分检测
+     * 检测四类基本布局组件的存在性
+     */
+    protected function detectLayoutCompleteness(string $css): array
+    {
+        $componentTypes = [
+            'hero'    => (bool) preg_match('/\.hero/i', $css) || (bool) preg_match('/hero-section|banner/i', $css),
+            'card'    => (bool) preg_match('/\.card/i', $css) || (bool) preg_match('/card-grid|card-list/i', $css),
+            'nav'     => (bool) preg_match('/\.nav/i', $css) || (bool) preg_match('/navbar|navigation/i', $css),
+            'grid'    => (bool) preg_match('/\.grid/i', $css) || (bool) preg_match('/display:\s*grid/i', $css),
+        ];
+
+        return [
+            'types_present' => $componentTypes,
+            'count'         => count(array_filter($componentTypes)),
         ];
     }
 
