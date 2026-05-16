@@ -21,19 +21,31 @@ class TrafficController extends AdminBaseController
     }
 
     /**
-     * 来源分析
+     * V2.9.9 B-2: 来源分析（按大类聚合）
      */
     public function getSourceStats()
     {
         $days = min((int) $this->request->get('days', 7), 30);
         $startDate = strtotime("-{$days} days");
         
-        $data = Db::name('visit_log')
-            ->field('source_type, COUNT(*) as count')
+        $raw = Db::name('visit_log')
+            ->field('referrer, COUNT(*) as count')
             ->where('visit_time', '>=', $startDate)
-            ->group('source_type')
+            ->group('referrer')
             ->select()
             ->toArray();
+        
+        // 按source_category聚合
+        $categories = ['direct' => 0, 'search' => 0, 'social' => 0, 'referral' => 0, 'other' => 0];
+        foreach ($raw as $item) {
+            $cat = \app\common\service\VisitService::detectSourceCategory($item['referrer'] ?? '');
+            $categories[$cat] = ($categories[$cat] ?? 0) + (int) $item['count'];
+        }
+        
+        $data = [];
+        foreach ($categories as $type => $count) {
+            $data[] = ['source_type' => $type, 'count' => $count];
+        }
         
         return json(['code' => 0, 'data' => $data]);
     }
@@ -105,5 +117,63 @@ class TrafficController extends AdminBaseController
             ->toArray();
         
         return json(['code' => 0, 'data' => $data]);
+    }
+
+    /**
+     * V2.9.9 B-2: 跳出率
+     */
+    public function getBounceRate()
+    {
+        try {
+            $days = (int) $this->request->get('days', 7);
+            $data = \app\common\service\DashboardService::getBounceRate($days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.9 B-2: 浏览器分布
+     */
+    public function getBrowserStats()
+    {
+        try {
+            $days = (int) $this->request->get('days', 7);
+            $data = \app\common\service\DashboardService::getBrowserStats($days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.9 B-2: 热门内容+停留时长
+     */
+    public function getTopContentWithDuration()
+    {
+        try {
+            $limit = (int) $this->request->get('limit', 10);
+            $days = (int) $this->request->get('days', 7);
+            $data = \app\common\service\DashboardService::getTopContentWithDuration($limit, $days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.9 B-2: DAU/MAU
+     */
+    public function getDauMau()
+    {
+        try {
+            $days = (int) $this->request->get('days', 30);
+            if ($days > 90) $days = 90;
+            $data = \app\common\service\DashboardService::getDauMau($days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
     }
 }

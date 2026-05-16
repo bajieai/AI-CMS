@@ -912,16 +912,24 @@ PROMPT;
     /**
      * V2.9.8 A-1/A-2: 构建CSS组件模式Prompt
      */
+    /**
+     * V2.9.9 A-1: 动态构建CSS组件Prompt（从配置读取，消除硬编码）
+     */
     protected function buildCssComponentPrompt(string $industryType): string
     {
-        $componentMap = [
-            'corporate' => 'Hero全宽渐变区、三列卡片特色区、按钮系统(主/次/轮廓)、固定导航栏、响应式网格、section交替背景、多列页脚',
-            'ecommerce' => '商品网格(3-4列)、价格/促销标签(.price/.badge-sale)、醒目CTA按钮、搜索栏、分类导航侧栏、轮播Banner',
-            'blog' => '文章卡片(.article-card)、侧边栏组件(.sidebar-widget)、标签云(.tag-cloud)、阅读宽度限制(max-width:720px)、面包屑导航',
-            'portal' => '多栏布局(3-4列)、滚动新闻条(.news-ticker)、链接矩阵(.link-matrix)、密集信息布局、多级导航、搜索框',
-        ];
+        // 从theme_styles配置读取行业设计模式
+        $industries = config('theme_styles.industries', []);
+        $industryConfig = $industries[$industryType] ?? $industries['corporate'] ?? null;
 
-        $components = $componentMap[$industryType] ?? $componentMap['corporate'];
+        // 配置优先：取 design_patterns.components 描述
+        if ($industryConfig && !empty($industryConfig['design_patterns']['components'])) {
+            $components = $industryConfig['design_patterns']['components'];
+        } else {
+            // 兜底：从CssComponentLibrary获取组件名列表并转描述
+            $library = new CssComponentLibrary();
+            $compNames = $library->getComponentNamesForIndustry($industryType);
+            $components = implode('、', $compNames) ?: 'Hero全宽渐变区、三列卡片特色区、按钮系统、固定导航栏、响应式网格、多列页脚';
+        }
 
         return <<<PROMPT
 

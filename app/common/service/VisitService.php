@@ -20,9 +20,15 @@ class VisitService
     public static function track(array $data): bool
     {
         try {
+            // V2.9.9: session_id优先从请求传入，否则生成新会话ID
+            $sessionId = !empty($data['session_id'])
+                ? substr($data['session_id'], 0, 64)
+                : self::generateSessionId();
+
             VisitLog::create([
                 'content_id'   => (int) ($data['content_id'] ?? 0),
                 'visitor_id'   => (int) ($data['visitor_id'] ?? 0),
+                'session_id'   => $sessionId,
                 'ip'           => substr($data['ip'] ?? '', 0, 45),
                 'ua'           => substr($data['ua'] ?? '', 0, 500),
                 'page_url'     => substr($data['page_url'] ?? '', 0, 500),
@@ -78,17 +84,51 @@ class VisitService
     }
 
     /**
-     * 检测来源类型
+     * V2.9.9: 检测来源类型（详细引擎/平台名）
      */
     protected static function detectSource(string $referrer): string
     {
         if (empty($referrer)) return 'direct';
         $host = parse_url($referrer, PHP_URL_HOST) ?: '';
+
+        // 搜索引擎
         if (str_contains($host, 'baidu.com')) return 'baidu';
         if (str_contains($host, 'google.')) return 'google';
         if (str_contains($host, 'bing.com')) return 'bing';
+        if (str_contains($host, 'sogou.com')) return 'sogou';
+        if (str_contains($host, 'so.com')) return '360';
+        if (str_contains($host, 'sm.cn')) return 'shenma';
+
+        // 社交平台（返回具体平台，由detectSourceCategory归入social大类）
         if (str_contains($host, 'weixin.qq.com')) return 'wechat';
         if (str_contains($host, 'zhihu.com')) return 'zhihu';
+        if (str_contains($host, 'weibo.com')) return 'weibo';
+        if (str_contains($host, 'douyin.com')) return 'douyin';
+
         return 'referral';
+    }
+
+    /**
+     * V2.9.9 B-2: 来源大类分类（search/social/referral/direct/other）
+     */
+    public static function detectSourceCategory(string $referrer): string
+    {
+        $source = self::detectSource($referrer);
+        $searchEngines = ['baidu', 'google', 'bing', 'sogou', '360', 'shenma'];
+        $socialPlatforms = ['wechat', 'weibo', 'douyin'];
+
+        if ($source === 'direct') return 'direct';
+        if (in_array($source, $searchEngines, true)) return 'search';
+        if (in_array($source, $socialPlatforms, true)) return 'social';
+        if ($source === 'zhihu') return 'referral'; // 知乎暂归入referral，团队待定
+        return 'referral';
+    }
+
+    /**
+     * V2.9.9 B-2: 生成会话ID（用于跳出率计算）
+     */
+    public static function generateSessionId(): string
+    {
+        return md5(uniqid((string) mt_rand(), true) . microtime(true));
     }
 }

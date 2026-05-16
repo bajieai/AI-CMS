@@ -17,6 +17,7 @@ class VisitLog extends Model
     protected $type = [
         'content_id'   => 'integer',
         'visitor_id'   => 'integer',
+        'session_id'   => 'string',
         'visit_time'   => 'integer',
         'event_type'   => 'string',
         'share_channel'=> 'string',

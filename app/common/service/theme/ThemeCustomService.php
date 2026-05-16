@@ -346,4 +346,100 @@ class ThemeCustomService
     {
         return $this->getDefaults($themeId);
     }
+
+    /**
+     * V2.9.9 A-3: 基于色值距离的预设推荐（HSL+Euclidean+权重融合）
+     *
+     * @param string $hexColor 用户输入的HEX色值，如 #3B82F6
+     * @return array 按距离排序的预设推荐列表
+     */
+    public function recommendPresetByColor(string $hexColor): array
+    {
+        $inputRgb = self::hexToRgb($hexColor);
+        if (!$inputRgb) {
+            return [];
+        }
+        $inputHsl = self::rgbToHsl($inputRgb['r'], $inputRgb['g'], $inputRgb['b']);
+
+        $recommendations = [];
+        foreach (ThemeCustomization::SYSTEM_PRESETS as $preset) {
+            $presetHex = $preset['preview_color'] ?? ($preset['css_vars']['--primary'] ?? '#000000');
+            $presetRgb = self::hexToRgb($presetHex);
+            if (!$presetRgb) continue;
+            $presetHsl = self::rgbToHsl($presetRgb['r'], $presetRgb['g'], $presetRgb['b']);
+
+            $distance = self::hslDistance($inputHsl, $presetHsl);
+            $recommendations[] = [
+                'key'         => $preset['key'],
+                'name'        => $preset['name'],
+                'distance'    => round($distance, 2),
+                'score'       => max(0, round(100 - $distance, 2)),
+                'preview'     => $preset['preview_gradient'] ?? $presetHex,
+                'hex'         => $presetHex,
+            ];
+        }
+
+        // 按距离升序排列（距离越小越接近）
+        usort($recommendations, fn ($a, $b) => $a['distance'] <=> $b['distance']);
+        return $recommendations;
+    }
+
+    /**
+     * HEX → RGB 转换
+     */
+    public static function hexToRgb(string $hex): ?array
+    {
+        $hex = ltrim($hex, '#');
+        if (!preg_match('/^[0-9A-Fa-f]{6}$/', $hex)) {
+            return null;
+        }
+        return [
+            'r' => hexdec(substr($hex, 0, 2)),
+            'g' => hexdec(substr($hex, 2, 2)),
+            'b' => hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    /**
+     * RGB → HSL 转换
+     */
+    public static function rgbToHsl(int $r, int $g, int $b): array
+    {
+        $r /= 255; $g /= 255; $b /= 255;
+        $max = max($r, $g, $b);
+        $min = min($r, $g, $b);
+        $l = ($max + $min) / 2;
+
+        if ($max === $min) {
+            $h = $s = 0;
+        } else {
+            $d = $max - $min;
+            $s = $l > 0.5 ? $d / (2 - $max - $min) : $d / ($max + $min);
+            switch ($max) {
+                case $r: $h = ($g - $b) / $d + ($g < $b ? 6 : 0); break;
+                case $g: $h = ($b - $r) / $d + 2; break;
+                case $b: $h = ($r - $g) / $d + 4; break;
+            }
+            $h *= 60;
+        }
+
+        return ['h' => $h, 's' => $s * 100, 'l' => $l * 100];
+    }
+
+    /**
+     * HSL 加权 Euclidean 距离
+     * 权重：H=0.5, S=1.0, L=1.0（色相环形差异需归一化）
+     */
+    public static function hslDistance(array $a, array $b): float
+    {
+        // 色相环形最短距离（0-360度）
+        $dh = abs($a['h'] - $b['h']);
+        $dh = min($dh, 360 - $dh);
+
+        $ds = $a['s'] - $b['s'];
+        $dl = $a['l'] - $b['l'];
+
+        // 加权：H权重0.5（缩小色相差异敏感度），S和L权重1.0
+        return sqrt(0.5 * $dh * $dh + 1.0 * $ds * $ds + 1.0 * $dl * $dl);
+    }
 }

@@ -312,3 +312,17 @@ Route::get('theme_analysis/exportCsv$', '\app\admin\controller\ThemeAnalysisCont
 
 // V3.1: 数据看板来源分析
 Route::get('dashboard/getSourceAnalysis$', '\app\admin\controller\DashboardController@getSourceAnalysis');
+
+// V2.9.9 B-1: 运营报表
+Route::get('dashboard/dataOperations$', '\app\admin\controller\DashboardController@dataOperations');
+Route::get('dashboard/getOperationsReport$', '\app\admin\controller\DashboardController@getOperationsReport');
+Route::get('dashboard/getDauMau$', '\app\admin\controller\DashboardController@getDauMau');
+
+// V2.9.9 B-2: 流量增强
+Route::get('dashboard/getBounceRate$', '\app\admin\controller\DashboardController@getBounceRate');
+Route::get('dashboard/getBrowserStats$', '\app\admin\controller\DashboardController@getBrowserStats');
+Route::get('dashboard/getTopContentWithDuration$', '\app\admin\controller\DashboardController@getTopContentWithDuration');
+Route::get('traffic/getBounceRate$', '\app\admin\controller\TrafficController@getBounceRate');
+Route::get('traffic/getBrowserStats$', '\app\admin\controller\TrafficController@getBrowserStats');
+Route::get('traffic/getTopContentWithDuration$', '\app\admin\controller\TrafficController@getTopContentWithDuration');
+Route::get('traffic/getDauMau$', '\app\admin\controller\TrafficController@getDauMau');

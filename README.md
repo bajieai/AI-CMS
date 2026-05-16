@@ -1,16 +1,16 @@
-# 八界AI-CMS V2.9.8
+# 八界AI-CMS V2.9.9
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.8-blue)
+![Version](https://img.shields.io/badge/version-2.9.9-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.8 "模力精修" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.9 "模力收官" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.8 定位：缺陷修复 + AI主题质量深化 + 定制体验打磨**，在V2.9.7模板可视化定制三大能力闭环基础上，修缺陷、提质量、磨体验。
+**V2.9.9 定位：模板行业扩展 + 运营数据闭环 + 架构优化收官**，在V2.9.8模力精修基础上，扩展模板行业覆盖、补齐运营数据分析、统一技术债务。
 
 **V2.9.8 核心新功能 — 模力精修：**
 

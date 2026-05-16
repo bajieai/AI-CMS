@@ -13,14 +13,45 @@ namespace app\common\service\theme;
 class CssComponentLibrary
 {
     /**
-     * 行业→组件映射
+     * V2.9.9 A-1/A-4: 行业→组件映射（8行业）
      */
     protected const INDUSTRY_COMPONENTS = [
         'corporate' => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer'],
         'ecommerce' => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'price', 'footer'],
         'blog'      => ['vars', 'card', 'button', 'nav', 'grid', 'spacing', 'article', 'footer'],
         'portal'    => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer'],
+        'medical'   => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer', 'sidebar'],
+        'education' => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer', 'header'],
+        'catering'  => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'price', 'footer'],
+        'finance'   => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer', 'header'],
     ];
+
+    /**
+     * 获取某行业的组件名称列表（供Prompt动态构建使用）
+     */
+    public function getComponentNamesForIndustry(string $industry): array
+    {
+        $components = self::INDUSTRY_COMPONENTS[$industry] ?? self::INDUSTRY_COMPONENTS['corporate'];
+        $names = [];
+        $labelMap = [
+            'vars'    => 'CSS变量体系',
+            'hero'    => 'Hero全宽渐变区',
+            'card'    => '卡片组件',
+            'button'  => '按钮系统',
+            'nav'     => '固定导航栏',
+            'grid'    => '响应式网格',
+            'spacing' => '间距体系',
+            'footer'  => '多列页脚',
+            'price'   => '价格/促销标签',
+            'article' => '文章/博客组件',
+            'header'  => '顶部信息条',
+            'sidebar' => '侧边栏组件',
+        ];
+        foreach ($components as $comp) {
+            $names[] = $labelMap[$comp] ?? $comp;
+        }
+        return $names;
+    }
 
     /**
      * 按行业获取CSS组件规则集
@@ -48,7 +79,7 @@ class CssComponentLibrary
         $blocks = $this->getComponentsForIndustry($industry);
         $css = "/* V2.9.8 A-2: Component Library — {$industry} style */\n\n";
 
-        foreach ($blocks as $name => $block) {
+        foreach ($blocks as $block) {
             $css .= $block . "\n\n";
         }
 
@@ -514,6 +545,137 @@ CSS;
     margin-bottom: 1rem;
     padding-bottom: 0.75rem;
     border-bottom: 2px solid var(--primary);
+}
+CSS;
+    }
+
+    /**
+     * 组件11：顶部信息条（金融/教育等行业）
+     */
+    protected function renderHeader(): string
+    {
+        return <<<CSS
+/* === Top Header Bar === */
+.top-header {
+    background: var(--primary-dark);
+    color: var(--text-inverse);
+    font-size: 0.875rem;
+    padding: 0.5rem 0;
+}
+.top-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.top-header-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+.top-header-info span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    opacity: 0.9;
+}
+.top-header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.top-header-actions a {
+    color: var(--text-inverse);
+    text-decoration: none;
+    opacity: 0.85;
+    transition: var(--transition);
+}
+.top-header-actions a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+@media (max-width: 768px) {
+    .top-header { display: none; }
+}
+CSS;
+    }
+
+    /**
+     * 组件12：侧边栏组件（医疗等行业）
+     */
+    protected function renderSidebar(): string
+    {
+        return <<<CSS
+/* === Sidebar Component === */
+.sidebar-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+.sidebar {
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+}
+.sidebar-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary);
+}
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar-menu li {
+    margin-bottom: 0.25rem;
+}
+.sidebar-menu a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+.sidebar-contact {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+.sidebar-contact p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.sidebar-contact .phone {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+@media (max-width: 1024px) {
+    .sidebar-layout {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        position: static;
+        order: 2;
+    }
 }
 CSS;
     }

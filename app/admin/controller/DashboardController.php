@@ -30,14 +30,14 @@ class DashboardController extends AdminBaseController
             $todayStart = strtotime('today');
             $yesterdayStart = strtotime('yesterday');
 
-            $todayPV = Db::name('visit_log')->where('create_time', '>=', $todayStart)->count();
-            $todayUV = Db::name('visit_log')->where('create_time', '>=', $todayStart)->group('ip')->count();
+            $todayPV = Db::name('visit_log')->where('visit_time', '>=', $todayStart)->count();
+            $todayUV = Db::name('visit_log')->where('visit_time', '>=', $todayStart)->group('ip')->count();
 
             $yesterdayPV = Db::name('visit_log')
-                ->whereBetween('create_time', [$yesterdayStart, $todayStart])
+                ->whereBetween('visit_time', [$yesterdayStart, $todayStart])
                 ->count();
             $yesterdayUV = Db::name('visit_log')
-                ->whereBetween('create_time', [$yesterdayStart, $todayStart])
+                ->whereBetween('visit_time', [$yesterdayStart, $todayStart])
                 ->group('ip')
                 ->count();
 
@@ -78,16 +78,16 @@ class DashboardController extends AdminBaseController
                 $startDate = strtotime("-{$days} days");
 
                 $pvQuery = Db::name('visit_log')
-                    ->field('FROM_UNIXTIME(create_time, "%Y-%m-%d") as date, COUNT(*) as pv')
-                    ->where('create_time', '>=', $startDate)
+                    ->field('FROM_UNIXTIME(visit_time, "%Y-%m-%d") as date, COUNT(*) as pv')
+                    ->where('visit_time', '>=', $startDate)
                     ->group('date')
                     ->order('date')
                     ->select()
                     ->toArray();
 
                 $uvQuery = Db::name('visit_log')
-                    ->field('FROM_UNIXTIME(create_time, "%Y-%m-%d") as date, COUNT(DISTINCT ip) as uv')
-                    ->where('create_time', '>=', $startDate)
+                    ->field('FROM_UNIXTIME(visit_time, "%Y-%m-%d") as date, COUNT(DISTINCT ip) as uv')
+                    ->where('visit_time', '>=', $startDate)
                     ->group('date')
                     ->order('date')
                     ->select()
@@ -223,18 +223,108 @@ class DashboardController extends AdminBaseController
     }
 
     /**
-     * 设备分布
+     * V2.9.9: 设备分布（从UA实时解析）
      */
     public function getDeviceStats()
     {
         $todayStart = strtotime('today');
         $data = Db::name('visit_log')
-            ->field('device, COUNT(*) as count')
-            ->where('create_time', '>=', $todayStart)
+            ->field("CASE
+                WHEN ua LIKE '%Mobile%' AND ua NOT LIKE '%iPad%' THEN 'mobile'
+                WHEN ua LIKE '%iPad%' OR (ua LIKE '%Android%' AND ua NOT LIKE '%Mobile%') THEN 'tablet'
+                WHEN ua LIKE '%Windows%' OR ua LIKE '%Macintosh%' OR ua LIKE '%Linux%' THEN 'desktop'
+                WHEN ua LIKE '%bot%' OR ua LIKE '%spider%' OR ua LIKE '%crawler%' THEN 'bot'
+                ELSE 'unknown'
+            END as device, COUNT(*) as count")
+            ->where('visit_time', '>=', $todayStart)
             ->group('device')
             ->select();
 
         return json(['code' => 0, 'data' => $data]);
+    }
+
+    /**
+     * V2.9.9 B-1: 运营报表页面
+     */
+    public function dataOperations()
+    {
+        return $this->view('/data_operations');
+    }
+
+    /**
+     * V2.9.9 B-1: 运营报表API（访客/内容/订单维度）
+     */
+    public function getOperationsReport()
+    {
+        try {
+            $start = $this->request->get('start');
+            $end = $this->request->get('end');
+            $startTime = $start ? strtotime($start) : strtotime('-7 days');
+            $endTime = $end ? strtotime($end . ' 23:59:59') : time();
+
+            $data = \app\common\service\DashboardService::getOperationsReport($startTime, $endTime);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.9 B-2: DAU/MAU统计
+     */
+    public function getDauMau()
+    {
+        try {
+            $days = (int) $this->request->get('days', 30);
+            if ($days > 90) $days = 90;
+            $data = \app\common\service\DashboardService::getDauMau($days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.9 B-2: 跳出率
+     */
+    public function getBounceRate()
+    {
+        try {
+            $days = (int) $this->request->get('days', 7);
+            $data = \app\common\service\DashboardService::getBounceRate($days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.9 B-2: 浏览器分布
+     */
+    public function getBrowserStats()
+    {
+        try {
+            $days = (int) $this->request->get('days', 7);
+            $data = \app\common\service\DashboardService::getBrowserStats($days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * V2.9.9 B-2: 热门内容+停留时长
+     */
+    public function getTopContentWithDuration()
+    {
+        try {
+            $limit = (int) $this->request->get('limit', 10);
+            $days = (int) $this->request->get('days', 7);
+            $data = \app\common\service\DashboardService::getTopContentWithDuration($limit, $days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
     }
 
     /**
@@ -448,16 +538,16 @@ class DashboardController extends AdminBaseController
         $startDate = strtotime("-{$days} days");
         
         $pvQuery = Db::name('visit_log')
-            ->field('FROM_UNIXTIME(create_time, "%Y-%m-%d") as date, COUNT(*) as pv')
-            ->where('create_time', '>=', $startDate)
+            ->field('FROM_UNIXTIME(visit_time, "%Y-%m-%d") as date, COUNT(*) as pv')
+            ->where('visit_time', '>=', $startDate)
             ->group('date')
             ->order('date')
             ->select()
             ->toArray();
         
         $uvQuery = Db::name('visit_log')
-            ->field('FROM_UNIXTIME(create_time, "%Y-%m-%d") as date, COUNT(DISTINCT ip) as uv')
-            ->where('create_time', '>=', $startDate)
+            ->field('FROM_UNIXTIME(visit_time, "%Y-%m-%d") as date, COUNT(DISTINCT ip) as uv')
+            ->where('visit_time', '>=', $startDate)
             ->group('date')
             ->order('date')
             ->select()
