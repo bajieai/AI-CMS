@@ -1,0 +1,31 @@
+{
+  "name": "教育培训基底",
+  "version": "1.0.0",
+  "description": "教育培训风格主题基底，课程卡片 + 讲师介绍 + 学习路径 + 试听入口",
+  "author": "八界AI-CMS",
+  "category": "education",
+  "tags": ["教育", "培训", "课程", "学习"],
+  "preview": "",
+  "type": "education",
+  "supports": ["pc", "mobile"],
+  "default_device": "pc",
+  "colors": {
+    "primary": "#7c3aed",
+    "secondary": "#8b5cf6",
+    "accent": "#a78bfa",
+    "hero_gradient": "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)"
+  },
+  "options": {
+    "show_breadcrumb": true,
+    "show_sidebar": false,
+    "hero_enabled": true,
+    "hero_title": "名师好课，成就未来",
+    "hero_subtitle": "随时随地，高效学习",
+    "show_course_grid": true,
+    "show_instructor": true,
+    "show_learning_path": true,
+    "show_trial_button": true,
+    "articles_per_page": 12,
+    "excerpt_length": 150
+  }
+}

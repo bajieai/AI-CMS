@@ -1,0 +1,31 @@
+{
+  "name": "电商零售基底",
+  "version": "1.0.0",
+  "description": "电商零售风格主题基底，红色促销色系 + 商品卡片 + 购物车入口 + 限时活动区",
+  "author": "八界AI-CMS",
+  "category": "ecommerce",
+  "tags": ["电商", "零售", "促销", "购物"],
+  "preview": "",
+  "type": "ecommerce",
+  "supports": ["pc", "mobile"],
+  "default_device": "pc",
+  "colors": {
+    "primary": "#dc2626",
+    "secondary": "#f59e0b",
+    "accent": "#ea580c",
+    "hero_gradient": "linear-gradient(135deg, #dc2626 0%, #991b1b 100%)"
+  },
+  "options": {
+    "show_breadcrumb": true,
+    "show_sidebar": false,
+    "hero_enabled": true,
+    "hero_title": "精选好物，品质生活",
+    "hero_subtitle": "限时特惠，全场包邮",
+    "products_per_page": 24,
+    "show_cart_icon": true,
+    "show_price_filter": true,
+    "show_flash_sale": true,
+    "articles_per_page": 12,
+    "excerpt_length": 100
+  }
+}

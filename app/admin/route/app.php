@@ -265,6 +265,9 @@ Route::post('theme_market/install$', '\app\admin\controller\ThemeMarketControlle
 Route::post('theme_market/switch$', '\app\admin\controller\ThemeMarketController@switch');
 Route::post('theme_market/uninstall$', '\app\admin\controller\ThemeMarketController@uninstall');
 Route::get('theme_market/previewUrl$', '\app\admin\controller\ThemeMarketController@previewUrl');
+// V2.9.9 F-3: 本地模板市场API
+Route::get('theme_market/localList$', '\app\admin\controller\ThemeMarketController@localList');
+Route::get('theme_market/localDetail$', '\app\admin\controller\ThemeMarketController@localDetail');
 Route::get('theme_market/backups$', '\app\admin\controller\ThemeMarketController@backups');
 Route::post('theme_market/rollback$', '\app\admin\controller\ThemeMarketController@rollback');
 Route::post('theme_market/scan$', '\app\admin\controller\ThemeMarketController@scan');
@@ -313,9 +316,10 @@ Route::get('theme_analysis/exportCsv$', '\app\admin\controller\ThemeAnalysisCont
 // V3.1: 数据看板来源分析
 Route::get('dashboard/getSourceAnalysis$', '\app\admin\controller\DashboardController@getSourceAnalysis');
 
-// V2.9.9 B-1: 运营报表
+// V2.9.9 B-1/E-2: 运营报表 + CSV导出
 Route::get('dashboard/dataOperations$', '\app\admin\controller\DashboardController@dataOperations');
 Route::get('dashboard/getOperationsReport$', '\app\admin\controller\DashboardController@getOperationsReport');
+Route::get('dashboard/exportOperationsCsv$', '\app\admin\controller\DashboardController@exportOperationsCsv');
 Route::get('dashboard/getDauMau$', '\app\admin\controller\DashboardController@getDauMau');
 
 // V2.9.9 B-2: 流量增强

@@ -1,0 +1,31 @@
+{
+  "name": "旅游出行基底",
+  "version": "1.0.0",
+  "description": "旅游出行风格主题基底，自然风景色系 + 目的地推荐 + 行程规划 + 攻略社区",
+  "author": "八界AI-CMS",
+  "category": "travel",
+  "tags": ["旅游", "出行", "攻略", "目的地"],
+  "preview": "",
+  "type": "travel",
+  "supports": ["pc", "mobile"],
+  "default_device": "pc",
+  "colors": {
+    "primary": "#047857",
+    "secondary": "#059669",
+    "accent": "#10b981",
+    "hero_gradient": "linear-gradient(135deg, #047857 0%, #065f46 100%)"
+  },
+  "options": {
+    "show_breadcrumb": true,
+    "show_sidebar": false,
+    "hero_enabled": true,
+    "hero_title": "探索世界，发现美好",
+    "hero_subtitle": "精选攻略，轻松出发",
+    "show_destination_grid": true,
+    "show_itinerary_planner": true,
+    "show_travel_guide": true,
+    "show_gallery": true,
+    "articles_per_page": 12,
+    "excerpt_length": 150
+  }
+}

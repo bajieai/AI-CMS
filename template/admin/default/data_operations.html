@@ -22,6 +22,7 @@
             <span>至</span>
             <input type="date" id="endDate" class="form-control form-control-sm" style="width:140px">
             <button class="btn btn-sm btn-primary" onclick="loadCustomRange()">查询</button>
+            <button class="btn btn-sm btn-outline-success" onclick="exportCsv()" title="导出CSV"><i class="bi bi-download"></i> CSV</button>
         </div>
     </div>
 </div>
@@ -105,7 +106,7 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-graph-up me-1"></i>DAU趋势</span>
+                <span><i class="bi bi-graph-up me-1"></i>DAU趋势 <span class="badge-beta">Beta</span></span>
                 <small class="text-muted">基于IP去重日活</small>
             </div>
             <div class="card-body">
@@ -127,7 +128,7 @@
 <div class="row g-3">
     <div class="col-lg-4">
         <div class="card">
-            <div class="card-header"><i class="bi bi-activity me-1"></i>跳出率 <span class="badge bg-secondary">Beta</span></div>
+            <div class="card-header"><i class="bi bi-activity me-1"></i>跳出率 <span class="badge-beta">Beta</span></div>
             <div class="card-body text-center">
                 <div id="bounceRateValue" class="display-4 fw-bold text-primary">-</div>
                 <div class="text-muted small">单页会话占比</div>
@@ -137,7 +138,7 @@
     </div>
     <div class="col-lg-8">
         <div class="card">
-            <div class="card-header"><i class="bi bi-clock-history me-1"></i>热门内容停留时长 <span class="badge bg-secondary">Beta</span></div>
+            <div class="card-header"><i class="bi bi-clock-history me-1"></i>热门内容停留时长 <span class="badge-beta">Beta</span></div>
             <div class="table-responsive">
                 <table class="table table-hover table-sm mb-0">
                     <thead class="table-light">
@@ -189,11 +190,17 @@ function loadCustomRange() {
 }
 
 function loadAll() {
-    loadOperationsReport();
-    loadDauMau();
-    loadBrowserStats();
-    loadBounceRate();
-    loadContentDuration();
+    // V2.9.9 G-3: 并行加载减少等待时间
+    Promise.all([
+        new Promise(function(resolve) { loadOperationsReport(); resolve(); }),
+        new Promise(function(resolve) { loadDauMau(); resolve(); }),
+        new Promise(function(resolve) { loadBrowserStats(); resolve(); }),
+        new Promise(function(resolve) { loadBounceRate(); resolve(); }),
+        new Promise(function(resolve) { loadContentDuration(); resolve(); }),
+    ]).then(function() {
+        // 所有数据加载完成后的最小化反馈（可选）
+        console.log('V2.9.9 operations data loaded');
+    });
 }
 
 function loadOperationsReport() {
@@ -284,6 +291,14 @@ $(function() {
     $('#startDate').val(weekAgo);
     loadAll();
 });
+
+function exportCsv() {
+    var url = '/admin/dashboard/exportOperationsCsv?days=' + (currentRange.days || 30);
+    if(currentRange.start && currentRange.end) {
+        url += '&start=' + currentRange.start + '&end=' + currentRange.end;
+    }
+    window.location.href = url;
+}
 
 $(window).resize(function() {
     dauChart.resize();

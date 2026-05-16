@@ -270,6 +270,56 @@ class DashboardController extends AdminBaseController
     }
 
     /**
+     * V2.9.9 E-2: 运营数据CSV导出
+     */
+    public function exportOperationsCsv()
+    {
+        try {
+            $start = $this->request->get('start');
+            $end = $this->request->get('end');
+            $startTime = $start ? strtotime($start) : strtotime('-7 days');
+            $endTime = $end ? strtotime($end . ' 23:59:59') : time();
+            $days = (int) $this->request->get('days', 30);
+
+            $report = \app\common\service\DashboardService::getOperationsReport($startTime, $endTime);
+            $dauData = \app\common\service\DashboardService::getDauMau($days);
+
+            $filename = 'operations_' . date('Ymd_His') . '.csv';
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+            // UTF-8 BOM for Excel
+            echo "\xEF\xBB\xBF";
+
+            $out = fopen('php://output', 'w');
+
+            // 汇总指标
+            fputcsv($out, ['维度', '指标', '数值']);
+            fputcsv($out, ['访客', 'PV', $report['visitor']['pv']]);
+            fputcsv($out, ['访客', 'UV', $report['visitor']['uv']]);
+            fputcsv($out, ['访客', '新访客', $report['visitor']['new_visitor_count']]);
+            fputcsv($out, ['内容', '新增内容', $report['content']['published']]);
+            fputcsv($out, ['内容', '总浏览', $report['content']['total_views']]);
+            fputcsv($out, ['订单', '成交订单', $report['order']['count']]);
+            fputcsv($out, ['订单', '成交金额', $report['order']['amount']]);
+            fputcsv($out, []);
+
+            // DAU趋势
+            fputcsv($out, ['日期', 'DAU']);
+            foreach ($dauData['daily'] as $item) {
+                fputcsv($out, [$item['date'], $item['dau']]);
+            }
+            fputcsv($out, []);
+            fputcsv($out, ['MAU', $dauData['mau']]);
+
+            fclose($out);
+            exit;
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * V2.9.9 B-2: DAU/MAU统计
      */
     public function getDauMau()

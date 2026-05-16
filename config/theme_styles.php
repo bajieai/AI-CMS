@@ -109,7 +109,6 @@ return [
                 'text_muted' => '#475569',
             ],
         ],
-    ],
 
         'medical' => [
             'name' => '医疗',

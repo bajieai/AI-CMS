@@ -1,0 +1,31 @@
+{
+  "name": "医疗健康基底",
+  "version": "1.0.0",
+  "description": "医疗健康风格主题基底，蓝绿色系 + 科室导航 + 专家团队 + 预约挂号",
+  "author": "八界AI-CMS",
+  "category": "healthcare",
+  "tags": ["医疗", "健康", "医院", "养生"],
+  "preview": "",
+  "type": "healthcare",
+  "supports": ["pc", "mobile"],
+  "default_device": "pc",
+  "colors": {
+    "primary": "#0e7490",
+    "secondary": "#06b6d4",
+    "accent": "#22d3ee",
+    "hero_gradient": "linear-gradient(135deg, #0e7490 0%, #164e63 100%)"
+  },
+  "options": {
+    "show_breadcrumb": true,
+    "show_sidebar": true,
+    "hero_enabled": true,
+    "hero_title": "专业医疗，守护健康",
+    "hero_subtitle": "权威专家，贴心服务",
+    "show_department_nav": true,
+    "show_expert_team": true,
+    "show_appointment": true,
+    "show_health_tips": true,
+    "articles_per_page": 10,
+    "excerpt_length": 150
+  }
+}

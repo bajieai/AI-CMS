@@ -318,7 +318,7 @@ class DashboardService
         $total = Db::name('visit_log')
             ->where('visit_time', '>=', $startTime)
             ->whereNotNull('session_id')
-            ->count();
+            ->count('DISTINCT session_id');
         // 单页访问的session数（即跳出）
         $bounced = Db::name('visit_log')
             ->where('visit_time', '>=', $startTime)

@@ -171,6 +171,94 @@ class ThemeMarketController extends AdminBaseController
     }
 
     /**
+     * V2.9.9 F-3: 本地模板列表（AJAX）
+     */
+    public function localList(): \think\Response
+    {
+        try {
+            $themesDir = root_path() . 'template/themes/';
+            $items = [];
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($themesDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST
+            );
+
+            $seen = [];
+            foreach ($iterator as $file) {
+                if ($file->getFilename() !== 'theme.json') continue;
+                $dir = basename($file->getPath());
+                if (isset($seen[$dir])) continue;
+                $seen[$dir] = true;
+
+                $data = json_decode(file_get_contents($file->getPathname()), true);
+                if (!is_array($data)) continue;
+
+                $items[] = [
+                    'code'        => $dir,
+                    'name'        => $data['name'] ?? $dir,
+                    'version'     => $data['version'] ?? '',
+                    'description' => $data['description'] ?? '',
+                    'author'      => $data['author'] ?? '',
+                    'type'        => $data['type'] ?? 'unknown',
+                    'category'    => $data['category'] ?? '',
+                    'tags'        => $data['tags'] ?? [],
+                    'preview'     => $data['preview'] ?? '',
+                ];
+            }
+
+            return $this->success('ok', ['items' => $items, 'total' => count($items)]);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.9 F-3: 本地模板详情（AJAX）
+     */
+    public function localDetail(): \think\Response
+    {
+        $code = trim($this->request->param('code', ''));
+        if (empty($code)) {
+            return $this->error('请提供主题标识');
+        }
+
+        $path = root_path() . 'template/themes/' . $code . '/theme.json';
+        if (!file_exists($path)) {
+            return $this->error('主题不存在');
+        }
+
+        $data = json_decode(file_get_contents($path), true);
+        if (!is_array($data)) {
+            return $this->error('theme.json 解析失败');
+        }
+
+        // Schema 校验
+        $schemaResult = \app\common\service\theme\ThemeSchemaService::validate($path);
+
+        $detail = [
+            'code'        => $code,
+            'name'        => $data['name'] ?? $code,
+            'version'     => $data['version'] ?? '',
+            'description' => $data['description'] ?? '',
+            'author'      => $data['author'] ?? '',
+            'type'        => $data['type'] ?? 'unknown',
+            'category'    => $data['category'] ?? '',
+            'tags'        => $data['tags'] ?? [],
+            'preview'     => $data['preview'] ?? '',
+            'supports'    => $data['supports'] ?? [],
+            'colors'      => $data['colors'] ?? (object)[],
+            'options'     => $data['options'] ?? (object)[],
+            'layouts'     => $data['layouts'] ?? (object)[],
+            'assets'      => $data['assets'] ?? (object)[],
+            'schema_status' => $schemaResult['status'],
+            'schema_warnings' => $schemaResult['warnings'] ?? [],
+            'schema_errors' => $schemaResult['errors'] ?? [],
+        ];
+
+        return $this->success('ok', $detail);
+    }
+
+    /**
      * V3.1 Sprint 15: 获取备份列表（AJAX）
      */
     public function backups(): \think\Response

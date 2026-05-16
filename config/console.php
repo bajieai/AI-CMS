@@ -25,5 +25,7 @@ return [
         // V2.9.6 P0: 预埋模板批量化生成
         'theme:batch'           => 'app\common\command\ThemeBatchGenerate',
         'theme:generate'        => 'app\common\command\ThemeGenerateCommand',
+        // V2.9.9 F-1: 模板主题 Schema 校验
+        'theme:validate'        => 'app\common\command\ThemeValidateCommand',
     ],
 ];
