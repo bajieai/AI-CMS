@@ -193,16 +193,27 @@ class ThemeMarketController extends AdminBaseController
                 $data = json_decode(file_get_contents($file->getPathname()), true);
                 if (!is_array($data)) continue;
 
+                // Schema校验（K-1缓存：以文件mtime为缓存键）
+                $jsonPath = $file->getPathname();
+                $schemaResult = \app\common\service\theme\ThemeSchemaService::validate($jsonPath);
+
                 $items[] = [
-                    'code'        => $dir,
-                    'name'        => $data['name'] ?? $dir,
-                    'version'     => $data['version'] ?? '',
-                    'description' => $data['description'] ?? '',
-                    'author'      => $data['author'] ?? '',
-                    'type'        => $data['type'] ?? 'unknown',
-                    'category'    => $data['category'] ?? '',
-                    'tags'        => $data['tags'] ?? [],
-                    'preview'     => $data['preview'] ?? '',
+                    'code'           => $dir,
+                    'name'           => $data['name'] ?? $dir,
+                    'version'        => $data['version'] ?? '',
+                    'description'    => $data['description'] ?? '',
+                    'author'         => $data['author'] ?? '',
+                    'type'           => $data['type'] ?? 'unknown',
+                    'category'       => $data['category'] ?? '',
+                    'tags'           => $data['tags'] ?? [],
+                    'preview'        => $data['preview'] ?? '',
+                    'mtime'          => $file->getMTime(),
+                    'schema_summary' => [
+                        'status'         => $schemaResult['status'],
+                        'warnings_count' => count($schemaResult['warnings'] ?? []),
+                        'errors_count'   => count($schemaResult['errors'] ?? []),
+                        'checked_at'     => date('c'),
+                    ],
                 ];
             }
 

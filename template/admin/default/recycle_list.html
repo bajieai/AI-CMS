@@ -109,14 +109,14 @@
 {block name="js"}
 <script>
 function restoreItem(id) {
-    if (confirm('确定还原此内容？还原后将变为草稿状态。')) {
+    showConfirm('还原内容', '确定还原此内容？还原后将变为草稿状态。', function() {
         ajaxPost('/admin/content/restore/' + id, {});
-    }
+    });
 }
 function forceDeleteItem(id) {
-    if (confirm('确定要彻底删除吗？此操作不可恢复！')) {
+    showConfirm('彻底删除', '确定要彻底删除吗？此操作不可恢复！', function() {
         ajaxPost('/admin/content/forceDelete/' + id, {});
-    }
+    });
 }
 </script>
 {/block}

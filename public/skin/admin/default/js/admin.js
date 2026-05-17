@@ -8,6 +8,9 @@
 (function () {
     'use strict';
 
+    // ==================== 全局AJAX超时（K-1: 15秒）====================
+    $.ajaxSetup({ timeout: 15000 });
+
     // ==================== 页面加载进度条 ====================
     var $loader = $('#pageLoader');
     var $bar = $loader.find('div');

@@ -1,42 +1,29 @@
 ﻿{extend name="layout" /}
-{block name="title"}模板市场 - AI-CMS{/block}
+{block name="title"}已安装主题 - AI-CMS{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">平台扩展</li>
+<li class="breadcrumb-item active">已安装主题</li>
+{/block}
+
 {block name="content"}
 <div class="container-fluid py-4">
     <!-- 顶部栏 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="mb-0"><i class="bi bi-shop me-2"></i>模板市场</h4>
+            <h4 class="mb-0"><i class="bi bi-box-seam me-2"></i>已安装主题</h4>
             <p class="text-muted small mb-0 mt-1">
                 当前主题：<code>{$current_theme}</code>
-                <span class="ms-2" id="sourceBadge">
-                    <span class="badge bg-light text-dark border">加载中...</span>
-                </span>
-                <span class="ms-2" id="updateBadge" style="display:none;">
-                    <span class="badge bg-danger"><i class="bi bi-bell me-1"></i><span id="updateCount">0</span>个更新</span>
-                </span>
+                <span class="ms-2 badge bg-light text-dark border">本地管理</span>
             </p>
         </div>
         <div>
-            <a href="/admin/theme_market/logs" class="btn btn-outline-info btn-sm me-2">
-                <i class="bi bi-journal-text me-1"></i>日志
-            </a>
             <a href="/admin/theme_market/categories" class="btn btn-outline-secondary btn-sm me-2">
-                <i class="bi bi-tags me-1"></i>分类
+                <i class="bi bi-tags me-1"></i>分类管理
             </a>
-            <button class="btn btn-outline-secondary btn-sm me-2" onclick="refreshList()">
+            <button class="btn btn-outline-primary btn-sm" onclick="loadLocalThemes()">
                 <i class="bi bi-arrow-clockwise me-1"></i>刷新
             </button>
-            <button class="btn btn-outline-primary btn-sm" onclick="scanThemes()">
-                <i class="bi bi-arrow-repeat me-1"></i>扫描同步
-            </button>
         </div>
-    </div>
-
-    <!-- 降级提示条（离线时显示） -->
-    <div class="alert alert-warning d-none" id="offlineAlert">
-        <i class="bi bi-wifi-off me-2"></i>
-        <strong>离线模式</strong>：当前无法连接远程模板市场，仅显示本地预埋模板。部分功能受限。
-        <button class="btn btn-sm btn-outline-warning ms-2" onclick="refreshList()">重试</button>
     </div>
 
     <!-- 搜索 + 排序 -->
@@ -44,15 +31,16 @@
         <div class="col-md-4">
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" id="searchInput" placeholder="搜索模板名称、描述...">
+                <input type="text" class="form-control" id="searchInput" placeholder="搜索模板名称、描述、作者..." aria-label="搜索主题">
             </div>
         </div>
         <div class="col-md-3">
-            <select class="form-select" id="sortSelect">
+            <select class="form-select" id="sortSelect" aria-label="排序方式">
                 <option value="default">默认排序</option>
-                <option value="rating_desc">评分从高到低</option>
-                <option value="install_desc">安装量从高到低</option>
-                <option value="name_asc">名称A-Z</option>
+                <option value="name_asc">名称 A-Z</option>
+                <option value="name_desc">名称 Z-A</option>
+                <option value="mtime_desc">安装时间 从新到旧</option>
+                <option value="mtime_asc">安装时间 从旧到新</option>
             </select>
         </div>
     </div>
@@ -96,77 +84,12 @@
     <!-- 空状态 -->
     <div class="text-center text-muted py-5 d-none" id="emptyState">
         <i class="bi bi-palette2" style="font-size:3rem;"></i>
-        <p class="mt-2">没有找到匹配的模板</p>
+        <p class="mt-2">没有找到匹配的主题</p>
         <button class="btn btn-outline-primary btn-sm" onclick="clearFilter()">清除筛选</button>
     </div>
-</div>
 
-<!-- 安装确认弹窗 -->
-<div class="modal fade" id="installModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">安装模板</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>确认安装模板 <strong id="installName"></strong>？</p>
-                <p class="text-muted small">安装前将自动备份当前同名主题（如有）。</p>
-                <div id="installProgress" class="d-none">
-                    <div class="progress mb-2" style="height:8px;">
-                        <div class="progress-bar progress-bar-animated" style="width:100%"></div>
-                    </div>
-                    <p class="small text-muted mb-0">正在安装，请稍候...</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmInstall">确认安装</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 切换引导弹窗 -->
-<div class="modal fade" id="switchModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">安装成功</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
-                <p class="mt-3">模板 <strong id="switchName"></strong> 安装成功！</p>
-                <p class="text-muted small">是否立即切换为此主题？</p>
-            </div>
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">稍后切换</button>
-                <button type="button" class="btn btn-success" id="btnConfirmSwitch">
-                    <i class="bi bi-check-lg me-1"></i>立即使用
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 预览弹窗 -->
-<div class="modal fade" id="previewModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="previewTitle">模板预览</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0" style="height:70vh;">
-                <iframe id="previewFrame" src="" class="w-100 h-100 border-0"></iframe>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" id="btnInstallFromPreview">安装此模板</button>
-            </div>
-        </div>
-    </div>
+    <!-- 分页 -->
+    <div id="pagination" class="mt-3 d-none"></div>
 </div>
 
 <!-- 详情弹窗 -->
@@ -174,51 +97,17 @@
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="detailTitle">模板详情</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="detailTitle">主题详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
             </div>
             <div class="modal-body" id="detailBody">
                 <div class="text-center py-4">
-                    <div class="spinner-border text-primary"></div>
+                    <div class="spinner-border text-primary" role="status"></div>
                     <p class="text-muted mt-2">加载中...</p>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-warning" id="btnRateDetail">评分</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 评分弹窗 -->
-<div class="modal fade" id="rateModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">评分</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center mb-3">
-                    <h6 id="rateThemeName" class="mb-2"></h6>
-                    <div id="rateStars" class="fs-3 rating-stars cursor-pointer">
-                        <i class="bi bi-star" data-val="1"></i>
-                        <i class="bi bi-star" data-val="2"></i>
-                        <i class="bi bi-star" data-val="3"></i>
-                        <i class="bi bi-star" data-val="4"></i>
-                        <i class="bi bi-star" data-val="5"></i>
-                    </div>
-                    <p class="text-muted small mt-1" id="rateHint">点击星星评分</p>
-                </div>
-                <div class="mb-3">
-                    <textarea class="form-control" id="rateComment" rows="2" placeholder="写下您的评价（可选）"></textarea>
-                </div>
-                <div id="rateStatsArea" class="small text-muted border-top pt-2"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="btnSubmitRate" disabled>提交评分</button>
             </div>
         </div>
     </div>
@@ -231,10 +120,14 @@
 .skeleton-text { height: 1em; }
 mark { background: #fef08a; padding: 0 2px; border-radius: 2px; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
-.theme-card { transition: transform .2s, box-shadow .2s; }
+.theme-card { transition: transform .2s, box-shadow .2s; border-radius: var(--radius, 10px); }
 .theme-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
-.theme-card .card-img-top { background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+.theme-card .card-img-top { background: #f1f5f9; display: flex; align-items: center; justify-content: center; border-top-left-radius: var(--radius, 10px); border-top-right-radius: var(--radius, 10px); }
 .installed-badge { position: absolute; top: 8px; right: 8px; z-index: 2; }
+.schema-badge { position: absolute; top: 8px; left: 8px; z-index: 2; }
+.schema-badge.ok { background: rgba(25,135,84,0.9); }
+.schema-badge.warning { background: rgba(255,193,7,0.9); color: #333; }
+.schema-badge.error { background: rgba(220,53,69,0.9); }
 .rating-stars { color: #f59e0b; }
 </style>
 
@@ -243,58 +136,34 @@ let allTemplates = [];
 let currentCategory = '';
 let currentSort = 'default';
 let searchKeyword = '';
-let installTarget = null;
+let currentPage = 1;
+const pageSize = 12;
+let currentThemeCode = '{$current_theme}';
 
 // 初始加载
 $(function() {
-    loadTemplates();
+    loadLocalThemes();
 });
 
-// 网络监听（离线降级）
-window.addEventListener('offline', function() {
-    $('#offlineAlert').removeClass('d-none');
-});
-window.addEventListener('online', function() {
-    $('#offlineAlert').addClass('d-none');
-    loadTemplates();
-});
-
-function loadTemplates() {
+function loadLocalThemes() {
     $('#skeletonArea').removeClass('d-none');
     $('#themeList').addClass('d-none');
     $('#emptyState').addClass('d-none');
+    $('#pagination').addClass('d-none');
 
-    $.get('/admin/theme_market/list', function(res) {
+    $.get('/admin/theme_market/localList', function(res) {
         $('#skeletonArea').addClass('d-none');
         if (res.code === 0) {
-            allTemplates = res.data.templates || [];
-            const source = res.data.source || 'local';
-            const fetchedAt = res.data.fetched_at || 0;
-
-            // 更新来源徽章
-            const sourceMap = {
-                'remote': { cls: 'bg-success', text: '远程市场' },
-                'cache':  { cls: 'bg-info',    text: '缓存数据' },
-                'local':  { cls: 'bg-secondary', text: '本地模式' }
-            };
-            const s = sourceMap[source] || sourceMap['local'];
-            const timeText = fetchedAt > 0 ? ' (' + new Date(fetchedAt * 1000).toLocaleTimeString() + ')' : '';
-            $('#sourceBadge').html('<span class="badge ' + s.cls + '">' + s.text + timeText + '</span>');
-
-            if (source === 'local' && !navigator.onLine) {
-                $('#offlineAlert').removeClass('d-none');
-            }
-
+            allTemplates = res.data.items || [];
             renderList();
         } else {
-            I8JToast.error(res.msg || '加载失败');
+            showToast(res.msg || '加载失败', 'danger');
             $('#emptyState').removeClass('d-none');
         }
     }).fail(function() {
         $('#skeletonArea').addClass('d-none');
-        $('#offlineAlert').removeClass('d-none');
-        allTemplates = [];
-        renderList();
+        showToast('加载失败，请检查网络', 'danger');
+        $('#emptyState').removeClass('d-none');
     });
 }
 
@@ -303,7 +172,7 @@ function renderList() {
 
     // 分类筛选
     if (currentCategory) {
-        list = list.filter(t => t.industry === currentCategory);
+        list = list.filter(t => t.category === currentCategory);
     }
 
     // 搜索
@@ -312,22 +181,32 @@ function renderList() {
         list = list.filter(t =>
             (t.name || '').toLowerCase().includes(kw) ||
             (t.description || '').toLowerCase().includes(kw) ||
-            (t.style_tag || '').toLowerCase().includes(kw)
+            (t.author || '').toLowerCase().includes(kw)
         );
     }
 
     // 排序
     switch (currentSort) {
-        case 'rating_desc':
-            list.sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0));
-            break;
-        case 'install_desc':
-            list.sort((a, b) => (b.install_count || 0) - (a.install_count || 0));
-            break;
         case 'name_asc':
             list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh'));
             break;
+        case 'name_desc':
+            list.sort((a, b) => (b.name || '').localeCompare(a.name || '', 'zh'));
+            break;
+        case 'mtime_desc':
+            list.sort((a, b) => (b.mtime || 0) - (a.mtime || 0));
+            break;
+        case 'mtime_asc':
+            list.sort((a, b) => (a.mtime || 0) - (b.mtime || 0));
+            break;
     }
+
+    // 分页
+    const total = list.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * pageSize;
+    const pagedList = list.slice(start, start + pageSize);
 
     const $container = $('#themeList');
     $container.empty();
@@ -335,71 +214,153 @@ function renderList() {
     if (list.length === 0) {
         $container.addClass('d-none');
         $('#emptyState').removeClass('d-none');
+        $('#pagination').addClass('d-none');
         return;
     }
 
     $('#emptyState').addClass('d-none');
     $container.removeClass('d-none');
 
-    list.forEach(function(t) {
-        const isInstalled = t.is_installed;
-        const stars = renderStars(t.avg_rating || 0);
-        const thumbnail = t.thumbnail || '';
-        const thumbHtml = thumbnail
-            ? '<img src="' + thumbnail + '" class="card-img-top" style="height:160px;object-fit:cover;" alt="' + t.name + '">'
+    const categoryMap = {:json_encode($categories)};
+
+    pagedList.forEach(function(t) {
+        const isCurrent = t.code === currentThemeCode;
+        const schema = t.schema_summary || { status: 'ok', warnings_count: 0, errors_count: 0 };
+        const schemaBadge = '<span class="badge schema-badge ' + schema.status + '" title="Schema: ' + schema.status + (schema.warnings_count ? ' (' + schema.warnings_count + '警告)' : '') + (schema.errors_count ? ' (' + schema.errors_count + '错误)' : '') + '">' +
+            (schema.status === 'ok' ? '<i class="bi bi-check-circle"></i>' : schema.status === 'warning' ? '<i class="bi bi-exclamation-triangle"></i>' : '<i class="bi bi-x-circle"></i>') +
+            '</span>';
+        const thumbHtml = t.preview
+            ? '<img src="' + t.preview + '" class="card-img-top" style="height:160px;object-fit:cover;" alt="' + t.name + '">'
             : '<div class="card-img-top" style="height:160px;"><i class="bi bi-palette2" style="font-size:3rem;color:#ccc;"></i></div>';
-        const installBtn = isInstalled
-            ? '<button class="btn btn-outline-success btn-sm w-100" onclick="switchTheme(\'' + t.code + '\')"' + (t.code === '{$current_theme}' ? ' disabled' : '') + '>' + (t.code === '{$current_theme}' ? '正在使用' : '切换') + '</button>'
-            : '<button class="btn btn-primary btn-sm w-100" onclick="openInstall(\'' + t.code + '\', \'' + t.name + '\', \'' + (t.source || 'prebuilt') + '\', \'' + (t.download_url || '') + '\')">安装</button>';
-        const previewBtn = isInstalled
-            ? '<button class="btn btn-outline-secondary btn-sm" onclick="previewTheme(\'' + t.code + '\')">预览</button>'
-            : '';
-        // V2.9.7: 已安装主题显示定制按钮
-        const customBtn = isInstalled
-            ? '<button class="btn btn-outline-primary btn-sm" onclick="openCustomizer(\'' + t.code + '\')"><i class="bi bi-palette-fill me-1"></i>定制</button>'
-            : '';
-        const badgeHtml = isInstalled
-            ? '<span class="badge bg-success installed-badge"><i class="bi bi-check-lg me-1"></i>已安装</span>'
-            : '';
-        const industryMap = {:json_encode($categories)};
-        const indName = industryMap[t.industry] ? industryMap[t.industry].name : (t.industry || '其他');
-        // V2.9.7: 搜索关键词高亮
+        const switchBtn = isCurrent
+            ? '<button class="btn btn-success btn-sm w-100" disabled><i class="bi bi-check-lg me-1"></i>正在使用</button>'
+            : '<button class="btn btn-outline-primary btn-sm w-100" onclick="switchTheme(\'' + t.code + '\')"><i class="bi bi-check-lg me-1"></i>设为当前</button>';
+        const catName = categoryMap[t.category] ? categoryMap[t.category].name : (t.category || '其他');
         const displayName = searchKeyword ? highlightText(t.name || '', searchKeyword) : (t.name || '');
         const displayDesc = searchKeyword ? highlightText((t.description || '暂无描述').substring(0, 50) + '...', searchKeyword) : ((t.description || '暂无描述').substring(0, 50) + '...');
+        const mtimeText = t.mtime ? new Date(t.mtime * 1000).toLocaleDateString() : '';
 
         $container.append(
             '<div class="col-md-4 col-lg-3 mb-4">' +
             '<div class="card h-100 theme-card position-relative">' +
-            badgeHtml +
+            schemaBadge +
+            (isCurrent ? '<span class="badge bg-success installed-badge"><i class="bi bi-check-lg me-1"></i>当前</span>' : '') +
             thumbHtml +
             '<div class="card-body">' +
             '<h6 class="card-title mb-1">' + displayName + '</h6>' +
             '<p class="text-muted small mb-1">' + displayDesc + '</p>' +
             '<div class="d-flex align-items-center justify-content-between small">' +
-            '<span class="badge bg-light text-dark border">' + indName + '</span>' +
-            '<span class="rating-stars">' + stars + '</span>' +
+            '<span class="badge bg-light text-dark border">' + catName + '</span>' +
+            '<span class="text-muted">v' + (t.version || '1.0') + '</span>' +
             '</div>' +
-            '<div class="small text-muted mt-1"><i class="bi bi-download me-1"></i>' + (t.install_count || 0) + ' 次安装</div>' +
+            '<div class="small text-muted mt-1"><i class="bi bi-person me-1"></i>' + (t.author || '未知') + (mtimeText ? ' · ' + mtimeText : '') + '</div>' +
             '</div>' +
-                '<div class="card-footer bg-transparent d-flex gap-2">' +
-                '<button class="btn btn-outline-info btn-sm" onclick="openDetail(\'' + t.code + '\', \'' + (t.type || 'frontend') + '\')">详情</button>' +
-                previewBtn +
-                customBtn +
-                installBtn +
-                '</div>' +
-                '</div>' +
-                '</div>'
+            '<div class="card-footer bg-transparent d-flex gap-2">' +
+            '<button class="btn btn-outline-info btn-sm" onclick="openLocalDetail(\'' + t.code + '\')"><i class="bi bi-info-circle me-1"></i>详情</button>' +
+            switchBtn +
+            '</div>' +
+            '</div>' +
+            '</div>'
         );
+    });
+
+    renderPagination(total, totalPages);
+}
+
+function renderPagination(total, totalPages) {
+    if (totalPages <= 1) {
+        $('#pagination').addClass('d-none');
+        return;
+    }
+    $('#pagination').removeClass('d-none');
+    let html = '<nav aria-label="主题分页"><ul class="pagination pagination-sm justify-content-center mb-0">';
+    html += '<li class="page-item' + (currentPage === 1 ? ' disabled' : '') + '"><a class="page-link" href="javascript:void(0)" onclick="goPage(' + (currentPage - 1) + ')">上一页</a></li>';
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            html += '<li class="page-item' + (i === currentPage ? ' active' : '') + '"><a class="page-link" href="javascript:void(0)" onclick="goPage(' + i + ')">' + i + '</a></li>';
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+    }
+    html += '<li class="page-item' + (currentPage === totalPages ? ' disabled' : '') + '"><a class="page-link" href="javascript:void(0)" onclick="goPage(' + (currentPage + 1) + ')">下一页</a></li>';
+    html += '</ul></nav>';
+    html += '<div class="text-center text-muted small mt-1">共 ' + total + ' 个主题</div>';
+    $('#pagination').html(html);
+}
+
+function goPage(p) {
+    currentPage = p;
+    renderList();
+}
+
+// 切换主题
+function switchTheme(code) {
+    showConfirm('切换主题', '确定将 <strong>' + code + '</strong> 设为当前主题吗？', function() {
+        ajaxPost('/admin/theme_market/switch', { code: code, type: 'frontend' }, function(res) {
+            showToast('切换成功', 'success');
+            currentThemeCode = code;
+            renderList();
+        });
     });
 }
 
-function renderStars(rating) {
-    let s = '';
-    for (let i = 1; i <= 5; i++) {
-        if (i <= Math.round(rating)) s += '<i class="bi bi-star-fill"></i>';
-        else s += '<i class="bi bi-star"></i>';
+// 本地详情
+function openLocalDetail(code) {
+    $('#detailTitle').text('模板详情: ' + code);
+    $('#detailBody').html(
+        '<div class="text-center py-4">' +
+        '<div class="spinner-border text-primary"></div>' +
+        '<p class="text-muted mt-2">加载中...</p></div>'
+    );
+    $('#detailModal').modal('show');
+
+    $.get('/admin/theme_market/localDetail', { code: code }, function(res) {
+        if (res.code === 0) {
+            renderLocalDetail(res.data);
+        } else {
+            $('#detailBody').html('<div class="alert alert-danger">' + res.msg + '</div>');
+        }
+    }).fail(function() {
+        $('#detailBody').html('<div class="alert alert-danger">加载失败</div>');
+    });
+}
+
+function renderLocalDetail(data) {
+    const schema = data.schema_status || 'ok';
+    const schemaWarnings = data.schema_warnings || [];
+    const schemaErrors = data.schema_errors || [];
+    const schemaHtml = '<div class="alert alert-' + (schema === 'ok' ? 'success' : schema === 'warning' ? 'warning' : 'danger') + ' py-2 small mb-2">' +
+        '<i class="bi bi-' + (schema === 'ok' ? 'check-circle' : schema === 'warning' ? 'exclamation-triangle' : 'x-circle') + ' me-1"></i>' +
+        'Schema校验: ' + (schema === 'ok' ? '通过' : schema === 'warning' ? '有警告' : '有错误') +
+        '</div>';
+    let warnHtml = '';
+    if (schemaWarnings.length) {
+        warnHtml += '<ul class="small text-muted mb-1">' + schemaWarnings.map(w => '<li>' + w + '</li>').join('') + '</ul>';
     }
-    return s + ' <span class="text-muted">' + (rating > 0 ? rating.toFixed(1) : '暂无') + '</span>';
+    if (schemaErrors.length) {
+        warnHtml += '<ul class="small text-danger mb-1">' + schemaErrors.map(e => '<li>' + e + '</li>').join('') + '</ul>';
+    }
+
+    const tagsHtml = (data.tags || []).map(tag => '<span class="badge bg-light text-dark border me-1">' + tag + '</span>').join('');
+
+    $('#detailBody').html(
+        '<div class="row">' +
+        '<div class="col-md-5">' +
+        (data.preview ? '<img src="' + data.preview + '" class="img-fluid rounded mb-2" alt="' + data.name + '">' : '<div class="bg-light rounded d-flex align-items-center justify-content-center mb-2" style="height:180px;"><i class="bi bi-palette2" style="font-size:3rem;color:#ccc;"></i></div>') +
+        '</div>' +
+        '<div class="col-md-7">' +
+        '<h6>' + (data.name || data.code) + ' <span class="text-muted small">v' + (data.version || '1.0') + '</span></h6>' +
+        '<p class="text-muted small">' + (data.description || '暂无描述') + '</p>' +
+        '<div class="small text-muted mb-2">' +
+        '<div><i class="bi bi-person me-1"></i>作者: ' + (data.author || '未知') + '</div>' +
+        '<div><i class="bi bi-folder me-1"></i>类型: ' + (data.type || 'frontend') + '</div>' +
+        '<div><i class="bi bi-tag me-1"></i>标签: ' + (tagsHtml || '无') + '</div>' +
+        '<div><i class="bi bi-gear me-1"></i>组件: ' + (Object.keys(data.layouts || {}).length) + ' 布局 / ' + (Object.keys(data.assets || {}).length) + ' 资源</div>' +
+        '<div><i class="bi bi-palette me-1"></i>颜色变量: ' + (Object.keys(data.colors || {}).length) + ' 个</div>' +
+        '</div>' +
+        schemaHtml + warnHtml +
+        '</div></div>'
+    );
 }
 
 // 分类Tab
@@ -408,18 +369,21 @@ $('#categoryTabs').on('click', 'a', function(e) {
     $('#categoryTabs a').removeClass('active');
     $(this).addClass('active');
     currentCategory = $(this).data('category') || '';
+    currentPage = 1;
     renderList();
 });
 
 // 搜索
 $('#searchInput').on('input', function() {
     searchKeyword = $(this).val().trim();
+    currentPage = 1;
     renderList();
 });
 
 // 排序
 $('#sortSelect').on('change', function() {
     currentSort = $(this).val();
+    currentPage = 1;
     renderList();
 });
 
@@ -431,324 +395,15 @@ function clearFilter() {
     currentCategory = '';
     $('#sortSelect').val('default');
     currentSort = 'default';
+    currentPage = 1;
     renderList();
 }
 
-// 刷新
-function refreshList() {
-    $.post('/admin/theme_market/refresh', function(res) {
-        if (res.code === 0) {
-            allTemplates = res.data.templates || [];
-            renderList();
-            I8JToast.success('刷新成功');
-        } else {
-            I8JToast.error(res.msg);
-        }
-    }).fail(function() {
-        I8JToast.error('刷新失败，请检查网络');
-    });
-}
-
-function scanThemes() {
-    $.post('/admin/theme_market/scan', function(res) {
-        if (res.code === 0) {
-            I8JToast.success(res.msg);
-            loadTemplates();
-        } else {
-            I8JToast.error(res.msg);
-        }
-    });
-}
-
-// 安装
-function openInstall(code, name, source, downloadUrl) {
-    installTarget = { code: code, name: name, source: source, downloadUrl: downloadUrl };
-    $('#installName').text(name);
-    $('#installProgress').addClass('d-none');
-    $('#btnConfirmInstall').prop('disabled', false).text('确认安装');
-    $('#installModal').modal('show');
-}
-
-$('#btnConfirmInstall').on('click', function() {
-    if (!installTarget) return;
-    const $btn = $(this);
-    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>安装中...');
-    $('#installProgress').removeClass('d-none');
-
-    $.post('/admin/theme_market/install', {
-        code: installTarget.code,
-        source: installTarget.source,
-        download_url: installTarget.downloadUrl,
-        type: 'frontend'
-    }, function(res) {
-        $('#installModal').modal('hide');
-        if (res.code === 0) {
-            I8JToast.success(res.msg || '安装成功');
-            // 显示切换引导
-            $('#switchName').text(installTarget.name);
-            $('#switchModal').modal('show');
-            loadTemplates();
-        } else {
-            I8JToast.error(res.msg || '安装失败');
-        }
-    }).fail(function() {
-        $('#installModal').modal('hide');
-        I8JToast.error('安装失败，请检查网络');
-    });
-});
-
-// 切换主题
-function switchTheme(code) {
-    $.post('/admin/theme_market/switch', { code: code, type: 'frontend' }, function(res) {
-        if (res.code === 0) {
-            I8JToast.success('切换成功');
-            setTimeout(() => location.reload(), 500);
-        } else {
-            I8JToast.error(res.msg);
-        }
-    });
-}
-
-$('#btnConfirmSwitch').on('click', function() {
-    if (!installTarget) return;
-    switchTheme(installTarget.code);
-    $('#switchModal').modal('hide');
-});
-
-// V2.9.7: 打开定制面板
-function openCustomizer(code) {
-    window.open('/admin/theme_custom/panel?theme=' + encodeURIComponent(code), '_blank');
-}
-
-// 预览
-function previewTheme(code) {
-    $.get('/admin/theme_market/previewUrl', { code: code }, function(res) {
-        if (res.code === 0) {
-            $('#previewFrame').attr('src', res.data.preview_url);
-            $('#previewTitle').text('预览: ' + code);
-            $('#previewModal').modal('show');
-        } else {
-            I8JToast.error(res.msg);
-        }
-    });
-}
-
-$('#btnInstallFromPreview').on('click', function() {
-    $('#previewModal').modal('hide');
-    const code = $('#previewTitle').text().replace('预览: ', '').trim();
-    const t = allTemplates.find(x => x.code === code);
-    if (t) {
-        openInstall(t.code, t.name, t.source || 'prebuilt', t.download_url || '');
-    }
-});
-
-// ========== V3.1 Sprint 16: 详情弹窗 ==========
-
-function openDetail(code, type) {
-    $('#detailTitle').text('模板详情: ' + code);
-    $('#detailBody').html(
-        '<div class="text-center py-4">' +
-        '<div class="spinner-border text-primary"></div>' +
-        '<p class="text-muted mt-2">加载中...</p></div>'
-    );
-    $('#detailModal').modal('show');
-
-    $.get('/admin/theme_market/detail', { code: code, type: type }, function(res) {
-        if (res.code === 0) {
-            renderDetail(res.data);
-        } else {
-            $('#detailBody').html('<div class="alert alert-danger">' + res.msg + '</div>');
-        }
-    }).fail(function() {
-        $('#detailBody').html('<div class="alert alert-danger">加载失败</div>');
-    });
-}
-
-function renderDetail(data) {
-    const meta = data.meta || {};
-    const db = data.db_info || {};
-    const files = data.files || [];
-    const update = data.update || {};
-
-    let fileRows = '';
-    files.forEach(function(f) {
-        fileRows += '<tr><td class="small text-truncate" style="max-width:300px;" title="' + f.path + '">' + f.path + '</td>' +
-            '<td class="small text-muted text-end">' + formatSize(f.size) + '</td>' +
-            '<td class="small text-muted text-end">' + new Date(f.mtime * 1000).toLocaleDateString() + '</td></tr>';
-    });
-
-    let updateHtml = '';
-    if (update.has_update) {
-        updateHtml = '<div class="alert alert-warning py-2 small">' +
-            '<i class="bi bi-arrow-up-circle me-1"></i>有新版本 ' + update.latest + '（当前 ' + update.current + '）' +
-            '</div>';
-    } else {
-        updateHtml = '<span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>已是最新版本</span>';
-    }
-
-    const stars = renderStars(db.avg_rating || 0);
-    const favoriteBtn = db.id
-        ? '<button class="btn btn-sm btn-outline-warning" onclick="toggleFavorite(' + db.id + ', this)"><i class="bi bi-star"></i> 收藏</button>'
-        : '';
-
-    $('#detailBody').html(
-        '<div class="row">' +
-        '<div class="col-md-6">' +
-        '<h6>' + (meta.name || data.code) + '</h6>' +
-        '<p class="text-muted small">' + (meta.description || '暂无描述') + '</p>' +
-        '<div class="mb-2">' + stars + '</div>' +
-        '<div class="small text-muted mb-2">' +
-        '<div><i class="bi bi-person me-1"></i>作者: ' + (meta.author || '未知') + '</div>' +
-        '<div><i class="bi bi-tag me-1"></i>版本: ' + (meta.version || '1.0.0') + '</div>' +
-        '<div><i class="bi bi-folder me-1"></i>文件数: ' + data.file_count + '</div>' +
-        '<div><i class="bi bi-hdd me-1"></i>总大小: ' + data.total_size_formatted + '</div>' +
-        '<div><i class="bi bi-clock me-1"></i>修改: ' + data.mtime_formatted + '</div>' +
-        '</div>' +
-        '<div class="mb-2">' + updateHtml + '</div>' +
-        '<div>' + favoriteBtn + '</div>' +
-        '</div>' +
-        '<div class="col-md-6">' +
-        '<h6>主要文件</h6>' +
-        '<div style="max-height:280px;overflow-y:auto;">' +
-        '<table class="table table-sm table-borderless">' +
-        '<thead class="table-light"><tr><th>文件</th><th class="text-end">大小</th><th class="text-end">修改</th></tr></thead>' +
-        '<tbody>' + fileRows + '</tbody></table></div>' +
-        '</div></div>'
-    );
-
-    // 绑定评分按钮
-    $('#btnRateDetail').off('click').on('click', function() {
-        $('#detailModal').modal('hide');
-        openRateModal(db.id, meta.name || data.code);
-    }).toggle(!!db.id);
-}
-
-function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-}
-
-// V2.9.7: 搜索关键词高亮
 function highlightText(text, keyword) {
     if (!keyword) return text;
     const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp('(' + escaped + ')', 'gi');
     return text.replace(regex, '<mark>$1</mark>');
 }
-
-// ========== V3.1 Sprint 16: 评分弹窗 ==========
-
-let rateTarget = { themeId: 0, name: '', selectedRating: 0 };
-
-function openRateModal(themeId, name) {
-    rateTarget = { themeId: themeId, name: name, selectedRating: 0 };
-    $('#rateThemeName').text(name);
-    $('#rateComment').val('');
-    $('#btnSubmitRate').prop('disabled', true);
-    $('#rateHint').text('点击星星评分');
-    updateStarDisplay(0);
-
-    // 加载评分统计
-    $.get('/admin/theme_market/rateStats', { theme_id: themeId }, function(res) {
-        if (res.code === 0) {
-            renderRateStats(res.data.stats, res.data.user_rate);
-        }
-    });
-
-    $('#rateModal').modal('show');
-}
-
-function renderRateStats(stats, userRate) {
-    let html = '<div class="d-flex justify-content-between align-items-center mb-1">' +
-        '<span>平均 ' + stats.avg + ' 分</span><span>' + stats.total + ' 人评分</span></div>';
-    for (let i = 5; i >= 1; i--) {
-        const count = stats.distribution[i] || 0;
-        const pct = stats.total > 0 ? Math.round(count / stats.total * 100) : 0;
-        html += '<div class="d-flex align-items-center small mb-1">' +
-            '<span style="width:30px;">' + i + '星</span>' +
-            '<div class="progress flex-grow-1 mx-2" style="height:6px;">' +
-            '<div class="progress-bar bg-warning" style="width:' + pct + '%"></div></div>' +
-            '<span style="width:30px;text-align:right;">' + count + '</span></div>';
-    }
-    if (userRate) {
-        html += '<div class="mt-1 text-primary small">您已评 ' + userRate.rating + ' 星</div>';
-        rateTarget.selectedRating = userRate.rating;
-        updateStarDisplay(userRate.rating);
-        $('#btnSubmitRate').prop('disabled', false);
-    }
-    $('#rateStatsArea').html(html);
-}
-
-$('#rateStars').on('click', 'i', function() {
-    const val = parseInt($(this).data('val'));
-    rateTarget.selectedRating = val;
-    updateStarDisplay(val);
-    $('#btnSubmitRate').prop('disabled', false);
-    $('#rateHint').text(val + ' 星');
-});
-
-function updateStarDisplay(rating) {
-    $('#rateStars i').each(function() {
-        const val = parseInt($(this).data('val'));
-        $(this).removeClass('bi-star-fill bi-star').addClass(val <= rating ? 'bi-star-fill' : 'bi-star');
-    });
-}
-
-$('#btnSubmitRate').on('click', function() {
-    if (!rateTarget.selectedRating) return;
-    const $btn = $(this);
-    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>提交中...');
-
-    $.post('/admin/theme_market/rate', {
-        theme_id: rateTarget.themeId,
-        rating: rateTarget.selectedRating,
-        comment: $('#rateComment').val()
-    }, function(res) {
-        $('#rateModal').modal('hide');
-        $btn.prop('disabled', false).text('提交评分');
-        if (res.code === 0) {
-            I8JToast.success('评分成功');
-            loadTemplates();
-        } else {
-            I8JToast.error(res.msg);
-        }
-    }).fail(function() {
-        $btn.prop('disabled', false).text('提交评分');
-        I8JToast.error('评分失败');
-    });
-});
-
-// 收藏
-function toggleFavorite(themeId, btn) {
-    $.post('/admin/theme_market/favorite', { theme_id: themeId }, function(res) {
-        if (res.code === 0) {
-            const fav = res.data.is_favorite;
-            $(btn).html(fav ? '<i class="bi bi-star-fill"></i> 已收藏' : '<i class="bi bi-star"></i> 收藏');
-            $(btn).toggleClass('btn-warning', fav).toggleClass('btn-outline-warning', !fav);
-            I8JToast.success(fav ? '已收藏' : '已取消收藏');
-        } else {
-            I8JToast.error(res.msg);
-        }
-    });
-}
-
-// ========== V3.1 Sprint 16: 更新红点 ==========
-
-function loadUpdateBadge() {
-    $.get('/admin/theme_market/updateBadge', function(res) {
-        if (res.code === 0 && res.data.show) {
-            $('#updateCount').text(res.data.count);
-            $('#updateBadge').show();
-        } else {
-            $('#updateBadge').hide();
-        }
-    });
-}
-
-// 初始加载时检测更新
-$(function() {
-    loadUpdateBadge();
-});
 </script>
 {/block}

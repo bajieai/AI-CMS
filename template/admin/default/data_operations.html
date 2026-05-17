@@ -190,16 +190,17 @@ function loadCustomRange() {
 }
 
 function loadAll() {
-    // V2.9.9 G-3: 并行加载减少等待时间
+    // V2.9.9 G-3: 并行加载减少等待时间（K-1修复：真正的异步Promise）
     Promise.all([
-        new Promise(function(resolve) { loadOperationsReport(); resolve(); }),
-        new Promise(function(resolve) { loadDauMau(); resolve(); }),
-        new Promise(function(resolve) { loadBrowserStats(); resolve(); }),
-        new Promise(function(resolve) { loadBounceRate(); resolve(); }),
-        new Promise(function(resolve) { loadContentDuration(); resolve(); }),
+        loadOperationsReport(),
+        loadDauMau(),
+        loadBrowserStats(),
+        loadBounceRate(),
+        loadContentDuration()
     ]).then(function() {
-        // 所有数据加载完成后的最小化反馈（可选）
         console.log('V2.9.9 operations data loaded');
+    }).catch(function(err) {
+        console.error('Operations data load failed:', err);
     });
 }
 
@@ -208,7 +209,7 @@ function loadOperationsReport() {
     if(currentRange.start && currentRange.end) {
         url += '?start=' + currentRange.start + '&end=' + currentRange.end;
     }
-    $.get(url, function(d) {
+    return $.get(url, function(d) {
         if(d.code !== 0) return;
         $('#metricPv').text(d.data.visitor.pv.toLocaleString());
         $('#metricUv').text(d.data.visitor.uv.toLocaleString());
@@ -223,7 +224,7 @@ function loadOperationsReport() {
 
 function loadDauMau() {
     var days = currentRange.days || 30;
-    $.get('/admin/dashboard/getDauMau?days=' + days, function(d) {
+    return $.get('/admin/dashboard/getDauMau?days=' + days, function(d) {
         if(d.code !== 0) return;
         var dates = [], daus = [];
         $.each(d.data.daily, function(i, v) {
@@ -245,7 +246,7 @@ function loadDauMau() {
 }
 
 function loadBrowserStats() {
-    $.get('/admin/dashboard/getBrowserStats?days=7', function(d) {
+    return $.get('/admin/dashboard/getBrowserStats?days=7', function(d) {
         if(d.code !== 0) return;
         var names = {'chrome':'Chrome','safari':'Safari','firefox':'Firefox','edge':'Edge','opera':'Opera','ie':'IE','other':'其他'};
         var pieData = $.map(d.data, function(v) {
@@ -259,7 +260,7 @@ function loadBrowserStats() {
 }
 
 function loadBounceRate() {
-    $.get('/admin/dashboard/getBounceRate?days=7', function(d) {
+    return $.get('/admin/dashboard/getBounceRate?days=7', function(d) {
         if(d.code !== 0) return;
         $('#bounceRateValue').text(d.data.bounce_rate + '%');
         $('#bounceDetail').text('会话' + d.data.total_sessions + ' / 跳出' + d.data.bounced_sessions);
@@ -267,7 +268,7 @@ function loadBounceRate() {
 }
 
 function loadContentDuration() {
-    $.get('/admin/dashboard/getTopContentWithDuration?limit=10&days=7', function(d) {
+    return $.get('/admin/dashboard/getTopContentWithDuration?limit=10&days=7', function(d) {
         if(d.code !== 0) return;
         var html = '';
         $.each(d.data, function(i, v) {
