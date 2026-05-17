@@ -4,10 +4,18 @@
   "description": "医疗健康风格主题基底，蓝绿色系 + 科室导航 + 专家团队 + 预约挂号",
   "author": "八界AI-CMS",
   "category": "healthcare",
-  "tags": ["医疗", "健康", "医院", "养生"],
-  "preview": "",
+  "tags": [
+    "医疗",
+    "健康",
+    "医院",
+    "养生"
+  ],
+  "preview": "/template/themes/healthcare-base/screenshots/preview.svg",
   "type": "healthcare",
-  "supports": ["pc", "mobile"],
+  "supports": [
+    "pc",
+    "mobile"
+  ],
   "default_device": "pc",
   "colors": {
     "primary": "#0e7490",

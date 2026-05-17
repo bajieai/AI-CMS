@@ -4,10 +4,18 @@
   "description": "个人博客风格主题基底，简洁排版 + 文章列表 + 标签云 + 归档时间线",
   "author": "八界AI-CMS",
   "category": "blog",
-  "tags": ["博客", "个人", "写作", "阅读"],
-  "preview": "",
+  "tags": [
+    "博客",
+    "个人",
+    "写作",
+    "阅读"
+  ],
+  "preview": "/template/themes/blog-base/screenshots/preview.svg",
   "type": "blog",
-  "supports": ["pc", "mobile"],
+  "supports": [
+    "pc",
+    "mobile"
+  ],
   "default_device": "pc",
   "colors": {
     "primary": "#0f766e",

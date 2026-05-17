@@ -4,10 +4,18 @@
   "description": "金融理财风格主题基底，深蓝金色系 + 产品对比 + 收益计算 + 风险评估",
   "author": "八界AI-CMS",
   "category": "finance",
-  "tags": ["金融", "理财", "投资", "保险"],
-  "preview": "",
+  "tags": [
+    "金融",
+    "理财",
+    "投资",
+    "保险"
+  ],
+  "preview": "/template/themes/finance-base/screenshots/preview.svg",
   "type": "finance",
-  "supports": ["pc", "mobile"],
+  "supports": [
+    "pc",
+    "mobile"
+  ],
   "default_device": "pc",
   "colors": {
     "primary": "#1e3a8a",

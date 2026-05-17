@@ -4,10 +4,18 @@
   "description": "电商零售风格主题基底，红色促销色系 + 商品卡片 + 购物车入口 + 限时活动区",
   "author": "八界AI-CMS",
   "category": "ecommerce",
-  "tags": ["电商", "零售", "促销", "购物"],
-  "preview": "",
+  "tags": [
+    "电商",
+    "零售",
+    "促销",
+    "购物"
+  ],
+  "preview": "/template/themes/ecommerce-base/screenshots/preview.svg",
   "type": "ecommerce",
-  "supports": ["pc", "mobile"],
+  "supports": [
+    "pc",
+    "mobile"
+  ],
   "default_device": "pc",
   "colors": {
     "primary": "#dc2626",

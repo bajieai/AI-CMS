@@ -4,10 +4,17 @@
   "description": "企业商务风格主题基底，深色导航栏 + 大图Hero区 + 服务卡片展示 + 案例Grid布局",
   "author": "八界AI-CMS",
   "category": "enterprise",
-  "tags": ["企业", "商务", "B2B", "专业服务"],
-  "preview": "",
+  "tags": [
+    "企业",
+    "商务",
+    "B2B",
+    "专业服务"
+  ],
+  "preview": "/template/themes/enterprise-base/screenshots/preview.svg",
   "type": "enterprise",
-  "supports": ["pc"],
+  "supports": [
+    "pc"
+  ],
   "default_device": "pc",
   "colors": {
     "primary": "#1e293b",

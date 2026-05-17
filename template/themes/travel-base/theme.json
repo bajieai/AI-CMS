@@ -4,10 +4,18 @@
   "description": "旅游出行风格主题基底，自然风景色系 + 目的地推荐 + 行程规划 + 攻略社区",
   "author": "八界AI-CMS",
   "category": "travel",
-  "tags": ["旅游", "出行", "攻略", "目的地"],
-  "preview": "",
+  "tags": [
+    "旅游",
+    "出行",
+    "攻略",
+    "目的地"
+  ],
+  "preview": "/template/themes/travel-base/screenshots/preview.svg",
   "type": "travel",
-  "supports": ["pc", "mobile"],
+  "supports": [
+    "pc",
+    "mobile"
+  ],
   "default_device": "pc",
   "colors": {
     "primary": "#047857",

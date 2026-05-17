@@ -4,10 +4,18 @@
   "description": "教育培训风格主题基底，课程卡片 + 讲师介绍 + 学习路径 + 试听入口",
   "author": "八界AI-CMS",
   "category": "education",
-  "tags": ["教育", "培训", "课程", "学习"],
-  "preview": "",
+  "tags": [
+    "教育",
+    "培训",
+    "课程",
+    "学习"
+  ],
+  "preview": "/template/themes/education-base/screenshots/preview.svg",
   "type": "education",
-  "supports": ["pc", "mobile"],
+  "supports": [
+    "pc",
+    "mobile"
+  ],
   "default_device": "pc",
   "colors": {
     "primary": "#7c3aed",
