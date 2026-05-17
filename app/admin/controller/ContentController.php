@@ -10,6 +10,7 @@ use app\common\model\ContentTag;
 use app\common\model\ContentVersion;
 use app\common\model\Cate;
 use app\common\model\Tag;
+use app\common\model\Config as ConfigModel;
 use app\common\service\CacheService;
 use app\common\service\ContentService;
 use think\facade\Config as ThinkConfig;
@@ -80,6 +81,11 @@ class ContentController extends AdminBaseController
             $tags = Tag::select();
             $extFields = ThinkConfig::get('info_type_fields.' . $type, []);
 
+            // V2.9.9-R4: 注入AI配图默认配置
+            $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
+            $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
+            $aiImageCandidateCount = (int) ConfigModel::getValue('ai_image_candidate_count', '4');
+
             $this->assign([
                 'cates' => $cates,
                 'tags' => $tags,
@@ -87,6 +93,9 @@ class ContentController extends AdminBaseController
                 'selected_tags' => [],
                 'ext_fields' => $extFields,
                 'ext_data' => [],
+                'ai_image_default_size' => $aiImageDefaultSize,
+                'ai_image_default_style' => $aiImageDefaultStyle,
+                'ai_image_candidate_count' => $aiImageCandidateCount,
             ]);
             return $this->view('/content_edit');
         }
@@ -122,6 +131,11 @@ class ContentController extends AdminBaseController
                 $extData = $info->ext->data ?? [];
             }
 
+            // V2.9.9-R4: 注入AI配图默认配置
+            $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
+            $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
+            $aiImageCandidateCount = (int) ConfigModel::getValue('ai_image_candidate_count', '4');
+
             $this->assign([
                 'info' => $info,
                 'cates' => $cates,
@@ -129,6 +143,9 @@ class ContentController extends AdminBaseController
                 'selected_tags' => $selectedTags,
                 'ext_fields' => $extFields,
                 'ext_data' => $extData,
+                'ai_image_default_size' => $aiImageDefaultSize,
+                'ai_image_default_style' => $aiImageDefaultStyle,
+                'ai_image_candidate_count' => $aiImageCandidateCount,
             ]);
             return $this->view('/content_edit');
         }

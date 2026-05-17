@@ -86,7 +86,7 @@ class AiController
     }
 
     /**
-     * AI图片生成 - V2.8新增
+     * AI图片生成 - V2.8新增 / V2.9.9-R4增强: 支持size参数
      * POST /api/ai/image
      */
     public function image()
@@ -97,16 +97,23 @@ class AiController
 
         $prompt = request()->post('prompt', '');
         $style = request()->post('style', 'realistic');
+        $size = request()->post('size', '1024x1024');
         
         if (empty($prompt)) {
             return json(['code' => 1, 'msg' => '请输入图片描述', 'data' => null]);
+        }
+
+        // 尺寸白名单校验
+        $validSizes = ['1024x1024', '1024x576', '1024x768', '768x1024', '1792x1024', '1024x1792'];
+        if (!in_array($size, $validSizes, true)) {
+            $size = '1024x1024';
         }
 
         try {
             $result = $this->aiService->generateImage($prompt, [
                 'style' => $style,
                 'count' => 1,
-                'size' => '1024x1024',
+                'size' => $size,
             ]);
             
             return json([

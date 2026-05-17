@@ -107,15 +107,34 @@
                         <div id="coverPreview" class="mt-2" {if condition="!($info.cover ?? '')"}style="display:none"{/if}>
                             <img src="{$info.cover ?? ''}" class="img-thumbnail" style="max-height:120px">
                         </div>
+                        <!-- V2.9.9-R4: AI配图区域增强 — 尺寸选择+4候选图+插入编辑器 -->
                         <div class="mt-2" id="aiImageArea" style="display:none;">
-                            <div class="d-flex gap-2 flex-wrap" id="aiImageResults"></div>
-                            <div class="mt-1 d-flex gap-2 align-items-center">
-                                <select id="aiImageStyle" class="form-select form-select-sm" style="width:auto;">
-                                    <option value="realistic">写实</option>
-                                    <option value="illustration">插画</option>
-                                    <option value="watercolor">水彩</option>
-                                    <option value="3d_render">3D</option>
-                                    <option value="pixel_art">像素</option>
+                            <!-- 进度条 -->
+                            <div id="aiImageProgressArea" class="mb-2 d-none">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted" id="aiImageProgressText">生成中 0/4...</small>
+                                    <small class="text-muted" id="aiImageProgressPercent">0%</small>
+                                </div>
+                                <div class="progress" style="height:4px;">
+                                    <div id="aiImageProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width:0%"></div>
+                                </div>
+                            </div>
+                            <!-- 候选图网格 -->
+                            <div class="row g-2" id="aiImageResults"></div>
+                            <!-- 控制栏 -->
+                            <div class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                                <select id="aiImageStyle" class="form-select form-select-sm" style="width:auto;" title="配图风格">
+                                    <option value="realistic" {if condition="$ai_image_default_style == 'realistic'"}selected{/if}>写实</option>
+                                    <option value="illustration" {if condition="$ai_image_default_style == 'illustration'"}selected{/if}>插画</option>
+                                    <option value="watercolor" {if condition="$ai_image_default_style == 'watercolor'"}selected{/if}>水彩</option>
+                                    <option value="3d_render" {if condition="$ai_image_default_style == '3d_render'"}selected{/if}>3D</option>
+                                    <option value="pixel_art" {if condition="$ai_image_default_style == 'pixel_art'"}selected{/if}>像素</option>
+                                </select>
+                                <select id="aiImageSize" class="form-select form-select-sm" style="width:auto;" title="配图尺寸">
+                                    <option value="1024x1024" {if condition="$ai_image_default_size == '1024x1024'"}selected{/if}>1:1 正方形</option>
+                                    <option value="1024x576" {if condition="$ai_image_default_size == '1024x576'"}selected{/if}>16:9 宽屏</option>
+                                    <option value="1024x768" {if condition="$ai_image_default_size == '1024x768'"}selected{/if}>4:3 标准</option>
+                                    <option value="768x1024" {if condition="$ai_image_default_size == '768x1024'"}selected{/if}>3:4 竖屏</option>
                                 </select>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="aiRegenerateImage()">
                                     <i class="bi bi-arrow-clockwise me-1"></i>重新生成
@@ -505,6 +524,9 @@
 {block name="js"}
 <script src="/assets/js/quality-check.js"></script>
 <script>
+// V2.9.9-R4: AI配图默认配置（后端注入）
+var AI_IMAGE_CANDIDATE_COUNT = parseInt('{$ai_image_candidate_count ?? 4}') || 4;
+
 // V2.9.5: 付费阅读开关联动
 $('#is_paid').on('change', function() {
     $('#pay-config-group').toggle($(this).is(':checked'));
@@ -1020,7 +1042,7 @@ setTimeout(function() {
     }
 }, 2500);
 
-// V2.8 AI配图生成
+// V2.9.9-R4: AI配图生成 — 支持4候选图串行调用+进度条+尺寸选择
 function aiGenerateImage() {
     var content = tinymce.activeEditor.getContent({format: 'text'});
     var title = $('[name="title"]').val().trim();
@@ -1031,10 +1053,7 @@ function aiGenerateImage() {
         return;
     }
     
-    var $btn = $('#btnAiImage');
-    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>生成中...');
-    
-    callAiImageApi(prompt, false);
+    callAiImageApiBatch(AI_IMAGE_CANDIDATE_COUNT);
 }
 
 function aiRegenerateImage() {
@@ -1047,12 +1066,95 @@ function aiRegenerateImage() {
         return;
     }
     
-    callAiImageApi(prompt, true);
+    callAiImageApiBatch(AI_IMAGE_CANDIDATE_COUNT);
 }
 
+/**
+ * 串行批量生成候选图 — R4新增
+ * @param {number} count 生成数量(1-4)
+ */
+function callAiImageApiBatch(count) {
+    var $btn = $('#btnAiImage');
+    var style = $('#aiImageStyle').val() || 'realistic';
+    var size = $('#aiImageSize').val() || '1024x1024';
+    var content = tinymce.activeEditor.getContent({format: 'text'});
+    var title = $('[name="title"]').val().trim();
+    var prompt = title || content.substring(0, 100);
+    
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>生成中...');
+    
+    // 显示进度条
+    var $progressArea = $('#aiImageProgressArea');
+    var $progressBar = $('#aiImageProgressBar');
+    var $progressText = $('#aiImageProgressText');
+    var $progressPercent = $('#aiImageProgressPercent');
+    $progressArea.removeClass('d-none');
+    $progressBar.css('width', '0%');
+    $progressText.text('生成中 0/' + count + '...');
+    $progressPercent.text('0%');
+    
+    $('#aiImageArea').show();
+    $('#aiImageResults').html('');
+    
+    var results = [];
+    var completed = 0;
+    
+    function doRequest(index) {
+        if (index >= count) {
+            // 全部完成
+            $btn.prop('disabled', false).html('<i class="bi bi-image me-1"></i>AI配图');
+            $progressArea.addClass('d-none');
+            showAiImageResults(results);
+            return;
+        }
+        
+        $.ajax({
+            url: '/api/ai/image',
+            type: 'POST',
+            data: { 
+                prompt: prompt,
+                style: style,
+                size: size,
+                regenerate: 1
+            },
+            dataType: 'json',
+            success: function(res) {
+                completed++;
+                var percent = Math.round((completed / count) * 100);
+                $progressBar.css('width', percent + '%');
+                $progressText.text('生成中 ' + completed + '/' + count + '...');
+                $progressPercent.text(percent + '%');
+                
+                if (res.code === 0 && res.data && res.data.url) {
+                    results.push(res.data);
+                }
+                
+                // 串行下一个
+                doRequest(index + 1);
+            },
+            error: function() {
+                completed++;
+                var percent = Math.round((completed / count) * 100);
+                $progressBar.css('width', percent + '%');
+                $progressText.text('生成中 ' + completed + '/' + count + '...');
+                $progressPercent.text(percent + '%');
+                
+                // 串行下一个（失败也继续）
+                doRequest(index + 1);
+            }
+        });
+    }
+    
+    doRequest(0);
+}
+
+/**
+ * 单图生成API（兼容旧逻辑）
+ */
 function callAiImageApi(prompt, regenerate) {
     var $btn = $('#btnAiImage');
     var style = $('#aiImageStyle').val() || 'realistic';
+    var size = $('#aiImageSize').val() || '1024x1024';
     
     $.ajax({
         url: '/api/ai/image',
@@ -1060,13 +1162,14 @@ function callAiImageApi(prompt, regenerate) {
         data: { 
             prompt: prompt,
             style: style,
+            size: size,
             regenerate: regenerate ? 1 : 0
         },
         dataType: 'json',
         success: function(res) {
             $btn.prop('disabled', false).html('<i class="bi bi-image me-1"></i>AI配图');
             if (res.code === 0 && res.data && res.data.url) {
-                showAiImageResult(res.data);
+                showAiImageResults([res.data]);
             } else {
                 showToast(res.msg || '生成失败', 'danger');
             }
@@ -1078,11 +1181,33 @@ function callAiImageApi(prompt, regenerate) {
     });
 }
 
-function showAiImageResult(data) {
-    var html = '<div class="position-relative">';
-    html += '<img src="' + data.url + '" class="img-thumbnail" style="max-height:120px;cursor:pointer;" onclick="selectAiImage(\'' + data.url + '\')">';
-    html += '<span class="position-absolute top-0 end-0 badge bg-primary" style="font-size:9px;">' + (data.width || 0) + 'x' + (data.height || 0) + '</span>';
-    html += '</div>';
+/**
+ * 展示候选图结果 — R4增强: 支持多张图网格+插入编辑器
+ * @param {Array} results 图片结果数组
+ */
+function showAiImageResults(results) {
+    if (!results || results.length === 0) {
+        showToast('未能生成有效图片，请重试', 'warning');
+        return;
+    }
+    
+    var html = '';
+    results.forEach(function(data, idx) {
+        var sizeLabel = (data.width || 0) + 'x' + (data.height || 0);
+        html += '<div class="col-6">';
+        html += '<div class="card h-100">';
+        html += '<div class="position-relative" style="height:100px;overflow:hidden;">';
+        html += '<img src="' + data.url + '" class="card-img-top" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" onclick="selectAiImage(\'' + data.url + '\')" title="点击设为封面">';
+        html += '<span class="position-absolute top-0 start-0 badge bg-dark" style="font-size:9px;">' + (idx + 1) + '</span>';
+        html += '<span class="position-absolute top-0 end-0 badge bg-primary" style="font-size:9px;">' + sizeLabel + '</span>';
+        html += '</div>';
+        html += '<div class="card-body p-1 d-flex gap-1">';
+        html += '<button type="button" class="btn btn-xs btn-outline-primary flex-fill" style="font-size:11px;padding:2px 4px;" onclick="selectAiImage(\'' + data.url + '\')" title="设为封面图"><i class="bi bi-check-circle"></i> 封面</button>';
+        html += '<button type="button" class="btn btn-xs btn-outline-success flex-fill" style="font-size:11px;padding:2px 4px;" onclick="insertImageToEditor(\'' + data.url + '\', \'' + escapeHtml($('[name=\"title\"]').val() || '配图') + '\')" title="插入正文"><i class="bi bi-body-text"></i> 正文</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+    });
     
     $('#aiImageResults').html(html);
     $('#aiImageArea').show();
@@ -1093,6 +1218,22 @@ function selectAiImage(url) {
     $('#coverPreview img').attr('src', url);
     $('#coverPreview').show();
     showToast('已选择为封面图', 'success');
+}
+
+/**
+ * 插入图片到编辑器正文 — R4新增
+ * @param {string} url 图片URL
+ * @param {string} alt 替代文本
+ */
+function insertImageToEditor(url, alt) {
+    var editor = tinymce.activeEditor;
+    if (!editor) {
+        showToast('编辑器未就绪', 'warning');
+        return;
+    }
+    var imgHtml = '<img src="' + url + '" alt="' + (alt || '配图') + '" style="max-width:100%;height:auto;display:block;margin:12px auto;">';
+    editor.insertContent(imgHtml);
+    showToast('已插入到正文', 'success');
 }
 
 // AI质量检测

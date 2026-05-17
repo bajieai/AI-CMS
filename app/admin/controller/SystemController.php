@@ -26,6 +26,15 @@ class SystemController extends AdminBaseController
             $this->ensureConfigExists('logo_icon_only', 'basic', '0', 'switch', '仅使用Logo图标(勾选:仅替换图标保留文字/不勾选:完整替换)');
             $this->ensureConfigExists('logo_name', 'basic', '', 'text', '后台品牌名称(留空则使用默认名称)');
 
+            // V2.9.9-R4: 确保AI配图配置项存在
+            $this->ensureConfigExists('ai_image_default_size', 'ai', '1024x1024', 'select', 'AI配图默认尺寸',
+                '<option value="1024x1024">1:1 正方形 (1024x1024)</option><option value="1024x576">16:9 宽屏 (1024x576)</option><option value="1024x768">4:3 标准 (1024x768)</option><option value="768x1024">3:4 竖屏 (768x1024)</option>');
+            $this->ensureConfigExists('ai_image_default_style', 'ai', 'realistic', 'select', 'AI配图默认风格',
+                '<option value="realistic">写实</option><option value="illustration">插画</option><option value="watercolor">水彩</option><option value="3d_render">3D</option><option value="pixel_art">像素</option>');
+            $this->ensureConfigExists('ai_image_candidate_count', 'ai', '4', 'select', 'AI配图候选图数量',
+                '<option value="1">1张</option><option value="2">2张</option><option value="4">4张</option>');
+            $this->ensureConfigExists('ai_image_auto_on_publish', 'ai', '0', 'switch', '发布时自动AI配图(开启后发布内容时自动为无封面文章生成封面图)');
+
             $configs = ConfigModel::order('sort', 'asc')->select();
             $groups = [];
             foreach ($configs as $config) {
@@ -182,18 +191,23 @@ class SystemController extends AdminBaseController
 
     /**
      * 确保配置项存在（不存在时自动创建）
+     * V2.9.9-R4: 增加$options参数支持select类型
      */
-    protected function ensureConfigExists(string $name, string $group, string $value, string $type, string $remark): void
+    protected function ensureConfigExists(string $name, string $group, string $value, string $type, string $remark, string $options = ''): void
     {
         if (!ConfigModel::where('name', $name)->find()) {
-            ConfigModel::create([
+            $data = [
                 'name'   => $name,
                 'group'  => $group,
                 'value'  => $value,
                 'type'   => $type,
                 'remark' => $remark,
                 'sort'   => 0,
-            ]);
+            ];
+            if ($options !== '') {
+                $data['options'] = $options;
+            }
+            ConfigModel::create($data);
         }
     }
 
