@@ -128,6 +128,7 @@ class ThemeMarketController extends AdminBaseController
 
     /**
      * V3.1 Sprint 15: 卸载主题（AJAX）
+     * V2.9.9-R4增强: 支持基于code卸载（优先code，兼容id）
      */
     public function uninstall(): \think\Response
     {
@@ -135,13 +136,171 @@ class ThemeMarketController extends AdminBaseController
             return $this->error('请求方式错误');
         }
 
+        $code = trim($this->request->post('code', ''));
         $id = (int) $this->request->post('id', 0);
+
         try {
-            ThemeMarketService::uninstallTheme($id);
-            $this->recordLog('卸载主题', "id={$id}");
+            // 优先使用code卸载
+            if (!empty($code)) {
+                $theme = ThemeInfo::where('code', $code)->find();
+                if (!$theme) {
+                    return $this->error('主题不存在');
+                }
+                // 防删当前主题
+                $configName = $theme->type === 'frontend' ? 'frontend_theme' : 'admin_theme';
+                $currentTheme = \app\common\model\Config::where('name', $configName)->value('value');
+                if ($theme->code === $currentTheme) {
+                    return $this->error('不能卸载正在使用的主题');
+                }
+                // 删除目录
+                $dir = $theme->type === 'frontend'
+                    ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $theme->code
+                    : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $theme->code;
+                if (is_dir($dir) && $theme->code !== 'default') {
+                    self::rrmdir($dir);
+                }
+                $theme->delete();
+                $this->recordLog('卸载主题', "code={$code}");
+            } else {
+                ThemeMarketService::uninstallTheme($id);
+                $this->recordLog('卸载主题', "id={$id}");
+            }
             return $this->success('卸载成功');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.9-R4: 上传zip安装主题（AJAX）
+     * ZipSlip三重防护: realpath校验 + strpos检测.. + preg_match过滤危险字符
+     */
+    public function uploadAndInstall(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $file = $this->request->file('file');
+        if (!$file) {
+            return $this->error('请上传zip文件');
+        }
+
+        $ext = strtolower($file->getOriginalExtension());
+        if ($ext !== 'zip') {
+            return $this->error('仅支持zip格式');
+        }
+
+        $type = trim($this->request->post('type', 'frontend'));
+
+        // 临时解压目录
+        $tempDir = runtime_path() . 'theme_upload_' . uniqid() . DIRECTORY_SEPARATOR;
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        try {
+            $zipPath = $tempDir . 'upload.zip';
+            $file->move($tempDir, 'upload.zip');
+
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath) !== true) {
+                throw new \Exception('无法打开zip文件');
+            }
+
+            // 安全校验1: 检查zip内是否有危险路径
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $entryName = $zip->getNameIndex($i);
+                // ZipSlip防护: 禁止..路径穿越、绝对路径、特殊字符
+                if (str_contains($entryName, '..') || str_starts_with($entryName, '/') || str_starts_with($entryName, '\\')) {
+                    $zip->close();
+                    throw new \Exception('zip文件包含非法路径: ' . $entryName);
+                }
+                if (preg_match('/[<>:"|?*\x00-\x1f]/', $entryName)) {
+                    $zip->close();
+                    throw new \Exception('zip文件包含非法字符: ' . $entryName);
+                }
+            }
+
+            $zip->extractTo($tempDir . 'extracted');
+            $zip->close();
+
+            // 查找theme.json确定主题根目录
+            $extractedDir = $tempDir . 'extracted';
+            $themeJsonPath = '';
+            $themeRoot = '';
+            $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($extractedDir, \RecursiveDirectoryIterator::SKIP_DOTS));
+            foreach ($iterator as $f) {
+                if ($f->getFilename() === 'theme.json') {
+                    $themeJsonPath = $f->getPathname();
+                    $themeRoot = $f->getPath();
+                    break;
+                }
+            }
+
+            if (empty($themeJsonPath)) {
+                throw new \Exception('zip中未找到theme.json');
+            }
+
+            // Schema校验: 必需字段
+            $meta = json_decode(file_get_contents($themeJsonPath), true);
+            if (!is_array($meta)) {
+                throw new \Exception('theme.json解析失败');
+            }
+            $required = ['name', 'version', 'author', 'type'];
+            foreach ($required as $field) {
+                if (empty($meta[$field])) {
+                    throw new \Exception("theme.json缺少必需字段: {$field}");
+                }
+            }
+
+            $code = preg_replace('/[^a-zA-Z0-9_-]/', '', $meta['code'] ?? basename($themeRoot));
+            if (empty($code)) {
+                $code = 'theme_' . time();
+            }
+
+            // 安全校验2: code白名单
+            if (str_contains($code, '..') || preg_match('/[<>:"|?*\\\/]/', $code)) {
+                throw new \Exception('主题标识包含非法字符');
+            }
+
+            $targetDir = $type === 'frontend'
+                ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $code
+                : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $code;
+
+            if (is_dir($targetDir)) {
+                throw new \Exception("主题 {$code} 已存在");
+            }
+
+            // 安全校验3: realpath确认最终目录在目标范围内
+            $realTarget = realpath(dirname($targetDir));
+            $allowedBase = realpath($type === 'frontend'
+                ? root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes'
+                : root_path() . 'template' . DIRECTORY_SEPARATOR . 'admin');
+            if ($realTarget !== $allowedBase) {
+                throw new \Exception('目录安全校验失败');
+            }
+
+            // 移动到最终位置
+            rename($themeRoot, $targetDir);
+
+            // 同步到数据库
+            ThemeMarketService::scanAndSync();
+
+            // 记录日志
+            $this->recordLog('安装主题', "code={$code}, source=zip_upload");
+
+            // 更新安装次数
+            ThemeInfo::where('code', $code)->where('type', $type)->inc('install_count', 1)->update();
+
+            return $this->success('安装成功', ['code' => $code, 'name' => $meta['name']]);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
+        } finally {
+            // 清理临时目录
+            if (is_dir($tempDir)) {
+                self::rrmdir($tempDir);
+            }
         }
     }
 
@@ -172,11 +331,38 @@ class ThemeMarketController extends AdminBaseController
 
     /**
      * V2.9.9 F-3: 本地模板列表（AJAX）
+     * V2.9.9-R4: 增加Cache缓存（mtime key, TTL=300s）
      */
     public function localList(): \think\Response
     {
         try {
             $themesDir = root_path() . 'template/themes/';
+            $cacheKey = 'theme_local_list';
+            $cacheMtimeKey = 'theme_local_list_mtime';
+
+            // 计算目录最新mtime作为缓存失效标识
+            $currentMtime = 0;
+            if (is_dir($themesDir)) {
+                $iterator = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($themesDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::SELF_FIRST
+                );
+                foreach ($iterator as $file) {
+                    if ($file->isFile() && $file->getMTime() > $currentMtime) {
+                        $currentMtime = $file->getMTime();
+                    }
+                }
+            }
+
+            // 检查缓存是否有效
+            $cachedMtime = cache($cacheMtimeKey);
+            if ($cachedMtime && (int)$cachedMtime === $currentMtime) {
+                $cached = cache($cacheKey);
+                if ($cached) {
+                    return $this->success('ok', $cached);
+                }
+            }
+
             $items = [];
             $iterator = new \RecursiveIteratorIterator(
                 new \RecursiveDirectoryIterator($themesDir, \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -193,7 +379,7 @@ class ThemeMarketController extends AdminBaseController
                 $data = json_decode(file_get_contents($file->getPathname()), true);
                 if (!is_array($data)) continue;
 
-                // Schema校验（K-1缓存：以文件mtime为缓存键）
+                // Schema校验
                 $jsonPath = $file->getPathname();
                 $schemaResult = \app\common\service\theme\ThemeSchemaService::validate($jsonPath);
 
@@ -217,7 +403,13 @@ class ThemeMarketController extends AdminBaseController
                 ];
             }
 
-            return $this->success('ok', ['items' => $items, 'total' => count($items)]);
+            $result = ['items' => $items, 'total' => count($items)];
+
+            // 写入缓存
+            cache($cacheKey, $result, 300);
+            cache($cacheMtimeKey, $currentMtime, 300);
+
+            return $this->success('ok', $result);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage());
         }
@@ -702,5 +894,25 @@ class ThemeMarketController extends AdminBaseController
             $unitIndex++;
         }
         return round($bytes, 2) . ' ' . $units[$unitIndex];
+    }
+
+    /**
+     * V2.9.9-R4: 递归删除目录
+     */
+    protected static function rrmdir(string $dir): void
+    {
+        if (!is_dir($dir)) return;
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                rmdir($file->getRealPath());
+            } else {
+                unlink($file->getRealPath());
+            }
+        }
+        rmdir($dir);
     }
 }

@@ -268,6 +268,8 @@ Route::get('theme_market/previewUrl$', '\app\admin\controller\ThemeMarketControl
 // V2.9.9 F-3: 本地模板市场API
 Route::get('theme_market/localList$', '\app\admin\controller\ThemeMarketController@localList');
 Route::get('theme_market/localDetail$', '\app\admin\controller\ThemeMarketController@localDetail');
+// V2.9.9-R4: zip上传安装
+Route::post('theme_market/uploadAndInstall$', '\app\admin\controller\ThemeMarketController@uploadAndInstall');
 Route::get('theme_market/backups$', '\app\admin\controller\ThemeMarketController@backups');
 Route::post('theme_market/rollback$', '\app\admin\controller\ThemeMarketController@rollback');
 Route::post('theme_market/scan$', '\app\admin\controller\ThemeMarketController@scan');
