@@ -1,14 +1,16 @@
-# 八界AI-CMS V2.9.9
+# 八界AI-CMS V2.9.9-R4
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.9-blue)
+![Version](https://img.shields.io/badge/version-2.9.9--R4-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.9 "模力收官·体验闭合" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.9-R4 "AI增强轮" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.9-R4 定位：AI配图增强 + 模板市场闭环 + Dashboard趋势可视化 + 双皮肤同步**，在V2.9.9模力收官基础上，增强AI配图体验（尺寸选择/候选图/插入编辑器）、补齐模板市场zip安装卸载闭环、Dashboard迷你折线图、Playwright回归测试。
 
 **V2.9.9 定位：模板行业扩展 + 运营数据闭环 + 架构优化收官 + 体验闭合**，在V2.9.8模力精修基础上，扩展模板行业覆盖、补齐运营数据分析、统一技术债务、完善模板生态前端体验。
 
