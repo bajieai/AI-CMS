@@ -27,5 +27,8 @@ return [
         'theme:generate'        => 'app\common\command\ThemeGenerateCommand',
         // V2.9.9 F-1: 模板主题 Schema 校验
         'theme:validate'        => 'app\common\command\ThemeValidateCommand',
+        // V2.9.9 J-2: 报表自动化
+        'report:daily'          => 'app\common\command\ReportDailyCommand',
+        'report:weekly'         => 'app\common\command\ReportWeeklyCommand',
     ],
 ];

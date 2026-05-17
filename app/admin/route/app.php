@@ -326,6 +326,7 @@ Route::get('dashboard/getDauMau$', '\app\admin\controller\DashboardController@ge
 Route::get('dashboard/getBounceRate$', '\app\admin\controller\DashboardController@getBounceRate');
 Route::get('dashboard/getBrowserStats$', '\app\admin\controller\DashboardController@getBrowserStats');
 Route::get('dashboard/getTopContentWithDuration$', '\app\admin\controller\DashboardController@getTopContentWithDuration');
+Route::get('dashboard/getMetricTrend$', '\app\admin\controller\DashboardController@getMetricTrend');
 Route::get('traffic/getBounceRate$', '\app\admin\controller\TrafficController@getBounceRate');
 Route::get('traffic/getBrowserStats$', '\app\admin\controller\TrafficController@getBrowserStats');
 Route::get('traffic/getTopContentWithDuration$', '\app\admin\controller\TrafficController@getTopContentWithDuration');

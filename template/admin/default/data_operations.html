@@ -27,37 +27,41 @@
     </div>
 </div>
 
-<!-- 核心指标卡片 -->
+<!-- 核心指标卡片（V2.9.9 J-1: 趋势指示器）-->
 <div class="row g-3 mb-4">
     <div class="col-lg-3 col-md-6">
         <div class="card border-start border-4 border-primary">
-            <div class="card-body">
+            <div class="card-body position-relative">
                 <div class="text-muted small mb-1">总浏览量(PV)</div>
                 <div class="fs-3 fw-bold" id="metricPv">-</div>
+                <span class="trend-indicator" id="trendPv" data-metric="pv"></span>
             </div>
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
         <div class="card border-start border-4 border-success">
-            <div class="card-body">
+            <div class="card-body position-relative">
                 <div class="text-muted small mb-1">独立访客(UV)</div>
                 <div class="fs-3 fw-bold" id="metricUv">-</div>
+                <span class="trend-indicator" id="trendUv" data-metric="uv"></span>
             </div>
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
         <div class="card border-start border-4 border-info">
-            <div class="card-body">
+            <div class="card-body position-relative">
                 <div class="text-muted small mb-1">新访客</div>
                 <div class="fs-3 fw-bold" id="metricNew">-</div>
+                <span class="trend-indicator" id="trendNew" data-metric="new_visitor"></span>
             </div>
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
         <div class="card border-start border-4 border-warning">
-            <div class="card-body">
+            <div class="card-body position-relative">
                 <div class="text-muted small mb-1">订单金额</div>
                 <div class="fs-3 fw-bold" id="metricRevenue">-</div>
+                <span class="trend-indicator" id="trendRevenue" data-metric="order_amount"></span>
             </div>
         </div>
     </div>
@@ -159,6 +163,16 @@
 </div>
 {/block}
 
+{block name="css"}
+<style>
+/* V2.9.9 J-1: 趋势指示器 */
+.trend-indicator { position: absolute; top: 8px; right: 12px; font-size: 0.75rem; padding: 2px 6px; border-radius: 12px; font-weight: 600; }
+.trend-up { background: rgba(25,135,84,0.1); color: #198754; }
+.trend-down { background: rgba(220,53,69,0.1); color: #dc3545; }
+.trend-flat { background: rgba(108,117,125,0.1); color: #6c757d; }
+</style>
+{/block}
+
 {block name="js"}
 <script src="/assets/js/echarts.min.js"></script>
 <script>
@@ -196,12 +210,36 @@ function loadAll() {
         loadDauMau(),
         loadBrowserStats(),
         loadBounceRate(),
-        loadContentDuration()
+        loadContentDuration(),
+        loadTrendIndicators()
     ]).then(function() {
         console.log('V2.9.9 operations data loaded');
     }).catch(function(err) {
         console.error('Operations data load failed:', err);
     });
+}
+
+// V2.9.9 J-1: 趋势指示器
+function loadTrendIndicators() {
+    var days = currentRange.days || 7;
+    var metrics = ['pv','uv','new_visitor','order_amount'];
+    var map = { 'pv': 'trendPv', 'uv': 'trendUv', 'new_visitor': 'trendNew', 'order_amount': 'trendRevenue' };
+    metrics.forEach(function(metric) {
+        $.get('/admin/dashboard/getMetricTrend', { metric: metric, days: days }, function(d) {
+            if(d.code !== 0) return;
+            renderTrendIndicator(map[metric], d.data);
+        });
+    });
+}
+
+function renderTrendIndicator(elId, data) {
+    var el = $('#' + elId);
+    if(!el.length || !data) return;
+    var icon = data.trend === 'up' ? 'bi-arrow-up-short' : data.trend === 'down' ? 'bi-arrow-down-short' : 'bi-dash';
+    var cls = data.trend === 'up' ? 'trend-up' : data.trend === 'down' ? 'trend-down' : 'trend-flat';
+    var sign = data.diff_percent > 0 ? '+' : '';
+    el.html('<i class="bi ' + icon + '"></i>' + sign + data.diff_percent + '%').addClass(cls);
+    el.attr('title', '当前: ' + data.current_value + ' / 上期: ' + data.previous_value);
 }
 
 function loadOperationsReport() {

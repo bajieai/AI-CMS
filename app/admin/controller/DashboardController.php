@@ -635,4 +635,21 @@ class DashboardController extends AdminBaseController
             ->select()
             ->toArray();
     }
+
+    /**
+     * V2.9.9 J-1: 指标趋势环比
+     */
+    public function getMetricTrend()
+    {
+        try {
+            $metric = trim($this->request->get('metric', 'pv'));
+            $days = (int) $this->request->get('days', 7);
+            if ($days > 90) $days = 90;
+
+            $data = \app\common\service\DashboardService::getMetricTrend($metric, $days);
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
 }

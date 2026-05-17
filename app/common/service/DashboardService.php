@@ -436,4 +436,89 @@ class DashboardService
             ],
         ];
     }
+
+    /**
+     * V2.9.9 J-1: 指标趋势环比
+     */
+    public static function getMetricTrend(string $metric, int $days = 7): array
+    {
+        $now = time();
+        $currentEnd = $now;
+        $currentStart = $now - $days * 86400;
+        $prevEnd = $currentStart;
+        $prevStart = $prevEnd - $days * 86400;
+
+        $currentValue = 0;
+        $previousValue = 0;
+
+        switch ($metric) {
+            case 'pv':
+                $currentValue = Db::name('visit_log')->whereBetween('visit_time', [$currentStart, $currentEnd])->count();
+                $previousValue = Db::name('visit_log')->whereBetween('visit_time', [$prevStart, $prevEnd])->count();
+                break;
+            case 'uv':
+                $currentValue = Db::name('visit_log')->whereBetween('visit_time', [$currentStart, $currentEnd])->group('ip')->count();
+                $previousValue = Db::name('visit_log')->whereBetween('visit_time', [$prevStart, $prevEnd])->group('ip')->count();
+                break;
+            case 'content_published':
+                $currentValue = Db::name('content')->whereBetween('create_time', [$currentStart, $currentEnd])->where('status', 2)->count();
+                $previousValue = Db::name('content')->whereBetween('create_time', [$prevStart, $prevEnd])->where('status', 2)->count();
+                break;
+            case 'content_views':
+                $currentValue = Db::name('content')->whereBetween('create_time', [$currentStart, $currentEnd])->sum('views') ?: 0;
+                $previousValue = Db::name('content')->whereBetween('create_time', [$prevStart, $prevEnd])->sum('views') ?: 0;
+                break;
+            case 'order_count':
+                $currentValue = Db::name('paid_order')->whereBetween('create_time', [$currentStart, $currentEnd])->where('status', 1)->count();
+                $previousValue = Db::name('paid_order')->whereBetween('create_time', [$prevStart, $prevEnd])->where('status', 1)->count();
+                break;
+            case 'order_amount':
+                $currentValue = Db::name('paid_order')->whereBetween('create_time', [$currentStart, $currentEnd])->where('status', 1)->sum('amount') ?: 0;
+                $previousValue = Db::name('paid_order')->whereBetween('create_time', [$prevStart, $prevEnd])->where('status', 1)->sum('amount') ?: 0;
+                break;
+            case 'bounce_rate':
+                $currentValue = self::calcBounceRate($currentStart, $currentEnd);
+                $previousValue = self::calcBounceRate($prevStart, $prevEnd);
+                break;
+        }
+
+        $diff = $previousValue > 0 ? round(($currentValue - $previousValue) / $previousValue * 100, 1) : 0;
+        if ($metric === 'bounce_rate') {
+            $diff = $previousValue > 0 ? round($currentValue - $previousValue, 1) : 0;
+        }
+
+        $trend = 'flat';
+        if ($diff > 1) $trend = 'up';
+        if ($diff < -1) $trend = 'down';
+        // 对于跳出率，反向判断
+        if ($metric === 'bounce_rate') {
+            $trend = $diff > 1 ? 'down' : ($diff < -1 ? 'up' : 'flat');
+        }
+
+        return [
+            'metric'         => $metric,
+            'days'           => $days,
+            'trend'          => $trend,
+            'diff_percent'   => $diff,
+            'current_value'  => $currentValue,
+            'previous_value' => $previousValue,
+        ];
+    }
+
+    private static function calcBounceRate(int $startTime, int $endTime): float
+    {
+        $total = Db::name('visit_log')
+            ->whereBetween('visit_time', [$startTime, $endTime])
+            ->whereNotNull('session_id')
+            ->count('DISTINCT session_id');
+        if ($total === 0) return 0;
+        $bounced = Db::name('visit_log')
+            ->whereBetween('visit_time', [$startTime, $endTime])
+            ->whereNotNull('session_id')
+            ->field('session_id, COUNT(*) as page_count')
+            ->group('session_id')
+            ->having('page_count', '=', 1)
+            ->count();
+        return round($bounced / $total * 100, 1);
+    }
 }
