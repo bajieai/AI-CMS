@@ -270,9 +270,13 @@ function renderList() {
         const schemaBadge = '<span class="badge schema-badge ' + schema.status + '" title="Schema: ' + schema.status + (schema.warnings_count ? ' (' + schema.warnings_count + '警告)' : '') + (schema.errors_count ? ' (' + schema.errors_count + '错误)' : '') + '">' +
             (schema.status === 'ok' ? '<i class="bi bi-check-circle"></i>' : schema.status === 'warning' ? '<i class="bi bi-exclamation-triangle"></i>' : '<i class="bi bi-x-circle"></i>') +
             '</span>';
+        // V2.9.9-R4: 无预览图时显示渐变色+首字母伪预览图
+        var firstChar = (t.name || t.code || '?').charAt(0);
+        var gradientColors = ['#667eea,#764ba2', '#f093fb,#f5576c', '#4facfe,#00f2fe', '#43e97b,#38f9d7', '#fa709a,#fee140', '#30cfd0,#330867'];
+        var gradientIdx = (t.code || '').length % gradientColors.length;
         const thumbHtml = t.preview
             ? '<img src="' + t.preview + '" class="card-img-top" style="height:160px;object-fit:cover;" alt="' + t.name + '">'
-            : '<div class="card-img-top" style="height:160px;"><i class="bi bi-palette2" style="font-size:3rem;color:#ccc;"></i></div>';
+            : '<div class="card-img-top d-flex align-items-center justify-content-center" style="height:160px;background:linear-gradient(135deg,' + gradientColors[gradientIdx] + ');"><span style="font-size:3rem;font-weight:700;color:#fff;opacity:.9;">' + firstChar + '</span></div>';
         const switchBtn = isCurrent
             ? '<button class="btn btn-success btn-sm w-100" disabled><i class="bi bi-check-lg me-1"></i>正在使用</button>'
             : '<button class="btn btn-outline-primary btn-sm w-100" onclick="switchTheme(\'' + t.code + '\')"><i class="bi bi-check-lg me-1"></i>设为当前</button>';

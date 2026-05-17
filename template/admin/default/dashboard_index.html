@@ -20,7 +20,9 @@
                 </div>
                 <i class="bi bi-eye-fill" style="font-size:2rem;opacity:.3"></i>
             </div>
-            <div style="font-size:.72rem;opacity:.7;margin-top:4px">
+            <!-- V2.9.9-R4: PV迷你折线图 -->
+            <div id="pvSparkline" style="height:36px;margin-top:2px;"></div>
+            <div style="font-size:.72rem;opacity:.7;margin-top:2px">
                 昨日 <span id="yesterdayPv">--</span>
                 <span id="pvChange" class="ms-1"></span>
             </div>
@@ -35,7 +37,9 @@
                 </div>
                 <i class="bi bi-people-fill" style="font-size:2rem;opacity:.3"></i>
             </div>
-            <div style="font-size:.72rem;opacity:.7;margin-top:4px">
+            <!-- V2.9.9-R4: UV迷你折线图 -->
+            <div id="uvSparkline" style="height:36px;margin-top:2px;"></div>
+            <div style="font-size:.72rem;opacity:.7;margin-top:2px">
                 昨日 <span id="yesterdayUv">--</span>
                 <span id="uvChange" class="ms-1"></span>
             </div>
@@ -261,6 +265,25 @@ $(function(){
 
     // 趋势图
     var trendChart = echarts.init(document.getElementById('trendChart'));
+    var pvSparkline = echarts.init(document.getElementById('pvSparkline'));
+    var uvSparkline = echarts.init(document.getElementById('uvSparkline'));
+
+    function renderSparkline(chart, data, color) {
+        chart.setOption({
+            tooltip: { trigger: 'axis', formatter: function(p) { return p[0].name + '<br/>' + p[0].value; } },
+            grid: { left: 0, right: 0, top: 2, bottom: 2 },
+            xAxis: { type: 'category', data: data.dates, show: false, boundaryGap: false },
+            yAxis: { type: 'value', show: false },
+            series: [{
+                type: 'line', data: data.values, smooth: true,
+                lineStyle: { width: 2, color: color },
+                areaStyle: { color: color, opacity: 0.2 },
+                symbol: 'none',
+                showSymbol: false
+            }]
+        }, true);
+    }
+
     function loadTrend(days){
         $.get('/admin/dashboard/trend?days='+days, function(d){
             if(d.code !== 0) return;
@@ -282,6 +305,9 @@ $(function(){
                     {name:'UV',type:'line',data:uv,smooth:true,lineStyle:{width:3},areaStyle:{opacity:.15},itemStyle:{color:'#f5576c'}}
                 ]
             });
+            // V2.9.9-R4: 渲染迷你折线图
+            renderSparkline(pvSparkline, {dates: dates, values: pv}, '#ffffff');
+            renderSparkline(uvSparkline, {dates: dates, values: uv}, '#ffffff');
         });
     }
     loadTrend(7);

@@ -54,11 +54,19 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">封面图</label>
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span>封面图</span>
+                            <select id="aiImageSize" class="form-select form-select-sm" style="width:auto;" title="配图尺寸">
+                                <option value="1024x1024">1:1 正方形</option>
+                                <option value="1024x576">16:9 宽屏</option>
+                                <option value="1024x768">4:3 标准</option>
+                                <option value="768x1024">3:4 竖屏</option>
+                            </select>
+                        </label>
                         <div class="input-group">
                             <input type="text" name="cover" id="coverInput" class="form-control" value="{$info.cover ?? ''}" placeholder="图片URL">
                             <button type="button" class="btn btn-outline-secondary" onclick="uploadCover()"><i class="bi bi-upload"></i></button>
-                            <!-- V2.8 AI配图 -->
+                            <!-- V2.8 AI配图 / V2.9.9-R4增强: 支持尺寸选择 -->
                             <button type="button" class="btn btn-outline-success" onclick="aiGenerateCover()"><i class="bi bi-magic"></i> AI配图</button>
                         </div>
                         <div id="coverPreview" class="mt-2" {if condition="!($info.cover ?? '')"}style="display:none"{/if}>
@@ -697,15 +705,16 @@ function delChapter(id) {
     }, 'json');
 }
 
-// V2.8 AI配图
+// V2.8 AI配图 / V2.9.9-R4增强: 支持尺寸选择
 function aiGenerateCover() {
     var title = $('[name="title"]').val();
     if(!title){ showToast('请先填写标题','warning'); return; }
+    var size = $('#aiImageSize').val() || '1024x1024';
     var csrfToken = $('input[name="__token__"]').val();
     $.ajax({
         url: '/api/ai/image',
         type: 'POST',
-        data: { prompt: title, style: 'realistic', count: 1 },
+        data: { prompt: title, style: 'realistic', count: 1, size: size },
         dataType: 'json',
         headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
         success: function(res) {
