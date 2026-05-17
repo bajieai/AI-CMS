@@ -30,5 +30,7 @@ return [
         // V2.9.9 J-2: 报表自动化
         'report:daily'          => 'app\common\command\ReportDailyCommand',
         'report:weekly'         => 'app\common\command\ReportWeeklyCommand',
+        // V2.9.9 I-1: Schema迁移工具
+        'theme:migrate'         => 'app\common\command\ThemeMigrateCommand',
     ],
 ];

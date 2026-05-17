@@ -4,26 +4,38 @@ declare(strict_types=1);
 namespace app\common\service\theme;
 
 /**
- * V2.9.9 F-1: 模板主题 Schema 校验服务
+ * V2.9.9 F-1/I-4: 模板主题 Schema 校验服务
  * 兼容 V2(colors+options) 和 V3(layouts+assets+pages) 两种格式
+ * I-4: 规则从 config/theme_schema.php 读取，常量作为 fallback
  */
 class ThemeSchemaService
 {
-    // V2 格式核心字段（必须）
+    // 保留常量作为 fallback（兼容已有调用）
     public const V2_REQUIRED = ['name', 'version', 'description', 'author'];
-    // V2 建议字段（warning 引导升级）
     public const V2_RECOMMENDED = ['colors', 'options', 'supports', 'default_device'];
-
-    // V3 格式核心字段（必须）
     public const V3_REQUIRED = ['name', 'version', 'description', 'author', 'type'];
-    // V3 建议字段（warning）
     public const V3_RECOMMENDED = ['color', 'layouts', 'assets', 'pages'];
-
-    // 行业模板市场标准字段（F-4 引入）
     public const MARKET_STANDARD = [
         'name', 'version', 'description', 'author', 'category', 'tags',
         'preview', 'type', 'supports', 'colors', 'layouts', 'assets',
     ];
+
+    /**
+     * 从配置读取规则（I-4配置化）
+     */
+    public static function getConfig(): array
+    {
+        return config('theme_schema', []);
+    }
+
+    /**
+     * 获取行业列表（单源模式）
+     */
+    public static function getIndustries(): array
+    {
+        $cfg = self::getConfig();
+        return $cfg['industries'] ?? config('ai.theme_industry_categories', []);
+    }
 
     /**
      * 校验单个 theme.json
