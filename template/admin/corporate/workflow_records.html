@@ -3,7 +3,12 @@
 {block name="content"}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">审核记录</h4>
+        <h4 class="mb-0">
+            审核记录
+            {if $pending_count > 0}
+            <span class="badge bg-danger ms-2" style="font-size:12px">{$pending_count} 待处理</span>
+            {/if}
+        </h4>
         <div>
             <a href="?status=-1" class="btn btn-outline-secondary btn-sm {if $Think.get.status==-1 || $Think.get.status===''}active{/if}">全部</a>
             <a href="?status=0" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='0'}active{/if}">待审核</a>
@@ -12,17 +17,32 @@
             <a href="?status=3" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='3'}active{/if}">已拒绝</a>
         </div>
     </div>
+
+    <!-- V2.9.9: 待办提醒卡片 -->
+    {if $pending_count > 0 && ($Think.get.status==-1 || $Think.get.status==='')}
+    <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div>当前有 <strong>{$pending_count}</strong> 条内容等待审核，请尽快处理</div>
+    </div>
+    {/if}
+
     <div class="card"><div class="card-body">
         <table class="table table-hover">
-            <thead><tr><th>ID</th><th>流程ID</th><th>目标ID</th><th>类型</th><th>当前步骤</th><th>状态</th><th>提交者</th><th>操作</th></tr></thead>
+            <thead><tr><th>ID</th><th>目标ID</th><th>类型</th><th>进度</th><th>状态</th><th>提交者</th><th>提交时间</th><th>操作</th></tr></thead>
             <tbody>
             {volist name="list" id="vo"}
             <tr>
                 <td>{$vo.id}</td>
-                <td>{$vo.workflow_id}</td>
-                <td>{$vo.target_id}</td>
+                <td><a href="/admin/content/edit/{$vo.target_id}" target="_blank" class="text-decoration-none">#{$vo.target_id}</a></td>
                 <td>{$vo.target_type}</td>
-                <td>{$vo.current_step}/{$vo.total_steps}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-1">
+                        {for start="1" end="$vo.total_steps+1"}
+                        <span class="badge {if $i <= $vo.current_step}bg-primary{else}bg-light text-dark border{/if}" style="font-size:10px">{$i}</span>
+                        {/for}
+                    </div>
+                    <small class="text-muted">{$vo.current_step}/{$vo.total_steps}</small>
+                </td>
                 <td>
                     {switch vo.status}
                     {case 0}<span class="badge bg-warning">待审核</span>{/case}
@@ -33,12 +53,60 @@
                     {default /}<span class="badge bg-secondary">未知</span>
                     {/switch}
                 </td>
-                <td>{$vo.submitter_id}</td>
+                <td>#{$vo.submitter_id}</td>
+                <td>{:date('m-d H:i', $vo.create_time)}</td>
                 <td>
                     {if $vo.status==0 || $vo.status==1}
                     <button class="btn btn-sm btn-outline-success" onclick="doReview({$vo.id},'pass')">通过</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="doReview({$vo.id},'reject')">拒绝</button>
                     {/if}
+                    <button class="btn btn-sm btn-outline-info" onclick="toggleTimeline({$vo.id})">
+                        <i class="bi bi-clock-history"></i> 历史
+                    </button>
+                </td>
+            </tr>
+            <!-- V2.9.9: 审批历史时间线（默认隐藏） -->
+            <tr id="timeline-{$vo.id}" style="display:none;">
+                <td colspan="8" class="bg-light">
+                    <div class="p-3">
+                        <h6 class="mb-3"><i class="bi bi-clock-history me-1"></i>审批历史</h6>
+                        {php}$recordLogs = $logs[$vo.id] ?? [];{/php}
+                        {if empty($recordLogs)}
+                        <div class="text-muted small">暂无审批记录</div>
+                        {else}
+                        <div class="timeline">
+                            {volist name="recordLogs" id="log"}
+                            <div class="timeline-item d-flex mb-2">
+                                <div class="timeline-marker me-2">
+                                    {switch log.action}
+                                    {case 'pass'}<span class="badge bg-success"><i class="bi bi-check"></i></span>{/case}
+                                    {case 'reject'}<span class="badge bg-danger"><i class="bi bi-x"></i></span>{/case}
+                                    {case 'withdraw'}<span class="badge bg-secondary"><i class="bi bi-arrow-counterclockwise"></i></span>{/case}
+                                    {default /}<span class="badge bg-info"><i class="bi bi-dot"></i></span>
+                                    {/switch}
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="small fw-bold">审核人 #{$log.reviewer_id}</span>
+                                        <span class="badge bg-light text-dark border" style="font-size:10px">步骤 {$log.step}</span>
+                                        <span class="text-muted" style="font-size:11px">{:date('Y-m-d H:i', $log.create_time)}</span>
+                                    </div>
+                                    {if $log.comment}
+                                    <div class="small text-muted mt-1">"{$log.comment}"</div>
+                                    {/if}
+                                </div>
+                            </div>
+                            {/volist}
+                        </div>
+                        {/if}
+                        <!-- V2.9.9: 驳回引导 -->
+                        {if $vo.status == 3}
+                        <div class="alert alert-danger d-flex align-items-center mt-2 mb-0 py-2" role="alert">
+                            <i class="bi bi-x-octagon-fill me-2"></i>
+                            <div class="small">该内容已被拒绝。如需重新提交，请编辑内容后保存，系统将自动重新触发审核流程。</div>
+                        </div>
+                        {/if}
+                    </div>
                 </td>
             </tr>
             {/volist}
@@ -52,11 +120,24 @@
 {block name="js"}
 <script>
 function doReview(id, action) {
+    var title = action === 'pass' ? '通过审核' : '拒绝审核';
     var comment = prompt('请输入审核意见（可选）：') || '';
     $.post('/admin/workflow/review', {record_id:id, action:action, comment:comment}, function(res) {
-        alert(res.msg);
-        if (res.code === 0) location.reload();
+        if (res.code === 0) {
+            showToast(res.msg, 'success');
+            setTimeout(function(){ location.reload(); }, 800);
+        } else {
+            showToast(res.msg, 'danger');
+        }
     });
+}
+
+// V2.9.9: 切换审批历史时间线显示
+function toggleTimeline(id) {
+    var row = document.getElementById('timeline-' + id);
+    if (row) {
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
 }
 </script>
 {/block}

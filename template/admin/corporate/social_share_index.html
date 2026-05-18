@@ -1,0 +1,215 @@
+{extend name="layout" /}
+
+{block name="title"}分享追踪看板{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">SEO与数据</li>
+<li class="breadcrumb-item active">分享追踪</li>
+{/block}
+
+{block name="content"}
+<!-- 顶部统计卡 -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-share fs-4 text-success"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">总分享次数</div>
+                    <div class="fs-3 fw-bold">{$overview.total|default=0}</div>
+                    {if condition="$overview.mom > 0"}
+                    <span class="badge bg-success bg-opacity-10 text-success">+{$overview.mom}%</span>
+                    {elseif condition="$overview.mom < 0"}
+                    <span class="badge bg-danger bg-opacity-10 text-danger">{$overview.mom}%</span>
+                    {else/}
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary">0%</span>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-wechat fs-4 text-primary"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">微信分享</div>
+                    <div class="fs-3 fw-bold">{$overview.channels.wechat|default=0}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-sina-weibo fs-4 text-danger"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">微博分享</div>
+                    <div class="fs-3 fw-bold">{$overview.channels.weibo|default=0}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-tencent-qq fs-4 text-info"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">QQ分享</div>
+                    <div class="fs-3 fw-bold">{$overview.channels.qq|default=0}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分享趋势图 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-1"></i>分享趋势</span>
+                <select class="form-select form-select-sm" style="width:auto;" id="trendPeriod" onchange="loadTrend()">
+                    <option value="7" {if condition="$period=='week'"}selected{/if}>近7天</option>
+                    <option value="30" {if condition="$period=='month'"}selected{/if}>近30天</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div id="trendChart" style="height:320px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white">
+                <span><i class="bi bi-pie-chart me-1"></i>渠道分布</span>
+            </div>
+            <div class="card-body">
+                <div id="channelChart" style="height:320px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 热门分享内容 -->
+<div class="card border-0" style="box-shadow:var(--card-shadow)">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-fire me-1"></i>热门分享内容 TOP10</span>
+        <select class="form-select form-select-sm" style="width:auto;" id="topPeriod" onchange="loadTopContent()">
+            <option value="7" {if condition="$period=='week'"}selected{/if}>近7天</option>
+            <option value="30" {if condition="$period=='month'"}selected{/if}>近30天</option>
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="50">排名</th>
+                    <th>内容标题</th>
+                    <th width="100">分享次数</th>
+                </tr>
+            </thead>
+            <tbody id="topContentList">
+                {volist name="top_content" id="item" key="k"}
+                <tr>
+                    <td>
+                        {if condition="$k <= 3"}
+                        <span class="badge bg-warning">{$k}</span>
+                        {else/}
+                        <span class="badge bg-secondary">{$k}</span>
+                        {/if}
+                    </td>
+                    <td class="text-truncate" style="max-width:400px">
+                        <a href="/info/{$item.content_id}" target="_blank" class="text-decoration-none">{$item.title|default='未命名'}</a>
+                    </td>
+                    <td><span class="fw-bold text-primary">{$item.share_count}</span></td>
+                </tr>
+                {/volist}
+                {empty name="top_content"}
+                <tr><td colspan="3" class="text-center text-muted py-4">暂无分享数据</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script src="/assets/js/echarts.min.js"></script>
+<script>
+var trendChart = echarts.init(document.getElementById('trendChart'));
+var channelChart = echarts.init(document.getElementById('channelChart'));
+
+var trendData = {:json_encode($trend)};
+var channelData = {:json_encode($overview.channels)};
+
+function renderTrend(data) {
+    var dates = data.map(function(v) { return v.date; });
+    trendChart.setOption({
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['总分享', '微信', '微博', 'QQ'], bottom: 0 },
+        grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: dates },
+        yAxis: { type: 'value', minInterval: 1 },
+        series: [
+            { name: '总分享', type: 'line', smooth: true, data: data.map(function(v){return v.total;}), itemStyle:{color:'#667eea'}, areaStyle:{opacity:0.1} },
+            { name: '微信', type: 'line', smooth: true, data: data.map(function(v){return v.wechat;}), itemStyle:{color:'#07c160'} },
+            { name: '微博', type: 'line', smooth: true, data: data.map(function(v){return v.weibo;}), itemStyle:{color:'#e6162d'} },
+            { name: 'QQ', type: 'line', smooth: true, data: data.map(function(v){return v.qq;}), itemStyle:{color:'#12b7f5'} }
+        ]
+    });
+}
+
+function renderChannel(data) {
+    var pieData = [
+        { name: '微信', value: data.wechat || 0 },
+        { name: '微博', value: data.weibo || 0 },
+        { name: 'QQ', value: data.qq || 0 },
+        { name: '复制链接', value: data.copy || 0 },
+        { name: '其他', value: data.other || 0 }
+    ].filter(function(v){ return v.value > 0; });
+
+    channelChart.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+        series: [{
+            type: 'pie',
+            radius: ['40%', '70%'],
+            label: { show: true, formatter: '{b}\n{d}%' },
+            data: pieData,
+            color: ['#07c160', '#e6162d', '#12b7f5', '#667eea', '#94a3b8']
+        }]
+    });
+}
+
+function loadTrend() {
+    var days = $('#trendPeriod').val();
+    $.get('/admin/social_share/stats?period=' + (days == 7 ? 'week' : 'month'), function(d) {
+        if(d.code !== 0) return;
+        if(d.data.trend) renderTrend(d.data.trend);
+    });
+}
+
+function loadTopContent() {
+    var days = $('#topPeriod').val();
+    window.location.href = '/admin/social_share/index?period=' + (days == 7 ? 'week' : 'month');
+}
+
+$(function() {
+    renderTrend(trendData);
+    renderChannel(channelData);
+});
+
+$(window).resize(function() {
+    trendChart.resize();
+    channelChart.resize();
+});
+</script>
+{/block}

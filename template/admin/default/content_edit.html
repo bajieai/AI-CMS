@@ -79,6 +79,20 @@
                             <option value="6" {if condition="($info.type ?? 1) == 6"}selected{/if}>单页</option>
                         </select>
                     </div>
+                    <!-- V2.9.9: AI内容模板选择 -->
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-file-earmark-text me-1 text-primary"></i>AI内容模板</span>
+                            <span class="badge bg-info text-dark" style="font-size:10px">V2.9.9</span>
+                        </label>
+                        <select name="ai_template_id" class="form-select" id="aiTemplateSelect">
+                            <option value="0">不使用模板</option>
+                            {volist name="ai_templates" id="tpl"}
+                            <option value="{$tpl.id}" {if condition="($info.ai_template_id ?? 0) == $tpl.id"}selected{/if}>{$tpl.name}</option>
+                            {/volist}
+                        </select>
+                        <div class="form-text">选择AI模板后，内容将按模板规则自动生成结构</div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">分类</label>
                         <select name="cate_id" class="form-select" id="cateSelect">
@@ -174,6 +188,17 @@
                             <input type="number" name="preview_length" class="form-control" min="0" value="{$info.preview_length ?? 500}" placeholder="未付费用户可见的预览字符数">
                         </div>
                     </div>
+                    <!-- V2.9.9 会员等级限制 -->
+                    <div class="mb-3">
+                        <label class="form-label">最低可见等级</label>
+                        <select name="min_level_id" class="form-select">
+                            <option value="0">不限制（所有用户可见）</option>
+                            {volist name="member_levels" id="lvl"}
+                            <option value="{$key}" {if condition="($info.min_level_id ?? 0) == $key"}selected{/if}>{$lvl}</option>
+                            {/volist}
+                        </select>
+                        <div class="form-text">设置后仅该等级及以上会员可查看完整内容</div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">定时发布</label>
                         <input type="datetime-local" name="publish_time" class="form-control" value="{$info.publish_time ? date('Y-m-d\TH:i', $info.publish_time) : ''}" placeholder="留空表示立即发布">
@@ -224,6 +249,32 @@
                                     <div class="text-success" id="previewUrl" style="font-size:11px;">{$vo.url ?? ''}</div>
                                     <div class="text-muted" id="previewDescription" style="font-size:12px;"></div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- V2.9.9 AI-GEO评分 -->
+                    <div class="card border-primary mb-3">
+                        <div class="card-header py-2 bg-primary text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-stars me-1"></i>AI-GEO评分</span>
+                            <button type="button" class="btn btn-sm btn-outline-light" onclick="calculateGeoScore()" id="btnGeoScore">
+                                <i class="bi bi-arrow-clockwise me-1"></i>检测
+                            </button>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="geoScoreArea" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">AI友好度</small>
+                                    <small class="fw-bold" id="geoScoreValue">0分</small>
+                                </div>
+                                <div class="progress mb-2" style="height:6px;">
+                                    <div class="progress-bar" id="geoScoreBar" style="width:0%"></div>
+                                </div>
+                                <div id="geoScoreDimensions"></div>
+                                <div class="mt-1" id="geoScoreSuggestions"></div>
+                            </div>
+                            <div class="text-center text-muted small py-2" id="geoScoreEmpty">
+                                <i class="bi bi-stars fs-3 d-block mb-1"></i>
+                                点击「检测」评估AI友好度
                             </div>
                         </div>
                     </div>
@@ -1724,6 +1775,73 @@ function escapeHtml(text) {
 // 初始化加载章节
 if ($('#chapterManager').length && parentContentId) {
     loadChapters();
+}
+
+// V2.9.9: AI-GEO评分
+function calculateGeoScore() {
+    var contentId = $('input[name="id"]').val();
+    if (!contentId) {
+        showToast('请先保存内容后再检测', 'warning');
+        return;
+    }
+    var $btn = $('#btnGeoScore');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>检测中...');
+    $.ajax({
+        url: '/admin/content/geoScore/' + contentId,
+        type: 'GET',
+        dataType: 'json',
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-arrow-clockwise me-1"></i>检测');
+            if (res.code === 0 && res.data) {
+                renderGeoScore(res.data);
+            } else {
+                showToast(res.msg || '检测失败', 'danger');
+            }
+        },
+        error: function() {
+            $btn.prop('disabled', false).html('<i class="bi bi-arrow-clockwise me-1"></i>检测');
+            showToast('网络错误', 'danger');
+        }
+    });
+}
+
+function renderGeoScore(data) {
+    var total = data.total || 0;
+    var barClass = total >= 80 ? 'bg-success' : (total >= 60 ? 'bg-warning' : 'bg-danger');
+    var textClass = total >= 80 ? 'text-success' : (total >= 60 ? 'text-warning' : 'text-danger');
+    $('#geoScoreValue').text(total + '分').attr('class', 'fw-bold ' + textClass);
+    $('#geoScoreBar').attr('class', 'progress-bar ' + barClass).css('width', total + '%');
+
+    var dimHtml = '';
+    var dimNames = { structure: '段落结构', citations: '事实引用', authority: '权威完整', entities: '实体密度' };
+    var dims = data.dimensions || {};
+    for (var key in dimNames) {
+        if (dims.hasOwnProperty(key)) {
+            var val = dims[key] || 0;
+            var dBarClass = val >= 20 ? 'bg-success' : (val >= 15 ? 'bg-warning' : 'bg-danger');
+            dimHtml += '<div class="d-flex justify-content-between align-items-center py-1 border-bottom">';
+            dimHtml += '<span class="small text-muted">' + dimNames[key] + '</span>';
+            dimHtml += '<span class="small fw-bold ' + (val >= 20 ? 'text-success' : (val >= 15 ? 'text-warning' : 'text-danger')) + '">' + val + '/25</span>';
+            dimHtml += '</div>';
+            dimHtml += '<div class="progress mb-1" style="height:3px;"><div class="progress-bar ' + dBarClass + '" style="width:' + (val * 4) + '%"></div></div>';
+        }
+    }
+    $('#geoScoreDimensions').html(dimHtml);
+
+    var sugHtml = '';
+    var suggestions = data.suggestions || [];
+    if (suggestions.length > 0) {
+        sugHtml = '<div class="small text-muted mt-1"><i class="bi bi-lightbulb me-1"></i>优化建议：<ul class="mb-0 ps-3">';
+        suggestions.forEach(function(s) {
+            sugHtml += '<li>' + s + '</li>';
+        });
+        sugHtml += '</ul></div>';
+    } else if (total >= 80) {
+        sugHtml = '<div class="small text-success mt-1"><i class="bi bi-check-circle me-1"></i>AI友好度优秀！</div>';
+    }
+    $('#geoScoreSuggestions').html(sugHtml);
+    $('#geoScoreEmpty').hide();
+    $('#geoScoreArea').show();
 }
 </script>
 {/block}

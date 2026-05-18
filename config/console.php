@@ -32,5 +32,7 @@ return [
         'report:weekly'         => 'app\common\command\ReportWeeklyCommand',
         // V2.9.9 I-1: Schema迁移工具
         'theme:migrate'         => 'app\common\command\ThemeMigrateCommand',
+        // V2.9.9 P0-4: 死链检测
+        'seo:deadlink'          => 'app\common\command\DeadLinkCommand',
     ],
 ];

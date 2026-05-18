@@ -60,3 +60,6 @@ Route::group('v1', function () {
     Route::post('visit/pv$', '\app\api\controller\v1\Visit@pv');
     Route::get('visit/hot$', '\app\api\controller\v1\Visit@hot');
 });
+
+// V2.9.9: 分享追踪（公开API，无需认证）
+Route::post('share/track$', '\app\api\controller\ShareController@track');

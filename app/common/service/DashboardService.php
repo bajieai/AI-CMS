@@ -246,6 +246,32 @@ class DashboardService
     }
 
     /**
+     * V2.9.9新增：分享统计概览
+     */
+    public static function getShareStats(?int $startTime = null, ?int $endTime = null): array
+    {
+        $startTime = $startTime ?? strtotime('-30 days');
+        $endTime = $endTime ?? time();
+
+        $total = Db::name('share_log')
+            ->whereBetween('created_at', [$startTime, $endTime])
+            ->count();
+
+        $channelStats = Db::name('share_log')
+            ->field('channel, COUNT(*) as count')
+            ->whereBetween('created_at', [$startTime, $endTime])
+            ->group('channel')
+            ->order('count', 'desc')
+            ->select()
+            ->toArray();
+
+        return [
+            'total'     => $total,
+            'channels'  => $channelStats,
+        ];
+    }
+
+    /**
      * 热门内容TOP10
      */
     public static function getTopContent(int $limit = 10, string $orderBy = 'views'): array
@@ -520,5 +546,32 @@ class DashboardService
             ->having('page_count', '=', 1)
             ->count();
         return round($bounced / $total * 100, 1);
+    }
+
+    /**
+     * V2.9.9-R5: 死链统计（缓存24小时）
+     */
+    public static function getDeadLinkStats(): array
+    {
+        $cacheKey = 'dashboard_deadlink_stats';
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        try {
+            $seoService = new \app\common\service\SeoService();
+            $deadLinks = $seoService->checkDeadLinks();
+            $result = [
+                'count' => count($deadLinks),
+                'last_check' => date('Y-m-d H:i:s'),
+                'list' => array_slice($deadLinks, 0, 5),
+            ];
+        } catch (\Exception $e) {
+            $result = ['count' => 0, 'last_check' => '-', 'list' => [], 'error' => $e->getMessage()];
+        }
+
+        Cache::set($cacheKey, $result, 86400);
+        return $result;
     }
 }

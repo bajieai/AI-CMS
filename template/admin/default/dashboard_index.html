@@ -238,6 +238,24 @@
                 </div>
             </div>
         </div>
+        <!-- V2.9.9-R5 死链检测 -->
+        <div class="card mt-3" style="border:none;box-shadow:var(--card-shadow)">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
+                <span><i class="bi bi-link-45deg me-1" style="color:#f5576c"></i>死链检测</span>
+                <a href="javascript:void(0)" onclick="loadDeadLinkStats()" class="btn btn-sm btn-outline-secondary" title="刷新"><i class="bi bi-arrow-clockwise"></i></a>
+            </div>
+            <div class="card-body" id="deadLinkCard">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted" style="font-size:.84rem">死链数量</span>
+                    <span class="fw-bold" id="deadLinkCount" style="color:var(--primary)">--</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted" style="font-size:.84rem">上次检测</span>
+                    <span style="font-size:.8rem;" id="deadLinkTime">--</span>
+                </div>
+                <div id="deadLinkList" class="mt-2 small text-muted" style="max-height:120px;overflow-y:auto;"></div>
+            </div>
+        </div>
     </div>
 </div>
 {/block}
@@ -451,6 +469,27 @@ $(function(){
         memberChart.resize();
         sourceChart.resize();
     });
+
+    // V2.9.9-R5 死链统计
+    function loadDeadLinkStats() {
+        $('#deadLinkCount').text('...');
+        $.get('/admin/dashboard/getDeadLinkStats', function(d) {
+            if (d.code !== 0) return;
+            var r = d.data;
+            $('#deadLinkCount').text(r.count).css('color', r.count > 0 ? '#f5576c' : '#43e97b');
+            $('#deadLinkTime').text(r.last_check || '-');
+            var listHtml = '';
+            if (r.list && r.list.length > 0) {
+                listHtml = '<div class="small text-danger mt-1">前5条死链：</div>' + r.list.map(function(item) {
+                    return '<div class="text-truncate" style="max-width:100%;" title="' + item.url + '"><a href="' + item.source + '" target="_blank" class="text-decoration-none text-muted">' + item.url + '</a> <span class="badge bg-secondary">' + item.status_code + '</span></div>';
+                }).join('');
+            } else if (r.count === 0) {
+                listHtml = '<div class="small text-success"><i class="bi bi-check-circle me-1"></i>未发现死链</div>';
+            }
+            $('#deadLinkList').html(listHtml);
+        });
+    }
+    loadDeadLinkStats();
 });
 </script>
 {/block}

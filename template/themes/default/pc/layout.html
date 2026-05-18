@@ -74,18 +74,28 @@
                 <!-- V2.3 会员入口 -->
                 <ul class="navbar-nav ms-2">
                     <li class="nav-item"><a class="nav-link" href="/points"><i class="bi bi-gift me-1"></i>积分商城</a></li>
-                    {if condition="$is_member_login"}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {$member_info.nickname}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/member/profile">个人中心</a></li>
-                            <li><a class="dropdown-item" href="/member/points">我的积分</a></li>
-                            <li><a class="dropdown-item" href="/member/exchange">兑换记录</a></li>
-                            <li><a class="dropdown-item" href="/member/logout">退出登录</a></li>
-                        </ul>
-                    </li>
+                {if condition="$is_member_login"}
+                <li class="nav-item dropdown">
+                    <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" title="消息">
+                        <i class="bi bi-bell"></i>
+                        {if $member_unread_count > 0}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem;">{$member_unread_count}</span>{/if}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/message/index"><i class="bi bi-chat-dots me-2"></i>我的私信</a></li>
+                        <li><a class="dropdown-item" href="/message/system"><i class="bi bi-megaphone me-2"></i>系统通知</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> {$member_info.nickname}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/member/profile">个人中心</a></li>
+                        <li><a class="dropdown-item" href="/member/points">我的积分</a></li>
+                        <li><a class="dropdown-item" href="/member/exchange">兑换记录</a></li>
+                        <li><a class="dropdown-item" href="/member/logout">退出登录</a></li>
+                    </ul>
+                </li>
                     {else /}
                     <li class="nav-item"><a class="nav-link" href="/member/login">登录</a></li>
                     <li class="nav-item"><a class="nav-link" href="/member/register">注册</a></li>
@@ -147,6 +157,46 @@ document.addEventListener('DOMContentLoaded', function() {
             el.classList.add('active');
         }
     });
+    // V2.9.9 语言切换
+    document.querySelectorAll('#langList [data-lang]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            var code = this.getAttribute('data-lang');
+            document.cookie = 'lang=' + encodeURIComponent(code) + ';path=/;max-age=' + (86400 * 30);
+            window.location.reload();
+        });
+    });
+
+    // V2.9.9-R5 搜索联想下拉
+    var searchInput = document.getElementById('headerSearchInput');
+    var suggestDropdown = document.getElementById('searchSuggestDropdown');
+    if (searchInput && suggestDropdown) {
+        var suggestTimer = null;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(suggestTimer);
+            var val = this.value.trim();
+            if (val.length < 2) { suggestDropdown.classList.remove('show'); return; }
+            suggestTimer = setTimeout(function() {
+                fetch('/search/suggest?keyword=' + encodeURIComponent(val))
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) {
+                        if (!res.data || res.data.length === 0) { suggestDropdown.classList.remove('show'); return; }
+                        suggestDropdown.innerHTML = res.data.map(function(kw) {
+                            return '<a class="dropdown-item" href="/search?keyword=' + encodeURIComponent(kw) + '"><i class="bi bi-search me-2 text-muted"></i>' + kw.replace(new RegExp('(' + val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<strong>$1</strong>') + '</a>';
+                        }).join('');
+                        suggestDropdown.classList.add('show');
+                    });
+            }, 200);
+        });
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestDropdown.contains(e.target)) {
+                suggestDropdown.classList.remove('show');
+            }
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { suggestDropdown.classList.remove('show'); }
+        });
+    }
 });
 </script>
 <!-- V2.9.7 主题定制预览 postMessage 监听 -->

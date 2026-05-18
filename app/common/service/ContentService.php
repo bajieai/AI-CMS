@@ -157,6 +157,14 @@ class ContentService
             PublishPlatformService::autoPublishToPlatforms($content->id);
         }
 
+        // V2.9.9: 审批自动触发（新建内容提交审核）
+        if ($content->status != 2 && $content->translation_of == 0) {
+            WorkflowService::submit($content->id, 'content', (int) session('user_id'));
+        }
+
+        // V2.9.9: 插件市场Hook — 内容创建后
+        PluginService::fire('content.afterCreate', $content);
+
         return true;
     }
 
@@ -249,6 +257,14 @@ class ContentService
 
         // V3.1 Phase 3.5L: SEO评分缓存回写
         $this->cacheSeoScore($content);
+
+        // V2.9.9: 审批自动触发（更新后若非已发布且非翻译内容，重新提交审核）
+        if ($content->status != 2 && $content->translation_of == 0) {
+            WorkflowService::submit($content->id, 'content', (int) session('user_id'));
+        }
+
+        // V2.9.9: 插件市场Hook — 内容更新后
+        PluginService::fire('content.afterUpdate', $content);
 
         return true;
     }

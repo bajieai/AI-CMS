@@ -256,4 +256,27 @@ class AiTemplateController extends AdminBaseController
             ],
         ]);
     }
+
+    /**
+     * V2.9.9: AI根据自然语言生成字段配置
+     */
+    public function generateFields(): \think\Response
+    {
+        if (!$this->request->isPost()) {
+            return json(['code' => 1, 'msg' => '请求方式错误']);
+        }
+
+        $nlDescription = trim($this->request->post('nl_description', ''));
+        if (empty($nlDescription)) {
+            return json(['code' => 1, 'msg' => '请输入自然语言描述']);
+        }
+
+        $result = AiTemplateService::generateFieldsFromNL($nlDescription);
+
+        if ($result['success']) {
+            $this->recordLog('ai_template_generate_fields', 'AI生成字段: ' . mb_substr($nlDescription, 0, 50));
+            return json(['code' => 0, 'msg' => $result['msg'], 'data' => $result['data']]);
+        }
+        return json(['code' => 1, 'msg' => $result['msg']]);
+    }
 }

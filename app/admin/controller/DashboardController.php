@@ -652,4 +652,17 @@ class DashboardController extends AdminBaseController
             return json(['code' => 1, 'msg' => $e->getMessage()]);
         }
     }
+
+    /**
+     * V2.9.9-R5: 死链统计
+     */
+    public function getDeadLinkStats()
+    {
+        try {
+            $data = \app\common\service\DashboardService::getDeadLinkStats();
+            return json(['code' => 0, 'data' => $data]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => $e->getMessage()]);
+        }
+    }
 }

@@ -14,6 +14,9 @@ return [
             ['id' => 14, 'name' => '回收站', 'url' => '/admin/content/recycleBin', 'permission' => 'content.recycle', 'active' => 'recycle', 'icon' => 'bi bi-trash3'],
             ['id' => 15, 'name' => '媒体资源库', 'url' => '/admin/media/index', 'permission' => 'media.*', 'active' => 'media', 'icon' => 'bi bi-images'],
             ['id' => 16, 'name' => '内容审核', 'url' => '/admin/review/index', 'permission' => 'review.*', 'active' => 'review', 'icon' => 'bi bi-patch-check'],
+            // V2.9.9 P1-1: 工作流审批
+            ['id' => 161, 'name' => '审批工作流', 'url' => '/admin/workflow/index', 'permission' => 'workflow.*', 'active' => 'workflow', 'icon' => 'bi bi-journal-check'],
+            ['id' => 162, 'name' => '审批记录', 'url' => '/admin/workflow/records', 'permission' => 'workflow.*', 'active' => 'workflow_records', 'icon' => 'bi bi-clock-history'],
             // V2.9.1 M18: 批量内容管理（复用content权限，不新增独立菜单）
         ],
     ],
@@ -112,6 +115,8 @@ return [
             ['id' => 67, 'name' => 'AI统计', 'url' => '/admin/aiStat/index', 'permission' => 'ai_stat.*', 'active' => 'ai_stat', 'icon' => 'bi bi-robot'],
             // V2.9.1 M9: AI数据分析报告
             ['id' => 68, 'name' => '数据报告', 'url' => '/admin/report/index', 'permission' => 'report.*', 'active' => 'report', 'icon' => 'bi bi-graph-up-arrow'],
+            // V2.9.9 P0-2: 社交分享追踪
+            ['id' => 690, 'name' => '分享追踪', 'url' => '/admin/social_share/index', 'permission' => 'social_share.*', 'active' => 'social_share', 'icon' => 'bi bi-share'],
         ],
     ],
     // V2.5 内容生态

@@ -31,6 +31,8 @@ Route::post('content/batchSeoOptimize$', '\app\admin\controller\ContentControlle
 Route::post('content/autoSave/:id$', '\app\admin\controller\ContentController@autoSave');
 Route::get('content/versions/:id$', '\app\admin\controller\ContentController@versions');
 Route::post('content/rollback/:versionId$', '\app\admin\controller\ContentController@rollback');
+// V2.9.9: AI-GEO评分
+Route::get('content/geoScore/:id$', '\app\admin\controller\ContentController@geoScore');
 
 // V2.7 章节管理
 Route::get('content/getChapters/:parentId$', '\app\admin\controller\ContentController@getChapters');
@@ -333,3 +335,37 @@ Route::get('traffic/getBounceRate$', '\app\admin\controller\TrafficController@ge
 Route::get('traffic/getBrowserStats$', '\app\admin\controller\TrafficController@getBrowserStats');
 Route::get('traffic/getTopContentWithDuration$', '\app\admin\controller\TrafficController@getTopContentWithDuration');
 Route::get('traffic/getDauMau$', '\app\admin\controller\TrafficController@getDauMau');
+
+// V2.9.9: 工作流审批路由（补全缺失）
+Route::get('workflow/index$', '\app\admin\controller\WorkflowController@index');
+Route::rule('workflow/edit/:id$', '\app\admin\controller\WorkflowController@edit', 'GET|POST');
+Route::post('workflow/save$', '\app\admin\controller\WorkflowController@save');
+Route::post('workflow/delete$', '\app\admin\controller\WorkflowController@delete');
+Route::get('workflow/records$', '\app\admin\controller\WorkflowController@records');
+Route::post('workflow/review$', '\app\admin\controller\WorkflowController@review');
+
+// V2.9.9: 会员等级路由（补全缺失）
+Route::get('member_level/index$', '\app\admin\controller\MemberLevelController@index');
+Route::rule('member_level/add$', '\app\admin\controller\MemberLevelController@add', 'GET|POST');
+Route::rule('member_level/edit/:id$', '\app\admin\controller\MemberLevelController@edit', 'GET|POST');
+Route::post('member_level/save$', '\app\admin\controller\MemberLevelController@save');
+Route::post('member_level/delete$', '\app\admin\controller\MemberLevelController@delete');
+
+// V2.9.9: AI内容模板路由（补全缺失）
+Route::get('ai_template/index$', '\app\admin\controller\AiTemplateController@index');
+Route::rule('ai_template/edit/:id$', '\app\admin\controller\AiTemplateController@edit', 'GET|POST');
+Route::post('ai_template/save$', '\app\admin\controller\AiTemplateController@save');
+Route::post('ai_template/delete/:id$', '\app\admin\controller\AiTemplateController@delete');
+Route::get('ai_template/use/:id$', '\app\admin\controller\AiTemplateController@use');
+Route::post('ai_template/preview$', '\app\admin\controller\AiTemplateController@preview');
+Route::post('ai_template/submitBatch$', '\app\admin\controller\AiTemplateController@submitBatch');
+Route::get('ai_template/progress$', '\app\admin\controller\AiTemplateController@progress');
+Route::get('ai_template/ajaxProgress$', '\app\admin\controller\AiTemplateController@ajaxProgress');
+// V2.9.9: AI自然语言生成字段配置
+Route::post('ai_template/generateFields$', '\app\admin\controller\AiTemplateController@generateFields');
+
+// V2.9.9: 社交分享管理路由
+Route::get('social_share/index$', '\app\admin\controller\SocialShareController@index');
+Route::get('social_share/stats$', '\app\admin\controller\SocialShareController@stats');
+Route::get('social_share/config$', '\app\admin\controller\SocialShareController@config');
+Route::post('social_share/saveConfig$', '\app\admin\controller\SocialShareController@saveConfig');

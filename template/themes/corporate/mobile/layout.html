@@ -69,6 +69,8 @@
         <div class="cm-menu-sep"></div>
         {if condition="$is_member_login"}
         <li><a href="/member/profile"><i class="bi bi-person-circle"></i>{$member_info.nickname}</a></li>
+        <li><a href="/message/index"><i class="bi bi-chat-dots"></i>我的私信 {if $member_unread_count > 0}<span class="badge bg-danger rounded-pill" style="font-size:.65rem;">{$member_unread_count}</span>{/if}</a></li>
+        <li><a href="/message/system"><i class="bi bi-megaphone"></i>系统通知</a></li>
         <li><a href="/member/logout"><i class="bi bi-box-arrow-right"></i>退出登录</a></li>
         {else /}
         <li><a href="/member/login"><i class="bi bi-box-arrow-in-right"></i>登录</a></li>
@@ -89,7 +91,7 @@
     {else /}
     <a href="/member/login" class="cm-tab"><i class="bi bi-person-fill"></i>登录</a>
     {/if}
-    <a href="{if condition="$is_member_login"}/member/notification{else /}/member/login{/if}" class="cm-tab"><i class="bi bi-bell-fill"></i>消息</a>
+    <a href="{if condition="$is_member_login"}/message/index{else /}/member/login{/if}" class="cm-tab position-relative"><i class="bi bi-bell-fill"></i>消息 {if $member_unread_count > 0}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.5rem;">{$member_unread_count}</span>{/if}</a>
 </nav>
 
 <!-- 友情链接 -->
@@ -132,6 +134,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (href && path === href) {
             el.classList.add('active');
         }
+    });
+    // V2.9.9 语言切换
+    document.querySelectorAll('#langList [data-lang]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            var code = this.getAttribute('data-lang');
+            document.cookie = 'lang=' + encodeURIComponent(code) + ';path=/;max-age=' + (86400 * 30);
+            window.location.reload();
+        });
     });
 });
 </script>

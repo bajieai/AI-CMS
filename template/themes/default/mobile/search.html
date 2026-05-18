@@ -15,8 +15,8 @@
 {volist name="list" id="vo"}
 <div class="m-card">
     <div class="m-card-body">
-        <h6 class="m-card-tit"><a href="{$vo.url}">{$vo.title}</a></h6>
-        <p class="m-card-text">{$vo.excerpt|msubstr=0,80}</p>
+        <h6 class="m-card-tit"><a href="{$vo.url}">{if $vo.title_highlight}{$vo.title_highlight|raw}{else}{$vo.title}{/if}</a></h6>
+        <p class="m-card-text">{if $vo.content_highlight}{$vo.content_highlight|raw|strip_tags='<mark>'|msubstr=0,80}{else}{$vo.excerpt|msubstr=0,80}{/if}</p>
         <small class="text-muted" style="font-size:12px;">{$vo.create_time|date='Y-m-d'}</small>
     </div>
 </div>
@@ -26,7 +26,10 @@
 <div class="m-empty"><i class="bi bi-search"></i><p>未找到与 "{$keyword}" 相关的内容</p><br><a href="/" class="btn btn-outline-primary btn-sm rounded-pill px-4">返回首页</a></div>
 {/empty}
 
-{if condition="($list->hasPages() ?? false)"}
-<div class="m-pagination">{$list->render()|raw}</div>
+    {if condition="$total > ($page * 20) || $page > 1"}
+<div class="m-pagination d-flex justify-content-center gap-2">
+    {if $page > 1}<a href="/search?keyword={$keyword|urlencode}&page={$page-1}" class="btn btn-outline-primary btn-sm">上一页</a>{/if}
+    {if $total > ($page * 20)}<a href="/search?keyword={$keyword|urlencode}&page={$page+1}" class="btn btn-outline-primary btn-sm">下一页</a>{/if}
+</div>
 {/if}
 {/block}

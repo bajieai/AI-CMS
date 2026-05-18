@@ -3,10 +3,18 @@
 {block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
 
 {block name="meta_extra"}
+<meta name="content-id" content="{$info.id}">
 <!-- V2.9.2 M19b: Schema.org JSON-LD -->
 {:app\common\service\SchemaService::article($info)}
 <!-- V2.9.2 M19b: BreadcrumbList -->
 {:app\common\service\SchemaService::breadcrumb(['首页'=>$site_url,'分类'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
+<!-- V2.9.9: 多语言hreflang标签 -->
+{if condition="count($content_translations) > 1"}
+{foreach $content_translations as $lang_code => $trans}
+<link rel="alternate" hreflang="{$lang_code}" href="{$site_url}/info/{$trans.id}?lang={$lang_code}">
+{/foreach}
+<link rel="alternate" hreflang="x-default" href="{$site_url}{$Request.url}">
+{/if}
 {/block}
 
 {block name="content"}
@@ -68,11 +76,45 @@
         {/if}
     </div>
 
-    <!-- 浜掑姩鏁版嵁 -->
+    <!-- 互动数据 -->
     <div style="display:flex;gap:16px;padding:12px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;margin-top:18px;font-size:13px;color:#888;">
-        <span><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 璧</span>
+        <span><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 赞</span>
         <span><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
     </div>
+
+    <!-- V2.9.9 社交分享轻量版 -->
+    {if condition="$share_links"}
+    <div class="social-share-bar mb-3">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;">
+            <span style="color:#888;">分享到：</span>
+            {if condition="$share_links.wechat"}
+            <button type="button" class="btn btn-sm btn-outline-success" style="font-size:12px;padding:2px 8px;" data-share="wechat" data-share-url="{$share_links.wechat}">微信</button>
+            {/if}
+            {if condition="$share_links.weibo"}
+            <button type="button" class="btn btn-sm btn-outline-danger" style="font-size:12px;padding:2px 8px;" data-share="weibo" data-share-url="{$share_links.weibo}">微博</button>
+            {/if}
+            {if condition="$share_links.qq"}
+            <button type="button" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:2px 8px;" data-share="qq" data-share-url="{$share_links.qq}">QQ</button>
+            {/if}
+            <button type="button" class="btn btn-sm btn-outline-secondary" style="font-size:12px;padding:2px 8px;" data-share="copy" data-share-url="{$share_links.wechat|default=$share_links.weibo|default=""}">复制链接</button>
+        </div>
+    </div>
+    {/if}
+
+    <!-- V2.9.9 多语言翻译版本 -->
+    {if condition="count($content_translations) > 1"}
+    <div class="content-translations mb-3">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;">
+            <span style="color:#888;"><i class="bi bi-globe me-1"></i>其他语言：</span>
+            {foreach $content_translations as $lang_code => $trans}
+            {if condition="$lang_code != $current_lang"}
+            <a href="/info/{$trans.id}?lang={$lang_code}" style="text-decoration:none;"><span style="border:1px solid #ddd;border-radius:4px;padding:1px 6px;color:#555;font-size:11px;">{$lang_code}</span></a>
+            {/if}
+            {/foreach}
+        </div>
+    </div>
+    {/if}
+
     {include file="shared/reward_button" info="$info" /}
 </article>
 
@@ -178,4 +220,18 @@ loadComments(1);
 $('#commentForm').on('submit',function(e){e.preventDefault();$.post('/home/comment/submit',$(this).serialize(),function(r){if(r.code===0){showToast('评论宸叉彁浜?,'success');$(this)[0].reset();loadComments(1);}else showToast(r.msg,'danger');});});
 {/if}
 </script>
+
+<!-- V2.9.9 社交分享组件 -->
+{if condition="$share_links"}
+<script src="/assets/js/social-share.js?v=2.9.9"></script>
+<script>
+window.SocialShare.init({
+    url: '{$share_links.wechat|default=$site_url.$Request.url}',
+    title: '{$info.seo_title ?: $info.title}',
+    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    image: '{$info.cover}',
+    enabled: true
+});
+</script>
+{/if}
 {/block}

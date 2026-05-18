@@ -9,6 +9,7 @@ use app\common\model\Member as MemberModel;
 use app\common\model\Module;
 use app\common\service\CacheService;
 use app\common\service\LanguageService;
+use app\common\service\PrivateMessageService;
 use app\common\service\TemplateService;
 use think\App;
 use think\facade\Cache;
@@ -161,6 +162,8 @@ abstract class FrontBaseController extends \think\BaseController
             'isMemberLogin'    => $this->isMemberLogin,
             'is_member_login'  => $this->isMemberLogin, // 兼容layout.html等使用下划线命名
             'member_info'      => $this->memberInfo,
+            // V2.9.9-R5 消息未读数
+            'member_unread_count' => ($this->isMemberLogin && $this->memberInfo) ? (PrivateMessageService::getUnreadCount($this->memberInfo['id']) + PrivateMessageService::getSystemUnreadCount($this->memberInfo['id'])) : 0,
             'seo_title'        => '',
             'seo_keywords'     => '',
             'seo_description'  => '',

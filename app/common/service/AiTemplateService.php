@@ -30,6 +30,9 @@ class AiTemplateService
         if (!empty($filter['mode'])) {
             $query->where('generate_mode', $filter['mode']);
         }
+        if (!empty($filter['source'])) {
+            $query->where('source', $filter['source']);
+        }
 
         $list = $query->page($page, $limit)->select();
         $total = $query->count();
@@ -78,6 +81,7 @@ class AiTemplateService
             $template = AiTemplateModel::create([
                 'name'             => $data['name'],
                 'description'      => $data['description'] ?? '',
+                'nl_description'   => $data['nl_description'] ?? '', // V2.9.9新增
                 'generate_mode'    => $data['generate_mode'] ?? 'nlp',
                 'cate_id'          => (int) ($data['cate_id'] ?? 0),
                 'model_id'         => (int) ($data['model_id'] ?? 0),
@@ -96,6 +100,7 @@ class AiTemplateService
                 'default_batch'    => min(100, max(1, (int) ($data['default_batch'] ?? 10))),
                 'status'           => (int) ($data['status'] ?? 1),
                 'sort'             => (int) ($data['sort'] ?? 0),
+                'source'           => $data['source'] ?? 'custom', // V2.9.9新增
             ]);
 
             return ['success' => true, 'msg' => '模板创建成功', 'data' => ['id' => $template->id]];
@@ -126,6 +131,7 @@ class AiTemplateService
             $updateData = array_filter([
                 'name'              => $data['name'] ?? null,
                 'description'       => $data['description'] ?? null,
+                'nl_description'    => $data['nl_description'] ?? null, // V2.9.9新增
                 'generate_mode'     => $data['generate_mode'] ?? null,
                 'cate_id'           => isset($data['cate_id']) ? (int) $data['cate_id'] : null,
                 'model_id'          => isset($data['model_id']) ? (int) $data['model_id'] : null,
@@ -144,6 +150,7 @@ class AiTemplateService
                 'default_batch'     => isset($data['default_batch']) ? min(100, max(1, (int) $data['default_batch'])) : null,
                 'status'            => isset($data['status']) ? (int) $data['status'] : null,
                 'sort'              => isset($data['sort']) ? (int) $data['sort'] : null,
+                'source'            => $data['source'] ?? null, // V2.9.9新增
             ], fn($v) => $v !== null);
 
             $template->save($updateData);
@@ -202,6 +209,11 @@ class AiTemplateService
 
         $parts = [];
         $parts[] = $systemPrompt;
+
+        // V2.9.9: 如果有自然语言描述，优先注入作为高层意图
+        if (!empty($template->nl_description)) {
+            $parts[] = "【模板意图】" . $template->nl_description;
+        }
 
         // 2. 标题要求
         if (!empty($template->title_rule)) {
@@ -403,6 +415,95 @@ class AiTemplateService
     public static function getStyleList(): array
     {
         return \app\common\service\AiWritingService::getStyles();
+    }
+
+    /**
+     * V2.9.9: 根据自然语言描述生成字段配置Schema
+     * 使用AI解析自然语言意图，返回结构化字段定义
+     *
+     * @param string $nlDescription 自然语言描述
+     * @return array {success, msg, data: {fields_config, title_rule, content_rule, keyword_hint}}
+     */
+    public static function generateFieldsFromNL(string $nlDescription): array
+    {
+        if (empty($nlDescription)) {
+            return ['success' => false, 'msg' => '请输入自然语言描述'];
+        }
+
+        try {
+            // 构建AI Prompt，要求返回JSON格式的字段定义
+            $systemPrompt = '你是一位CMS模板设计专家。请根据用户的自然语言描述，生成对应的内容模板字段配置。';
+            $userPrompt = "用户需求：{$nlDescription}\n\n";
+            $userPrompt .= "请返回JSON格式（不要包含markdown代码块标记）：\n";
+            $userPrompt .= json_encode([
+                'fields_config' => [
+                    [
+                        'name' => '字段标识（英文小写+下划线）',
+                        'label' => '字段显示名称',
+                        'type' => '字段类型（text/textarea/number/select/radio/checkbox/date/image/file/rich_editor）',
+                        'required' => true,
+                        'placeholder' => '输入提示',
+                        'options' => ['选项1', '选项2'],
+                        'rule' => '字段填写要求描述',
+                    ],
+                ],
+                'title_rule' => '标题生成规则描述',
+                'content_rule' => '内容生成规则描述',
+                'keyword_hint' => '关键词提示',
+                'description' => '模板用途简述（1句话）',
+            ], JSON_UNESCAPED_UNICODE);
+            $userPrompt .= "\n\n注意：\n1. 根据用户需求推断需要哪些字段\n2. 字段类型必须是以下之一：text, textarea, number, select, radio, checkbox, date, image, file, rich_editor\n3. 返回纯JSON，不要markdown代码块\n4. 至少包含2个字段，最多8个字段";
+
+            // 调用AI服务
+            $aiService = new \app\common\service\AiService();
+            $aiResult = $aiService->generate($systemPrompt, 'continue', ['max_tokens' => 2048, 'prompt' => $userPrompt]);
+
+            if (empty($aiResult['content'])) {
+                return ['success' => false, 'msg' => 'AI返回为空，请稍后重试'];
+            }
+
+            // 清理并解析JSON
+            $jsonStr = $aiResult['content'];
+            $jsonStr = preg_replace('/^```json\s*/i', '', $jsonStr);
+            $jsonStr = preg_replace('/```\s*$/i', '', $jsonStr);
+            $jsonStr = trim($jsonStr);
+
+            $schema = json_decode($jsonStr, true);
+            if (!is_array($schema) || empty($schema['fields_config'])) {
+                return ['success' => false, 'msg' => 'AI返回格式不正确，请手动配置字段'];
+            }
+
+            // 校验并清理字段配置
+            $fields = [];
+            foreach ($schema['fields_config'] as $idx => $field) {
+                $validTypes = ['text', 'textarea', 'number', 'select', 'radio', 'checkbox', 'date', 'image', 'file', 'rich_editor'];
+                $type = in_array($field['type'] ?? '', $validTypes) ? $field['type'] : 'text';
+                $fields[] = [
+                    'name' => $field['name'] ?? 'field_' . ($idx + 1),
+                    'label' => $field['label'] ?? ($field['name'] ?? '字段' . ($idx + 1)),
+                    'type' => $type,
+                    'required' => !empty($field['required']),
+                    'placeholder' => $field['placeholder'] ?? '',
+                    'options' => $field['options'] ?? [],
+                    'rule' => $field['rule'] ?? '',
+                ];
+            }
+
+            return [
+                'success' => true,
+                'msg' => 'AI字段生成成功',
+                'data' => [
+                    'fields_config' => $fields,
+                    'title_rule' => $schema['title_rule'] ?? '',
+                    'content_rule' => $schema['content_rule'] ?? '',
+                    'keyword_hint' => $schema['keyword_hint'] ?? '',
+                    'description' => $schema['description'] ?? '',
+                ],
+            ];
+        } catch (\Exception $e) {
+            Log::error('[AiTemplateService::generateFieldsFromNL] ' . $e->getMessage());
+            return ['success' => false, 'msg' => '生成失败: ' . $e->getMessage()];
+        }
     }
 
     // ==================== V2.9 字段映射引擎 ====================

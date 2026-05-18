@@ -99,6 +99,9 @@ abstract class AdminBaseController extends \think\BaseController
         'plugin_market'    => 'plugin_market',
         'member_benefit'   => 'member_benefit',
         'monitor'          => 'monitor',
+        // V2.9.9 新增模块
+        'social_share'     => 'social_share',
+        'workflow'         => 'workflow',
     ];
 
     /**
@@ -113,6 +116,8 @@ abstract class AdminBaseController extends \think\BaseController
         'payment.revenue'       => 'payment_revenue',
         // V2.9.2 精确菜单映射
         'export.dialog'         => 'export_dialog',
+        // V2.9.9 精确菜单映射
+        'workflow.records'      => 'workflow_records',
     ];
 
     public function __construct(App $app)

@@ -73,6 +73,16 @@
             <ul class="navbar-nav ms-auto">
                 {if condition="$is_member_login"}
                 <li class="nav-item dropdown">
+                    <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" title="消息">
+                        <i class="bi bi-bell"></i>
+                        {if $member_unread_count > 0}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem;">{$member_unread_count}</span>{/if}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="/message/index"><i class="bi bi-chat-dots me-2"></i>我的私信</a></li>
+                        <li><a class="dropdown-item" href="/message/system"><i class="bi bi-megaphone me-2"></i>系统通知</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle"></i> {$member_info.nickname}
                     </a>
@@ -171,6 +181,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (href && path === href) {
             el.classList.add('active');
         }
+    });
+    // V2.9.9 语言切换
+    document.querySelectorAll('#langList [data-lang]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            var code = this.getAttribute('data-lang');
+            document.cookie = 'lang=' + encodeURIComponent(code) + ';path=/;max-age=' + (86400 * 30);
+            window.location.reload();
+        });
     });
 });
 </script>

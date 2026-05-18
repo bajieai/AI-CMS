@@ -28,6 +28,7 @@ class AiTemplate extends Model
         'default_batch'   => 'integer',
         'status'          => 'integer',
         'sort'            => 'integer',
+        'source'          => 'string',   // V2.9.9新增：模板来源
     ];
 
     /**

@@ -57,6 +57,30 @@
                             <textarea name="description" class="form-control" rows="2" maxlength="500"
                                       placeholder="简要说明此模板的用途...">{$template.description|default=''}</textarea>
                         </div>
+                        <!-- V2.9.9: 自然语言描述（AI高层意图） -->
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="bi bi-stars me-1 text-primary"></i>自然语言描述
+                                <span class="badge bg-info text-dark ms-1" style="font-size:10px">V2.9.9</span>
+                            </label>
+                            <div class="input-group">
+                                <textarea name="nl_description" class="form-control" rows="2" maxlength="2000"
+                                          placeholder="用自然语言描述模板用途，例如：帮我生成面向B端 SaaS 企业的产品介绍文章模板，要求突出ROI和数据驱动...">{$template.nl_description|default=''}</textarea>
+                                <button type="button" class="btn btn-outline-primary" onclick="generateFieldsFromNL()">
+                                    <i class="bi bi-magic me-1"></i>AI生成字段
+                                </button>
+                            </div>
+                            <div class="form-text">AI会根据这段自然语言描述自动理解模板意图，并在生成内容时优先参考此描述</div>
+                        </div>
+                        <!-- V2.9.9: 模板来源 -->
+                        <div class="col-md-4">
+                            <label class="form-label">模板来源</label>
+                            <select name="source" class="form-select">
+                                <option value="custom" {if condition="($template.source ?? 'custom') == 'custom'"}selected{/if}>手动创建</option>
+                                <option value="ai" {if condition="isset($template) && $template.source == 'ai'"}selected{/if}>AI生成</option>
+                                <option value="ai_edit" {if condition="isset($template) && $template.source == 'ai_edit'"}selected{/if}>AI生成+人工编辑</option>
+                            </select>
+                        </div>
 
                         <hr class="my-2">
                         <div class="col-md-6">

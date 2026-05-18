@@ -28,13 +28,14 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     var channel = this.getAttribute('data-share');
-                    self.share(channel);
+                    var btnUrl = this.getAttribute('data-share-url') || self.config.url;
+                    self.share(channel, btnUrl);
                 });
             });
         },
 
-        share: function(channel) {
-            var url = encodeURIComponent(this.config.url);
+        share: function(channel, shareUrl) {
+            var url = encodeURIComponent(shareUrl || this.config.url);
             var title = encodeURIComponent(this.config.title);
             var pic = encodeURIComponent(this.config.image);
             var desc = encodeURIComponent(this.config.description);
@@ -128,19 +129,23 @@
         },
 
         trackShare: function(channel) {
-            // 分享统计埋点 - 复用visit_log表
+            // V2.9.9: 分享统计埋点 - 写入share_log表
             var data = {
-                url: this.config.url,
-                title: this.config.title,
                 channel: channel,
-                event_type: 'share'
+                url: this.config.url,
+                title: this.config.title
             };
-            
-            // 使用Beacon API或fetch发送统计
+            // 如果页面有content_id元数据，一并上报
+            var contentMeta = document.querySelector('meta[name="content-id"]');
+            if (contentMeta) {
+                data.content_id = contentMeta.getAttribute('content');
+            }
+
+            var endpoint = '/api/share/track';
             if (navigator.sendBeacon) {
-                navigator.sendBeacon('/api/visit/trackShare', new URLSearchParams(data));
+                navigator.sendBeacon(endpoint, new URLSearchParams(data));
             } else {
-                fetch('/api/visit/trackShare', {
+                fetch(endpoint, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: new URLSearchParams(data),

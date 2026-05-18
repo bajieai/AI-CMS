@@ -43,8 +43,11 @@ class MessageController extends FrontBaseController
         $messages = PrivateMessageService::getMessages($id, $this->memberInfo['id'], $page, 30);
         PrivateMessageService::markRead($id, $this->memberInfo['id']);
 
+        $conversation = \app\common\model\MessageConversation::find($id);
+        $otherId = $conversation ? (($conversation->user_id_1 == $this->memberInfo['id']) ? $conversation->user_id_2 : $conversation->user_id_1) : 0;
         $this->assign([
             'conversation_id' => $id,
+            'other_user_id' => $otherId,
             'messages' => $messages,
         ]);
         return $this->view('/message_chat');

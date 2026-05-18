@@ -35,9 +35,21 @@ class SearchController extends FrontBaseController
             $result = MeilisearchService::search($keyword, $filters, $page, 20);
         }
 
+        // 预处理高亮字段
+        $hits = $result['hits'];
+        foreach ($hits as &$hit) {
+            if (!empty($hit['_formatted']['title'])) {
+                $hit['title_highlight'] = $hit['_formatted']['title'];
+            }
+            if (!empty($hit['_formatted']['content'])) {
+                $hit['content_highlight'] = $hit['_formatted']['content'];
+            }
+        }
+        unset($hit);
+
         $this->assign([
             'keyword' => $keyword,
-            'list' => $result['hits'],
+            'list' => $hits,
             'total' => $result['total'],
             'page' => $result['page'],
             'cate_id' => $cateId,
@@ -45,5 +57,24 @@ class SearchController extends FrontBaseController
         ]);
 
         return $this->view('/search');
+    }
+
+    /**
+     * 搜索关键词联想建议
+     */
+    public function suggest()
+    {
+        $keyword = trim($this->request->get('keyword', ''));
+        if (empty($keyword) || mb_strlen($keyword) < 2) {
+            return json(['code' => 0, 'data' => []]);
+        }
+
+        // 优先从热门搜索词匹配
+        $suggestions = \app\common\model\SearchKeyword::where('keyword', 'like', $keyword . '%')
+            ->order('count', 'desc')
+            ->limit(8)
+            ->column('keyword');
+
+        return json(['code' => 0, 'data' => array_values($suggestions)]);
     }
 }

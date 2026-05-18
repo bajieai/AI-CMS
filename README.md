@@ -1,18 +1,16 @@
-# 八界AI-CMS V2.9.9-R4
+# 八界AI-CMS V2.9.9
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.9--R4-blue)
+![Version](https://img.shields.io/badge/version-2.9.9-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.9-R4 "AI增强轮" 是基于 ThinkPHP 8.1 多应用模式构建的企业信息管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.9 "从好用到聪明" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.9-R4 定位：AI配图增强 + 模板市场闭环 + Dashboard趋势可视化 + 双皮肤同步**，在V2.9.9模力收官基础上，增强AI配图体验（尺寸选择/候选图/插入编辑器）、补齐模板市场zip安装卸载闭环、Dashboard迷你折线图、Playwright回归测试。
-
-**V2.9.9 定位：模板行业扩展 + 运营数据闭环 + 架构优化收官 + 体验闭合**，在V2.9.8模力精修基础上，扩展模板行业覆盖、补齐运营数据分析、统一技术债务、完善模板生态前端体验。
+**V2.9.9 核心定位：从好用的CMS走向聪明的CMS** — 8大模块全面升级：AI内容模板引擎、社交分享轻量版+分享追踪、AI多语言国际化、SEO深度升级、插件市场完善、审批工作流增强、AI-GEO深度优化、会员等级深化+付费阅读权限控制。
 
 **V2.9.8 核心新功能 — 模力精修：**
 
@@ -79,6 +77,16 @@
 
 ### 核心特性
 
+- **🆕 AI内容模板引擎(V2.9.9)** - 自然语言生成模板Schema+AI字段自动生成+内容编辑模板选择+导入导出
+- **🆕 社交分享+追踪(V2.9.9)** - 轻量版分享(微博/QQ/微信复制/链接复制)+UTM追踪+分享看板(ECharts)+热门内容TOP10
+- **🆕 AI多语言国际化(V2.9.9)** - AI批量翻译+多语言路由(/en/about)+hreflang标签+4套模板语言切换+Cookie持久化
+- **🆕 SEO深度升级(V2.9.9)** - 图片/视频/新闻Sitemap全类型+死链检测CLI+Dashboard死链统计卡
+- **🆕 插件市场完善(V2.9.9)** - 完整生命周期+钩子/事件系统+5个预置插件包(SEO/社交/会员/导出/自定义字段)
+- **🆕 审批工作流增强(V2.9.9)** - 审批历史时间线+待办角标+驳回引导+步骤指示器+自动提交审批
+- **🆕 AI-GEO深度优化(V2.9.9)** - 4维度AI友好度评分(段落/事实/权威/实体)+实体提取+AI搜索Sitemap+后台评分卡
+- **🆕 会员等级深化(V2.9.9)** - 权益配置中心(daily_ai_quota+exclusive_content_ids)+内容等级限制+付费阅读权限控制
+- **🆕 消息通知前台(V2.9.9)** - 通知铃铛+未读角标+消息中心(私信+系统通知)+12套前台消息模板
+- **🆕 全文搜索增强(V2.9.9)** - Meilisearch高亮+搜索联想+分页适配+4套搜索模板修复
 - **🆕 字体本地化(V2.9.8)** - 5组中文字体子集化woff2嵌入本地+font-display:swap，离线/内网可用
 - **🆕 撤销/重做(V2.9.8)** - UndoManager 30步栈+Ctrl+Z/Ctrl+Shift+Z+保存点+未保存提示+预览联动
 - **🆕 AfterGenerate钩子(V2.9.8)** - AI生成后自动同步CSS资产+class名推导CSS骨架+透明PNG占位图
@@ -515,6 +523,7 @@ AI-CMS/
 | i8j_points_exchange | 积分兑换表 | id,user_id,product_id,points_cost,status,create_time |
 | i8j_member_level | 会员等级表 | id,name,min_points,max_points,icon,discount_rate,points_rate,daily_ai_quota,is_default |
 | i8j_member_benefit | 会员权益表 | id,level_id,benefit_type,benefit_key,benefit_value,description |
+| i8j_share_log | 分享日志表(V2.9.9) | id,content_id,channel,ip,referer,utm_source,utm_medium,utm_campaign,created_at |
 
 ## 角色权限
 
@@ -541,6 +550,7 @@ AI-CMS/
 | POST | /api/member/login | 会员登录 |
 | POST | /api/member/register | 会员注册 |
 | POST | /api/v1/visit | PV打点统计 |
+| POST | /api/share/track | 分享追踪上报(V2.9.9) |
 | GET | /api/v1/search/suggest | 搜索联想补全 |
 | GET | /api/v1/search/hot | 热门搜索 |
 | GET | /api/coupon/list | 优惠券列表 |
@@ -599,7 +609,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
-| V2.9.9 | 2026-05-16 | **模力收官** — 行业4→8扩展(医疗/教育/餐饮/金融)/buildCssComponentPrompt动态化重构(消除硬编码)/CSS组件10→12(新增header+sidebar)/8行业组件映射/色值距离推荐算法(HSL+Euclidean+权重融合)/CSS验收支撑工具(bin/batch_generate_css)/运营报表页面(访客/内容/订单三维度)/DAU/MAU统计/跳出率计算(session_id)/浏览器分布(UA解析)/热门内容停留时长/来源分类统一(social+国内搜索引擎)/时间筛选UI(7d/30d/90d/自定义)/visit_time字段统一/安全测试11用例/冒烟测试脚本/CHANGELOG更新。C-4 theme-customizer.js拆分延期至V3.0 |
+| V2.9.9 | 2026-05-18 | **从好用到聪明** — P0x5(AI模板引擎+社交分享+多语言+SEO深度+插件市场)+P1x5(审批工作流+AI-GEO+会员等级+消息通知+搜索增强)=10模块全面升级。24新增文件+40+修改文件。AI内容模板自然语言生成+社交分享追踪看板+AI批量翻译多语言路由+图片视频新闻Sitemap+插件钩子事件系统+审批时间线角标+AI友好度4维评分+权益配置中心+通知铃铛消息中心+Meilisearch高亮联想 |
 | V2.9.8 | 2026-05-15 | **模力精修** — 两轮交付：第一轮(12/12): 字体本地化(5组woff2)/撤销重做(UndoManager 30步栈)/AfterGenerate钩子/自动重试增强(3次退避+动态temperature)/CSS质量7维度评分器(60分及格)/CSS质量Prompt增强/预设快捷应用(5套)/导出预览/Pickr深色模式/postMessage文档。第二轮(9+6项): Prompt行业风格加强(4行业配置)/CSS组件模式库(CssComponentLibrary 10组件)/评分器9维度+双线制(新65/历史60)/预设5→12套+智能推荐/3步新手引导+折叠面板/导出后3按钮快捷操作/模板变量5→10页面/撤销栈15分钟清空/恢复默认API+安装引导+分析页时间筛选 |
 | V2.9.7 | 2026-05-15 | **模力定制**: AI主题6缺陷根治(Prompt完善+验证器+搜索高亮)/模板可视化定制(19个CSS变量+Pickr颜色选择器+6组字体预设+布局选项+Logo上传+iframe实时预览+postMessage+变体管理)/导出导入含定制数据/数据分析(安装排行+趋势+定制偏好+评分分布+ECharts+CSV导出) |
 | V3.1.0 | 2026-05-14 | AI内容增强: 批量配图+发布自动配图+日配额控制/SEO评分算法(0-100)+前后对比+批量SEO(3并发)+来源分析饼图/质量卡片+建议执行+社交分享Modal+前台分享统计/5种可配置写作风格。模板生态: 批量生产流水线(5行业+质量自检+审核闭环)/市场前台(10套预埋+OSS/CDN+一键安装+回滚)/管理增强(评分收藏+版本检测+分类CRUD+日志)。Phase 3.5L: 安全测试11用例+SEO缓存回写3触发点+编码根治7层防护 |
@@ -644,7 +654,7 @@ docker cp database/v3.0.sql aicms_mysql:/tmp/
 docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
 ```
 
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.8零DDL变更，无需执行SQL。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql` → `v3.1_next.sql`。
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.9需执行：`v2.9.9_ai_template.sql` → `v2.9.9_share_log.sql`。V2.9.8零DDL变更。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql` → `v3.1_next.sql` → `v2.9.9_ai_template.sql` → `v2.9.9_share_log.sql`。
 
 ## 常用Docker命令
 

@@ -456,4 +456,191 @@ class SeoService
             return 0;
         }
     }
+
+    // ==================== V2.9.9: 增强Sitemap类型 ====================
+
+    /**
+     * 生成图片Sitemap（Google Image Sitemap）
+     */
+    public function generateImageSitemap(): string
+    {
+        $cacheKey = 'sitemap_image_xml';
+        return Cache::tag(CacheService::TAG_SEO)->remember($cacheKey, function () {
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+            $xml .= '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
+
+            $contents = ContentModel::where('status', 2)
+                ->where('translation_of', 0)
+                ->whereNotNull('cover')
+                ->where('cover', '<>', '')
+                ->order('id', 'desc')
+                ->limit(5000)
+                ->select();
+
+            foreach ($contents as $content) {
+                $xml .= "  <url>\n";
+                $xml .= "    <loc>" . htmlspecialchars(url($content->url), ENT_XML1, 'UTF-8') . "</loc>\n";
+                $xml .= "    <image:image>\n";
+                $xml .= "      <image:loc>" . htmlspecialchars($content->cover, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                if ($content->title) {
+                    $xml .= "      <image:title>" . htmlspecialchars($content->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
+                }
+                $xml .= "    </image:image>\n";
+                $xml .= "  </url>\n";
+            }
+
+            $xml .= '</urlset>';
+            return $xml;
+        }, 86400);
+    }
+
+    /**
+     * 生成视频Sitemap（Google Video Sitemap）
+     */
+    public function generateVideoSitemap(): string
+    {
+        $cacheKey = 'sitemap_video_xml';
+        return Cache::tag(CacheService::TAG_SEO)->remember($cacheKey, function () {
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+            $xml .= '        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">' . "\n";
+
+            // 从内容中提取视频URL（支持常见视频平台嵌入代码）
+            $contents = ContentModel::where('status', 2)
+                ->where('translation_of', 0)
+                ->order('id', 'desc')
+                ->limit(2000)
+                ->select();
+
+            foreach ($contents as $content) {
+                $videos = $this->extractVideoUrls($content->content ?? '');
+                if (empty($videos)) {
+                    continue;
+                }
+
+                $xml .= "  <url>\n";
+                $xml .= "    <loc>" . htmlspecialchars(url($content->url), ENT_XML1, 'UTF-8') . "</loc>\n";
+
+                foreach ($videos as $videoUrl) {
+                    $xml .= "    <video:video>\n";
+                    $xml .= "      <video:thumbnail_loc>" . htmlspecialchars($content->cover ?: $videoUrl, ENT_XML1, 'UTF-8') . "</video:thumbnail_loc>\n";
+                    $xml .= "      <video:title>" . htmlspecialchars($content->title ?: 'Video', ENT_XML1, 'UTF-8') . "</video:title>\n";
+                    $xml .= "      <video:description>" . htmlspecialchars(mb_substr(strip_tags($content->content ?? ''), 0, 200), ENT_XML1, 'UTF-8') . "</video:description>\n";
+                    $xml .= "      <video:content_loc>" . htmlspecialchars($videoUrl, ENT_XML1, 'UTF-8') . "</video:content_loc>\n";
+                    $xml .= "    </video:video>\n";
+                }
+
+                $xml .= "  </url>\n";
+            }
+
+            $xml .= '</urlset>';
+            return $xml;
+        }, 86400);
+    }
+
+    /**
+     * 生成新闻Sitemap（Google News Sitemap）
+     */
+    public function generateNewsSitemap(): string
+    {
+        $cacheKey = 'sitemap_news_xml';
+        return Cache::tag(CacheService::TAG_SEO)->remember($cacheKey, function () {
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+            $xml .= '        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">' . "\n";
+
+            // 最近48小时内发布的新闻类型内容
+            $contents = ContentModel::where('status', 2)
+                ->where('translation_of', 0)
+                ->where('type', 3) // 新闻类型
+                ->where('create_time', '>', time() - 172800)
+                ->order('id', 'desc')
+                ->limit(1000)
+                ->select();
+
+            $siteName = Config::get('seo.site_name', 'AI-CMS');
+
+            foreach ($contents as $content) {
+                $xml .= "  <url>\n";
+                $xml .= "    <loc>" . htmlspecialchars(url($content->url), ENT_XML1, 'UTF-8') . "</loc>\n";
+                $xml .= "    <news:news>\n";
+                $xml .= "      <news:publication>\n";
+                $xml .= "        <news:name>" . htmlspecialchars($siteName, ENT_XML1, 'UTF-8') . "</news:name>\n";
+                $xml .= "        <news:language>zh</news:language>\n";
+                $xml .= "      </news:publication>\n";
+                $xml .= "      <news:publication_date>" . date('c', $content->create_time) . "</news:publication_date>\n";
+                $xml .= "      <news:title>" . htmlspecialchars($content->title, ENT_XML1, 'UTF-8') . "</news:title>\n";
+                $xml .= "    </news:news>\n";
+                $xml .= "  </url>\n";
+            }
+
+            $xml .= '</urlset>';
+            return $xml;
+        }, 86400);
+    }
+
+    /**
+     * 从内容中提取视频URL
+     */
+    protected function extractVideoUrls(string $content): array
+    {
+        $urls = [];
+
+        // 匹配常见视频平台
+        $patterns = [
+            '/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/i',
+            '/https?:\/\/(?:www\.)?bilibili\.com\/video\/(BV[0-9A-Za-z]+)/i',
+            '/https?:\/\/(?:v\.qq\.com\/x\/page\/|m\.v\.qq\.com\/play\.html\?vid=)([a-zA-Z0-9]+)/i',
+            '/https?:\/\/(?:www\.)?youku\.com\/v_show\/id_([a-zA-Z0-9=]+)/i',
+            '/<video[^>]+src=["\']([^"\']+)["\']/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match_all($pattern, $content, $matches)) {
+                foreach ($matches[0] as $match) {
+                    $urls[] = $match;
+                }
+            }
+        }
+
+        return array_unique($urls);
+    }
+
+    /**
+     * V2.9.9: 保存增强型Sitemap到文件
+     */
+    public function saveEnhancedSitemaps(): array
+    {
+        $results = [];
+
+        try {
+            $imageXml = $this->generateImageSitemap();
+            $imagePath = public_path() . 'sitemap-image.xml';
+            $results['image'] = file_put_contents($imagePath, $imageXml) !== false;
+        } catch (\Throwable $e) {
+            $results['image'] = false;
+            Log::warning('[SeoService] 保存图片Sitemap失败: ' . $e->getMessage());
+        }
+
+        try {
+            $videoXml = $this->generateVideoSitemap();
+            $videoPath = public_path() . 'sitemap-video.xml';
+            $results['video'] = file_put_contents($videoPath, $videoXml) !== false;
+        } catch (\Throwable $e) {
+            $results['video'] = false;
+            Log::warning('[SeoService] 保存视频Sitemap失败: ' . $e->getMessage());
+        }
+
+        try {
+            $newsXml = $this->generateNewsSitemap();
+            $newsPath = public_path() . 'sitemap-news.xml';
+            $results['news'] = file_put_contents($newsPath, $newsXml) !== false;
+        } catch (\Throwable $e) {
+            $results['news'] = false;
+            Log::warning('[SeoService] 保存新闻Sitemap失败: ' . $e->getMessage());
+        }
+
+        return $results;
+    }
 }

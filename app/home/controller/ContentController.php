@@ -10,6 +10,9 @@ use app\common\model\Member;
 use app\common\model\MemberLevel;
 use app\common\service\SeoService;
 use app\common\service\PaidService;
+use app\common\service\SocialShareService;
+use app\common\service\LanguageService;
+use app\common\service\GeoService;
 use think\facade\Db;
 
 /**
@@ -87,6 +90,25 @@ class ContentController extends FrontBaseController
         $memberId = $this->memberInfo['id'] ?? 0;
         $safeContent = PaidService::getSafeContent($info, $memberId);
 
+        // V2.9.9: 社交分享OG元数据与分享链接
+        $ogMeta = [];
+        $shareLinks = [];
+        if (\think\facade\Config::get('social_share.enabled', 1)) {
+            $ogMeta = SocialShareService::generateOgMeta($info);
+            $shareLinks = SocialShareService::generateContentShareLinks($info);
+        }
+
+        // V2.9.9: 内容多语言翻译版本
+        $contentTranslations = [];
+        if ($info->translation_of > 0) {
+            $contentTranslations = LanguageService::getTranslationsOf($info->translation_of);
+        } else {
+            $contentTranslations = LanguageService::getTranslationsOf($info->id);
+        }
+
+        // V2.9.9: AI-GEO生成式引擎优化数据
+        $geoData = GeoService::generate($info);
+
         $this->assign([
             'info'          => $info,
             'related'       => $related,
@@ -97,6 +119,10 @@ class ContentController extends FrontBaseController
             'can_download'  => $this->checkDownloadPermission(),
             'safe_content'  => $safeContent,
             'is_unlocked'   => $safeContent['is_unlocked'] ?? false,
+            'og_meta'       => $ogMeta,
+            'share_links'   => $shareLinks,
+            'content_translations' => $contentTranslations,
+            'geo_data'      => $geoData,
         ]);
 
         return $this->view('/detail');

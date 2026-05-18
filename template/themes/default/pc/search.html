@@ -12,15 +12,15 @@
             </ol>
         </nav>
 
-        <h4 class="mb-4">搜索）span class="text-primary">{$keyword}</span></h4>
+        <h4 class="mb-4">搜索：<span class="text-primary">{$keyword}</span> <small class="text-muted fs-6">共 {$total|default=0} 条</small></h4>
 
         <div class="row g-3">
             {volist name="list" id="vo"}
             <div class="col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h6 class="card-title"><a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a></h6>
-                        <p class="card-text text-muted small">{$vo.excerpt|msubstr=0,100}</p>
+                        <h6 class="card-title"><a href="{$vo.url}" class="text-decoration-none">{if $vo.title_highlight}{$vo.title_highlight|raw}{else}{$vo.title}{/if}</a></h6>
+                        <p class="card-text text-muted small">{if $vo.content_highlight}{$vo.content_highlight|raw|strip_tags='<mark>'|msubstr=0,100}{else}{$vo.excerpt|msubstr=0,100}{/if}</p>
                         <small class="text-muted">{$vo.create_time|date='Y-m-d'}</small>
                     </div>
                 </div>
@@ -37,9 +37,10 @@
         </div>
         {/empty}
 
-        {if condition="($list->hasPages() ?? false)"}
-        <div class="mt-3 d-flex justify-content-center">
-            {$list->render()|raw}
+        {if condition="$total > ($page * 20) || $page > 1"}
+        <div class="mt-3 d-flex justify-content-center gap-2">
+            {if $page > 1}<a href="/search?keyword={$keyword|urlencode}&page={$page-1}" class="btn btn-outline-primary btn-sm">上一页</a>{/if}
+            {if $total > ($page * 20)}<a href="/search?keyword={$keyword|urlencode}&page={$page+1}" class="btn btn-outline-primary btn-sm">下一页</a>{/if}
         </div>
         {/if}
     </div>

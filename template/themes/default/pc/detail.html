@@ -7,6 +7,7 @@
 {block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
 
 {block name="meta_extra"}
+<meta name="content-id" content="{$info.id}">
 <!-- V2.8 OGP绀句氦分享元标签-->
 <meta property="og:title" content="{$info.seo_title ?: $info.title}">
 <meta property="og:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
@@ -17,7 +18,22 @@
 <!-- V2.9.2 M19b: Schema.org JSON-LD -->
 {:app\common\service\SchemaService::article($info)}
 <!-- V2.9.2 M19b: BreadcrumbList -->
-{:app\common\service\SchemaService::breadcrumb(['棣栭〉'=>$site_url,'鍒嗙被'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
+{:app\common\service\SchemaService::breadcrumb(['首页'=>$site_url,'分类'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
+<!-- V2.9.9: AI-GEO FAQ结构化数据 -->
+{if condition="$geo_data.faq"}
+{:app\common\service\GeoService::renderFaqJsonLd($geo_data.faq)}
+{/if}
+<!-- V2.9.9: AI-GEO HowTo结构化数据 -->
+{if condition="$geo_data.key_points"}
+{:app\common\service\GeoService::renderHowToJsonLd($info.title, $geo_data.key_points)}
+{/if}
+<!-- V2.9.9: 多语言hreflang标签 -->
+{if condition="count($content_translations) > 1"}
+{foreach $content_translations as $lang_code => $trans}
+<link rel="alternate" hreflang="{$lang_code}" href="{$site_url}/info/{$trans.id}?lang={$lang_code}">
+{/foreach}
+<link rel="alternate" hreflang="x-default" href="{$site_url}{$Request.url}">
+{/if}
 {/block}
 
 {block name="content"}
@@ -102,24 +118,46 @@
                         <span class="text-muted small"><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
                     </div>
                     
-                    <!-- V2.8 绀句氦分享鏍?-->
+                    <!-- V2.9.9 社交分享轻量版 -->
+                    {if condition="$share_links"}
                     <div class="social-share-bar mb-4">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted small">分享鍒帮細</span>
-                            <button type="button" class="btn btn-sm btn-outline-success" data-share="wechat" title="寰俊">
-                                <i class="bi bi-wechat"></i> 寰俊
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="text-muted small">分享到：</span>
+                            {if condition="$share_links.wechat"}
+                            <button type="button" class="btn btn-sm btn-outline-success" data-share="wechat" data-share-url="{$share_links.wechat}" title="微信">
+                                <i class="bi bi-wechat"></i> 微信
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-share="weibo" title="寰崥">
-                                <i class="bi bi-sina-weibo"></i> 寰崥
+                            {/if}
+                            {if condition="$share_links.weibo"}
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-share="weibo" data-share-url="{$share_links.weibo}" title="微博">
+                                <i class="bi bi-sina-weibo"></i> 微博
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary" data-share="qq" title="QQ">
+                            {/if}
+                            {if condition="$share_links.qq"}
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-share="qq" data-share-url="{$share_links.qq}" title="QQ">
                                 <i class="bi bi-tencent-qq"></i> QQ
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-share="copy" title="澶嶅埗閾炬帴">
-                                <i class="bi bi-link-45deg"></i> 澶嶅埗閾炬帴
+                            {/if}
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-share="copy" data-share-url="{$share_links.wechat|default=$share_links.weibo|default=""}" title="复制链接">
+                                <i class="bi bi-link-45deg"></i> 复制链接
                             </button>
                         </div>
                     </div>
+                    {/if}
+
+                    <!-- V2.9.9 多语言翻译版本 -->
+                    {if condition="count($content_translations) > 1"}
+                    <div class="content-translations mb-3">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="text-muted small"><i class="bi bi-globe me-1"></i>其他语言：</span>
+                            {foreach $content_translations as $lang_code => $trans}
+                            {if condition="$lang_code != $current_lang"}
+                            <a href="/info/{$trans.id}?lang={$lang_code}" class="badge bg-light text-dark text-decoration-none border">{$lang_code}</a>
+                            {/if}
+                            {/foreach}
+                        </div>
+                    </div>
+                    {/if}
                     {include file="shared/reward_button" info="$info" /}
                 </article>
 
@@ -458,6 +496,20 @@ $('#ratingForm').on('submit', function(e) {
 
 // 鍒濆鍖栧姞杞借瘎浠?
 loadRatings(1);
+</script>
+{/if}
+
+<!-- V2.9.9 社交分享组件 -->
+{if condition="$share_links"}
+<script src="/assets/js/social-share.js?v=2.9.9"></script>
+<script>
+window.SocialShare.init({
+    url: '{$share_links.wechat|default=$site_url.$Request.url}',
+    title: '{$info.seo_title ?: $info.title}',
+    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    image: '{$info.cover}',
+    enabled: true
+});
 </script>
 {/if}
 {/block}

@@ -60,6 +60,7 @@ class MemberLevelController extends AdminBaseController
             'discount'                => (float) $this->request->post('discount', 1.00),
             'points_rate'             => (float) $this->request->post('points_rate', 1.00),
             'daily_ai_quota'          => (int) $this->request->post('daily_ai_quota', 0),
+            'exclusive_content_ids'   => $this->parseExclusiveContentIds($this->request->post('exclusive_content_ids', '')),
             'allow_download'          => (int) $this->request->post('allow_download', 0),
             'allow_comment_no_review' => (int) $this->request->post('allow_comment_no_review', 0),
             'icon'                    => $this->request->post('icon', ''),
@@ -92,5 +93,19 @@ class MemberLevelController extends AdminBaseController
         } catch (\Exception $e) {
             return json(['code' => 1, 'msg' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * V2.9.9: 解析专属内容ID列表（逗号分隔转JSON数组）
+     */
+    protected function parseExclusiveContentIds(string $input): string
+    {
+        if (empty($input)) {
+            return '[]';
+        }
+        $ids = array_filter(array_map('intval', explode(',', $input)), function ($v) {
+            return $v > 0;
+        });
+        return json_encode(array_values($ids), JSON_UNESCAPED_UNICODE);
     }
 }

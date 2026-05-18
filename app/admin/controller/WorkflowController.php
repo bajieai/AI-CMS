@@ -6,6 +6,7 @@ namespace app\admin\controller;
 use app\common\controller\AdminBaseController;
 use app\common\model\ReviewWorkflow;
 use app\common\model\ReviewRecord;
+use app\common\model\ReviewLog;
 use app\common\service\WorkflowService;
 
 /**
@@ -99,7 +100,7 @@ class WorkflowController extends AdminBaseController
     }
 
     /**
-     * 审核记录列表
+     * 审核记录列表（V2.9.9增强：审批历史时间线+驳回引导）
      */
     public function records()
     {
@@ -110,7 +111,27 @@ class WorkflowController extends AdminBaseController
             $query->where('status', $status);
         }
         $list = $query->paginate(20);
-        $this->assign('list', $list);
+
+        // V2.9.9: 加载每条记录的审批日志
+        $recordIds = $list->column('id');
+        $logs = [];
+        if (!empty($recordIds)) {
+            $logList = ReviewLog::whereIn('record_id', $recordIds)
+                ->order('create_time', 'asc')
+                ->select();
+            foreach ($logList as $log) {
+                $logs[$log->record_id][] = $log;
+            }
+        }
+
+        // 待审核数量角标
+        $pendingCount = ReviewRecord::whereIn('status', [0, 1])->count();
+
+        $this->assign([
+            'list' => $list,
+            'logs' => $logs,
+            'pending_count' => $pendingCount,
+        ]);
         return $this->view('/workflow_records');
     }
 

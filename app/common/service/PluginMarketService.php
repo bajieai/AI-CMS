@@ -352,4 +352,111 @@ class PluginMarketService
         }
         rmdir($dir);
     }
+
+    // ==================== V2.9.9: 插件钩子/事件系统预留 ====================
+
+    /** @var array 已注册的事件监听器 [eventName => [callable, ...]] */
+    protected static array $hooks = [];
+
+    /**
+     * 注册插件钩子监听器
+     *
+     * @param string $event 事件名称，如 'content.afterCreate', 'user.afterLogin'
+     * @param callable $listener 监听器回调
+     * @param int $priority 优先级，数字越大越先执行
+     */
+    public static function on(string $event, callable $listener, int $priority = 10): void
+    {
+        if (!isset(self::$hooks[$event])) {
+            self::$hooks[$event] = [];
+        }
+        self::$hooks[$event][] = ['listener' => $listener, 'priority' => $priority];
+        // 按优先级排序
+        usort(self::$hooks[$event], fn($a, $b) => $b['priority'] <=> $a['priority']);
+    }
+
+    /**
+     * 触发插件钩子事件
+     *
+     * @param string $event 事件名称
+     * @param mixed $data 事件数据（引用传递，监听器可修改）
+     * @return mixed 可能被监听器修改后的数据
+     */
+    public static function fire(string $event, mixed $data = null): mixed
+    {
+        if (empty(self::$hooks[$event])) {
+            return $data;
+        }
+
+        foreach (self::$hooks[$event] as $hook) {
+            try {
+                $result = call_user_func($hook['listener'], $data);
+                // 如果监听器返回非null，更新数据
+                if ($result !== null) {
+                    $data = $result;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[PluginHook] 事件 ' . $event . ' 监听器执行失败: ' . $e->getMessage());
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * 获取已注册的所有钩子事件
+     */
+    public static function getRegisteredHooks(): array
+    {
+        return array_map(fn($listeners) => count($listeners), self::$hooks);
+    }
+
+    /**
+     * 预置插件包列表（V2.9.9内置5个常用插件包元数据）
+     */
+    public static function getPresetPackages(): array
+    {
+        return [
+            [
+                'code' => 'seo_enhancer',
+                'name' => 'SEO增强包',
+                'description' => '自动TDK优化、Schema.org结构化数据注入、死链监控',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'seo',
+            ],
+            [
+                'code' => 'social_share',
+                'name' => '社交分享增强',
+                'description' => '多平台分享按钮、分享统计、OG卡片优化',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'social',
+            ],
+            [
+                'code' => 'member_exclusive',
+                'name' => '会员专享内容',
+                'description' => '等级权限控制、付费内容加密、会员专属标记',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'member',
+            ],
+            [
+                'code' => 'data_exporter',
+                'name' => '数据导出增强',
+                'description' => 'Excel/CSV/PDF多格式导出、定时报表、数据可视化',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'tool',
+            ],
+            [
+                'code' => 'custom_fields',
+                'name' => '自定义字段扩展',
+                'description' => '可视化字段设计器、字段联动规则、条件显示逻辑',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'content',
+            ],
+        ];
+    }
 }

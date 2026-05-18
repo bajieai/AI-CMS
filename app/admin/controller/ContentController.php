@@ -86,6 +86,15 @@ class ContentController extends AdminBaseController
             $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
             $aiImageCandidateCount = (int) ConfigModel::getValue('ai_image_candidate_count', '4');
 
+            // V2.9.9: 注入AI模板列表
+            $aiTemplates = \app\common\model\AiTemplate::where('status', 1)->order('sort desc, id desc')->column('name', 'id');
+
+            // V2.9.9: AI-GEO评分（添加模式无内容，设为null）
+            $geoScore = null;
+
+            // V2.9.9: 会员等级列表
+            $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
+
             $this->assign([
                 'cates' => $cates,
                 'tags' => $tags,
@@ -96,6 +105,9 @@ class ContentController extends AdminBaseController
                 'ai_image_default_size' => $aiImageDefaultSize,
                 'ai_image_default_style' => $aiImageDefaultStyle,
                 'ai_image_candidate_count' => $aiImageCandidateCount,
+                'ai_templates' => $aiTemplates,
+                'geo_score' => $geoScore,
+                'member_levels' => $memberLevels,
             ]);
             return $this->view('/content_edit');
         }
@@ -136,6 +148,22 @@ class ContentController extends AdminBaseController
             $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
             $aiImageCandidateCount = (int) ConfigModel::getValue('ai_image_candidate_count', '4');
 
+            // V2.9.9: 注入AI模板列表
+            $aiTemplates = \app\common\model\AiTemplate::where('status', 1)->order('sort desc, id desc')->column('name', 'id');
+
+            // V2.9.9: AI-GEO评分
+            $geoScore = null;
+            if ($info && !empty($info->content)) {
+                try {
+                    $geoScore = self::formatGeoScore(\app\common\service\AiGeoService::score($info));
+                } catch (\Throwable) {
+                    // 降级：不显示评分
+                }
+            }
+
+            // V2.9.9: 会员等级列表
+            $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
+
             $this->assign([
                 'info' => $info,
                 'cates' => $cates,
@@ -146,6 +174,9 @@ class ContentController extends AdminBaseController
                 'ai_image_default_size' => $aiImageDefaultSize,
                 'ai_image_default_style' => $aiImageDefaultStyle,
                 'ai_image_candidate_count' => $aiImageCandidateCount,
+                'ai_templates' => $aiTemplates,
+                'geo_score' => $geoScore,
+                'member_levels' => $memberLevels,
             ]);
             return $this->view('/content_edit');
         }
@@ -159,6 +190,47 @@ class ContentController extends AdminBaseController
             return $this->success('更新成功');
         }
         return $this->error('更新失败');
+    }
+
+    /**
+     * V2.9.9: AI-GEO评分AJAX
+     */
+    public function geoScore(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+        try {
+            $score = self::formatGeoScore(\app\common\service\AiGeoService::score($info));
+            return $this->success('评分完成', $score);
+        } catch (\Throwable $e) {
+            return $this->error('评分失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.9: 格式化GEO评分为前端结构
+     */
+    protected static function formatGeoScore(array $raw): array
+    {
+        $dims = $raw['dimensions'] ?? [];
+        $suggestions = [];
+        foreach ($dims as $dim) {
+            if (($dim['score'] ?? 0) < 20) {
+                $suggestions[] = $dim['suggestion'] ?? '';
+            }
+        }
+        return [
+            'total'       => $raw['total'] ?? 0,
+            'dimensions'  => [
+                'structure' => $dims[0]['score'] ?? 0,
+                'citations' => $dims[1]['score'] ?? 0,
+                'authority' => $dims[2]['score'] ?? 0,
+                'entities'  => $dims[3]['score'] ?? 0,
+            ],
+            'suggestions' => array_values(array_filter($suggestions)),
+        ];
     }
 
     /**
