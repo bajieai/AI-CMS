@@ -53,6 +53,20 @@
     </div>
 </div>
 
+<script>
+// 搜索→PJAX：全局函数，确保首次加载定义，PJAX后不受模板块渲染影响
+function doSearch() {
+    var $form = $('#btnSearch').closest('form');
+    var action = $form.attr('action') || window.location.pathname;
+    var queryString = $form.serialize();
+    var url = queryString ? action + '?' + queryString : action;
+    if (typeof window.doPjax === 'function') {
+        window.doPjax(url);
+    }
+    return false;
+}
+</script>
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>信息列表</span>
@@ -221,18 +235,6 @@ function copyItem(id) {
 
 // 批量操作
 var moveCateModal = null;
-
-// 搜索按钮/回车 → PJAX 局部刷新（全局函数，onclick/onsubmit直接调用，不受PJAX脚本提取影响）
-function doSearch() {
-    var $form = $('#btnSearch').closest('form');
-    var action = $form.attr('action') || window.location.pathname;
-    var queryString = $form.serialize();
-    var url = queryString ? action + '?' + queryString : action;
-    if (typeof window.doPjax === 'function') {
-        window.doPjax(url);
-    }
-    return false;
-}
 
 $(function() {
     moveCateModal = new bootstrap.Modal(document.getElementById('moveCateModal'));
