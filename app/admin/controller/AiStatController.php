@@ -49,7 +49,7 @@ class AiStatController extends AdminBaseController
     }
 
     /**
-     * Provider消耗占比
+     * 供应商消耗占比
      */
     public function getProviderStats()
     {
