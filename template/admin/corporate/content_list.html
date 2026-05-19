@@ -221,20 +221,21 @@ function copyItem(id) {
 
 // 批量操作
 var moveCateModal = null;
+
+// 搜索按钮 → PJAX 局部刷新（使用事件委托，PJAX后无需重新绑定）
+$(document).on('click', '#btnSearch', function() {
+    var $form = $(this).closest('form');
+    var action = $form.attr('action') || window.location.pathname;
+    var queryString = $form.serialize();
+    var url = queryString ? action + '?' + queryString : action;
+    if (typeof window.doPjax === 'function') {
+        window.doPjax(url);
+    }
+    return false;
+});
+
 $(function() {
     moveCateModal = new bootstrap.Modal(document.getElementById('moveCateModal'));
-
-    // 搜索按钮 → PJAX 局部刷新（避免整页刷新）
-    $('#btnSearch').on('click', function() {
-        var $form = $(this).closest('form');
-        var action = $form.attr('action') || window.location.pathname;
-        var queryString = $form.serialize();
-        var url = queryString ? action + '?' + queryString : action;
-        if (typeof window.doPjax === 'function') {
-            window.doPjax(url);
-        }
-        return false;
-    });
 
     // 全选
     $('#checkAll').on('change', function() {
