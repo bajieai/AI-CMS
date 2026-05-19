@@ -46,7 +46,7 @@
                 <input type="text" name="keyword" class="form-control form-control-sm" value="{$params.keyword ?? ''}" placeholder="搜索标题">
             </div>
             <div class="col-auto">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
+                <button type="button" id="btnSearch" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
                 <a href="/admin/content/index" class="btn btn-outline-secondary btn-sm">重置</a>
             </div>
         </form>
@@ -223,6 +223,18 @@ function copyItem(id) {
 var moveCateModal = null;
 $(function() {
     moveCateModal = new bootstrap.Modal(document.getElementById('moveCateModal'));
+
+    // 搜索按钮 → PJAX 局部刷新（避免整页刷新）
+    $('#btnSearch').on('click', function() {
+        var $form = $(this).closest('form');
+        var action = $form.attr('action') || window.location.pathname;
+        var queryString = $form.serialize();
+        var url = queryString ? action + '?' + queryString : action;
+        if (typeof window.doPjax === 'function') {
+            window.doPjax(url);
+        }
+        return false;
+    });
 
     // 全选
     $('#checkAll').on('change', function() {
