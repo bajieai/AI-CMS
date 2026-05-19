@@ -101,15 +101,15 @@
 - **🆕 模板变量扩展(V2.9.8第二轮)** - 5→10页面覆盖(标签/栏目/404/关于+contact字段)+自定义404路由
 - **🆕 撤销栈超时(V2.9.8第二轮)** - 15分钟未操作visibilitychange自动清空
 - **🆕 分析页时间筛选(V2.9.8第二轮)** - installTrendRange(7d/30d/90d/自定义)
-- **🆕 AI配图增强(V3.1)** - 批量配图+自动插入段落+发布自动配图+日配额控制，前端串行进度条
-- **🆕 AI SEO评分(V3.1)** - 纯算法0-100评分(5维度加权)，前后对比面板，批量SEO优化(3篇并发控制)，自动缓存回写
-- **🆕 质量检测卡片(V3.1)** - 维度评分条+改进建议一键执行+一键优化全部
-- **🆕 社交分享增强(V3.1)** - 后台分享Modal(微博/QQ/复制/卡片预览)+前台分享统计埋点
-- **🆕 5种写作风格(V3.1)** - 可配置写作风格(正式/轻松/专业/幽默/简洁)，config驱动
-- **🆕 来源分析饼图(V3.1)** - Dashboard ECharts来源分析(直接/搜索/社交/外部)，7/30天切换
-- **🆕 模板批量生产(V3.1-下一阶段)** - 5行业批量生成+质量自检6维度+人工审核闭环+CLI断点续传
-- **🆕 模板市场前台(V3.1-下一阶段)** - 10套预埋模板+RemoteTemplateSource(OSS/CDN/缓存/降级)+骨架屏+分类Tab+搜索排序+一键安装+回滚
-- **🆕 模板管理增强(V3.1-下一阶段)** - ThemeRate评分收藏+版本检测红点+详情弹窗(文件/大小/版本)+分类CRUD+操作日志
+- **🆕 AI配图增强(V2.9.9)** - 批量配图+自动插入段落+发布自动配图+日配额控制，前端串行进度条
+- **🆕 AI SEO评分(V2.9.9)** - 纯算法0-100评分(5维度加权)，前后对比面板，批量SEO优化(3篇并发控制)，自动缓存回写
+- **🆕 质量检测卡片(V2.9.9)** - 维度评分条+改进建议一键执行+一键优化全部
+- **🆕 社交分享增强(V2.9.9)** - 后台分享Modal(微博/QQ/复制/卡片预览)+前台分享统计埋点
+- **🆕 5种写作风格(V2.9.9)** - 可配置写作风格(正式/轻松/专业/幽默/简洁)，config驱动
+- **🆕 来源分析饼图(V2.9.9)** - Dashboard ECharts来源分析(直接/搜索/社交/外部)，7/30天切换
+- **🆕 模板批量生产(V2.9.9)** - 5行业批量生成+质量自检6维度+人工审核闭环+CLI断点续传
+- **🆕 模板市场前台(V2.9.9)** - 10套预埋模板+RemoteTemplateSource(OSS/CDN/缓存/降级)+骨架屏+分类Tab+搜索排序+一键安装+回滚
+- **🆕 模板管理增强(V2.9.9)** - 模板评分收藏+版本检测红点+详情弹窗(文件/大小/版本)+分类CRUD+操作日志
 
 - **🆕 AI模板对话迭代** - 多轮对话式修改+局部重生成+版本管理(git备份/回退/差异对比)，AI助手面板
 - **🆕 暗色模式全站** - 43+模板硬编码颜色→CSS变量替换，shared片段改造，scan-hardcoded-colors扫描脚本
@@ -147,6 +147,76 @@
 - **双主题后台** - default(经典) / corporate(企业) 两套后台主题自由切换
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
+
+### V2.9.9 新增特性
+
+- **AI内容模板引擎(P0, V2.9.9)** - 自然语言生成模板Schema+AI字段自动生成+内容编辑模板选择+导入导出，用户无需理解技术细节即可创建AI模板
+- **社交分享+追踪(P0, V2.9.9)** - 轻量版分享(微博/QQ/微信复制/链接复制)+UTM追踪参数+分享看板(ECharts热门趋势+渠道分析)+热点内容TOP10，ShareTrackerService数据上报
+- **AI多语言国际化(P0, V2.9.9)** - AI批量翻译+多语言路由(/en/about)+hreflang标签+4套模板语言切换+Cookie持久化，翻译内容为独立Content记录
+- **SEO深度升级(P0, V2.9.9)** - 图片/视频/新闻Sitemap全类型生成+死链检测CLI+Dashboard死链统计卡，SeoService统一管理
+- **插件市场完善(P0, V2.9.9)** - 完整生命周期+钩子/事件系统(on/fire/getRegisteredHooks)+5个预置插件包(SEO/社交/会员/导出/自定义字段)
+- **审批工作流增强(P1, V2.9.9)** - 审批历史时间线+待办角标+驳回引导+步骤指示器+自动提交审批，ContentService审批自动触发
+- **AI-GEO深度优化(P1, V2.9.9)** - 4维度AI友好度评分(段落/事实/权威/实体)+实体提取+AI搜索Sitemap+后台评分卡
+- **会员等级深化(P1, V2.9.9)** - 权益配置中心(daily_ai_quota+exclusive_content_ids)+内容等级限制+付费阅读权限控制，MemberController权益查询
+- **消息通知前台(P1, V2.9.9)** - 通知铃铛+未读角标+消息中心(私信+系统通知)+12套前台消息模板
+- **全文搜索增强(P1, V2.9.9)** - Meilisearch高亮+搜索联想+分页适配+4套搜索模板修复
+
+### V2.9.8 新增特性
+
+- **字体本地化(V2.9.8第一轮)** - 5组中文字体子集化woff2嵌入本地+font-display:swap，离线/内网可用，移除Google Fonts外部依赖
+- **撤销/重做(V2.9.8第一轮)** - UndoManager 30步栈+Ctrl+Z/Ctrl+Shift+Z+保存点+未保存提示+预览联动
+- **AfterGenerate钩子(V2.9.8第一轮)** - AI生成后自动同步CSS资产+class名推导CSS骨架+透明PNG占位图，异步任务自动触发
+- **自动重试增强(V2.9.8第一轮)** - 3次指数退避+动态temperature+5类错误分类+每日20次上限
+- **CSS质量评分(V2.9.8第一轮)** - 7→9维度加权评分+60/65分双线制+低质量进人工审核队列+Prompt质量约束
+- **预设快捷应用(V2.9.8第一轮)** - 5→12套系统配色预设+智能推荐+theme.json presets+一键应用+撤销联动+恢复默认
+- **导出预览(V2.9.8第一轮)** - 导出前确认弹框+修改字段摘要(颜色/字体/布局/Logo)+导出后3按钮快捷操作
+- **Pickr深色模式(V2.9.8第一轮)** - @media(prefers-color-scheme:dark)+[data-theme="dark"]双重覆盖
+- **postMessage文档(V2.9.8第一轮)** - iframe实时预览双工通信规范+跨域安全策略
+- **Prompt行业风格(V2.9.8第二轮)** - 4行业配置config/theme_styles.php+行业Prompt构造+CSS组件提示
+- **CSS组件模式库(V2.9.8第二轮)** - CssComponentLibrary 10组件模式(vars/hero/card/button/nav/grid/spacing/price/article/footer)
+- **新手引导+折叠面板(V2.9.8第二轮)** - OnboardingGuide 3步引导+CollapsibleSection折叠+实时预览反馈
+- **模板变量扩展(V2.9.8第二轮)** - 5→10页面覆盖(标签/栏目/404/关于+contact字段)+自定义404路由
+- **撤销栈超时(V2.9.8第二轮)** - 15分钟未操作visibilitychange自动清空
+- **分析页时间筛选(V2.9.8第二轮)** - installTrendRange(7d/30d/90d/自定义)+Anomaly Detection
+
+### V2.9.7 新增特性
+
+- **AI主题6缺陷根治(含V2.9.6合并)** - Prompt完善(行业上下文+CSS约束+结构规范)+验证器增强(语法+完整性+语义3层)+搜索高亮匹配
+- **模板可视化定制** - 19个CSS变量(颜色/字体/间距/圆角)+Pickr颜色选择器+6组字体预设+布局选项(宽/窄/全宽)+Logo上传+iframe实时预览(postMessage双工通信)+变体管理
+- **导出导入含定制数据** - 导出ZIP包含定制配置(theme.json+css_variants.json)+导入自动应用定制+冲突检测修复
+- **数据分析(ECharts)** - 安装排行(柱状图)+安装趋势(折线图/GEOMap)+定制偏好(饼图)+评分分布(柱状图)+CSV导出
+- **恢复默认API** - 一键重置定制项到系统预设+确认弹窗防护
+- **安装引导** - 首次安装3步引导提示+折叠面板收起/展开
+
+### V2.9.5 新增特性
+
+- **XSS输出过滤(XssEscapeMiddleware, P0)** - CSP安全响应头(CSP-Report-Only/X-Content-Type-Options/X-Frame-Options/Referrer-Policy)+XSS载荷日志
+- **前台CSRF保护(FrontCsrfMiddleware, P0)** - 前台POST/PUT/DELETE Token验证+419友好错误页+front-csrf.js自动注入(4套模板)
+- **SQL注入审计(P0)** - SigninService Db::raw→inc()重构+ImageTask Db::raw→whereColumn+慢查询建议索引
+- **上传安全(UploadSecurityService, P0)** - MIME魔数校验+扩展名黑白名单+UUIDv4安全文件名
+- **缓存预热(CacheWarmService, P0)** - warmContentCache/warmConfigCache/warmMemberCache/warmAllCache
+- **Vary优化(P0)** - FrontBaseController缓存命中快路径补Vary:Cookie+Cache-Control
+- **N+1查询修复(P0)** - ContentController detail相关文章+API列表+with(['cate'])懒加载
+- **JSON输出加固(P0)** - success/error输出JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_UNESCAPED_UNICODE
+- **付费阅读桥接(P1)** - PaidService::createOrder()桥接PaymentService::createPayment()+回调通知半自动完成+4套前台付费墙UI
+- **前台Toast组件(P1)** - public/assets/js/front-toast.js零依赖Toaster(success/error/warning/info)
+- **前台通用组件(P1)** - public/assets/js/front-components.js空状态/骨架屏/404统一组件
+- **等级时间线(P1)** - 4套前台member_level.html升级/降级/宽限期事件+方向图标
+- **消息分类(P1)** - 4套前台member_notification.html分类筛选(全部/系统/等级/评论)+未读徽标
+- **内容审批(P1)** - ContentController audit/reject单条+ContentService batchOperate(audit/reject)+批量栏替换
+
+### V2.9.4 新增特性
+
+- **发布状态看板(M28续)** - 发布记录列表+按平台/状态筛选+手动重试+发布摘要统计(成功率/各平台统计)
+- **插件评分评价(M25续)** - 已安装插件1-5星评分+评语+平均分缓存展示(5分钟TTL)
+- **AI内容质量检测(M30)** - 可读性评分(中文统计模型)+SEO友好度(6维度)+敏感词过滤(Trie+内置词库)+质量评分面板
+- **AI写作风格选择(M30续)** - 6种风格Prompt(默认/正式/轻松/专业/亲切/营销)+风格选择UI+栏目级预设
+- **支付集成框架(M31)** - PaymentService统一支付层+微信/支付宝适配器(沙箱模式)+订单管理+回调处理+支付配置页
+- **许可证管理框架(M32)** - licenses表+本地/远程双验证+离线降级24h+后台发放/激活/吊销+插件license_check钩子
+- **付费阅读/打赏(M33)** - 文章编辑页付费开关+价格设置+未付费用户看摘要+打赏按钮
+- **备份增强补全(M26续)** - 备份目录可配置化(template+config)+备份日志(BackupLog)+已有下载功能
+- **会员降级日志(M20续)** - MemberDowngradeLog记录降级操作+通知状态
+- **Bug修复与体验优化** - GLOB_BRACE Alpine兼容+nginx /admin重写修复+会员头像上传(后台+前台)+图标选择器+下拉溢出修复+默认头像+PWA提示7天冷却+logo尺寸统一+登录页动态logo
 
 ### V2.9.3 新增特性
 
@@ -355,7 +425,7 @@ AI-CMS/
 │       ├── middleware/         #   中间件(ThemePreview/FrontCsrf等)
 │       ├── model/              #   数据模型(AiThemeRecord/ImageTask等)
 │       ├── service/            #   业务服务(AI/支付/采集/发布/邮件/插件/主题等)
-│       │   └── theme/          #     主题服务(V3.0 Phase 2-3 + V2.9.8)
+│       │   └── theme/          #     主题服务(V2.9.6-7 + V2.9.8)
 │       │       ├── AiThemeGenerateService.php  # AI主题生成+V2.9.8 AfterGenerate钩子+重试增强+Prompt质量
 │       │       ├── IncrementalContextBuilder.php # 对话上下文管理(Phase 3)
 │       │       ├── ThemeVersionManager.php     # 版本管理-git备份/回退(Phase 3)
@@ -368,7 +438,7 @@ AI-CMS/
 │       └── helper.php          #   全局助手函数
 ├── config/                     # 框架全局配置
 │   ├── app.php                 #   应用配置
-│   ├── csp.php                 #   CSP策略配置(V3.0新增)
+│   ├── csp.php                 #   CSP策略配置(V2.9.0新增)
 │   ├── database.php            #   数据库配置
 │   ├── template.php            #   模板引擎(含I8j标签库)
 │   ├── session.php             #   Session配置
@@ -388,7 +458,7 @@ AI-CMS/
 │   └── themes/                 #   前台主题
 │       ├── default/            #     默认主题(pc/mobile)
 │       ├── corporate/          #     企业主题(pc/mobile)
-│       └── shared/             #     共享模板片段(V3.0新增)
+│       └── shared/             #     共享模板片段(V2.9.0新增)
 │           ├── paid_badge.html #       付费标识
 │           ├── reward_button.html #    打赏按钮
 │           ├── empty_state.html #      空状态
@@ -398,7 +468,7 @@ AI-CMS/
 │   ├── admin.php               #   后台入口
 │   ├── install.php             #   安装入口
 │   ├── assets/                 #   公共静态资源(Bootstrap/jQuery/TinyMCE)
-│   │   ├── components/         #     UI组件库(V3.0: core/base/form/data/nav + 13组件)
+│   │   ├── components/         #     UI组件库(V2.9.0: core/base/form/data/nav + 13组件)
 │   │   │   ├── bundle/         #       ESBuild多bundle打包(core/data/form/full)
 │   │   │   ├── base/           #       基础组件(Toast/Modal/Pagination/Tabs/Dropdown/Progress/Badge)
 │   │   │   ├── form/           #       表单组件(SearchBar/ImageUpload/DatePicker)
@@ -414,14 +484,14 @@ AI-CMS/
 │   └── uploads/                #   上传目录
 ├── database/                   # 数据库SQL
 │   ├── v2.4.sql ~ v2.9.5.sql   #   历史增量更新
-│   ├── v3.0.sql                #   V3.0 Phase 1幂等升级脚本
-│   ├── v3.0-phase2.sql         #   V3.0 Phase 2幂等升级脚本
-│   ├── v3.0-phase3.sql         #   V3.0 Phase 3幂等升级脚本
-│   └── v3.1.sql                #   V3.1幂等升级脚本(seo_score+配额+风格配置)
+│   ├── v3.0.sql                #   V2.9.0幂等升级脚本
+│   ├── v3.0-phase2.sql         #   V2.9.6幂等升级脚本
+│   ├── v3.0-phase3.sql         #   V2.9.7幂等升级脚本
+│   └── v3.1.sql                #   V2.9.9幂等升级脚本(seo_score+配额+风格配置)
 ├── miniprogram/                # 微信小程序
 │   ├── pages/                  #   页面
 │   └── utils/                  #   工具(API封装)
-├── tests/                      # 测试目录(V3.0 Phase 3新增)
+├── tests/                      # 测试目录(V2.9.7新增)
 │   ├── Unit/Service/           #   PHPUnit单元测试
 │   │   ├── ThemeValidatorServiceTest.php
 │   │   ├── AiThemeRecordTest.php
@@ -480,11 +550,11 @@ AI-CMS/
 | i8j_content_rating | 内容评价评分表 | id,content_id,member_id,rating,title,content,has_media,media_urls,is_anonymous,reply_count,like_count,status |
 | i8j_rating_reply | 评价回复表 | id,rating_id,user_id,member_id,content,create_time |
 | i8j_image_task | 配图异步任务表 | id,task_id,provider,poll_url,status,prompt,result,attempts,max_attempts,related_type,related_id,error_msg,retry_count,local_path |
-| i8j_ai_theme_record | AI主题生成记录(V3.0 Phase 2) | id,theme_name,description,style,industry,color_scheme,layout_type,status,provider,model,validate_result,published_at,preview_hash |
-| i8j_ai_theme_chat_log | AI主题对话日志(V3.0 Phase 3) | id,record_id,role,content,files_changed,version,token_count,model,provider |
+| i8j_ai_theme_record | AI主题生成记录(V2.9.6) | id,theme_name,description,style,industry,color_scheme,layout_type,status,provider,model,validate_result,published_at,preview_hash |
+| i8j_ai_theme_chat_log | AI主题对话日志(V2.9.7) | id,record_id,role,content,files_changed,version,token_count,model,provider |
 | i8j_ai_report | AI分析报告表 | id,type,title,period_start,period_end,raw_data,summary,findings,anomalies,recommendations,sections,status |
 | i8j_theme_config | 主题配置表 | id,theme,scope,scope_id,config_key,config_value,config_type,label,description,sort |
-| i8j_theme_info | 主题信息表(V3.1-下一阶段) | id,code,name,type,version,author,description,thumbnail,is_installed,installed_version,industry,style_tag,is_market,market_url,avg_rating,install_count,screenshots |
+| i8j_theme_info | 主题信息表(V2.9.9) | id,code,name,type,version,author,description,thumbnail,is_installed,installed_version,industry,style_tag,is_market,market_url,avg_rating,install_count,screenshots |
 | i8j_theme_rate | 主题评分收藏表(S16) | id,user_id,theme_id,rating,is_favorite,comment,create_time,update_time |
 | i8j_theme_log | 主题操作日志表(S14+S16) | id,theme_id,action,user_id,detail,create_time |
 | i8j_ai_theme_record | AI主题生成记录 | id,theme_name,description,style,industry,color_scheme,layout_type,status,provider,model,validate_result,batch_id,quality_score,quality_detail,published_at,preview_hash |
@@ -507,10 +577,10 @@ AI-CMS/
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | /api/ai/generate | AI内容生成（Session认证） |
-| POST | /api/ai/batch_image | AI批量配图（V3.1，Session认证） |
-| POST | /api/ai/seo_score | SEO评分纯算法（V3.1，Session认证） |
-| GET | /api/ai/styles | 获取写作风格列表（V3.1） |
-| POST | /api/ai/share | 社交分享链接生成（V3.1，Session认证） |
+| POST | /api/ai/batch_image | AI批量配图（V2.9.9，Session认证） |
+| POST | /api/ai/seo_score | SEO评分纯算法（V2.9.9，Session认证） |
+| GET | /api/ai/styles | 获取写作风格列表（V2.9.9） |
+| POST | /api/ai/share | 社交分享链接生成（V2.9.9，Session认证） |
 | POST | /api/upload/image | 图片上传 |
 | POST | /api/cache/clear | 清除缓存（超管专用） |
 | GET | /api/csrf/token | 获取CSRF Token（AJAX恢复） |
@@ -582,8 +652,7 @@ AI-CMS/
 | V2.9.8 | 2026-05-15 | **模力精修** — 两轮交付：第一轮(12/12): 字体本地化(5组woff2)/撤销重做(UndoManager 30步栈)/AfterGenerate钩子/自动重试增强(3次退避+动态temperature)/CSS质量7维度评分器(60分及格)/CSS质量Prompt增强/预设快捷应用(5套)/导出预览/Pickr深色模式/postMessage文档。第二轮(9+6项): Prompt行业风格加强(4行业配置)/CSS组件模式库(CssComponentLibrary 10组件)/评分器9维度+双线制(新65/历史60)/预设5→12套+智能推荐/3步新手引导+折叠面板/导出后3按钮快捷操作/模板变量5→10页面/撤销栈15分钟清空/恢复默认API+安装引导+分析页时间筛选 |
 | V2.9.7 | 2026-05-15 | **模力定制**: AI主题6缺陷根治(Prompt完善+验证器+搜索高亮)/模板可视化定制(19个CSS变量+Pickr颜色选择器+6组字体预设+布局选项+Logo上传+iframe实时预览+postMessage+变体管理)/导出导入含定制数据/数据分析(安装排行+趋势+定制偏好+评分分布+ECharts+CSV导出) |
 
-| V3.0 Phase 2 | 2026-05-12 | 能力释放: AI主题生成MVP(7状态异步+预览沙箱+审核后台+调色面板)/UI组件库(I8JComponent基类+5组件+ESBuild打包)/CSS变量标准化(34变量+暗色模式)/N+1扫描+CSP收紧 |
-| V3.0 Phase 1 | 2026-05 | V2.9→V3.0过渡桥接: 付费标识/CSP配置化+enforce切换/存储层htmlspecialchars/SQL全量审计/内容打赏补全/个人消息扩展/AI模板预研(方案C+A)/模板规范v1.0/UI组件库规划/架构升级评估 |
+
 | V2.9.5 | 2026-05 | 安全加固(XSS输出过滤+前台CSRF+SQL审计+上传MIME校验)/性能优化(Vary头+缓存预热+N+1修复+JSON加固)/付费阅读桥接(PaidService↔PaymentService双订单)/UI一致性(Toast+空状态+时间线+消息分类)/内容审批(单条+批量) |
 | V2.9.4 | 2026-05 | 优化完善×商业化准备: 发布看板+评分评价/AI质量检测+写作风格/支付框架+许可证+付费阅读/备份日志+降级日志 |
 | V2.9.3 | 2026-05 | 数据备份恢复增强(分块流式+gzip+文件备份+CLI+恢复安全保护)/多渠道分发增强(自动同步+formatContent+Token刷新)/插件商店首页(分类导航+推荐位+搜索+详情页+卡片跳转)/会员权益补全(等级进度页+自动降级CLI+isInGracePeriod+7天缓冲期) |
@@ -622,7 +691,7 @@ docker cp database/v3.0.sql aicms_mysql:/tmp/
 docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
 ```
 
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。V2.9.9需执行：`v2.9.9_ai_template.sql` → `v2.9.9_share_log.sql`。V2.9.8零DDL变更。V2.9.4及更早版本需按顺序执行：`v2.9.5.sql` → `v3.0.sql` → `v3.0-phase2.sql` → `v3.0-phase3.sql` → `v3.1.sql` → `v3.1_next.sql` → `v2.9.9_ai_template.sql` → `v2.9.9_share_log.sql`。
+> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。各版本顺序升级需依次执行对应的 `.sql` 文件，增量SQL文件位于 `database/` 目录下，使用 `bin/migrate.bat` 一键导入。
 
 ## 常用Docker命令
 
