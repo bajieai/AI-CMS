@@ -412,45 +412,13 @@ AI-CMS/
 │   │   ├── admin/              #     后台CSS/JS/图片/字体
 │   │   └── themes/             #     前台主题CSS/JS/图片/字体
 │   └── uploads/                #   上传目录
-├── bin/                        # 实用脚本
-│   ├── migrate.bat             #   数据库一键迁移(Windows)
-│   ├── migrate.ps1             #   数据库一键迁移(PowerShell)
-│   ├── sql_audit.sh            #   SQL安全审计脚本(V3.0)
-│   ├── sql_audit.ps1           #   SQL安全审计脚本(V3.0)
-│   ├── audit-n1.php            #   N+1查询扫描脚本(V3.0 Phase 2)
-│   ├── build-components.sh     #   UI组件库ESBuild多bundle打包(V3.0)
-│   ├── build-components.ps1    #   UI组件库ESBuild打包-Windows(V3.0 Phase 3)
-│   ├── scan-hardcoded-colors.sh #  硬编码颜色扫描脚本(Phase 3)
-│   ├── fix_encoding.php        #   编码修复工具(V3.1参考)
-│   ├── verify_encoding.php     #   编码验证脚本(V3.1)
-│   ├── ai-template-prompt.md   #   AI模板生成Prompt模板(V3.0)
-│   ├── validate-template.php   #   模板语法校验(V3.0)
-│   └── scan-template-xss.php   #   模板XSS扫描(V3.0)
 ├── database/                   # 数据库SQL
 │   ├── v2.4.sql ~ v2.9.5.sql   #   历史增量更新
 │   ├── v3.0.sql                #   V3.0 Phase 1幂等升级脚本
 │   ├── v3.0-phase2.sql         #   V3.0 Phase 2幂等升级脚本
 │   ├── v3.0-phase3.sql         #   V3.0 Phase 3幂等升级脚本
 │   └── v3.1.sql                #   V3.1幂等升级脚本(seo_score+配额+风格配置)
-├── docs/                       # 项目文档(V3.0新增docs目录)
-│   ├── V2.9.8-产品需求.md       #   V2.9.8 PRD(12项功能)
-│   ├── V2.9.8-技术方案.md       #   V2.9.8 技术方案
-│   ├── V2.9.8-可行性评估与开发计划.md  # V2.9.8 可行性评估(3项架构优化)
-│   ├── V2.9.8-产品功能报告.md   #   V2.9.8 功能报告(12/12)
-│   ├── deploy-https-postmessage.md  # V2.9.8 HTTPS postMessage配置指南
-│   ├── V2.9.6-产品需求.md       #   V3.0下一阶段PRD
-│   ├── V3.0-AI模板可视化-技术预研报告.md
-│   ├── V3.0-模板规范-v1.0.md
-│   ├── V3.0-UI组件库设计文档.md
-│   ├── V3.0-架构升级建议书.md
-│   ├── V3.0-CHANGELOG.md
-│   ├── V3.0-回归测试清单.md
-│   ├── V3.0-AI模板生成-使用指南.md  #   Phase 2
-│   ├── V3.0-Phase3-AI模板增强-使用指南.md # Phase 3
-│   ├── V3.0-Phase1/2/3-技术方案.md
-│   ├── V3.0-Phase1/2/3-架构评估与开发计划.md
-│   └── V3.0-Phase3-CodeBuddy建议回复.md
-├── miniprogram/                # 微信小程序(V2.9: 11页面)
+├── miniprogram/                # 微信小程序
 │   ├── pages/                  #   页面
 │   └── utils/                  #   工具(API封装)
 ├── tests/                      # 测试目录(V3.0 Phase 3新增)
@@ -474,6 +442,7 @@ AI-CMS/
 ├── docker-compose.yml          #   Docker Compose编排
 ├── install.sh                  #   Linux/macOS安装脚本
 ├── install.bat                 #   Windows安装脚本
+├── LICENSE                     #   Apache 2.0 许可证
 └── README.md                   #   项目说明
 ```
 
@@ -678,4 +647,6 @@ docker-compose down -v
 
 ## 许可证
 
-MIT License
+Apache License 2.0 — 详见 [LICENSE](LICENSE) 文件
+
+Copyright (c) 2024-2026 湖北八界智能技术有限公司

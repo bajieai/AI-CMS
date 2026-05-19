@@ -1,4 +1,15 @@
 <?php
+
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// +----------------------------------------------------------------------
+// | 官网: http://www.i8j.cn
+// +----------------------------------------------------------------------
+// | Author: 八界AI Team <admin@i8j.cn>
+// +----------------------------------------------------------------------
 declare(strict_types=1);
 
 namespace app\common\controller;
@@ -190,6 +201,9 @@ abstract class FrontBaseController extends \think\BaseController
             'logo_icon_only'   => ($configs['logo_icon_only'] ?? '') === '1',
             'logo_name'        => $configs['logo_name'] ?? '',
             'brand_name'       => !empty($configs['logo_name']) ? $configs['logo_name'] : '八界AI-CMS',
+            // 知识产权保护 Layer4：前台版权信息
+            'powered_by'       => 'Powered by <a href="https://www.i8j.cn" target="_blank">八界AI-CMS</a>',
+            'copyright_info'   => '© 2026 湖北八界智能技术有限公司',
             // V2.9.7 AI主题兼容：导航高亮/分页高亮用
             'current_page'     => '',
             'current'          => '',

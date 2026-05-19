@@ -139,7 +139,7 @@
                 <div class="col-md-4">
                     <h6>{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h6>
                     <p class="small mb-2">专业的内容管理系统，融合 AI 技术，为企业提供高效的内容运营解决方案。</p>
-                    <p class="mb-0 small">&copy; 2025 AI-CMS V2.4. All Rights Reserved.</p>
+                    <p class="mb-0 small">{$powered_by} {$copyright_info}</p>
                 </div>
                 <div class="col-md-4">
                     <h6>快速链接</h6>
@@ -159,7 +159,7 @@
     <!-- 底部版权栏 -->
     <div class="footer-bottom">
         <div class="container text-center">
-            Powered by <span class="text-info fw-bold">AI-CMS V2.4</span> &middot; 企业商务主题
+            {$powered_by} {$copyright_info}
         </div>
     </div>
 </footer>
