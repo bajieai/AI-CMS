@@ -278,4 +278,21 @@
         fetchUnread();
         setInterval(fetchUnread, 60000);
     })();
+
+    // ==================== GET 搜索表单 → PJAX 局部刷新 ====================
+    // 拦截 PJAX 容器内的 GET 表单提交，改为 doPjax() 局部刷新，避免整页刷新
+    $(document).on('submit', '#pjax-container form[method="get"]', function (e) {
+        var $form = $(this);
+        var action = $form.attr('action') || window.location.pathname;
+        // 过滤掉 CSRF token，只保留业务参数（token对GET请求无意义）
+        var queryString = $form.find(':input[name!="__token__"]').serialize();
+        var url = queryString ? action + '?' + queryString : action;
+        e.preventDefault();
+        if (typeof window.doPjax === 'function') {
+            window.doPjax(url);
+        } else {
+            // 降级：doPjax 未就绪时用原生提交
+            $form.off('submit').submit();
+        }
+    });
 })();

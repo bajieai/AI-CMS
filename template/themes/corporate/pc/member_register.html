@@ -30,6 +30,16 @@
                     <input type="email" name="email" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
                 <div class="mb-4"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">密码</label>
                     <input type="password" name="password" class="form-control" required placeholder="至少6位密码" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                <!-- V2.9.9 注册验证码 -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">验证码</label>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span id="captchaText" class="fw-bold text-center py-2 px-3" style="flex:1;background:#f0fdf4;border-radius:6px;font-size:1.15rem;letter-spacing:2px;min-height:38px;line-height:38px;cursor:pointer;">加载中...</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="captchaRefresh" title="换一张"><i class="bi bi-arrow-clockwise"></i></button>
+                    </div>
+                    <input type="hidden" name="captcha_key" id="captchaKey">
+                    <input type="text" name="captcha_answer" class="form-control" placeholder="输入计算结果" required autocomplete="off" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);">
+                </div>
                 <button type="submit" class="btn btn-lg w-100" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-radius:10px;font-weight:700;border:none;box-shadow:0 4px 18px rgba(34,197,94,.28);">
                     立即注册
                 </button>
@@ -45,11 +55,27 @@
 
 {block name="js"}
 <script>
-$('#registerForm').on('submit', function(e) {
-    e.preventDefault();
-    $.post('/member/register', $(this).serialize(), function(res) {
-        if (res.success) { alert('注册成功，请登录'); location.href = '/member/login'; }
-        else alert(res.msg);
+$(function() {
+    var $captchaText = $('#captchaText');
+    var $captchaKey = $('#captchaKey');
+
+    function loadCaptcha() {
+        $.get('/member/captcha', function(res) {
+            if (res.success && res.data) {
+                $captchaText.text(res.data.text || '验证码');
+                $captchaKey.val(res.data.key);
+            }
+        });
+    }
+    $captchaText.add('#captchaRefresh').on('click', loadCaptcha);
+    loadCaptcha();
+
+    $('#registerForm').on('submit', function(e) {
+        e.preventDefault();
+        $.post('/member/register', $(this).serialize(), function(res) {
+            if (res.success) { alert('注册成功，请登录'); location.href = '/member/login'; }
+            else { alert(res.msg); loadCaptcha(); }
+        });
     });
 });
 </script>

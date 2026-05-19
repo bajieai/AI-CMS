@@ -210,9 +210,6 @@
         </button>
     </div>
 </div>
-{/block}
-
-{block name="js"}
 <script>
 // ========== V2.9.2 网站Logo上传与预览 ==========
 function uploadLogo(input) {
@@ -277,10 +274,17 @@ var selectedBackend = '';
 
 function loadThemes() {
     $.get('/admin/system/allTemplates', function(res) {
-        if (res.code !== 0 || !res.data) return;
+        if (res.code !== 0 || !res.data) {
+            $('#frontendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>加载失败' + (res.msg ? ': ' + res.msg : '') + '</div>');
+            $('#backendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>加载失败' + (res.msg ? ': ' + res.msg : '') + '</div>');
+            return;
+        }
         renderThemeCards('frontendThemeList', res.data.frontend.themes, res.data.frontend.active, 'frontend', true);
         renderThemeCards('backendThemeList', res.data.admin.themes, res.data.admin.active, 'admin', true);
-    }, 'json');
+    }).fail(function() {
+        $('#frontendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>网络错误，请点击刷新重试</div>');
+        $('#backendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>网络错误，请点击刷新重试</div>');
+    });
 }
 
 function renderThemeCards(containerId, themes, active, type, allowSelect) {
@@ -384,3 +388,4 @@ $('#configForm').on('submit', function(e) {
 $(function() { loadThemes(); });
 </script>
 {/block}
+{block name="js"}{/block}

@@ -515,15 +515,19 @@ class SystemController extends AdminBaseController
      */
     public function allTemplates()
     {
-        return $this->success('获取成功', [
-            'frontend' => [
-                'themes' => TemplateService::scanThemes(),
-                'active'  => TemplateService::getActiveTheme(),
-            ],
-            'admin' => [
-                'themes' => TemplateService::scanAdminThemes(),
-                'active'  => TemplateService::getAdminTheme(),
-            ],
-        ]);
+        try {
+            return $this->success('获取成功', [
+                'frontend' => [
+                    'themes' => TemplateService::scanThemes(),
+                    'active'  => TemplateService::getActiveTheme(),
+                ],
+                'admin' => [
+                    'themes' => TemplateService::scanAdminThemes(),
+                    'active'  => TemplateService::getAdminTheme(),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error('获取模板列表失败: ' . $e->getMessage());
+        }
     }
 }

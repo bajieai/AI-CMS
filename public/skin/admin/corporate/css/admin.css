@@ -564,3 +564,50 @@ body {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+/* ==================== 分页组件美化（全局生效） ==================== */
+.card-footer .pagination {
+    margin: 0;
+    gap: 4px;
+}
+.pagination li {
+    margin: 0 1px;
+}
+.pagination li a,
+.pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 .6rem;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-sm);
+    color: #475569;
+    font-size: .84rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all .18s ease;
+    background: #fff;
+    line-height: 1;
+}
+.pagination li a:hover {
+    color: var(--primary);
+    border-color: var(--primary-light);
+    background: #eff6ff;
+    text-decoration: none;
+}
+.pagination li.active span,
+.pagination li.active a {
+    color: #fff !important;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    border-color: transparent !important;
+    box-shadow: 0 2px 6px rgba(37,99,235,.35);
+    font-weight: 650;
+}
+.pagination li.disabled span {
+    color: #cbd5e1;
+    background: #f8fafc;
+    border-color: #f1f5f9;
+    cursor: not-allowed;
+}

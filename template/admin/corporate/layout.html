@@ -27,7 +27,7 @@
     ?>
 
     <!-- 菜单数据（JSON注入给admin-sidebar.js使用） -->
-    <script>window.MENU_DATA = {$menuDataJson|raw};</script>
+    <script>window.MENU_DATA = {$menuDataJson|raw};window.MENU_ACTIVE = '{$menuActive}';</script>
 
     <!-- 侧边栏遮罩（移动端） -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -136,6 +136,8 @@
     <script src="/assets/js/admin-sidebar.js?v=2.6"></script>
     <!-- V2.9.2 后台管理核心脚本（提取自内联JS） -->
     <script src="{$skin_admin}js/admin.js?v=2.9.2"></script>
+    <!-- V2.9.9 ECharts 全局加载（PJAX 兼容，放在 {block name="js"} 外确保始终可用） -->
+    <script src="/assets/lib/echarts/echarts.min.js"></script>
     {block name="js"}{/block}
 </body>
 </html>

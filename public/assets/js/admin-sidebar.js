@@ -346,13 +346,31 @@
 
     /**
      * 高亮当前URL对应的二级菜单项
+     * 支持2级回退：精确URL匹配 → 前缀路径匹配（处理 edit/add/detail 等子页面）
      */
     function highlightCurrentL2() {
         var url = window.location.pathname + window.location.search;
+        var matched = false;
+
+        // 第1级：精确URL匹配
         $('.l2-item').each(function () {
             var href = $(this).attr('href');
-            $(this).toggleClass('active', !!(href && isUrlMatch(url, href)));
+            var m = !!(href && isUrlMatch(url, href));
+            $(this).toggleClass('active', m);
+            if (m) matched = true;
         });
+
+        // 第2级：前缀路径匹配（降级方案，用于无独立菜单URL的子页面）
+        // 注意：不使用 data-active/MENU_ACTIVE 匹配，因为 PJAX 导航下该值会脏
+        if (!matched) {
+            $('.l2-item').each(function () {
+                var href = $(this).attr('href');
+                if (href && isUrlPrefixMatch(url, href)) {
+                    $(this).addClass('active');
+                    return false; // 只高亮第一个匹配项
+                }
+            });
+        }
     }
 
     /**
@@ -366,12 +384,23 @@
 
     /**
      * 按URL查找所属分组ID
+     * 支持2级回退：精确URL匹配 → 前缀路径匹配
      */
     function findGroupIdByUrl(url) {
+        // 第1级：精确匹配
         for (var i = 0; i < menuData.length; i++) {
             var children = menuData[i].children || [];
             for (var j = 0; j < children.length; j++) {
                 if (children[j].url && isUrlMatch(url, children[j].url)) {
+                    return menuData[i].id;
+                }
+            }
+        }
+        // 第2级：前缀匹配，处理 edit/add/detail 等子页面
+        for (var i = 0; i < menuData.length; i++) {
+            var children = menuData[i].children || [];
+            for (var j = 0; j < children.length; j++) {
+                if (children[j].url && isUrlPrefixMatch(url, children[j].url)) {
                     return menuData[i].id;
                 }
             }
@@ -390,7 +419,7 @@
     }
 
     /**
-     * URL匹配判断
+     * URL精确匹配判断（支持查询参数）
      */
     function isUrlMatch(currentUrl, targetUrl) {
         if (!targetUrl) return false;
@@ -398,6 +427,19 @@
         if (currentUrl.indexOf(targetUrl + '?') === 0) return true;
         if (currentUrl.indexOf(targetUrl + '&') === 0) return true;
         return false;
+    }
+
+    /**
+     * URL前缀匹配判断
+     * 用于子页面（edit/add/detail）继承父列表页的菜单分组
+     * 如 /admin/workflow/edit 匹配 /admin/workflow/index 所在分组
+     */
+    function isUrlPrefixMatch(currentUrl, targetUrl) {
+        if (!targetUrl || !currentUrl) return false;
+        var lastSlash = targetUrl.lastIndexOf('/');
+        if (lastSlash <= 0) return false;
+        var prefix = targetUrl.substring(0, lastSlash + 1);
+        return currentUrl.indexOf(prefix) === 0;
     }
 
     /**

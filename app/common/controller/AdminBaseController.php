@@ -118,6 +118,7 @@ abstract class AdminBaseController extends \think\BaseController
         'export.dialog'         => 'export_dialog',
         // V2.9.9 精确菜单映射
         'workflow.records'      => 'workflow_records',
+        'workflow.edit'         => 'workflow',
     ];
 
     public function __construct(App $app)

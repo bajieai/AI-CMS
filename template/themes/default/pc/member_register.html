@@ -26,6 +26,16 @@
                             <label class="form-label">昵称</label>
                             <input type="text" name="nickname" class="form-control">
                         </div>
+                        <!-- V2.9.9 注册验证码 -->
+                        <div class="mb-3" id="captchaArea">
+                            <label class="form-label">验证码</label>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span id="captchaText" class="fw-bold text-center py-2 px-3" style="flex:1;background:#f0fdf4;border-radius:6px;font-size:1.15rem;letter-spacing:2px;min-height:38px;line-height:38px;cursor:pointer;">加载中...</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="captchaRefresh" title="换一张"><i class="bi bi-arrow-clockwise"></i></button>
+                            </div>
+                            <input type="hidden" name="captcha_key" id="captchaKey">
+                            <input type="text" name="captcha_answer" class="form-control" placeholder="输入计算结果" required autocomplete="off">
+                        </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">注册</button>
                         </div>
@@ -42,15 +52,32 @@
 
 {block name="js"}
 <script>
-$('#registerForm').on('submit', function(e) {
-    e.preventDefault();
-    $.post('/member/register', $(this).serialize(), function(res) {
-        if (res.success) {
-            alert('注册成功，请登录');
-            location.href = '/member/login';
-        } else {
-            alert(res.msg);
-        }
+$(function() {
+    var $captchaText = $('#captchaText');
+    var $captchaKey = $('#captchaKey');
+
+    function loadCaptcha() {
+        $.get('/member/captcha', function(res) {
+            if (res.success && res.data) {
+                $captchaText.text(res.data.text || '验证码');
+                $captchaKey.val(res.data.key);
+            }
+        });
+    }
+    $captchaText.add('#captchaRefresh').on('click', loadCaptcha);
+    loadCaptcha();
+
+    $('#registerForm').on('submit', function(e) {
+        e.preventDefault();
+        $.post('/member/register', $(this).serialize(), function(res) {
+            if (res.success) {
+                alert('注册成功，请登录');
+                location.href = '/member/login';
+            } else {
+                alert(res.msg);
+                loadCaptcha();
+            }
+        });
     });
 });
 </script>

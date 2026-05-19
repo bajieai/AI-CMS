@@ -30,7 +30,7 @@ class ExportController extends AdminBaseController
                         $item->status_text,
                         $item->cate_id,
                         $item->views,
-                        date('Y-m-d H:i:s', $item->create_time),
+                        $item->create_time ? date('Y-m-d H:i:s', is_numeric($item->create_time) ? (int)$item->create_time : strtotime((string)$item->create_time)) : '',
                     ];
                 }
             };

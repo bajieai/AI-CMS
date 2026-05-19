@@ -132,6 +132,18 @@ Route::get('seo/index$', '\app\admin\controller\SeoController@index');
 Route::post('seo/sitemap$', '\app\admin\controller\SeoController@generateSitemap');
 Route::post('seo/robots$', '\app\admin\controller\SeoController@saveRobots');
 
+// SEO关键词管理
+Route::get('seo_keyword/index$', '\app\admin\controller\SeoKeywordController@index');
+Route::get('seo_keyword/add$', '\app\admin\controller\SeoKeywordController@add');
+Route::rule('seo_keyword/edit/:id$', '\app\admin\controller\SeoKeywordController@edit', 'GET|POST');
+Route::post('seo_keyword/save$', '\app\admin\controller\SeoKeywordController@save');
+Route::post('seo_keyword/delete$', '\app\admin\controller\SeoKeywordController@delete');
+Route::post('seo_keyword/import$', '\app\admin\controller\SeoKeywordController@import');
+// SEO关键词分组管理
+Route::get('seo_keyword/group$', '\app\admin\controller\SeoKeywordController@group');
+Route::post('seo_keyword/saveGroup$', '\app\admin\controller\SeoKeywordController@saveGroup');
+Route::post('seo_keyword/deleteGroup$', '\app\admin\controller\SeoKeywordController@deleteGroup');
+
 // V2.3 通知管理
 Route::get('notification/index$', '\app\admin\controller\NotificationController@index');
 Route::post('notification/read$', '\app\admin\controller\NotificationController@read');

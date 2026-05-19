@@ -6,6 +6,7 @@ namespace app\home\controller;
 use app\common\controller\FrontBaseController;
 use app\common\model\Notification as NotificationModel;
 use app\common\service\MemberFavoriteService;
+use app\common\service\CaptchaService;
 use app\common\service\MemberLevelService;
 use app\common\service\MemberService;
 use app\common\service\UploadService;
@@ -33,10 +34,47 @@ class MemberController extends FrontBaseController
     {
         if ($request->isPost()) {
             $data = $request->post();
+            // V2.9.9: 验证码校验
+            if (CaptchaService::isFormCaptchaRequired('register')) {
+                $captchaKey = $data['captcha_key'] ?? '';
+                $captchaAnswer = $data['captcha_answer'] ?? '';
+                if (empty($captchaKey) || empty($captchaAnswer)) {
+                    return json(['success' => false, 'msg' => '请完成验证码验证']);
+                }
+                if (!CaptchaService::verify($captchaKey, $captchaAnswer)) {
+                    return json(['success' => false, 'msg' => '验证码错误']);
+                }
+            }
             $result = $this->service->register($data);
             return json($result);
         }
         return $this->view('/member_register');
+    }
+
+    /**
+     * 获取验证码
+     */
+    public function captcha()
+    {
+        try {
+            $data = CaptchaService::generate();
+            if (empty($data['image'])) {
+                throw new \RuntimeException('验证码生成失败：图片为空');
+            }
+            return json(['success' => true, 'data' => $data]);
+        } catch (\Throwable $e) {
+            // 降级：返回纯文本验证码（Docker内GD可能无中文字体）
+            $a = random_int(1, 20);
+            $b = random_int(1, 20);
+            $answer = $a + $b;
+            $key = 'captcha_' . md5(uniqid((string) mt_rand(), true));
+            \think\facade\Cache::set($key, (string) $answer, 300);
+            return json(['success' => true, 'data' => [
+                'key'   => $key,
+                'image' => '',
+                'text'  => "{$a} + {$b} = ?",
+            ]]);
+        }
     }
 
     /**
