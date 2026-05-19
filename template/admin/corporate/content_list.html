@@ -10,7 +10,7 @@
 {block name="content"}
 <div class="card mb-3">
     <div class="card-body py-2">
-        <form method="get" action="/admin/content/index" class="row g-2 align-items-end">
+        <form method="get" action="/admin/content/index" class="row g-2 align-items-end" onsubmit="return doSearch()">
             <div class="col-auto">
                 <label class="form-label small mb-0">类型</label>
                 <select name="type" class="form-select form-select-sm">
@@ -46,7 +46,7 @@
                 <input type="text" name="keyword" class="form-control form-control-sm" value="{$params.keyword ?? ''}" placeholder="搜索标题">
             </div>
             <div class="col-auto">
-                <button type="button" id="btnSearch" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
+                <button type="button" id="btnSearch" class="btn btn-primary btn-sm" onclick="doSearch()"><i class="bi bi-search"></i> 搜索</button>
                 <a href="/admin/content/index" class="btn btn-outline-secondary btn-sm">重置</a>
             </div>
         </form>
@@ -222,9 +222,9 @@ function copyItem(id) {
 // 批量操作
 var moveCateModal = null;
 
-// 搜索按钮 → PJAX 局部刷新（使用事件委托，PJAX后无需重新绑定）
-$(document).on('click', '#btnSearch', function() {
-    var $form = $(this).closest('form');
+// 搜索按钮/回车 → PJAX 局部刷新（全局函数，onclick/onsubmit直接调用，不受PJAX脚本提取影响）
+function doSearch() {
+    var $form = $('#btnSearch').closest('form');
     var action = $form.attr('action') || window.location.pathname;
     var queryString = $form.serialize();
     var url = queryString ? action + '?' + queryString : action;
@@ -232,7 +232,7 @@ $(document).on('click', '#btnSearch', function() {
         window.doPjax(url);
     }
     return false;
-});
+}
 
 $(function() {
     moveCateModal = new bootstrap.Modal(document.getElementById('moveCateModal'));
