@@ -51,6 +51,36 @@
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
 
+### V2.9.5 新增特性
+
+- **XSS输出过滤(XssEscapeMiddleware, P0)** - CSP安全响应头(CSP-Report-Only/X-Content-Type-Options/X-Frame-Options/Referrer-Policy)+XSS载荷日志
+- **前台CSRF保护(FrontCsrfMiddleware, P0)** - 前台POST/PUT/DELETE Token验证+419友好错误页+front-csrf.js自动注入(4套模板)
+- **SQL注入审计(P0)** - SigninService Db::raw→inc()重构+ImageTask Db::raw→whereColumn+慢查询建议索引
+- **上传安全(UploadSecurityService, P0)** - MIME魔数校验+扩展名黑白名单+UUIDv4安全文件名
+- **缓存预热(CacheWarmService, P0)** - warmContentCache/warmConfigCache/warmMemberCache/warmAllCache
+- **Vary优化(P0)** - FrontBaseController缓存命中快路径补Vary:Cookie+Cache-Control
+- **N+1查询修复(P0)** - ContentController detail相关文章+API列表+with(['cate'])懒加载
+- **JSON输出加固(P0)** - success/error输出JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_UNESCAPED_UNICODE
+- **付费阅读桥接(P1)** - PaidService::createOrder()桥接PaymentService::createPayment()+回调通知半自动完成+4套前台付费墙UI
+- **前台Toast组件(P1)** - public/assets/js/front-toast.js零依赖Toaster(success/error/warning/info)
+- **前台通用组件(P1)** - public/assets/js/front-components.js空状态/骨架屏/404统一组件
+- **等级时间线(P1)** - 4套前台member_level.html升级/降级/宽限期事件+方向图标
+- **消息分类(P1)** - 4套前台member_notification.html分类筛选(全部/系统/等级/评论)+未读徽标
+- **内容审批(P1)** - ContentController audit/reject单条+ContentService batchOperate(audit/reject)+批量栏替换
+
+### V2.9.4 新增特性
+
+- **发布状态看板(M28续)** - 发布记录列表+按平台/状态筛选+手动重试+发布摘要统计(成功率/各平台统计)
+- **插件评分评价(M25续)** - 已安装插件1-5星评分+评语+平均分缓存展示(5分钟TTL)
+- **AI内容质量检测(M30)** - 可读性评分(中文统计模型)+SEO友好度(6维度)+敏感词过滤(Trie+内置词库)+质量评分面板
+- **AI写作风格选择(M30续)** - 6种风格Prompt(默认/正式/轻松/专业/亲切/营销)+风格选择UI+栏目级预设
+- **支付集成框架(M31)** - PaymentService统一支付层+微信/支付宝适配器(沙箱模式)+订单管理+回调处理+支付配置页
+- **许可证管理框架(M32)** - licenses表+本地/远程双验证+离线降级24h+后台发放/激活/吊销+插件license_check钩子
+- **付费阅读/打赏(M33)** - 文章编辑页付费开关+价格设置+未付费用户看摘要+打赏按钮
+- **备份增强补全(M26续)** - 备份目录可配置化(template+config)+备份日志(BackupLog)+已有下载功能
+- **会员降级日志(M20续)** - MemberDowngradeLog记录降级操作+通知状态
+- **Bug修复与体验优化** - GLOB_BRACE Alpine兼容+nginx /admin重写修复+会员头像上传(后台+前台)+图标选择器+下拉溢出修复+默认头像+PWA提示7天冷却+logo尺寸统一+登录页动态logo
+
 ### V2.9.3 新增特性
 
 - **V2.9.3功能** - 数据备份恢复增强(M26)+多渠道分发增强(M28)+插件商店首页升级(M25)+会员权益补全(M20)
