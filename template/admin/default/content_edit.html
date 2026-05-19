@@ -25,6 +25,78 @@
                     <div class="mb-3">
                         <label class="form-label">内容</label>
                         <textarea name="content" id="editor" class="form-control" rows="15"><?php echo $info['content'] ?? ''; ?></textarea>
+<script src="/assets/js/quality-check.js"></script>
+<script>
+// TinyMCE编辑器初始化（内联在content块，确保首次加载和PJAX后均可用）
+function initEditor() {
+    if (document.getElementById('editor') && typeof tinymce !== 'undefined') {
+        var existing = tinymce.get('editor');
+        if (existing) existing.destroy();
+        tinymce.init({
+            selector: '#editor',
+            height: 400,
+            language: 'zh-Hans',
+            menubar: 'edit view insert format table',
+            plugins: 'link image table code fullscreen',
+            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+            relative_urls: false,
+            convert_urls: false,
+            promotion: false,
+            branding: false,
+            setup: function(editor) {
+                editor.addShortcut('ctrl+shift+c', 'AI续写', function() {
+                    var selected = editor.selection.getContent({format: 'text'});
+                    var text = selected || editor.getContent({format: 'text'}).substring(0, 500);
+                    $('#aiPrompt').val('请续写以下内容：\n' + text);
+                    aiGenerate('append');
+                });
+                editor.addShortcut('ctrl+shift+x', 'AI改写', function() {
+                    var selected = editor.selection.getContent({format: 'text'});
+                    var text = selected || editor.getContent({format: 'text'}).substring(0, 500);
+                    $('#aiPrompt').val('请改写以下内容，保持原意但使用不同的表达方式：\n' + text);
+                    aiGenerate(selected ? 'insert' : 'replace');
+                });
+                editor.addShortcut('ctrl+shift+e', 'AI扩写', function() {
+                    var selected = editor.selection.getContent({format: 'text'});
+                    var text = selected || editor.getContent({format: 'text'}).substring(0, 500);
+                    $('#aiPrompt').val('请扩写以下内容，增加更多细节和描述：\n' + text);
+                    aiGenerate(selected ? 'insert' : 'append');
+                });
+                editor.addShortcut('ctrl+shift+u', 'AI总结', function() {
+                    var text = editor.getContent({format: 'text'}).substring(0, 1000);
+                    $('#aiPrompt').val('请总结以下内容的要点：\n' + text);
+                    aiGenerate('append');
+                });
+            },
+            images_upload_url: '/api/upload/image',
+            images_upload_handler: function(blobInfo, success, failure) {
+                var formData = new FormData();
+                formData.append('file', blobInfo.blob(), blobInfo.filename());
+                var csrfToken = $('input[name="__token__"]').val();
+                var ajaxOpts = {
+                    url: '/api/upload/image',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (res.code === 0 && res.data && res.data.url) {
+                            success(res.data.url);
+                        } else {
+                            failure(res.msg || '上传失败');
+                        }
+                    },
+                    error: function() { failure('上传失败'); }
+                };
+                if (csrfToken) { ajaxOpts.headers = { 'X-CSRF-TOKEN': csrfToken }; }
+                $.ajax(ajaxOpts);
+            }
+        });
+    }
+}
+initEditor();
+$(document).on('pjax:complete', function() { setTimeout(initEditor, 100); });
+</script>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">摘要</label>
