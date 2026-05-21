@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -142,7 +142,7 @@ class ContentService
 
         // 保存标签关联
         if (!empty($tagIds)) {
-            $this->syncTags($content->id, $tagIds);
+            $this->syncTags((int) $content->id, $tagIds);
         }
 
         // 清除内容相关缓存
@@ -159,17 +159,17 @@ class ContentService
 
         // V2.9.2 M19a: 自动翻译触发（防递归：翻译内容不触发二次翻译）
         if ($content->translation_of == 0) {
-            AiTranslationService::autoTranslate($content->id);
+            AiTranslationService::autoTranslate((int) $content->id);
         }
 
         // V2.9.3 M28: 自动同步到已启用平台（仅已发布内容）
         if ($content->status == 2 && $content->translation_of == 0) {
-            PublishPlatformService::autoPublishToPlatforms($content->id);
+            PublishPlatformService::autoPublishToPlatforms((int) $content->id);
         }
 
         // V2.9.9: 审批自动触发（新建内容提交审核）
         if ($content->status != 2 && $content->translation_of == 0) {
-            WorkflowService::submit($content->id, 'content', (int) session('user_id'));
+            WorkflowService::submit((int) $content->id, 'content', (int) session('user_id'));
         }
 
         // V2.9.9: 插件市场Hook — 内容创建后
@@ -249,7 +249,7 @@ class ContentService
         if ($content->status == 2) {
             MeilisearchService::syncDocument($content);
         } else {
-            MeilisearchService::deleteDocument($content->id);
+            MeilisearchService::deleteDocument((int) $content->id);
         }
 
         // V2.9.2 M19b: 内容变更时清除Sitemap缓存
@@ -257,12 +257,12 @@ class ContentService
 
         // V2.9.2 M19a: 自动翻译触发（防递归：翻译内容不触发二次翻译）
         if ($content->translation_of == 0) {
-            AiTranslationService::autoTranslate($content->id);
+            AiTranslationService::autoTranslate((int) $content->id);
         }
 
         // V2.9.3 M28: 自动同步到已启用平台（仅已发布内容）
         if ($content->status == 2 && $content->translation_of == 0) {
-            PublishPlatformService::autoPublishToPlatforms($content->id);
+            PublishPlatformService::autoPublishToPlatforms((int) $content->id);
         }
 
         // V3.1 Phase 3.5L: SEO评分缓存回写
@@ -270,7 +270,7 @@ class ContentService
 
         // V2.9.9: 审批自动触发（更新后若非已发布且非翻译内容，重新提交审核）
         if ($content->status != 2 && $content->translation_of == 0) {
-            WorkflowService::submit($content->id, 'content', (int) session('user_id'));
+            WorkflowService::submit((int) $content->id, 'content', (int) session('user_id'));
         }
 
         // V2.9.9: 插件市场Hook — 内容更新后
@@ -328,7 +328,7 @@ class ContentService
             $version->save();
 
             // 保留策略：每个内容最多保留20个版本
-            $this->pruneVersions($content->id);
+            $this->pruneVersions((int) $content->id);
         } catch (\Throwable $e) {
             // 版本保存失败不应阻断主流程
             error_log('[VERSION_SAVE_FAIL] content_id=' . $content->id . ' error=' . $e->getMessage());

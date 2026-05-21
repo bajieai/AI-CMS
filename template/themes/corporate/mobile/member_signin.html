@@ -4,30 +4,59 @@
 
 {block name="content"}
 <div class="cm-main">
-    <div class="cm-card text-center" style="padding:26px 20px;background:linear-gradient(135deg,#fefce8,#fef3c7);border-left:4px solid #f59e0b;">
-        <i class="bi bi-calendar-check" style="font-size:42px;color:var(--i8j-warning,#f59e0b);"></i>
-        <h4 style="font-size:19px;font-weight:800;color:#92400e;margin:10px 0 4px;">每日签到</h4>
-        <p style="color:var(--i8j-text-secondary,#94a3b8);font-size:13px;">连续签到可获得更多积分奖励</p>
+    <!-- 签到卡片 -->
+    <div class="cm-card text-center" style="padding:26px 20px;background:linear-gradient(135deg,#10b981,#059669);border-radius:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;background:rgba(255,255,255,.1);border-radius:50%;"></div>
+        <i class="bi bi-calendar-check" style="font-size:42px;color:rgba(255,255,255,.9);margin-bottom:8px;"></i>
+        <h4 style="font-size:19px;font-weight:800;color:#92400e;margin:10px 0 4px;" class="text-white">每日签到</h4>
+        <p style="color:rgba(255,255,255,.7);font-size:13px;">连续签到可获得更多积分奖励</p>
     </div>
 
+    <!-- 签到按钮区 -->
     <div class="cm-card" style="padding:16px 14px;margin-top:12px;">
-        <h5 style="font-size:15px;font-weight:700;margin-bottom:10px;">鏈湀签到</h5>
+        <h5 style="font-size:15px;font-weight:700;margin-bottom:10px;color:#1e293b;">{:date('Y年m月')}签到记录</h5>
         <div style="display:flex;flex-wrap:wrap;gap:7px;">
             {volist name="calendar" id="day"}
-            <div style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:650;background:{if condition="$day.signed"}#d1fae5;color:#047857;{else/}#f1f5f9;#94a3b8;/if};">{$day.day}</div>
+            <div style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:650;
+                background:{if condition="$day.signed"}#d1fae5;color:#047857;{else/}#f1f5f9;color:#94a3b8;/if};">
+                {$day.day}
+            </div>
             {/volist}
         </div>
-        <div class="text-center mt-16px">
-            {if condition="$can_sign"}<button id="siBtn" class="cm-btn cm-btn-pri" style="max-width:220px;margin:0 auto;background:var(--i8j-warning,#f59e0b);color:#fff;border:none;"><i class="bi bi-hand-index-thumb-fill me-2"></i>点击签到</button>{else /}<p style="color:#047857;font-size:14px;"><i class="bi bi-check-circle-fill me-1"></i>今日已签到✓</p>{/if}
+        <div class="text-center" style="margin-top:16px;">
+            {if condition="$can_sign"}
+            <button id="siBtn" class="cm-btn cm-btn-pri" style="max-width:220px;margin:0 auto;border-radius:50px;background:linear-gradient(135deg,#10b981,#059669);">
+                <i class="bi bi-hand-index-thumb-fill me-2"></i>点击签到
+            </button>
+            {else /}
+            <p style="color:#047857;font-size:14px;"><i class="bi bi-check-circle-fill me-1"></i>今日已签到</p>
+            {/if}
         </div>
     </div>
 
+    <!-- 签到规则 -->
     <div class="cm-card" style="padding:14px;margin-top:12px;background:var(--i8j-bg-secondary,#f8fafc);">
-        <h5 style="font-size:13.5px;font-weight:600;margin-bottom:8px;color:#475569;">签到规则</h5>
-        <ul style="font-size:12.5px;color:var(--i8j-text-secondary,#64748b);padding-left:18px;margin:0;line-height:1.85;"><li>每日签到鑾峰緱 <strong>+{$base_points}</strong></li><li>这炵画3澶╅澶?+<strong>{$bonus_3days}</strong></li><li>这炵画7澶╅澶?+<strong>{$bonus_7days}</strong></li></ul>
+        <h5 style="font-size:13.5px;font-weight:600;margin-bottom:8px;color:#475569;display:flex;align-items:center;gap:6px;">
+            <i class="bi bi-info-circle" style="color:#3b82f6;"></i>签到规则
+        </h5>
+        <ul style="font-size:12.5px;color:var(--i8j-text-secondary,#64748b);padding-left:18px;margin:0;line-height:1.95;">
+            <li>每日签到获得 <strong>+{$base_points|default=10}</strong> 积分</li>
+            <li>连续3天额外奖励 <strong>+{$bonus_3days|default=10}</strong></li>
+            <li>连续7天额外奖励 <strong>+{$bonus_7days|default=30}</strong></li>
+            <li>断签后连续天数归零重新计算</li>
+        </ul>
     </div>
 </div>
 {/block}
-{block name="js"}<script>$('#siBtn').on('click',function(){var b=$(this);b.prop('disabled',true).text('签到中...');$.post('/member/signIn',{},function(r){if(r.code===0){showToast('签到成功！,'success');setTimeout(function(){location.reload();},1000);}else{b.prop('disabled',false).text('鐐瑰嚮签到');showToast(r.msg||'失败','danger');}});});</script>{/block}
-
-
+{block name="js"}
+<script>
+$('#siBtn').on('click',function(){
+    var b=$(this);
+    b.prop('disabled',true).text('签到中...');
+    $.post('/member/signIn',{},function(r){
+        if(r.code===0){showToast('签到成功！','success');setTimeout(function(){location.reload();},1000);}
+        else{b.prop('disabled',false).text('点击签到');showToast(r.msg||'失败','danger');}
+    });
+});
+</script>
+{/block}

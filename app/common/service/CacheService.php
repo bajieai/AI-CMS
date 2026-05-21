@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -51,6 +51,24 @@ class CacheService
     const TAG_PJAX_CACHE = 'i8j_pjax_cache';
 
     /**
+     * 缓存清除分组映射（V2.9.10 重组为5项）
+     * 每个分组对应多个缓存标签，分组名称对应前端下拉菜单项
+     */
+    public const GROUP_ALL      = 'all';
+    public const GROUP_CONTENT  = 'content';
+    public const GROUP_TEMPLATE = 'template';
+    public const GROUP_PLUGIN   = 'plugin';
+
+    /**
+     * 分组 → 缓存标签映射表（不含all/browser，all走clearAll，browser纯前端）
+     */
+    private const GROUP_TAGS = [
+        self::GROUP_CONTENT  => [self::TAG_CONTENT, self::TAG_CATE, self::TAG_TAG, self::TAG_AD, self::TAG_COMMENT, self::TAG_COLLECT, self::TAG_PUBLISH, self::TAG_REVIEW, self::TAG_RATING, self::TAG_PAGE_CACHE, self::TAG_PJAX_CACHE, self::TAG_SEARCH, self::TAG_SEO],
+        self::GROUP_TEMPLATE => [self::TAG_THEME],
+        self::GROUP_PLUGIN   => [self::TAG_PLUGIN],
+    ];
+
+    /**
      * 清除所有业务缓存
      */
     public static function clearAll(): bool
@@ -63,6 +81,81 @@ class CacheService
             return true;
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    /**
+     * 按分组清除缓存
+     * @param string $group 分组名称
+     * @return bool
+     */
+    public static function clearByGroup(string $group): bool
+    {
+        if (!isset(self::GROUP_TAGS[$group])) {
+            return false;
+        }
+        try {
+            foreach (self::GROUP_TAGS[$group] as $tag) {
+                Cache::tag($tag)->clear();
+            }
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * 清除模板缓存（TAG_THEME + runtime目录下各应用temp编译缓存）
+     */
+    public static function clearTemplate(): bool
+    {
+        try {
+            Cache::tag(self::TAG_THEME)->clear();
+            $runtimePath = root_path() . 'runtime' . DIRECTORY_SEPARATOR;
+            $apps = ['admin', 'api', 'home'];
+            foreach ($apps as $app) {
+                $tempPath = $runtimePath . $app . DIRECTORY_SEPARATOR . 'temp';
+                if (is_dir($tempPath)) {
+                    self::clearDir($tempPath);
+                }
+            }
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * 清除插件缓存
+     */
+    public static function clearPlugin(): bool
+    {
+        try {
+            Cache::tag(self::TAG_PLUGIN)->clear();
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * 递归清空目录（保留目录本身）
+     */
+    private static function clearDir(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                rmdir($file->getRealPath());
+            } else {
+                unlink($file->getRealPath());
+            }
         }
     }
 

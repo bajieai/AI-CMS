@@ -4,70 +4,64 @@
 
 {block name="content"}
 
-<div class="section-padding" style="padding-top:2.5rem;">
-    <div class="container" style="max-width:900px;">
-        <!-- 澶撮儴缁熻卡-->
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card border-0 text-center" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:1.5rem;background:var(--i8j-bg,#fff);">
-                    <i class="bi bi-calendar-check display-3" style="color:var(--i8j-success,#22c55e);"></i>
-                    <h5 class="fw-bold mt-2 mb-0" id="totalSignDays" style="font-size:1.75rem;color:var(--i8j-text,#1e293b);">--</h5>
-                    <small class="text-muted">累计签到天数</small>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 text-center" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:1.5rem;background:var(--i8j-bg,#fff);">
-                    <i class="bi bi-fire display-3" style="color:var(--i8j-warning,#f59e0b);"></i>
-                    <h5 class="fw-bold mt-2 mb-0" id="continuousDays" style="font-size:1.75rem;color:var(--i8j-text,#1e293b);">--</h5>
-                    <small class="text-muted">连续签到天数</small>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 text-center" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:1.5rem;background:var(--i8j-bg,#fff);">
-                    <i class="bi bi-gift display-3" style="color:var(--i8j-primary,#8b5cf6);"></i>
-                    <h5 class="fw-bold mt-2 mb-0" id="todayPoints" style="font-size:1.75rem;color:var(--i8j-text,#1e293b);">+10</h5>
-                    <small class="text-muted">今日积分奖励</small>
-                </div>
-            </div>
-        </div>
+<div style="max-width:860px;margin:0 auto;">
 
-        <!-- 缁涙儳鍩岄幐澶愭尦 -->
-        <div class="text-center mb-4">
-            <button id="signinBtn" class="btn px-5 py-3" onclick="doSignin()"
-                    style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-radius:14px;font-weight:700;font-size:1.05rem;border:none;letter-spacing:.05em;
-                    box-shadow:0 6px 24px rgba(59,130,246,.35);">
-                <i class="bi bi-check-circle me-2"></i>立即签到
-            </button>
-        </div>
-
-        <!-- 签到日历 -->
-        <div class="card border-0 mb-4" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);">
-            <div style="padding:1.25rem 1.75rem;border-bottom:1px solid #f1f5f9;">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2" style="color:var(--color-accent);"></i>签到日历</h5>
-            </div>
-            <div class="p-4" id="signinCalendar">
-                <div class="text-center text-muted py-4"><i class="bi bi-hourglass-split"></i> 閸旂姾娴囨稉?..</div>
-            </div>
-        </div>
-
-        <!-- 签到规则 -->
-        <div class="card border-0" style="border-radius:var(--radius-card);box-shadow:var(--shadow-card);">
-            <div style="padding:1.25rem 1.75rem;border-bottom:1px solid #f1f5f9;">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2" style="color:var(--color-accent);"></i>签到奖励规则</h5>
-            </div>
-            <div class="table-responsive p-3">
-                <table class="table table-borderless align-middle" style="font-size:.92rem;">
-                    <thead><tr><th width="30%">条件</th><th>奖励</th></tr></thead>
-                    <tbody>
-                        <tr><td>每日签到</td><td><span class="badge bg-success rounded-pill">+10 积分</span></td></tr>
-                        <tr><td>连续7天</td><td><span class="badge bg-warning rounded-pill">额外 +50 积分</span></td></tr>
-                        <tr><td>连续30天</td><td><span class="badge bg-danger rounded-pill">额外 +300 积分</span></td></tr>
-                        <tr><td>鏂閲嶇疆</td><td><span class="text-danger small">连续天数归零，重新计绠</span></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<!-- 统计卡片 -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;">
+    <div style="text-align:center;padding:24px 16px;background:#fff;border-radius:var(--radius-card,12px);box-shadow:var(--shadow-card, 0 1px 3px rgba(0,0,0,.08));">
+        <i class="bi bi-calendar-check display-3" style="color:var(--i8j-success,#22c55e);"></i>
+        <h5 class="fw-bold mt-2 mb-0" id="totalSignDays" style="font-size:1.6rem;color:var(--i8j-text,#1e293b);">--</h5>
+        <small class="text-muted">累计签到天数</small>
     </div>
+    <div style="text-align:center;padding:24px 16px;background:#fff;border-radius:var(--radius-card,12px);box-shadow:var(--shadow-card, 0 1px 3px rgba(0,0,0,.08));">
+        <i class="bi bi-fire display-3" style="color:var(--i8j-warning,#f59e0b);"></i>
+        <h5 class="fw-bold mt-2 mb-0" id="continuousDays" style="font-size:1.6rem;color:var(--i8j-text,#1e293b);">--</h5>
+        <small class="text-muted">连续签到天数</small>
+    </div>
+    <div style="text-align:center;padding:24px 16px;background:#fff;border-radius:var(--radius-card,12px);box-shadow:var(--shadow-card, 0 1px 3px rgba(0,0,0,.08));">
+        <i class="bi bi-gift display-3" style="color:var(--primary,#8b5cf6);"></i>
+        <h5 class="fw-bold mt-2 mb-0" style="font-size:1.6rem;color:var(--i8j-text,#1e293b);">+10</h5>
+        <small class="text-muted">今日积分奖励</small>
+    </div>
+</div>
+
+<!-- 签到按钮 -->
+<div class="text-center mb-4">
+    <button id="signinBtn" class="btn px-5 py-3" onclick="doSignin()"
+            style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-radius:50px;font-weight:700;font-size:1rem;border:none;letter-spacing:.03em;
+            box-shadow:0 4px 20px rgba(16,185,129,.35);">
+        <i class="bi bi-check-circle me-2"></i>立即签到
+    </button>
+</div>
+
+<!-- 签到日历 -->
+<div style="background:#fff;border-radius:var(--radius-card,12px);box-shadow:var(--shadow-card, 0 1px 3px rgba(0,0,0,.08));overflow:hidden;margin-bottom:18px;">
+    <div style="padding:1.25rem 1.75rem;border-bottom:1px solid #f1f5f9;">
+        <h5 class="mb-0 fw-bold" style="font-size:15px;display:flex;align-items:center;gap:8px;color:#1e293b;"><i class="bi bi-calendar3" style="color:var(--primary,#3b82f6);"></i>签到日历</h5>
+    </div>
+    <div class="p-4" id="signinCalendar">
+        <div class="text-center text-muted py-4"><i class="bi bi-hourglass-split"></i> 加载中...</div>
+    </div>
+</div>
+
+<!-- 签到规则 -->
+<div style="background:#fff;border-radius:var(--radius-card,12px);box-shadow:var(--shadow-card, 0 1px 3px rgba(0,0,0,.08));overflow:hidden;">
+    <div style="padding:1.25rem 1.75rem;border-bottom:1px solid #f1f5f9;">
+        <h5 class="mb-0 fw-bold" style="font-size:15px;display:flex;align-items:center;gap:8px;color:#1e293b;"><i class="bi bi-info-circle" style="color:var(--primary,#3b82f6);"></i>签到奖励规则</h5>
+    </div>
+    <div class="table-responsive p-3">
+        <table class="table table-borderless align-middle" style="font-size:.92rem;">
+            <thead><tr><th width="30%">条件</th><th>奖励</th></tr></thead>
+            <tbody>
+                <tr><td>每日签到</td><td><span class="badge rounded-pill uc-badge-pending" style="background:#dcfce7;color:#16a34a;">+10 积分</span></td></tr>
+                <tr><td>连续7天</td><td><span class="badge rounded-pill uc-badge-pending" style="background:#fef3c7;color:#92400e;">额外 +50 积分</span></td></tr>
+                <tr><td>连续30天</td><td><span class="badge rounded-pill uc-badge-pending" style="background:#fee2e2;color:#991b1b;">额外 +300 积分</span></td></tr>
+                <tr><td>断签重置</td><td><span class="small text-danger">连续天数归零，重新计算</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 </div>
 
 {/block}
@@ -76,13 +70,11 @@
 <script>
 function doSignin() {
     $.post('/member/signin', {}, function(res) {
-        if (res.code === 0) { showToast('签到成功！' + (res.data.points||10) + ' 积分已到账, 'success'); loadSigninInfo(); }
+        if (res.code === 0) { showToast('签到成功！' + (res.data.points||10) + ' 积分已到账', 'success'); loadSigninInfo(); }
         else alert(res.msg);
     });
 }
-function loadSigninInfo() { $.get('/member/signin/info', function(res) { if (res.code === 0) { /* 閺囧瓨鏌奤I */ } }, 'json'); }
+function loadSigninInfo() { $.get('/member/signin/info', function(res) { if (res.code === 0) { /* 刷新数据 */ } }, 'json'); }
 $(function() { loadSigninInfo(); });
 </script>
 {/block}
-
-

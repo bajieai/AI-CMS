@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -60,10 +60,29 @@ class FrontCsrfMiddleware
 
         // 获取请求中的Token（优先Header，其次POST/PUT字段）
         $tokenName = '__token__';
-        $requestToken = $request->header('X-CSRF-TOKEN')
+        $rawToken = $request->header('X-CSRF-TOKEN')
             ?: $request->post($tokenName)
             ?: $request->put($tokenName);
+        // 处理多个同名Header或ajaxSetup重复注入导致的逗号分隔值
+        $requestToken = is_string($rawToken) ? trim(strtok($rawToken, ',')) : null;
+
+        // 确保Session已初始化（Cookie存在但Session可能未自动加载）
         $sessionToken = session($tokenName);
+
+        // V2.9.10 Fix: Session未初始化时从原始Session文件读取Token
+        if (empty($sessionToken) && !empty($_COOKIE['I8J_SID'])) {
+            $sid = preg_replace('/[^a-f0-9]/', '', $_COOKIE['I8J_SID']);
+            // runtime_path() 在多应用模式返回 app/home/runtime/，实际session在项目根runtime
+            $sessionPath = app()->getRootPath() . 'runtime/session/i8j_/sess_' . $sid;
+            if (file_exists($sessionPath)) {
+                $raw = file_get_contents($sessionPath);
+                $data = @unserialize(trim($raw));
+                if (is_array($data) && isset($data[$tokenName])) {
+                    $sessionToken = $data[$tokenName];
+                    session($tokenName, $sessionToken);
+                }
+            }
+        }
 
         // 验证Token
         if (empty($sessionToken) || empty($requestToken) || $requestToken !== $sessionToken) {

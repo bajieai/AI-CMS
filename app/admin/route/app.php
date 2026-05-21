@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -392,3 +392,7 @@ Route::get('social_share/index$', '\app\admin\controller\SocialShareController@i
 Route::get('social_share/stats$', '\app\admin\controller\SocialShareController@stats');
 Route::get('social_share/config$', '\app\admin\controller\SocialShareController@config');
 Route::post('social_share/saveConfig$', '\app\admin\controller\SocialShareController@saveConfig');
+
+// V2.8: 邀请排行与明细
+Route::get('invite/index$', '\app\admin\controller\InviteController@index');
+Route::get('invite/detail/:id$', '\app\admin\controller\InviteController@detail');

@@ -109,7 +109,7 @@
         <div class="card" style="border:none;box-shadow:var(--card-shadow)">
             <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
                 <span><i class="bi bi-graph-up-arrow me-1" style="color:#43e97b"></i>收入趋势</span>
-                <a href="/admin/dashboard/exportExcel?type=revenue" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
+                <a href="/admin/dashboard/exportExcel?type=revenue" data-no-pjax class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
             </div>
             <div class="card-body p-3">
                 <div id="revenueChart" style="height:280px"></div>
@@ -120,7 +120,7 @@
         <div class="card" style="border:none;box-shadow:var(--card-shadow)">
             <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
                 <span><i class="bi bi-person-plus me-1" style="color:#4facfe"></i>会员增长</span>
-                <a href="/admin/dashboard/exportExcel?type=member" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
+                <a href="/admin/dashboard/exportExcel?type=member" data-no-pjax class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
             </div>
             <div class="card-body p-3">
                 <div id="memberChart" style="height:280px"></div>
@@ -149,7 +149,7 @@
         <div class="card" style="border:none;box-shadow:var(--card-shadow)">
             <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
                 <span><i class="bi bi-graph-up-arrow me-1" style="color:#43e97b"></i>收入趋势</span>
-                <a href="/admin/dashboard/exportExcel?type=revenue" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
+                <a href="/admin/dashboard/exportExcel?type=revenue" data-no-pjax class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
             </div>
             <div class="card-body p-3">
                 <div id="revenueChart" style="height:280px"></div>
@@ -165,7 +165,7 @@
             <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid var(--border-color)">
                 <span><i class="bi bi-fire me-1" style="color:#f5576c"></i>热门内容 TOP20</span>
                 <div class="d-flex gap-2">
-                    <a href="/admin/dashboard/exportExcel?type=content" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
+                    <a href="/admin/dashboard/exportExcel?type=content" data-no-pjax class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>导出</a>
                     <a href="/admin/content/index" class="btn btn-sm btn-outline-primary">查看全部</a>
                 </div>
             </div>
@@ -262,6 +262,25 @@
 
 {block name="js"}
 <script>
+// V2.9.9-R5 死链统计（全局作用域，供 onclick 调用）
+function loadDeadLinkStats() {
+    $('#deadLinkCount').text('...');
+    $.get('/admin/dashboard/getDeadLinkStats', function(d) {
+        if (d.code !== 0) return;
+        var r = d.data;
+        $('#deadLinkCount').text(r.count).css('color', r.count > 0 ? '#f5576c' : '#43e97b');
+        $('#deadLinkTime').text(r.last_check || '-');
+        var listHtml = '';
+        if (r.list && r.list.length > 0) {
+            listHtml = '<div class="small text-danger mt-1">前5条死链：</div>' + r.list.map(function(item) {
+                return '<div class="text-truncate" style="max-width:100%;" title="' + item.url + '"><a href="' + item.source + '" target="_blank" class="text-decoration-none text-muted">' + item.url + '</a> <span class="badge bg-secondary">' + item.status_code + '</span></div>';
+            }).join('');
+        } else if (r.count === 0) {
+            listHtml = '<div class="small text-success"><i class="bi bi-check-circle me-1"></i>未发现死链</div>';
+        }
+        $('#deadLinkList').html(listHtml);
+    });
+}
 $(function(){
     // 加载概览数据
     $.get('/admin/dashboard/overview', function(d){
@@ -468,25 +487,6 @@ $(function(){
         sourceChart.resize();
     });
 
-    // V2.9.9-R5 死链统计
-    function loadDeadLinkStats() {
-        $('#deadLinkCount').text('...');
-        $.get('/admin/dashboard/getDeadLinkStats', function(d) {
-            if (d.code !== 0) return;
-            var r = d.data;
-            $('#deadLinkCount').text(r.count).css('color', r.count > 0 ? '#f5576c' : '#43e97b');
-            $('#deadLinkTime').text(r.last_check || '-');
-            var listHtml = '';
-            if (r.list && r.list.length > 0) {
-                listHtml = '<div class="small text-danger mt-1">前5条死链：</div>' + r.list.map(function(item) {
-                    return '<div class="text-truncate" style="max-width:100%;" title="' + item.url + '"><a href="' + item.source + '" target="_blank" class="text-decoration-none text-muted">' + item.url + '</a> <span class="badge bg-secondary">' + item.status_code + '</span></div>';
-                }).join('');
-            } else if (r.count === 0) {
-                listHtml = '<div class="small text-success"><i class="bi bi-check-circle me-1"></i>未发现死链</div>';
-            }
-            $('#deadLinkList').html(listHtml);
-        });
-    }
     loadDeadLinkStats();
 });
 </script>

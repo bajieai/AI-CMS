@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -174,7 +174,7 @@ abstract class FrontBaseController extends \think\BaseController
             'is_member_login'  => $this->isMemberLogin, // 兼容layout.html等使用下划线命名
             'member_info'      => $this->memberInfo,
             // V2.9.9-R5 消息未读数
-            'member_unread_count' => ($this->isMemberLogin && $this->memberInfo) ? (PrivateMessageService::getUnreadCount($this->memberInfo['id']) + PrivateMessageService::getSystemUnreadCount($this->memberInfo['id'])) : 0,
+            'member_unread_count' => ($this->isMemberLogin && $this->memberInfo) ? (PrivateMessageService::getUnreadCount((int) $this->memberInfo['id']) + PrivateMessageService::getSystemUnreadCount((int) $this->memberInfo['id'])) : 0,
             'seo_title'        => '',
             'seo_keywords'     => '',
             'seo_description'  => '',
@@ -196,6 +196,8 @@ abstract class FrontBaseController extends \think\BaseController
             // V2.9.1: 多语言开关（供模板/逻辑判断）
             'lang_switcher_enabled' => $langSwitcherEnabled,
             'lang_sitewide'    => $langSitewide,
+            // V2.9.10: 积分商城开关
+            'points_shop_enabled' => (bool) ($configs['points_shop_enabled'] ?? true),
             // V2.9.2 注入网站Logo及相关配置到前台视图
             'site_logo'        => $configs['site_logo'] ?? '',
             'logo_icon_only'   => ($configs['logo_icon_only'] ?? '') === '1',

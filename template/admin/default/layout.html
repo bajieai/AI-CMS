@@ -75,15 +75,22 @@
                 <a href="/" target="_blank" class="btn btn-sm btn-light text-secondary" title="网站首页">
                     <i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1">网站首页</span>
                 </a>
-                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="clearCache()" title="清除缓存" aria-label="清除缓存">
-                    <i class="bi bi-trash3"></i><span class="d-none d-md-inline ms-1">清除缓存</span>
-                </button>
-                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="showToast('请联系官方获取授权', 'info')" title="购买授权" aria-label="购买授权">
-                    <i class="bi bi-key"></i><span class="d-none d-md-inline ms-1">购买授权</span>
-                </button>
-                <button type="button" class="btn btn-sm btn-light text-secondary" onclick="showToast('当前已是最新版本 v2.3', 'info')" title="系统更新" aria-label="系统更新">
-                    <i class="bi bi-arrow-up-circle"></i><span class="d-none d-md-inline ms-1">系统更新</span>
-                </button>
+                <!-- 清除缓存下拉菜单（V2.9.10 重组为5项） -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light text-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="清除缓存" aria-label="清除缓存">
+                        <i class="bi bi-trash3"></i><span class="d-none d-md-inline ms-1">清除缓存</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end cache-dropdown">
+                        <li><a class="dropdown-item small" href="javascript:void(0)" onclick="clearCacheByType('all','全部缓存')"><i class="bi bi-arrow-repeat me-2"></i>一键清除全部缓存</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item small" href="javascript:void(0)" onclick="clearCacheByType('content','内容缓存')"><i class="bi bi-file-text me-2"></i>清除内容缓存</a></li>
+                        <li><a class="dropdown-item small" href="javascript:void(0)" onclick="clearCacheByType('template','模板缓存')"><i class="bi bi-palette me-2"></i>清除模板缓存</a></li>
+                        <li><a class="dropdown-item small" href="javascript:void(0)" onclick="clearCacheByType('plugin','插件缓存')"><i class="bi bi-plug me-2"></i>清除插件缓存</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item small" href="javascript:void(0)" onclick="clearBrowserCache()"><i class="bi bi-globe me-2"></i>清除浏览器缓存</a></li>
+                    </ul>
+                </div>
+
             </div>
             <!-- 通知铃铛 -->
             <div class="dropdown me-2">
@@ -131,12 +138,12 @@
     <!-- Bootstrap JS -->
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <!-- PJAX 局部刷新（必须在 admin-sidebar.js 之前加载） -->
-    <script src="/assets/js/pjax.js?v=3.3"></script>
+    <script src="/assets/js/pjax.js?v=3.4"></script>
     <!-- V2.6 双栏菜单控制器（双主题共用） -->
     <script src="/assets/js/admin-sidebar.js?v=2.6"></script>
     <!-- V2.9.2 后台管理核心脚本（提取自内联JS） -->
     <script src="{$skin_admin}js/admin.js?v=2.9.2"></script>
-    <!-- V2.9.9 ECharts 全局加载（PJAX 兼容，放在 {block name="js"} 外确保始终可用） -->
+    <!-- V2.9.9 ECharts 全局加载（PJAX 兼容，放在 JS block 外确保始终可用） -->
     <script src="/assets/lib/echarts/echarts.min.js"></script>
     {block name="js"}{/block}
 </body>

@@ -1,57 +1,39 @@
 {extend name="layout" /}
 
-{block name="title"}宸茶喘内容{/block}
+{block name="title"}已购内容{/block}
 
 {block name="content"}
 
-<div class="section-padding" style="padding-top:2.5rem;">
-    <div class="container" style="max-width:1140px;">
-        <h2 class="fw-bold mb-1" style="font-size:1.65rem;color:var(--i8j-text,#1e293b);"><i class="bi bi-bag-check me-2" style="color:var(--i8j-success,#22c55e);"></i>宸茶喘内容</h2>
-        <p class="text-muted mb-4" style="font-size:.95rem;">鎮ㄨ喘之扮殑全部浠樿垂内容</p>
-
-        <div class="row g-4">
-            {volist name="list" id="vo"}
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 h-100" style="border-radius:12px;overflow:hidden;box-shadow:var(--shadow-card);">
-                    {if condition="$vo.cover"}
-                    <div style="height:170px;overflow:hidden;">
-                        <img src="{$vo.cover}" class="w-100 h-100" alt="{$vo.title}" onerror="this.parentElement.style.display='none'" loading="lazy"
-                             style="object-fit:cover;transition:transform .45s ease;">
-                    </div>
-                    {/if}
-                    <div class="card-body p-3 d-flex flex-column">
-                        <div class="d-flex gap-2 align-items-center mb-2">
-                            <span class="badge rounded-pill px-3" style="{if condition="$vo.status == 'paid'"}background:#dcfce7;color:#16a34a;{else/}background:#fee2e2;color:#991b1b;{/if} font-size:.76rem;width:fit-content;">
-                                {if condition="$vo.status == 'paid'"}已完成恵else/}{$vo.status|default='寰呮敮浠?}{/if}
-                            </span>
-                            <span class="badge rounded-pill px-3" style="background:#e0f2fe;color:#0284c7;font-size:.76rem;width:fit-content;">{$vo.type_text}</span>
-                        </div>
-                        <h6 class="card-title fw-bold mb-2" style="font-size:.96rem;line-height:1.38;">
-                            <a href="{$vo.url}" class="text-decoration-none stretched-link" style="color:var(--i8j-text,#1e293b)">{$vo.title}</a>
-                        </h6>
-                        <div class="mt-auto pt-2" style="border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;">
-                            <span class="text-muted">{$vo.create_time|date='Y-m-d'}</span>
-                            <span class="fw-bold" style="color:var(--i8j-text,#1e293b);">&yen; {$vo.price|default=0}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {/volist}
-        </div>
-
-        {empty name="list"}
-        <div class="text-center py-6" style="background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;margin-top:2rem;">
-            <i class="bi bi-bag-x display-4 text-muted opacity-40"></i>
-            <h5 class="text-muted mt-3 fw-bold opacity-70">暂无宸茶喘内容</h5>
-            <p class="text-muted small opacity-50">去发现优质付费内容吧</p>
-            <a href="/" class="btn mt-3" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>娴忚鍟嗗煄</a>
-        </div>
-        {/empty}
-
-        {if condition="($list->hasPages() ?? false)"}
-        <div class="mt-5 d-flex justify-content-center"><nav>{$list->render()|raw}</nav></div>
-        {/if}
-    </div>
+<div class="uc-section-header">
+    <span class="uc-section-title"><i class="bi bi-bag-check" style="color:var(--i8j-success,#10b981);"></i>已购内容</span>
+    <span style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);">共 {$total|default=0} 篇</span>
 </div>
+
+<div style="padding:0 20px;">
+    {volist name="list" id="vo"}
+    <a href="/content/detail/id/{$vo.content_id}" style="display:flex;justify-content:space-between;align-items:flex-start;padding:15px 0;border-bottom:1px solid var(--i8j-border,#f1f5f9);text-decoration:none;transition:background .12s;">
+        <div style="flex:1;min-width:0;margin-right:16px;">
+            <div style="font-size:14px;font-weight:600;color:var(--i8j-text,#1e293b);margin-bottom:4px;line-height:1.35;">{$vo.content.title|default='内容已删除'}</div>
+            <div style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);display:flex;align-items:center;gap:8px;">
+                {if $vo.content && $vo.content.cate}
+                <span class="uc-badge uc-badge-approved" style="font-size:10.5px;">{$vo.content.cate.name}</span>
+                {/if}
+                <span><i class="bi bi-clock me-1"></i>{$vo.create_time|date='Y-m-d H:i'}</span>
+            </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+            <div style="font-weight:700;font-size:15px;color:{if $vo.pay_type == 'points'}var(--i8j-warning,#f59e0b){else /}var(--i8j-success,#10b981){/if};">
+                {if $vo.pay_type == 'points'}<i class="bi bi-star me-1"></i>{$vo.price|default=0} 积分{else /}&yen;{$vo.price|default='0.00'}{/if}
+            </div>
+            <div style="margin-top:2px;"><span class="uc-badge uc-badge-shipped" style="font-size:10.5px;">已支付</span></div>
+        </div>
+    </a>
+    {/volist}
+
+    {empty name="list"}
+    <div class="uc-empty-state"><i class="bi bi-inbox"></i><p>暂无已购内容</p></div>
+    {/empty}
+</div>
+
 
 {/block}

@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -23,6 +23,8 @@ use GuzzleHttp\Exception\RequestException;
  */
 class GlmProvider implements AiProviderInterface
 {
+    use CapabilityTrait;
+
     protected \app\common\model\AiModel $model;
     protected Client $client;
     protected int $maxRetries = 2;
@@ -88,7 +90,7 @@ class GlmProvider implements AiProviderInterface
 
     public function getModelInfo(): array
     {
-        return ['provider' => 'glm', 'model_id' => $this->model->model_id ?? 'glm-4-flash', 'capabilities' => explode(',', $this->model->capabilities ?? 'write,seo,translate')];
+        return ['provider' => 'glm', 'model_id' => $this->model->model_id ?? 'glm-4-flash', 'capabilities' => $this->normalizeCapabilities(['write', 'seo', 'translate'])];
     }
 
     protected function sendWithRetry(string $uri, array $data, int $retryCount = 0): array

@@ -1,7 +1,7 @@
 /**
  * AI-CMS PJAX 局部刷新模块
  * 独立文件，确保在 admin-sidebar.js 之前加载
- * v3.3 - 支持页面级外部JS动态加载（ECharts/TinyMCE等），确保在外部脚本加载完成后再执行内联脚本
+ * v3.4 - 外部JS串行加载，保证依赖顺序（TinyMCE→业务JS），PJAX并行加载下的AI_CMS_CONFIG守卫
  */
 (function($) {
     'use strict';
@@ -79,36 +79,39 @@
     // ==================== 外部脚本加载 & 内联脚本执行 ====================
 
     /**
-     * 串行加载外部JS文件，全部完成后回调
+     * 串行加载外部JS文件，全部完成后回调（v3.4 修复：顺序加载保证依赖关系）
      */
     function loadExternalScripts(urls, callback) {
         if (!urls || urls.length === 0) { callback && callback(); return; }
-        var loaded = 0;
-        var total = urls.length;
-        urls.forEach(function(url) {
+        var idx = 0;
+        function loadNext() {
+            if (idx >= urls.length) {
+                callback && callback();
+                return;
+            }
+            var url = urls[idx];
+            idx++;
             // 避免重复加载：检查页面中是否已存在同src的script
             var existing = document.querySelector('script[src="' + url + '"]');
             if (existing) {
-                loaded++;
-                if (loaded === total) callback && callback();
+                loadNext();
                 return;
             }
             var s = document.createElement('script');
             s.src = url;
             s.onload = s.onreadystatechange = function() {
                 if (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete') {
-                    loaded++;
-                    if (loaded === total) callback && callback();
                     s.onload = s.onreadystatechange = null;
+                    loadNext(); // 上一个加载完成后再加载下一个
                 }
             };
             s.onerror = function() {
                 console.error('[PJAX] 外部脚本加载失败:', url);
-                loaded++;
-                if (loaded === total) callback && callback();
+                loadNext(); // 失败也继续下一个
             };
             document.head.appendChild(s);
-        });
+        }
+        loadNext();
     }
 
     /**
@@ -186,7 +189,7 @@
             href.indexOf('#') === 0 ||
             href.indexOf('javascript:') === 0 ||
             $this.attr('target') ||
-            $this.attr('data-no-pjax') ||
+            $this.is('[data-no-pjax]') ||
             (href.indexOf('http') === 0 && href.indexOf(window.location.host) === -1)
         ) {
             return;

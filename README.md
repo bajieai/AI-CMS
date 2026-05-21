@@ -715,6 +715,6 @@ docker-compose down -v
 
 ## 许可证
 
-Apache License 2.0 — 详见 [LICENSE](LICENSE) 文件
+MIT License — 详见 [LICENSE](LICENSE) 文件
 
-Copyright (c) 2024-2026 湖北八界智能技术有限公司
+Copyright (c) 2026 湖北八界智能技术有限公司

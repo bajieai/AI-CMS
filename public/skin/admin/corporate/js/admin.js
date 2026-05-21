@@ -244,10 +244,36 @@
         modal.show();
     };
 
-    // ==================== 清除全站缓存 ====================
+    // ==================== 清除缓存（支持分类清除）====================
+    // 一键清除全部缓存
     window.clearCache = function () {
-        if (!confirm('确定要清除全部缓存吗？')) return;
-        ajaxPost('/api/cache/clear', {});
+        showConfirm('一键清除缓存', '确定要清除全部缓存吗？清除后所有类型的缓存都将重建。', function () {
+            ajaxPost('/api/cache/clear', {});
+        });
+    };
+
+    // 按类型清除缓存
+    window.clearCacheByType = function (type, label) {
+        showConfirm('清除' + label, '确定要清除' + label + '吗？', function () {
+            ajaxPost('/api/cache/clearByType', { type: type });
+        });
+    };
+
+    // 清除浏览器缓存（纯前端）
+    window.clearBrowserCache = function () {
+        showConfirm('清除浏览器缓存', '确定要清除浏览器缓存吗？将刷新页面并强制重新加载资源。', function () {
+            if ('caches' in window) {
+                caches.keys().then(function (names) {
+                    for (var i = 0; i < names.length; i++) {
+                        caches.delete(names[i]);
+                    }
+                });
+            }
+            if (typeof $.pjax !== 'undefined' && pjaxCache) {
+                pjaxCache = {};
+            }
+            location.reload(true);
+        });
     };
 
     // ==================== 通知轮询（60秒间隔）====================

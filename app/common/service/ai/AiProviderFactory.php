@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -66,6 +66,15 @@ class AiProviderFactory
     protected static function createFromModel(AiModel $model): AiProviderInterface
     {
         $providerName = $model->provider;
+
+        // 数据库 API Key 为空时回退到 .env 配置
+        if (empty($model->api_key)) {
+            $envKey = env('ai.' . $providerName . '_api_key', '');
+            if (!empty($envKey)) {
+                $model->api_key = $envKey;
+            }
+        }
+
         $class = self::$providerMap[$providerName] ?? "\\app\\common\\service\\ai\\" . ucfirst($providerName) . "Provider";
 
         if (!class_exists($class)) {

@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -330,7 +330,7 @@ class ExportService
      */
     protected static function download(Spreadsheet $spreadsheet, string $filename): void
     {
-        $filename = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $filename) . '_' . date('Ymd_His') . '.xlsx';
+        $filename = preg_replace('/[^a-zA-Z0-9_\-]/u', '_', $filename) . '_' . date('Ymd_His') . '.xlsx';
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');

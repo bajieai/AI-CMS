@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -23,6 +23,8 @@ use GuzzleHttp\Exception\RequestException;
  */
 class DeepSeekProvider implements AiProviderInterface
 {
+    use CapabilityTrait;
+
     protected \app\common\model\AiModel $model;
     protected Client $client;
     protected int $maxRetries;
@@ -107,7 +109,7 @@ class DeepSeekProvider implements AiProviderInterface
         return [
             'provider' => 'deepseek',
             'model_id' => $this->model->model_id ?? 'deepseek-chat',
-            'capabilities' => explode(',', $this->model->capabilities ?? 'write,seo,translate,summarize'),
+            'capabilities' => $this->normalizeCapabilities(['write', 'seo', 'translate', 'summarize']),
         ];
     }
 

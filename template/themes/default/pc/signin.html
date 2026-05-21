@@ -3,98 +3,75 @@
 {block name="title"}每日签到{/block}
 
 {block name="content"}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <!-- 签到状态-->
-            <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
-                <div class="card-body p-4" style="background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%);border-radius:12px;color:#fff">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div style="font-size:2rem;font-weight:700">{$member.points|default=0}</div>
-                            <div style="font-size:.78rem;opacity:.85">当前积分</div>
-                        </div>
-                        <div class="col-4" style="border-left:1px solid rgba(255,255,255,.3);border-right:1px solid rgba(255,255,255,.3)">
-                            <div style="font-size:2rem;font-weight:700">{$member.signin_count|default=0}</div>
-                            <div style="font-size:.78rem;opacity:.85">连续签到(天</div>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-light btn-lg" id="btnSignin" style="border-radius:50px;font-weight:600">
-                                <i class="bi bi-hand-index me-1"></i>签到
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- 签到奖励璇存槑 -->
-            <div class="card shadow-sm mb-4" style="border:none;border-radius:12px">
-                <div class="card-header" style="background:transparent;border-bottom:1px solid #e2e8f0;font-weight:600">
-                    <i class="bi bi-gift me-1"></i>签到奖励
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="p-3 rounded" style="background:#f0fdf4">
-                                <div style="font-size:1.5rem;font-weight:700;color:#16a34a">+5</div>
-                                <div class="text-muted" style="font-size:.78rem">每日基础</div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-3 rounded" style="background:var(--i8j-bg-secondary,#eff6ff)">
-                                <div style="font-size:1.5rem;font-weight:700;color:var(--i8j-primary-hover,#2563eb)">+10</div>
-                                <div class="text-muted" style="font-size:.78rem">这炵画3澶╅澶</div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-3 rounded" style="background:#fefce8">
-                                <div style="font-size:1.5rem;font-weight:700;color:#ca8a04">+30</div>
-                                <div class="text-muted" style="font-size:.78rem">这炵画7澶╅澶</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- 签到状态卡片 -->
+<div class="uc-signin-card">
+    <div class="uc-points-stats" style="position:relative;z-index:1;">
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value">{$member.points|default=0}</div>
+            <div class="uc-points-label">当前积分</div>
+        </div>
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value">{$member.signin_count|default=0}</div>
+            <div class="uc-points-label">连续签到(天)</div>
+        </div>
+        <div class="uc-points-stat-item" style="border-left:none;">
+            <button type="button" id="btnSignin" class="uc-signin-btn"><i class="bi bi-hand-index"></i>签到</button>
+        </div>
+    </div>
+</div>
 
-            <!-- 签到日历 -->
-            <div class="card shadow-sm" style="border:none;border-radius:12px">
-                <div class="card-header d-flex justify-content-between align-items-center" style="background:transparent;border-bottom:1px solid #e2e8f0;font-weight:600">
-                    <span><i class="bi bi-calendar3 me-1"></i>{:date('Y年m月)}签到日历</span>
-                    <a href="/member/points" class="btn btn-sm btn-outline-primary" style="border-radius:50px"><i class="bi bi-clock-history me-1"></i>积分璁板綍</a>
-                </div>
-                <div class="card-body p-3">
-                    <div class="row g-1 text-center mb-2">
-                        <div class="col text-muted small">鏃</div>
-                        <div class="col text-muted small">中态</div>
-                        <div class="col text-muted small">浜</div>
-                        <div class="col text-muted small">中</div>
-                        <div class="col text-muted small">鍥</div>
-                        <div class="col text-muted small">浜</div>
-                        <div class="col text-muted small">共</div>
-                    </div>
-                    <div class="row g-1 text-center" id="calendarGrid">
-                        {php}
-                        $firstDay = date('w', strtotime(date('Y-m-01')));
-                        for ($i = 0; $i < $firstDay; $i++) {
-                            echo '<div class="col"></div>';
-                        }
-                        {/php}
-                        {volist name="calendar" id="day"}
-                        <div class="col">
-                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                                 style="width:36px;height:36px;font-size:.82rem;
-                                 {if $day.is_signed}
-                                 background:#43e97b;color:#fff;font-weight:600
-                                 {elseif $day.date == date('Y-m-d')}
-                                 border:2px solid #43e97b;font-weight:600
-                                 {/if}">
-                                {:date('j', strtotime($day['date']))}
-                            </div>
-                        </div>
-                        {/volist}
-                    </div>
-                </div>
+<!-- 签到奖励规则 -->
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:20px;">
+    <div class="uc-section-header">
+        <span class="uc-section-title"><i class="bi bi-gift" style="color:#f59e0b;"></i>签到奖励</span>
+    </div>
+    <div class="uc-reward-grid">
+        <div class="uc-reward-item" style="background:#f0fdf4;">
+            <div class="uc-reward-value" style="color:#16a34a;">+5</div>
+            <div class="uc-reward-label" style="color:#15803d;">每日基础奖励</div>
+        </div>
+        <div class="uc-reward-item" style="background:#eff6ff;">
+            <div class="uc-reward-value" style="color:#2563eb;">+10</div>
+            <div class="uc-reward-label" style="color:#1d4ed8;">连续3天额外奖励</div>
+        </div>
+        <div class="uc-reward-item" style="background:#fefce8;">
+            <div class="uc-reward-value" style="color:#ca8a04;">+30</div>
+            <div class="uc-reward-label" style="color:#a16207;">连续7天额外奖励</div>
+        </div>
+    </div>
+</div>
+
+<!-- 签到日历 -->
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;">
+    <div class="uc-calendar-header">
+        <span class="uc-calendar-title"><i class="bi bi-calendar3 me-2"></i>{:date('Y年m月')}签到日历</span>
+        <a href="/member/points" class="uc-action-link" style="font-size:12px;padding:5px 14px;background:#e2e8f0;color:#475569 !important;"><i class="bi bi-clock-history me-1"></i>积分记录</a>
+    </div>
+    <div style="padding:12px 16px 20px;">
+        <!-- 星期头 -->
+        <div class="uc-calendar-weekdays">
+            <span class="uc-calendar-weekday">日</span>
+            <span class="uc-calendar-weekday">一</span>
+            <span class="uc-calendar-weekday">二</span>
+            <span class="uc-calendar-weekday">三</span>
+            <span class="uc-calendar-weekday">四</span>
+            <span class="uc-calendar-weekday">五</span>
+            <span class="uc-calendar-weekday">六</span>
+        </div>
+        <!-- 日历格子 -->
+        <div class="uc-calendar-days" id="calendarGrid">
+            {php}
+            $firstDay = date('w', strtotime(date('Y-m-01')));
+            for ($i = 0; $i < $firstDay; $i++) {
+                echo '<div class="uc-calendar-day" style="visibility:hidden;"></div>';
+            }
+            {/php}
+            {volist name="calendar" id="day"}
+            <div class="uc-calendar-day {if $day.is_signed}signed{elseif $day.date == date('Y-m-d')}today{/if}">
+                {:date('j', strtotime($day['date']))}
             </div>
+            {/volist}
         </div>
     </div>
 </div>
@@ -105,22 +82,40 @@
 <script>
 $('#btnSignin').on('click', function() {
     var $btn = $(this);
+    var token = $('meta[name="csrf-token"]').attr('content');
     $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>签到中...');
-    $.post('/signin/do', function(res) {
-        if (res.code === 0) {
-            $btn.html('<i class="bi bi-check-lg me-1"></i>宸茬鍒?).removeClass('btn-light').addClass('btn-success');
-            var d = res.data;
-            var msg = '签到成功！获得' + d.points + ' 积分';
-            if (d.bonus_points > 0) msg += '（含连续签到奖励 +' + d.bonus_points + '）;
-            alert(msg);
-            setTimeout(function() { location.reload(); }, 1000);
-        } else {
-            $btn.prop('disabled', false).html('<i class="bi bi-hand-index me-1"></i>签到');
-            alert(res.msg || '签到失败');
+    
+    $.ajax({
+        url: '/signin/do',
+        type: 'POST',
+        dataType: 'json',
+        data: {__token__: token},
+        headers: {'X-CSRF-TOKEN': token},
+        success: function(res) {
+            if (res.code === 0) {
+                $btn.html('<i class="bi bi-check-lg me-1"></i>已签到');
+                var d = res.data;
+                var msg = '签到成功！获得' + d.points + ' 积分';
+                if (d.bonus_points > 0) msg += '（含连续签到奖励 +' + d.bonus_points + '）';
+                alert(msg);
+                setTimeout(function() { location.reload(); }, 1000);
+            } else {
+                $btn.prop('disabled', false).html('<i class="bi bi-hand-index me-1"></i>签到');
+                alert(res.msg || '签到失败');
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 419) {
+                // CSRF过期，刷新页面获取新Token
+                $btn.prop('disabled', false).html('<i class="bi bi-hand-index me-1"></i>签到');
+                if (confirm('页面已过期，需要刷新页面重试')) {
+                    location.reload();
+                }
+            } else {
+                $btn.prop('disabled', false).html('<i class="bi bi-hand-index me-1"></i>签到');
+                alert('网络错误，请稍后重试');
+            }
         }
-    }).fail(function() {
-        $btn.prop('disabled', false).html('<i class="bi bi-hand-index me-1"></i>签到');
-        alert('网络错误');
     });
 });
 </script>

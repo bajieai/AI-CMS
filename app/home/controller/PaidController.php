@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -57,10 +57,10 @@ class PaidController extends FrontBaseController
         }
 
         $page = (int) $this->request->get('page', 1);
-        $list = PaidService::getPurchasedList($this->memberInfo['id'], $page);
+        $list = PaidService::getPurchasedList((int) $this->memberInfo['id'], $page);
 
         $this->assign('list', $list);
         $this->assign('member', $this->memberInfo);
-        return $this->view('/paid_purchased');
+        return $this->view('/member_purchased', ['ucenter_active' => 'purchased']);
     }
 }

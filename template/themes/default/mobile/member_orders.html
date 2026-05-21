@@ -1,0 +1,31 @@
+{extend name="layout" /}
+
+{block name="title"}我的订单{/block}
+
+{block name="content"}
+<div class="ucenter-main-title"><i class="bi bi-cart me-2"></i>我的订单</div>
+
+{if condition="count($list) > 0"}
+<div class="list-group">
+    {volist name="list" id="item"}
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <div class="small fw-semibold">{$item.order_no}</div>
+            <div class="text-muted" style="font-size:12px;">{$item.source} · {:date('m-d H:i', $item.create_time)}</div>
+        </div>
+        <div class="text-end">
+            <div class="fw-bold text-primary">¥{$item.amount}</div>
+            <span class="badge {$item.status_badge}" style="font-size:11px;">{$item.status_text}</span>
+        </div>
+    </div>
+    {/volist}
+</div>
+{$list|raw}
+{else /}
+<div class="ucenter-empty">
+    <i class="bi bi-cart-x"></i>
+    <p>暂无订单记录</p>
+    <a href="/" class="btn btn-sm btn-primary mt-2">去逛逛</a>
+</div>
+{/if}
+{/block}

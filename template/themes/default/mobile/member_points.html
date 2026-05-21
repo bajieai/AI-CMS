@@ -5,35 +5,53 @@
 {block name="content"}
 <div class="m-content">
     <!-- 积分概览 -->
-    <div class="m-card text-center" style="padding:24px 18px;background:linear-gradient(135deg,#e8f2ff,#f0f7ff);">
-        <div style="font-size:36px;font-weight:800;color:#0d6efd;">{$points}</div>
-        <div style="color:#666;font-size:14px;margin-top:4px;">当前积分</div>
-        <div style="margin-top:12px;font-size:13px;color:#888;">
-            连续签到 {$sign_days} 天 &nbsp;|&nbsp; 累计签到 {$total_signins} 次
+    <div class="m-card" style="padding:24px 18px;background:linear-gradient(135deg,#3b82f6,#6366f1);border-radius:14px;">
+        <div style="text-align:center;">
+            <div style="font-size:40px;font-weight:800;color:#fff;letter-spacing:-.03em;">{$points}</div>
+            <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:6px;">当前积分</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.2);">
+            <div style="text-align:center;">
+                <div style="font-size:15px;font-weight:700;color:#fff;">连续签到 {$sign_days} 天</div>
+            </div>
+            <div style="width:1px;background:rgba(255,255,255,.25);"></div>
+            <div style="text-align:center;">
+                <div style="font-size:15px;font-weight:700;color:#fff;">累计签到 {$total_signins} 次</div>
+            </div>
         </div>
     </div>
 
     <!-- 每日签到按钮 -->
     <div class="m-card" style="padding:16px;text-align:center;margin-top:12px;">
         {if condition="$can_sign"}
-        <button id="signInBtn" class="m-btn m-btn-primary" style="max-width:200px;margin:0 auto;font-size:15px;padding:12px;"><i class="bi bi-calendar-check me-2"></i>立即签到</button>
+        <button id="signInBtn" class="m-btn m-btn-primary" style="max-width:200px;margin:0 auto;font-size:15px;padding:12px;border-radius:50px;background:linear-gradient(135deg,#10b981,#059669);"><i class="bi bi-calendar-check me-2"></i>立即签到</button>
         {else /}
-        <p style="margin:0;color:#888;font-size:14px;"><i class="bi bi-check-circle me-1" style="color:#198754;"></i>今日已签到，明天再来吧</p>
+        <p style="margin:0;color:#10b981;font-size:14px;"><i class="bi bi-check-circle-fill me-1"></i>今日已签到，明天再来吧</p>
         {/if}
     </div>
 
-    <!-- 积分记录 -->
-    <h4 style="font-size:16px;font-weight:700;margin:16px 0 10px;">积分明细</h4>
-    {volist name="logs" id="vo"}
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #f0f0f0;font-size:14px;">
-        <span>{$vo.remark}</span>
-        <span style="font-weight:600;color:{if condition="$vo.points > 0"}#198754{else /}#dc3545{/if};">{if condition="$vo.points > 0"}+{/if}{$vo.points}</span>
-        <small class="text-muted" style="font-size:11.5px;">{$vo.create_time|date='m-d H:i'}</small>
+    <!-- 积分记录标题 -->
+    <h4 style="font-size:16px;font-weight:700;margin:18px 0 10px;display:flex;align-items:center;gap:8px;color:#1e293b;">
+        <i class="bi bi-clock-history" style="color:#3b82f6;"></i>积分明细
+    </h4>
+
+    <!-- 记录列表 -->
+    <div class="m-card" style="padding:4px 0;">
+        {volist name="logs" id="vo"}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border-bottom:1px solid #f5f7fa;">
+            <div style="min-width:0;flex:1;">
+                <div style="font-size:14px;font-weight:500;color:#1e293b;">{$vo.remark}</div>
+            </div>
+            <div style="text-align:right;margin-left:12px;flex-shrink:0;">
+                <div style="font-weight:700;font-size:15px;color:{if condition="$vo.points > 0"}#10b981{else /}#ef4444{/if};">{if condition="$vo.points > 0"}+{/if}{$vo.points}</div>
+                <small style="font-size:11px;color:#94a3b8;">{$vo.create_time|date='m-d H:i'}</small>
+            </div>
+        </div>
+        {/volist}
+        {empty name="logs"}
+        <div class="m-empty"><i class="bi bi-receipt"></i><p>暂无积分记录</p></div>
+        {/empty}
     </div>
-    {/volist}
-    {empty name="logs"}
-    <div class="m-empty"><i class="bi bi-receipt"></i><p>暂无积分记录</p></div>
-    {/empty}
 </div>
 {/block}
 {block name="js"}

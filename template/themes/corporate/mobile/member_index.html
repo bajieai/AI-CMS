@@ -1,0 +1,59 @@
+{extend name="layout" /}
+
+{block name="title"}个人首页{/block}
+
+{block name="content"}
+<div class="ucenter-main-title">欢迎回来，{$member.nickname|default='用户'}</div>
+
+<div class="ucenter-dashboard">
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.points}</div>
+        <div class="ucenter-stat-label">我的积分</div>
+    </div>
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.favorite}</div>
+        <div class="ucenter-stat-label">我的收藏</div>
+    </div>
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.comment}</div>
+        <div class="ucenter-stat-label">我的评论</div>
+    </div>
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.notification}</div>
+        <div class="ucenter-stat-label">未读通知</div>
+    </div>
+</div>
+
+<div class="ucenter-quick-grid">
+    <a href="/member/profile" class="ucenter-quick-item"><i class="bi bi-person"></i>资料</a>
+    <a href="/member/points" class="ucenter-quick-item"><i class="bi bi-coin"></i>积分</a>
+    <a href="/member/favorite" class="ucenter-quick-item"><i class="bi bi-heart"></i>收藏</a>
+    <a href="/member/notification" class="ucenter-quick-item"><i class="bi bi-bell"></i>通知</a>
+    <a href="/member/level" class="ucenter-quick-item"><i class="bi bi-award"></i>等级</a>
+    <a href="/member/invite" class="ucenter-quick-item"><i class="bi bi-people"></i>邀请</a>
+    <a href="/member/signin" class="ucenter-quick-item"><i class="bi bi-calendar-check"></i>签到</a>
+    <a href="/member/coupon" class="ucenter-quick-item"><i class="bi bi-ticket-perforated"></i>券</a>
+</div>
+
+{if condition="count($recent_notifications) > 0"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bell me-2"></i>最近通知</span>
+        <a href="/member/notification" class="small">全部</a>
+    </div>
+    <ul class="list-group list-group-flush">
+        {volist name="recent_notifications" id="item"}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span class="text-truncate" style="max-width:60%;">{$item.title}</span>
+            <span class="text-muted small">{:date('m-d H:i', $item.create_time)}</span>
+        </li>
+        {/volist}
+    </ul>
+</div>
+{else /}
+<div class="ucenter-empty">
+    <i class="bi bi-inbox"></i>
+    <p>暂无新通知</p>
+</div>
+{/if}
+{/block}

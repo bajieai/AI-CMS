@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -25,12 +25,18 @@ class PointsProductController extends FrontBaseController
     protected bool $enablePageCache = false;
 
     /**
-     * 积分商品列表
+     * 积分商品列表（V2.9.10: 纳入用户中心框架，需登录）
      */
     public function index()
     {
+        if (empty($this->memberInfo)) {
+            return redirect('/member/login');
+        }
+
         $list = PointsProductService::getList(1, 20, true);
         $this->assign('list', $list);
+        $this->assign('member', $this->memberInfo);
+        $this->assign('ucenter_active', 'points_shop');
         return $this->view('/points_product');
     }
 

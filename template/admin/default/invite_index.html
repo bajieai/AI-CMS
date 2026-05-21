@@ -80,7 +80,12 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <img src="{$vo.inviter_avatar|default='/static/default-avatar.png'}" class="rounded-circle me-2" width="32" height="32" onerror="this.src='/static/default-avatar.png'">
+                                {if $vo.inviter_avatar}
+                                <img src="{$vo.inviter_avatar}" class="rounded-circle me-2" width="32" height="32" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+                                <span class="rounded-circle me-2 bg-light d-inline-flex align-items-center justify-content-center" style="width:32px;height:32px;display:none;color:#94a3b8;font-size:16px"><i class="bi bi-person-fill"></i></span>
+                                {else/}
+                                <span class="rounded-circle me-2 bg-light d-inline-flex align-items-center justify-content-center" style="width:32px;height:32px;color:#94a3b8;font-size:16px"><i class="bi bi-person-fill"></i></span>
+                                {/if}
                                 <span>{$vo.inviter_name}</span>
                             </div>
                         </td>

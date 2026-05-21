@@ -87,7 +87,10 @@
                         <i class="bi bi-person-circle"></i> {$member_info.nickname}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark">
-                        <li><a class="dropdown-item" href="/member/profile"><i class="bi bi-person me-2"></i>个人中心</a></li>
+                        <li><a class="dropdown-item" href="/member/index"><i class="bi bi-house-door me-2"></i>用户中心</a></li>
+                        <li><a class="dropdown-item" href="/member/profile"><i class="bi bi-person me-2"></i>个人资料</a></li>
+                        <li><a class="dropdown-item" href="/member/points"><i class="bi bi-coin me-2"></i>我的积分</a></li>
+                        <li><a class="dropdown-item" href="/member/orders"><i class="bi bi-cart me-2"></i>我的订单</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/member/logout"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
                     </ul>
@@ -104,7 +107,46 @@
 <!-- 占位：避免fixed导航遮挡内容 -->
 <div style="height:72px;"></div>
 
+{if condition="isset($ucenter_active)"}
+<link href="/assets/css/ucenter.css?v=2.9.10" rel="stylesheet">
+<div class="ucenter-wrapper">
+<aside class="ucenter-sidebar">
+    <div class="ucenter-user-brief">
+        <img src="{$member_info.avatar|default='/assets/img/default-avatar.png'}" class="ucenter-avatar" alt="avatar">
+        <div class="ucenter-nickname">{$member_info.nickname|default='用户'}</div>
+    </div>
+    <nav class="ucenter-nav">
+        <!-- 个人管理 -->
+        <a href="/member/index" class="ucenter-nav-item{if $ucenter_active == 'index'} active{/if}"><i class="bi bi-house-door"></i>个人首页</a>
+        <a href="/member/profile" class="ucenter-nav-item{if $ucenter_active == 'profile'} active{/if}"><i class="bi bi-person"></i>个人资料</a>
+        <div class="ucenter-nav-sep"></div>
+        <!-- 积分与奖励 -->
+        <a href="/signin" class="ucenter-nav-item{if $ucenter_active == 'signin'} active{/if}"><i class="bi bi-calendar-check"></i>每日签到</a>
+        <a href="/member/points" class="ucenter-nav-item{if $ucenter_active == 'points'} active{/if}"><i class="bi bi-coin"></i>我的积分</a>
+            <a href="/points" class="ucenter-nav-item{if $ucenter_active == 'points_shop'} active{/if}"><i class="bi bi-shop"></i>积分商城</a>
+            <a href="/member/exchange" class="ucenter-nav-item{if $ucenter_active == 'exchange'} active{/if}"><i class="bi bi-gift"></i>兑换记录</a>
+        <a href="/member/coupon" class="ucenter-nav-item{if $ucenter_active == 'coupon'} active{/if}"><i class="bi bi-ticket-perforated"></i>优惠券</a>
+        <div class="ucenter-nav-sep"></div>
+        <!-- 消费与内容 -->
+        <a href="/member/orders" class="ucenter-nav-item{if $ucenter_active == 'orders'} active{/if}"><i class="bi bi-cart"></i>我的订单</a>
+        <a href="/paid/purchased" class="ucenter-nav-item{if $ucenter_active == 'purchased'} active{/if}"><i class="bi bi-bag-check"></i>已购内容</a>
+        <a href="/member/favorite" class="ucenter-nav-item{if $ucenter_active == 'favorite'} active{/if}"><i class="bi bi-heart"></i>我的收藏</a>
+        <a href="/member/comments" class="ucenter-nav-item{if $ucenter_active == 'comments'} active{/if}"><i class="bi bi-chat-left-text"></i>我的评论</a>
+        <div class="ucenter-nav-sep"></div>
+        <!-- 社交与成长 -->
+        <a href="/member/notification" class="ucenter-nav-item{if $ucenter_active == 'notification'} active{/if}"><i class="bi bi-bell"></i>消息通知</a>
+        <a href="/member/level" class="ucenter-nav-item{if $ucenter_active == 'level'} active{/if}"><i class="bi bi-award"></i>我的等级</a>
+        <a href="/member/invite" class="ucenter-nav-item{if $ucenter_active == 'invite'} active{/if}"><i class="bi bi-people"></i>我的邀请</a>
+        <div class="ucenter-nav-sep"></div>
+        <a href="/member/logout" class="ucenter-nav-item text-danger"><i class="bi bi-box-arrow-right"></i>退出登录</a>
+    </nav>
+</aside>
+<main class="ucenter-main">
+{/if}
 {block name="content"}{/block}
+{if condition="isset($ucenter_active)"}
+</main></div>
+{/if}
 
 <!-- 友情链接 -->
 {i8j:linklist limit="20" status="1"}
@@ -139,7 +181,7 @@
                 <div class="col-md-4">
                     <h6>{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h6>
                     <p class="small mb-2">专业的内容管理系统，融合 AI 技术，为企业提供高效的内容运营解决方案。</p>
-                    <p class="mb-0 small">{$powered_by} {$copyright_info}</p>
+                    <p class="mb-0 small">{$powered_by|raw} {$copyright_info}</p>
                 </div>
                 <div class="col-md-4">
                     <h6>快速链接</h6>
@@ -159,7 +201,7 @@
     <!-- 底部版权栏 -->
     <div class="footer-bottom">
         <div class="container text-center">
-            {$powered_by} {$copyright_info}
+            {$powered_by|raw} {$copyright_info}
         </div>
     </div>
 </footer>

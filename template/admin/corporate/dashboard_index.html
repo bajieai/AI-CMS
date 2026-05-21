@@ -256,6 +256,25 @@
 
 {block name="js"}
 <script>
+// V2.9.9-R5 死链统计（全局作用域，供 onclick 调用）
+function loadDeadLinkStats() {
+    $('#deadLinkCount').text('...');
+    $.get('/admin/dashboard/getDeadLinkStats', function(d) {
+        if (d.code !== 0) return;
+        var r = d.data;
+        $('#deadLinkCount').text(r.count).css('color', r.count > 0 ? '#f5576c' : '#43e97b');
+        $('#deadLinkTime').text(r.last_check || '-');
+        var listHtml = '';
+        if (r.list && r.list.length > 0) {
+            listHtml = '<div class="small text-danger mt-1">前5条死链：</div>' + r.list.map(function(item) {
+                return '<div class="text-truncate" style="max-width:100%;" title="' + item.url + '"><a href="' + item.source + '" target="_blank" class="text-decoration-none text-muted">' + item.url + '</a> <span class="badge bg-secondary">' + item.status_code + '</span></div>';
+            }).join('');
+        } else if (r.count === 0) {
+            listHtml = '<div class="small text-success"><i class="bi bi-check-circle me-1"></i>未发现死链</div>';
+        }
+        $('#deadLinkList').html(listHtml);
+    });
+}
 $(function(){
     // 加载概览数据
     $.get('/admin/dashboard/overview', function(d){
@@ -418,25 +437,6 @@ $(function(){
         memberChart.resize();
     });
 
-    // V2.9.9-R5 死链统计
-    function loadDeadLinkStats() {
-        $('#deadLinkCount').text('...');
-        $.get('/admin/dashboard/getDeadLinkStats', function(d) {
-            if (d.code !== 0) return;
-            var r = d.data;
-            $('#deadLinkCount').text(r.count).css('color', r.count > 0 ? '#f5576c' : '#43e97b');
-            $('#deadLinkTime').text(r.last_check || '-');
-            var listHtml = '';
-            if (r.list && r.list.length > 0) {
-                listHtml = '<div class="small text-danger mt-1">前5条死链：</div>' + r.list.map(function(item) {
-                    return '<div class="text-truncate" style="max-width:100%;" title="' + item.url + '"><a href="' + item.source + '" target="_blank" class="text-decoration-none text-muted">' + item.url + '</a> <span class="badge bg-secondary">' + item.status_code + '</span></div>';
-                }).join('');
-            } else if (r.count === 0) {
-                listHtml = '<div class="small text-success"><i class="bi bi-check-circle me-1"></i>未发现死链</div>';
-            }
-            $('#deadLinkList').html(listHtml);
-        });
-    }
     loadDeadLinkStats();
 });
 </script>

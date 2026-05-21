@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -88,13 +88,12 @@ class LogController extends AdminBaseController
                 $item['action'],
                 $item['target'] ?? '',
                 $item['ip'],
-                date('Y-m-d H:i:s', $item['create_time']),
+                is_numeric($item['create_time']) ? date('Y-m-d H:i:s', (int)$item['create_time']) : date('Y-m-d H:i:s', strtotime($item['create_time'])),
             ];
         }
 
         $exportService = new ExportService();
-        $format = $this->request->get('format', 'xlsx');
-        return $exportService->toExcel($headers, $rows, '操作日志', $format);
+        return $exportService->toExcel('操作日志', $headers, $rows);
     }
 
     /**

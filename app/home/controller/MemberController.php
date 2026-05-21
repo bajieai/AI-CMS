@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -114,7 +114,82 @@ class MemberController extends FrontBaseController
     }
 
     /**
-     * 个人中心
+     * V2.9.10: 个人首页（用户中心入口）
+     */
+    public function index()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $memberId = $this->memberInfo['id'];
+
+        // 汇总统计数据
+        $stats = [
+            'points'      => (int) ($this->memberInfo['points'] ?? 0),
+            'favorite'    => \app\common\model\MemberFavorite::where('member_id', $memberId)->count(),
+            'comment'     => \app\common\model\Comment::where('member_id', $memberId)->count(),
+            'notification'=> \app\common\model\Notification::where('receiver_type', 'member')->where('receiver_id', $memberId)->where('is_read', 0)->count(),
+        ];
+
+        // 最近通知
+        $recentNotifications = \app\common\model\Notification::where('receiver_type', 'member')
+            ->where('receiver_id', $memberId)
+            ->order('create_time', 'desc')
+            ->limit(5)
+            ->select();
+
+        return $this->view('/member_index', [
+            'member' => $this->memberInfo,
+            'stats' => $stats,
+            'recent_notifications' => $recentNotifications,
+            'ucenter_active' => 'index',
+        ]);
+    }
+
+    /**
+     * V2.9.10: 我的订单
+     */
+    public function orders()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $list = \app\common\model\Order::where('user_id', $this->memberInfo['id'])
+            ->order('id', 'desc')
+            ->paginate(20);
+
+        return $this->view('/member_orders', [
+            'list' => $list,
+            'member' => $this->memberInfo,
+            'ucenter_active' => 'orders',
+        ]);
+    }
+
+    /**
+     * V2.9.10: 我的评论
+     */
+    public function comments()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $list = \app\common\model\Comment::with('content')
+            ->where('member_id', $this->memberInfo['id'])
+            ->order('id', 'desc')
+            ->paginate(20);
+
+        return $this->view('/member_comments', [
+            'list' => $list,
+            'member' => $this->memberInfo,
+            'ucenter_active' => 'comments',
+        ]);
+    }
+
+    /**
+     * 个人资料
      */
     public function profile(Request $request)
     {
@@ -128,7 +203,10 @@ class MemberController extends FrontBaseController
             return json($result);
         }
 
-        return $this->view('/member_profile', ['member' => $this->memberInfo]);
+        return $this->view('/member_profile', [
+            'member' => $this->memberInfo,
+            'ucenter_active' => 'profile',
+        ]);
     }
 
     /**
@@ -140,7 +218,7 @@ class MemberController extends FrontBaseController
             return redirect('/member/login');
         }
 
-        $memberId = $this->memberInfo['id'];
+        $memberId = (int) $this->memberInfo['id'];
         
         // 生成或获取邀请码
         $inviteCode = \app\common\model\InviteLog::where('inviter_id', $memberId)->value('invite_code');
@@ -175,6 +253,7 @@ class MemberController extends FrontBaseController
             'invite_count' => $inviteCount,
             'invite_points' => $invitePoints,
             'invite_list' => $inviteList,
+            'ucenter_active' => 'invite',
         ]);
     }
 
@@ -198,6 +277,7 @@ class MemberController extends FrontBaseController
             'list' => $list,
             'consecutive_days' => $consecutiveDays,
             'member' => $this->memberInfo,
+            'ucenter_active' => 'points',
         ]);
     }
 
@@ -211,9 +291,12 @@ class MemberController extends FrontBaseController
         }
 
         $service = new MemberFavoriteService();
-        $result = $service->getList($this->memberInfo['id'], 1, 20);
+        $result = $service->getList((int) $this->memberInfo['id'], 1, 20);
 
-        return $this->view('/member_favorite', ['list' => $result['data'] ?? []]);
+        return $this->view('/member_favorite', [
+            'list' => $result['data'] ?? [],
+            'ucenter_active' => 'favorite',
+        ]);
     }
 
     /**
@@ -275,6 +358,7 @@ class MemberController extends FrontBaseController
             'unread_count' => $unreadCount,
             'type_counts' => $typeCounts,
             'current_type' => $type,
+            'ucenter_active' => 'notification',
         ]);
     }
 
@@ -311,6 +395,7 @@ class MemberController extends FrontBaseController
         return $this->view('/member_exchange_log', [
             'list' => $list,
             'member' => $this->memberInfo,
+            'ucenter_active' => 'exchange',
         ]);
     }
 
@@ -357,6 +442,26 @@ class MemberController extends FrontBaseController
     }
 
     /**
+     * V2.9.10: 我的优惠券
+     */
+    public function coupon()
+    {
+        if (!$this->isMemberLogin) {
+            return redirect('/member/login');
+        }
+
+        $list = \app\common\model\UserCoupon::where('member_id', (int) $this->memberInfo['id'])
+            ->order('id', 'desc')
+            ->paginate(20);
+
+        return $this->view('/member_coupon', [
+            'list' => $list,
+            'member' => $this->memberInfo,
+            'ucenter_active' => 'coupon',
+        ]);
+    }
+
+    /**
      * V2.9.3 M20: 会员等级进度页
      */
     public function level()
@@ -382,6 +487,7 @@ class MemberController extends FrontBaseController
             'levels' => $levels,
             'member' => $this->memberInfo,
             'timeline' => $timeline,
+            'ucenter_active' => 'level',
         ]);
     }
 }

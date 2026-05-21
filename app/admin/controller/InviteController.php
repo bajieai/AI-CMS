@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -71,10 +71,10 @@ class InviteController extends AdminBaseController
     /**
      * 邀请明细
      */
-    public function detail(int $inviterId)
+    public function detail(int $id)
     {
-        $member = Member::find($inviterId);
-        $list = InviteLog::where('inviter_id', $inviterId)
+        $member = Member::find($id);
+        $list = InviteLog::where('inviter_id', $id)
             ->order('create_time', 'desc')
             ->paginate(20);
 

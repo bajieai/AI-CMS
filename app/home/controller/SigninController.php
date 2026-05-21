@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | 八界AI-CMS 内容管理系统
 // +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 All rights reserved.
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
 // +----------------------------------------------------------------------
 // | 官网: http://www.i8j.cn
 // +----------------------------------------------------------------------
@@ -38,6 +38,7 @@ class SigninController extends FrontBaseController
 
         $this->assign('calendar', $calendar);
         $this->assign('member', $this->memberInfo);
+        $this->assign('ucenter_active', 'signin');
         return $this->view('/signin');
     }
 
@@ -75,6 +76,7 @@ class SigninController extends FrontBaseController
 
         $this->assign('list', $list);
         $this->assign('member', $this->memberInfo);
+        $this->assign('ucenter_active', 'signin');
         return $this->view('/signin_points_log');
     }
 }
