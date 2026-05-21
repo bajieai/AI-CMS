@@ -16,6 +16,7 @@ namespace app\common\controller;
 
 use app\common\model\Log as LogModel;
 use app\common\service\CacheService;
+use app\common\service\MenuBridge;
 use app\common\service\TemplateService;
 use think\App;
 use think\facade\Cache;
@@ -238,7 +239,8 @@ abstract class AdminBaseController extends \think\BaseController
         $cacheKey = 'admin_filtered_menus_' . $roleId;
 
         return Cache::tag(CacheService::TAG_CONFIG)->remember($cacheKey, function () use ($roleId) {
-            $menus = Config::get('menu', []);
+            // V2.9.10: 通过 MenuBridge 读取菜单（DB优先 → config回退）
+            $menus = MenuBridge::getMenus();
 
             // 1. 功能开关过滤 — 对所有人生效（含超管）
             $hiddenMenuIds = $this->getDisabledModuleMenuIds();

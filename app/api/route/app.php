@@ -34,6 +34,7 @@ Route::get('csrf/token', '\app\api\controller\CsrfController@token');
 
 // 缓存清理（限管理员）
 Route::post('cache/clear', '\app\api\controller\CacheController@clear');
+Route::post('cache/clearByType', '\app\api\controller\CacheController@clearByType');
 
 // V2.7 API v1 路由组（Token认证 + 会员身份解析 + 付费内容防护）
 Route::group('v1', function () {

@@ -396,3 +396,12 @@ Route::post('social_share/saveConfig$', '\app\admin\controller\SocialShareContro
 // V2.8: 邀请排行与明细
 Route::get('invite/index$', '\app\admin\controller\InviteController@index');
 Route::get('invite/detail/:id$', '\app\admin\controller\InviteController@detail');
+
+// V2.9.10: 菜单管理
+Route::get('menu_manager/index$', '\app\admin\controller\MenuManagerController@index');
+Route::post('menu_manager/saveGroup$', '\app\admin\controller\MenuManagerController@saveGroup');
+Route::post('menu_manager/saveItem$', '\app\admin\controller\MenuManagerController@saveItem');
+Route::post('menu_manager/deleteGroup$', '\app\admin\controller\MenuManagerController@deleteGroup');
+Route::post('menu_manager/deleteItem$', '\app\admin\controller\MenuManagerController@deleteItem');
+Route::post('menu_manager/sort$', '\app\admin\controller\MenuManagerController@sort');
+Route::post('menu_manager/toggleStatus$', '\app\admin\controller\MenuManagerController@toggleStatus');

@@ -1,14 +1,19 @@
-# 八界AI-CMS V2.9.9
+# 八界AI-CMS V2.9.10
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.9-blue)
+![Version](https://img.shields.io/badge/version-2.9.10-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.9 "从好用到聪明" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.10 "体验进化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.10 核心定位：前台用户中心增强 + 缓存清除细分 + 后台菜单数据库化** — 3项优化：
+1. **前台用户中心增强** — 统一用户中心入口、侧边栏导航分组、积分商城条件显示、导航栏登录下拉改造
+2. **缓存清除细分** — 后台一键清除缓存拆分为5项（全部/内容/模板/插件/浏览器），支持按类型精准清理
+3. **后台菜单重新分类** — 新建 i8j_menu_group + i8j_menu_item 表替代硬编码，提供可视化菜单管理后台，6大分组重组
 
 **V2.9.9 核心定位：从好用的CMS走向聪明的CMS** — 8大模块全面升级：AI内容模板引擎、社交分享轻量版+分享追踪、AI多语言国际化、SEO深度升级、插件市场完善、审批工作流增强、AI-GEO深度优化、会员等级深化+付费阅读权限控制。
 

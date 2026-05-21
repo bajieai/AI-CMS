@@ -1,0 +1,253 @@
+{extend name="layout" /}
+{block name="title"}菜单管理{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item active">菜单管理</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-list-nested me-2"></i>后台菜单管理</h5>
+    <div>
+        <button class="btn btn-sm btn-primary" onclick="openGroupModal()">
+            <i class="bi bi-plus-lg me-1"></i>新增分组
+        </button>
+    </div>
+</div>
+
+<div class="row g-3" id="groupList">
+    {volist name="groups" id="group"}
+    <div class="col-12 col-lg-6 group-card" data-group-id="{$group.id}">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-grip-vertical text-muted me-2 drag-handle" style="cursor:grab;"></i>
+                    <i class="{$group.icon|default='bi bi-folder'} me-2 text-primary"></i>
+                    <strong>{$group.name}</strong>
+                    <span class="badge bg-light text-muted ms-2" style="font-size:.7rem;">{$group.code}</span>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" {if $group.status == 1}checked{/if}
+                               onchange="toggleGroupStatus({$group.id}, this.checked ? 1 : 0)">
+                    </div>
+                    <button class="btn btn-sm btn-link text-primary py-0" onclick="openGroupModal({$group.id}, '{$group.name|raw}', '{$group.code|raw}', '{$group.icon|raw}', {$group.sort}, {$group.status})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link text-danger py-0" onclick="deleteGroup({$group.id})">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush item-list" data-group-id="{$group.id}">
+                    {volist name="groupedItems[$group.id] ?? []" id="item"}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2 item-row" data-item-id="{$item.id}">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-grip-vertical text-muted me-2 drag-handle" style="cursor:grab;"></i>
+                            <i class="{$item.icon|default='bi bi-circle'} me-2 text-secondary"></i>
+                            <span>{$item.name}</span>
+                            <small class="text-muted ms-2">{$item.url}</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" {if $item.status == 1}checked{/if}
+                                       onchange="toggleItemStatus({$item.id}, this.checked ? 1 : 0)">
+                            </div>
+                            <button class="btn btn-sm btn-link text-primary py-0" onclick="openItemModal({$item.id}, {$item.group_id}, '{$item.name|raw}', '{$item.url|raw}', '{$item.permission|raw}', '{$item.active|raw}', '{$item.icon|raw}', {$item.sort}, {$item.status})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-link text-danger py-0" onclick="deleteItem({$item.id})">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </li>
+                    {/volist}
+                </ul>
+                <div class="p-2 text-center">
+                    <button class="btn btn-sm btn-light text-primary" onclick="openItemModal(0, {$group.id})">
+                        <i class="bi bi-plus-lg me-1"></i>新增菜单项
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {/volist}
+</div>
+
+<!-- 分组编辑模态框 -->
+<div class="modal fade" id="groupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="groupModalTitle">新增分组</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="groupId">
+                <div class="mb-3">
+                    <label class="form-label">分组名称</label>
+                    <input type="text" class="form-control" id="groupName" placeholder="如：内容管理">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">分组标识</label>
+                    <input type="text" class="form-control" id="groupCode" placeholder="如：content">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">图标类名</label>
+                    <input type="text" class="form-control" id="groupIcon" placeholder="如：bi bi-file-text">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">排序</label>
+                    <input type="number" class="form-control" id="groupSort" value="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveGroup()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 菜单项编辑模态框 -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemModalTitle">新增菜单项</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="itemId">
+                <input type="hidden" id="itemGroupId">
+                <div class="mb-3">
+                    <label class="form-label">菜单名称</label>
+                    <input type="text" class="form-control" id="itemName" placeholder="如：信息管理">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">链接地址</label>
+                    <input type="text" class="form-control" id="itemUrl" placeholder="如：/admin/content/index">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">权限标识</label>
+                    <input type="text" class="form-control" id="itemPermission" placeholder="如：content.*">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">激活标识</label>
+                    <input type="text" class="form-control" id="itemActive" placeholder="如：content">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">图标类名</label>
+                    <input type="text" class="form-control" id="itemIcon" placeholder="如：bi bi-file-text">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">排序</label>
+                    <input type="number" class="form-control" id="itemSort" value="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+// 分组模态框
+function openGroupModal(id, name, code, icon, sort, status) {
+    id = id || 0;
+    $('#groupId').val(id);
+    $('#groupName').val(name || '');
+    $('#groupCode').val(code || '');
+    $('#groupIcon').val(icon || '');
+    $('#groupSort').val(sort || 0);
+    $('#groupModalTitle').text(id > 0 ? '编辑分组' : '新增分组');
+    var modal = new bootstrap.Modal(document.getElementById('groupModal'));
+    modal.show();
+}
+
+function saveGroup() {
+    var data = {
+        id: $('#groupId').val(),
+        name: $('#groupName').val().trim(),
+        code: $('#groupCode').val().trim(),
+        icon: $('#groupIcon').val().trim(),
+        sort: parseInt($('#groupSort').val()) || 0,
+        status: 1
+    };
+    if (!data.name || !data.code) {
+        showToast('名称和标识不能为空', 'warning');
+        return;
+    }
+    ajaxPost('/admin/menu_manager/saveGroup', data, function() {
+        bootstrap.Modal.getInstance(document.getElementById('groupModal')).hide();
+        location.reload();
+    });
+}
+
+function deleteGroup(id) {
+    showConfirm('删除分组', '确定删除该分组吗？', function() {
+        ajaxPost('/admin/menu_manager/deleteGroup', { id: id }, function() {
+            location.reload();
+        });
+    });
+}
+
+function toggleGroupStatus(id, status) {
+    ajaxPost('/admin/menu_manager/toggleStatus', { type: 'group', id: id, status: status });
+}
+
+// 菜单项模态框
+function openItemModal(id, groupId, name, url, permission, active, icon, sort, status) {
+    id = id || 0;
+    $('#itemId').val(id);
+    $('#itemGroupId').val(groupId || 0);
+    $('#itemName').val(name || '');
+    $('#itemUrl').val(url || '');
+    $('#itemPermission').val(permission || '');
+    $('#itemActive').val(active || '');
+    $('#itemIcon').val(icon || '');
+    $('#itemSort').val(sort || 0);
+    $('#itemModalTitle').text(id > 0 ? '编辑菜单项' : '新增菜单项');
+    var modal = new bootstrap.Modal(document.getElementById('itemModal'));
+    modal.show();
+}
+
+function saveItem() {
+    var data = {
+        id: $('#itemId').val(),
+        group_id: $('#itemGroupId').val(),
+        name: $('#itemName').val().trim(),
+        url: $('#itemUrl').val().trim(),
+        permission: $('#itemPermission').val().trim(),
+        active: $('#itemActive').val().trim(),
+        icon: $('#itemIcon').val().trim(),
+        sort: parseInt($('#itemSort').val()) || 0,
+        status: 1
+    };
+    if (!data.group_id || !data.name) {
+        showToast('分组和名称不能为空', 'warning');
+        return;
+    }
+    ajaxPost('/admin/menu_manager/saveItem', data, function() {
+        bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+        location.reload();
+    });
+}
+
+function deleteItem(id) {
+    showConfirm('删除菜单项', '确定删除该菜单项吗？', function() {
+        ajaxPost('/admin/menu_manager/deleteItem', { id: id }, function() {
+            location.reload();
+        });
+    });
+}
+
+function toggleItemStatus(id, status) {
+    ajaxPost('/admin/menu_manager/toggleStatus', { type: 'item', id: id, status: status });
+}
+</script>
+{/block}

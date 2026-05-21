@@ -70,6 +70,9 @@
         <li><a href="/member/index"><i class="bi bi-house-door"></i>用户中心</a></li>
         <li><a href="/member/profile"><i class="bi bi-person-circle"></i>{$member_info.nickname}</a></li>
         <li><a href="/member/points"><i class="bi bi-coin"></i>我的积分</a></li>
+        {if $points_shop_enabled}
+        <li><a href="/points"><i class="bi bi-shop"></i>积分商城</a></li>
+        {/if}
         <li><a href="/member/orders"><i class="bi bi-cart"></i>我的订单</a></li>
         <li><a href="/message/index"><i class="bi bi-chat-dots"></i>我的私信 {if $member_unread_count > 0}<span class="badge bg-danger rounded-pill" style="font-size:.65rem;">{$member_unread_count}</span>{/if}</a></li>
         <li><a href="/message/system"><i class="bi bi-megaphone"></i>系统通知</a></li>
@@ -94,7 +97,9 @@
         <!-- 积分与奖励 -->
         <a href="/signin" class="ucenter-nav-item{if $ucenter_active == 'signin'} active{/if}"><i class="bi bi-calendar-check"></i>每日签到</a>
         <a href="/member/points" class="ucenter-nav-item{if $ucenter_active == 'points'} active{/if}"><i class="bi bi-coin"></i>我的积分</a>
+        {if $points_shop_enabled}
         <a href="/points" class="ucenter-nav-item{if $ucenter_active == 'points_shop'} active{/if}"><i class="bi bi-shop"></i>积分商城</a>
+        {/if}
         <a href="/member/exchange" class="ucenter-nav-item{if $ucenter_active == 'exchange'} active{/if}"><i class="bi bi-gift"></i>兑换记录</a>
         <a href="/member/coupon" class="ucenter-nav-item{if $ucenter_active == 'coupon'} active{/if}"><i class="bi bi-ticket-perforated"></i>优惠券</a>
         <div class="ucenter-nav-sep"></div>
