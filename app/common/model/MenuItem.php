@@ -22,8 +22,8 @@ class MenuItem extends Model
     protected $pk = 'id';
 
     protected $type = [
-        'create_time' => 'timestamp',
-        'update_time' => 'timestamp',
+        'create_time' => 'integer',
+        'update_time' => 'integer',
     ];
 
     /**

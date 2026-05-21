@@ -1,0 +1,94 @@
+{extend name="layout" /}
+
+{block name="title"}AI配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">AI中心</li>
+<li class="breadcrumb-item active">AI配置</li>
+{/block}
+
+{block name="content"}
+<!-- Tab导航：3Tab拆分 -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'model'}active{/if}" href="/admin/system/aiConfig?tab=model">
+            <i class="bi bi-cpu me-1"></i>AI模型
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'image'}active{/if}" href="/admin/system/aiConfig?tab=image">
+            <i class="bi bi-image me-1"></i>AI配图
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'writing'}active{/if}" href="/admin/system/aiConfig?tab=writing">
+            <i class="bi bi-pen me-1"></i>AI写作
+        </a>
+    </li>
+</ul>
+
+<form id="aiConfigForm" method="post" action="/admin/system/aiConfig">
+    <input type="hidden" name="tab" value="{$currentTab}">
+    {foreach $tabs[$currentTab]['items'] as $item}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row mb-3 align-items-center">
+                <label class="col-sm-3 col-form-label text-end">{$item.remark ?: $item.name}</label>
+                <div class="col-sm-6">
+                    {if $item.type == 'text'}
+                    <input type="text" name="{$item.name}" class="form-control" value="{$item.value}">
+                    {/if}
+
+                    {if $item.type == 'textarea'}
+                    <textarea name="{$item.name}" class="form-control" rows="5">{$item.value}</textarea>
+                    {/if}
+
+                    {if $item.type == 'number'}
+                    <input type="number" name="{$item.name}" class="form-control" value="{$item.value}">
+                    {/if}
+
+                    {if $item.type == 'switch'}
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="{$item.name}" value="1" id="cfg_{$item.name}" {if $item.value == 1}checked{/if}>
+                        <label class="form-check-label" for="cfg_{$item.name}">启用</label>
+                    </div>
+                    {/if}
+
+                    {if $item.type == 'select'}
+                    <select name="{$item.name}" class="form-select">
+                        {$item.options|raw}
+                    </select>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    {/foreach}
+
+    {if count($tabs[$currentTab]['items']) == 0}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        暂无{$tabs[$currentTab]['name']}配置项
+    </div>
+    {/if}
+
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+    </div>
+</form>
+<script>
+$('#aiConfigForm').on('submit', function(e) {
+    e.preventDefault();
+    var $form = $(this);
+    // 处理switch未勾选时不会提交的问题
+    $form.find('.form-check-input:not(:checked)').each(function() {
+        var name = $(this).attr('name');
+        if (name && !$('[name="' + name + '"][type="hidden"]').length) {
+            $(this).after('<input type="hidden" name="' + name + '" value="0">');
+        }
+    });
+    ajaxPost($form.attr('action'), $form.serialize());
+});
+</script>
+{/block}
+{block name="js"}{/block}

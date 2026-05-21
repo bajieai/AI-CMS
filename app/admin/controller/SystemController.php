@@ -26,6 +26,69 @@ use app\common\service\TemplateService;
 class SystemController extends AdminBaseController
 {
     /**
+     * V2.9.10: AI配置中心（3Tab独立页面）
+     */
+    public function aiConfig()
+    {
+        $this->app->view->assign('menuActive', 'ai_config');
+
+        if ($this->request->isGet()) {
+            // 确保AI配图配置项存在
+            $this->ensureConfigExists('ai_image_default_size', 'ai', '1024x1024', 'select', 'AI配图默认尺寸',
+                '<option value="1024x1024">1:1 正方形 (1024x1024)</option><option value="1024x576">16:9 宽屏 (1024x576)</option><option value="1024x768">4:3 标准 (1024x768)</option><option value="768x1024">3:4 竖屏 (768x1024)</option>');
+            $this->ensureConfigExists('ai_image_default_style', 'ai', 'realistic', 'select', 'AI配图默认风格',
+                '<option value="realistic">写实</option><option value="illustration">插画</option><option value="watercolor">水彩</option><option value="3d_render">3D</option><option value="pixel_art">像素</option>');
+            $this->ensureConfigExists('ai_image_candidate_count', 'ai', '4', 'select', 'AI配图候选图数量',
+                '<option value="1">1张</option><option value="2">2张</option><option value="4">4张</option>');
+            $this->ensureConfigExists('ai_image_auto_on_publish', 'ai', '0', 'switch', '发布时自动AI配图(开启后发布内容时自动为无封面文章生成封面图)');
+            // V3.1 写作风格配置
+            $this->ensureConfigExists('writing_styles', 'ai', '', 'textarea', 'AI写作风格配置(JSON格式)');
+
+            $configs = ConfigModel::where('group', 'ai')->order('sort', 'asc')->select();
+
+            $tabs = [
+                'model'   => ['name' => 'AI模型', 'icon' => 'cpu', 'items' => []],
+                'image'   => ['name' => 'AI配图', 'icon' => 'image', 'items' => []],
+                'writing' => ['name' => 'AI写作', 'icon' => 'pen', 'items' => []],
+            ];
+
+            foreach ($configs as $config) {
+                $name = (string) $config->name;
+                if (strpos($name, 'image') !== false || strpos($name, 'ai_image') !== false) {
+                    $tabs['image']['items'][] = $config;
+                } elseif (strpos($name, 'writing') !== false || strpos($name, 'style') !== false) {
+                    $tabs['writing']['items'][] = $config;
+                } else {
+                    $tabs['model']['items'][] = $config;
+                }
+            }
+
+            $this->assign([
+                'tabs'       => $tabs,
+                'currentTab' => $this->request->get('tab', 'model'),
+            ]);
+            return $this->view('/ai_config');
+        }
+
+        // POST: 保存AI配置（编码根治）
+        $data = $this->request->post();
+        foreach ($data as $name => $value) {
+            if (!is_string($value) || in_array($name, ['__token__'], true)) {
+                continue;
+            }
+            $cleaned = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+            if ($cleaned !== $value) {
+                \think\facade\Log::warning("[编码防护] AI配置 {$name} 包含非UTF-8字符，已自动清理");
+                $value = $cleaned;
+            }
+            ConfigModel::where('name', $name)->update(['value' => $value]);
+        }
+
+        $this->recordLog('保存AI配置', '', $data);
+        return $this->success('保存成功');
+    }
+
+    /**
      * 系统配置
      */
     public function config()

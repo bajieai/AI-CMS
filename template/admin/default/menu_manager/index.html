@@ -8,6 +8,9 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0"><i class="bi bi-list-nested me-2"></i>后台菜单管理</h5>
     <div>
+        <button class="btn btn-sm btn-outline-danger me-2" onclick="syncFromConfig()" title="拖拽排序自动保存，此按钮仅在数据错乱时使用">
+            <i class="bi bi-arrow-repeat me-1"></i>重置菜单
+        </button>
         <button class="btn btn-sm btn-primary" onclick="openGroupModal()">
             <i class="bi bi-plus-lg me-1"></i>新增分组
         </button>
@@ -249,5 +252,56 @@ function deleteItem(id) {
 function toggleItemStatus(id, status) {
     ajaxPost('/admin/menu_manager/toggleStatus', { type: 'item', id: id, status: status });
 }
+
+// V2.9.10: 从配置文件重置菜单（拖拽排序会自动保存，此按钮仅在数据错乱时使用）
+function syncFromConfig() {
+    showConfirm('重置菜单数据', '⚠️ 此操作将用 config/menu.php 覆盖所有菜单数据（含排序），\n所有手动调整将丢失。继续吗？', function() {
+        ajaxPost('/admin/menu_manager/syncFromConfig', {}, function(res) {
+            showToast(res.msg || '同步成功', 'success');
+            setTimeout(function() { location.reload(); }, 800);
+        });
+    });
+}
+
+// V2.9.10-fix: 拖拽排序（SortableJS）
+$(function() {
+    // 分组排序
+    var groupList = document.getElementById('groupList');
+    if (groupList && typeof Sortable !== 'undefined') {
+        Sortable.create(groupList, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function(evt) {
+                var orders = [];
+                groupList.querySelectorAll('.group-card').forEach(function(card, idx) {
+                    orders.push({ id: card.dataset.groupId, sort: idx });
+                });
+                ajaxPost('/admin/menu_manager/sort', { type: 'group', orders: orders }, function() {
+                    showToast('分组排序已保存', 'success');
+                });
+            }
+        });
+    }
+    // 菜单项排序（每个分组独立）
+    document.querySelectorAll('.item-list').forEach(function(list) {
+        if (typeof Sortable !== 'undefined') {
+            Sortable.create(list, {
+                handle: '.drag-handle',
+                animation: 150,
+                group: 'menu-items',
+                onEnd: function(evt) {
+                    var orders = [];
+                    list.querySelectorAll('.item-row').forEach(function(row, idx) {
+                        orders.push({ id: row.dataset.itemId, sort: idx });
+                    });
+                    ajaxPost('/admin/menu_manager/sort', { type: 'item', group_id: list.dataset.groupId, orders: orders }, function() {
+                        showToast('菜单排序已保存', 'success');
+                    });
+                }
+            });
+        }
+    });
+});
 </script>
+<script src="/assets/js/sortable.min.js?v=1.15.0"></script>
 {/block}

@@ -136,7 +136,7 @@ INSERT INTO `i8j_menu_item` (`id`, `group_id`, `parent_id`, `name`, `url`, `perm
 (42, 6, 0, '操作日志', '/admin/log/index', 'system.log', 'log', 'bi bi-journal-text', 20, 1),
 (43, 6, 0, '数据库备份', '/admin/backup/index', 'backup.*', 'backup', 'bi bi-database', 30, 1),
 (44, 6, 0, '通知中心', '/admin/notification/index', 'notification.*', 'notification', 'bi bi-bell', 40, 1),
-(48, 6, 0, '导入管理', '/admin/import/index', 'import.*', 'import', 'bi bi-upload', 50, 1),
+(480, 6, 0, '导入管理', '/admin/import/index', 'import.*', 'import', 'bi bi-upload', 50, 1),
 (49, 6, 0, '邮件订阅', '/admin/email_subscriber/index', 'email_subscriber.*', 'email_subscriber', 'bi bi-envelope', 60, 1),
 (50, 6, 0, '访问归档', '/admin/visit_archive/index', 'visit_archive.*', 'visit_archive', 'bi bi-archive', 70, 1),
 (58, 6, 0, '验证码配置', '/admin/captcha/config', 'captcha.*', 'captcha', 'bi bi-shield-check', 80, 1),
@@ -151,9 +151,10 @@ INSERT INTO `i8j_menu_item` (`id`, `group_id`, `parent_id`, `name`, `url`, `perm
 
 -- --------------------------------------------------------
 -- 5. 新增 points_shop_enabled 配置（如不存在）
+-- 注：已修正列名，原 SQL 用 key/label/status 与实表 name/remark 不匹配
 -- --------------------------------------------------------
-INSERT IGNORE INTO `i8j_config` (`key`, `value`, `type`, `group`, `label`, `sort`, `status`) VALUES
-('points_shop_enabled', '1', 'switch', 'points', '积分商城开关', 10, 1);
+INSERT IGNORE INTO `i8j_config` (`name`, `value`, `type`, `group`, `remark`, `sort`) VALUES
+('points_shop_enabled', '1', 'switch', 'points', '积分商城开关', 10);
 
 -- --------------------------------------------------------
 -- 6. 新增 menu_manager 权限到 i8j_permission 表（如存在该表）

@@ -114,6 +114,14 @@ class MemberController extends FrontBaseController
     }
 
     /**
+     * V2.9.10-fix: 旧URL 301重定向到用户中心统一入口
+     */
+    public function home()
+    {
+        return redirect('/member/index', 301);
+    }
+
+    /**
      * V2.9.10: 个人首页（用户中心入口）
      */
     public function index()

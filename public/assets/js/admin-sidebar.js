@@ -296,6 +296,15 @@
                         e.preventDefault();
                         e.stopPropagation();
                         window.doPjax(href);
+                    } else {
+                        // V2.9.10-fix: 无子菜单且无跳转链接，仍给出视觉反馈
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $('.l1-item').removeClass('active');
+                        $el.addClass('active');
+                        currentGroupId = groupId;
+                        hideL2();
+                        console.warn('[admin-sidebar] 分组暂无子菜单: ' + ($el.find('.l1-text').text() || ''));
                     }
                 }
             });

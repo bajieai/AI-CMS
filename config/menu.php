@@ -103,6 +103,8 @@ return [
             ['id' => 75, 'name' => '模板设计器', 'url' => '/admin/template_design/index', 'permission' => 'template_design.*', 'active' => 'template_design', 'icon' => 'bi bi-palette'],
             // V2.9.2 M19a: AI翻译管理
             ['id' => 76, 'name' => 'AI翻译管理', 'url' => '/admin/ai_translation/index', 'permission' => 'ai_translation.*', 'active' => 'ai_translation', 'icon' => 'bi bi-translate'],
+            // V2.9.10: AI配置中心
+            ['id' => 77, 'name' => 'AI配置', 'url' => '/admin/system/aiConfig', 'permission' => 'ai_config.*', 'active' => 'ai_config', 'icon' => 'bi bi-sliders'],
         ],
     ],
     [
@@ -173,7 +175,7 @@ return [
             ['id' => 43, 'name' => '数据库备份', 'url' => '/admin/backup/index', 'permission' => 'backup.*', 'active' => 'backup', 'icon' => 'bi bi-database'],
             ['id' => 44, 'name' => '通知中心', 'url' => '/admin/notification/index', 'permission' => 'notification.*', 'active' => 'notification', 'icon' => 'bi bi-bell'],
             // 表单管理已迁移至运营管理(id=47)
-            ['id' => 48, 'name' => '导入管理', 'url' => '/admin/import/index', 'permission' => 'import.*', 'active' => 'import', 'icon' => 'bi bi-upload'],
+            ['id' => 480, 'name' => '导入管理', 'url' => '/admin/import/index', 'permission' => 'import.*', 'active' => 'import', 'icon' => 'bi bi-upload'],
             ['id' => 49, 'name' => '邮件订阅', 'url' => '/admin/email_subscriber/index', 'permission' => 'email_subscriber.*', 'active' => 'email_subscriber', 'icon' => 'bi bi-envelope'],
             ['id' => 50, 'name' => '访问归档', 'url' => '/admin/visit_archive/index', 'permission' => 'visit_archive.*', 'active' => 'visit_archive', 'icon' => 'bi bi-archive'],
             ['id' => 58, 'name' => '验证码配置', 'url' => '/admin/captcha/config', 'permission' => 'captcha.*', 'active' => 'captcha', 'icon' => 'bi bi-shield-check'],

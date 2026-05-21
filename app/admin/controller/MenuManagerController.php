@@ -170,15 +170,25 @@ class MenuManagerController extends AdminBaseController
     {
         $type   = $this->request->post('type', '');
         $orders = $this->request->post('orders', []);
+        $groupId = (int) $this->request->post('group_id', 0);
 
         if (empty($orders) || !is_array($orders)) {
             return json(['code' => 1, 'msg' => '排序数据不能为空']);
         }
 
+        // 规范化：前端传 [{id:x, sort:y}] → 提取为 [x, y, ...] id 数组
+        $ids = [];
+        foreach ($orders as $item) {
+            $itemId = is_array($item) ? ((int) ($item['id'] ?? 0)) : (int) $item;
+            if ($itemId > 0) {
+                $ids[] = $itemId;
+            }
+        }
+
         if ($type === 'group') {
-            $result = MenuService::saveGroupSort($orders);
+            $result = MenuService::saveGroupSort($ids);
         } elseif ($type === 'item') {
-            $result = MenuService::saveItemSort($orders);
+            $result = MenuService::saveItemSort($ids, $groupId);
         } else {
             return json(['code' => 2, 'msg' => '无效的排序类型']);
         }
@@ -187,6 +197,79 @@ class MenuManagerController extends AdminBaseController
             return json(['code' => 0, 'msg' => '排序已更新']);
         }
         return json(['code' => 3, 'msg' => '排序更新失败']);
+    }
+
+    /**
+     * V2.9.10-fix: 从配置文件同步菜单数据到数据库
+     */
+    public function syncFromConfig()
+    {
+        if (!$this->request->isPost()) {
+            return $this->error('非法请求');
+        }
+
+        try {
+            $configMenus = \think\facade\Config::get('menu', []);
+            if (empty($configMenus)) {
+                return $this->error('配置文件中没有菜单数据');
+            }
+
+            // 事务保护：失败时回滚，保证不丢失数据
+            \think\facade\Db::startTrans();
+            try {
+                // 清空现有数据
+                MenuItem::where('id', '>', 0)->delete();
+                MenuGroup::where('id', '>', 0)->delete();
+
+                foreach ($configMenus as $group) {
+                    $groupId = (int) $group['id'];
+                    // 生成唯一 code
+                    $code = $group['code'] ?? '';
+                    $code = preg_replace('/[^a-zA-Z0-9_]+/', '_', $code);
+                    if (strlen($code) === 0 || preg_match('/^_+$/', $code)) {
+                        $code = 'group_' . $groupId;
+                    }
+                    MenuGroup::create([
+                        'id'          => $groupId,
+                        'name'        => $group['name'],
+                        'code'        => $code,
+                        'icon'        => $group['icon'] ?? '',
+                        'sort'        => $groupId * 10,
+                        'status'      => 1,
+                        'create_time' => time(),
+                        'update_time' => time(),
+                    ]);
+
+                foreach ($group['children'] ?? [] as $item) {
+                    MenuItem::create([
+                        'id'          => (int) $item['id'],
+                        'group_id'    => $groupId,
+                        'parent_id'   => 0,
+                        'name'        => $item['name'],
+                        'url'         => $item['url'] ?? '',
+                        'permission'  => $item['permission'] ?? '',
+                        'active'      => $item['active'] ?? '',
+                        'icon'        => $item['icon'] ?? '',
+                        'sort'        => ((int) $item['id'] % 100) * 10,
+                        'status'      => 1,
+                        'create_time' => time(),
+                        'update_time' => time(),
+                    ]);
+                }
+            }
+
+                \think\facade\Db::commit();
+            } catch (\Exception $innerEx) {
+                \think\facade\Db::rollback();
+                throw $innerEx;
+            }
+
+            MenuService::clearMenuCache();
+            $this->recordLog('从配置文件同步菜单数据');
+            return $this->success('同步成功：已用 config/menu.php 覆盖数据库菜单数据');
+        } catch (\Exception $e) {
+            return $this->error('同步失败: ' . $e->getMessage());
+        }
     }
 
     /**

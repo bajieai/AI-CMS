@@ -16,7 +16,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*', 'report.*', 'apidoc.*', 'ai_translation.*', 'plugin_market.*', 'member_benefit.*', 'export_advanced.*', 'monitor.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*', 'report.*', 'apidoc.*', 'ai_translation.*', 'plugin_market.*', 'member_benefit.*', 'export_advanced.*', 'monitor.*', 'menu_manager.*', 'ai_config.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -119,5 +119,9 @@ return [
         'shipping.*' => ['admin/shipping/config', 'admin/shipping/saveConfig'],
         // V2.9.1 M18: 批量内容操作（复用content权限）
         'content.batch' => ['admin/content/batchAction'],
+        // V2.9.10: 菜单管理
+        'menu_manager.*' => ['admin/menu_manager/index', 'admin/menu_manager/saveGroup', 'admin/menu_manager/saveItem', 'admin/menu_manager/deleteGroup', 'admin/menu_manager/deleteItem', 'admin/menu_manager/sort', 'admin/menu_manager/toggleStatus'],
+        // V2.9.10: AI配置
+        'ai_config.*' => ['admin/system/aiConfig'],
     ],
 ];

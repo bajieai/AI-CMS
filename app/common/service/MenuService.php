@@ -68,6 +68,8 @@ class MenuService
     public static function clearMenuCache(): void
     {
         Cache::tag(self::CACHE_TAG)->clear();
+        // 同时清除 AdminBaseController 中 getFilteredMenus 的缓存（tag=TAG_CONFIG）
+        Cache::tag(\app\common\service\CacheService::TAG_CONFIG)->clear();
     }
 
     /**
@@ -89,11 +91,16 @@ class MenuService
     /**
      * 保存菜单项排序
      */
-    public static function saveItemSort(array $orders): bool
+    public static function saveItemSort(array $orders, int $groupId = 0): bool
     {
         try {
             foreach ($orders as $index => $id) {
-                MenuItem::where('id', $id)->update(['sort' => ($index + 1) * 10]);
+                $update = ['sort' => ($index + 1) * 10];
+                // 跨组拖拽：同时更新 group_id
+                if ($groupId > 0) {
+                    $update['group_id'] = $groupId;
+                }
+                MenuItem::where('id', (int) $id)->update($update);
             }
             self::clearMenuCache();
             return true;

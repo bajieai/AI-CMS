@@ -23,20 +23,37 @@ class MenuBridge
 {
     /**
      * 获取菜单数据
-     * 优先从数据库读取，失败时回退到配置文件
+     * 优先从数据库读取，失败或数据不完整时回退到配置文件
      */
     public static function getMenus(): array
     {
         try {
             $tree = MenuService::getMenuTree();
-            if (!empty($tree)) {
+            if (!empty($tree) && self::isTreeComplete($tree)) {
                 return $tree;
+            }
+            if (!empty($tree)) {
+                Log::warning('MenuBridge: 数据库菜单数据不完整（存在无子菜单的分组），回退到配置文件');
             }
         } catch (\Exception $e) {
             Log::warning('MenuBridge: 从数据库读取菜单失败，回退到配置文件。错误: ' . $e->getMessage());
         }
 
         return Config::get('menu', []);
+    }
+
+    /**
+     * 检查菜单树是否完整
+     * 若任意一级分组缺少 children 则认为不完整
+     */
+    private static function isTreeComplete(array $tree): bool
+    {
+        foreach ($tree as $group) {
+            if (empty($group['children'])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
