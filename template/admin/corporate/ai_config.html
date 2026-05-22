@@ -8,71 +8,93 @@
 {/block}
 
 {block name="content"}
-<!-- Tab导航：3Tab拆分 -->
+<!-- Tab导航 -->
 <ul class="nav nav-tabs mb-3">
+    {foreach $tabs as $tabKey => $tab}
     <li class="nav-item">
-        <a class="nav-link {if $currentTab == 'model'}active{/if}" href="/admin/system/aiConfig?tab=model">
-            <i class="bi bi-cpu me-1"></i>AI模型
+        <a class="nav-link {if $currentTab == $tabKey}active{/if}" href="/admin/system/aiConfig?tab={$tabKey}">
+            <i class="bi bi-{$tab.icon} me-1"></i>{$tab.name}
         </a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link {if $currentTab == 'image'}active{/if}" href="/admin/system/aiConfig?tab=image">
-            <i class="bi bi-image me-1"></i>AI配图
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {if $currentTab == 'writing'}active{/if}" href="/admin/system/aiConfig?tab=writing">
-            <i class="bi bi-pen me-1"></i>AI写作
-        </a>
-    </li>
+    {/foreach}
 </ul>
 
 <form id="aiConfigForm" method="post" action="/admin/system/aiConfig">
     <input type="hidden" name="tab" value="{$currentTab}">
-    {foreach $tabs[$currentTab]['items'] as $item}
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row mb-3 align-items-center">
-                <label class="col-sm-3 col-form-label text-end">{$item.remark ?: $item.name}</label>
-                <div class="col-sm-6">
-                    {if $item.type == 'text'}
-                    <input type="text" name="{$item.name}" class="form-control" value="{$item.value}">
-                    {/if}
 
-                    {if $item.type == 'textarea'}
-                    <textarea name="{$item.name}" class="form-control" rows="5">{$item.value}</textarea>
-                    {/if}
+    {php} $curTab = $tabs[$currentTab] ?? []; {/php}
 
-                    {if $item.type == 'number'}
-                    <input type="number" name="{$item.name}" class="form-control" value="{$item.value}">
-                    {/if}
-
-                    {if $item.type == 'switch'}
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="{$item.name}" value="1" id="cfg_{$item.name}" {if $item.value == 1}checked{/if}>
-                        <label class="form-check-label" for="cfg_{$item.name}">启用</label>
-                    </div>
-                    {/if}
-
-                    {if $item.type == 'select'}
-                    <select name="{$item.name}" class="form-select">
-                        {$item.options|raw}
-                    </select>
-                    {/if}
-                </div>
-            </div>
+    <!-- 写作风格参考面板 -->
+    {if $currentTab == 'writing' && count($writingStyles) > 0}
+    <div class="card mb-3 border-info">
+        <div class="card-header bg-info bg-opacity-10 text-info-emphasis">
+            <i class="bi bi-info-circle me-1"></i>已配置的写作风格
         </div>
-    </div>
-    {/foreach}
-
-    {if count($tabs[$currentTab]['items']) == 0}
-    <div class="text-center text-muted py-5">
-        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-        暂无{$tabs[$currentTab]['name']}配置项
+        <div class="card-body p-2">
+            <p class="text-muted small mb-2">以下风格会在AI写作时被读取，每种风格包含名称和对应的 System Prompt。下方 JSON 编辑器可修改或新增。</p>
+            <table class="table table-sm table-borderless small mb-0">
+                <thead><tr><th>标识</th><th>名称</th><th>System Prompt（简）</th></tr></thead>
+                <tbody>
+                {foreach $writingStyles as $key => $style}
+                <tr>
+                    <td><code>{$key}</code></td>
+                    <td><strong>{$style.name|default=''}</strong></td>
+                    <td class="text-muted">{$style.system_prompt|mb_substr=0,60}{if mb_strlen($style.system_prompt) > 60}…{/if}</td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
     </div>
     {/if}
 
-    <div class="mb-3">
+    <!-- 按子分组渲染卡片 -->
+    {foreach $curTab['groups'] as $groupKey => $groupName}
+    {php} $items = $curTab['items'][$groupKey] ?? []; {/php}
+    {if count($items) > 0}
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <strong>{$groupName}</strong>
+        </div>
+        <div class="card-body p-2">
+            {foreach $items as $item}
+            <div class="row mb-2 align-items-center border-bottom pb-2">
+                <label class="col-sm-3 col-form-label text-end small fw-semibold">{$item.remark ?: $item.name}</label>
+                <div class="col-sm-7">
+                    {if $item.type == 'text' || $item.type == 'number'}
+                    <input type="{if $item.type == 'number'}number{else}text{/if}" name="{$item.name}" class="form-control form-control-sm" value="{$item.value}">
+                    {elseif $item.type == 'textarea' || $item.type == 'json'}
+                    <textarea name="{$item.name}" class="form-control form-control-sm" rows="{if $item.type == 'json'}6{else}3{/if}">{$item.value}</textarea>
+                    {elseif $item.type == 'password'}
+                    <input type="password" name="{$item.name}" class="form-control form-control-sm" value="{$item.value}" placeholder="API密钥（已隐藏）">
+                    {elseif $item.type == 'switch'}
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="{$item.name}" value="1" id="cfg_{$item.name}" {if $item.value == 1}checked{/if}>
+                        <label class="form-check-label small" for="cfg_{$item.name}">启用</label>
+                    </div>
+                    {elseif $item.type == 'select'}
+                    <select name="{$item.name}" class="form-select form-select-sm">
+                        {$item.options|raw}
+                    </select>
+                    {else}
+                    <input type="text" name="{$item.name}" class="form-control form-control-sm" value="{$item.value}">
+                    {/if}
+                </div>
+            </div>
+            {/foreach}
+        </div>
+    </div>
+    {/if}
+    {/foreach}
+
+    {if empty($curTab['items'])}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        暂无{$curTab['name']}配置项
+    </div>
+    {/if}
+
+    <div class="mb-3 sticky-bottom bg-body py-2 border-top">
         <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
     </div>
 </form>
@@ -80,7 +102,6 @@
 $('#aiConfigForm').on('submit', function(e) {
     e.preventDefault();
     var $form = $(this);
-    // 处理switch未勾选时不会提交的问题
     $form.find('.form-check-input:not(:checked)').each(function() {
         var name = $(this).attr('name');
         if (name && !$('[name="' + name + '"][type="hidden"]').length) {

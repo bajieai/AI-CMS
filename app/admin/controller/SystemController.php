@@ -26,46 +26,110 @@ use app\common\service\TemplateService;
 class SystemController extends AdminBaseController
 {
     /**
-     * V2.9.10: AI配置中心（3Tab独立页面）
+     * V2.9.10: AI配置中心（3Tab独立页面，含子分组）
      */
     public function aiConfig()
     {
         $this->app->view->assign('menuActive', 'ai_config');
 
         if ($this->request->isGet()) {
-            // 确保AI配图配置项存在
+            // 确保配图配置项存在
             $this->ensureConfigExists('ai_image_default_size', 'ai', '1024x1024', 'select', 'AI配图默认尺寸',
                 '<option value="1024x1024">1:1 正方形 (1024x1024)</option><option value="1024x576">16:9 宽屏 (1024x576)</option><option value="1024x768">4:3 标准 (1024x768)</option><option value="768x1024">3:4 竖屏 (768x1024)</option>');
             $this->ensureConfigExists('ai_image_default_style', 'ai', 'realistic', 'select', 'AI配图默认风格',
                 '<option value="realistic">写实</option><option value="illustration">插画</option><option value="watercolor">水彩</option><option value="3d_render">3D</option><option value="pixel_art">像素</option>');
             $this->ensureConfigExists('ai_image_candidate_count', 'ai', '4', 'select', 'AI配图候选图数量',
                 '<option value="1">1张</option><option value="2">2张</option><option value="4">4张</option>');
-            $this->ensureConfigExists('ai_image_auto_on_publish', 'ai', '0', 'switch', '发布时自动AI配图(开启后发布内容时自动为无封面文章生成封面图)');
-            // V3.1 写作风格配置
-            $this->ensureConfigExists('writing_styles', 'ai', '', 'textarea', 'AI写作风格配置(JSON格式)');
+            $this->ensureConfigExists('ai_image_auto_on_publish', 'ai', '0', 'switch', '发布时自动AI配图');
+            $this->ensureConfigExists('writing_styles', 'ai', '{"formal":{"name":"正式风格","system_prompt":"你是一位专业的内容编辑。请使用正式、严谨、权威的语言风格撰写内容。"},"casual":{"name":"轻松风格","system_prompt":"你是一位亲切的内容创作者。请使用轻松、自然、口语化的语言风格撰写内容。"},"professional":{"name":"专业风格","system_prompt":"你是一位行业专家。请使用专业、深度、有洞察力的语言风格撰写内容。"},"humorous":{"name":"幽默风格","system_prompt":"你是一位幽默风趣的作家。请使用幽默、有趣、富有创意的语言风格撰写内容。"},"concise":{"name":"简洁风格","system_prompt":"你是一位高效的内容编辑。请使用简洁、精炼、直切要点的语言风格撰写内容。"}}', 'json', 'AI写作风格配置');
+            $this->ensureConfigExists('image_daily_limit', 'ai', '50', 'number', 'AI配图每日限额');
+            $this->ensureConfigExists('image_max_batch', 'ai', '5', 'number', 'AI配图批量最大数量');
 
             $configs = ConfigModel::where('group', 'ai')->order('sort', 'asc')->select();
 
-            $tabs = [
-                'model'   => ['name' => 'AI模型', 'icon' => 'cpu', 'items' => []],
-                'image'   => ['name' => 'AI配图', 'icon' => 'image', 'items' => []],
-                'writing' => ['name' => 'AI写作', 'icon' => 'pen', 'items' => []],
+            // Tab 元数据 + 子分组键映射
+            $tabDefs = [
+                'model'   => ['name' => 'AI基础', 'icon' => 'cpu', 'groups' => [
+                    'basic' => '基础设置',
+                    'batch' => '批量生成',
+                    'write' => '写作辅助',
+                    'stats' => '数据统计',
+                ]],
+                'image'   => ['name' => 'AI配图', 'icon' => 'image', 'groups' => [
+                    'default' => '默认配图参数',
+                    'provider' => 'Provider设置',
+                    'flux'    => 'FLUX配图',
+                    'dalle'   => 'DALL-E配图',
+                    'limit'   => '配额与限制',
+                ]],
+                'writing' => ['name' => 'AI写作', 'icon' => 'pen', 'groups' => [
+                    'style' => '写作风格',
+                ]],
             ];
+
+            // 分类映射：config.name → [tabKey, groupKey]
+            $classify = [
+                // --- AI基础 ---
+                'ai_enabled'                  => ['model', 'basic'],
+                'ai_default_model'            => ['model', 'basic'],
+                'ai_batch_max_count'          => ['model', 'batch'],
+                'ai_batch_default_model'      => ['model', 'batch'],
+                'ai_long_article_threshold'   => ['model', 'write'],
+                'ai_stat_enabled'             => ['model', 'stats'],
+                'ai_stat_retention_days'      => ['model', 'stats'],
+
+                // --- AI配图 ---
+                'ai_image_default_size'       => ['image', 'default'],
+                'ai_image_default_style'      => ['image', 'default'],
+                'ai_image_candidate_count'    => ['image', 'default'],
+                'ai_image_auto_on_publish'    => ['image', 'default'],
+                'ai_image_default_provider'   => ['image', 'provider'],
+                'ai_image_fallback_provider'  => ['image', 'provider'],
+                'image_provider'              => ['image', 'provider'],
+                'image_api_key'               => ['image', 'provider'],
+                'image_default_count'         => ['image', 'default'],
+                'image_default_style'         => ['image', 'default'],
+                'image_timeout'               => ['image', 'provider'],
+                'image_daily_limit'           => ['image', 'limit'],
+                'image_max_batch'             => ['image', 'limit'],
+                'ai_image_flux_enabled'       => ['image', 'flux'],
+                'ai_image_flux_api_key'       => ['image', 'flux'],
+                'ai_image_flux_model'         => ['image', 'flux'],
+                'ai_image_dalle_enabled'      => ['image', 'dalle'],
+                'ai_image_dalle_api_key'      => ['image', 'dalle'],
+                'ai_image_dalle_model'        => ['image', 'dalle'],
+
+                // --- AI写作 ---
+                'writing_styles'              => ['writing', 'style'],
+            ];
+
+            // 主题生成类（model 下额外子组，但不单独建标签）
+            $tabDefs['model']['groups']['theme'] = '主题生成';
+            $classify['ai_theme_generate_daily_limit']    = ['model', 'theme'];
+            $classify['ai_theme_generate_timeout']        = ['model', 'theme'];
+            $classify['ai_theme_generate_max_tokens']     = ['model', 'theme'];
+            $classify['ai_theme_generate_temperature']    = ['model', 'theme'];
+            $classify['ai_theme_chat_max_rounds']         = ['model', 'theme'];
+            $classify['ai_theme_chat_timeout']            = ['model', 'theme'];
+            $classify['ai_theme_chat_context_budget']      = ['model', 'theme'];
 
             foreach ($configs as $config) {
                 $name = (string) $config->name;
-                if (strpos($name, 'image') !== false || strpos($name, 'ai_image') !== false) {
-                    $tabs['image']['items'][] = $config;
-                } elseif (strpos($name, 'writing') !== false || strpos($name, 'style') !== false) {
-                    $tabs['writing']['items'][] = $config;
+                if (isset($classify[$name])) {
+                    [$tk, $gk] = $classify[$name];
+                    $tabDefs[$tk]['items'][$gk][] = $config;
                 } else {
-                    $tabs['model']['items'][] = $config;
+                    $tabDefs['model']['items']['other'][] = $config;
                 }
             }
 
+            // 解析写作风格 JSON 供模板展示
+            $writingJson = ConfigModel::where('name', 'writing_styles')->value('value') ?? '{}';
+            $writingStyles = json_decode($writingJson, true) ?: [];
             $this->assign([
-                'tabs'       => $tabs,
-                'currentTab' => $this->request->get('tab', 'model'),
+                'tabs'          => $tabDefs,
+                'currentTab'    => $this->request->get('tab', 'model'),
+                'writingStyles' => $writingStyles,
             ]);
             return $this->view('/ai_config');
         }
@@ -270,6 +334,9 @@ class SystemController extends AdminBaseController
     protected function ensureConfigExists(string $name, string $group, string $value, string $type, string $remark, string $options = ''): void
     {
         if (!ConfigModel::where('name', $name)->find()) {
+            // 编码根治：强制校验中文内容UTF-8合法性
+            $remark = mb_convert_encoding($remark, 'UTF-8', 'UTF-8');
+            $value  = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
             $data = [
                 'name'   => $name,
                 'group'  => $group,
@@ -279,6 +346,7 @@ class SystemController extends AdminBaseController
                 'sort'   => 0,
             ];
             if ($options !== '') {
+                $options = mb_convert_encoding($options, 'UTF-8', 'UTF-8');
                 $data['options'] = $options;
             }
             ConfigModel::create($data);
