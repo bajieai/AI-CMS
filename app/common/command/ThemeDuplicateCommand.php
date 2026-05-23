@@ -327,7 +327,7 @@ class ThemeDuplicateCommand extends Command
 
         // 扫描CSS中的选择器（重建迭代器，因为上一轮已消耗）
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($baseDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+            new \RecursiveDirectoryIterator($themeDir, \RecursiveDirectoryIterator::SKIP_DOTS)
         );
         foreach ($iterator as $file) {
             if ($file->getExtension() !== 'css') continue;
