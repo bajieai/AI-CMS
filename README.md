@@ -445,6 +445,7 @@ AI-CMS/
 │       │       ├── ThemePackageService.php     # 主题ZIP导入导出+V2.9.8冲突检测修复
 │       │       ├── ThemeValidatorService.php   # 校验流水线+V2.9.8 CSS质量7维度评分器
 │       │       ├── ThemeCustomService.php      # V2.9.8 预设读取getAvailablePresets()
+│       │       ├── ThemePromptBuilder.php      # V2.9.11 双模式Prompt构建器(full/skeleton)
 │       │       └── ThemeFileService.php        # 文件落盘服务
 │       ├── taglib/             #   模板标签引擎(I8j)
 │       ├── traits/             #   特性(CircuitBreakerTrait/RedisQueueTrait)
@@ -471,6 +472,8 @@ AI-CMS/
 │   └── themes/                 #   前台主题
 │       ├── default/            #     默认主题(pc/mobile)
 │       ├── corporate/          #     企业主题(pc/mobile)
+│       ├── ai-base-showcase/   #     V2.9.11 展示型骨架(Hero+轮播+三列卡片)
+│       ├── ai-base-content/    #     V2.9.11 内容型骨架(紧凑+侧栏+阅读优化)
 │       └── shared/             #     共享模板片段(V2.9.0新增)
 │           ├── paid_badge.html #       付费标识
 │           ├── reward_button.html #    打赏按钮
@@ -661,7 +664,8 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
-| V2.9.10 | 2026-05-22 | **体验进化** — 3项核心优化：前台用户中心增强（统一入口+301重定向+ucenter.js独立脚本+4套模板条件注入）+缓存清除细分（5项下拉+CacheController按类型清理）+后台菜单数据库化（i8j_menu_group/item双表+MenuBridge回退+双皮肤管理界面+SortableJS跨组拖拽+本地化CSP兼容+syncFromConfig事务保护）。AI配置中心（3Tab：模型/配图/写作）+tabs.js通用组件。17个修改文件+13个新增文件，7项关键缺陷全部修复。 |
+| V2.9.11 | 2026-05-23 | **主题进化** — 15任务(14完成)：双模式AI主题生成(full骨架生成HTML+CSS 65分阈值/skeleton骨架AI只生成CSS 70分阈值)+2种布局骨架(展示型ai-base-showcase/内容型ai-base-content各PC8+Mobile4文件)+CSS变量三套命名体系修复(--i8j-前缀断裂Bug→25个无前缀统一变量)+行业调色板体系(10行业palette表/Sabberworm CSS解析器)+theme:clean/duplicate CLI命令+后台generate/tweak页面双皮肤改造+3个新增PHP文件(ThemePromptBuilder/ThemeCleanCommand/ThemeDuplicateCommand)+10个修改文件。11套AI废主题已清理。 |
+   680:| V2.9.10 | 2026-05-22 | **体验进化** — 3项核心优化：前台用户中心增强（统一入口+301重定向+ucenter.js独立脚本+4套模板条件注入）+缓存清除细分（5项下拉+CacheController按类型清理）+后台菜单数据库化（i8j_menu_group/item双表+MenuBridge回退+双皮肤管理界面+SortableJS跨组拖拽+本地化CSP兼容+syncFromConfig事务保护）。AI配置中心（3Tab：模型/配图/写作）+tabs.js通用组件。17个修改文件+13个新增文件，7项关键缺陷全部修复。 |
 | V2.9.9 | 2026-05-18 | **从好用到聪明** — P0x5(AI模板引擎+社交分享+多语言+SEO深度+插件市场)+P1x5(审批工作流+AI-GEO+会员等级+消息通知+搜索增强)=10模块全面升级。24新增文件+40+修改文件。AI内容模板自然语言生成+社交分享追踪看板+AI批量翻译多语言路由+图片视频新闻Sitemap+插件钩子事件系统+审批时间线角标+AI友好度4维评分+权益配置中心+通知铃铛消息中心+Meilisearch高亮联想 |
 | V2.9.8 | 2026-05-15 | **模力精修** — 两轮交付：第一轮(12/12): 字体本地化(5组woff2)/撤销重做(UndoManager 30步栈)/AfterGenerate钩子/自动重试增强(3次退避+动态temperature)/CSS质量7维度评分器(60分及格)/CSS质量Prompt增强/预设快捷应用(5套)/导出预览/Pickr深色模式/postMessage文档。第二轮(9+6项): Prompt行业风格加强(4行业配置)/CSS组件模式库(CssComponentLibrary 10组件)/评分器9维度+双线制(新65/历史60)/预设5→12套+智能推荐/3步新手引导+折叠面板/导出后3按钮快捷操作/模板变量5→10页面/撤销栈15分钟清空/恢复默认API+安装引导+分析页时间筛选 |
 | V2.9.7 | 2026-05-15 | **模力定制**: AI主题6缺陷根治(Prompt完善+验证器+搜索高亮)/模板可视化定制(19个CSS变量+Pickr颜色选择器+6组字体预设+布局选项+Logo上传+iframe实时预览+postMessage+变体管理)/导出导入含定制数据/数据分析(安装排行+趋势+定制偏好+评分分布+ECharts+CSV导出) |
