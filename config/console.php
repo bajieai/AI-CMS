@@ -45,5 +45,8 @@ return [
         'theme:migrate'         => 'app\common\command\ThemeMigrateCommand',
         // V2.9.9 P0-4: 死链检测
         'seo:deadlink'          => 'app\common\command\DeadLinkCommand',
+        // V2.9.11: 主题清理 + 骨架复制
+        'theme:clean'           => 'app\common\command\ThemeCleanCommand',
+        'theme:duplicate'       => 'app\common\command\ThemeDuplicateCommand',
     ],
 ];
