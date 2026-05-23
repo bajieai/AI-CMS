@@ -387,31 +387,40 @@ abstract class FrontBaseController extends \think\BaseController
      */
     protected function getThemeCssVars(string $theme): array
     {
+        // V2.9.11: 统一25个CSS变量（三套命名体系统一），全部无前缀
         $defaults = [
-            // 颜色（10个，原有）
-            '--primary'          => '#3b82f6',
-            '--secondary'       => '#64748b',
-            '--accent'          => '#f59e0b',
-            '--bg'              => '#ffffff',
-            '--bg-secondary'    => '#f8fafc',
-            '--text'            => '#1e293b',
-            '--text-secondary'  => '#64748b',
-            '--border'          => '#e2e8f0',
-            '--radius'          => '8px',
-            '--shadow'          => '0 1px 3px rgba(0,0,0,.1)',
-            // 字体（2个，V2.9.7新增）
-            '--font-heading'    => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-            '--font-body'       => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-            // 布局（3个，V2.9.7新增）
-            '--sidebar-pos'     => 'left',
-            '--content-width'   => '1200px',
-            '--header-style'    => 'full',
-            // Logo（2个，V2.9.7新增）
-            '--logo-url'        => '',
-            '--logo-max-height' => '40px',
-            // 按钮（2个，V2.9.7新增）
-            '--btn-primary-bg'     => 'var(--primary)',
-            '--btn-primary-hover'  => '#1d4ed8',
+            // === 核心品牌色（5个）===
+            '--primary'        => '#2563EB',
+            '--primary-light'  => '#DBEAFE',
+            '--primary-dark'   => '#1E40AF',
+            '--secondary'      => '#64748B',
+            '--accent'         => '#F59E0B',
+            // === 背景色（3个）===
+            '--bg'             => '#FFFFFF',
+            '--bg-secondary'   => '#F8FAFC',
+            '--bg-section'     => '#F1F5F9',
+            // === 文字色（3个）===
+            '--text'           => '#1E293B',
+            '--text-secondary' => '#64748B',
+            '--text-inverse'   => '#FFFFFF',
+            // === 边框与效果（7个）===
+            '--border'         => '#E2E8F0',
+            '--radius'         => '8px',
+            '--radius-lg'      => '12px',
+            '--radius-sm'      => '4px',
+            '--shadow'         => '0 1px 3px rgba(0,0,0,0.1)',
+            '--shadow-hover'   => '0 4px 12px rgba(0,0,0,0.15)',
+            '--shadow-lg'      => '0 10px 25px rgba(0,0,0,0.1)',
+            // === 字体（2个）===
+            '--font-heading'   => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            '--font-body'      => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            // === 动画（2个）===
+            '--transition'     => 'all 0.2s ease',
+            '--transition-slow'=> 'all 0.3s ease',
+            // === 布局（3个）===
+            '--max-width'      => '1200px',
+            '--sidebar-pos'    => 'left',
+            '--header-style'   => 'full',
         ];
 
         try {

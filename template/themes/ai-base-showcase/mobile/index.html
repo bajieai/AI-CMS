@@ -1,0 +1,36 @@
+{extend name="layout" /}
+{block name="title"}{$site_name}{/block}
+{block name="content"}
+<div class="mobile-hero">
+    <h1>AI 驱动信息管理</h1>
+    <p>高效管理产品、案例、新闻等内容</p>
+    <a href="/product" class="btn btn-primary btn-sm">了解更多</a>
+</div>
+{i8j:bannerlist limit="3" status="1"}
+{if condition="$i == 0"}<div class="mobile-banner">{/if}
+<a href="{$field.link|default='javascript:;'}" class="d-block" style="height:180px;background:url('{$field.image}') center/cover no-repeat"></a>
+{if condition="$i == count($__LIST__) - 1"}</div>{/if}
+{/i8j:bannerlist}
+<div class="mobile-section">
+    <h6><i class="bi bi-box-seam me-1"></i>产品中心</h6>
+    <div class="mobile-grid">
+        {i8j:infolist type="product" limit="4"}
+        <a href="{$field.url}" class="mobile-card">
+            {if condition="$field.cover"}<img data-src="{$field.cover}" class="lazyload" alt="{$field.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">{/if}
+            <div class="mobile-card-title">{$field.title}</div>
+        </a>
+        {/i8j:infolist}
+    </div>
+</div>
+<div class="mobile-section">
+    <h6><i class="bi bi-newspaper me-1"></i>新闻动态</h6>
+    {i8j:infolist type="news" limit="5"}
+    <a href="{$field.url}" class="mobile-list-item">
+        <div class="flex-grow-1">
+            <div class="small fw-bold">{$field.title}</div>
+            <div class="text-muted" style="font-size:12px">{$field.create_time|date='Y-m-d'}</div>
+        </div>
+    </a>
+    {/i8j:infolist}
+</div>
+{/block}

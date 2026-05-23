@@ -1,0 +1,228 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_theme/index">AI中心</a></li>
+<li class="breadcrumb-item active">AI主题生成</li>
+{/block}
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-palette me-2"></i>AI 主题生成</h5>
+    <div>
+        <a href="/admin/ai_theme/batch_generate" class="btn btn-outline-primary btn-sm me-2">
+            <i class="bi bi-stack me-1"></i>批量生成
+        </a>
+        <a href="/admin/ai_theme/generate" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>新建生成
+        </a>
+    </div>
+</div>
+
+<!-- 状态筛选 -->
+<div class="card bg-transparent mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/ai_theme/index" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    {volist name="statusOptions" id="opt"}
+                    <option value="{$opt.value}" {if condition="$status == $opt.value"}selected{/if}>{$opt.label}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="batch_id" class="form-control form-control-sm" placeholder="批次ID筛选" value="{$Request.param.batch_id|default=''}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>筛选</button>
+            </div>
+            <div class="col-md-3 text-end">
+                <button type="button" class="btn btn-success btn-sm" onclick="batchApprove()" id="btnBatchApprove" style="display:none;">
+                    <i class="bi bi-check-lg me-1"></i>批量通过
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 列表 -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th><input type="checkbox" class="form-check-input" id="checkAll"></th>
+                        <th>ID</th>
+                        <th>主题名</th>
+                        <th>描述</th>
+                        <th>批次</th>
+                        <th>状态</th>
+                        <th>质量分</th>
+                        <th>Token</th>
+                        <th>创建时间</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr data-status="{$item.status}">
+                        <td>
+                            {if condition="$item.status == 1 || $item.status == 2"}
+                            <input type="checkbox" class="form-check-input row-check" value="{$item.id}">
+                            {/if}
+                        </td>
+                        <td>{$item.id}</td>
+                        <td><code>{$item.theme_name}</code></td>
+                        <td class="text-truncate" style="max-width:180px;" title="{$item.description}">{$item.description}</td>
+                        <td>
+                            {if condition="$item.batch_id"}
+                            <span class="badge bg-light text-dark border">{$item.batch_id}</span>
+                            {else}
+                            <span class="text-muted">-</span>
+                            {/if}
+                        </td>
+                        <td>
+                            <span class="badge bg-{$item.status_style}">{$item.status_text}</span>
+                        </td>
+                        <td>
+                            {if condition="$item.quality_score > 0"}
+                            <span class="badge bg-{$item.quality_score >= 80 ? 'success' : ($item.quality_score >= 60 ? 'warning' : 'danger')}">{$item.quality_score}</span>
+                            {else}
+                            <button class="btn btn-link btn-sm p-0 text-muted" onclick="doQualityScore({$item.id}, this)">评分</button>
+                            {/if}
+                        </td>
+                        <td>{$item.token_cost}</td>
+                        <td>{$item.created_at}</td>
+                        <td class="text-end">
+                            <a href="/admin/ai_theme/detail?id={$item.id}" class="btn btn-sm btn-outline-primary">详情</a>
+                            {if condition="$item.status == 1 || $item.status == 2"}
+                            <a href="/admin/ai_theme/tweak?id={$item.id}" class="btn btn-sm btn-outline-secondary">调色</a>
+                            {/if}
+                            {if condition="$item.status == 2"}
+                            <button class="btn btn-sm btn-success" onclick="publishTheme({$item.id})">发布</button>
+                            {/if}
+                            {if condition="$item.status == 1 || $item.status == 2"}
+                            <button class="btn btn-sm btn-outline-success" onclick="approveTheme({$item.id})">通过</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectTheme({$item.id})">拒绝</button>
+                            {/if}
+                            {if condition="$item.status == -1 || $item.status == -2 || $item.status == 4"}
+                            <button class="btn btn-sm btn-warning" onclick="retryTheme({$item.id})">重试</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr><td colspan="10" class="text-center text-muted py-4">暂无记录</td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {if condition="$total > $limit"}
+    <div class="card-footer">
+        {include file="shared/pagination" /}
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="script"}
+<script>
+// 全选
+$('#checkAll').on('change', function() {
+    $('.row-check').prop('checked', $(this).prop('checked'));
+    updateBatchBtn();
+});
+
+$(document).on('change', '.row-check', function() {
+    updateBatchBtn();
+});
+
+function updateBatchBtn() {
+    const checked = $('.row-check:checked').length;
+    $('#btnBatchApprove').toggle(checked > 0);
+}
+
+// 批量通过
+function batchApprove() {
+    const ids = $('.row-check:checked').map(function() { return $(this).val(); }).get();
+    if (!ids.length) return;
+    if (!confirm('确认批量通过 ' + ids.length + ' 个主题？')) return;
+
+    let done = 0;
+    ids.forEach(function(id) {
+        $.post('/admin/ai_theme/approve', {id: id}, function() {
+            done++;
+            if (done >= ids.length) {
+                I8JToast.success('批量通过完成');
+                setTimeout(() => location.reload(), 600);
+            }
+        });
+    });
+}
+
+function approveTheme(id) {
+    if (!confirm('确认通过此主题？')) return;
+    $.post('/admin/ai_theme/approve', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+function publishTheme(id) {
+    if (!confirm('确认发布此主题？')) return;
+    $.post('/admin/ai_theme/publish', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function rejectTheme(id) {
+    if (!confirm('确认拒绝此主题？')) return;
+    $.post('/admin/ai_theme/reject', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function retryTheme(id) {
+    if (!confirm('确认重新生成？')) return;
+    $.post('/admin/ai_theme/retry', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+// 质量评分
+function doQualityScore(id, btn) {
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    btn.disabled = true;
+    $.post('/admin/ai_theme/qualityScore', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success('评分完成: ' + res.data.total);
+            setTimeout(() => location.reload(), 500);
+        } else {
+            I8JToast.error(res.msg);
+            btn.innerHTML = '评分';
+            btn.disabled = false;
+        }
+    }).fail(function() {
+        I8JToast.error('评分失败');
+        btn.innerHTML = '评分';
+        btn.disabled = false;
+    });
+}
+</script>
+{/block}

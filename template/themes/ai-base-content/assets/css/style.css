@@ -1,0 +1,109 @@
+/* ============================================================
+   AI-CMS V2.9.11 Content Skeleton Theme
+   内容型骨架模板 — 使用25个统一CSS变量
+   ============================================================ */
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--primary);text-decoration:none}
+a:hover{color:var(--primary-dark)}
+img{max-width:100%;height:auto}
+
+/* === Compact Nav === */
+.content-nav{background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1030}
+.content-nav .container{height:56px}
+.content-nav .brand{font-size:1.15rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.content-nav .brand img{height:28px}
+.content-nav .nav-menu{display:flex;gap:24px;list-style:none;margin:0;padding:0}
+.content-nav .nav-menu a{color:var(--text);font-size:14px;transition:var(--transition)}
+.content-nav .nav-menu a:hover{color:var(--primary)}
+.content-nav .nav-actions{display:flex;align-items:center;gap:12px}
+.content-nav .search-form{display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.content-nav .search-form input{border:none;padding:4px 10px;font-size:13px;outline:none;background:var(--bg);color:var(--text)}
+.content-nav .search-form button{border:none;background:var(--bg-secondary);padding:4px 10px;color:var(--text-secondary)}
+
+/* === Sections === */
+.section{padding:32px 0}
+.section-title{font-size:1.25rem;font-weight:700;color:var(--text);margin-bottom:12px}
+.section-title i{color:var(--primary)}
+
+/* === Content List (compact) === */
+.content-list-item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)}
+.content-list-item:last-child{border-bottom:none}
+.content-list-item .item-thumb{flex-shrink:0;width:180px;height:120px;border-radius:var(--radius);overflow:hidden}
+.content-list-item .item-thumb img{width:100%;height:100%;object-fit:cover}
+.content-list-item .item-body{flex:1;min-width:0}
+.content-list-item .item-body h5{font-size:1.05rem;margin-bottom:6px}
+.content-list-item .item-body h5 a{color:var(--text)}
+.content-list-item .item-body h5 a:hover{color:var(--primary)}
+.content-list-item .item-meta{color:var(--text-secondary);font-size:.8rem;margin-top:8px}
+.content-list-item .item-meta span{margin-right:12px}
+
+/* === Sidebar Widgets === */
+.widget{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.widget-title{font-size:.9rem;font-weight:700;margin-bottom:12px;color:var(--text);padding-bottom:8px;border-bottom:1px solid var(--border)}
+.widget-title i{color:var(--primary)}
+.widget-item{padding:8px 0;border-bottom:1px solid var(--border)}
+.widget-item:last-child{border-bottom:none}
+.rank-num{width:22px;height:22px;border-radius:50%;background:var(--primary-light);color:var(--primary);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700}
+
+/* === Tag Cloud === */
+.tag-cloud{display:flex;flex-wrap:wrap;gap:6px}
+.tag-link{display:inline-block;padding:3px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.8rem;color:var(--text-secondary);transition:var(--transition)}
+.tag-link:hover{background:var(--primary);color:var(--text-inverse);border-color:var(--primary)}
+
+/* === Article Reading === */
+.article-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.article-meta{color:var(--text-secondary);font-size:.88rem}
+.content-body{line-height:1.85;font-size:1.05rem}
+.content-body p{margin-bottom:1.25rem}
+.article-reading .content-body{line-height:1.95;font-size:1.08rem}
+.i8j-paywall-box{text-align:center;padding:2rem;background:var(--bg-secondary);border-radius:var(--radius);border:1px dashed var(--border)}
+
+/* === List Cards === */
+.list-card{border:1px solid var(--border);border-radius:var(--radius);transition:var(--transition)}
+.list-card:hover{box-shadow:var(--shadow-hover)}
+
+/* === Sidebar === */
+.sidebar-card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.sidebar-card .card-header{background:var(--primary);color:var(--text-inverse);font-size:.9rem;padding:10px 16px}
+
+/* === Footer === */
+.content-footer{background:var(--bg-secondary);border-top:1px solid var(--border);padding:20px 0}
+
+/* === Link Section === */
+.link-section{background:var(--bg-secondary);border-top:1px solid var(--border);padding:10px 0}
+
+/* === Empty State === */
+.empty-state{color:var(--text-secondary)}
+.empty-state i{color:var(--border);font-size:3rem}
+
+/* === Breadcrumb === */
+.breadcrumb{background:none;padding:0;margin-bottom:1rem}
+.breadcrumb a{color:var(--text-secondary)}
+
+/* === Mobile === */
+@media (max-width:991px){
+    .content-nav .nav-menu{display:none}
+    .content-nav .search-form{display:none!important}
+    .section{padding:20px 0}
+    .content-list-item{flex-direction:column}
+    .content-list-item .item-thumb{width:100%;height:160px}
+}
+
+/* === Mobile Specific === */
+.mobile-nav{display:flex;justify-content:space-between;align-items:center;padding:0 16px;height:52px;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1030}
+.mobile-nav .brand{font-weight:700;color:var(--text)}
+.mobile-nav .nav-toggle{background:none;border:none;font-size:1.5rem;color:var(--text)}
+.mobile-menu{display:none;background:var(--bg-secondary);border-bottom:1px solid var(--border)}
+.mobile-menu.show{display:block}
+.mobile-menu a{display:block;padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text)}
+.mobile-footer{background:var(--bg-secondary);border-top:1px solid var(--border);padding:16px}
+.mobile-section{padding:16px}
+.mobile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.mobile-card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--bg)}
+.mobile-card img{width:100%;height:100px;object-fit:cover}
+.mobile-card-title{padding:8px;font-size:.8rem;font-weight:500;color:var(--text)}
+.mobile-list-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);color:var(--text)}
+.mobile-list-item:last-child{border-bottom:none}
+.mobile-reading{line-height:1.85;font-size:1rem}

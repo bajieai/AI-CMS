@@ -1,14 +1,22 @@
-# 八界AI-CMS V2.9.10
+# 八界AI-CMS V2.9.11
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.10-blue)
+![Version](https://img.shields.io/badge/version-2.9.11-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.10 "体验进化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.11 "主题进化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.11 核心定位：主题模板生成系统混合模式改造 + CSS变量三套命名体系统一 + 骨架模板体系** — 6大模块：
+1. **双模式AI主题生成** — 保留"从零生成"（AI生成HTML+CSS，65分阈值）+ 新增"基于骨架生成"（AI只生成CSS，70分阈值），用户在生成时可选择模式
+2. **2种布局变体骨架模板** — 展示型骨架（Hero+轮播+三列卡片+动效）+ 内容型骨架（紧凑+侧栏+阅读优化），各含PC 8文件+Mobile 4文件+完整CSS
+3. **CSS变量三套命名体系统一** — 修复tweak页面`--i8j-`前缀断裂导致配置对前台完全无效的Bug，统一为25个无前缀变量（--primary/--bg/--text等），FrontBaseController/AiThemeController/CssComponentLibrary完全对齐
+4. **行业调色板体系** — 新建`i8j_ai_theme_palette`表+10行业默认色板（企业/电商/博客/门户/医疗/教育/餐饮/金融/科技/房产），生成时按行业自动加载色板
+5. **theme:clean/theme:duplicate CLI命令** — clean支持dry-run/force/all模式清理不可用AI主题；duplicate支持骨架复制+sabberworm CSS解析器颜色替换+CSS变量引用完整性扫描
+6. **后台生成页改造** — 生成模式选择卡片+骨架模板选择+行业类型下拉（带色板预览）+双皮肤同步（default+corporate）
 
 **V2.9.10 核心定位：前台用户中心增强 + 缓存清除细分 + 后台菜单数据库化** — 3项优化：
 1. **前台用户中心增强** — 统一用户中心入口、侧边栏导航分组、积分商城条件显示、导航栏登录下拉改造

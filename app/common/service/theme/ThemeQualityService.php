@@ -45,15 +45,15 @@ class ThemeQualityService
         'assets/js/main.js',
     ];
 
-    /** CSS变量前缀 */
-    protected string $cssVarPrefix = '--i8j-';
+    /** CSS变量前缀（V2.9.11统一为无前缀） */
+    protected string $cssVarPrefix = '--';
 
-    /** 必要CSS变量 */
+    /** 必要CSS变量（V2.9.11统一25变量子集） */
     protected array $requiredCssVars = [
-        '--i8j-primary',
-        '--i8j-bg',
-        '--i8j-text',
-        '--i8j-border',
+        '--primary',
+        '--bg',
+        '--text',
+        '--border',
     ];
 
     /**

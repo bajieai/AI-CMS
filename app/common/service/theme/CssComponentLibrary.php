@@ -102,8 +102,9 @@ class CssComponentLibrary
      */
     protected function renderVars(): string
     {
+        // V2.9.11: 与getThemeCssVars()完全对齐的25个变量
         return <<<CSS
-/* === CSS Variables === */
+/* === CSS Variables (V2.9.11 Unified 25 vars) === */
 :root {
     --primary: #2563EB;
     --primary-light: #DBEAFE;
@@ -114,7 +115,7 @@ class CssComponentLibrary
     --bg-secondary: #F8FAFC;
     --bg-section: #F1F5F9;
     --text: #1E293B;
-    --text-muted: #64748B;
+    --text-secondary: #64748B;
     --text-inverse: #FFFFFF;
     --border: #E2E8F0;
     --radius: 8px;
@@ -123,11 +124,13 @@ class CssComponentLibrary
     --shadow: 0 1px 3px rgba(0,0,0,0.1);
     --shadow-hover: 0 4px 12px rgba(0,0,0,0.15);
     --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    --font-heading: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --transition: all 0.2s ease;
     --transition-slow: all 0.3s ease;
-    --font-heading: 'system-ui', -apple-system, sans-serif;
-    --font-body: 'system-ui', -apple-system, sans-serif;
     --max-width: 1200px;
+    --sidebar-pos: left;
+    --header-style: full;
 }
 CSS;
     }

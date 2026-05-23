@@ -240,4 +240,45 @@ return [
         'min_transitions' => 3,
         'min_media_queries' => 1,
     ],
+
+    // V2.9.11: 统一25个CSS变量定义（与getThemeCssVars/CssComponentLibrary完全对齐）
+    'css_vars' => [
+        '--primary'        => ['label' => '主色',        'default' => '#2563EB', 'type' => 'color'],
+        '--primary-light'  => ['label' => '主色浅',      'default' => '#DBEAFE', 'type' => 'color'],
+        '--primary-dark'   => ['label' => '主色深',      'default' => '#1E40AF', 'type' => 'color'],
+        '--secondary'      => ['label' => '辅色',        'default' => '#64748B', 'type' => 'color'],
+        '--accent'         => ['label' => '强调色',      'default' => '#F59E0B', 'type' => 'color'],
+        '--bg'             => ['label' => '背景色',      'default' => '#FFFFFF', 'type' => 'color'],
+        '--bg-secondary'   => ['label' => '次背景',      'default' => '#F8FAFC', 'type' => 'color'],
+        '--bg-section'     => ['label' => '区块背景',    'default' => '#F1F5F9', 'type' => 'color'],
+        '--text'           => ['label' => '文字色',      'default' => '#1E293B', 'type' => 'color'],
+        '--text-secondary' => ['label' => '次要文字',    'default' => '#64748B', 'type' => 'color'],
+        '--text-inverse'   => ['label' => '反色文字',    'default' => '#FFFFFF', 'type' => 'color'],
+        '--border'         => ['label' => '边框色',      'default' => '#E2E8F0', 'type' => 'color'],
+        '--radius'         => ['label' => '圆角',        'default' => '8px',     'type' => 'text'],
+        '--radius-lg'      => ['label' => '大圆角',      'default' => '12px',    'type' => 'text'],
+        '--radius-sm'      => ['label' => '小圆角',      'default' => '4px',     'type' => 'text'],
+        '--shadow'         => ['label' => '阴影',        'default' => '0 1px 3px rgba(0,0,0,0.1)', 'type' => 'text'],
+        '--shadow-hover'   => ['label' => '悬停阴影',    'default' => '0 4px 12px rgba(0,0,0,0.15)', 'type' => 'text'],
+        '--shadow-lg'      => ['label' => '大阴影',      'default' => '0 10px 25px rgba(0,0,0,0.1)', 'type' => 'text'],
+        '--font-heading'   => ['label' => '标题字体',    'default' => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", 'type' => 'text'],
+        '--font-body'      => ['label' => '正文字体',    'default' => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", 'type' => 'text'],
+        '--transition'     => ['label' => '过渡动画',    'default' => 'all 0.2s ease', 'type' => 'text'],
+        '--transition-slow'=> ['label' => '慢动画',      'default' => 'all 0.3s ease', 'type' => 'text'],
+        '--max-width'      => ['label' => '最大宽度',    'default' => '1200px',  'type' => 'text'],
+        '--sidebar-pos'    => ['label' => '侧边栏位置',  'default' => 'left',    'type' => 'text'],
+        '--header-style'   => ['label' => 'Header风格',  'default' => 'full',    'type' => 'text'],
+    ],
+
+    // V2.9.11: 骨架模板配置
+    'skeleton_themes' => [
+        'ai-base-showcase' => ['name' => '展示型骨架', 'layout_type' => 'showcase', 'description' => 'Hero+轮播+三列卡片+动效'],
+        'ai-base-content'  => ['name' => '内容型骨架', 'layout_type' => 'content',  'description' => '紧凑+侧栏+阅读优化'],
+    ],
+
+    // V2.9.11: 生成模式配置
+    'generate_modes' => [
+        'full'     => ['name' => '从零生成', 'description' => 'AI生成完整HTML+CSS', 'quality_threshold' => 65],
+        'skeleton' => ['name' => '基于骨架', 'description' => 'AI只生成CSS，基于骨架模板', 'quality_threshold' => 70],
+    ],
 ];

@@ -1,0 +1,18 @@
+{extend name="layout" /}
+{block name="title"}{$site_name}{/block}
+{block name="content"}
+<div class="mobile-section">
+    <h6>最新文章</h6>
+    {i8j:infolist type="news" limit="10"}
+    <a href="{$field.url}" class="mobile-list-item">
+        {if condition="$field.cover"}<img data-src="{$field.cover}" class="lazyload me-2" style="width:72px;height:54px;object-fit:cover;border-radius:4px" alt="{$field.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">{/if}
+        <div class="flex-grow-1">
+            <div class="small fw-bold">{$field.title}</div>
+            <div class="text-muted" style="font-size:12px">{$field.excerpt|msubstr=0,40}</div>
+            <div class="text-muted" style="font-size:11px">{$field.create_time|date='Y-m-d'} · {$field.views}阅读</div>
+        </div>
+    </a>
+    {/i8j:infolist}
+    {empty name="__LIST__"}<p class="text-muted text-center py-4">暂无文章</p>{/empty}
+</div>
+{/block}

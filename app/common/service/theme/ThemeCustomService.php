@@ -26,20 +26,24 @@ use think\facade\Log;
  * - 读取/保存/重置定制数据
  * - 生成CSS覆盖代码
  * - 获取theme.json中的design_tokens定义
- * - 兼容AiThemeController的--i8j-*变量映射
+ * - V2.9.11: CSS变量已统一为无前缀，I8J_MAPPING保留用于旧数据向后兼容
  */
 class ThemeCustomService
 {
     /**
-     * --i8j-* → 无前缀 映射表（兼容AiThemeController）
+     * V2.9.11: --i8j-* → 无前缀 映射表（保留用于读取旧数据向后兼容）
+     * 新数据已统一使用无前缀变量（--primary, --bg, --text等）
      */
     protected const I8J_MAPPING = [
-        '--i8j-primary'    => '--primary',
-        '--i8j-bg'         => '--bg',
-        '--i8j-text'       => '--text',
-        '--i8j-border'     => '--border',
-        '--i8j-secondary'  => '--secondary',
-        '--i8j-accent'     => '--accent',
+        '--i8j-primary'       => '--primary',
+        '--i8j-primary-hover' => '--primary',
+        '--i8j-bg'            => '--bg',
+        '--i8j-bg-secondary'  => '--bg-secondary',
+        '--i8j-text'          => '--text',
+        '--i8j-text-secondary'=> '--text-secondary',
+        '--i8j-border'        => '--border',
+        '--i8j-radius'        => '--radius',
+        '--i8j-shadow'        => '--shadow',
     ];
 
     /**

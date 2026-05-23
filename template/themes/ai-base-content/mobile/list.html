@@ -1,0 +1,19 @@
+{extend name="layout" /}
+{block name="title"}{if condition="$current_cate"}{$current_cate.name}{else/}列表{/if}{/block}
+{block name="content"}
+<div class="mobile-section">
+    <h6>{if condition="$current_cate"}{$current_cate.name}{else/}内容列表{/if}</h6>
+    {volist name="list" id="vo"}
+    <a href="{$vo.url}" class="mobile-list-item">
+        {if condition="$vo.cover"}<img data-src="{$vo.cover}" class="lazyload me-2" style="width:72px;height:54px;object-fit:cover;border-radius:4px" alt="{$vo.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">{/if}
+        <div class="flex-grow-1">
+            <div class="small fw-bold">{$vo.title}</div>
+            <div class="text-muted" style="font-size:12px">{$vo.excerpt|msubstr=0,40}</div>
+            <div class="text-muted" style="font-size:11px">{$vo.create_time|date='Y-m-d'}</div>
+        </div>
+    </a>
+    {/volist}
+    {empty name="list"}<p class="text-muted text-center py-4">暂无内容</p>{/empty}
+    {if condition="($list->hasPages() ?? false)"}<div class="mt-2 d-flex justify-content-center">{$list->render()|raw}</div>{/if}
+</div>
+{/block}

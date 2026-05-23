@@ -94,10 +94,18 @@ class AiThemeController extends AdminBaseController
         $remaining = $service->getRemainingQuota();
         $dailyLimit = (int) config('ai.theme_generate.daily_limit', 50);
 
+        // V2.9.11: 骨架模板和行业列表
+        $skeletonThemes = config('theme_styles.skeleton_themes', []);
+        $industries = config('theme_styles.industries', []);
+        $generateModes = config('theme_styles.generate_modes', []);
+
         $this->app->view->assign([
-            'remaining'  => $remaining,
-            'daily_limit'=> $dailyLimit,
-            'can_generate'=> $remaining > 0,
+            'remaining'     => $remaining,
+            'daily_limit'   => $dailyLimit,
+            'can_generate'  => $remaining > 0,
+            'skeleton_themes'=> $skeletonThemes,
+            'industries'    => $industries,
+            'generate_modes'=> $generateModes,
         ]);
 
         return $this->app->view->fetch('ai_theme/generate');
@@ -236,9 +244,21 @@ class AiThemeController extends AdminBaseController
         $description = trim($this->request->post('description', ''));
         $options = $this->request->post('options', []);
 
+        // V2.9.11: 接收生成模式参数
+        $generateMode = trim($this->request->post('generate_mode', 'full'));
+        $skeletonTheme = trim($this->request->post('skeleton_theme', 'ai-base-showcase'));
+        $layoutType = trim($this->request->post('layout_type', 'showcase'));
+        $industryType = trim($this->request->post('industry_type', 'corporate'));
+
         if (empty($description)) {
             return $this->error('请输入主题描述');
         }
+
+        // 合并选项
+        $options['generate_mode'] = in_array($generateMode, ['full', 'skeleton']) ? $generateMode : 'full';
+        $options['skeleton_theme'] = $skeletonTheme;
+        $options['layout_type'] = $layoutType;
+        $options['industry_type'] = $industryType;
 
         $service = new AiThemeGenerateService();
 
@@ -250,6 +270,7 @@ class AiThemeController extends AdminBaseController
             $recordId = $service->createTask($userId, $description, $options);
             return $this->success('生成任务已创建', [
                 'record_id' => $recordId,
+                'mode'      => $options['generate_mode'],
             ]);
         } catch (\Throwable $e) {
             return $this->error('创建任务失败: ' . $e->getMessage());
@@ -489,16 +510,33 @@ class AiThemeController extends AdminBaseController
         } catch (\Throwable) {
         }
 
+        // V2.9.11: 统一25个CSS变量（与FrontBaseController/getThemeCssVars完全对齐）
         $defaultVars = [
-            '--i8j-primary'       => '#3b82f6',
-            '--i8j-primary-hover' => '#2563eb',
-            '--i8j-bg'            => '#ffffff',
-            '--i8j-bg-secondary'  => '#f8fafc',
-            '--i8j-text'          => '#1e293b',
-            '--i8j-text-secondary'=> '#64748b',
-            '--i8j-border'        => '#e2e8f0',
-            '--i8j-radius'        => '8px',
-            '--i8j-shadow'        => '0 1px 3px rgba(0,0,0,.1)',
+            '--primary'        => '#2563EB',
+            '--primary-light'  => '#DBEAFE',
+            '--primary-dark'   => '#1E40AF',
+            '--secondary'      => '#64748B',
+            '--accent'         => '#F59E0B',
+            '--bg'             => '#FFFFFF',
+            '--bg-secondary'   => '#F8FAFC',
+            '--bg-section'     => '#F1F5F9',
+            '--text'           => '#1E293B',
+            '--text-secondary' => '#64748B',
+            '--text-inverse'   => '#FFFFFF',
+            '--border'         => '#E2E8F0',
+            '--radius'         => '8px',
+            '--radius-lg'      => '12px',
+            '--radius-sm'      => '4px',
+            '--shadow'         => '0 1px 3px rgba(0,0,0,0.1)',
+            '--shadow-hover'   => '0 4px 12px rgba(0,0,0,0.15)',
+            '--shadow-lg'      => '0 10px 25px rgba(0,0,0,0.1)',
+            '--font-heading'   => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            '--font-body'      => "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            '--transition'     => 'all 0.2s ease',
+            '--transition-slow'=> 'all 0.3s ease',
+            '--max-width'      => '1200px',
+            '--sidebar-pos'    => 'left',
+            '--header-style'   => 'full',
         ];
 
         $currentVars = array_merge($defaultVars, $savedVars);

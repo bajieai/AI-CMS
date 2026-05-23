@@ -107,11 +107,20 @@ class AiThemeGenerateService
         $themeName = $record->theme_name;
         $baseDir = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $themeName;
 
-        Log::info("[AiThemeGenerate] 开始生成: record_id={$recordId}, theme_name={$themeName}");
+        // V2.9.11: 双模式分支
+        $options = $record->options ?: [];
+        $mode = $options['generate_mode'] ?? 'full';
 
+        Log::info("[AiThemeGenerate] 开始生成: record_id={$recordId}, theme_name={$themeName}, mode={$mode}");
+
+        if ($mode === 'skeleton') {
+            return $this->executeSkeletonMode($record, $baseDir, $overrideTemp);
+        }
+
+        // === full模式：从零生成（原有逻辑）===
         try {
             // 1. 构建Prompt
-            $prompt = $this->buildPrompt($record->description, $record->options ?: []);
+            $prompt = $this->buildPrompt($record->description, $options);
             $record->prompt_log = $prompt;
             $record->save();
 
@@ -136,18 +145,15 @@ class AiThemeGenerateService
             // 4. 文件落盘
             $writeResult = $this->fileService->writeThemeFiles($baseDir, $files);
 
-            // 4.5 自动创建皮肤目录（public/skin/themes/{theme}/pc/）
+            // 4.5 自动创建皮肤目录
             $this->ensureSkinAssets($themeName, $baseDir);
 
-            // 5. 校验流水线（新模板，使用65分阈值）
+            // 5. 校验流水线（full模式65分阈值）
             $validateResult = $this->validatorService->validate($baseDir, true);
 
             // 6. 更新记录状态
             if ($validateResult['passed']) {
-                AiThemeRecord::markPendingReview(
-                    $recordId,
-                    $writeResult['files_tree']
-                );
+                AiThemeRecord::markPendingReview($recordId, $writeResult['files_tree']);
                 Log::info("[AiThemeGenerate] 生成完成待审核: record_id={$recordId}, files={$writeResult['written_count']}");
             } else {
                 AiThemeRecord::markValidateFailed($recordId, $validateResult);
@@ -163,26 +169,231 @@ class AiThemeGenerateService
             ];
 
         } catch (\Throwable $e) {
-            // 回滚已写入的文件
             $this->fileService->rollback();
-
             $errorMsg = $e->getMessage();
             Log::error("[AiThemeGenerate] 生成失败: record_id={$recordId}, error={$errorMsg}");
-
-            // 检查重试次数
             if ((int) $record->retry_count < 3) {
                 AiThemeRecord::incrementRetry($recordId);
                 AiThemeRecord::markFailed($recordId, $errorMsg);
             } else {
                 AiThemeRecord::markFailed($recordId, "重试次数用尽: {$errorMsg}");
             }
+            return ['success' => false, 'message' => $errorMsg, 'record_id' => $recordId];
+        }
+    }
+
+    /**
+     * V2.9.11: 骨架模式执行 — AI只生成CSS，基于骨架模板
+     */
+    protected function executeSkeletonMode(AiThemeRecord $record, string $baseDir, ?float $overrideTemp = null): array
+    {
+        $recordId = $record->id;
+        $themeName = $record->theme_name;
+        $options = $record->options ?: [];
+
+        try {
+            $skeletonTheme = $options['skeleton_theme'] ?? 'ai-base-showcase';
+            $layoutType    = $options['layout_type'] ?? 'showcase';
+            $industry      = $options['industry_type'] ?? 'corporate';
+            $description   = $record->description;
+
+            $skeletonDir = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $skeletonTheme;
+            if (!is_dir($skeletonDir)) {
+                throw new \RuntimeException("骨架模板不存在: {$skeletonTheme}");
+            }
+
+            // 1. 复制骨架模板到目标目录
+            $this->copySkeletonFiles($skeletonDir, $baseDir);
+            Log::info("[AiThemeGenerate] 骨架复制完成: source={$skeletonTheme}, target={$themeName}");
+
+            // 2. 获取行业色板
+            $palette = $this->getIndustryPalette($industry);
+
+            // 3. 构建CSS生成Prompt
+            $promptBuilder = new ThemePromptBuilder();
+            $prompt = $promptBuilder->buildSkeletonCssPrompt($description, $layoutType, $industry, $palette);
+            $record->prompt_log = $prompt;
+            $record->save();
+
+            // 4. 调用AI生成CSS
+            $systemPrompt = $promptBuilder->buildSystemPrompt('skeleton');
+            $maxTokens = (int) config('ai.theme_generate.max_tokens', 4096);
+            $temperature = $overrideTemp ?? (float) config('ai.theme_generate.temperature', 0.5);
+
+            $llmResponse = $this->getProvider()->write($prompt, [
+                'system_prompt' => $systemPrompt,
+                'max_tokens'    => $maxTokens,
+                'temperature'   => $temperature,
+            ]);
+
+            // 5. 解析并写入CSS
+            $cssContent = $this->extractCssFromResponse($llmResponse);
+            if (empty($cssContent)) {
+                throw new \RuntimeException('AI响应未包含有效CSS代码');
+            }
+
+            // 确保CSS包含统一的25个变量声明
+            $cssContent = $this->injectCssVars($cssContent, $palette);
+
+            // 写入到皮肤目录的style.css
+            foreach (['pc', 'mobile'] as $device) {
+                $cssFile = $baseDir . DIRECTORY_SEPARATOR . $device . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'style.css';
+                if (!is_dir(dirname($cssFile))) {
+                    mkdir(dirname($cssFile), 0755, true);
+                }
+                file_put_contents($cssFile, $cssContent, LOCK_EX);
+            }
+
+            // 6. 生成theme.json
+            $this->generateThemeJson($baseDir, $themeName, $industry, $layoutType, $palette);
+
+            // 7. 质量校验（骨架模式70分阈值）
+            $validateResult = $this->validatorService->validate($baseDir, true);
+            // 骨架模式使用70分阈值
+            if ($validateResult['passed'] && isset($validateResult['total']) && $validateResult['total'] < 70) {
+                $validateResult['passed'] = false;
+                $validateResult['summary'] = 'CSS质量评分不足70分（骨架模式阈值），请调整描述重试';
+            }
+
+            // 8. 更新记录
+            $filesTree = $this->scanFilesTree($baseDir);
+            if ($validateResult['passed']) {
+                AiThemeRecord::markPendingReview($recordId, $filesTree);
+                Log::info("[AiThemeGenerate] 骨架模式生成完成: record_id={$recordId}");
+            } else {
+                AiThemeRecord::markValidateFailed($recordId, $validateResult);
+                Log::warning("[AiThemeGenerate] 骨架模式校验失败: record_id={$recordId}");
+            }
 
             return [
-                'success'   => false,
-                'message'   => $errorMsg,
-                'record_id' => $recordId,
+                'success'    => true,
+                'message'    => $validateResult['passed'] ? '生成完成，待审核' : '校验未通过',
+                'record_id'  => $recordId,
+                'validate'   => $validateResult,
+                'mode'       => 'skeleton',
             ];
+
+        } catch (\Throwable $e) {
+            $this->fileService->rollback();
+            $errorMsg = $e->getMessage();
+            Log::error("[AiThemeGenerate] 骨架模式失败: record_id={$recordId}, error={$errorMsg}");
+            AiThemeRecord::markFailed($recordId, $errorMsg);
+            return ['success' => false, 'message' => $errorMsg, 'record_id' => $recordId, 'mode' => 'skeleton'];
         }
+    }
+
+    /**
+     * V2.9.11: 复制骨架模板文件
+     */
+    protected function copySkeletonFiles(string $skeletonDir, string $targetDir): void
+    {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($skeletonDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($iterator as $item) {
+            $targetPath = $targetDir . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+            if ($item->isDir()) {
+                if (!is_dir($targetPath)) mkdir($targetPath, 0755, true);
+            } else {
+                copy($item->getRealPath(), $targetPath);
+            }
+        }
+    }
+
+    /**
+     * V2.9.11: 获取行业默认色板
+     */
+    protected function getIndustryPalette(string $industry): array
+    {
+        try {
+            $palette = \think\facade\Db::name('ai_theme_palette')
+                ->where('industry_type', $industry)
+                ->where('is_system', 1)
+                ->value('colors');
+            if ($palette) {
+                return json_decode($palette, true) ?: [];
+            }
+        } catch (\Throwable $e) {
+            // 数据库不可用时使用配置色板
+        }
+        $config = config('theme_styles.industries.' . $industry . '.color_suggestions', []);
+        return $config;
+    }
+
+    /**
+     * V2.9.11: 从AI响应中提取CSS代码
+     */
+    protected function extractCssFromResponse(string $response): string
+    {
+        // 尝试提取```css块
+        if (preg_match('/```css\s*(.*?)```/s', $response, $m)) {
+            return trim($m[1]);
+        }
+        // 尝试提取```块
+        if (preg_match('/```\s*(.*?)```/s', $response, $m)) {
+            return trim($m[1]);
+        }
+        // 如果没有代码块，返回整个响应（假设是纯CSS）
+        return trim($response);
+    }
+
+    /**
+     * V2.9.11: 注入CSS变量声明到CSS头部
+     */
+    protected function injectCssVars(string $css, array $palette): string
+    {
+        $varLines = [];
+        foreach ($palette as $k => $v) {
+            $varName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $k));
+            $varLines[] = "    --{$varName}: {$v};";
+        }
+
+        $varBlock = ":root {\n" . implode("\n", $varLines) . "\n}\n";
+
+        // 如果CSS已有:root，不重复注入
+        if (strpos($css, ':root') !== false) {
+            return $css;
+        }
+
+        return $varBlock . "\n" . $css;
+    }
+
+    /**
+     * V2.9.11: 生成theme.json
+     */
+    protected function generateThemeJson(string $baseDir, string $themeName, string $industry, string $layoutType, array $palette): void
+    {
+        $json = [
+            'name'         => $themeName,
+            'version'      => '2.9.11',
+            'description'  => 'AI生成主题（骨架模式）',
+            'author'       => 'AI-CMS',
+            'category'     => $industry,
+            'tags'         => ['ai-generated', 'skeleton', $layoutType],
+            'type'         => 'frontend',
+            'supports'     => ['pc', 'mobile'],
+            'default_device'=> 'pc',
+            'colors'       => $palette,
+            'layouts'      => ['pc' => ['layout.html', 'index.html', 'list.html', 'detail.html'], 'mobile' => ['layout.html', 'index.html', 'list.html', 'detail.html']],
+            'assets'       => ['css' => ['assets/css/style.css']],
+        ];
+        file_put_contents($baseDir . DIRECTORY_SEPARATOR . 'theme.json', json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
+
+    /**
+     * V2.9.11: 扫描文件树
+     */
+    protected function scanFilesTree(string $baseDir): array
+    {
+        $tree = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($baseDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            $tree[] = $iterator->getSubPathName();
+        }
+        return $tree;
     }
 
     /**
