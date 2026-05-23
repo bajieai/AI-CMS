@@ -250,7 +250,7 @@ class AiThemeGenerateService
             // 7. 质量校验（骨架模式70分阈值）
             $validateResult = $this->validatorService->validate($baseDir, true);
             // 骨架模式使用70分阈值
-            if ($validateResult['passed'] && isset($validateResult['total']) && $validateResult['total'] < 70) {
+            if ($validateResult['passed'] && isset($validateResult['css_quality']['total_score']) && $validateResult['css_quality']['total_score'] < 70) {
                 $validateResult['passed'] = false;
                 $validateResult['summary'] = 'CSS质量评分不足70分（骨架模式阈值），请调整描述重试';
             }
