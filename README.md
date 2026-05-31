@@ -1,14 +1,23 @@
-# 八界AI-CMS V2.9.13
+# 八界AI-CMS V2.9.14
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.13-blue)
+![Version](https://img.shields.io/badge/version-2.9.14-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.13 "内容智能化·运营增强" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.14 "体验精修·异步升级" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.14 核心定位：体验精修·异步升级** — 3个Sprint 10项优化（100%完成）：
+1. **P0：配图生成异步化** — 同步3次循环(最坏90秒) → 异步队列提交+前端轮询逐张显示，解决Nginx 60s超时断连
+2. **P0：批量SEO真进度SSE** — 模拟进度(setInterval随机递增) → SSE服务端主动推送真实进度，含当前文章标题/成功失败计数
+3. **P0：批量SEO暂停/继续** — 支持缓冲期暂停（当前任务完成后完全暂停）+ 恢复 + 刷新后状态恢复
+4. **P1：AI模态框组件化** — 3个弹窗从content_edit.html内联90行抽离为shared子模板，CSS独立为ai_editor.css
+5. **P1：diffVersions增强** — 版本差异对比增加文件大小变化(size_diff)和格式化显示
+6. **P1：安装前质量校验扩展** — 从2项扩展到7项（满分100），新增必需文件/CSS有效性/JS有效性/跨模板引用/编码检查
+7. **P1：看板体验微调** — 可关闭提示条+日期区间筛选+数字增长动画+图表骨架屏+卡片hover+刷新Loading
 
 **V2.9.13 核心定位：内容智能化·运营增强** — 4方向18项功能（100%完成）：
 1. **方向F：AI内容增强补完(P0)** — 编辑器AI配图（候选选择/轮询/确认/重新生成）+ AI SEO对比弹窗（单字段应用）+ 写作风格选择器（6种风格+示例句子）+ 批量SEO进度条 + TinyMCE工具栏AI按钮

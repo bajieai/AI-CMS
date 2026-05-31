@@ -8,86 +8,111 @@
 {/block}
 
 {block name="content"}
-<!-- V2.9.13: 不可关闭的估算值提示条 -->
-<div class="alert alert-warning alert-dismissible fade show" role="alert" style="border-left:4px solid #f0ad4e;">
+<!-- V2.9.14: 骨架屏样式 -->
+<style>
+.chart-skeleton { background:#f8f9fa;border-radius:.375rem;padding:1rem; }
+.skeleton-bar { height:40px;background:linear-gradient(90deg,#e9ecef 25%,#f8f9fa 50%,#e9ecef 75%);background-size:200% 100%;animation:skeletonShine 1.5s infinite;margin-bottom:12px;border-radius:4px; }
+.skeleton-circle { width:120px;height:120px;border-radius:50%;background:linear-gradient(90deg,#e9ecef 25%,#f8f9fa 50%,#e9ecef 75%);background-size:200% 100%;animation:skeletonShine 1.5s infinite; }
+@keyframes skeletonShine { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.dashboard-card { transition:transform .2s,box-shadow .2s; }
+.dashboard-card:hover { transform:translateY(-2px);box-shadow:0 .5rem 1rem rgba(0,0,0,.1)!important; }
+</style>
+
+<!-- V2.9.14: 顶部预警提示条（可关闭 + 样式加强） -->
+<div class="alert alert-warning alert-dismissible fade show mb-3" role="alert" style="border-left:4px solid #f0ad4e;">
     <i class="bi bi-info-circle-fill me-2"></i>
     <strong>数据说明：</strong>PV/UV基于服务器访问日志（visit_log）统计估算，非第三方分析工具（如百度统计/Google Analytics）精确数据，仅供运营参考。如需精确流量分析，建议集成第三方统计工具。
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 
-<!-- 快捷日期选择 -->
-<div class="d-flex justify-content-between align-items-center mb-3">
+<!-- V2.9.14: 快捷日期选择 + 刷新按钮 -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>运营数据看板</h5>
-    <div class="btn-group btn-group-sm">
-        <a href="?days=7" class="btn btn-outline-primary {if condition='$days == 7'}active{/if}">近7天</a>
-        <a href="?days=30" class="btn btn-outline-primary {if condition='$days == 30'}active{/if}">近30天</a>
+    <div class="d-flex gap-2 align-items-center">
+        <div class="btn-group btn-group-sm">
+            <a href="?days=1" class="btn btn-outline-primary {if condition='$days == 1'}active{/if}">今日</a>
+            <a href="?days=7" class="btn btn-outline-primary {if condition='$days == 7'}active{/if}">近7天</a>
+            <a href="?days=30" class="btn btn-outline-primary {if condition='$days == 30'}active{/if}">近30天</a>
+            <a href="?days=90" class="btn btn-outline-primary {if condition='$days == 90'}active{/if}">近90天</a>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnRefreshDashboard" onclick="refreshDashboard()">
+            <i class="bi bi-arrow-clockwise"></i> 刷新
+        </button>
     </div>
 </div>
 
-<!-- 概览卡片 -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
+<!-- V2.9.14: 概览卡片（数字增长动画 + 骨架屏） -->
+<div class="row g-3 mb-4" id="dashboardCards">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100 dashboard-card">
             <div class="card-body d-flex align-items-center">
                 <div class="flex-shrink-0 bg-primary bg-opacity-10 rounded p-3 me-3">
                     <i class="bi bi-eye text-primary fs-4"></i>
                 </div>
                 <div>
                     <div class="text-muted small">PV（页面访问）</div>
-                    <div class="fs-4 fw-bold">{$overview.pv}</div>
+                    <div class="fs-4 fw-bold count-up" data-target="{$overview.pv|default=0}">0</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100 dashboard-card">
             <div class="card-body d-flex align-items-center">
                 <div class="flex-shrink-0 bg-success bg-opacity-10 rounded p-3 me-3">
                     <i class="bi bi-people text-success fs-4"></i>
                 </div>
                 <div>
                     <div class="text-muted small">UV（独立访客）</div>
-                    <div class="fs-4 fw-bold">{$overview.uv}</div>
+                    <div class="fs-4 fw-bold count-up" data-target="{$overview.uv|default=0}">0</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100 dashboard-card">
             <div class="card-body d-flex align-items-center">
                 <div class="flex-shrink-0 bg-info bg-opacity-10 rounded p-3 me-3">
                     <i class="bi bi-file-text text-info fs-4"></i>
                 </div>
                 <div>
                     <div class="text-muted small">总内容数</div>
-                    <div class="fs-4 fw-bold">{$overview.total_content}</div>
+                    <div class="fs-4 fw-bold count-up" data-target="{$overview.total_content|default=0}">0</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100 dashboard-card">
             <div class="card-body d-flex align-items-center">
                 <div class="flex-shrink-0 bg-warning bg-opacity-10 rounded p-3 me-3">
                     <i class="bi bi-plus-circle text-warning fs-4"></i>
                 </div>
                 <div>
                     <div class="text-muted small">新增内容（{$days}天）</div>
-                    <div class="fs-4 fw-bold">{$overview.new_content}</div>
+                    <div class="fs-4 fw-bold count-up" data-target="{$overview.new_content|default=0}">0</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 图表区域 -->
+<!-- V2.9.14: 图表区域（含骨架屏） -->
 <div class="row g-3 mb-4">
     <div class="col-lg-8">
         <div class="card shadow-sm">
             <div class="card-header bg-white">
                 <i class="bi bi-graph-up me-2"></i>访问趋势（PV/UV）
             </div>
-            <div class="card-body">
-                <div id="trendChart" style="height:320px;"></div>
+            <div class="card-body position-relative">
+                <div id="trendChartSkeleton" class="chart-skeleton" style="height:320px;">
+                    <div class="skeleton-bar" style="width:90%"></div>
+                    <div class="skeleton-bar" style="width:70%"></div>
+                    <div class="skeleton-bar" style="width:85%"></div>
+                    <div class="skeleton-bar" style="width:60%"></div>
+                    <div class="skeleton-bar" style="width:75%"></div>
+                </div>
+                <div id="trendChart" style="height:320px;display:none;"></div>
             </div>
         </div>
     </div>
@@ -96,10 +121,13 @@
             <div class="card-header bg-white">
                 <i class="bi bi-pie-chart me-2"></i>内容分类分布
             </div>
-            <div class="card-body">
-                <div id="categoryChart" style="height:320px;"></div>
+            <div class="card-body position-relative">
+                <div id="categoryChartSkeleton" class="chart-skeleton d-flex align-items-center justify-content-center" style="height:320px;">
+                    <div class="skeleton-circle"></div>
+                </div>
+                <div id="categoryChart" style="height:320px;display:none;"></div>
                 {if condition="empty($categoryDist)"}
-                <div class="text-center text-muted py-5">
+                <div class="text-center text-muted py-5" id="categoryEmpty">
                     <i class="bi bi-inbox fs-1"></i>
                     <p class="mt-2">暂无分类数据</p>
                 </div>
@@ -162,6 +190,33 @@
 <!-- ECharts 5 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <script>
+// V2.9.14: 数字增长动画
+function animateCountUp() {
+    var els = document.querySelectorAll('.count-up');
+    els.forEach(function(el) {
+        var target = parseInt(el.dataset.target || 0, 10);
+        if (isNaN(target) || target === 0) { el.textContent = '0'; return; }
+        var duration = 800;
+        var start = performance.now();
+        function update(now) {
+            var elapsed = now - start;
+            var progress = Math.min(elapsed / duration, 1);
+            var ease = 1 - Math.pow(1 - progress, 3);
+            var current = Math.floor(ease * target);
+            el.textContent = current.toLocaleString();
+            if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    });
+}
+
+// V2.9.14: 刷新看板
+function refreshDashboard() {
+    var btn = document.getElementById('btnRefreshDashboard');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>刷新中...'; }
+    window.location.reload();
+}
+
 (function() {
     // 趋势图
     var trendData = {:json_encode($trend, JSON_UNESCAPED_UNICODE)};
@@ -181,6 +236,10 @@
             { name: 'UV', type: 'line', smooth: true, data: uvData, areaStyle: { opacity: 0.1 } }
         ]
     });
+
+    document.getElementById('trendChartSkeleton').style.display = 'none';
+    document.getElementById('trendChart').style.display = 'block';
+    trendChart.resize();
 
     // 分类分布图
     var catData = {:json_encode($categoryDist, JSON_UNESCAPED_UNICODE)};
@@ -205,7 +264,15 @@
             option.series[0].label = { show: true, formatter: '{b}: {c} ({d}%)' };
         }
         categoryChart.setOption(option);
+
+        document.getElementById('categoryChartSkeleton').style.display = 'none';
+        document.getElementById('categoryChart').style.display = 'block';
+    } else {
+        document.getElementById('categoryChartSkeleton').style.display = 'none';
+        document.getElementById('categoryEmpty').style.display = 'block';
     }
+
+    animateCountUp();
 
     window.addEventListener('resize', function() {
         trendChart.resize();

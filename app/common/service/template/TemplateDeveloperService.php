@@ -230,7 +230,14 @@ class TemplateDeveloperService
             $oldHash = md5_file($oldPath . DIRECTORY_SEPARATOR . $file);
             $newHash = md5_file($newPath . DIRECTORY_SEPARATOR . $file);
             if ($oldHash !== $newHash) {
-                $modified[] = $file;
+                $oldSize = filesize($oldPath . DIRECTORY_SEPARATOR . $file);
+                $newSize = filesize($newPath . DIRECTORY_SEPARATOR . $file);
+                $sizeDiff = $newSize - $oldSize;
+                $modified[] = [
+                    'file'      => $file,
+                    'size_diff' => $sizeDiff,
+                    'size_diff_human' => $this->formatBytes(abs($sizeDiff)) . ($sizeDiff >= 0 ? ' ↑' : ' ↓'),
+                ];
             }
         }
 
@@ -241,10 +248,24 @@ class TemplateDeveloperService
             'new'       => $newVersion,
             'added'     => array_values($added),
             'removed'   => array_values($removed),
-            'modified'  => array_values($modified),
-            'unchanged' => array_values(array_diff($common, $modified)),
+            'modified'  => $modified,
+            'unchanged' => array_values(array_diff($common, array_column($modified, 'file'))),
             'summary'   => "新增 " . count($added) . " 个文件，删除 " . count($removed) . " 个文件，修改 " . count($modified) . " 个文件",
         ];
+    }
+
+    /**
+     * 格式化字节大小
+     */
+    protected function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 2) . ' MB';
+        }
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 2) . ' KB';
+        }
+        return $bytes . ' B';
     }
 
     /**

@@ -59,6 +59,13 @@ Route::post('content/aiSeoOptimize/:id$', '\app\admin\controller\ContentControll
 Route::post('content/aiSeoApply/:id$', '\app\admin\controller\ContentController@aiSeoApply');
 Route::post('content/generateByStyle/:id$', '\app\admin\controller\ContentController@generateByStyle');
 Route::get('content/getWritingStyles$', '\app\admin\controller\ContentController@getWritingStyles');
+// V2.9.14: AI进度SSE + 批量SEO控制
+Route::get('ai_progress/stream/:bizKey$', '\app\admin\controller\AiProgressController@stream');
+Route::post('ai_progress/batchSeoStart$', '\app\admin\controller\AiProgressController@batchSeoStart');
+Route::post('ai_progress/batchSeoPause$', '\app\admin\controller\AiProgressController@batchSeoPause');
+Route::post('ai_progress/batchSeoResume$', '\app\admin\controller\AiProgressController@batchSeoResume');
+Route::get('ai_progress/batchSeoStatus/:bizKey$', '\app\admin\controller\AiProgressController@batchSeoStatus');
+Route::get('ai_progress/batchSeoPoll/:bizKey$', '\app\admin\controller\AiProgressController@batchSeoPoll');
 
 // V2.7 章节管理
 Route::get('content/getChapters/:parentId$', '\app\admin\controller\ContentController@getChapters');

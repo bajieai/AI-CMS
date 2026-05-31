@@ -736,7 +736,10 @@ class ContentController extends AdminBaseController
     }
 
     /**
-     * V2.8+V3.1: 批量SEO优化（AI自动填充空SEO字段，3篇并发控制+间隔2秒）
+     * V2.9.14: 批量SEO优化（保留兼容：同步模式，前端可选择SSE模式）
+     *
+     * 注：V2.9.14新增SSE真进度模式通过 AiProgressController::batchSeoStart 实现。
+     * 本方法保留作为直接调用入口（处理少量文章时直接使用）。
      */
     public function batchSeoOptimize()
     {
@@ -745,10 +748,9 @@ class ContentController extends AdminBaseController
             return $this->error('请选择要操作的内容');
         }
 
-        // V3.1: 限制并发数量，避免AI API限流
-        $ids = array_slice($ids, 0, 10); // 单次最多10篇
-        $concurrency = 3; // 3篇并发
-        $interval = 2;    // 间隔2秒
+        $ids = array_slice($ids, 0, 10);
+        $concurrency = 3;
+        $interval = 2;
 
         $service = new ContentService();
         $success = 0;
@@ -764,13 +766,11 @@ class ContentController extends AdminBaseController
                 $fail++;
             }
 
-            // V3.1: 每处理concurrency篇后暂停interval秒
             if ($batch % $concurrency === 0 && $batch < count($ids)) {
                 sleep($interval);
             }
         }
 
-        // V3.1 Phase 3.5L: 批量SEO优化后缓存评分（统一调用ContentService）
         foreach ($ids as $id) {
             try {
                 $content = Content::find($id);
@@ -793,7 +793,7 @@ class ContentController extends AdminBaseController
     // ============================================================
 
     /**
-     * V2.9.13 F-1/F-2: AI配图生成（异步，生成2-3张候选图存入缓存）
+     * V2.9.14: AI配图生成（异步化，提交队列后立即返回）
      */
     public function aiImageGenerate(int $id)
     {
@@ -803,38 +803,39 @@ class ContentController extends AdminBaseController
         }
 
         $service = new AiImageGenerateService();
-        $candidates = [];
+        $summary = strip_tags($content->content ?? '');
+        $taskIds = [];
 
-        // 生成3张候选配图（使用不同seed区分）
+        // 提交3个异步配图任务到队列
         for ($i = 0; $i < 3; $i++) {
-            $result = $service->generateForContent($content->title, strip_tags($content->content ?? ''));
-            if ($result['success']) {
-                $candidates[] = [
-                    'url'      => $result['url'] ?? '',
-                    'task_id'  => $result['task_id'] ?? '',
-                    'provider' => $result['provider'] ?? '',
-                    'index'    => $i,
-                ];
-            }
+            $taskId = $service->submitGenerateTask($id, $content->title, $summary, $i);
+            $taskIds[] = $taskId;
         }
 
-        if (empty($candidates)) {
-            return $this->error('配图生成失败，请稍后重试');
+        // 初始化缓存候选结构（15分钟有效期）
+        $candidates = [];
+        foreach ($taskIds as $idx => $taskId) {
+            $candidates[] = [
+                'url'      => '',
+                'task_id'  => $taskId,
+                'provider' => '',
+                'index'    => $idx,
+            ];
         }
 
-        // 存入缓存（15分钟有效期），供轮询和确认使用
         $cacheKey = 'ai_image_candidates_' . $id;
         Cache::set($cacheKey, $candidates, 900);
 
-        return $this->success('配图候选已生成', [
+        return $this->success('配图任务已提交', [
             'content_id' => $id,
+            'task_ids'   => $taskIds,
             'candidates' => $candidates,
             'count'      => count($candidates),
         ]);
     }
 
     /**
-     * V2.9.13 F-6: AI配图轮询（查询缓存中的候选图状态）
+     * V2.9.14: AI配图轮询（增强：从队列获取真实任务状态）
      */
     public function aiImagePoll(int $id)
     {
@@ -845,19 +846,42 @@ class ContentController extends AdminBaseController
             return $this->error('配图任务已过期或不存在', 1, ['expired' => true]);
         }
 
-        // 检查是否还有未完成的异步任务
+        // V2.9.14: 从队列查询真实任务状态，更新缓存
+        $queueService = new \app\common\service\ai\AiTaskQueueService();
         $pending = 0;
-        foreach ($candidates as &$c) {
+        $completed = 0;
+
+        foreach ($candidates as $i => &$c) {
             if (empty($c['url']) && !empty($c['task_id'])) {
-                $pending++;
+                $task = $queueService->getStatus((int) $c['task_id']);
+                if ($task) {
+                    if ($task['status'] == \app\common\model\AiTaskQueue::STATUS_COMPLETED) {
+                        $result = $task['result'] ?? [];
+                        $c['url'] = $result['url'] ?? '';
+                        $c['provider'] = $result['provider'] ?? '';
+                        $completed++;
+                    } elseif ($task['status'] == \app\common\model\AiTaskQueue::STATUS_FAILED) {
+                        $c['error'] = $task['error_msg'] ?? '生成失败';
+                        $completed++; // 失败也算完成（不再等待）
+                    } else {
+                        $pending++;
+                    }
+                } else {
+                    $pending++;
+                }
+            } else {
+                $completed++;
             }
         }
+
+        // 更新缓存
+        Cache::set($cacheKey, $candidates, 900);
 
         return $this->success('查询成功', [
             'content_id' => $id,
             'candidates' => $candidates,
             'pending'    => $pending,
-            'completed'  => count($candidates) - $pending,
+            'completed'  => $completed,
         ]);
     }
 

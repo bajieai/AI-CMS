@@ -183,7 +183,7 @@ function doSearch() {
     </div>
     {/if}
 </div>
-<!-- V2.9.13: 批量SEO进度Modal -->
+<!-- V2.9.14: 批量SEO进度Modal（SSE真进度 + 暂停/继续） -->
 <div class="modal fade" id="batchSeoModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -191,11 +191,45 @@ function doSearch() {
                 <h5 class="modal-title"><i class="bi bi-magic me-2"></i>批量AI SEO优化</h5>
             </div>
             <div class="modal-body">
-                <p class="text-muted small">正在对选中的内容进行AI SEO优化，请稍候...</p>
+                <div class="batch-seo-summary d-flex justify-content-between mb-3">
+                    <span>总文章：<strong id="batchSeoTotal">0</strong></span>
+                    <span>成功：<strong id="batchSeoSuccess" class="text-success">0</strong></span>
+                    <span>失败：<strong id="batchSeoFailed" class="text-danger">0</strong></span>
+                </div>
                 <div class="progress" style="height:24px;">
                     <div id="batchSeoProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width:0%">0%</div>
                 </div>
-                <div id="batchSeoStatus" class="mt-2 small text-muted"></div>
+                <div id="batchSeoCurrentTitle" class="mt-2 small text-muted"></div>
+                <div id="batchSeoStatus" class="mt-1 small text-muted"></div>
+                <div class="mt-3 text-center" id="batchSeoControls">
+                    <button type="button" class="btn btn-warning btn-sm" id="btnPauseSeo" onclick="pauseBatchSeo()">
+                        <i class="bi bi-pause-fill me-1"></i>暂停
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm d-none" id="btnResumeSeo" onclick="resumeBatchSeo()">
+                        <i class="bi bi-play-fill me-1"></i>继续
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V2.9.14: 暂停缓冲期确认弹窗 -->
+<div class="modal fade" id="batchSeoPauseConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pause-circle me-2"></i>确认暂停？</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">正在处理中的任务将继续完成，完成后所有待处理任务将暂停。您可以随时恢复。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-warning btn-sm" onclick="confirmPauseBatchSeo()">
+                    <i class="bi bi-pause-fill me-1"></i>确认暂停
+                </button>
             </div>
         </div>
     </div>
@@ -300,38 +334,10 @@ function batchAction(action) {
         moveCateModal.show();
         return;
     }
-    // V2.9.13: 批量SEO优化带进度条
+    // V2.9.14: 批量SEO优化（SSE真进度 + 暂停/继续）
     if (action === 'seoOptimize') {
         showConfirm('批量AI SEO优化', '确定对选中的 ' + ids.length + ' 项内容进行AI SEO优化？将自动填充空SEO字段。', function() {
-            var seoModal = new bootstrap.Modal(document.getElementById('batchSeoModal'));
-            seoModal.show();
-            var progress = 0;
-            var progressEl = document.getElementById('batchSeoProgress');
-            var statusEl = document.getElementById('batchSeoStatus');
-            var timer = setInterval(function() {
-                if (progress < 90) {
-                    progress += Math.floor(Math.random() * 8) + 2;
-                    progress = Math.min(progress, 90);
-                    progressEl.style.width = progress + '%';
-                    progressEl.textContent = progress + '%';
-                    statusEl.textContent = '正在优化第 ' + Math.ceil(progress / 100 * ids.length) + ' / ' + ids.length + ' 篇...';
-                }
-            }, 600);
-            ajaxPost('/admin/content/batchSeoOptimize', { ids: ids }, function(res) {
-                clearInterval(timer);
-                progress = 100;
-                progressEl.style.width = '100%';
-                progressEl.textContent = '100%';
-                progressEl.classList.remove('progress-bar-animated');
-                statusEl.textContent = res.msg || '优化完成';
-                setTimeout(function() { seoModal.hide(); cancelBatch(); }, 1500);
-            }, function() {
-                clearInterval(timer);
-                progressEl.classList.remove('progress-bar-animated');
-                progressEl.classList.add('bg-danger');
-                statusEl.textContent = '优化失败，请重试';
-                setTimeout(function() { seoModal.hide(); }, 2000);
-            });
+            startBatchSeoSse(ids);
         });
         return;
     }
@@ -345,6 +351,112 @@ function batchAction(action) {
     showConfirm('批量操作', msg, function() {
         ajaxPost('/admin/content/batchAction', { action: action, ids: ids });
     });
+}
+
+// V2.9.14: SSE批量SEO真进度
+var _batchSeoSource = null;
+var _batchSeoBizKey = '';
+var _batchSeoModal = null;
+var _batchSeoPauseModal = null;
+
+function startBatchSeoSse(ids) {
+    _batchSeoModal = new bootstrap.Modal(document.getElementById('batchSeoModal'));
+    _batchSeoModal.show();
+    resetBatchSeoUI(ids.length);
+    ajaxPost('/admin/ai_progress/batchSeoStart', { ids: ids }, function(res) {
+        if (!res.success) { batchSeoError(res.msg || '启动失败'); return; }
+        _batchSeoBizKey = res.data.biz_key;
+        document.getElementById('batchSeoTotal').textContent = res.data.total;
+        connectBatchSeoSse(_batchSeoBizKey);
+    }, function(err) { batchSeoError(err || '启动失败'); });
+}
+function connectBatchSeoSse(bizKey) {
+    if (!window.EventSource) { startBatchSeoPoll(bizKey); return; }
+    var url = '/admin/ai_progress/stream/' + encodeURIComponent(bizKey);
+    _batchSeoSource = new EventSource(url);
+    _batchSeoSource.addEventListener('progress', function(e) { updateBatchSeoUI(JSON.parse(e.data)); });
+    _batchSeoSource.addEventListener('complete', function(e) { updateBatchSeoUI(JSON.parse(e.data)); batchSeoComplete(JSON.parse(e.data)); });
+    _batchSeoSource.addEventListener('cancelled', function(e) { batchSeoComplete({ msg: '已取消' }); });
+    _batchSeoSource.addEventListener('error', function(e) { _batchSeoSource.close(); startBatchSeoPoll(bizKey); });
+}
+function startBatchSeoPoll(bizKey) {
+    var pollTimer = setInterval(function() {
+        $.get('/admin/ai_progress/batchSeoPoll/' + encodeURIComponent(bizKey), function(res) {
+            if (res.success) {
+                updateBatchSeoUI(res.data);
+                if (res.data.completed >= res.data.total || res.data.cancelled) { clearInterval(pollTimer); batchSeoComplete(res.data); }
+            } else { clearInterval(pollTimer); batchSeoError(res.msg || '查询失败'); }
+        });
+    }, 3000);
+}
+function updateBatchSeoUI(data) {
+    var total = data.total || 0, completed = data.completed || 0, success = data.success || 0, failed = data.failed || 0;
+    var progress = total > 0 ? Math.round(completed / total * 100) : 0;
+    document.getElementById('batchSeoProgress').style.width = progress + '%';
+    document.getElementById('batchSeoProgress').textContent = progress + '%';
+    document.getElementById('batchSeoSuccess').textContent = success;
+    document.getElementById('batchSeoFailed').textContent = failed;
+    if (data.current_title) document.getElementById('batchSeoCurrentTitle').textContent = '当前处理：' + data.current_title;
+    if (data.paused) {
+        document.getElementById('batchSeoStatus').innerHTML = '<span class="text-warning"><i class="bi bi-pause-circle"></i> 已暂停（正在完成当前任务...）</span>';
+    } else {
+        document.getElementById('batchSeoStatus').textContent = '正在优化第 ' + completed + ' / ' + total + ' 篇...';
+    }
+}
+function resetBatchSeoUI(total) {
+    var el = document.getElementById('batchSeoProgress');
+    el.style.width = '0%'; el.textContent = '0%';
+    el.classList.remove('bg-danger'); el.classList.add('progress-bar-animated');
+    document.getElementById('batchSeoTotal').textContent = total;
+    document.getElementById('batchSeoSuccess').textContent = '0';
+    document.getElementById('batchSeoFailed').textContent = '0';
+    document.getElementById('batchSeoCurrentTitle').textContent = '';
+    document.getElementById('batchSeoStatus').textContent = '正在启动...';
+    document.getElementById('btnPauseSeo').classList.remove('d-none');
+    document.getElementById('btnResumeSeo').classList.add('d-none');
+}
+function pauseBatchSeo() {
+    if (!_batchSeoBizKey) return;
+    _batchSeoPauseModal = new bootstrap.Modal(document.getElementById('batchSeoPauseConfirmModal'));
+    _batchSeoPauseModal.show();
+}
+function confirmPauseBatchSeo() {
+    if (_batchSeoPauseModal) _batchSeoPauseModal.hide();
+    if (!_batchSeoBizKey) return;
+    ajaxPost('/admin/ai_progress/batchSeoPause', { biz_key: _batchSeoBizKey }, function(res) {
+        if (res.success) {
+            document.getElementById('btnPauseSeo').classList.add('d-none');
+            document.getElementById('btnResumeSeo').classList.remove('d-none');
+            document.getElementById('batchSeoStatus').innerHTML = '<span class="text-warning"><i class="bi bi-pause-circle"></i> 已暂停（已完成 ' + (res.data.completed || 0) + ' / ' + (res.data.total || 0) + ' 篇，当前任务完成后完全暂停）</span>';
+        }
+    });
+}
+function resumeBatchSeo() {
+    if (!_batchSeoBizKey) return;
+    ajaxPost('/admin/ai_progress/batchSeoResume', { biz_key: _batchSeoBizKey }, function(res) {
+        if (res.success) {
+            document.getElementById('btnPauseSeo').classList.remove('d-none');
+            document.getElementById('btnResumeSeo').classList.add('d-none');
+            document.getElementById('batchSeoStatus').textContent = '已恢复，继续处理...';
+        }
+    });
+}
+function batchSeoComplete(data) {
+    if (_batchSeoSource) { _batchSeoSource.close(); _batchSeoSource = null; }
+    document.getElementById('batchSeoProgress').classList.remove('progress-bar-animated');
+    document.getElementById('batchSeoStatus').textContent = data.msg || '优化完成';
+    document.getElementById('btnPauseSeo').classList.add('d-none');
+    document.getElementById('btnResumeSeo').classList.add('d-none');
+    setTimeout(function() { if (_batchSeoModal) _batchSeoModal.hide(); cancelBatch(); }, 1500);
+}
+function batchSeoError(msg) {
+    if (_batchSeoSource) { _batchSeoSource.close(); _batchSeoSource = null; }
+    var el = document.getElementById('batchSeoProgress');
+    el.classList.remove('progress-bar-animated'); el.classList.add('bg-danger');
+    document.getElementById('batchSeoStatus').innerHTML = '<span class="text-danger">' + (msg || '优化失败') + '</span>';
+    document.getElementById('btnPauseSeo').classList.add('d-none');
+    document.getElementById('btnResumeSeo').classList.add('d-none');
+    setTimeout(function() { if (_batchSeoModal) _batchSeoModal.hide(); }, 2000);
 }
 
 function confirmMoveCate() {

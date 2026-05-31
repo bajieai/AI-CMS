@@ -41,33 +41,34 @@
     }
 
     // ============================================================
-    // V2.9.13 F-2: AI配图
+    // V2.9.14 F-2: AI配图（异步化 + 逐张完成）
     // ============================================================
     const AiImage = {
         contentId: 0,
         pollTimer: null,
         pollStart: 0,
+        candidates: [],
 
         init(contentId) {
             this.contentId = contentId;
         },
 
-        /** 触发配图生成 */
+        /** V2.9.14: 异步提交配图任务 */
         generate() {
             const modal = document.getElementById('ai-image-modal');
             if (modal) modal.classList.add('show');
-            this.setStatus('正在生成配图候选，请稍候...');
+            this.setStatus('正在提交配图任务...');
+            this.candidates = [];
 
             apiPost(`/admin/content/aiImageGenerate/${this.contentId}`, {})
                 .then(res => {
                     if (res.success) {
-                        this.renderCandidates(res.data.candidates || []);
-                        // 如果有异步任务未完成，启动轮询
-                        if (res.data.candidates.some(c => !c.url && c.task_id)) {
-                            this.startPoll();
-                        }
+                        this.candidates = res.data.candidates || [];
+                        this.renderCandidates(this.candidates);
+                        // 启动轮询获取逐张完成结果
+                        this.startPoll();
                     } else {
-                        this.setStatus(res.msg || '生成失败', 'error');
+                        this.setStatus(res.msg || '提交失败', 'error');
                     }
                 })
                 .catch(err => this.setStatus('网络错误: ' + err.message, 'error'));
@@ -79,7 +80,7 @@
             this.generate();
         },
 
-        /** 轮询配图状态 */
+        /** V2.9.14: 增强轮询（逐张完成即时显示） */
         startPoll() {
             this.pollStart = Date.now();
             if (this.pollTimer) clearInterval(this.pollTimer);
@@ -93,49 +94,85 @@
 
                 apiGet(`/admin/content/aiImagePoll/${this.contentId}`)
                     .then(res => {
-                        if (res.success && res.data.pending === 0) {
+                        if (!res.success) {
                             clearInterval(this.pollTimer);
-                            this.renderCandidates(res.data.candidates || []);
+                            return;
+                        }
+                        const data = res.data;
+                        // V2.9.14: 逐张完成即时刷新UI
+                        if (data.candidates) {
+                            const hadPending = this.candidates.some(c => !c.url && !c.error);
+                            this.candidates = data.candidates;
+                            this.renderCandidates(this.candidates);
+                            // 显示进度
+                            const completed = data.completed || 0;
+                            const total = data.candidates.length;
+                            this.setStatus(`配图生成中... (${completed}/${total} 完成)`);
+                        }
+                        // 全部完成停止轮询
+                        if (data.pending === 0) {
+                            clearInterval(this.pollTimer);
+                            this.setStatus('配图生成完成，请选择一张');
                         }
                     })
                     .catch(() => {}); // 轮询忽略网络错误
             }, CONFIG.pollInterval);
         },
 
-        /** 渲染候选图 */
+        /** V2.9.14: 增量渲染（支持混合状态：已完成+未完成） */
         renderCandidates(candidates) {
             const container = document.getElementById('ai-image-candidates');
             if (!container) return;
 
-            container.innerHTML = candidates.map((c, i) => `
-                <div class="ai-image-card" data-index="${i}">
+            container.innerHTML = candidates.map((c, i) => {
+                const isDone = !!c.url;
+                const isError = !!c.error;
+                const isLoading = !isDone && !isError;
+
+                return `
+                <div class="ai-image-card ${isDone ? 'ai-image-done' : ''} ${isError ? 'ai-image-error' : ''}" data-index="${i}">
                     <img src="${c.url || '/static/images/placeholder.png'}" alt="候选图${i + 1}" onerror="this.src='/static/images/placeholder.png'">
                     <div class="ai-image-overlay">
-                        <button type="button" class="btn btn-sm btn-primary" onclick="AiImage.confirm(${i})">使用此图</button>
+                        ${isDone ? `<button type="button" class="btn btn-sm btn-primary" onclick="AiImage.confirm(${i})">使用此图</button>` : ''}
                     </div>
-                    ${!c.url ? '<div class="ai-image-loading"><span class="spinner-border spinner-border-sm"></span>生成中...</div>' : ''}
+                    ${isLoading ? '<div class="ai-image-loading"><span class="spinner-border spinner-border-sm"></span>生成中...</div>' : ''}
+                    ${isError ? '<div class="ai-image-loading text-danger"><i class="bi bi-exclamation-triangle"></i> ' + (c.error || '失败') + '</div>' : ''}
+                    ${isDone ? '<div class="ai-image-done-badge"><i class="bi bi-check-circle"></i> 已完成</div>' : ''}
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
-            this.setStatus(candidates.length > 0 ? '请选择一张配图' : '暂无候选图');
+            if (candidates.length === 0) {
+                this.setStatus('暂无候选图');
+            }
         },
 
         clearCandidates() {
             const container = document.getElementById('ai-image-candidates');
             if (container) container.innerHTML = '';
             if (this.pollTimer) clearInterval(this.pollTimer);
+            this.candidates = [];
         },
 
-        /** 确认配图 */
+        /** V2.9.14: 确认配图（支持image_index） */
         confirm(index) {
             apiPost(`/admin/content/aiImageConfirm/${this.contentId}`, { index: index })
                 .then(res => {
                     if (res.success) {
                         showToast('配图已应用到文章');
+                        // 标记为已采用
+                        const card = document.querySelector(`.ai-image-card[data-index="${index}"]`);
+                        if (card) {
+                            card.classList.add('ai-image-used');
+                            card.querySelector('.ai-image-overlay')?.remove();
+                        }
                         // 关闭弹窗
                         const modal = document.getElementById('ai-image-modal');
-                        if (modal) modal.classList.remove('show');
-                        // 刷新编辑器中的配图预览（如有）
+                        if (modal) {
+                            const bsModal = bootstrap.Modal.getInstance(modal);
+                            if (bsModal) bsModal.hide();
+                        }
+                        // 刷新编辑器中的配图预览
                         const imgPreview = document.getElementById('feature-img-preview');
                         if (imgPreview && res.data.url) imgPreview.src = res.data.url;
                     } else {

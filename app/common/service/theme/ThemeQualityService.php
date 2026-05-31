@@ -104,7 +104,7 @@ class ThemeQualityService
         $total = array_sum(array_column($dimensions, 'score'));
 
         // 收集警告
-        foreach ($dimensions as $dim => $result) {
+        foreach ($dimensions as $_ => $result) {
             if (!empty($result['warnings'])) {
                 $warnings = array_merge($warnings, $result['warnings']);
             }
@@ -566,41 +566,173 @@ class ThemeQualityService
     }
 
     /**
-     * 获取综合质量报告（校验管线入口）
+     * V2.9.14: 获取综合质量报告（7项校验，满分100）
      */
     public function getQualityReport(string $themePath, string $industry = ''): array
     {
-        // 基础评分
+        // 基础评分（6维度）
         $scoreReport = $this->score($themePath, $industry);
 
-        // 扩展校验
+        // 扩展校验1-3（已有）
         $cssIntegrity = $this->validateCssIntegrity($themePath);
         $responsive = $this->validateResponsive($themePath);
         $htmlTags = $this->validateHtmlTags($themePath);
 
-        // 综合质量分：基础评分 * 0.8 + 扩展校验通过 bonus
+        // V2.9.14: 扩展校验4-7（新增）
+        $requiredFiles = $this->validateRequiredFiles($themePath);
+        $cssValidity = $this->validateCssValidity($themePath);
+        $jsValidity = $this->validateJsValidity($themePath);
+        $crossRef = $this->validateCrossReference($themePath);
+        $encoding = $this->validateEncoding($themePath);
+
+        // 综合质量分（满分100）
+        // 基础评分(85) + 扩展校验(15) = 100
         $bonus = 0;
-        if ($cssIntegrity['pass']) $bonus += 5;
-        if ($responsive['pass']) $bonus += 5;
-        if ($htmlTags['pass']) $bonus += 5;
+        if ($cssIntegrity['pass']) $bonus += 3;
+        if ($responsive['pass']) $bonus += 3;
+        if ($htmlTags['pass']) $bonus += 3;
+        if ($requiredFiles['pass']) $bonus += 2;
+        if ($cssValidity['pass']) $bonus += 2;
+        if ($jsValidity['pass']) $bonus += 2;
 
         $qualityScore = min(100, $scoreReport['total'] + $bonus);
 
+        $allWarnings = array_merge(
+            $scoreReport['warnings'],
+            $cssIntegrity['errors'],
+            $responsive['errors'],
+            $htmlTags['errors'],
+            $requiredFiles['errors'],
+            $cssValidity['errors'],
+            $jsValidity['errors'],
+            $crossRef['errors'],
+            $encoding['errors']
+        );
+
         return [
-            'quality_score' => $qualityScore,
-            'base_score' => $scoreReport['total'],
-            'bonus' => $bonus,
-            'dimensions' => $scoreReport['dimensions'],
-            'css_integrity' => $cssIntegrity,
-            'responsive' => $responsive,
-            'html_tags' => $htmlTags,
-            'warnings' => array_merge(
-                $scoreReport['warnings'],
-                $cssIntegrity['errors'],
-                $responsive['errors'],
-                $htmlTags['errors']
-            ),
+            'quality_score'   => $qualityScore,
+            'base_score'      => $scoreReport['total'],
+            'bonus'           => $bonus,
+            'pass'            => $qualityScore >= 60,
+            'dimensions'      => $scoreReport['dimensions'],
+            'css_integrity'   => $cssIntegrity,
+            'responsive'      => $responsive,
+            'html_tags'       => $htmlTags,
+            'required_files'  => $requiredFiles,
+            'css_validity'    => $cssValidity,
+            'js_validity'     => $jsValidity,
+            'cross_reference' => $crossRef,
+            'encoding'        => $encoding,
+            'warnings'        => $allWarnings,
         ];
+    }
+
+    /**
+     * V2.9.14 校验4: 必需文件完整性
+     */
+    public function validateRequiredFiles(string $themePath): array
+    {
+        $errors = [];
+        $required = ['index.html', 'theme.json', 'screenshot.png'];
+        foreach ($required as $file) {
+            if (!is_file($themePath . DIRECTORY_SEPARATOR . $file)) {
+                $errors[] = "缺少必需文件: {$file}";
+            }
+        }
+        // 路径安全：检测 ../ 路径穿越
+        $allFiles = $this->collectFiles($themePath, ['html', 'css', 'js', 'json']);
+        foreach ($allFiles as $file) {
+            $content = file_get_contents($file);
+            if (str_contains($content, '../') || str_contains($content, '..\\')) {
+                $relPath = str_replace($themePath . DIRECTORY_SEPARATOR, '', $file);
+                $errors[] = "[{$relPath}] 检测到路径穿越引用(../)，存在安全风险";
+            }
+        }
+        return ['pass' => empty($errors), 'errors' => $errors];
+    }
+
+    /**
+     * V2.9.14 校验5: CSS文件有效性
+     */
+    public function validateCssValidity(string $themePath): array
+    {
+        $errors = [];
+        $cssFiles = $this->collectFiles($themePath, ['css']);
+        foreach ($cssFiles as $file) {
+            $content = file_get_contents($file);
+            $relPath = str_replace($themePath . DIRECTORY_SEPARATOR, '', $file);
+            // 基本语法检查：{ 和 } 数量匹配
+            $open = substr_count($content, '{');
+            $close = substr_count($content, '}');
+            if ($open !== $close) {
+                $errors[] = "[{$relPath}] CSS语法错误: 花括号不匹配({$open}开 {$close}闭)";
+            }
+        }
+        return ['pass' => empty($errors), 'errors' => $errors];
+    }
+
+    /**
+     * V2.9.14 校验6: JS文件有效性
+     */
+    public function validateJsValidity(string $themePath): array
+    {
+        $errors = [];
+        $jsFiles = $this->collectFiles($themePath, ['js']);
+        foreach ($jsFiles as $file) {
+            $content = file_get_contents($file);
+            $relPath = str_replace($themePath . DIRECTORY_SEPARATOR, '', $file);
+            // 基本语法检查：检测未闭合的括号
+            $openParen = substr_count($content, '(');
+            $closeParen = substr_count($content, ')');
+            if ($openParen !== $closeParen) {
+                $errors[] = "[{$relPath}] JS语法警告: 圆括号可能不匹配({$openParen}开 {$closeParen}闭)";
+            }
+        }
+        return ['pass' => empty($errors), 'errors' => $errors];
+    }
+
+    /**
+     * V2.9.14 校验7: 跨模板引用安全性
+     */
+    public function validateCrossReference(string $themePath): array
+    {
+        $errors = [];
+        $htmlFiles = $this->collectFiles($themePath, ['html']);
+        foreach ($htmlFiles as $file) {
+            $content = file_get_contents($file);
+            $relPath = str_replace($themePath . DIRECTORY_SEPARATOR, '', $file);
+            // 检测include/extends是否引用模板外路径
+            if (preg_match_all('/\{include\s+file=["\']([^"\']+)["\']/', $content, $matches)) {
+                foreach ($matches[1] as $includePath) {
+                    if (str_starts_with($includePath, '/') || str_starts_with($includePath, 'http')) {
+                        $errors[] = "[{$relPath}] include引用外部路径: {$includePath}";
+                    }
+                }
+            }
+        }
+        return ['pass' => empty($errors), 'errors' => $errors];
+    }
+
+    /**
+     * V2.9.14 校验8: 文件编码检查（UTF-8无BOM）
+     */
+    public function validateEncoding(string $themePath): array
+    {
+        $errors = [];
+        $allFiles = $this->collectFiles($themePath, ['html', 'css', 'js', 'json', 'php']);
+        foreach ($allFiles as $file) {
+            $content = file_get_contents($file);
+            $relPath = str_replace($themePath . DIRECTORY_SEPARATOR, '', $file);
+            // 检测BOM
+            if (str_starts_with($content, "\xEF\xBB\xBF")) {
+                $errors[] = "[{$relPath}] 文件包含UTF-8 BOM头，建议去除";
+            }
+            // 检测GBK/GB2312特征（简化检测）
+            if (mb_detect_encoding($content, ['UTF-8', 'GBK', 'GB2312'], true) !== 'UTF-8') {
+                $errors[] = "[{$relPath}] 文件编码非UTF-8";
+            }
+        }
+        return ['pass' => empty($errors), 'errors' => $errors];
     }
 
     /**

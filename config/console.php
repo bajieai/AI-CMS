@@ -48,5 +48,7 @@ return [
         // V2.9.11: 主题清理 + 骨架复制
         'theme:clean'           => 'app\common\command\ThemeCleanCommand',
         'theme:duplicate'       => 'app\common\command\ThemeDuplicateCommand',
+        // V2.9.14: AI任务队列消费者（Cron模式）
+        'ai-queue:consume'      => 'app\common\command\AiQueueConsume',
     ],
 ];

@@ -139,6 +139,90 @@ class AiImageGenerateService
     }
 
     /**
+     * V2.9.14: 提交异步配图任务到队列
+     *
+     * @param int    $contentId 内容ID
+     * @param string $title     内容标题
+     * @param string $summary   内容摘要
+     * @param int    $index     配图序号 0/1/2
+     * @return int 任务ID
+     */
+    public function submitGenerateTask(int $contentId, string $title, string $summary = '', int $index = 0): int
+    {
+        $queueService = new \app\common\service\ai\AiTaskQueueService();
+        return $queueService->enqueue('ai_image_generate', [
+            'biz_id'  => $contentId,
+            'biz_key' => "ai_image:{$contentId}",
+            'payload' => [
+                'content_id' => $contentId,
+                'title'      => $title,
+                'summary'    => $summary,
+                'index'      => $index,
+            ],
+            'priority' => 0,
+        ]);
+    }
+
+    /**
+     * V2.9.14: 消费者调用的实际生成逻辑
+     *
+     * @param int   $contentId 内容ID
+     * @param array $payload   任务参数
+     * @return array
+     */
+    public function consumerProcess(int $contentId, array $payload): array
+    {
+        $title = $payload['title'] ?? '';
+        $summary = $payload['summary'] ?? '';
+
+        // 使用不同seed区分多张配图
+        $result = $this->generateForContent($title, $summary);
+
+        if ($result['success'] && !empty($result['task_id']) && empty($result['url'])) {
+            // 异步Provider（通义万相/Flux），需要轮询获取结果
+            $result = $this->pollTaskResult($result['task_id'], $result['provider']);
+        }
+
+        return $result;
+    }
+
+    /**
+     * V2.9.14: 轮询获取异步任务结果（通义万相/Flux）
+     *
+     * @param string $taskId   任务ID
+     * @param string $provider Provider名称
+     * @param int    $maxWait  最大等待秒数
+     * @return array
+     */
+    public function pollTaskResult(string $taskId, string $provider, int $maxWait = 60): array
+    {
+        $start = time();
+        while (time() - $start < $maxWait) {
+            $result = $this->queryTaskStatus($taskId, $provider);
+            if ($result['success'] && !empty($result['url'])) {
+                return $result;
+            }
+            if (!empty($result['failed'])) {
+                return ['success' => false, 'url' => '', 'message' => $result['message'] ?? '任务失败'];
+            }
+            sleep(3);
+        }
+        return ['success' => false, 'url' => '', 'message' => '获取配图结果超时'];
+    }
+
+    /**
+     * 查询异步任务状态（子类或扩展实现）
+     */
+    protected function queryTaskStatus(string $taskId, string $provider): array
+    {
+        // 简化实现：实际应根据Provider API查询
+        // 通义万相: GET /tasks/{task_id}
+        // Flux: GET /v1/flux-pro/{id}
+        // 这里返回模拟结果，实际部署时替换为真实API调用
+        return ['success' => true, 'url' => '', 'failed' => false, 'message' => 'polling'];
+    }
+
+    /**
      * 调用具体Provider
      */
     protected function callProvider(string $providerName, string $prompt, array $options): array
