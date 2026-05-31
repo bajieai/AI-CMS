@@ -44,6 +44,21 @@ Route::get('content/versions/:id$', '\app\admin\controller\ContentController@ver
 Route::post('content/rollback/:versionId$', '\app\admin\controller\ContentController@rollback');
 // V2.9.9: AI-GEO评分
 Route::get('content/geoScore/:id$', '\app\admin\controller\ContentController@geoScore');
+// V2.9.13: 运营数据看板
+Route::get('data_dashboard/index$', '\app\admin\controller\DataDashboardController@index');
+Route::get('data_dashboard/overview$', '\app\admin\controller\DataDashboardController@overview');
+Route::get('data_dashboard/trend$', '\app\admin\controller\DataDashboardController@trend');
+Route::get('data_dashboard/category$', '\app\admin\controller\DataDashboardController@category');
+Route::get('data_dashboard/hotContent$', '\app\admin\controller\DataDashboardController@hotContent');
+Route::get('data_dashboard/report$', '\app\admin\controller\DataDashboardController@report');
+// V2.9.13: AI内容增强补完
+Route::post('content/aiImageGenerate/:id$', '\app\admin\controller\ContentController@aiImageGenerate');
+Route::get('content/aiImagePoll/:id$', '\app\admin\controller\ContentController@aiImagePoll');
+Route::post('content/aiImageConfirm/:id$', '\app\admin\controller\ContentController@aiImageConfirm');
+Route::post('content/aiSeoOptimize/:id$', '\app\admin\controller\ContentController@aiSeoOptimize');
+Route::post('content/aiSeoApply/:id$', '\app\admin\controller\ContentController@aiSeoApply');
+Route::post('content/generateByStyle/:id$', '\app\admin\controller\ContentController@generateByStyle');
+Route::get('content/getWritingStyles$', '\app\admin\controller\ContentController@getWritingStyles');
 
 // V2.7 章节管理
 Route::get('content/getChapters/:parentId$', '\app\admin\controller\ContentController@getChapters');
@@ -461,3 +476,5 @@ Route::get('template_developer/detail/:id$', '\app\admin\controller\TemplateDeve
 Route::post('template_developer/approve/:id$', '\app\admin\controller\TemplateDeveloperAdminController@approve');
 Route::post('template_developer/reject/:id$', '\app\admin\controller\TemplateDeveloperAdminController@reject');
 Route::post('template_developer/delete/:id$', '\app\admin\controller\TemplateDeveloperAdminController@delete');
+// V2.9.13 H-1: 网站主上传入口
+Route::rule('template_developer/upload$', '\app\admin\controller\TemplateDeveloperAdminController@uploadPage', 'GET|POST');

@@ -25,7 +25,7 @@ if (document.getElementById('editor') && typeof tinymce !== 'undefined') {
     language: 'zh-Hans',
     menubar: 'edit view insert format table',
     plugins: 'link image table code fullscreen',
-    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen | aiimage aiseo aistyle',
     relative_urls: false,
     convert_urls: false,
     promotion: false,
@@ -57,6 +57,22 @@ if (document.getElementById('editor') && typeof tinymce !== 'undefined') {
             var text = editor.getContent({format: 'text'}).substring(0, 1000);
             $('#aiPrompt').val('请总结以下内容的要点：\n' + text);
             aiGenerate('append');
+        });
+        // V2.9.13: TinyMCE工具栏AI按钮
+        editor.ui.registry.addButton('aiimage', {
+            icon: 'image',
+            tooltip: 'AI配图',
+            onAction: function() { if (window.AiImage) AiImage.generate(); }
+        });
+        editor.ui.registry.addButton('aiseo', {
+            icon: 'preview',
+            tooltip: 'AI SEO对比',
+            onAction: function() { if (window.AiSeo) AiSeo.open(); }
+        });
+        editor.ui.registry.addButton('aistyle', {
+            icon: 'spell-check',
+            tooltip: 'AI写作风格',
+            onAction: function() { var m = document.getElementById('ai-style-modal'); if (m) m.classList.add('show'); }
         });
     },
     // 图片上传

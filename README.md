@@ -1,14 +1,20 @@
-# 八界AI-CMS V2.9.12
+# 八界AI-CMS V2.9.13
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.12-blue)
+![Version](https://img.shields.io/badge/version-2.9.13-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.12 "模板生态·内容智能化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.13 "内容智能化·运营增强" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.13 核心定位：内容智能化·运营增强** — 4方向18项功能（100%完成）：
+1. **方向F：AI内容增强补完(P0)** — 编辑器AI配图（候选选择/轮询/确认/重新生成）+ AI SEO对比弹窗（单字段应用）+ 写作风格选择器（6种风格+示例句子）+ 批量SEO进度条 + TinyMCE工具栏AI按钮
+2. **方向G：运营数据与流量分析(P1)** — 运营分析看板（PV/UV基于visit_log/内容分类分布/热门Top10）+ ECharts图表（趋势+环形图自适应）+ 不可关闭估算值提示条 + 快捷日期切换
+3. **方向H：开发者工具补齐(P2)** — 网站主上传入口 + ZIP路径穿越防护 + 版本差异对比（diffVersions）+ 审核通过通知推送
+4. **方向I：模板商店体验优化(P2)** — 详情页版本历史Tab + 安装前质量校验（quality_on_install记录）+ 评论图片上传
 
 **V2.9.12 核心定位：模板生态·内容智能化** — 5大方向19项功能（100%完成）：
 1. **方向A：模板商店生态(P0)** — 模板商店(10张表+3张ALTER)、网站主市场(卡片列表/筛选/预览)、安装/切换/支付(复用PaymentService)、评分评论(审核机制)、前台iframe预览

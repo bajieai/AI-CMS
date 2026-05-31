@@ -117,12 +117,16 @@ class TemplateDeveloperService
         // 同步到模板商店
         $manifest = $upload->getManifest();
         $store = TemplateStore::where('slug', $upload->theme_slug)->find();
+        $isUpdate = false;
+        $oldVersion = '';
         if ($store) {
+            $oldVersion = $store->version;
             $store->version = $upload->version;
             $store->status = TemplateStore::STATUS_ONLINE;
             $store->save();
+            $isUpdate = true;
         } else {
-            TemplateStore::create([
+            $store = TemplateStore::create([
                 'slug'        => $upload->theme_slug,
                 'name'        => $manifest['name'] ?? $upload->theme_name,
                 'description' => $manifest['description'] ?? '',
@@ -131,6 +135,17 @@ class TemplateDeveloperService
                 'status'      => TemplateStore::STATUS_ONLINE,
                 'price'       => 0,
             ]);
+        }
+
+        // V2.9.13 H-4: 模板更新通知（仅版本更新时触发）
+        if ($isUpdate && $oldVersion !== $upload->version) {
+            $installIds = \app\common\model\TemplateInstall::where('store_id', $store->id)
+                ->where('status', 1)
+                ->column('id');
+            if (!empty($installIds)) {
+                $notifyService = new \app\common\service\NotificationService();
+                $notifyService->notifyTemplateUpdate($store->id, $store->name, $upload->version, $installIds);
+            }
         }
 
         return ['success' => true, 'message' => '审核通过，已上架'];
@@ -161,5 +176,94 @@ class TemplateDeveloperService
     public function getPendingList(int $page = 1, int $limit = 20): array
     {
         return TemplateDevUpload::getPending($page, $limit);
+    }
+
+    /**
+     * V2.9.13 H-3: 版本差异对比（从0新建）
+     *
+     * 对比两个版本的模板目录，输出差异文件列表
+     */
+    public function diffVersions(string $slug, string $oldVersion, string $newVersion): array
+    {
+        $basePath = root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR;
+        $oldPath = $basePath . $slug . '_v' . $oldVersion;
+        $newPath = $basePath . $slug . '_v' . $newVersion;
+
+        // 如果目录不存在，尝试从上传记录查找
+        if (!is_dir($oldPath)) {
+            $oldUpload = TemplateDevUpload::where('theme_slug', $slug)
+                ->where('version', $oldVersion)
+                ->where('status', TemplateDevUpload::STATUS_APPROVED)
+                ->order('audit_time', 'desc')
+                ->find();
+            if ($oldUpload && !empty($oldUpload->file_path)) {
+                $oldPath = dirname($oldUpload->file_path) . DIRECTORY_SEPARATOR . 'extracted';
+            }
+        }
+        if (!is_dir($newPath)) {
+            $newUpload = TemplateDevUpload::where('theme_slug', $slug)
+                ->where('version', $newVersion)
+                ->where('status', TemplateDevUpload::STATUS_APPROVED)
+                ->order('audit_time', 'desc')
+                ->find();
+            if ($newUpload && !empty($newUpload->file_path)) {
+                $newPath = dirname($newUpload->file_path) . DIRECTORY_SEPARATOR . 'extracted';
+            }
+        }
+
+        if (!is_dir($oldPath) || !is_dir($newPath)) {
+            return [
+                'success' => false,
+                'message' => '版本目录不存在，无法对比',
+            ];
+        }
+
+        $oldFiles = $this->scanFiles($oldPath);
+        $newFiles = $this->scanFiles($newPath);
+
+        $added = array_diff($newFiles, $oldFiles);
+        $removed = array_diff($oldFiles, $newFiles);
+        $common = array_intersect($oldFiles, $newFiles);
+
+        $modified = [];
+        foreach ($common as $file) {
+            $oldHash = md5_file($oldPath . DIRECTORY_SEPARATOR . $file);
+            $newHash = md5_file($newPath . DIRECTORY_SEPARATOR . $file);
+            if ($oldHash !== $newHash) {
+                $modified[] = $file;
+            }
+        }
+
+        return [
+            'success'   => true,
+            'slug'      => $slug,
+            'old'       => $oldVersion,
+            'new'       => $newVersion,
+            'added'     => array_values($added),
+            'removed'   => array_values($removed),
+            'modified'  => array_values($modified),
+            'unchanged' => array_values(array_diff($common, $modified)),
+            'summary'   => "新增 " . count($added) . " 个文件，删除 " . count($removed) . " 个文件，修改 " . count($modified) . " 个文件",
+        ];
+    }
+
+    /**
+     * 扫描目录中的所有文件（返回相对路径列表）
+     */
+    protected function scanFiles(string $dir, string $baseDir = ''): array
+    {
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $relativePath = substr($file->getRealPath(), strlen($dir) + 1);
+                $files[] = str_replace('\\', '/', $relativePath);
+            }
+        }
+        sort($files);
+        return $files;
     }
 }

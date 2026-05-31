@@ -31,6 +31,7 @@ class TemplateReview extends Model
         'member_id' => 'integer',
         'rating' => 'integer',
         'is_audited' => 'integer',
+        'images' => 'json',
     ];
 
     // 审核状态常量

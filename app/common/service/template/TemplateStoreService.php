@@ -178,11 +178,12 @@ class TemplateStoreService
             throw new \RuntimeException('模板不存在');
         }
 
-        // 安装前自动质量校验
+        // V2.9.13 I-2: 安装前自动质量校验 + 记录质量分
         $pipeline = new ThemeRepairPipeline();
         $checkResult = $pipeline->validate($store);
+        $qualityScore = (int) ($checkResult['quality_score'] ?? 0);
         if (!$checkResult['pass']) {
-            throw new \RuntimeException('模板质量校验未通过（评分' . $checkResult['quality_score'] . '），无法安装');
+            throw new \RuntimeException('模板质量校验未通过（评分' . $qualityScore . '），无法安装');
         }
 
         // 检查是否已安装
@@ -193,7 +194,7 @@ class TemplateStoreService
             throw new \RuntimeException('该模板已安装');
         }
 
-        // 创建安装记录
+        // 创建安装记录（含质量分）
         $install = new TemplateInstall();
         $install->store_id = $storeId;
         $install->member_id = $memberId;
@@ -201,6 +202,7 @@ class TemplateStoreService
         $install->theme_name = $store->name;
         $install->is_active = 0;
         $install->install_path = 'themes/' . $store->slug;
+        $install->quality_on_install = $qualityScore;
         $install->save();
 
         // 更新安装次数

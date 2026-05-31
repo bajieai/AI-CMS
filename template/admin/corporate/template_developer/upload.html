@@ -3,160 +3,66 @@
 {block name="title"}上传模板{/block}
 
 {block name="breadcrumb"}
-<li class="breadcrumb-item"><a href="/admin/template_developer/index">模板上传审核</a></li>
+<li class="breadcrumb-item"><a href="/admin/template_store/market">模板商店</a></li>
 <li class="breadcrumb-item active">上传模板</li>
 {/block}
 
 {block name="content"}
-<div class="row">
+<div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card card-outline card-primary">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h3 class="card-title"><i class="bi bi-cloud-upload me-1"></i>上传模板包</h3>
+                <i class="bi bi-cloud-upload me-2"></i>上传模板
+                <span class="badge bg-warning text-dark ms-2">V2.9.13</span>
             </div>
             <div class="card-body">
-                <form id="uploadForm" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label class="form-label">模板包文件 <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" id="packageFile" name="package" accept=".tpkg,.zip" required>
-                        <div class="form-text">仅支持 .tpkg 格式的模板包文件，最大 50MB</div>
-                    </div>
+                <form id="uploadForm" method="post" action="/admin/template_store/uploadTheme" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label">模板名称 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="theme_name" required placeholder="例如：蓝色科技企业站">
+                        <input type="text" name="name" class="form-control" required placeholder="请输入模板名称">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">模板标识(slug) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="theme_slug" required placeholder="例如：blue-tech-corp（仅英文、数字、短横线）" pattern="[a-z0-9-]+">
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">版本号</label>
-                            <input type="text" class="form-control" name="version" value="1.0.0" placeholder="如 1.0.0">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">分类</label>
-                            <select name="category_id" class="form-select">
-                                <option value="0">自动识别</option>
-                                {volist name="categories" id="cat"}
-                                <option value="{$cat.id}">{$cat.name}</option>
-                                {/volist}
-                            </select>
-                        </div>
+                        <label class="form-label">模板描述</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="简要描述模板的特点和适用场景"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">更新说明</label>
-                        <textarea class="form-control" name="update_note" rows="3" placeholder="简要描述本次上传的更新内容"></textarea>
+                        <label class="form-label">模板版本</label>
+                        <input type="text" name="version" class="form-control" value="1.0.0" placeholder="如: 1.0.0">
                     </div>
-                    <div class="callout callout-info">
-                        <h5><i class="bi bi-info-circle me-1"></i>上传须知</h5>
-                        <ul class="mb-0">
-                            <li>模板包必须包含 <code>manifest.json</code> 描述文件</li>
-                            <li>模板包需通过安全校验后进入人工审核</li>
-                            <li>审核通过后将在模板商店上架</li>
-                            <li>同一 slug 的模板重复上传将作为版本更新处理</li>
-                        </ul>
+                    <div class="mb-3">
+                        <label class="form-label">ZIP文件 <span class="text-danger">*</span></label>
+                        <input type="file" name="file" class="form-control" accept=".zip" required>
+                        <div class="form-text">请上传包含theme.json的模板ZIP包，大小不超过50MB</div>
                     </div>
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="submit" class="btn btn-primary" id="btnUpload">
-                            <i class="bi bi-cloud-upload me-1"></i>提交审核
+                    <div class="mb-3">
+                        <label class="form-label">截图预览</label>
+                        <input type="file" name="screenshots[]" class="form-control" accept="image/*" multiple>
+                        <div class="form-text">可上传多张截图用于展示（选填）</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>提交审核
                         </button>
-                        <a href="/admin/template_developer/index" class="btn btn-default">取消</a>
+                        <a href="/admin/template_store/market" class="btn btn-outline-secondary">返回</a>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card card-outline card-info">
-            <div class="card-header">
-                <h3 class="card-title"><i class="bi bi-book me-1"></i>模板包规范</h3>
-            </div>
-            <div class="card-body small">
-                <h6>manifest.json 必填字段：</h6>
-                <pre class="bg-light p-2 rounded"><code>{
-  "name": "模板名称",
-  "slug": "template-slug",
-  "version": "1.0.0",
-  "author": "作者",
-  "description": "模板描述",
-  "category": "企业",
-  "screenshots": [],
-  "requirements": {
-    "php": ">=8.0",
-    "cms": ">=2.9.0"
-  }
-}</code></pre>
-                <h6 class="mt-2">目录结构：</h6>
-                <pre class="bg-light p-2 rounded"><code>template-slug/
-├── manifest.json
-├── pc/
-│   ├── index.html
-│   └── list.html
-├── mobile/
-│   └── index.html
-├── assets/
-│   ├── css/
-│   └── js/
-└── theme.json</code></pre>
-            </div>
-        </div>
 
-        <div class="card card-outline card-warning mt-3">
-            <div class="card-header">
-                <h3 class="card-title"><i class="bi bi-terminal me-1"></i>命令行打包</h3>
+        <!-- 上传规范 -->
+        <div class="card mt-3 border-info">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-info-circle me-2"></i>模板上传规范
             </div>
-            <div class="card-body small">
-                <p>也可以使用命令行工具打包模板：</p>
-                <pre class="bg-dark text-light p-2 rounded"><code>php think template:package your-theme</code></pre>
-                <p class="mb-0">生成的 <code>.tpkg</code> 文件可直接上传。</p>
+            <div class="card-body">
+                <ol class="mb-0">
+                    <li>ZIP根目录必须包含 <code>theme.json</code> 配置文件</li>
+                    <li>模板文件路径不得包含 <code>../</code> 等目录穿越字符</li>
+                    <li>单文件大小不超过50MB</li>
+                    <li>上传后将进入审核流程，审核通过后上架</li>
+                </ol>
             </div>
         </div>
     </div>
 </div>
-{/block}
-
-{block name="js"}
-<script>
-$(function() {
-    $('#uploadForm').on('submit', function(e) {
-        e.preventDefault();
-        var formData = new FormData(this);
-        var $btn = $('#btnUpload');
-
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>上传中...');
-
-        $.ajax({
-            url: '/admin/template_developer/upload',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(res) {
-                if (res.success) {
-                    showToast('success', res.msg || '上传成功，等待审核');
-                    setTimeout(function() {
-                        location.href = '/admin/template_developer/index';
-                    }, 1500);
-                } else {
-                    showToast('error', res.msg || '上传失败');
-                    $btn.prop('disabled', false).html('<i class="bi bi-cloud-upload me-1"></i>提交审核');
-                }
-            },
-            error: function() {
-                showToast('error', '网络错误，请重试');
-                $btn.prop('disabled', false).html('<i class="bi bi-cloud-upload me-1"></i>提交审核');
-            }
-        });
-    });
-
-    $('#packageFile').on('change', function() {
-        var fileName = this.files[0]?.name || '';
-        if (fileName && !$('[name="theme_slug"]').val()) {
-            var slug = fileName.replace(/\.(tpkg|zip)$/i, '').replace(/[^a-z0-9-]/g, '-');
-            $('[name="theme_slug"]').val(slug);
-        }
-    });
-});
-</script>
 {/block}

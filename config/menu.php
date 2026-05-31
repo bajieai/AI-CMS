@@ -128,6 +128,8 @@ return [
             ['id' => 67, 'name' => 'AI统计', 'url' => '/admin/aiStat/index', 'permission' => 'ai_stat.*', 'active' => 'ai_stat', 'icon' => 'bi bi-robot'],
             // V2.9.1 M9: AI数据分析报告
             ['id' => 68, 'name' => '数据报告', 'url' => '/admin/report/index', 'permission' => 'report.*', 'active' => 'report', 'icon' => 'bi bi-graph-up-arrow'],
+            // V2.9.13: 运营分析看板
+            ['id' => 691, 'name' => '运营分析', 'url' => '/admin/data_dashboard/index', 'permission' => 'data_dashboard.*', 'active' => 'data_dashboard', 'icon' => 'bi bi-bar-chart-line'],
             // V2.9.9 P0-2: 社交分享追踪
             ['id' => 690, 'name' => '分享追踪', 'url' => '/admin/social_share/index', 'permission' => 'social_share.*', 'active' => 'social_share', 'icon' => 'bi bi-share'],
         ],

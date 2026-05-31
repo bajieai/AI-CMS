@@ -506,6 +506,10 @@ class TemplateStoreController extends AdminBaseController
         $memberId = (int) session('user_id');
         $rating = (int) $this->request->post('rating', 5);
         $comment = $this->request->post('comment', '');
+        $images = $this->request->post('images', []);
+        if (is_string($images)) {
+            $images = json_decode($images, true) ?: [];
+        }
 
         if ($rating < 1 || $rating > 5) {
             return $this->error('评分必须在1-5之间');
@@ -519,6 +523,24 @@ class TemplateStoreController extends AdminBaseController
             return $this->error('您未安装该模板，无法评分');
         }
 
+        // V2.9.13 I-3: 评论图片支持
+        $imageUrls = [];
+        if (!empty($_FILES['review_images'])) {
+            $files = $_FILES['review_images'];
+            $uploadService = new \app\common\service\UploadService();
+            foreach ($files['tmp_name'] as $index => $tmpName) {
+                if ($files['error'][$index] === UPLOAD_ERR_OK) {
+                    $result = $uploadService->uploadImage($tmpName, $files['name'][$index]);
+                    if ($result['success']) {
+                        $imageUrls[] = $result['url'];
+                    }
+                }
+            }
+        }
+        if (!empty($images) && empty($imageUrls)) {
+            $imageUrls = array_slice((array) $images, 0, 5);
+        }
+
         // 检查是否已评价
         $exists = TemplateReview::where('store_id', $id)
             ->where('member_id', $memberId)
@@ -526,6 +548,7 @@ class TemplateStoreController extends AdminBaseController
         if ($exists) {
             $exists->rating = $rating;
             $exists->comment = $comment;
+            $exists->images = !empty($imageUrls) ? $imageUrls : null;
             $exists->is_audited = TemplateReview::AUDIT_PENDING;
             $exists->save();
         } else {
@@ -534,6 +557,7 @@ class TemplateStoreController extends AdminBaseController
                 'member_id' => $memberId,
                 'rating' => $rating,
                 'comment' => $comment,
+                'images' => !empty($imageUrls) ? $imageUrls : null,
                 'is_audited' => TemplateReview::AUDIT_PENDING,
             ]);
         }

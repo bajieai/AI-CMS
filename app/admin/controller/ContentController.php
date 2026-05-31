@@ -23,7 +23,11 @@ use app\common\model\Tag;
 use app\common\model\Config as ConfigModel;
 use app\common\service\CacheService;
 use app\common\service\ContentService;
+use app\common\service\ai\AiImageGenerateService;
+use app\common\service\ai\AiSeoOptimizerService;
+use app\common\service\ai\AiWritingStyleService;
 use think\facade\Config as ThinkConfig;
+use think\facade\Cache;
 
 /**
  * 内容管理控制器
@@ -782,5 +786,230 @@ class ContentController extends AdminBaseController
         $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
         $this->recordLog('批量SEO优化', "成功:{$success}, 失败:{$fail}, 并发控制:{$concurrency}篇/批");
         return $this->success("批量SEO优化完成，成功 {$success} 条，失败 {$fail} 条");
+    }
+
+    // ============================================================
+    // V2.9.13: AI内容增强补完 — 6个端点
+    // ============================================================
+
+    /**
+     * V2.9.13 F-1/F-2: AI配图生成（异步，生成2-3张候选图存入缓存）
+     */
+    public function aiImageGenerate(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $service = new AiImageGenerateService();
+        $candidates = [];
+
+        // 生成3张候选配图（使用不同seed区分）
+        for ($i = 0; $i < 3; $i++) {
+            $result = $service->generateForContent($content->title, strip_tags($content->content ?? ''));
+            if ($result['success']) {
+                $candidates[] = [
+                    'url'      => $result['url'] ?? '',
+                    'task_id'  => $result['task_id'] ?? '',
+                    'provider' => $result['provider'] ?? '',
+                    'index'    => $i,
+                ];
+            }
+        }
+
+        if (empty($candidates)) {
+            return $this->error('配图生成失败，请稍后重试');
+        }
+
+        // 存入缓存（15分钟有效期），供轮询和确认使用
+        $cacheKey = 'ai_image_candidates_' . $id;
+        Cache::set($cacheKey, $candidates, 900);
+
+        return $this->success('配图候选已生成', [
+            'content_id' => $id,
+            'candidates' => $candidates,
+            'count'      => count($candidates),
+        ]);
+    }
+
+    /**
+     * V2.9.13 F-6: AI配图轮询（查询缓存中的候选图状态）
+     */
+    public function aiImagePoll(int $id)
+    {
+        $cacheKey = 'ai_image_candidates_' . $id;
+        $candidates = Cache::get($cacheKey);
+
+        if (empty($candidates)) {
+            return $this->error('配图任务已过期或不存在', 1, ['expired' => true]);
+        }
+
+        // 检查是否还有未完成的异步任务
+        $pending = 0;
+        foreach ($candidates as &$c) {
+            if (empty($c['url']) && !empty($c['task_id'])) {
+                $pending++;
+            }
+        }
+
+        return $this->success('查询成功', [
+            'content_id' => $id,
+            'candidates' => $candidates,
+            'pending'    => $pending,
+            'completed'  => count($candidates) - $pending,
+        ]);
+    }
+
+    /**
+     * V2.9.13 F-6/F-7: AI配图确认（将选中图片写入文章feature_img）
+     */
+    public function aiImageConfirm(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $index = (int) $this->request->post('index', 0);
+        $cacheKey = 'ai_image_candidates_' . $id;
+        $candidates = Cache::get($cacheKey);
+
+        if (empty($candidates) || !isset($candidates[$index])) {
+            return $this->error('配图候选已过期，请重新生成');
+        }
+
+        $selected = $candidates[$index];
+        if (empty($selected['url'])) {
+            return $this->error('该配图尚未生成完成，请稍后再试');
+        }
+
+        // 写入文章配图字段
+        $content->feature_img = $selected['url'];
+        $content->save();
+
+        // 清除缓存
+        Cache::delete($cacheKey);
+
+        $this->recordLog('AI配图确认', $content->title . ' => 配图' . ($index + 1));
+        return $this->success('配图已应用到文章', ['url' => $selected['url']]);
+    }
+
+    /**
+     * V2.9.13 F-3: AI SEO优化对比（获取优化前后差异，不自动保存）
+     */
+    public function aiSeoOptimize(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $service = new AiSeoOptimizerService();
+        $result = $service->getOptimizeDiff($id);
+
+        if (!$result['success']) {
+            return $this->error($result['message'] ?? 'SEO优化失败');
+        }
+
+        return $this->success('SEO优化对比生成成功', $result['data']);
+    }
+
+    /**
+     * V2.9.13 F-3: AI SEO应用（支持单字段或全部应用）
+     */
+    public function aiSeoApply(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $field = $this->request->post('field', ''); // ''=全部, 'seo_title'/'seo_description'/'seo_keywords'=单字段
+        $value = $this->request->post('value', '');
+
+        $allowedFields = ['seo_title', 'seo_description', 'seo_keywords'];
+
+        if ($field === '') {
+            // 全部应用：重新调用optimizeContent并保存所有字段
+            $service = new AiSeoOptimizerService();
+            $result = $service->optimizeContent($id);
+            if (!$result['success']) {
+                return $this->error($result['message'] ?? 'SEO优化失败');
+            }
+            $content->seo_title = $result['data']['seo_title'];
+            $content->seo_description = $result['data']['seo_description'];
+            $content->seo_keywords = $result['data']['seo_keywords'];
+        } elseif (in_array($field, $allowedFields, true) && $value !== '') {
+            $content->{$field} = $value;
+        } else {
+            return $this->error('字段名无效或值为空');
+        }
+
+        $content->save();
+
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'i8j_content'));
+
+        $this->recordLog('AI SEO应用', $content->title . ' => 字段:' . ($field ?: '全部'));
+        return $this->success('SEO已应用到文章');
+    }
+
+    /**
+     * V2.9.13 F-4: 按写作风格生成内容
+     */
+    public function generateByStyle(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $style = $this->request->post('style', 'formal');
+        $topic = $this->request->post('topic', $content->title);
+
+        $validStyles = ['formal', 'relaxed', 'professional', 'news', 'marketing', 'academic'];
+        if (!in_array($style, $validStyles, true)) {
+            return $this->error('无效的写作风格');
+        }
+
+        try {
+            $result = AiWritingStyleService::generateWithStyle($topic, $style, [
+                'keywords' => explode(',', $content->seo_keywords ?? ''),
+            ]);
+
+            $this->recordLog('AI风格生成', $content->title . ' => 风格:' . $style);
+            return $this->success('内容生成成功', [
+                'style'   => $style,
+                'title'   => $result['title'] ?? '',
+                'content' => $result['content'] ?? '',
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error('内容生成失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.13 F-4: 获取写作风格列表（含示例句子）
+     */
+    public function getWritingStyles()
+    {
+        $styles = AiWritingStyleService::getStyles();
+
+        // 注入示例句子（占位符【关键词】）
+        $examples = [
+            'formal'       => '就【关键词】而言，其核心价值体现在三方面……',
+            'relaxed'      => '嘿，说起【关键词】，这事儿其实挺有意思的！',
+            'professional' => '从技术层面分析，【关键词】的主要挑战在于……',
+            'news'         => '据最新消息，【关键词】领域近期出现了突破性进展',
+            'marketing'    => '还在担心【关键词】问题？这款方案能帮你一次解决',
+            'academic'     => '研究表明，【关键词】与用户行为之间存在显著相关性（p<0.05）',
+        ];
+
+        foreach ($styles as &$s) {
+            $s['example'] = $examples[$s['key']] ?? '';
+        }
+
+        return json(['success' => true, 'data' => $styles]);
     }
 }

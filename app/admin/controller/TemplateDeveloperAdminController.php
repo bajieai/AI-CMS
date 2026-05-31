@@ -130,4 +130,12 @@ class TemplateDeveloperAdminController extends AdminBaseController
         $upload->delete();
         return $this->success('删除成功');
     }
+
+    /**
+     * V2.9.13 H-1: 网站主上传入口页
+     */
+    public function uploadPage(): string
+    {
+        return $this->view('/template_developer/upload');
+    }
 }

@@ -34,11 +34,42 @@
             </div>
         </div>
 
-        <!-- 功能介绍 -->
+        <!-- V2.9.13 I-1: 模板介绍 + 版本历史 Tab -->
         <div class="card mb-3">
-            <div class="card-header"><i class="bi bi-info-circle me-1"></i>模板介绍</div>
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="detailTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="intro-tab" data-bs-toggle="tab" data-bs-target="#intro" type="button" role="tab">模板介绍</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="version-tab" data-bs-toggle="tab" data-bs-target="#version" type="button" role="tab">版本历史</button>
+                    </li>
+                </ul>
+            </div>
             <div class="card-body">
-                <p class="mb-0">{$info.description ?: '暂无介绍'}</p>
+                <div class="tab-content" id="detailTabContent">
+                    <div class="tab-pane fade show active" id="intro" role="tabpanel">
+                        <p class="mb-0">{$info.description ?: '暂无介绍'}</p>
+                    </div>
+                    <div class="tab-pane fade" id="version" role="tabpanel">
+                        {if condition="$info.version_history"}
+                        {php}$versions = json_decode($info.version_history, true);{/php}
+                        <ul class="list-group list-group-flush">
+                            {volist name="versions" id="ver"}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary me-2">{$ver.version}</span>
+                                    <span class="small">{$ver.note}</span>
+                                </div>
+                                <span class="text-muted small">{$ver.date}</span>
+                            </li>
+                            {/volist}
+                        </ul>
+                        {else}
+                        <p class="text-muted mb-0">暂无版本历史记录</p>
+                        {/if}
+                    </div>
+                </div>
             </div>
         </div>
     </div>

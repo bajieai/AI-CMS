@@ -86,6 +86,24 @@ class TemplatePackageService
         if ($zip->open($zipPath) !== true) {
             return ['success' => false, 'message' => '无法打开ZIP文件'];
         }
+
+        // V2.9.13 H-2: ZIP路径穿越安全检查
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entryName = $zip->getNameIndex($i);
+            // 检查目录穿越
+            if (strpos($entryName, '..') !== false || strpos($entryName, '\\') !== false) {
+                $zip->close();
+                $this->recursiveDelete($tempExtractDir);
+                return ['success' => false, 'message' => 'ZIP包包含非法路径（目录穿越攻击），已被拦截'];
+            }
+            // 检查绝对路径
+            if (strpos($entryName, '/') === 0 || strpos($entryName, ':') !== false) {
+                $zip->close();
+                $this->recursiveDelete($tempExtractDir);
+                return ['success' => false, 'message' => 'ZIP包包含绝对路径，已被拦截'];
+            }
+        }
+
         $zip->extractTo($tempExtractDir);
         $zip->close();
 

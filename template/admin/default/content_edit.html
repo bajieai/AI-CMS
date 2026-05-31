@@ -54,6 +54,18 @@
                                     <i class="bi bi-bar-chart me-1"></i>评分
                                 </button>
                             </div>
+                            <!-- V2.9.13: AI增强按钮组 -->
+                            <div class="btn-group btn-group-sm ms-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="AiImage.generate()" title="AI配图">
+                                    <i class="bi bi-image me-1"></i>配图
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="AiSeo.open()" title="AI SEO对比">
+                                    <i class="bi bi-search me-1"></i>SEO
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" onclick="document.getElementById('ai-style-modal').classList.add('show')" title="写作风格">
+                                    <i class="bi bi-pen me-1"></i>风格
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body py-2">
                             <!-- SEO评分条 -->
@@ -575,6 +587,92 @@
         </div>
     </div>
 </div>
+
+<!-- V2.9.13: AI弹窗样式 -->
+<style>
+.ai-image-card{position:relative;border:1px solid #dee2e6;border-radius:.375rem;overflow:hidden;cursor:pointer;transition:box-shadow .2s}
+.ai-image-card:hover{box-shadow:0 0 0 2px #0d6efd}
+.ai-image-card img{width:100%;height:160px;object-fit:cover}
+.ai-image-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);opacity:0;transition:opacity .2s}
+.ai-image-card:hover .ai-image-overlay{opacity:1}
+.ai-image-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9)}
+.ai-seo-field{border:1px solid #e9ecef;border-radius:.375rem;padding:1rem;margin-bottom:1rem}
+.ai-seo-box{background:#f8f9fa;border-radius:.25rem;padding:.75rem}
+.ai-seo-new{background:#e7f3ff}
+.ai-style-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.ai-style-card{border:1px solid #dee2e6;border-radius:.5rem;padding:1rem;cursor:pointer;transition:all .2s}
+.ai-style-card:hover{border-color:#0d6efd;background:#f8f9ff}
+.ai-style-card.active{border-color:#0d6efd;background:#e7f1ff;box-shadow:0 0 0 2px #0d6efd33}
+.ai-style-name{font-weight:600;margin-bottom:.25rem}
+.ai-style-desc{font-size:.75rem;color:#6c757d;margin-bottom:.5rem}
+.ai-style-example{font-size:.8rem;color:#495057;font-style:italic}
+</style>
+<!-- ==================== V2.9.13 AI增强弹窗 ==================== -->
+
+<!-- AI配图弹窗 -->
+<div class="modal fade" id="ai-image-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-image me-2"></i>AI配图</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="ai-image-status" class="text-muted small mb-3"></div>
+                <div id="ai-image-candidates" class="row g-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-outline-primary" onclick="AiImage.regenerate()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>重新生成
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI SEO对比弹窗 -->
+<div class="modal fade" id="ai-seo-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-search me-2"></i>AI SEO优化对比</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="ai-seo-status" class="text-muted small mb-3"></div>
+                <div id="ai-seo-diff"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" onclick="AiSeo.applyAll()">
+                    <i class="bi bi-check-all me-1"></i>全部应用
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 写作风格选择弹窗 -->
+<div class="modal fade" id="ai-style-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pen me-2"></i>选择写作风格</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="ai-style-selector" class="ai-style-grid"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="AiStyle.generate()">
+                    <i class="bi bi-lightning me-1"></i>按风格生成
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {/block}
 
 {block name="css"}
@@ -585,11 +683,17 @@
 {block name="js"}
 <script src="/assets/js/tinymce/tinymce.min.js"></script>
 <script src="/assets/js/quality-check.js"></script>
+<!-- V2.9.13: AI内容编辑器增强 -->
+<script src="/static/js/ai_content_editor.js?v=2.9.13"></script>
 <script>
 window.AI_CMS_CONFIG = {
     ai_image_candidate_count: parseInt('{$ai_image_candidate_count ?? 4}') || 4,
     ext_data: {:json_encode($ext_data ?? [], JSON_UNESCAPED_UNICODE)}
 };
+// V2.9.13: 初始化AI编辑器增强
+if (typeof initAiContentEditor === 'function' && window.AI_CMS_CONFIG.info_id) {
+    initAiContentEditor(window.AI_CMS_CONFIG.info_id);
+}
 </script>
 <script src="/assets/js/content-edit-default.js?v=2.9.9.1"></script>
 {/block}
