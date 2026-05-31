@@ -234,9 +234,13 @@ class TemplateDeveloperService
                 $newSize = filesize($newPath . DIRECTORY_SEPARATOR . $file);
                 $sizeDiff = $newSize - $oldSize;
                 $modified[] = [
-                    'file'      => $file,
-                    'size_diff' => $sizeDiff,
-                    'size_diff_human' => $this->formatBytes(abs($sizeDiff)) . ($sizeDiff >= 0 ? ' ↑' : ' ↓'),
+                    'file'           => $file,
+                    'old_size'       => $oldSize,
+                    'new_size'       => $newSize,
+                    'size_diff'      => $sizeDiff,
+                    'size_diff_human'=> $this->formatBytes(abs($sizeDiff)) . ($sizeDiff >= 0 ? ' ↑' : ' ↓'),
+                    'old_hash'       => $oldHash,
+                    'new_hash'       => $newHash,
                 ];
             }
         }
