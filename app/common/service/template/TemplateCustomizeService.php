@@ -66,7 +66,7 @@ class TemplateCustomizeService
      */
     public function saveStyleConfig(int $memberId, string $themeSlug, array $data): void
     {
-        $styleKeys = array_keys(self::$styleVariableMap) + ['font_preset', 'logo_url', 'custom_css'];
+        $styleKeys = array_merge(array_keys(self::$styleVariableMap), ['font_preset', 'logo_url', 'custom_css']);
         foreach ($data as $key => $value) {
             if (in_array($key, $styleKeys, true)) {
                 TemplateCustomConfig::setConfig($memberId, $themeSlug, $key, $value, 'style');
@@ -131,9 +131,16 @@ class TemplateCustomizeService
             $css .= ".site-logo { background-image: url('{$config['logo_url']}'); background-size: contain; background-repeat: no-repeat; }\n";
         }
 
-        // 自定义CSS
+        // 自定义CSS（安全过滤）
         if (!empty($config['custom_css'])) {
-            $css .= "/* Custom CSS */\n" . $config['custom_css'] . "\n";
+            $safeCss = strip_tags(
+                preg_replace(
+                    ['/<\/style/i', '/<script/i', '/expression\s*\(/i', '/javascript:/i', '/behavior\s*:/i'],
+                    '',
+                    $config['custom_css']
+                )
+            );
+            $css .= "/* Custom CSS */\n" . htmlspecialchars($safeCss, ENT_QUOTES) . "\n";
         }
 
         return $css;

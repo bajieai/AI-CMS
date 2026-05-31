@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\common\model;
 
+use app\common\model\User;
 use think\Model;
 
 /**
@@ -87,5 +88,13 @@ class TemplateDevUpload extends Model
     {
         if (empty($this->manifest_json)) return [];
         return json_decode($this->manifest_json, true) ?: [];
+    }
+
+    /**
+     * 关联会员（开发者）
+     */
+    public function member()
+    {
+        return $this->belongsTo(User::class, 'member_id');
     }
 }

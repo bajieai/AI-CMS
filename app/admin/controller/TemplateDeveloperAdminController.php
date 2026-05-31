@@ -113,6 +113,10 @@ class TemplateDeveloperAdminController extends AdminBaseController
      */
     public function delete(int $id): Response
     {
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
         $upload = TemplateDevUpload::find($id);
         if (empty($upload)) {
             return $this->error('记录不存在');
