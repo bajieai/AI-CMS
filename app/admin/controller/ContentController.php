@@ -885,7 +885,7 @@ class ContentController extends AdminBaseController
         }
 
         // 写入文章配图字段
-        $content->feature_img = $selected['url'];
+        $content->cover = $selected['url'];
         $content->save();
 
         // 清除缓存
