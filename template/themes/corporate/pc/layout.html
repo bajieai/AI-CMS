@@ -16,6 +16,8 @@
     <meta property="og:site_name" content="{$site_name|default='AI-CMS'}">
     <meta property="og:locale" content="{$current_lang|default='zh-CN'}">
     {block name='og'}{/block}
+    <!-- V2.9.15: Schema.org 结构化标记 -->
+    {block name='schema_markup'}{/block}
     <!-- V2.6 前台主题样式（从内联提取到外部CSS文件） -->
     <link href="{$skin}css/style.css?v=2.6" rel="stylesheet">
     <!-- V2.9 M11 模板可视化：CSS自定义变量（后台模板设计器可覆盖） -->

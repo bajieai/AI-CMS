@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace app\home\controller;
 
 use app\common\controller\FrontBaseController;
+use app\common\service\seo\SchemaMarkupService;
 
 /**
  * 前台首页控制器
@@ -27,6 +28,13 @@ class IndexController extends FrontBaseController
      */
     public function index()
     {
+        // V2.9.15: 首页 Schema.org 结构化标记 (WebSite + Organization)
+        $schemaService = new SchemaMarkupService();
+        $webSiteSchema = $schemaService->generateWebSite();
+        $orgSchema = $schemaService->generateOrganization();
+        $schemaMarkup = $schemaService->toJsonLd([$webSiteSchema, $orgSchema]);
+        $this->assign('schema_markup', $schemaMarkup);
+
         return $this->view('/index');
     }
 

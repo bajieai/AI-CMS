@@ -8,17 +8,22 @@
 
 {block name="meta_extra"}
 <meta name="content-id" content="{$info.id}">
-<!-- V2.8 OGP绀句氦分享元标签-->
+<!-- V2.9.15: OG/Twitter标签增强 -->
 <meta property="og:title" content="{$info.seo_title ?: $info.title}">
 <meta property="og:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
 {if condition="$info.cover"}<meta property="og:image" content="{$info.cover}">{/if}
 <meta property="og:type" content="article">
 <meta property="og:url" content="{$site_url}{$Request.url}">
 <meta property="og:site_name" content="{$site_name}">
-<!-- V2.9.2 M19b: Schema.org JSON-LD -->
-{:app\common\service\SchemaService::article($info)}
-<!-- V2.9.2 M19b: BreadcrumbList -->
-{:app\common\service\SchemaService::breadcrumb(['首页'=>$site_url,'分类'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
+<!-- V2.9.15: og:locale联动翻译语言切换 -->
+<meta property="og:locale" content="{$og_locale|default='zh_CN'}">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{$info.seo_title ?: $info.title}">
+<meta name="twitter:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
+{if condition="$info.cover"}<meta name="twitter:image" content="{$info.cover}">{/if}
+<!-- V2.9.15: Schema.org 结构化标记（新SchemaMarkupService） -->
+{$schema_markup|raw}
 <!-- V2.9.9: 多语言hreflang标签 -->
 {if condition="count($content_translations) > 1"}
 {foreach $content_translations as $lang_code => $trans}
@@ -57,6 +62,25 @@
                         <i class="bi bi-lock-fill text-warning fs-5" title="浠樿垂内容"></i>
                         {/if}
                     </h1>
+                    <!-- V2.9.15: 前台语言切换器 -->
+                    {if condition="$info.id"}
+                    <div class="lang-switcher mb-3">
+                        <span class="text-muted small me-2"><i class="bi bi-translate"></i> 语言:</span>
+                        <a href="{$site_url}{$Request.url}" class="lang-item {if !$current_lang}active{else/}available{/if}" title="中文原文">中文</a>
+                        {php}$langNames=['en'=>'English','ja'=>'日本語','ko'=>'한국어'];$langStatus=[0=>'暂未翻译',1=>'翻译中...',2=>'已翻译',3=>'翻译失败'];{/php}
+                        {foreach name="article_langs" item="al"}
+                            {if condition="$al.lang == 'en' || $al.lang == 'ja' || $al.lang == 'ko'"}
+                                {if condition="$al.translate_status == 2"}
+                                <a href="{$site_url}{$Request.url}?lang={$al.lang}" class="lang-item {if $current_lang == $al.lang}active{else/}available{/if}" title="{$langNames[$al.lang] ?? $al.lang}: 已翻译">{$langNames[$al.lang] ?? $al.lang|strtoupper}</a>
+                                {elseif condition="$al.translate_status == 1"}
+                                <span class="lang-item unavailable translating" title="{$langNames[$al.lang] ?? $al.lang}: 翻译中...">{$langNames[$al.lang] ?? $al.lang|strtoupper}</span>
+                                {else}
+                                <span class="lang-item unavailable" title="{$langNames[$al.lang] ?? $al.lang}: {$langStatus[$al.translate_status] ?? '暂未翻译'}">{$langNames[$al.lang] ?? $al.lang|strtoupper}</span>
+                                {/if}
+                            {/if}
+                        {/foreach}
+                    </div>
+                    {/if}
                     <div class="text-muted mb-4">
                         <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
                         <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>

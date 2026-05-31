@@ -14,6 +14,7 @@ namespace app\common\service\ai\image;
 
 use app\common\service\ai\ImageProviderInterface;
 use GuzzleHttp\Client;
+use think\facade\Log;
 
 class TongyiWanxiangProvider implements ImageProviderInterface
 {
@@ -93,5 +94,64 @@ class TongyiWanxiangProvider implements ImageProviderInterface
     public function getSupportedStyles(): array
     {
         return ['realistic', 'illustration', 'watercolor', '3d_render', 'pixel_art'];
+    }
+
+    /**
+     * V2.9.15: 查询通义万相异步任务状态
+     *
+     * API: GET /api/v1/tasks/{task_id}
+     * 状态: PENDING / RUNNING / SUCCEEDED / FAILED / CANCELLED
+     */
+    public function queryTaskStatus(string $taskId): array
+    {
+        try {
+            $response = $this->client->get('/api/v1/tasks/' . $taskId, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                ],
+            ]);
+
+            $body = json_decode($response->getBody()->getContents(), true);
+            $status = $body['output']['task_status'] ?? '';
+
+            if ($status === 'SUCCEEDED') {
+                $url = $body['output']['results'][0]['url'] ?? '';
+                return [
+                    'success' => true,
+                    'url' => $url,
+                    'failed' => false,
+                    'message' => '配图生成成功',
+                    'progress' => 100,
+                ];
+            }
+
+            if ($status === 'FAILED' || $status === 'CANCELLED') {
+                return [
+                    'success' => false,
+                    'url' => '',
+                    'failed' => true,
+                    'message' => '任务失败: ' . ($body['output']['message'] ?? $status),
+                    'progress' => 0,
+                ];
+            }
+
+            // PENDING / RUNNING
+            return [
+                'success' => true,
+                'url' => '',
+                'failed' => false,
+                'message' => '任务进行中: ' . $status,
+                'progress' => $status === 'RUNNING' ? 50 : 10,
+            ];
+        } catch (\Exception $e) {
+            Log::error('[TongyiWanxiangProvider] queryTaskStatus failed: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'url' => '',
+                'failed' => true,
+                'message' => '查询任务状态失败: ' . $e->getMessage(),
+                'progress' => 0,
+            ];
+        }
     }
 }

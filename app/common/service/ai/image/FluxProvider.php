@@ -201,4 +201,88 @@ class FluxProvider implements ImageProviderInterface
     {
         return ['realistic', 'illustration', 'watercolor', '3d_render', 'pixel_art'];
     }
+
+    /**
+     * V2.9.15: 查询FLUX异步任务状态
+     *
+     * 通过taskId查询ImageTask表获取poll_url，再轮询BFL API
+     */
+    public function queryTaskStatus(string $taskId): array
+    {
+        try {
+            // 从数据库查询任务记录获取poll_url
+            $task = \app\common\model\ImageTask::where('task_id', $taskId)->find();
+            if (empty($task) || empty($task['poll_url'])) {
+                return [
+                    'success' => false,
+                    'url' => '',
+                    'failed' => true,
+                    'message' => '未找到FLUX任务记录或poll_url缺失',
+                    'progress' => 0,
+                ];
+            }
+
+            $response = $this->client->get($task['poll_url'], [
+                'headers' => ['X-Key' => $this->apiKey],
+            ]);
+
+            $body = json_decode($response->getBody()->getContents(), true);
+            $status = $body['status'] ?? '';
+
+            if ($status === 'Ready' && !empty($body['result']['sample'])) {
+                // 更新数据库状态
+                $task->save([
+                    'status' => \app\common\model\ImageTask::STATUS_COMPLETED,
+                    'result' => json_encode($body['result']),
+                    'update_time' => time(),
+                ]);
+                return [
+                    'success' => true,
+                    'url' => $body['result']['sample'],
+                    'failed' => false,
+                    'message' => '配图生成成功',
+                    'progress' => 100,
+                ];
+            }
+
+            if ($status === 'Failed') {
+                $task->save([
+                    'status' => \app\common\model\ImageTask::STATUS_FAILED,
+                    'error_msg' => $body['error'] ?? '生成失败',
+                    'update_time' => time(),
+                ]);
+                return [
+                    'success' => false,
+                    'url' => '',
+                    'failed' => true,
+                    'message' => 'FLUX生成失败: ' . ($body['error'] ?? '未知错误'),
+                    'progress' => 0,
+                ];
+            }
+
+            // TaskNotFound / Pending / Processing
+            $progress = match ($status) {
+                'Pending' => 20,
+                'Processing' => 60,
+                default => 30,
+            };
+
+            return [
+                'success' => true,
+                'url' => '',
+                'failed' => false,
+                'message' => '任务进行中: ' . $status,
+                'progress' => $progress,
+            ];
+        } catch (\Exception $e) {
+            Log::error('[FluxProvider] queryTaskStatus failed: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'url' => '',
+                'failed' => true,
+                'message' => '查询任务状态失败: ' . $e->getMessage(),
+                'progress' => 0,
+            ];
+        }
+    }
 }

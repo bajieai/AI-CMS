@@ -477,6 +477,13 @@ Route::post('template_customize/restore$', '\app\admin\controller\TemplateCustom
 Route::post('template_customize/deleteBackup$', '\app\admin\controller\TemplateCustomizeController@deleteBackup');
 Route::post('template_customize/reset$', '\app\admin\controller\TemplateCustomizeController@reset');
 
+// V2.9.15: AI翻译引擎路由
+Route::post('translate/do/:id$', '\app\admin\controller\AiTranslateController@translate');
+Route::post('translate/batch$', '\app\admin\controller\AiTranslateController@batchTranslate');
+Route::get('translate/status/:id/:lang$', '\app\admin\controller\AiTranslateController@getStatus');
+Route::post('translate/delete/:id/:lang$', '\app\admin\controller\AiTranslateController@delete');
+Route::get('translate/list/:id$', '\app\admin\controller\AiTranslateController@list');
+
 // V2.9.12: 模板开发者审核路由（管理员）
 Route::get('template_developer/index$', '\app\admin\controller\TemplateDeveloperAdminController@index');
 Route::get('template_developer/detail/:id$', '\app\admin\controller\TemplateDeveloperAdminController@detail');

@@ -42,4 +42,15 @@ interface ImageProviderInterface
      * @return array ['realistic', 'illustration', 'watercolor', ...]
      */
     public function getSupportedStyles(): array;
+
+    /**
+     * V2.9.15: 查询异步任务状态（通义万相/Flux等异步Provider）
+     *
+     * @param string $taskId 任务ID
+     * @return array ['success'=>bool, 'url'=>string, 'failed'=>bool, 'message'=>string, 'progress'=>int]
+     *         success=true & url非空 → 任务完成
+     *         failed=true → 任务失败
+     *         success=true & url空 → 任务进行中，message可含进度信息
+     */
+    public function queryTaskStatus(string $taskId): array;
 }

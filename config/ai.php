@@ -162,6 +162,22 @@ return [
         ],
     ],
 
+    // ==================== AI翻译引擎配置（V2.9.15新增） ====================
+    'translate' => [
+        'provider'          => env('AI_TRANSLATE_PROVIDER', 'deepseek'),
+        'fallback_provider' => env('AI_TRANSLATE_FALLBACK', ''),
+        'api_key'           => env('DEEPSEEK_API_KEY', ''),
+        'base_url'          => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
+        'model'             => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'timeout'           => (int) env('AI_TRANSLATE_TIMEOUT', 60),
+        'max_tokens'        => (int) env('AI_TRANSLATE_MAX_TOKENS', 4096),
+        'temperature'       => (float) env('AI_TRANSLATE_TEMPERATURE', 0.3),
+        // 缓存配置（建议2前台翻译缓存）
+        'cache_ttl'         => (int) env('AI_TRANSLATE_CACHE_TTL', 3600),
+        // 分段翻译阈值（建议1）
+        'segment_threshold' => (int) env('AI_TRANSLATE_SEGMENT_THRESHOLD', 1500),
+    ],
+
     // ==================== AI多写作风格配置（V3.1新增） ====================
     'writing_styles' => [
         'formal' => [

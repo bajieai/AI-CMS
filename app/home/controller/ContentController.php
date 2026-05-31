@@ -24,6 +24,9 @@ use app\common\service\PaidService;
 use app\common\service\SocialShareService;
 use app\common\service\LanguageService;
 use app\common\service\GeoService;
+use app\common\service\ai\AiTranslateService;
+use app\common\service\ai\translate\TranslateProviderRouter;
+use app\common\service\seo\SchemaMarkupService;
 use think\facade\Db;
 
 /**
@@ -44,6 +47,32 @@ class ContentController extends FrontBaseController
 
         if (empty($info) || $info->status != 2) {
             abort(404, '内容不存在');
+        }
+
+        // V2.9.15: 多语言切换支持 (?lang=en/ja/ko)
+        $lang = request()->get('lang', '');
+        $ogLocale = 'zh_CN';
+        $transData = null;
+        if ($lang && TranslateProviderRouter::isLanguageRegistered($lang)) {
+            $translateService = new AiTranslateService();
+            $transData = $translateService->getTranslation($id, $lang);
+            if ($transData && $transData->translate_status === \app\common\model\ArticleLang::STATUS_COMPLETED) {
+                // 使用翻译版本覆盖显示内容（不修改原Model，仅用于显示）
+                $displayInfo = clone $info;
+                $displayInfo->title       = $transData->title ?: $info->title;
+                $displayInfo->content     = $transData->content ?: $info->content;
+                $displayInfo->excerpt     = $transData->description ?: $info->excerpt;
+                $displayInfo->seo_title   = $transData->seo_title ?: $info->seo_title;
+                $displayInfo->seo_description = $transData->seo_desc ?: $info->seo_description;
+                $displayInfo->seo_keywords    = $transData->keywords ?: $info->seo_keywords;
+                $info = $displayInfo;
+            }
+            $ogLocale = match ($lang) {
+                'en' => 'en_US',
+                'ja' => 'ja_JP',
+                'ko' => 'ko_KR',
+                default => 'zh_CN',
+            };
         }
 
         // V2.5：检查min_level_id内容等级限制
@@ -120,6 +149,24 @@ class ContentController extends FrontBaseController
         // V2.9.9: AI-GEO生成式引擎优化数据
         $geoData = GeoService::generate($info);
 
+        // V2.9.15: Schema.org 结构化标记
+        $schemaService = new SchemaMarkupService();
+        $articleSchema = $schemaService->generateArticle([
+            'title'       => $info->seo_title ?: $info->title,
+            'description' => $info->seo_description ?: $info->excerpt,
+            'image'       => $info->cover,
+            'url'         => request()->url(true),
+            'create_time' => $info->create_time,
+            'update_time' => $info->update_time,
+        ]);
+        $schemaMarkup = $schemaService->toJsonLd([$articleSchema]);
+
+        // V2.9.15: 获取文章翻译状态（用于前台语言切换器）
+        $articleLangs = [];
+        if ($id) {
+            $articleLangs = \app\common\model\ArticleLang::getTranslationsByAid($id);
+        }
+
         $this->assign([
             'info'          => $info,
             'related'       => $related,
@@ -134,6 +181,11 @@ class ContentController extends FrontBaseController
             'share_links'   => $shareLinks,
             'content_translations' => $contentTranslations,
             'geo_data'      => $geoData,
+            // V2.9.15 新增
+            'og_locale'     => $ogLocale,
+            'schema_markup' => $schemaMarkup,
+            'current_lang'  => $lang,
+            'article_langs' => $articleLangs,
         ]);
 
         return $this->view('/detail');

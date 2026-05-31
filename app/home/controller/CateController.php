@@ -18,6 +18,7 @@ use app\common\controller\FrontBaseController;
 use app\common\model\Cate;
 use app\common\model\Content;
 use app\common\service\CateService;
+use app\common\service\seo\SchemaMarkupService;
 
 /**
  * 前台分类控制器
@@ -53,6 +54,20 @@ class CateController extends FrontBaseController
             $currentCate = Cate::find($cateId);
         }
 
+        // V2.9.15: 栏目页 Schema.org 结构化标记 (BreadcrumbList + WebPage)
+        $schemaService = new SchemaMarkupService();
+        $breadcrumbs = [['name' => '首页', 'url' => request()->domain()]];
+        if ($currentCate) {
+            $breadcrumbs[] = ['name' => $currentCate->name, 'url' => request()->url(true)];
+        }
+        $breadcrumbSchema = $schemaService->generateBreadcrumb($breadcrumbs);
+        $webPageSchema = $schemaService->generateWebPage([
+            'title'       => $currentCate ? $currentCate->name : '内容列表',
+            'description' => $currentCate ? ($currentCate->description ?: '') : '',
+            'url'         => request()->url(true),
+        ]);
+        $schemaMarkup = $schemaService->toJsonLd([$breadcrumbSchema, $webPageSchema]);
+
         $this->assign([
             'type' => $type,
             'cate_id' => $cateId,
@@ -61,6 +76,7 @@ class CateController extends FrontBaseController
             'list' => $list,
             'type_slug' => $typeSlug,
             'current_cate' => $currentCate,
+            'schema_markup' => $schemaMarkup,
         ]);
 
         return $this->view('/list');

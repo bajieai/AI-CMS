@@ -118,6 +118,10 @@ class AiQueueConsume extends Command
                 $this->processSeoOptimize($taskId, $payload, $output);
                 break;
 
+            case 'content_translate':
+                $this->processContentTranslate($taskId, $payload, $output);
+                break;
+
             default:
                 (new AiTaskQueueService())->fail($taskId, '未知任务类型: ' . $type);
         }
@@ -190,6 +194,35 @@ class AiQueueConsume extends Command
         } else {
             $queueService->fail($taskId, $result['message'] ?? 'SEO优化失败');
             $output->warning("[AI-Queue] SEO失败: task_id={$taskId}");
+        }
+    }
+
+    /**
+     * V2.9.15: 处理内容翻译任务
+     */
+    protected function processContentTranslate(int $taskId, array $payload, Output $output): void
+    {
+        $queueService = new AiTaskQueueService();
+        $translateService = new \app\common\service\ai\AiTranslateService();
+
+        $aid = $payload['aid'] ?? 0;
+        $targetLang = $payload['target_lang'] ?? 'en';
+
+        if (!$aid) {
+            $queueService->fail($taskId, '缺少aid');
+            return;
+        }
+
+        $output->info("[AI-Queue] 内容翻译: aid={$aid}, lang={$targetLang}");
+
+        $result = $translateService->translateContent($aid, $targetLang);
+
+        if ($result['success']) {
+            $queueService->complete($taskId, ['aid' => $aid, 'lang' => $targetLang]);
+            $output->info("[AI-Queue] 翻译完成: task_id={$taskId}, aid={$aid}, lang={$targetLang}");
+        } else {
+            $queueService->fail($taskId, $result['message'] ?? '翻译失败');
+            $output->warning("[AI-Queue] 翻译失败: task_id={$taskId}, " . ($result['message'] ?? ''));
         }
     }
 }

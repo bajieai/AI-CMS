@@ -211,15 +211,15 @@ class AiImageGenerateService
     }
 
     /**
-     * 查询异步任务状态（子类或扩展实现）
+     * V2.9.15: 查询异步任务状态 — 委托给ImageProviderRouter
+     *
+     * 通义万相: GET /api/v1/tasks/{task_id}
+     * Flux: 通过poll_url轮询BFL API
+     * DALL-E: 同步Provider，无需轮询
      */
     protected function queryTaskStatus(string $taskId, string $provider): array
     {
-        // 简化实现：实际应根据Provider API查询
-        // 通义万相: GET /tasks/{task_id}
-        // Flux: GET /v1/flux-pro/{id}
-        // 这里返回模拟结果，实际部署时替换为真实API调用
-        return ['success' => true, 'url' => '', 'failed' => false, 'message' => 'polling'];
+        return ImageProviderRouter::queryTaskStatus($taskId, $provider);
     }
 
     /**

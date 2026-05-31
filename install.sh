@@ -142,6 +142,10 @@ install_docker() {
     print_step "安装Composer依赖..."
     docker exec -i aicms_php composer install --no-dev --optimize-autoloader
 
+    # V2.9.15: 自动刷新autoload，确保新增类文件可被加载
+    print_step "刷新Composer autoload..."
+    docker exec -i aicms_php composer dump-autoload --optimize
+
     print_success "Docker部署完成!"
     echo ""
     echo "=========================================="
@@ -200,6 +204,11 @@ install_native() {
     if command -v composer &> /dev/null; then
         composer install --no-dev --optimize-autoloader
         print_success "Composer依赖安装完成"
+
+        # V2.9.15: 自动刷新autoload
+        print_step "刷新Composer autoload..."
+        composer dump-autoload --optimize
+        print_success "Autoload刷新完成"
     else
         print_error "Composer未安装，请先安装Composer"
         echo "下载地址: https://getcomposer.org/download/"

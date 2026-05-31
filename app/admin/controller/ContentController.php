@@ -74,6 +74,36 @@ class ContentController extends AdminBaseController
         $cates = Cate::where('status', 1)->select();
         $tags = Tag::select();
 
+        // V2.9.15: 注入翻译状态数据（用于列表页翻译状态badge）
+        $articleIds = [];
+        foreach ($list as $item) {
+            $articleIds[] = $item['id'];
+        }
+        $translationsMap = [];
+        if (!empty($articleIds)) {
+            $transList = \app\common\model\ArticleLang::whereIn('aid', $articleIds)
+                ->whereIn('lang', ['en', 'ja', 'ko'])
+                ->field('aid,lang,translate_status')
+                ->select()
+                ->toArray();
+            $langNames = ['en' => '英语', 'ja' => '日语', 'ko' => '韩语'];
+            foreach ($transList as $t) {
+                if (!isset($translationsMap[$t['aid']])) {
+                    $translationsMap[$t['aid']] = [];
+                }
+                $translationsMap[$t['aid']][] = [
+                    'lang_code' => $t['lang'],
+                    'lang_name' => $langNames[$t['lang']] ?? $t['lang'],
+                    'status'    => (int) $t['translate_status'],
+                ];
+            }
+        }
+        // 将 translations 附加到 list 每一项
+        foreach ($list as &$item) {
+            $item['translations'] = $translationsMap[$item['id']] ?? [];
+        }
+        unset($item);
+
         $this->assign([
             'list' => $list,
             'cates' => $cates,
@@ -736,6 +766,9 @@ class ContentController extends AdminBaseController
     }
 
     /**
+     * @deprecated V2.9.15 请使用 AiProgressController::batchSeoStart (SSE真进度模式)。
+     *             本方法仅保留向后兼容，处理少量文章时仍可直接调用。
+     *
      * V2.9.14: 批量SEO优化（保留兼容：同步模式，前端可选择SSE模式）
      *
      * 注：V2.9.14新增SSE真进度模式通过 AiProgressController::batchSeoStart 实现。

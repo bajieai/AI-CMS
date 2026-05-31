@@ -1,14 +1,19 @@
-# 八界AI-CMS V2.9.14
+# 八界AI-CMS V2.9.15
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.14-blue)
+![Version](https://img.shields.io/badge/version-2.9.15-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.14 "体验精修·异步升级" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.15 "质量增强·AI能力升级" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.15 核心定位：质量增强·AI能力升级** — 3个Sprint 9功能点+11项P1修正（100%完成）：
+1. **J方向：技术负债清理(P0)** — Provider轮询mock→真实API + batchSeoOptimize@deprecated标记 + Nginx SSE缓冲配置 + install脚本composer自动化
+2. **K方向：AI翻译引擎(P0)** — DeepSeek翻译Provider + HTML正文分段处理 + 翻译版本缓存 + 编辑页/列表页/前台三端UI + 批量翻译队列
+3. **L方向：SEO增强(P1)** — Schema.org结构化标记(5种类型×3页面注入) + OG/Twitter标签增强 + og:locale联动多语言切换
 
 **V2.9.14 核心定位：体验精修·异步升级** — 3个Sprint 10项优化（100%完成）：
 1. **P0：配图生成异步化** — 同步3次循环(最坏90秒) → 异步队列提交+前端轮询逐张显示，解决Nginx 60s超时断连

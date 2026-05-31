@@ -117,6 +117,10 @@ timeout /t 15 /nobreak > nul
 echo [步骤] 安装Composer依赖...
 docker exec -i aicms_php composer install --no-dev --optimize-autoloader
 
+:: V2.9.15: 自动刷新autoload
+echo [步骤] 刷新Composer autoload...
+docker exec -i aicms_php composer dump-autoload --optimize
+
 echo.
 echo ============================================
 echo [成功] Docker部署完成!
@@ -179,6 +183,11 @@ if !errorlevel! equ 0 (
     cd /d "%PROJECT_DIR%"
     call composer install --no-dev --optimize-autoloader
     echo [成功] Composer依赖安装完成
+
+    :: V2.9.15: 自动刷新autoload
+    echo [步骤] 刷新Composer autoload...
+    call composer dump-autoload --optimize
+    echo [成功] Autoload刷新完成
 ) else (
     echo [错误] Composer未安装，请先安装Composer
     echo 下载地址: https://getcomposer.org/download/

@@ -158,6 +158,21 @@
                         <input type="datetime-local" name="publish_time" class="form-control" value="{$info.publish_time ? date('Y-m-d\TH:i', $info.publish_time) : ''}" placeholder="留空表示立即发布">
                         <div class="form-text">留空表示立即发布，设置后内容将在指定时间自动发布</div>
                     </div>
+                    <!-- V2.9.15: 多语言翻译 -->
+                    {if condition="$info"}
+                    <div class="card border-info mb-3">
+                        <div class="card-header py-2 bg-info text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-translate me-1"></i>多语言翻译</span>
+                            <span id="translateTopBadge"></span>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="translateVersionPanel">
+                                <div class="text-muted text-center py-2">加载中...</div>
+                            </div>
+                        </div>
+                    </div>
+                    {/if}
+
                     <!-- SEO设置 -->
                     <div class="card border-warning mb-3">
                         <div class="card-header py-2 bg-warning text-dark"><i class="bi bi-search me-1"></i>SEO设置</div>
@@ -467,6 +482,8 @@
 {block name="css"}
 <!-- TinyMCE -->
 <script src="/assets/js/tinymce/tinymce.min.js"></script>
+<!-- V2.9.15: 翻译编辑器样式 -->
+<link rel="stylesheet" href="/static/css/translate_editor.css?v=2.9.15">
 {/block}
 
 {block name="js"}
@@ -474,6 +491,8 @@
 <script src="/assets/js/quality-check.js"></script>
 <!-- V2.9.13: AI内容编辑器增强 -->
 <script src="/static/js/ai_content_editor.js?v=2.9.13"></script>
+<!-- V2.9.15: 翻译编辑器 -->
+<script src="/static/js/translate_editor.js?v=2.9.15"></script>
 <script>
 window.AI_CMS_CONFIG = {
     ext_data: {:json_encode($ext_data ?? [], JSON_UNESCAPED_UNICODE)},
@@ -483,6 +502,12 @@ window.AI_CMS_CONFIG = {
 if (typeof initAiContentEditor === 'function' && window.AI_CMS_CONFIG.info_id) {
     initAiContentEditor(window.AI_CMS_CONFIG.info_id);
 }
+// V2.9.15: 初始化翻译编辑器
+{if condition="$info"}
+$(function() {
+    TranslateEditor.init({$info.id});
+});
+{/if}
 </script>
 <script src="/assets/js/content-edit-corporate.js?v=2.9.9.1"></script>
 {/block}

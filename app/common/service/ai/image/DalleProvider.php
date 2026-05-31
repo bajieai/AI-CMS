@@ -146,4 +146,20 @@ class DalleProvider implements ImageProviderInterface
         }
         return ['natural'];
     }
+
+    /**
+     * V2.9.15: DALL-E 为同步Provider，queryTaskStatus直接返回完成状态
+     */
+    public function queryTaskStatus(string $taskId): array
+    {
+        // DALL-E 是同步API，generateImage已直接返回URL，不需要轮询
+        // 此方法保留仅用于接口一致性，实际不会通过轮询调用
+        return [
+            'success' => true,
+            'url' => '',
+            'failed' => false,
+            'message' => 'DALL-E为同步Provider，无需轮询',
+            'progress' => 100,
+        ];
+    }
 }
