@@ -89,3 +89,6 @@ Route::post('content/share$', '\app\home\controller\ContentController@share');
 
 // V2.9.8 C-1: 自定义404页面
 Route::get('404.html$', '\app\home\controller\IndexController@error404');
+
+// V2.9.12: 模板前台预览
+Route::get('template/preview/:slug$', '\app\home\controller\TemplatePreviewController@preview');

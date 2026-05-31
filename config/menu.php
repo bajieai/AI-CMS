@@ -159,6 +159,10 @@ return [
             ['id' => 911, 'name' => '插件市场', 'url' => '/admin/plugin_market/index', 'permission' => 'plugin_market.*', 'active' => 'plugin_market', 'icon' => 'bi bi-shop'],
             ['id' => 92, 'name' => '多语言管理', 'url' => '/admin/language/index', 'permission' => 'language.*', 'active' => 'language', 'icon' => 'bi bi-translate'],
             ['id' => 93, 'name' => '模板市场', 'url' => '/admin/theme_market/index', 'permission' => 'theme_market.*', 'active' => 'theme_market', 'icon' => 'bi bi-palette2'],
+            // V2.9.12: 模板商店
+            ['id' => 931, 'name' => '模板商店管理', 'url' => '/admin/template_store/index', 'permission' => 'template_store.*', 'active' => 'template_store', 'icon' => 'bi bi-shop'],
+            ['id' => 932, 'name' => '评论审核', 'url' => '/admin/template_store/reviews', 'permission' => 'template_store.*', 'active' => 'template_reviews', 'icon' => 'bi bi-star-half'],
+            ['id' => 933, 'name' => '模板分类', 'url' => '/admin/template_store/categories', 'permission' => 'template_store.*', 'active' => 'template_categories', 'icon' => 'bi bi-folder2'],
             // V2.9.1 M10: API文档
             ['id' => 94, 'name' => 'API文档', 'url' => '/admin/api_doc/index', 'permission' => 'apidoc.*', 'active' => 'api_doc', 'icon' => 'bi bi-file-code'],
         ],

@@ -346,6 +346,56 @@ class RatingService
     }
 
     /**
+     * V2.9.12: 模板评分（网站主对已安装模板评分）
+     *
+     * @param int    $memberId  会员ID
+     * @param int    $storeId   模板商店ID
+     * @param int    $rating    评分1-5
+     * @param string $content   评论内容
+     * @return array
+     */
+    public static function rateTemplate(int $memberId, int $storeId, int $rating, string $content = ''): array
+    {
+        if ($rating < 1 || $rating > 5) {
+            return ['success' => false, 'msg' => '评分必须在1-5之间'];
+        }
+
+        // 检查是否已安装该模板
+        $installed = \app\common\model\TemplateInstall::where('store_id', $storeId)
+            ->where('member_id', $memberId)
+            ->find();
+        if (empty($installed)) {
+            return ['success' => false, 'msg' => '您未安装该模板，无法评分'];
+        }
+
+        // 检查是否已评价
+        $exists = \app\common\model\TemplateReview::where('store_id', $storeId)
+            ->where('member_id', $memberId)
+            ->find();
+
+        if ($exists) {
+            $exists->rating = $rating;
+            $exists->comment = $content;
+            $exists->is_audited = \app\common\model\TemplateReview::AUDIT_PENDING;
+            $exists->save();
+        } else {
+            \app\common\model\TemplateReview::create([
+                'store_id'   => $storeId,
+                'member_id'  => $memberId,
+                'rating'     => $rating,
+                'comment'    => $content,
+                'is_audited' => \app\common\model\TemplateReview::AUDIT_PENDING,
+            ]);
+        }
+
+        // 更新评分统计
+        $storeService = new \app\common\service\template\TemplateStoreService();
+        $storeService->updateRatingStats($storeId);
+
+        return ['success' => true, 'msg' => '评价提交成功，等待审核'];
+    }
+
+    /**
      * 获取后台评价列表
      */
     public static function getAdminList(int $page = 1, int $limit = 20, int $status = -1): array

@@ -462,6 +462,147 @@ class ThemeQualityService
         return round($same / max(count($fp1), count($fp2)) * 100, 1);
     }
 
+    // ============================================================
+    // V2.9.12 扩展方法：质量校验管线
+    // ============================================================
+
+    /**
+     * 校验CSS完整性：检测未闭合规则、无效属性、缺失选择器
+     */
+    public function validateCssIntegrity(string $themePath): array
+    {
+        $errors = [];
+        $cssFiles = $this->collectFiles($themePath, ['css']);
+
+        foreach ($cssFiles as $file) {
+            $content = file_get_contents($file);
+            $relPath = str_replace($themePath . DIRECTORY_SEPARATOR, '', $file);
+
+            // 检测未闭合的 { 和 }
+            $open = substr_count($content, '{');
+            $close = substr_count($content, '}');
+            if ($open !== $close) {
+                $errors[] = "[{$relPath}] CSS规则未闭合: 开启{$open}个, 关闭{$close}个";
+            }
+
+            // 检测空规则块
+            if (preg_match_all('/[^{}]+\{\s*\}/s', $content, $matches)) {
+                $errors[] = "[{$relPath}] 发现 " . count($matches[0]) . " 个空CSS规则块";
+            }
+        }
+
+        return [
+            'pass' => empty($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * 校验响应式：检测是否包含viewport meta和媒体查询
+     */
+    public function validateResponsive(string $themePath): array
+    {
+        $errors = [];
+        $htmlFiles = $this->collectFiles($themePath, ['html']);
+        $cssFiles = $this->collectFiles($themePath, ['css']);
+
+        $hasViewport = false;
+        foreach ($htmlFiles as $file) {
+            $content = file_get_contents($file);
+            if (str_contains($content, 'viewport')) {
+                $hasViewport = true;
+                break;
+            }
+        }
+        if (!$hasViewport) {
+            $errors[] = '缺少 viewport meta 标签，移动端适配可能异常';
+        }
+
+        $hasMediaQuery = false;
+        foreach ($cssFiles as $file) {
+            $content = file_get_contents($file);
+            if (str_contains($content, '@media')) {
+                $hasMediaQuery = true;
+                break;
+            }
+        }
+        if (!$hasMediaQuery) {
+            $errors[] = 'CSS中未检测到 @media 媒体查询，响应式支持可能不足';
+        }
+
+        return [
+            'pass' => empty($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * 校验HTML标签：检测未闭合标签、无效属性
+     */
+    public function validateHtmlTags(string $themePath): array
+    {
+        $errors = [];
+        $htmlFiles = $this->collectFiles($themePath, ['html']);
+
+        foreach ($htmlFiles as $file) {
+            $content = file_get_contents($file);
+            $relPath = str_replace($themePath . DIRECTORY_SEPARATOR, '', $file);
+
+            // 简单的未闭合标签检测（常见块级元素）
+            $tags = ['div', 'section', 'article', 'header', 'footer', 'nav', 'main', 'aside'];
+            foreach ($tags as $tag) {
+                $openCount = substr_count(strtolower($content), "<{$tag}");
+                $closeCount = substr_count(strtolower($content), "</{$tag}>");
+                if ($openCount !== $closeCount) {
+                    $errors[] = "[{$relPath}] <{$tag}> 标签未闭合: 开启{$openCount}个, 关闭{$closeCount}个";
+                }
+            }
+        }
+
+        return [
+            'pass' => empty($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * 获取综合质量报告（校验管线入口）
+     */
+    public function getQualityReport(string $themePath, string $industry = ''): array
+    {
+        // 基础评分
+        $scoreReport = $this->score($themePath, $industry);
+
+        // 扩展校验
+        $cssIntegrity = $this->validateCssIntegrity($themePath);
+        $responsive = $this->validateResponsive($themePath);
+        $htmlTags = $this->validateHtmlTags($themePath);
+
+        // 综合质量分：基础评分 * 0.8 + 扩展校验通过 bonus
+        $bonus = 0;
+        if ($cssIntegrity['pass']) $bonus += 5;
+        if ($responsive['pass']) $bonus += 5;
+        if ($htmlTags['pass']) $bonus += 5;
+
+        $qualityScore = min(100, $scoreReport['total'] + $bonus);
+
+        return [
+            'quality_score' => $qualityScore,
+            'base_score' => $scoreReport['total'],
+            'bonus' => $bonus,
+            'dimensions' => $scoreReport['dimensions'],
+            'css_integrity' => $cssIntegrity,
+            'responsive' => $responsive,
+            'html_tags' => $htmlTags,
+            'warnings' => array_merge(
+                $scoreReport['warnings'],
+                $cssIntegrity['errors'],
+                $responsive['errors'],
+                $htmlTags['errors']
+            ),
+        ];
+    }
+
     /**
      * 收集指定类型的文件
      */

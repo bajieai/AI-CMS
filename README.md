@@ -1,14 +1,21 @@
-# 八界AI-CMS V2.9.11
+# 八界AI-CMS V2.9.12
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.11-blue)
+![Version](https://img.shields.io/badge/version-2.9.12-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.11 "主题进化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.12 "模板生态·内容智能化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / Qwen / GLM / ERNIE / OpenAI兼容 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.12 核心定位：模板生态·内容智能化** — 5大方向19项功能（100%完成）：
+1. **方向A：模板商店生态(P0)** — 模板商店(10张表+3张ALTER)、网站主市场(卡片列表/筛选/预览)、安装/切换/支付(复用PaymentService)、评分评论(审核机制)、前台iframe预览
+2. **方向B：AI模板质量管线(P0)** — 质量校验(CSS完整性/响应式/HTML标签)+修复管线(3次循环/修复率≥80%)+AI多配色变体(AI生成5种配色)
+3. **方向C：模板自定义(P1)** — 样式定制(7色CSS变量/5字体/Logo/自定义CSS)+布局配置(8板块开关+SortableJS拖拽排序)+备份还原(自动备份5上限)+恢复官方默认
+4. **方向D：AI内容智能化(P1)** — AI配图(通义万相/Flux/DALL-E三Provider+故障降级)+AI SEO优化(单条+批量+对比diff)+6种写作风格(正式/轻松/专业/资讯/营销/学术)
+5. **方向E：开发者工具(P2)** — ZIP打包导出(.tpkg标准)+上传导入(安全校验+manifest验证)+审核流程(待审核/通过/拒绝/需修改)+命令行打包(php think template:package)+版本管理+更新通知
 
 **V2.9.11 核心定位：主题模板生成系统混合模式改造 + CSS变量三套命名体系统一 + 骨架模板体系** — 6大模块：
 1. **双模式AI主题生成** — 保留"从零生成"（AI生成HTML+CSS，65分阈值）+ 新增"基于骨架生成"（AI只生成CSS，70分阈值），用户在生成时可选择模式
@@ -579,6 +586,16 @@ AI-CMS/
 | i8j_member_level | 会员等级表 | id,name,min_points,max_points,icon,discount_rate,points_rate,daily_ai_quota,is_default |
 | i8j_member_benefit | 会员权益表 | id,level_id,benefit_type,benefit_key,benefit_value,description |
 | i8j_share_log | 分享日志表(V2.9.9) | id,content_id,channel,ip,referer,utm_source,utm_medium,utm_campaign,created_at |
+| i8j_template_store | 模板商店表(V2.9.12) | id,theme_slug,theme_name,category_id,description,author,version,price,is_free,status,is_featured,quality_score,install_count,member_id |
+| i8j_template_store_category | 模板分类表(V2.9.12) | id,name,icon,sort,status |
+| i8j_template_install | 模板安装记录(V2.9.12) | id,member_id,store_id,theme_slug,is_active |
+| i8j_template_order | 模板订单(V2.9.12) | id,member_id,store_id,order_no,amount,status |
+| i8j_template_review | 模板评分评论(V2.9.12) | id,store_id,member_id,rating,comment,is_audited |
+| i8j_template_color_variant | 配色变体(V2.9.12) | id,store_id,variant_name,color_map,is_active |
+| i8j_template_custom_config | 模板自定义配置(V2.9.12) | id,member_id,theme_slug,config_key,config_value,config_type |
+| i8j_template_backup | 模板备份记录(V2.9.12) | id,member_id,theme_slug,backup_name,backup_file,backup_size,config_json,is_auto |
+| i8j_ai_image_task | AI配图任务(V2.9.12) | id,content_id,member_id,prompt,image_url,provider,status,error_msg |
+| i8j_template_dev_upload | 开发者上传审核(V2.9.12) | id,member_id,theme_slug,theme_name,version,file_path,status,audit_remark |
 
 ## 角色权限
 
@@ -664,6 +681,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.12 | 2026-05-31 | **模板生态·内容智能化** — 5方向19项功能100%完成：A模板商店(10表+浏览安装切换支付评分预览)+B AI质量管线(校验+修复+配色变体)+C模板自定义(7色/5字体/布局8板块/备份还原)+D AI内容增强(配图3Provider/SEO批量优化/6种写作风格)+E开发者工具(ZIP打包/审核流程/CLI命令/版本管理)。12个Service+5个Controller+10个Model+16个双皮肤模板+2个Config+1个Command+1个Middleware+1个Listener。 |
 | V2.9.11 | 2026-05-23 | **主题进化** — 15任务(14完成)：双模式AI主题生成(full骨架生成HTML+CSS 65分阈值/skeleton骨架AI只生成CSS 70分阈值)+2种布局骨架(展示型ai-base-showcase/内容型ai-base-content各PC8+Mobile4文件)+CSS变量三套命名体系修复(--i8j-前缀断裂Bug→25个无前缀统一变量)+行业调色板体系(10行业palette表/Sabberworm CSS解析器)+theme:clean/duplicate CLI命令+后台generate/tweak页面双皮肤改造+3个新增PHP文件(ThemePromptBuilder/ThemeCleanCommand/ThemeDuplicateCommand)+10个修改文件。11套AI废主题已清理。 |
    680:| V2.9.10 | 2026-05-22 | **体验进化** — 3项核心优化：前台用户中心增强（统一入口+301重定向+ucenter.js独立脚本+4套模板条件注入）+缓存清除细分（5项下拉+CacheController按类型清理）+后台菜单数据库化（i8j_menu_group/item双表+MenuBridge回退+双皮肤管理界面+SortableJS跨组拖拽+本地化CSP兼容+syncFromConfig事务保护）。AI配置中心（3Tab：模型/配图/写作）+tabs.js通用组件。17个修改文件+13个新增文件，7项关键缺陷全部修复。 |
 | V2.9.9 | 2026-05-18 | **从好用到聪明** — P0x5(AI模板引擎+社交分享+多语言+SEO深度+插件市场)+P1x5(审批工作流+AI-GEO+会员等级+消息通知+搜索增强)=10模块全面升级。24新增文件+40+修改文件。AI内容模板自然语言生成+社交分享追踪看板+AI批量翻译多语言路由+图片视频新闻Sitemap+插件钩子事件系统+审批时间线角标+AI友好度4维评分+权益配置中心+通知铃铛消息中心+Meilisearch高亮联想 |

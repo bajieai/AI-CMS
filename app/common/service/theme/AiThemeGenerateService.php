@@ -14,9 +14,12 @@ declare(strict_types=1);
 
 namespace app\common\service\theme;
 
+use app\common\event\AiThemeGenerated;
 use app\common\model\AiThemeRecord;
+use app\common\model\TemplateStore;
 use app\common\service\ai\AiProviderFactory;
 use app\common\service\ai\AiProviderInterface;
+use think\facade\Event;
 use think\facade\Log;
 
 /**
@@ -155,6 +158,8 @@ class AiThemeGenerateService
             if ($validateResult['passed']) {
                 AiThemeRecord::markPendingReview($recordId, $writeResult['files_tree']);
                 Log::info("[AiThemeGenerate] 生成完成待审核: record_id={$recordId}, files={$writeResult['written_count']}");
+                // V2.9.12: 触发质量校验事件
+                $this->fireQualityCheckEvent($themeName);
             } else {
                 AiThemeRecord::markValidateFailed($recordId, $validateResult);
                 Log::warning("[AiThemeGenerate] 校验失败: record_id={$recordId}, summary={$validateResult['summary']}");
@@ -260,6 +265,8 @@ class AiThemeGenerateService
             if ($validateResult['passed']) {
                 AiThemeRecord::markPendingReview($recordId, $filesTree);
                 Log::info("[AiThemeGenerate] 骨架模式生成完成: record_id={$recordId}");
+                // V2.9.12: 触发质量校验事件
+                $this->fireQualityCheckEvent($themeName);
             } else {
                 AiThemeRecord::markValidateFailed($recordId, $validateResult);
                 Log::warning("[AiThemeGenerate] 骨架模式校验失败: record_id={$recordId}");
@@ -1486,6 +1493,21 @@ PROMPT;
                 'success' => false,
                 'message' => '文件修改失败: ' . $e->getMessage(),
             ];
+        }
+    }
+
+    /**
+     * V2.9.12: 触发质量校验事件
+     */
+    protected function fireQualityCheckEvent(string $themeName): void
+    {
+        try {
+            $store = TemplateStore::where('slug', $themeName)->find();
+            if ($store) {
+                Event::trigger(new AiThemeGenerated($store));
+            }
+        } catch (\Throwable $e) {
+            Log::warning("[AiThemeGenerate] 触发质量校验事件失败: " . $e->getMessage());
         }
     }
 

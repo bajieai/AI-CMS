@@ -1,0 +1,163 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.name}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/template_store/market">模板市场</a></li>
+<li class="breadcrumb-item active">{$info.name}</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-md-8">
+        <!-- 截图轮播 -->
+        <div class="card mb-3">
+            <div class="card-body p-0">
+                {if condition="$info.screenshots"}
+                {php}$shots = json_decode($info.screenshots, true);{/php}
+                <div id="screenshotCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {volist name="shots" id="shot"}
+                        <div class="carousel-item {if condition="$i == 1"}active{/if}">
+                            <img src="{$shot}" class="d-block w-100" style="height:360px;object-fit:cover;" alt="截图{$i}">
+                        </div>
+                        {/volist}
+                    </div>
+                    {if condition="count($shots) > 1"}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#screenshotCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#screenshotCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+                    {/if}
+                </div>
+                {else/}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:360px;"><i class="bi bi-image text-muted fs-1"></i></div>
+                {/if}
+            </div>
+        </div>
+
+        <!-- 功能介绍 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-info-circle me-1"></i>模板介绍</div>
+            <div class="card-body">
+                <p class="mb-0">{$info.description ?: '暂无介绍'}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- 操作面板 -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{$info.name}</h5>
+                <div class="mb-2">
+                    <span class="text-warning"><i class="bi bi-star-fill"></i> {$info.rating_avg}</span>
+                    <span class="text-muted small">({$info.rating_count} 人评分)</span>
+                </div>
+                <div class="mb-3">
+                    {if condition="$info.price > 0"}
+                    <span class="fs-4 fw-bold text-danger">¥{$info.price}</span>
+                    {else/}
+                    <span class="badge bg-success fs-6">免费</span>
+                    {/if}
+                </div>
+                <div class="d-grid gap-2">
+                    {if condition="$installed"}
+                        {if condition="$installed.is_active == 1"}
+                        <button class="btn btn-success" disabled><i class="bi bi-check-lg me-1"></i>当前使用中</button>
+                        {else/}
+                        <button class="btn btn-primary" onclick="ajaxPost('/admin/template_store/doActivate/{$installed.id}')"><i class="bi bi-toggle-on me-1"></i>切换为当前模板</button>
+                        {/if}
+                    {else/}
+                        {if condition="$info.price > 0"}
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#buyModal"><i class="bi bi-cart me-1"></i>立即购买 ¥{$info.price}</button>
+                        {else/}
+                        <button class="btn btn-primary" onclick="ajaxPost('/admin/template_store/doInstall/{$info.id}')"><i class="bi bi-download me-1"></i>立即安装</button>
+                        {/if}
+                    {/if}
+                    <a href="/admin/template_store/preview/{$info.slug}" class="btn btn-outline-secondary" target="_blank"><i class="bi bi-eye me-1"></i>预览效果</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 信息面板 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-list-ul me-1"></i>基本信息</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between"><span>分类</span><span>{$info.category.name ?? '未分类'}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>作者</span><span>{$info.author_name ?: '-'}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>版本</span><span>{$info.version}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>安装次数</span><span>{$info.install_count}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>质量评分</span><span>{$info.quality_score}</span></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- 购买弹窗 -->
+{if condition="!$installed && $info.price > 0"}
+<div class="modal fade" id="buyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">购买模板</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <h6 class="mb-2">{$info.name}</h6>
+        <p class="fs-4 text-danger fw-bold mb-3">¥{$info.price}</p>
+        <div class="d-grid gap-2">
+            <button type="button" class="btn btn-success" onclick="doBuy('wechat')"><i class="bi bi-wechat me-1"></i>微信支付</button>
+            <button type="button" class="btn btn-primary" onclick="doBuy('alipay')"><i class="bi bi-alipay me-1"></i>支付宝支付</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function doBuy(payMethod) {
+    fetch('/admin/template_store/buy/{$info.id}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'pay_method=' + payMethod
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.code === 1) {
+            alert('订单创建成功，请完成支付');
+            location.reload();
+        } else {
+            alert(res.msg || '购买失败');
+        }
+    })
+    .catch(() => alert('网络错误'));
+}
+</script>
+{/if}
+
+<!-- 同分类推荐 -->
+{if condition="count($related) > 0"}
+<div class="mt-4">
+    <h6 class="mb-3">同类推荐</h6>
+    <div class="row row-cols-1 row-cols-md-4 g-3">
+        {volist name="related" id="vo"}
+        {if condition="$vo.id != $info.id"}
+        <div class="col">
+            <div class="card h-100">
+                {if condition="$vo.screenshots"}
+                <img src="{:json_decode($vo.screenshots, true)[0] ?? ''}" class="card-img-top" style="height:100px;object-fit:cover;" alt="">
+                {else/}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:100px;"><i class="bi bi-image text-muted"></i></div>
+                {/if}
+                <div class="card-body py-2">
+                    <div class="small fw-medium">{$vo.name}</div>
+                </div>
+                <div class="card-footer bg-white py-2">
+                    <a href="/admin/template_store/detail/{$vo.id}" class="btn btn-sm btn-outline-primary w-100">查看</a>
+                </div>
+            </div>
+        </div>
+        {/if}
+        {/volist}
+    </div>
+</div>
+{/if}
+{/block}

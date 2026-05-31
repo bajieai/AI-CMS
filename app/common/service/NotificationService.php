@@ -131,6 +131,31 @@ class NotificationService
     }
 
     /**
+     * V2.9.12: 模板更新通知（推送给已安装用户）
+     *
+     * @param int    $storeId   模板商店ID
+     * @param string $themeName 模板名称
+     * @param string $newVersion 新版本号
+     * @param array  $installIds 已安装记录ID列表
+     */
+    public function notifyTemplateUpdate(int $storeId, string $themeName, string $newVersion, array $installIds): void
+    {
+        $memberIds = \app\common\model\TemplateInstall::whereIn('id', $installIds)
+            ->column('member_id');
+
+        foreach ($memberIds as $memberId) {
+            $this->send(
+                'member',
+                $memberId,
+                'template_update',
+                "模板更新：{$themeName}",
+                "您安装的模板「{$themeName}」已发布新版本 v{$newVersion}，可前往模板商店升级。",
+                '/admin/template_store/index'
+            );
+        }
+    }
+
+    /**
      * 获取通知列表
      */
     public function getList(string $receiverType, int $receiverId, int $isRead = null, int $page = 1, int $limit = 10): array

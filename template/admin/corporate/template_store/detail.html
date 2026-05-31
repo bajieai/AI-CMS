@@ -1,0 +1,112 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑模板{else/}添加模板{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/template_store/index">模板商店管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑模板{else/}添加模板{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑模板{else/}添加模板{/if}
+    </div>
+    <div class="card-body">
+        <form id="storeForm" method="post" action="{if condition="$info"}/admin/template_store/edit/{$info.id}{else/}/admin/template_store/add{/if}">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">模板名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="请输入模板名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">模板标识 <span class="text-danger">*</span></label>
+                        <input type="text" name="slug" class="form-control" value="{$info.slug ?? ''}" required placeholder="唯一英文标识，如 corporate-v1">
+                        <small class="text-muted">唯一英文标识，用于URL和目录名</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">所属分类</label>
+                        <select name="category_id" class="form-select">
+                            <option value="0">未分类</option>
+                            {volist name="categories" id="cat"}
+                            <option value="{$cat.id}" {if condition="($info.category_id ?? 0) == $cat.id"}selected{/if}>{$cat.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">模板描述</label>
+                        <textarea name="description" class="form-control" rows="4" placeholder="模板功能介绍、适用场景等">{$info.description ?? ''}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">预览截图</label>
+                        <input type="text" name="screenshots" class="form-control" value="{if condition="$info"}{:json_encode($info.screenshots)}{/if}" placeholder='JSON数组，如 ["https://example.com/1.jpg"]'>
+                        <small class="text-muted">JSON格式图片URL数组，如 ["https://example.com/1.jpg", "https://example.com/2.jpg"]</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light mb-3">
+                        <div class="card-header py-2"><i class="bi bi-gear me-1"></i>基本设置</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">售价</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">¥</span>
+                                    <input type="number" name="price" class="form-control" value="{$info.price ?? 0}" step="0.01" min="0">
+                                </div>
+                                <small class="text-muted">0 表示免费模板</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">作者名称</label>
+                                <input type="text" name="author_name" class="form-control" value="{$info.author_name ?? ''}" placeholder="作者或团队名称">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">版本号</label>
+                                <input type="text" name="version" class="form-control" value="{$info.version ?? '1.0.0'}" placeholder="如 1.0.0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">文件大小（字节）</label>
+                                <input type="number" name="file_size" class="form-control" value="{$info.file_size ?? 0}" placeholder="文件大小">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">环境要求</label>
+                                <input type="text" name="requirements" class="form-control" value="{if condition="$info"}{:json_encode($info.requirements)}{/if}" placeholder='如 {"php":">=8.0"}'>
+                                <small class="text-muted">JSON格式</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    {if condition="$info"}
+                    <div class="card border-info mb-3">
+                        <div class="card-header py-2 bg-info text-white"><i class="bi bi-bar-chart me-1"></i>数据统计</div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>安装次数</span>
+                                <span class="fw-medium">{$info.install_count}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>平均评分</span>
+                                <span class="fw-medium">{$info.rating_avg} <i class="bi bi-star-fill text-warning small"></i></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>评分人数</span>
+                                <span class="fw-medium">{$info.rating_count}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2 pt-2 border-top">
+                                <span>质量评分</span>
+                                <span class="fw-medium">{$info.quality_score}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {/if}
+                </div>
+            </div>
+            <div class="mt-3 border-top pt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/template_store/index" class="btn btn-outline-secondary ms-2">返回列表</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}

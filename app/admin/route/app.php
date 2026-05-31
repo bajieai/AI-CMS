@@ -374,6 +374,42 @@ Route::rule('member_level/edit/:id$', '\app\admin\controller\MemberLevelControll
 Route::post('member_level/save$', '\app\admin\controller\MemberLevelController@save');
 Route::post('member_level/delete$', '\app\admin\controller\MemberLevelController@delete');
 
+// V2.9.12: 模板商店路由（管理员）
+Route::get('template_store/index$', '\app\admin\controller\TemplateStoreController@index');
+Route::rule('template_store/add$', '\app\admin\controller\TemplateStoreController@add', 'GET|POST');
+Route::rule('template_store/edit/:id$', '\app\admin\controller\TemplateStoreController@edit', 'GET|POST');
+Route::post('template_store/delete/:id$', '\app\admin\controller\TemplateStoreController@delete');
+Route::post('template_store/publish/:id$', '\app\admin\controller\TemplateStoreController@publish');
+Route::post('template_store/unpublish/:id$', '\app\admin\controller\TemplateStoreController@unpublish');
+Route::post('template_store/toggleFeatured/:id$', '\app\admin\controller\TemplateStoreController@toggleFeatured');
+Route::get('template_store/categories$', '\app\admin\controller\TemplateStoreController@categories');
+Route::post('template_store/saveCategory$', '\app\admin\controller\TemplateStoreController@saveCategory');
+Route::post('template_store/deleteCategory/:id$', '\app\admin\controller\TemplateStoreController@deleteCategory');
+// V2.9.12: 模板商店路由（网站主）
+Route::get('template_store/market$', '\app\admin\controller\TemplateStoreController@market');
+Route::get('template_store/list$', '\app\admin\controller\TemplateStoreController@list');
+Route::get('template_store/detail/:id$', '\app\admin\controller\TemplateStoreController@detail');
+Route::get('template_store/preview/:slug$', '\app\admin\controller\TemplateStoreController@preview');
+Route::get('template_store/my_templates$', '\app\admin\controller\TemplateStoreController@my_templates');
+Route::post('template_store/doInstall/:id$', '\app\admin\controller\TemplateStoreController@doInstall');
+Route::post('template_store/doActivate/:id$', '\app\admin\controller\TemplateStoreController@doActivate');
+Route::post('template_store/buy/:id$', '\app\admin\controller\TemplateStoreController@buy');
+Route::post('template_store/generateVariants/:id$', '\app\admin\controller\TemplateStoreController@generateVariants');
+// V2.9.12: 评分评论
+Route::post('template_store/submitReview/:id$', '\app\admin\controller\TemplateStoreController@submitReview');
+Route::get('template_store/reviews$', '\app\admin\controller\TemplateStoreController@reviews');
+Route::post('template_store/auditReview/:id$', '\app\admin\controller\TemplateStoreController@auditReview');
+Route::post('template_store/deleteReview/:id$', '\app\admin\controller\TemplateStoreController@deleteReview');
+// V2.9.12: 备份还原
+Route::get('template_store/backups$', '\app\admin\controller\TemplateStoreController@backups');
+Route::post('template_store/doBackup$', '\app\admin\controller\TemplateStoreController@doBackup');
+Route::post('template_store/doRollback$', '\app\admin\controller\TemplateStoreController@doRollback');
+// V2.9.12: 打包导出 + 上传
+Route::get('template_store/exportTheme/:id$', '\app\admin\controller\TemplateStoreController@exportTheme');
+Route::post('template_store/uploadTheme$', '\app\admin\controller\TemplateStoreController@uploadTheme');
+// V2.9.12: 版本管理
+Route::get('template_store/versionHistory$', '\app\admin\controller\TemplateStoreController@versionHistory');
+
 // V2.9.9: AI内容模板路由（补全缺失）
 Route::get('ai_template/index$', '\app\admin\controller\AiTemplateController@index');
 Route::rule('ai_template/edit/:id$', '\app\admin\controller\AiTemplateController@edit', 'GET|POST');
@@ -405,3 +441,23 @@ Route::post('menu_manager/deleteGroup$', '\app\admin\controller\MenuManagerContr
 Route::post('menu_manager/deleteItem$', '\app\admin\controller\MenuManagerController@deleteItem');
 Route::post('menu_manager/sort$', '\app\admin\controller\MenuManagerController@sort');
 Route::post('menu_manager/toggleStatus$', '\app\admin\controller\MenuManagerController@toggleStatus');
+
+// V2.9.12: 模板自定义路由
+Route::get('template_customize/index/:slug$', '\app\admin\controller\TemplateCustomizeController@index');
+Route::get('template_customize/index$', '\app\admin\controller\TemplateCustomizeController@index');
+Route::post('template_customize/save$', '\app\admin\controller\TemplateCustomizeController@save');
+Route::post('template_customize/saveLayout$', '\app\admin\controller\TemplateCustomizeController@saveLayout');
+Route::get('template_customize/livePreview$', '\app\admin\controller\TemplateCustomizeController@livePreview');
+Route::post('template_customize/uploadLogo$', '\app\admin\controller\TemplateCustomizeController@uploadLogo');
+Route::get('template_customize/backupList/:slug$', '\app\admin\controller\TemplateCustomizeController@backupList');
+Route::post('template_customize/createBackup$', '\app\admin\controller\TemplateCustomizeController@createBackup');
+Route::post('template_customize/restore$', '\app\admin\controller\TemplateCustomizeController@restore');
+Route::post('template_customize/deleteBackup$', '\app\admin\controller\TemplateCustomizeController@deleteBackup');
+Route::post('template_customize/reset$', '\app\admin\controller\TemplateCustomizeController@reset');
+
+// V2.9.12: 模板开发者审核路由（管理员）
+Route::get('template_developer/index$', '\app\admin\controller\TemplateDeveloperAdminController@index');
+Route::get('template_developer/detail/:id$', '\app\admin\controller\TemplateDeveloperAdminController@detail');
+Route::post('template_developer/approve/:id$', '\app\admin\controller\TemplateDeveloperAdminController@approve');
+Route::post('template_developer/reject/:id$', '\app\admin\controller\TemplateDeveloperAdminController@reject');
+Route::post('template_developer/delete/:id$', '\app\admin\controller\TemplateDeveloperAdminController@delete');

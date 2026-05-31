@@ -1,0 +1,54 @@
+{extend name="layout" /}
+
+{block name="title"}我的模板{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/template_store/market">模板市场</a></li>
+<li class="breadcrumb-item active">我的模板</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-collection me-1"></i>已安装模板</h5>
+    <a href="/admin/template_store/market" class="btn btn-primary btn-sm"><i class="bi bi-shop me-1"></i>去市场看看</a>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-3">
+    {volist name="list" id="vo"}
+    <div class="col">
+        <div class="card h-100 {if condition="$vo.is_active == 1"}border-success border-2{/if}">
+            <div class="position-relative">
+                {if condition="$vo.store.screenshots"}
+                <img src="{:json_decode($vo.store.screenshots, true)[0] ?? ''}" class="card-img-top" style="height:160px;object-fit:cover;" alt="{$vo.theme_name}">
+                {else/}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;"><i class="bi bi-image text-muted fs-1"></i></div>
+                {/if}
+                {if condition="$vo.is_active == 1"}
+                <span class="position-absolute top-0 start-0 m-2 badge bg-success">当前使用</span>
+                {/if}
+            </div>
+            <div class="card-body">
+                <h6 class="card-title mb-1">{$vo.theme_name}</h6>
+                <p class="text-muted small mb-2">{$vo.store.description|default=''|mb_substr=0,50}</p>
+                <div class="small text-muted">安装于 {:date('Y-m-d', $vo.create_time)}</div>
+            </div>
+            <div class="card-footer bg-white d-flex gap-2">
+                {if condition="$vo.is_active == 0"}
+                <button class="btn btn-primary btn-sm flex-fill" onclick="ajaxPost('/admin/template_store/doActivate/{$vo.id}')"><i class="bi bi-toggle-on me-1"></i>切换使用</button>
+                {else/}
+                <button class="btn btn-success btn-sm flex-fill" disabled><i class="bi bi-check-lg me-1"></i>使用中</button>
+                {/if}
+                <a href="/admin/template_store/preview/{$vo.slug}" class="btn btn-outline-secondary btn-sm" target="_blank"><i class="bi bi-eye"></i></a>
+            </div>
+        </div>
+    </div>
+    {/volist}
+    {empty name="list"}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+        <p>尚未安装任何模板</p>
+        <a href="/admin/template_store/market" class="btn btn-primary btn-sm">去模板市场</a>
+    </div>
+    {/empty}
+</div>
+{/block}
