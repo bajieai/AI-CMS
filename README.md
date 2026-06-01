@@ -41,14 +41,14 @@
 1. **双模式AI主题生成** — 保留"从零生成"（AI生成HTML+CSS，65分阈值）+ 新增"基于骨架生成"（AI只生成CSS，70分阈值），用户在生成时可选择模式
 2. **2种布局变体骨架模板** — 展示型骨架（Hero+轮播+三列卡片+动效）+ 内容型骨架（紧凑+侧栏+阅读优化），各含PC 8文件+Mobile 4文件+完整CSS
 3. **CSS变量三套命名体系统一** — 修复tweak页面`--i8j-`前缀断裂导致配置对前台完全无效的Bug，统一为25个无前缀变量（--primary/--bg/--text等），FrontBaseController/AiThemeController/CssComponentLibrary完全对齐
-4. **行业调色板体系** — 新建`i8j_ai_theme_palette`表+10行业默认色板（企业/电商/博客/门户/医疗/教育/餐饮/金融/科技/房产），生成时按行业自动加载色板
+4. **行业调色板体系** — 行业色板数据持久化+10行业默认色板（企业/电商/博客/门户/医疗/教育/餐饮/金融/科技/房产），生成时按行业自动加载色板
 5. **theme:clean/theme:duplicate CLI命令** — clean支持dry-run/force/all模式清理不可用AI主题；duplicate支持骨架复制+sabberworm CSS解析器颜色替换+CSS变量引用完整性扫描
 6. **后台生成页改造** — 生成模式选择卡片+骨架模板选择+行业类型下拉（带色板预览）+双皮肤同步（default+corporate）
 
 **V2.9.10 核心定位：前台用户中心增强 + 缓存清除细分 + 后台菜单数据库化** — 3项优化：
 1. **前台用户中心增强** — 统一用户中心入口、侧边栏导航分组、积分商城条件显示、导航栏登录下拉改造
 2. **缓存清除细分** — 后台一键清除缓存拆分为5项（全部/内容/模板/插件/浏览器），支持按类型精准清理
-3. **后台菜单重新分类** — 新建 i8j_menu_group + i8j_menu_item 表替代硬编码，提供可视化菜单管理后台，6大分组重组
+3. **后台菜单重新分类** — 数据库驱动菜单替代硬编码，提供可视化菜单管理后台，6大分组重组
 
 **V2.9.9 核心定位：从好用的CMS走向聪明的CMS** — 8大模块全面升级：AI内容模板引擎、社交分享轻量版+分享追踪、AI多语言国际化、SEO深度升级、插件市场完善、审批工作流增强、AI-GEO深度优化、会员等级深化+付费阅读权限控制。
 
@@ -301,7 +301,7 @@
 - **AI数据分析报告(M9)** - Model层数据采集+AI分析引擎(日报/周报/月报)+异常检测+关键发现+建议+邮件推送+Markdown导出
 - **API文档自动生成(M10)** - PHP Reflection+DocBlock解析+路由匹配，后台分组展示+Swagger风格+Markdown导出
 - **评价媒体上传前端(M15a)** - 多图预览/进度/拖拽/删除组件，复用/api/upload/image接口，4套detail.html集成
-- **评价回复独立表(M15b)** - i8j_rating_reply表+管理员回复+会员追问，前台回复展示+后台回复管理
+- **评价回复独立表(M15b)** - 管理员回复+会员追问，前台回复展示+后台回复管理
 - **免邮券对接物流模块(M16a)** - ShippingService运费计算+免邮阈值+免邮券识别+CouponTemplate.free_shipping支持
 - **aiSuggest接入AI大模型(M16b)** - AiService.colorSuggest()AI配色+行业/风格偏好选择器+HSL降级预设
 - **小程序样式补全(M16c)** - app.wxss完整设计体系(487行/10大模块:变量/布局/间距/卡片/按钮/表单/列表/图文/状态/工具类)
@@ -318,7 +318,7 @@
 - **全阶段邀请奖励** - InviteRewardService三阶段(register→signin→pay)，事件驱动挂接，邀请排行+明细+邀请码唯一索引
 - **优惠券系统** - CouponService完整CRUD，3种券类型(满减/折扣/免邮)，库存扣减+每人限领+唯一券码，新人券自动发放，5种状态流转
 - **评价评分系统** - RatingService评分+文字评价+匿名+审核，Redis防重复点赞，PC/Mobile/小程序三端评价区块，星级分布统计
-- **前台模板可视化预研** - TemplateDesignController+后台CSS变量编辑器，HSL色彩推导AI配色，:root CSS变量动态注入(4套layout.html)，i8j_theme_config持久化
+- **前台模板可视化预研** - TemplateDesignController+后台CSS变量编辑器，HSL色彩推导AI配色，:root CSS变量动态注入(4套layout.html)，模板配置持久化
 - **多语言翻译完善** - AI批量翻译(AiService::translateBatch)，前台4套模板语言切换器，LanguageController字段名统一(is_enabled)
 - **V2.9收尾** - menu.php+permission.php+module注册3项同步更新，v2.9.sql完整迁移(5张新表+字段补全+配置项)
 
@@ -345,7 +345,7 @@
 - **头条号OAuth** - OAuth 2.0授权+Token自动刷新，发布时无感续期
 - **PV统计重构** - JS异步打点+VisitService+蜘蛛过滤，不影响页面渲染
 - **验证码增强** - GD库生成(干扰线/噪点/扭曲)，支持切换腾讯验证码
-- **邮件队列持久化** - i8j_email_queue表+DB/Cache双写+EmailQueueRecoverCommand
+- **邮件队列持久化** - DB/Cache双写+EmailQueueRecoverCommand
 - **表单可视化编辑器** - 12种字段类型+4预设模板+拖拽排序+实时预览
 - **搜索增强** - Meilisearch集成+联想补全+热门搜索
 - **CDN集成** - StorageService::getCdnUrl() + 后台配置开关
@@ -394,7 +394,7 @@
 |------|------|------|
 | 后端框架 | ThinkPHP 8.1 | 多应用模式(admin/home/api/install/common) |
 | 语言 | PHP 8.1+ | 严格类型声明 |
-| 数据库 | MySQL 8.0 | 49+张数据表，前缀 i8j_ |
+| 数据库 | MySQL 8.0 | 数据持久化 |
 | 缓存 | Redis | CacheService标签体系(17标签) |
 | Session | PHP原生文件Session | 24小时过期 |
 | AI接口 | DeepSeek/Qwen/GLM/ERNIE/OpenAI | 工厂模式+熔断降级CircuitBreakerTrait |
@@ -564,64 +564,6 @@ AI-CMS/
 └── README.md                   #   项目说明
 ```
 
-## 数据库设计
-
-| 表名 | 说明 | 主要字段 |
-|------|------|----------|
-| i8j_content | 内容主表 | id,title,content,excerpt,type,status,cate_id,user_id,cover,sort,is_top,views,deleted_status |
-| i8j_content_ext | 内容扩展表 | id,content_id,type,data(JSON) |
-| i8j_content_version | 内容版本历史 | id,content_id,title,content,excerpt,version,user_id |
-| i8j_cate | 分类表 | id,name,type,parent_id,sort,status,seo_title,seo_keywords,seo_description |
-| i8j_tag | 标签表 | id,name,sort |
-| i8j_content_tag | 内容标签关联 | content_id,tag_id |
-| i8j_user | 用户表 | id,username,email,password,nickname,avatar,role_id,status |
-| i8j_member | 会员表 | id,username,email,password,nickname,avatar,level_id,status |
-| i8j_config | 系统配置表 | id,group,name,value,type,options,sort,remark |
-| i8j_log | 操作日志表 | id,user_id,module,action,target,ip,data |
-| i8j_media | 媒体资源表 | id,user_id,filename,filepath,filetype,mimetype,filesize,alt_text |
-| i8j_banner | 轮播图表 | id,title,image,link,target,sort,status,start_time,end_time |
-| i8j_link | 友情链接表 | id,title,url,logo,sort,status |
-| i8j_review | 审核记录表 | id,content_id,user_id,action,remark |
-| i8j_ai_log | AI调用日志 | id,provider,model,type,prompt,tokens,cost |
-| i8j_collect_source | 采集源 | id,name,url,rule_json,status |
-| i8j_publish_log | 发布日志 | id,content_id,platform,status,result |
-| i8j_email_template | 邮件模板 | id,name,subject,body,status |
-| i8j_paid_order | 付费订单 | id,member_id,content_id,amount,type(purchase/reward/download),status |
-| i8j_plugin | 插件表 | id,name,title,version,status,config |
-| i8j_email_queue | 邮件队列 | id,to_email,subject,status,retry_count,created_at |
-| i8j_user_chapter | 用户已购章节 | id,user_id,content_id,chapter_id,price |
-| i8j_signin_log | 签到记录 | id,member_id,signin_date,points,consecutive_days |
-| i8j_points_log | 积分变动日志 | id,member_id,points,type,source_id,note |
-| i8j_invite_relation | 邀请关系表 | id,inviter_id,invitee_id,invite_code,invitee_ip,reward_points,reward_stage |
-| i8j_coupon_template | 优惠券模板表 | id,coupon_name,coupon_type,condition_amount,reduce_amount,total_stock,remain_stock,per_user_limit,start_time,end_time,scope_type,scope_value,status |
-| i8j_user_coupon | 用户优惠券表 | id,member_id,template_id,code,coupon_type,condition_amount,reduce_amount,status,used_at,expire_at |
-| i8j_content_rating | 内容评价评分表 | id,content_id,member_id,rating,title,content,has_media,media_urls,is_anonymous,reply_count,like_count,status |
-| i8j_rating_reply | 评价回复表 | id,rating_id,user_id,member_id,content,create_time |
-| i8j_image_task | 配图异步任务表 | id,task_id,provider,poll_url,status,prompt,result,attempts,max_attempts,related_type,related_id,error_msg,retry_count,local_path |
-| i8j_ai_theme_record | AI主题生成记录(V2.9.6) | id,theme_name,description,style,industry,color_scheme,layout_type,status,provider,model,validate_result,published_at,preview_hash |
-| i8j_ai_theme_chat_log | AI主题对话日志(V2.9.7) | id,record_id,role,content,files_changed,version,token_count,model,provider |
-| i8j_ai_report | AI分析报告表 | id,type,title,period_start,period_end,raw_data,summary,findings,anomalies,recommendations,sections,status |
-| i8j_theme_config | 主题配置表 | id,theme,scope,scope_id,config_key,config_value,config_type,label,description,sort |
-| i8j_theme_info | 主题信息表(V2.9.9) | id,code,name,type,version,author,description,thumbnail,is_installed,installed_version,industry,style_tag,is_market,market_url,avg_rating,install_count,screenshots |
-| i8j_theme_rate | 主题评分收藏表(S16) | id,user_id,theme_id,rating,is_favorite,comment,create_time,update_time |
-| i8j_theme_log | 主题操作日志表(S14+S16) | id,theme_id,action,user_id,detail,create_time |
-| i8j_ai_theme_record | AI主题生成记录 | id,theme_name,description,style,industry,color_scheme,layout_type,status,provider,model,validate_result,batch_id,quality_score,quality_detail,published_at,preview_hash |
-| i8j_publish_platform | 发布平台表 | id,name,code,type,config_json,status,access_token,refresh_token,token_expire_time |
-| i8j_points_exchange | 积分兑换表 | id,user_id,product_id,points_cost,status,create_time |
-| i8j_member_level | 会员等级表 | id,name,min_points,max_points,icon,discount_rate,points_rate,daily_ai_quota,is_default |
-| i8j_member_benefit | 会员权益表 | id,level_id,benefit_type,benefit_key,benefit_value,description |
-| i8j_share_log | 分享日志表(V2.9.9) | id,content_id,channel,ip,referer,utm_source,utm_medium,utm_campaign,created_at |
-| i8j_template_store | 模板商店表(V2.9.12) | id,theme_slug,theme_name,category_id,description,author,version,price,is_free,status,is_featured,quality_score,install_count,member_id |
-| i8j_template_store_category | 模板分类表(V2.9.12) | id,name,icon,sort,status |
-| i8j_template_install | 模板安装记录(V2.9.12) | id,member_id,store_id,theme_slug,is_active |
-| i8j_template_order | 模板订单(V2.9.12) | id,member_id,store_id,order_no,amount,status |
-| i8j_template_review | 模板评分评论(V2.9.12) | id,store_id,member_id,rating,comment,is_audited |
-| i8j_template_color_variant | 配色变体(V2.9.12) | id,store_id,variant_name,color_map,is_active |
-| i8j_template_custom_config | 模板自定义配置(V2.9.12) | id,member_id,theme_slug,config_key,config_value,config_type |
-| i8j_template_backup | 模板备份记录(V2.9.12) | id,member_id,theme_slug,backup_name,backup_file,backup_size,config_json,is_auto |
-| i8j_ai_image_task | AI配图任务(V2.9.12) | id,content_id,member_id,prompt,image_url,provider,status,error_msg |
-| i8j_template_dev_upload | 开发者上传审核(V2.9.12) | id,member_id,theme_slug,theme_name,version,file_path,status,audit_remark |
-
 ## 角色权限
 
 | 角色 | role_id | 权限范围 |
@@ -737,22 +679,6 @@ AI-CMS/
 | 超级管理员 | admin | admin123 |
 
 > **安全提示**: 首次登录后请立即修改默认密码！
-
-## 数据库迁移
-
-```bash
-# Docker 环境（一键迁移，自动复制SQL到容器并执行）
-bin\migrate.bat                          # Windows - 自动选最新SQL
-bin\migrate.bat database\v3.0.sql        # Windows - 指定SQL文件
-.\bin\migrate.ps1                        # PowerShell - 自动选最新SQL
-.\bin\migrate.ps1 database\v3.0.sql      # PowerShell - 指定SQL文件
-
-# 手动方式（Docker环境）
-docker cp database/v3.0.sql aicms_mysql:/tmp/
-docker exec aicms_mysql bash -c "mysql -u root -p<密码> <数据库名> < /tmp/v3.0.sql"
-```
-
-> **提示**: SQL脚本已做幂等处理，可重复执行不会报错。各版本顺序升级需依次执行对应的 `.sql` 文件，增量SQL文件位于 `database/` 目录下，使用 `bin/migrate.bat` 一键导入。
 
 ## 常用Docker命令
 
