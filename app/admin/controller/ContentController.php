@@ -75,23 +75,23 @@ class ContentController extends AdminBaseController
         $tags = Tag::select();
 
         // V2.9.15: 注入翻译状态数据（用于列表页翻译状态badge）
-        $articleIds = [];
+        $contentIds = [];
         foreach ($list as $item) {
-            $articleIds[] = $item['id'];
+            $contentIds[] = $item['id'];
         }
         $translationsMap = [];
-        if (!empty($articleIds)) {
-            $transList = \app\common\model\ArticleLang::whereIn('aid', $articleIds)
+        if (!empty($contentIds)) {
+            $transList = \app\common\model\ContentLang::whereIn('content_id', $contentIds)
                 ->whereIn('lang', ['en', 'ja', 'ko'])
-                ->field('aid,lang,translate_status')
+                ->field('content_id,lang,translate_status')
                 ->select()
                 ->toArray();
             $langNames = ['en' => '英语', 'ja' => '日语', 'ko' => '韩语'];
             foreach ($transList as $t) {
-                if (!isset($translationsMap[$t['aid']])) {
-                    $translationsMap[$t['aid']] = [];
+                if (!isset($translationsMap[$t['content_id']])) {
+                    $translationsMap[$t['content_id']] = [];
                 }
-                $translationsMap[$t['aid']][] = [
+                $translationsMap[$t['content_id']][] = [
                     'lang_code' => $t['lang'],
                     'lang_name' => $langNames[$t['lang']] ?? $t['lang'],
                     'status'    => (int) $t['translate_status'],

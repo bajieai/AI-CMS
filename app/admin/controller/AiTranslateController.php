@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
-use app\common\model\ArticleLang;
+use app\common\model\ContentLang;
 use app\common\service\ai\AiTranslateService;
 use app\common\service\ai\translate\TranslateProviderRouter;
 
@@ -80,9 +80,9 @@ class AiTranslateController extends AdminBaseController
      */
     public function getStatus(int $id, string $lang)
     {
-        $record = ArticleLang::getByAidAndLang($id, $lang);
+        $record = ContentLang::getByContentIdAndLang($id, $lang);
         if (!$record) {
-            return $this->success('未翻译', ['status' => ArticleLang::STATUS_PENDING, 'status_label' => '待翻译']);
+            return $this->success('未翻译', ['status' => ContentLang::STATUS_PENDING, 'status_label' => '待翻译']);
         }
 
         return $this->success('查询成功', [
@@ -116,7 +116,7 @@ class AiTranslateController extends AdminBaseController
      */
     public function list(int $id)
     {
-        $records = ArticleLang::getTranslationsByAid($id);
+        $records = ContentLang::getTranslationsByContentId($id);
         $langs = TranslateProviderRouter::getRegisteredLanguages();
 
         // 构建完整语言状态列表
@@ -132,9 +132,9 @@ class AiTranslateController extends AdminBaseController
             $result[] = [
                 'lang_code'    => $code,
                 'lang_name'    => $name,
-                'status'       => $found ? $found['translate_status'] : ArticleLang::STATUS_PENDING,
-                'status_label' => $found ? (ArticleLang::STATUS_LABELS[$found['translate_status']] ?? '未知') : '未翻译',
-                'status_color' => $found ? (ArticleLang::STATUS_COLORS[$found['translate_status']] ?? 'default') : 'default',
+                'status'       => $found ? $found['translate_status'] : ContentLang::STATUS_PENDING,
+                'status_label' => $found ? (ContentLang::STATUS_LABELS[$found['translate_status']] ?? '未知') : '未翻译',
+                'status_color' => $found ? (ContentLang::STATUS_COLORS[$found['translate_status']] ?? 'default') : 'default',
                 'update_time'  => $found ? $found['update_time'] : 0,
             ];
         }

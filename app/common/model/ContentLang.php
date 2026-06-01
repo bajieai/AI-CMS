@@ -15,14 +15,14 @@ namespace app\common\model;
 use think\Model;
 
 /**
- * V2.9.15: 文章多语言翻译版本模型
+ * V2.9.15: 内容多语言翻译版本模型
  *
- * 对应表: i8j_article_lang
- * 字段映射: aid(文章ID), lang(语言代码), translate_status(翻译状态)
+ * 对应表: i8j_content_lang
+ * 字段: content_id(内容ID), lang(语言代码), translate_status(翻译状态)
  */
-class ArticleLang extends Model
+class ContentLang extends Model
 {
-    protected $name = 'article_lang';
+    protected $name = 'content_lang';
     protected $pk = 'id';
 
     /** 翻译状态常量 */
@@ -48,31 +48,31 @@ class ArticleLang extends Model
     ];
 
     protected $schema = [
-        'id'               => 'int',
-        'aid'              => 'int',
-        'lang'             => 'string',
-        'title'            => 'string',
-        'content'          => 'string',
-        'description'      => 'string',
-        'seo_title'        => 'string',
-        'seo_desc'         => 'string',
-        'keywords'         => 'string',
-        'image_alt'        => 'string',
-        'error_msg'        => 'string',
-        'translate_status' => 'int',
+        'id'                => 'int',
+        'content_id'        => 'int',
+        'lang'              => 'string',
+        'title'             => 'string',
+        'content'           => 'string',
+        'description'       => 'string',
+        'seo_title'         => 'string',
+        'seo_desc'          => 'string',
+        'keywords'          => 'string',
+        'image_alt'         => 'string',
+        'error_msg'         => 'string',
+        'translate_status'  => 'int',
         'translate_provider'=> 'string',
-        'translate_time'   => 'int',
-        'create_time'      => 'int',
-        'update_time'      => 'int',
+        'translate_time'    => 'int',
+        'create_time'       => 'int',
+        'update_time'       => 'int',
     ];
 
     protected $type = [
-        'id'               => 'integer',
-        'aid'              => 'integer',
-        'translate_status' => 'integer',
-        'translate_time'   => 'integer',
-        'create_time'      => 'integer',
-        'update_time'      => 'integer',
+        'id'                => 'integer',
+        'content_id'        => 'integer',
+        'translate_status'  => 'integer',
+        'translate_time'    => 'integer',
+        'create_time'       => 'integer',
+        'update_time'       => 'integer',
     ];
 
     protected $autoWriteTimestamp = true;
@@ -80,27 +80,27 @@ class ArticleLang extends Model
     protected $updateTime = 'update_time';
 
     /**
-     * 关联文章模型
+     * 关联内容模型
      */
-    public function article()
+    public function content()
     {
-        return $this->belongsTo(Content::class, 'aid', 'id');
+        return $this->belongsTo(Content::class, 'content_id', 'id');
     }
 
     /**
-     * 按文章ID和语言查询
+     * 按内容ID和语言查询
      */
-    public static function getByAidAndLang(int $aid, string $lang): ?self
+    public static function getByContentIdAndLang(int $contentId, string $lang): ?self
     {
-        return self::where('aid', $aid)->where('lang', $lang)->find();
+        return self::where('content_id', $contentId)->where('lang', $lang)->find();
     }
 
     /**
-     * 获取文章的翻译版本列表
+     * 获取内容的翻译版本列表
      */
-    public static function getTranslationsByAid(int $aid): array
+    public static function getTranslationsByContentId(int $contentId): array
     {
-        return self::where('aid', $aid)->order('create_time', 'desc')->select()->toArray();
+        return self::where('content_id', $contentId)->order('create_time', 'desc')->select()->toArray();
     }
 
     /**

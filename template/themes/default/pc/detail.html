@@ -78,7 +78,7 @@
                         <a href="{$site_url}{$Request.url}" class="lang-item {if !$current_lang}active{else/}available{/if}" title="中文原文">中文</a>
                         <!-- 翻译版本 -->
                         {php}$langNames=['en'=>'English','ja'=>'日本語','ko'=>'한국어'];$langStatus=[0=>'暂未翻译',1=>'翻译中...',2=>'已翻译',3=>'翻译失败'];{/php}
-                        {foreach name="article_langs" item="al"}
+                        {foreach name="content_langs" item="al"}
                             {if condition="$al.lang == 'en' || $al.lang == 'ja' || $al.lang == 'ko'"}
                                 {if condition="$al.translate_status == 2"}
                                 <a href="{$site_url}{$Request.url}?lang={$al.lang}" class="lang-item {if $current_lang == $al.lang}active{else/}available{/if}" title="{$langNames[$al.lang] ?? $al.lang}: 已翻译">{$langNames[$al.lang] ?? $al.lang|strtoupper}</a>

@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace app\common\service\ai;
 
-use app\common\model\ArticleLang;
+use app\common\model\ContentLang;
 use app\common\service\ai\translate\TranslateProviderRouter;
 use think\facade\Cache;
 use think\facade\Config;
@@ -30,7 +30,7 @@ use think\facade\Log;
 class AiTranslateService
 {
     /** 缓存key前缀 */
-    protected const CACHE_PREFIX = 'translate_article_';
+    protected const CACHE_PREFIX = 'translate_content_';
 
     /** 分段翻译阈值（字符数） */
     protected int $segmentThreshold;
@@ -52,14 +52,14 @@ class AiTranslateService
     /**
      * 翻译整篇文章
      *
-     * @param int    $aid        文章ID
+     * @param int    $contentId  内容ID
      * @param string $targetLang 目标语言：en/ja/ko
      * @param array  $options    可选参数
      *                           - force: bool 强制重新翻译（忽略缓存和已有版本）
      *                           - context: string 翻译上下文提示
-     * @return array ['success'=>bool, 'data'=>ArticleLang|null, 'message'=>string]
+     * @return array ['success'=>bool, 'data'=>ContentLang|null, 'message'=>string]
      */
-    public function translateContent(int $aid, string $targetLang, array $options = []): array
+    public function translateContent(int $contentId, string $targetLang, array $options = []): array
     {
         $force = $options['force'] ?? false;
 
@@ -70,8 +70,8 @@ class AiTranslateService
 
         // 检查是否已有完成版本（非强制模式）
         if (!$force) {
-            $existing = ArticleLang::getByAidAndLang($aid, $targetLang);
-            if ($existing && $existing->translate_status === ArticleLang::STATUS_COMPLETED) {
+            $existing = ContentLang::getByContentIdAndLang($contentId, $targetLang);
+            if ($existing && $existing->translate_status === ContentLang::STATUS_COMPLETED) {
                 return [
                     'success' => true,
                     'data'    => $existing,
@@ -80,29 +80,29 @@ class AiTranslateService
             }
         }
 
-        // 获取源文章内容
-        $article = \app\common\model\Content::find($aid);
-        if (!$article) {
-            return ['success' => false, 'data' => null, 'message' => '文章不存在'];
+        // 获取源内容
+        $content = \app\common\model\Content::find($contentId);
+        if (!$content) {
+            return ['success' => false, 'data' => null, 'message' => '内容不存在'];
         }
 
         $startTime = time();
 
         try {
             // 创建或更新翻译记录为"翻译中"
-            $transRecord = $this->ensureTranslationRecord($aid, $targetLang);
+            $transRecord = $this->ensureTranslationRecord($contentId, $targetLang);
             $transRecord->save([
-                'translate_status' => ArticleLang::STATUS_PROCESSING,
+                'translate_status' => ContentLang::STATUS_PROCESSING,
                 'update_time'      => time(),
             ]);
 
             // 翻译各字段
-            $titleResult       = $this->doTranslate((string) $article->title, $targetLang, $options);
-            $contentResult     = $this->doTranslate((string) $article->content, $targetLang, array_merge($options, ['preserveHtml' => true]));
-            $descResult        = $this->doTranslate((string) $article->description, $targetLang, $options);
-            $keywordsResult    = $this->doTranslate((string) $article->keywords, $targetLang, $options);
-            $seoTitleResult    = $this->doTranslate((string) $article->seo_title, $targetLang, $options);
-            $seoDescResult     = $this->doTranslate((string) $article->seo_desc, $targetLang, $options);
+            $titleResult       = $this->doTranslate((string) $content->title, $targetLang, $options);
+            $contentResult     = $this->doTranslate((string) $content->content, $targetLang, array_merge($options, ['preserveHtml' => true]));
+            $descResult        = $this->doTranslate((string) $content->description, $targetLang, $options);
+            $keywordsResult    = $this->doTranslate((string) $content->keywords, $targetLang, $options);
+            $seoTitleResult    = $this->doTranslate((string) $content->seo_title, $targetLang, $options);
+            $seoDescResult     = $this->doTranslate((string) $content->seo_desc, $targetLang, $options);
 
             $translateTime = time() - $startTime;
 
@@ -117,7 +117,7 @@ class AiTranslateService
 
             if (!empty($failedFields)) {
                 $transRecord->save([
-                    'translate_status' => ArticleLang::STATUS_FAILED,
+                    'translate_status' => ContentLang::STATUS_FAILED,
                     'error_msg'        => '以下字段翻译失败: ' . implode(', ', $failedFields),
                     'translate_time'   => $translateTime,
                     'update_time'      => time(),
@@ -137,14 +137,14 @@ class AiTranslateService
                 'keywords'         => $keywordsResult['text'],
                 'seo_title'        => $seoTitleResult['text'],
                 'seo_desc'         => $seoDescResult['text'],
-                'translate_status' => ArticleLang::STATUS_COMPLETED,
+                'translate_status' => ContentLang::STATUS_COMPLETED,
                 'translate_provider'=> $titleResult['provider'] ?? 'deepseek',
                 'translate_time'   => $translateTime,
                 'update_time'      => time(),
             ]);
 
             // 写入缓存
-            $this->setCache($aid, $targetLang, $transRecord);
+            $this->setCache($contentId, $targetLang, $transRecord);
 
             return [
                 'success' => true,
@@ -152,13 +152,13 @@ class AiTranslateService
                 'message' => '翻译完成',
             ];
         } catch (\Throwable $e) {
-            Log::error("[AiTranslateService] translateContent failed: aid={$aid}, lang={$targetLang}, error=" . $e->getMessage());
+            Log::error("[AiTranslateService] translateContent failed: content_id={$contentId}, lang={$targetLang}, error=" . $e->getMessage());
 
             // 更新失败状态
-            $transRecord = ArticleLang::getByAidAndLang($aid, $targetLang);
+            $transRecord = ContentLang::getByContentIdAndLang($contentId, $targetLang);
             if ($transRecord) {
                 $transRecord->save([
-                    'translate_status' => ArticleLang::STATUS_FAILED,
+                    'translate_status' => ContentLang::STATUS_FAILED,
                     'error_msg'        => $e->getMessage(),
                     'update_time'      => time(),
                 ]);
@@ -175,11 +175,11 @@ class AiTranslateService
     /**
      * 批量翻译（异步入队）
      *
-     * @param array  $aids       文章ID数组
+     * @param array  $contentIds  内容ID数组
      * @param string $targetLang 目标语言
      * @return array ['success'=>bool, 'task_ids'=>array, 'message'=>string]
      */
-    public function batchTranslate(array $aids, string $targetLang): array
+    public function batchTranslate(array $contentIds, string $targetLang): array
     {
         if (!TranslateProviderRouter::isLanguageRegistered($targetLang)) {
             return ['success' => false, 'task_ids' => [], 'message' => "不支持的目标语言: {$targetLang}"];
@@ -188,13 +188,13 @@ class AiTranslateService
         $queueService = new AiTaskQueueService();
         $taskIds = [];
 
-        foreach ($aids as $aid) {
+        foreach ($contentIds as $contentId) {
             $taskId = $queueService->enqueue('content_translate', [
-                'biz_id'  => (int) $aid,
-                'biz_key' => "translate:{$aid}:{$targetLang}",
+                'biz_id'  => (int) $contentId,
+                'biz_key' => "translate:{$contentId}:{$targetLang}",
                 'payload' => [
-                    'aid'         => (int) $aid,
-                    'target_lang' => $targetLang,
+                    'content_id'   => (int) $contentId,
+                    'target_lang'  => $targetLang,
                 ],
                 'priority' => 0,
             ]);
@@ -204,7 +204,7 @@ class AiTranslateService
         return [
             'success'  => true,
             'task_ids' => $taskIds,
-            'message'  => '已提交 ' . count($taskIds) . ' 篇文章的翻译任务',
+            'message'  => '已提交 ' . count($taskIds) . ' 篇内容的翻译任务',
         ];
     }
 
@@ -225,20 +225,20 @@ class AiTranslateService
     }
 
     /**
-     * 获取文章的翻译版本（优先读缓存）
+     * 获取内容的翻译版本（优先读缓存）
      */
-    public function getTranslation(int $aid, string $lang): ?ArticleLang
+    public function getTranslation(int $contentId, string $lang): ?ContentLang
     {
         // 先查缓存
-        $cached = $this->getCache($aid, $lang);
+        $cached = $this->getCache($contentId, $lang);
         if ($cached !== null) {
             return $cached;
         }
 
         // 再查数据库
-        $record = ArticleLang::getByAidAndLang($aid, $lang);
-        if ($record && $record->translate_status === ArticleLang::STATUS_COMPLETED) {
-            $this->setCache($aid, $lang, $record);
+        $record = ContentLang::getByContentIdAndLang($contentId, $lang);
+        if ($record && $record->translate_status === ContentLang::STATUS_COMPLETED) {
+            $this->setCache($contentId, $lang, $record);
         }
 
         return $record;
@@ -247,16 +247,16 @@ class AiTranslateService
     /**
      * 删除翻译版本
      */
-    public function deleteTranslation(int $aid, string $lang): bool
+    public function deleteTranslation(int $contentId, string $lang): bool
     {
-        $record = ArticleLang::getByAidAndLang($aid, $lang);
+        $record = ContentLang::getByContentIdAndLang($contentId, $lang);
         if (!$record) {
             return false;
         }
 
         $result = $record->delete();
         if ($result) {
-            $this->clearCache($aid, $lang);
+            $this->clearCache($contentId, $lang);
         }
         return (bool) $result;
     }
@@ -264,15 +264,15 @@ class AiTranslateService
     /**
      * 提交单个翻译任务到队列
      */
-    public function submitTranslateTask(int $aid, string $targetLang): int
+    public function submitTranslateTask(int $contentId, string $targetLang): int
     {
         $queueService = new AiTaskQueueService();
         return $queueService->enqueue('content_translate', [
-            'biz_id'  => $aid,
-            'biz_key' => "translate:{$aid}:{$targetLang}",
+            'biz_id'  => $contentId,
+            'biz_key' => "translate:{$contentId}:{$targetLang}",
             'payload' => [
-                'aid'         => $aid,
-                'target_lang' => $targetLang,
+                'content_id'   => $contentId,
+                'target_lang'  => $targetLang,
             ],
             'priority' => 0,
         ]);
@@ -285,13 +285,13 @@ class AiTranslateService
     /**
      * 队列消费者入口
      *
-     * @param int   $aid     文章ID
-     * @param array $payload 任务参数
+     * @param int   $contentId 内容ID
+     * @param array $payload   任务参数
      */
-    public function consumerProcess(int $aid, array $payload): array
+    public function consumerProcess(int $contentId, array $payload): array
     {
         $targetLang = $payload['target_lang'] ?? 'en';
-        return $this->translateContent($aid, $targetLang);
+        return $this->translateContent($contentId, $targetLang);
     }
 
     // ============================================================
@@ -421,40 +421,40 @@ class AiTranslateService
     /**
      * 生成缓存key
      */
-    protected function cacheKey(int $aid, string $lang): string
+    protected function cacheKey(int $contentId, string $lang): string
     {
-        return self::CACHE_PREFIX . $aid . '_' . $lang;
+        return self::CACHE_PREFIX . $contentId . '_' . $lang;
     }
 
     /**
      * 读取缓存
      */
-    protected function getCache(int $aid, string $lang): ?ArticleLang
+    protected function getCache(int $contentId, string $lang): ?ContentLang
     {
-        $key = $this->cacheKey($aid, $lang);
+        $key = $this->cacheKey($contentId, $lang);
         $data = Cache::get($key);
         if ($data === null) {
             return null;
         }
         // 从数组重建Model实例
-        return new ArticleLang($data);
+        return new ContentLang($data);
     }
 
     /**
      * 写入缓存
      */
-    protected function setCache(int $aid, string $lang, ArticleLang $record): void
+    protected function setCache(int $contentId, string $lang, ContentLang $record): void
     {
-        $key = $this->cacheKey($aid, $lang);
+        $key = $this->cacheKey($contentId, $lang);
         Cache::set($key, $record->toArray(), $this->cacheTtl);
     }
 
     /**
      * 清除缓存
      */
-    protected function clearCache(int $aid, string $lang): void
+    protected function clearCache(int $contentId, string $lang): void
     {
-        $key = $this->cacheKey($aid, $lang);
+        $key = $this->cacheKey($contentId, $lang);
         Cache::delete($key);
     }
 
@@ -465,15 +465,15 @@ class AiTranslateService
     /**
      * 确保存在翻译记录（不存在则创建）
      */
-    protected function ensureTranslationRecord(int $aid, string $lang): ArticleLang
+    protected function ensureTranslationRecord(int $contentId, string $lang): ContentLang
     {
-        $record = ArticleLang::getByAidAndLang($aid, $lang);
+        $record = ContentLang::getByContentIdAndLang($contentId, $lang);
         if ($record) {
             return $record;
         }
 
-        return ArticleLang::create([
-            'aid'              => $aid,
+        return ContentLang::create([
+            'content_id'       => $contentId,
             'lang'             => $lang,
             'title'            => '',
             'content'          => '',
@@ -483,7 +483,7 @@ class AiTranslateService
             'keywords'         => '',
             'image_alt'        => '',
             'error_msg'        => '',
-            'translate_status' => ArticleLang::STATUS_PENDING,
+            'translate_status' => ContentLang::STATUS_PENDING,
             'translate_provider'=> '',
             'translate_time'   => 0,
             'create_time'      => time(),

@@ -17,7 +17,7 @@ SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
     WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'i8j_content' AND COLUMN_NAME = 'lang');
 
 SET @sql = IF(@col_exists = 0,
-    'ALTER TABLE `i8j_content` ADD COLUMN `lang` VARCHAR(10) NOT NULL DEFAULT \'zh-cn\' COMMENT \'文章语言代码\' AFTER `id`',
+    'ALTER TABLE `i8j_content` ADD COLUMN `lang` VARCHAR(10) NOT NULL DEFAULT \'zh-cn\' COMMENT \'内容语言代码\' AFTER `id`',
     'SELECT \'lang字段已存在，跳过\' AS info');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -35,11 +35,11 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 -- --------------------------------------------
--- 2. 新建 i8j_article_lang 翻译版本表
+-- 2. 新建 i8j_content_lang 内容翻译版本表
 -- --------------------------------------------
-CREATE TABLE IF NOT EXISTS `i8j_article_lang` (
+CREATE TABLE IF NOT EXISTS `i8j_content_lang` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `aid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '文章ID',
+    `content_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '内容ID',
     `lang` VARCHAR(10) NOT NULL DEFAULT '' COMMENT '语言代码(en/ja/ko/...)',
     `title` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '翻译标题',
     `content` LONGTEXT NULL COMMENT '翻译正文',
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS `i8j_article_lang` (
     `create_time` INT UNSIGNED NOT NULL DEFAULT 0,
     `update_time` INT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_aid_lang` (`aid`, `lang`),
+    UNIQUE KEY `uk_content_id_lang` (`content_id`, `lang`),
     INDEX `idx_lang` (`lang`),
     INDEX `idx_status` (`translate_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文章多语言翻译版本表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内容多语言翻译版本表';
 
 SET FOREIGN_KEY_CHECKS = 1;

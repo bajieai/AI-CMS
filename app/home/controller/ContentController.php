@@ -56,7 +56,7 @@ class ContentController extends FrontBaseController
         if ($lang && TranslateProviderRouter::isLanguageRegistered($lang)) {
             $translateService = new AiTranslateService();
             $transData = $translateService->getTranslation($id, $lang);
-            if ($transData && $transData->translate_status === \app\common\model\ArticleLang::STATUS_COMPLETED) {
+            if ($transData && $transData->translate_status === \app\common\model\ContentLang::STATUS_COMPLETED) {
                 // 使用翻译版本覆盖显示内容（不修改原Model，仅用于显示）
                 $displayInfo = clone $info;
                 $displayInfo->title       = $transData->title ?: $info->title;
@@ -161,10 +161,10 @@ class ContentController extends FrontBaseController
         ]);
         $schemaMarkup = $schemaService->toJsonLd([$articleSchema]);
 
-        // V2.9.15: 获取文章翻译状态（用于前台语言切换器）
-        $articleLangs = [];
+        // V2.9.15: 获取内容翻译状态（用于前台语言切换器）
+        $contentLangs = [];
         if ($id) {
-            $articleLangs = \app\common\model\ArticleLang::getTranslationsByAid($id);
+            $contentLangs = \app\common\model\ContentLang::getTranslationsByContentId($id);
         }
 
         $this->assign([
@@ -185,7 +185,7 @@ class ContentController extends FrontBaseController
             'og_locale'     => $ogLocale,
             'schema_markup' => $schemaMarkup,
             'current_lang'  => $lang,
-            'article_langs' => $articleLangs,
+            'content_langs' => $contentLangs,
         ]);
 
         return $this->view('/detail');

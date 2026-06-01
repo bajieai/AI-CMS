@@ -7,7 +7,7 @@
     'use strict';
 
     var TranslateEditor = {
-        aid: 0,
+        contentId: 0,
         langs: {en:'英语', ja:'日语', ko:'韩语'},
         colors: {0:'secondary', 1:'primary', 2:'success', 3:'danger'},
         labels: {0:'待翻译', 1:'翻译中', 2:'已翻译', 3:'失败'},
@@ -15,9 +15,9 @@
         /**
          * 初始化
          */
-        init: function(aid) {
-            this.aid = aid;
-            if (!aid) return;
+        init: function(contentId) {
+            this.contentId = contentId;
+            if (!contentId) return;
             this.loadVersions();
         },
 
@@ -26,7 +26,7 @@
          */
         loadVersions: function() {
             var self = this;
-            $.get('/admin/translate/list/' + self.aid, function(res) {
+            $.get('/admin/translate/list/' + self.contentId, function(res) {
                 if (res.code === 1) {
                     self.renderVersionPanel(res.data.list);
                 }
@@ -98,7 +98,7 @@
 
             this.showProgress(lang, 10, '准备翻译...');
 
-            $.post('/admin/translate/do/' + this.aid, {lang: lang}, function(res) {
+            $.post('/admin/translate/do/' + this.contentId, {lang: lang}, function(res) {
                 if (res.code === 1) {
                     self.showProgress(lang, 100, '翻译完成');
                     setTimeout(function() {
@@ -123,7 +123,7 @@
             var langName = this.langs[lang] || lang;
             if (!confirm('确认删除 ' + langName + ' 翻译版本吗？')) return;
 
-            $.post('/admin/translate/delete/' + this.aid + '/' + lang, function(res) {
+            $.post('/admin/translate/delete/' + this.contentId + '/' + lang, function(res) {
                 if (res.code === 1) {
                     self.loadVersions();
                 } else {

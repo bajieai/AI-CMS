@@ -205,21 +205,21 @@ class AiQueueConsume extends Command
         $queueService = new AiTaskQueueService();
         $translateService = new \app\common\service\ai\AiTranslateService();
 
-        $aid = $payload['aid'] ?? 0;
+        $contentId = $payload['content_id'] ?? 0;
         $targetLang = $payload['target_lang'] ?? 'en';
 
-        if (!$aid) {
-            $queueService->fail($taskId, '缺少aid');
+        if (!$contentId) {
+            $queueService->fail($taskId, '缺少content_id');
             return;
         }
 
-        $output->info("[AI-Queue] 内容翻译: aid={$aid}, lang={$targetLang}");
+        $output->info("[AI-Queue] 内容翻译: content_id={$contentId}, lang={$targetLang}");
 
-        $result = $translateService->translateContent($aid, $targetLang);
+        $result = $translateService->translateContent($contentId, $targetLang);
 
         if ($result['success']) {
-            $queueService->complete($taskId, ['aid' => $aid, 'lang' => $targetLang]);
-            $output->info("[AI-Queue] 翻译完成: task_id={$taskId}, aid={$aid}, lang={$targetLang}");
+            $queueService->complete($taskId, ['content_id' => $contentId, 'lang' => $targetLang]);
+            $output->info("[AI-Queue] 翻译完成: task_id={$taskId}, content_id={$contentId}, lang={$targetLang}");
         } else {
             $queueService->fail($taskId, $result['message'] ?? '翻译失败');
             $output->warning("[AI-Queue] 翻译失败: task_id={$taskId}, " . ($result['message'] ?? ''));
