@@ -117,6 +117,11 @@
 
 ### 核心特性
 
+- **🆕 AI翻译引擎(V2.9.15)** - DeepSeek翻译Provider + HTML正文分段处理 + 翻译版本缓存 + 编辑页/列表页/前台三端UI + 批量翻译队列
+- **🆕 Schema.org结构化标记(V2.9.15)** - 5种类型(Article/BreadcrumbList/Organization/WebSite/WebPage) + 首页/栏目页/详情页注入
+- **🆕 OG/Twitter标签增强(V2.9.15)** - og:locale联动翻译语言切换 + Twitter Card + 双皮肤同步
+- **🆕 Provider真实轮询(V2.9.15)** - ImageProviderInterface扩展queryTaskStatus + 三Provider实现 + 故障降级
+- **🆕 命名规范+编码根治(V2.9.15)** - `article`残留全站清除(20+文件) + `\r\n`乱码三层防御(Controller/Service/JS) + 配置键名统一
 - **🆕 AI内容模板引擎(V2.9.9)** - 自然语言生成模板Schema+AI字段自动生成+内容编辑模板选择+导入导出
 - **🆕 社交分享+追踪(V2.9.9)** - 轻量版分享(微博/QQ/微信复制/链接复制)+UTM追踪+分享看板(ECharts)+热门内容TOP10
 - **🆕 AI多语言国际化(V2.9.9)** - AI批量翻译+多语言路由(/en/about)+hreflang标签+4套模板语言切换+Cookie持久化
