@@ -119,6 +119,12 @@ class ContentService
         $data['seo_keywords'] = $data['seo_keywords'] ?? '';
         $data['seo_description'] = $data['seo_description'] ?? '';
 
+        // 归一化换行符：\r\n → \n（防止在 HTML input value 属性中显示为乱码）
+        $data = $this->normalizeLineEndings($data);
+        if (!empty($extData)) {
+            $extData = $this->normalizeLineEndings($extData);
+        }
+
         // 处理定时发布
         $data['publish_time'] = isset($data['publish_time']) && $data['publish_time'] ? strtotime($data['publish_time']) : 0;
 
@@ -208,6 +214,12 @@ class ContentService
         }
         if (isset($data['seo_description'])) {
             $data['seo_description'] = trim($data['seo_description']);
+        }
+
+        // 归一化换行符：\r\n → \n（防止在 HTML input value 属性中显示为乱码）
+        $data = $this->normalizeLineEndings($data);
+        if (!empty($extData)) {
+            $extData = $this->normalizeLineEndings($extData);
         }
 
         // 处理定时发布
@@ -509,6 +521,7 @@ class ContentService
             return ['success' => false, 'msg' => '内容不存在'];
         }
 
+        $data = $this->normalizeLineEndings($data);
         $content->title = $data['title'] ?? $content->title;
         $content->content = $data['content'] ?? $content->content;
         $content->excerpt = $data['excerpt'] ?? $content->excerpt;
@@ -741,5 +754,19 @@ class ContentService
             default:
                 return is_string($value) ? strip_tags($value) : (string) $value;
         }
+    }
+
+    /**
+     * 归一化换行符：\r\n → \n 统一为 Unix 换行
+     * 防止 Windows 换行符在 HTML input value 属性中显示为 \r\n 乱码
+     */
+    private function normalizeLineEndings(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_string($value) && str_contains($value, "\r")) {
+                $data[$key] = str_replace(["\r\n", "\r"], "\n", $value);
+            }
+        }
+        return $data;
     }
 }

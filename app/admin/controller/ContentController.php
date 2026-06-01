@@ -186,6 +186,8 @@ class ContentController extends AdminBaseController
             if ($info->ext) {
                 $extData = $info->ext->data ?? [];
             }
+            // 归一化换行符 \r\n → \n（防止在 input value 属性中显示为乱码）
+            $extData = self::cleanLineEndings($extData);
 
             // V2.9.9-R4: 注入AI配图默认配置
             $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
@@ -1068,5 +1070,19 @@ class ContentController extends AdminBaseController
         }
 
         return json(['success' => true, 'data' => $styles]);
+    }
+
+    /**
+     * 清理数组中所有字符串值的 \\r\\n 换行符
+     * 防止在 HTML input value 属性中显示为乱码
+     */
+    private static function cleanLineEndings(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_string($value) && str_contains($value, "\r")) {
+                $data[$key] = str_replace(["\r\n", "\r"], "\n", $value);
+            }
+        }
+        return $data;
     }
 }

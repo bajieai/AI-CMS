@@ -213,7 +213,7 @@ class AiWritingService
 
         try {
             foreach ($keywords as $keyword) {
-                $article = null;
+                $item = null;
                 $retryCount = 0;
                 $maxRetry = 2;
                 $qualityPassed = false;
@@ -223,7 +223,7 @@ class AiWritingService
                         // 参考示例模式
                         $prompt = AiTemplateService::buildExamplePrompt($template, $keyword);
                         $systemPrompt = self::$stylePrompts[$template->style] ?? self::$stylePrompts['default'];
-                        $article = self::executeWithPrompt($prompt, $systemPrompt, $keyword, $template);
+                        $item = self::executeWithPrompt($prompt, $systemPrompt, $keyword, $template);
                     } elseif ($template) {
                         // V2.9: NLP模板模式 — 使用结构化Prompt（字段映射+表单联动）
                         $prompt = AiTemplateService::buildStructuredPrompt($template, ['keyword' => $keyword]);
@@ -241,23 +241,23 @@ class AiWritingService
                             unset($cmsData['form_data']);
                         }
 
-                        $article = [
+                        $item = [
                             'title'   => $cmsData['title']   ?? '未命名文章',
                             'content' => $cmsData['content'] ?? $rawOutput,
                         ];
 
-                        // 将映射字段合并到article供后续使用
+                        // 将映射字段合并到item供后续使用
                         foreach (['seo_title','seo_keywords','seo_description','summary','tags','source','author'] as $f) {
                             if (!empty($cmsData[$f])) {
-                                $article[$f] = $cmsData[$f];
+                                $item[$f] = $cmsData[$f];
                             }
                         }
                         if (!empty($cmsData['ext_data'])) {
-                            $article['ext_data'] = $cmsData['ext_data'];
+                            $item['ext_data'] = $cmsData['ext_data'];
                         }
 
                         // V2.9: 质量检测决策
-                        $qualityResult = AiTemplateService::applyQualityConfig($template, $article);
+                        $qualityResult = AiTemplateService::applyQualityConfig($template, $item);
                         if ($qualityResult['passed']) {
                             $qualityPassed = true;
                             Log::info("批量生成任务 #{$taskId} 质量检测通过: 评分 {$qualityResult['score']}");
@@ -277,7 +277,7 @@ class AiWritingService
                         }
                     } else {
                         // 原有逻辑不变（向后兼容无模板的任务）
-                        $article = self::generateContent($keyword, $task->style, ['max_tokens' => 2000]);
+                        $item = self::generateContent($keyword, $task->style, ['max_tokens' => 2000]);
                         $qualityPassed = true;
                     }
                 } while (!$qualityPassed && $retryCount <= $maxRetry);
@@ -288,8 +288,8 @@ class AiWritingService
 
                 // 构建Content创建数据
                 $contentData = [
-                    'title'   => $article['title'],
-                    'content' => $article['content'],
+                    'title'   => $item['title'],
+                    'content' => $item['content'],
                     'cate_id' => $task->cate_id,
                     'status'  => 0,
                     'source'  => 'ai_batch',
@@ -298,26 +298,26 @@ class AiWritingService
                 ];
 
                 // 映射SEO字段
-                if (!empty($article['seo_title'])) {
-                    $contentData['seo_title'] = $article['seo_title'];
+                if (!empty($item['seo_title'])) {
+                    $contentData['seo_title'] = $item['seo_title'];
                 }
-                if (!empty($article['seo_keywords'])) {
-                    $contentData['seo_keywords'] = $article['seo_keywords'];
+                if (!empty($item['seo_keywords'])) {
+                    $contentData['seo_keywords'] = $item['seo_keywords'];
                 }
-                if (!empty($article['seo_description'])) {
-                    $contentData['seo_description'] = $article['seo_description'];
+                if (!empty($item['seo_description'])) {
+                    $contentData['seo_description'] = $item['seo_description'];
                 }
-                if (!empty($article['summary'])) {
-                    $contentData['excerpt'] = $article['summary'];
+                if (!empty($item['summary'])) {
+                    $contentData['excerpt'] = $item['summary'];
                 }
-                if (!empty($article['tags'])) {
-                    $contentData['tags'] = $article['tags'];
+                if (!empty($item['tags'])) {
+                    $contentData['tags'] = $item['tags'];
                 }
-                if (!empty($article['source'])) {
-                    $contentData['source'] = $article['source'];
+                if (!empty($item['source'])) {
+                    $contentData['source'] = $item['source'];
                 }
-                if (!empty($article['author'])) {
-                    $contentData['author'] = $article['author'];
+                if (!empty($item['author'])) {
+                    $contentData['author'] = $item['author'];
                 }
                 // 质量评分
                 if (!empty($qualityResult['score'])) {
@@ -325,8 +325,8 @@ class AiWritingService
                 }
 
                 // 处理扩展字段
-                if (!empty($article['ext_data'])) {
-                    $contentData['ext'] = $article['ext_data'];
+                if (!empty($item['ext_data'])) {
+                    $contentData['ext'] = $item['ext_data'];
                 }
 
                 $contentRecord = Content::create($contentData);
@@ -336,7 +336,7 @@ class AiWritingService
                     $imgCfg = $template->image_config_array;
                     if (($imgCfg['images'] ?? '0') === '1' && ($imgCfg['source'] ?? '0') === '1') {
                         $count = min((int) ($imgCfg['count'] ?? 1), 3);
-                        $imgPrompt = $article['title'] ?? $keyword;
+                        $imgPrompt = $item['title'] ?? $keyword;
                         try {
                             $imgProvider = ImageProviderFactory::getDefault();
                             $imgResult = $imgProvider->generateImage($imgPrompt, ['count' => $count]);

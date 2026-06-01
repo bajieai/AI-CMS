@@ -125,14 +125,16 @@ function renderExtFields(fields) {
         for (var i = 0; i < fields.length; i++) {
             var f = fields[i];
             var val = extData[f.name] || '';
+            // 清理 \\r\\n 控制字符：在 <input value> 中会导致显示为乱码
+            var valClean = String(val).replace(/\r\n|\r|\n/g, ' ');
             html += '<div class="mb-2">';
             html += '<label class="form-label small">' + f.title + (f.required ? ' <span class="text-danger">*</span>' : '') + '</label>';
             if (f.type === 'textarea') {
                 html += '<textarea name="ext[' + f.name + ']" class="form-control form-control-sm" rows="3" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>' + val + '</textarea>';
             } else if (f.type === 'number') {
-                html += '<input type="number" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + val + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
+                html += '<input type="number" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
             } else {
-                html += '<input type="text" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + val + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
+                html += '<input type="text" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
             }
             html += '</div>';
         }
