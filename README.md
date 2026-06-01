@@ -208,10 +208,10 @@
 - **安装向导** - Web端5步安装，自动建表、创建管理员
 - **富文本编辑** - TinyMCE 6+ 编辑器，支持媒体库选择和AI辅助
 
-### V2.9.9 新增特性
+### V2.9.10~V2.9.15 新增特性
 
-- **AI内容模板引擎(P0, V2.9.9)** - 自然语言生成模板Schema+AI字段自动生成+内容编辑模板选择+导入导出，用户无需理解技术细节即可创建AI模板
-- **社交分享+追踪(P0, V2.9.9)** - 轻量版分享(微博/QQ/微信复制/链接复制)+UTM追踪参数+分享看板(ECharts热门趋势+渠道分析)+热点内容TOP10，ShareTrackerService数据上报
+> 详见上方「核心特性」列表。V2.9.10 起经历 6 个大版本迭代：V2.9.10(菜单驱动化+缓存细分+用户中心)、V2.9.11(双模式AI主题+CSS变量统一+行业调色板)、V2.9.12(模板商店+AI质量管线+模板自定义+配图增强+开发工具)、V2.9.13(AI编辑器增强+运营看板+版本差异对比)、V2.9.14(配图异步化+批量SEO SSE+模态框组件化)、V2.9.15(AI翻译引擎+Schema标记+OG增强+Provider轮询+命名规范根治)。以下为更早版本的核心功能概述：
+
 - **AI多语言国际化(P0, V2.9.9)** - AI批量翻译+多语言路由(/en/about)+hreflang标签+4套模板语言切换+Cookie持久化，翻译内容为独立Content记录
 - **SEO深度升级(P0, V2.9.9)** - 图片/视频/新闻Sitemap全类型生成+死链检测CLI+Dashboard死链统计卡，SeoService统一管理
 - **插件市场完善(P0, V2.9.9)** - 完整生命周期+钩子/事件系统(on/fire/getRegisteredHooks)+5个预置插件包(SEO/社交/会员/导出/自定义字段)
@@ -221,7 +221,7 @@
 - **消息通知前台(P1, V2.9.9)** - 通知铃铛+未读角标+消息中心(私信+系统通知)+12套前台消息模板
 - **全文搜索增强(P1, V2.9.9)** - Meilisearch高亮+搜索联想+分页适配+4套搜索模板修复
 
-### V2.9.8 新增特性
+**V2.9.8**
 
 - **字体本地化(V2.9.8第一轮)** - 5组中文字体子集化woff2嵌入本地+font-display:swap，离线/内网可用，移除Google Fonts外部依赖
 - **撤销/重做(V2.9.8第一轮)** - UndoManager 30步栈+Ctrl+Z/Ctrl+Shift+Z+保存点+未保存提示+预览联动
@@ -239,7 +239,7 @@
 - **撤销栈超时(V2.9.8第二轮)** - 15分钟未操作visibilitychange自动清空
 - **分析页时间筛选(V2.9.8第二轮)** - installTrendRange(7d/30d/90d/自定义)+Anomaly Detection
 
-### V2.9.7 新增特性
+**V2.9.7**
 
 - **AI主题6缺陷根治(含V2.9.6合并)** - Prompt完善(行业上下文+CSS约束+结构规范)+验证器增强(语法+完整性+语义3层)+搜索高亮匹配
 - **模板可视化定制** - 19个CSS变量(颜色/字体/间距/圆角)+Pickr颜色选择器+6组字体预设+布局选项(宽/窄/全宽)+Logo上传+iframe实时预览(postMessage双工通信)+变体管理
@@ -248,7 +248,7 @@
 - **恢复默认API** - 一键重置定制项到系统预设+确认弹窗防护
 - **安装引导** - 首次安装3步引导提示+折叠面板收起/展开
 
-### V2.9.5 新增特性
+**V2.9.5**
 
 - **XSS输出过滤(XssEscapeMiddleware, P0)** - CSP安全响应头(CSP-Report-Only/X-Content-Type-Options/X-Frame-Options/Referrer-Policy)+XSS载荷日志
 - **前台CSRF保护(FrontCsrfMiddleware, P0)** - 前台POST/PUT/DELETE Token验证+419友好错误页+front-csrf.js自动注入(4套模板)
@@ -265,7 +265,7 @@
 - **消息分类(P1)** - 4套前台member_notification.html分类筛选(全部/系统/等级/评论)+未读徽标
 - **内容审批(P1)** - ContentController audit/reject单条+ContentService batchOperate(audit/reject)+批量栏替换
 
-### V2.9.4 新增特性
+**V2.9.4**
 
 - **发布状态看板(M28续)** - 发布记录列表+按平台/状态筛选+手动重试+发布摘要统计(成功率/各平台统计)
 - **插件评分评价(M25续)** - 已安装插件1-5星评分+评语+平均分缓存展示(5分钟TTL)
@@ -278,7 +278,7 @@
 - **会员降级日志(M20续)** - MemberDowngradeLog记录降级操作+通知状态
 - **Bug修复与体验优化** - GLOB_BRACE Alpine兼容+nginx /admin重写修复+会员头像上传(后台+前台)+图标选择器+下拉溢出修复+默认头像+PWA提示7天冷却+logo尺寸统一+登录页动态logo
 
-### V2.9.3 新增特性
+**V2.9.3**
 
 - **V2.9.3功能** - 数据备份恢复增强(M26)+多渠道分发增强(M28)+插件商店首页升级(M25)+会员权益补全(M20)
 - **发布状态看板(M28续, P0)** - 发布记录列表+按平台/状态筛选+手动重试+发布摘要统计(成功率/各平台统计)
@@ -292,7 +292,7 @@
 - **会员降级日志(M20续, P1)** - MemberDowngradeLog记录降级操作+通知状态
 - **Bug修复与体验优化** - GLOB_BRACE Alpine兼容+nginx /admin重写修复+会员头像上传(后台+前台)+图标选择器+下拉溢出修复+默认头像+PWA提示7天冷却+logo尺寸统一+登录页动态logo
 
-### V2.9.2 新增特性
+**V2.9.2**
 
 - **多语言AI深度翻译(M19a, P0)** - AiTranslationService翻译引擎，支持批量翻译+翻译记忆缓存+SEO字段翻译+防递归机制，翻译内容创建为独立Content记录(lang+translation_of)
 - **Sitemap+结构化数据基础(M19b-core, P0)** - SeoService增强：Sitemap索引拆分(>50000条自动拆分)+增量缓存+robots.txt动态生成；SchemaService新增：Article/Product JSON-LD+BreadcrumbList+WebSite SearchAction
@@ -307,7 +307,7 @@
 - **Open Graph标签增强** - og:type/og:title/og:description/og:image/og:url/og:locale/og:locale:alternate，4套layout.html注入
 - **V2.9.2收尾** - v2.9.2.sql(3字段ALTER+12配置项)+menu.php新增5组菜单+permission.php新增5组权限+route.php新增4条Sitemap路由
 
-### V2.9.1 新增特性
+**V2.9.1**
 
 - **FluxProvider异步化(M14a)** - DB任务表+CLI轮询替代sleep(2)阻塞，前端AJAX进度轮询(4种状态+进度%)，30次/90秒超时+3次错误重试
 - **图片懒加载系统化(M14b)** - IntersectionObserver统一组件+4套layout引入+8+模板img→data-src替换+富文本自动拦截
@@ -324,7 +324,7 @@
 - **批量内容管理增强(M18)** - 后台全选/多选+批量审核/删除/移动分类/推荐/取消推荐，确认弹窗防误操作
 - **V2.9.1收尾** - menu.php新增report/apidoc菜单、permission.php新增4组权限、v2.9.1.sql(3表+CDN配置+免邮配置+语言切换器)
 
-### V2.9 新增特性
+**V2.9**
 
 - **AI模板高度定制化** - 5大Tab页(基本信息/生成规则/字段映射/配图发布/参考示例)，自定义字段动态增删，6种转换规则，质量检测配置(评分阈值/自动重试/低质处理)
 - **AI模板表单联动** - 生成模式(NLP/参考示例)切换联动，字段映射动态交互，结构化JSON采集(fields_json/field_mapping_json/quality_config_json)
@@ -337,7 +337,7 @@
 - **多语言翻译完善** - AI批量翻译(AiService::translateBatch)，前台4套模板语言切换器，LanguageController字段名统一(is_enabled)
 - **V2.9收尾** - menu.php+permission.php+module注册3项同步更新，v2.9.sql完整迁移(5张新表+字段补全+配置项)
 
-### V2.8 新增特性
+**V2.8**
 
 - **AI配图生成** - 通义万相Provider+ImageProviderFactory工厂模式，编辑器一键AI生成封面图
 - **AI内容质量检测** - 5维度评分(可读性/SEO/原创性/结构/吸引力)+改进建议，编辑器实时提示
@@ -350,7 +350,7 @@
 - **邀请返积分** - 邀请码+注册奖励+IP防刷(限3次)+邀请排行/明细，会员增长闭环
 - **权限配置完善** - 新增traffic/ai_stat/invite三组权限映射，非超管角色可正常访问
 
-### V2.7 新增特性
+**V2.7**
 
 - **API安全加固** - ApiMemberAuth中间件注入会员ID，PaidContentGuard二级防护，杜绝付费内容绕过
 - **VIP权益规范化** - is_vip字段统一标记，登录时实时过期检查，VipExpireCommand定时降级
@@ -367,7 +367,7 @@
 - **双栏菜单(corporate)** - L1图标55px+L2面板200px，hover/click交互
 - **AI模板参考示例** - generate_mode=example，参考示例Prompt构建
 
-### V2.6 改进
+**V2.6**
 
 - **CSS静态资源分离** - 后台/前台/登录页内联CSS提取为外部文件，`public/skin/` 目录管理
 - **PJAX核心修复** - 51个模板`<script>`从content block迁移至js block，解决PJAX切换脚本丢失
@@ -376,7 +376,7 @@
 - **Nginx配置更新** - deploy/nginx + docker/nginx 添加 `/skin/` 路径支持
 - **调试文件清理** - 移除调试临时文件，.gitignore增强忽略规则
 
-### V2.5 新增特性
+**V2.5**
 
 - **微信支付V3** - 会员内容付费，微信支付V3接口集成
 - **AI批量生成** - 按分类批量AI生成内容，支持队列任务
@@ -390,7 +390,7 @@
 - **Redis缓存** - CacheService标签体系(17标签)，精准缓存管理
 - **小程序** - 微信小程序端，支持内容浏览/搜索/详情
 
-### 更早版本特性
+**更早版本**
 
 - **定时发布** - 支持内容定时上线，配合命令行自动执行
 - **SEO管理** - Sitemap自动生成、robots.txt管理、死链检测、JSON-LD结构化数据
