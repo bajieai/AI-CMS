@@ -8,16 +8,16 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- --------------------------------------------
--- 1. i8j_article 新增 lang 字段（幂等保护）
+-- 1. i8j_content 新增 lang 字段（幂等保护）
 -- --------------------------------------------
 SET @db = DATABASE();
 
 -- 检查 lang 字段是否存在
 SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'i8j_article' AND COLUMN_NAME = 'lang');
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'i8j_content' AND COLUMN_NAME = 'lang');
 
 SET @sql = IF(@col_exists = 0,
-    'ALTER TABLE `i8j_article` ADD COLUMN `lang` VARCHAR(10) NOT NULL DEFAULT \'zh-cn\' COMMENT \'文章语言代码\' AFTER `id`',
+    'ALTER TABLE `i8j_content` ADD COLUMN `lang` VARCHAR(10) NOT NULL DEFAULT \'zh-cn\' COMMENT \'文章语言代码\' AFTER `id`',
     'SELECT \'lang字段已存在，跳过\' AS info');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -25,10 +25,10 @@ DEALLOCATE PREPARE stmt;
 
 -- 检查 idx_lang 索引是否存在
 SET @idx_exists = (SELECT COUNT(*) FROM information_schema.STATISTICS
-    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'i8j_article' AND INDEX_NAME = 'idx_lang');
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'i8j_content' AND INDEX_NAME = 'idx_lang');
 
 SET @sql = IF(@idx_exists = 0,
-    'ALTER TABLE `i8j_article` ADD INDEX `idx_lang` (`lang`)',
+    'ALTER TABLE `i8j_content` ADD INDEX `idx_lang` (`lang`)',
     'SELECT \'idx_lang索引已存在，跳过\' AS info');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
