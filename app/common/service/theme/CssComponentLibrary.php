@@ -29,7 +29,7 @@ class CssComponentLibrary
     protected const INDUSTRY_COMPONENTS = [
         'corporate' => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer'],
         'ecommerce' => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'price', 'footer'],
-        'blog'      => ['vars', 'card', 'button', 'nav', 'grid', 'spacing', 'article', 'footer'],
+        'blog'      => ['vars', 'card', 'button', 'nav', 'grid', 'spacing', 'content', 'footer'],
         'portal'    => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer'],
         'medical'   => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer', 'sidebar'],
         'education' => ['vars', 'hero', 'card', 'button', 'nav', 'grid', 'spacing', 'footer', 'header'],
@@ -54,7 +54,7 @@ class CssComponentLibrary
             'spacing' => '间距体系',
             'footer'  => '多列页脚',
             'price'   => '价格/促销标签',
-            'article' => '文章/博客组件',
+            'content' => '内容/博客组件',
             'header'  => '顶部信息条',
             'sidebar' => '侧边栏组件',
         ];
@@ -481,27 +481,27 @@ CSS;
     }
 
     /**
-     * 组件9：评论/文章区（博客专用）
+     * 组件9：评论/内容区（博客专用）
      */
-    protected function renderArticle(): string
+    protected function renderContent(): string
     {
         return <<<CSS
-/* === Article & Blog Components === */
-.article-card {
+/* === Content & Blog Components === */
+.content-card {
     background: var(--bg);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
     transition: var(--transition);
 }
-.article-card:hover {
+.content-card:hover {
     box-shadow: var(--shadow-hover);
     transform: translateY(-2px);
 }
-.article-body {
+.content-body {
     padding: 1.5rem;
 }
-.article-meta {
+.content-meta {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -509,7 +509,7 @@ CSS;
     font-size: 0.813rem;
     margin-bottom: 0.75rem;
 }
-.article-excerpt {
+.content-excerpt {
     color: var(--text-muted);
     line-height: 1.7;
     font-size: 0.938rem;

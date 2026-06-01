@@ -52,12 +52,12 @@ img{max-width:100%;height:auto}
 .tag-link{display:inline-block;padding:3px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.8rem;color:var(--text-secondary);transition:var(--transition)}
 .tag-link:hover{background:var(--primary);color:var(--text-inverse);border-color:var(--primary)}
 
-/* === Article Reading === */
-.article-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
-.article-meta{color:var(--text-secondary);font-size:.88rem}
+/* === Content Reading === */
+.content-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.content-meta{color:var(--text-secondary);font-size:.88rem}
 .content-body{line-height:1.85;font-size:1.05rem}
 .content-body p{margin-bottom:1.25rem}
-.article-reading .content-body{line-height:1.95;font-size:1.08rem}
+.content-reading .content-body{line-height:1.95;font-size:1.08rem}
 .i8j-paywall-box{text-align:center;padding:2rem;background:var(--bg-secondary);border-radius:var(--radius);border:1px dashed var(--border)}
 
 /* === List Cards === */

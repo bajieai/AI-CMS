@@ -130,10 +130,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 .m-cate-body a:active { background: #eef2ff; color: var(--primary); }
 
 /* 内容正文 */
-.m-article-body { font-size: 15px; line-height: 1.75; word-break: break-word; }
-.m-article-body img { max-width: 100% !important; height: auto !important; border-radius: var(--radius-btn); }
-.m-article-body table { width: 100%; font-size: 13px; border-collapse: collapse; display: block; overflow-x: auto; white-space: nowrap; }
-.m-article-body a { color: var(--primary); }
+.m-content-body { font-size: 15px; line-height: 1.75; word-break: break-word; }
+.m-content-body img { max-width: 100% !important; height: auto !important; border-radius: var(--radius-btn); }
+.m-content-body table { width: 100%; font-size: 13px; border-collapse: collapse; display: block; overflow-x: auto; white-space: nowrap; }
+.m-content-body a { color: var(--primary); }
 
 /* 徽标 */
 .m-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-badge); font-size: 11px; font-weight: 500; }

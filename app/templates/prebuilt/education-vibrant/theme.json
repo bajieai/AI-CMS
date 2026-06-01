@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "教育活力风格",
     "description": "适用于少儿教育平台，活泼活力风格，色彩明快。黄色系主色调，趣味卡片。",
     "author": "八界AI",
@@ -20,6 +20,6 @@
         "show_breadcrumb": false,
         "show_sidebar": false,
         "hero_enabled": true,
-        "articles_per_page": 12
+        "infos_per_page": 12
     }
 }

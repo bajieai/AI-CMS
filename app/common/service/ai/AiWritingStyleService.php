@@ -101,13 +101,13 @@ class AiWritingStyleService
             'max_tokens'    => $maxTokens,
         ]);
 
-        return self::parseArticle($content, $topic);
+        return self::parseContent($content, $topic);
     }
 
     /**
-     * 解析AI生成的文章
+     * 解析AI生成的内容
      */
-    protected static function parseArticle(string $content, string $defaultTitle = ''): array
+    protected static function parseContent(string $content, string $defaultTitle = ''): array
     {
         $title = $defaultTitle;
         if (preg_match('/^#\s+(.+)/m', $content, $matches)) {

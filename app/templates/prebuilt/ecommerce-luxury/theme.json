@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "电商大牌质感",
     "description": "适用于品牌电商，大牌质感风格，提升品牌调性。暗色系主色调，大图展示。",
     "author": "八界AI",
@@ -20,6 +20,6 @@
         "show_breadcrumb": false,
         "show_sidebar": false,
         "hero_enabled": true,
-        "articles_per_page": 12
+        "infos_per_page": 12
     }
 }

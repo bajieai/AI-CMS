@@ -15,7 +15,7 @@
 {/foreach}
 {/if}
 <!-- V2.9.2 M19b: Schema.org JSON-LD -->
-{:app\common\service\SchemaService::article($info)}
+{:app\common\service\SchemaService::content($info)}
 <!-- V2.9.2 M19b: BreadcrumbList -->
 {:app\common\service\SchemaService::breadcrumb(['首页'=>$site_url,'分类'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
 <!-- V2.9.9: 多语言hreflang标签 -->
@@ -58,7 +58,7 @@
     {/if}
 
     <!-- V2.9.5 浠樿垂内容瀹夊叏灞曠ず -->
-    <div class="m-article-body">
+    <div class="m-content-body">
         {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
         <div style="color:#555;line-height:1.7;margin-bottom:12px;">{$safe_content.preview}</div>
         <div class="text-center py-3 my-2 rounded" style="background:var(--i8j-bg-secondary,#f8fafc);border:1px dashed #cbd5e1;">
@@ -183,7 +183,7 @@
 {/block}
 
 {block name="css"}
-<style>.m-article-body img{max-width:100%!important;height:auto!important;border-radius:8px;} .m-article-body table{display:block;overflow-x:auto;width:100%;font-size:13px;} .m-article-body a{color:#0d6efd;}</style>
+<style>.m-content-body img{max-width:100%!important;height:auto!important;border-radius:8px;} .m-content-body table{display:block;overflow-x:auto;width:100%;font-size:13px;} .m-content-body a{color:#0d6efd;}</style>
 {/block}
 
 {block name="js"}

@@ -41,19 +41,19 @@ class SchemaMarkupService
     // ============================================================
 
     /**
-     * 生成Article Schema（文章详情页）
+     * 生成内容Schema（内容详情页）
      */
-    public function generateArticle(array $article): array
+    public function generateContent(array $content): array
     {
         $schema = [
             '@context'    => 'https://schema.org',
             '@type'       => 'Article',
-            'headline'    => $article['title'] ?? '',
-            'description' => $article['description'] ?? '',
-            'image'       => $article['image'] ?? '',
-            'url'         => $article['url'] ?? '',
-            'datePublished'=> $this->toIso8601($article['create_time'] ?? time()),
-            'dateModified' => $this->toIso8601($article['update_time'] ?? time()),
+            'headline'    => $content['title'] ?? '',
+            'description' => $content['description'] ?? '',
+            'image'       => $content['image'] ?? '',
+            'url'         => $content['url'] ?? '',
+            'datePublished'=> $this->toIso8601($content['create_time'] ?? time()),
+            'dateModified' => $this->toIso8601($content['update_time'] ?? time()),
             'author'      => [
                 '@type' => 'Organization',
                 'name'  => $this->siteName,
@@ -69,12 +69,12 @@ class SchemaMarkupService
             ],
             'mainEntityOfPage' => [
                 '@type' => 'WebPage',
-                '@id'   => $article['url'] ?? '',
+                '@id'   => $content['url'] ?? '',
             ],
         ];
 
-        // 如果文章是新闻类，使用NewsArticle
-        if (!empty($article['is_news'])) {
+        // 如果是新闻类内容，使用NewsArticle
+        if (!empty($content['is_news'])) {
             $schema['@type'] = 'NewsArticle';
         }
 

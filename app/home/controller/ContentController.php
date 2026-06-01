@@ -151,7 +151,7 @@ class ContentController extends FrontBaseController
 
         // V2.9.15: Schema.org 结构化标记
         $schemaService = new SchemaMarkupService();
-        $articleSchema = $schemaService->generateArticle([
+        $contentSchema = $schemaService->generateContent([
             'title'       => $info->seo_title ?: $info->title,
             'description' => $info->seo_description ?: $info->excerpt,
             'image'       => $info->cover,
@@ -159,7 +159,7 @@ class ContentController extends FrontBaseController
             'create_time' => $info->create_time,
             'update_time' => $info->update_time,
         ]);
-        $schemaMarkup = $schemaService->toJsonLd([$articleSchema]);
+        $schemaMarkup = $schemaService->toJsonLd([$contentSchema]);
 
         // V2.9.15: 获取内容翻译状态（用于前台语言切换器）
         $contentLangs = [];

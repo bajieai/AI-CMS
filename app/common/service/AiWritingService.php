@@ -71,16 +71,16 @@ class AiWritingService
     }
 
     /**
-     * 生成单篇文章
+     * 生成单篇内容
      */
-    public static function generateArticle(string $topic, string $style = 'default', array $options = []): array
+    public static function generateContent(string $topic, string $style = 'default', array $options = []): array
     {
         $systemPrompt = self::$stylePrompts[$style] ?? self::$stylePrompts['default'];
         $maxTokens = (int) ($options['max_tokens'] ?? 2000);
-        $longThreshold = (int) ConfigService::get('ai_long_article_threshold', 2000);
+        $longThreshold = (int) ConfigService::get('ai_long_info_threshold', 2000);
 
         if ($maxTokens >= $longThreshold) {
-            return self::generateLongArticle($topic, $systemPrompt, $options);
+            return self::generateLongContent($topic, $systemPrompt, $options);
         }
 
         $provider = AiProviderFactory::getDefault();
@@ -95,13 +95,13 @@ class AiWritingService
             'max_tokens' => $maxTokens,
         ]);
 
-        return self::parseArticle($content, $topic);
+        return self::parseContent($content, $topic);
     }
 
     /**
      * 长文分段生成（3000+字）
      */
-    protected static function generateLongArticle(string $topic, string $systemPrompt, array $options = []): array
+    protected static function generateLongContent(string $topic, string $systemPrompt, array $options = []): array
     {
         $provider = AiProviderFactory::getDefault();
 
@@ -135,13 +135,13 @@ class AiWritingService
             $prevSummary = mb_substr($sectionContent, 0, 100);
         }
 
-        return self::parseArticle($fullContent, $topic);
+        return self::parseContent($fullContent, $topic);
     }
 
     /**
-     * AI优化已有文章
+     * AI优化已有内容
      */
-    public static function optimizeArticle(string $content, string $type = 'seo', array $options = []): string
+    public static function optimizeContent(string $content, string $type = 'seo', array $options = []): string
     {
         $provider = AiProviderFactory::getDefault();
 
@@ -277,7 +277,7 @@ class AiWritingService
                         }
                     } else {
                         // 原有逻辑不变（向后兼容无模板的任务）
-                        $article = self::generateArticle($keyword, $task->style, ['max_tokens' => 2000]);
+                        $article = self::generateContent($keyword, $task->style, ['max_tokens' => 2000]);
                         $qualityPassed = true;
                     }
                 } while (!$qualityPassed && $retryCount <= $maxRetry);
@@ -371,7 +371,7 @@ class AiWritingService
     protected static function executeWithPrompt(string $prompt, string $systemPrompt, string $defaultTitle, ?AiTemplate $template): array
     {
         $rawOutput = self::executeWithPromptRaw($prompt, $systemPrompt, $template);
-        return self::parseArticle($rawOutput, $defaultTitle);
+        return self::parseContent($rawOutput, $defaultTitle);
     }
 
     /**
@@ -400,9 +400,9 @@ class AiWritingService
     }
 
     /**
-     * 解析AI生成的文章
+     * 解析AI生成的内容
      */
-    protected static function parseArticle(string $content, string $defaultTitle = ''): array
+    protected static function parseContent(string $content, string $defaultTitle = ''): array
     {
         $title = $defaultTitle;
         if (preg_match('/^#\s+(.+)/m', $content, $matches)) {

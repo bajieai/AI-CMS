@@ -257,7 +257,7 @@ INSERT INTO `{prefix}config` (`name`, `value`, `group`, `remark`) VALUES
 INSERT INTO `{prefix}config` (`name`, `value`, `group`, `remark`) VALUES
 ('ai_batch_max_count', '10', 'ai', '批量生成最大篇数'),
 ('ai_batch_default_model', '0', 'ai', '批量生成默认模型(0=系统默认)'),
-('ai_long_article_threshold', '2000', 'ai', '长文阈值(字数)');
+('ai_long_info_threshold', '2000', 'ai', '长文阈值(字数)');
 
 -- 新增AI Provider初始数据
 INSERT INTO `{prefix}ai_model` (`name`, `provider`, `model_id`, `api_base`, `api_key`, `capabilities`, `is_default`, `is_enabled`, `max_tokens`, `temperature`, `sort`, `api_key_encrypted`, `rate_limit_rpm`, `rate_limit_rph`, `create_time`, `update_time`) VALUES

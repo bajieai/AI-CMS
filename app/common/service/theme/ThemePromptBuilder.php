@@ -179,7 +179,7 @@ CLS;
             return $common . "\n展示型特有: .hero-showcase, .hero-desc, .hero-actions, .banner-slide, .carousel-caption, .feature-card, .feature-icon, .product-card, .case-card, .news-card, .list-card, .placeholder-img";
         }
 
-        return $common . "\n内容型特有: .content-list-item, .item-thumb, .item-body, .item-meta, .widget, .widget-title, .tag-cloud, .tag-link, .article-card, .article-meta, .article-reading, .rank-num, .sidebar-card";
+        return $common . "\n内容型特有: .content-list-item, .item-thumb, .item-body, .item-meta, .widget, .widget-title, .tag-cloud, .tag-link, .content-card, .content-meta, .content-reading, .rank-num, .sidebar-card";
     }
 
     /**

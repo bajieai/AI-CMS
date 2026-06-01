@@ -1,4 +1,4 @@
-{extend name="pc/layout" /}
+﻿{extend name="pc/layout" /}
 
 {block name="content"}
 <!-- 面包屑导航 -->
@@ -7,7 +7,7 @@
     <span>&gt;</span>
     <a href="{$category.url}">{$category.title}</a>
     <span>&gt;</span>
-    <span>{$article.title}</span>
+    <span>{$content.title}</span>
 </div>
 
 <!-- 详情页内容 -->
@@ -15,43 +15,43 @@
     <div class="detail-grid">
         <!-- 左侧主栏 -->
         <div class="main-column">
-            <div class="article-header">
-                <h1 class="article-title">{$article.title}</h1>
-                <div class="article-meta">
-                    <span class="author">{$article.author|default='编辑'}</span>
-                    <span class="date">{$article.create_time|date='Y-m-d H:i'}</span>
+            <div class="content-header">
+                <h1 class="content-title">{$content.title}</h1>
+                <div class="content-meta">
+                    <span class="author">{$content.author|default='编辑'}</span>
+                    <span class="date">{$content.create_time|date='Y-m-d H:i'}</span>
                     <span class="category"><a href="{$category.url}">{$category.title}</a></span>
-                    <span class="views">阅读 {$article.views}</span>
-                    {if condition="$article.comment_count"}
-                    <span class="comments">评论 {$article.comment_count}</span>
+                    <span class="views">阅读 {$content.views}</span>
+                    {if condition="$content.comment_count"}
+                    <span class="comments">评论 {$content.comment_count}</span>
                     {/if}
                 </div>
             </div>
 
-            <div class="article-content">
-                {$article.content|raw}
+            <div class="content-body">
+                {$content.content|raw}
             </div>
 
             <!-- 标签 -->
-            <div class="article-tags">
+            <div class="content-tags">
                 <span>标签：</span>
-                {volist name="article.tags" id="tag"}
+                {volist name="content.tags" id="tag"}
                 <a href="{$tag.url}" class="tag-item">{$tag.name}</a>
                 {/volist}
             </div>
 
             <!-- 上下篇文章 -->
-            <div class="article-nav">
-                <div class="prev-article">
-                    {if condition="$prev_article"}
-                    <a href="{$prev_article.url}">上一篇：{$prev_article.title}</a>
+            <div class="content-nav">
+                <div class="prev-content">
+                    {if condition="$prev_content"}
+                    <a href="{$prev_content.url}">上一篇：{$prev_content.title}</a>
                     {else /}
                     <span>上一篇：没有了</span>
                     {/if}
                 </div>
-                <div class="next-article">
-                    {if condition="$next_article"}
-                    <a href="{$next_article.url}">下一篇：{$next_article.title}</a>
+                <div class="next-content">
+                    {if condition="$next_content"}
+                    <a href="{$next_content.url}">下一篇：{$next_content.title}</a>
                     {else /}
                     <span>下一篇：没有了</span>
                     {/if}
@@ -59,7 +59,7 @@
             </div>
 
             <!-- 相关文章 -->
-            <div class="related-articles">
+            <div class="related-contents">
                 <h3 class="section-title">相关文章</h3>
                 <ul class="related-list">
                     {volist name="related_list" id="item"}
@@ -78,7 +78,7 @@
                 <h3 class="section-title">文章评论</h3>
                 <div class="comment-form">
                     <form action="/comment/add" method="post">
-                        <input type="hidden" name="article_id" value="{$article.id}">
+                        <input type="hidden" name="content_id" value="{$content.id}">
                         <textarea name="content" placeholder="发表评论..." required></textarea>
                         <button type="submit" class="submit-btn">提交评论</button>
                     </form>
@@ -111,17 +111,17 @@
             <div class="widget author-info">
                 <h3 class="widget-title">关于作者</h3>
                 <div class="author-detail">
-                    <img src="{$article.author_avatar|default='/assets/placeholder/author.jpg'}" alt="{$article.author}">
-                    <h4>{$article.author|default='编辑'}</h4>
-                    <p>{$article.author_desc|default='资深编辑'}</p>
+                    <img src="{$content.author_avatar|default='/assets/placeholder/author.jpg'}" alt="{$content.author}">
+                    <h4>{$content.author|default='编辑'}</h4>
+                    <p>{$content.author_desc|default='资深编辑'}</p>
                 </div>
             </div>
 
             <!-- 热门文章 -->
-            <div class="widget hot-articles">
+            <div class="widget hot-contents">
                 <h3 class="widget-title">热门文章</h3>
                 <ul class="hot-list">
-                    {volist name="hot_article_list" id="item" key="k"}
+                    {volist name="hot_content_list" id="item" key="k"}
                     <li class="hot-item">
                         <span class="hot-rank {if condition='$k <= 3'}top{/if}">{$k}</span>
                         <a href="{$item.url}">{$item.title}</a>

@@ -74,7 +74,7 @@ class SystemController extends AdminBaseController
                 'ai_default_model'            => ['model', 'basic'],
                 'ai_batch_max_count'          => ['model', 'batch'],
                 'ai_batch_default_model'      => ['model', 'batch'],
-                'ai_long_article_threshold'   => ['model', 'write'],
+                'ai_long_info_threshold'   => ['model', 'write'],
                 'ai_stat_enabled'             => ['model', 'stats'],
                 'ai_stat_retention_days'      => ['model', 'stats'],
 

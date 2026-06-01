@@ -1,4 +1,4 @@
-{extend name="pc/layout" /}
+﻿{extend name="pc/layout" /}
 
 {block name="content"}
 <!-- 面包屑导航 -->
@@ -17,22 +17,22 @@
             <div class="category-desc">{$category.description}</div>
 
             <!-- 文章列表 -->
-            <ul class="article-list">
-                {volist name="article_list" id="article"}
-                <li class="article-item">
-                    <a href="{$article.url}" class="article-link">
-                        <div class="article-thumb">
-                            <img src="{$article.thumb|default='/assets/placeholder/list-thumb.jpg'}" alt="{$article.title}">
+            <ul class="content-list">
+                {volist name="content_list" id="content"}
+                <li class="content-item">
+                    <a href="{$content.url}" class="content-link">
+                        <div class="content-thumb">
+                            <img src="{$content.thumb|default='/assets/placeholder/list-thumb.jpg'}" alt="{$content.title}">
                         </div>
-                        <div class="article-info">
-                            <h2>{$article.title}</h2>
-                            <p class="article-summary">{$article.summary}</p>
-                            <div class="article-meta">
-                                <span class="author">{$article.author|default='编辑'}</span>
-                                <span class="date">{$article.create_time|date='Y-m-d H:i'}</span>
-                                <span class="views">阅读 {$article.views}</span>
-                                {if condition="$article.comment_count"}
-                                <span class="comments">评论 {$article.comment_count}</span>
+                        <div class="content-info">
+                            <h2>{$content.title}</h2>
+                            <p class="content-summary">{$content.summary}</p>
+                            <div class="content-meta">
+                                <span class="author">{$content.author|default='编辑'}</span>
+                                <span class="date">{$content.create_time|date='Y-m-d H:i'}</span>
+                                <span class="views">阅读 {$content.views}</span>
+                                {if condition="$content.comment_count"}
+                                <span class="comments">评论 {$content.comment_count}</span>
                                 {/if}
                             </div>
                         </div>
@@ -60,7 +60,7 @@
             </div>
 
             <!-- 推荐文章 -->
-            <div class="widget recommend-articles">
+            <div class="widget recommend-contents">
                 <h3 class="widget-title">推荐文章</h3>
                 <ul class="recommend-list">
                     {volist name="recommend_list" id="item"}

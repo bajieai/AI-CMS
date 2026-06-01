@@ -26,9 +26,9 @@ use think\facade\Request;
 class SchemaService
 {
     /**
-     * 生成文章/产品 JSON-LD
+     * 生成内容/产品 JSON-LD
      */
-    public static function article(Content $content): string
+    public static function content(Content $content): string
     {
         if (!Config::get('seo.schema_enabled', 1)) {
             return '';

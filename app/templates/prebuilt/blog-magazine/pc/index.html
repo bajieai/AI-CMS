@@ -1,4 +1,4 @@
-{extend name="pc/layout" /}
+﻿{extend name="pc/layout" /}
 
 {block name="main"}
 <section class="hero-section">
@@ -18,18 +18,18 @@
             <p class="section-desc">用心挑选每一篇好文章</p>
         </div>
         <div class="featured-grid">
-            {volist name="featured_articles" id="article" empty="暂无精选文章"}
+            {volist name="featured_contents" id="content" empty="暂无精选文章"}
             <article class="featured-card">
                 <div class="card-image">
-                    <img src="/assets/placeholder/featured-{$i}.jpg" alt="{$article.title}">
-                    <span class="card-category">{$article.category|default='随笔'}</span>
+                    <img src="/assets/placeholder/featured-{$i}.jpg" alt="{$content.title}">
+                    <span class="card-category">{$content.category|default='随笔'}</span>
                 </div>
                 <div class="card-body">
-                    <h3 class="card-title"><a href="/article/{$article.id}">{$article.title}</a></h3>
-                    <p class="card-excerpt">{$article.summary|default=''}</p>
+                    <h3 class="card-title"><a href="/content/{$content.id}">{$content.title}</a></h3>
+                    <p class="card-excerpt">{$content.summary|default=''}</p>
                     <div class="card-meta">
-                        <span class="meta-date">{$article.create_time|date='Y-m-d',###}</span>
-                        <span class="meta-views">{$article.views|default=0} 阅读</span>
+                        <span class="meta-date">{$content.create_time|date='Y-m-d',###}</span>
+                        <span class="meta-views">{$content.views|default=0} 阅读</span>
                     </div>
                 </div>
             </article>
@@ -45,18 +45,18 @@
             <p class="section-desc">记录生活的点滴感悟</p>
         </div>
         <div class="latest-list">
-            {volist name="latest_articles" id="article" empty="暂无最新文章"}
+            {volist name="latest_contents" id="content" empty="暂无最新文章"}
             <article class="latest-item">
                 <div class="item-image">
-                    <img src="/assets/placeholder/latest-{$i}.jpg" alt="{$article.title}">
+                    <img src="/assets/placeholder/latest-{$i}.jpg" alt="{$content.title}">
                 </div>
                 <div class="item-content">
-                    <h3 class="item-title"><a href="/article/{$article.id}">{$article.title}</a></h3>
-                    <p class="item-excerpt">{$article.summary|default=''}</p>
+                    <h3 class="item-title"><a href="/content/{$content.id}">{$content.title}</a></h3>
+                    <p class="item-excerpt">{$content.summary|default=''}</p>
                     <div class="item-meta">
-                        <span class="meta-date">{$article.create_time|date='Y-m-d',###}</span>
-                        <span class="meta-category">{$article.category|default='随笔'}</span>
-                        <span class="meta-views">{$article.views|default=0} 阅读</span>
+                        <span class="meta-date">{$content.create_time|date='Y-m-d',###}</span>
+                        <span class="meta-category">{$content.category|default='随笔'}</span>
+                        <span class="meta-views">{$content.views|default=0} 阅读</span>
                     </div>
                 </div>
             </article>

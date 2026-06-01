@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "企业现代简约",
     "description": "适用于企业官方网站，现代简约风格，突出品牌形象。响应式布局，蓝色系主色调。",
     "author": "八界AI",
@@ -20,6 +20,6 @@
         "show_breadcrumb": true,
         "show_sidebar": false,
         "hero_enabled": true,
-        "articles_per_page": 12
+        "infos_per_page": 12
     }
 }

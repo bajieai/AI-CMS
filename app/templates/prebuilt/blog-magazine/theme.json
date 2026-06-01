@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "博客杂志风格",
     "description": "适用于个人博客，杂志风格，适合图文混排。米色系主色调，多栏布局。",
     "author": "八界AI",
@@ -20,6 +20,6 @@
         "show_breadcrumb": false,
         "show_sidebar": true,
         "hero_enabled": true,
-        "articles_per_page": 12
+        "infos_per_page": 12
     }
 }

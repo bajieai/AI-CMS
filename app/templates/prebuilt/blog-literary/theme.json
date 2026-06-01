@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "博客文艺清新",
     "description": "适用于个人博客，文艺清新风格，适合文字创作。绿色系主色调，单列阅读布局。",
     "author": "八界AI",
@@ -20,6 +20,6 @@
         "show_breadcrumb": false,
         "show_sidebar": true,
         "hero_enabled": false,
-        "articles_per_page": 10
+        "infos_per_page": 10
     }
 }

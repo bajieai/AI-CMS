@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "门户新闻资讯",
     "description": "适用于新闻门户，资讯风格，信息密度高。红色系主色调，多栏布局。",
     "author": "八界AI",
@@ -20,6 +20,6 @@
         "show_breadcrumb": true,
         "show_sidebar": true,
         "hero_enabled": false,
-        "articles_per_page": 20
+        "infos_per_page": 20
     }
 }

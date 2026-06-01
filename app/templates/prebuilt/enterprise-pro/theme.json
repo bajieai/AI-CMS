@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "企业商务专业",
     "description": "适用于B2B企业展示，商务专业风格，深色导航栏+卡片式布局。灰色系主色调。",
     "author": "八界AI",
@@ -20,6 +20,6 @@
         "show_breadcrumb": true,
         "show_sidebar": false,
         "hero_enabled": true,
-        "articles_per_page": 12
+        "infos_per_page": 12
     }
 }
