@@ -18,13 +18,20 @@ use app\common\service\VisitService;
 use think\Request;
 
 /**
- * PV统计API - V2.7 P0-6
+ * PV统计API
+ * @api_group V1-数据统计
+ * @api_desc PV打点、热门内容、分享追踪等统计接口
  */
 class Visit
 {
     /**
-     * 接收前端PV打点数据（公开接口，无需认证）
-     * POST /api/v1/visit/pv
+     * PV打点上报
+     * @api PV打点上报
+     * @api_desc 接收前端页面访问打点数据（无需认证，支持img标签埋点）
+     * @param int $content_id 内容ID
+     * @param string $page_url 页面URL
+     * @param string $referrer 来源URL
+     * @return json 返回上报结果
      */
     public function pv(Request $request)
     {
@@ -50,8 +57,12 @@ class Visit
     }
 
     /**
-     * 获取热门内容（近7天）公开接口
-     * GET /api/v1/visit/hot
+     * 热门内容
+     * @api 热门内容
+     * @api_desc 获取近N天PV最高的热门内容排行榜
+     * @param int $limit 返回数量(默认10)
+     * @param int $days 统计天数(默认7天)
+     * @return json 返回热门内容列表
      */
     public function hot(Request $request)
     {
@@ -64,8 +75,12 @@ class Visit
     }
 
     /**
-     * 分享统计埋点 - V2.8新增
-     * POST /api/v1/visit/trackShare
+     * 分享统计埋点
+     * @api 分享追踪上报
+     * @api_desc 记录前台分享行为数据（无需认证）
+     * @param string $url 分享链接
+     * @param string $channel 分享渠道
+     * @return json 返回上报结果
      */
     public function trackShare(Request $request)
     {

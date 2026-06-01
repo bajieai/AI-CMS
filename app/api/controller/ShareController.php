@@ -18,13 +18,20 @@ use app\common\service\ShareTrackerService;
 use think\facade\Request;
 
 /**
- * 分享追踪API - V2.9.9
- * 公开接口，用于记录前台分享行为
+ * 分享追踪API
+ * @api_group 分享追踪
+ * @api_desc 记录前台分享行为，用于分享统计和分析
  */
 class ShareController extends BaseController
 {
     /**
-     * 记录分享事件（无需认证，游客可上报）
+     * 记录分享事件
+     * @api 分享追踪上报
+     * @api_desc 记录前台用户的分享行为（无需认证），用于分享看板统计
+     * @param int $content_id 内容ID
+     * @param string $channel 分享渠道(wechat/weibo/qq/copy/other)
+     * @param string $url 分享链接
+     * @return json 返回上报结果
      */
     public function track()
     {

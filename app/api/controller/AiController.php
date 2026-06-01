@@ -20,6 +20,8 @@ use think\facade\Config;
 
 /**
  * AI接口控制器
+ * @api_group AI接口
+ * @api_desc AI内容生成、图片生成、SEO优化、质量检测等智能接口
  */
 class AiController
 {
@@ -32,7 +34,13 @@ class AiController
 
     /**
      * AI内容生成
-     * POST /api/ai/generate
+     * @api AI内容生成
+     * @api_desc 根据提示词和写作风格生成文章内容，支持续写/改写等多种模板
+     * @param string $prompt 写作提示词
+     * @param string $template 模板类型(continue/rewrite/expand/summary)
+     * @param string $style 写作风格(default/formal/relaxed/professional/marketing)
+     * @return json 返回生成的content
+     * @api_auth yes
      */
     public function generate()
     {
@@ -65,8 +73,12 @@ class AiController
     }
 
     /**
-     * AI内容质量检测 - V2.8新增
-     * POST /api/ai/quality
+     * AI内容质量检测
+     * @api AI内容质量检测
+     * @api_desc 评估内容质量，返回可读性/SEO/原创性/结构/吸引力等维度评分
+     * @param string $content 要检测的内容文本
+     * @return json 返回各维度评分、总分和改进建议
+     * @api_auth yes
      */
     public function quality()
     {
@@ -97,8 +109,14 @@ class AiController
     }
 
     /**
-     * AI图片生成 - V2.8新增 / V2.9.9-R4增强: 支持size参数
-     * POST /api/ai/image
+     * AI图片生成
+     * @api AI图片生成
+     * @api_desc 根据文本描述生成配图，支持多种风格和尺寸
+     * @param string $prompt 图片描述文本
+     * @param string $style 配图风格(realistic/illustration/watercolor/3d_render/pixel_art)
+     * @param string $size 图片尺寸(1024x1024/1024x576/1024x768/768x1024)
+     * @return json 返回生成的图片URL和任务状态
+     * @api_auth yes
      */
     public function image()
     {
@@ -138,8 +156,13 @@ class AiController
     }
 
     /**
-     * AI SEO优化 - V2.8新增
-     * POST /api/ai/seo
+     * AI SEO优化
+     * @api AI SEO优化
+     * @api_desc AI分析内容并优化SEO标题、关键词和描述
+     * @param string $content 文章内容
+     * @param string $title 原标题
+     * @return json 返回优化后的title/keywords/description
+     * @api_auth yes
      */
     public function seo()
     {
@@ -198,10 +221,15 @@ class AiController
     }
 
     /**
-     * V3.1: AI批量配图（单图生成+自动Prompt构建）
-     * POST /api/ai/batch_image
-     *
-     * 前端串行调用此接口实现批量配图+进度条，无需后端异步队列
+     * AI批量配图
+     * @api AI批量配图
+     * @api_desc 根据文章标题/内容自动构建Prompt并生成配图，前端串行调用实现批量+进度条
+     * @param string $title 文章标题
+     * @param string $content 文章内容
+     * @param string $style 配图风格
+     * @param int $paragraph_index 段落索引（前端跟踪进度）
+     * @return json 返回图片URL、配额信息和段落索引
+     * @api_auth yes
      */
     public function batchImage()
     {
@@ -243,8 +271,16 @@ class AiController
     }
 
     /**
-     * V3.1: SEO评分纯算法（零AI成本）
-     * POST /api/ai/seo_score
+     * SEO评分（纯算法）
+     * @api SEO评分
+     * @api_desc 纯算法对内容进行SEO评分（零AI成本），基于5维度加权计算
+     * @param string $title 文章标题
+     * @param string $content 文章内容
+     * @param string $seo_title SEO标题
+     * @param string $seo_description SEO描述
+     * @param string $seo_keywords SEO关键词
+     * @return json 返回评分(0-100)、各维度详情和改进建议
+     * @api_auth yes
      */
     public function seoScore()
     {
@@ -271,8 +307,10 @@ class AiController
     }
 
     /**
-     * V3.1: 获取写作风格列表
-     * GET /api/ai/styles
+     * 获取写作风格列表
+     * @api 获取写作风格列表
+     * @api_desc 返回系统中可用的AI写作风格选项（默认/正式/轻松/专业/营销等）
+     * @return json 返回风格列表(key/name)
      */
     public function styles()
     {
@@ -292,8 +330,15 @@ class AiController
     }
 
     /**
-     * V3.1: 社交分享链接生成
-     * POST /api/ai/share
+     * 社交分享链接生成
+     * @api 社交分享链接生成
+     * @api_desc 生成微博/QQ/Twitter等平台的分享链接和分享卡片数据
+     * @param string $title 分享标题
+     * @param string $description 分享描述
+     * @param string $url 分享链接URL
+     * @param string $cover 分享封面图URL
+     * @return json 返回各平台分享链接(weibo/qq/twitter/copy)和分享卡片
+     * @api_auth yes
      */
     public function share()
     {

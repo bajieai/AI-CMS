@@ -18,13 +18,24 @@ use app\common\service\RatingService;
 use think\facade\Request;
 
 /**
- * 评价评分 API - V2.9新增
+ * 评价评分 API
+ * @api_group 评价评分
+ * @api_desc 内容评价提交、列表、点赞、统计等接口
  */
 class RatingController extends BaseController
 {
     /**
      * 提交评价
-     * POST /api/rating/submit
+     * @api 提交评价
+     * @api_desc 会员对内容进行评分和文字评价，支持匿名和媒体附件
+     * @param int $content_id 内容ID
+     * @param int $rating 评分(1-5星)
+     * @param string $title 评价标题
+     * @param string $content 评价内容
+     * @param int $is_anonymous 是否匿名(0/1)
+     * @param array $media_urls 附件图片URL数组
+     * @return json 返回评价结果
+     * @api_auth yes
      */
     public function submit()
     {
@@ -63,7 +74,13 @@ class RatingController extends BaseController
 
     /**
      * 获取内容的评价列表
-     * GET /api/rating/list?content_id=1&page=1&limit=10&rating=0
+     * @api 评价列表
+     * @api_desc 分页获取指定内容的评价列表，可按评分筛选
+     * @param int $content_id 内容ID
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @param int $rating 评分筛选(0=全部/1-5星)
+     * @return json 返回评价列表和统计
      */
     public function list()
     {
@@ -87,7 +104,12 @@ class RatingController extends BaseController
 
     /**
      * 获取我的评价列表
-     * GET /api/rating/my?page=1&limit=10
+     * @api 我的评价
+     * @api_desc 获取当前会员提交的所有评价记录
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @return json 返回我的评价列表
+     * @api_auth yes
      */
     public function my()
     {
@@ -110,7 +132,11 @@ class RatingController extends BaseController
 
     /**
      * 点赞评价
-     * POST /api/rating/like
+     * @api 评价点赞
+     * @api_desc 会员对评价进行点赞（Redis防重复）
+     * @param int $rating_id 评价ID
+     * @return json 返回点赞结果
+     * @api_auth yes
      */
     public function like()
     {
@@ -135,7 +161,10 @@ class RatingController extends BaseController
 
     /**
      * 获取评价统计
-     * GET /api/rating/stats?content_id=1
+     * @api 评价统计
+     * @api_desc 获取内容的评价统计数据（总评分数/平均分/各星级分布）
+     * @param int $content_id 内容ID
+     * @return json 返回评分分布统计
      */
     public function stats()
     {

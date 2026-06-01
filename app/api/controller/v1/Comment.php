@@ -18,10 +18,25 @@ use app\common\model\Comment as CommentModel;
 use app\common\traits\ApiScopeCheck;
 use think\Request;
 
+/**
+ * 评论API
+ * @api_group V1-评论
+ * @api_desc RESTful评论接口，支持列表查询和提交
+ */
 class Comment
 {
     use ApiScopeCheck;
 
+    /**
+     * 评论列表
+     * @api 评论列表
+     * @api_desc 分页获取指定内容的已审核评论
+     * @param int $content_id 内容ID
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @return json 返回评论列表
+     * @api_auth yes (scope: content:read)
+     */
     public function index(Request $request)
     {
         $this->requireScope('content:read');
@@ -39,6 +54,18 @@ class Comment
         return json(['code' => 0, 'msg' => 'success', 'data' => $list]);
     }
 
+    /**
+     * 提交评论
+     * @api 提交评论
+     * @api_desc 提交内容评论，支持回复（parent_id）
+     * @param int $content_id 内容ID
+     * @param string $nickname 昵称
+     * @param string $email 邮箱
+     * @param string $content 评论内容
+     * @param int $parent_id 回复的评论ID（可选）
+     * @return json 返回新评论ID
+     * @api_auth yes (scope: content:write)
+     */
     public function save(Request $request)
     {
         $this->requireScope('content:write');

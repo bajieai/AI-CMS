@@ -20,13 +20,18 @@ use app\common\service\ConfigService;
 use think\facade\Request;
 
 /**
- * 邀请奖励前台API - V2.9新增
+ * 邀请奖励前台API
+ * @api_group 邀请奖励
+ * @api_desc 邀请码、邀请统计、奖励查询等接口
  */
 class InviteController extends BaseController
 {
     /**
      * 获取我的邀请信息
-     * GET /api/invite/info
+     * @api 我的邀请信息
+     * @api_desc 获取当前会员的邀请码、邀请人数、奖励金额和三阶段统计数据
+     * @return json 返回邀请码/邀请统计/各阶段奖励
+     * @api_auth yes
      */
     public function info()
     {
@@ -65,7 +70,12 @@ class InviteController extends BaseController
 
     /**
      * 获取邀请记录
-     * GET /api/invite/records
+     * @api 邀请记录列表
+     * @api_desc 分页获取当前会员的邀请记录
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @return json 返回邀请记录列表
+     * @api_auth yes
      */
     public function records()
     {

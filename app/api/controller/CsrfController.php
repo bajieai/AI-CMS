@@ -16,14 +16,16 @@ namespace app\api\controller;
 
 /**
  * CSRF Token控制器
- * 提供GET接口供前端AJAX自动恢复CSRF Token
+ * @api_group 安全
+ * @api_desc CSRF Token获取，供前端AJAX自动恢复
  */
 class CsrfController
 {
     /**
-     * 获取当前会话的CSRF Token
-     * GET /api/csrf/token
-     * 如果session中已有token则复用，否则生成新的
+     * 获取CSRF Token
+     * @api 获取CSRF Token
+     * @api_desc 获取当前会话的CSRF Token，如已过期则自动生成新的
+     * @return json 返回csrf_token
      */
     public function token()
     {

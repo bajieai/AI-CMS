@@ -19,13 +19,19 @@ use app\common\model\CouponTemplate;
 use think\facade\Request;
 
 /**
- * 优惠券前台API - V2.9新增
+ * 优惠券前台API
+ * @api_group 优惠券
+ * @api_desc 优惠券列表、领取、验证等前台接口
  */
 class CouponController extends BaseController
 {
     /**
      * 获取可领取优惠券列表
-     * GET /api/coupon
+     * @api 优惠券列表
+     * @api_desc 分页获取当前可领取的优惠券（有效期内+库存充足）
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @return json 返回优惠券列表和分页信息
      */
     public function index()
     {
@@ -50,7 +56,13 @@ class CouponController extends BaseController
 
     /**
      * 获取我的优惠券
-     * GET /api/coupon/my
+     * @api 我的优惠券
+     * @api_desc 获取当前会员领取的优惠券，可按状态筛选
+     * @param int $status 状态筛选(-1全部/0未使用/1已使用/2已过期)
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @return json 返回我的优惠券列表
+     * @api_auth yes
      */
     public function my()
     {
@@ -70,7 +82,11 @@ class CouponController extends BaseController
 
     /**
      * 领取优惠券
-     * POST /api/coupon/receive
+     * @api 领取优惠券
+     * @api_desc 会员领取指定模板的优惠券，需校验库存和每人限领
+     * @param int $template_id 优惠券模板ID
+     * @return json 返回领取结果和券码
+     * @api_auth yes
      */
     public function receive()
     {
@@ -94,7 +110,10 @@ class CouponController extends BaseController
 
     /**
      * 获取新人券
-     * GET /api/coupon/newbie
+     * @api 新人券领取
+     * @api_desc 新会员领取专属新人优惠券（仅限首次）
+     * @return json 返回领取结果，已领取过则返回received=true
+     * @api_auth yes
      */
     public function newbie()
     {
@@ -124,8 +143,14 @@ class CouponController extends BaseController
     }
 
     /**
-     * 验证优惠券可用性（结算前调用）
-     * GET /api/coupon/validate?coupon_id=1&order_amount=100&content_id=1
+     * 验证优惠券可用性
+     * @api 验证优惠券
+     * @api_desc 结算前校验优惠券是否可用，返回折扣金额
+     * @param int $coupon_id 优惠券ID
+     * @param float $order_amount 订单金额
+     * @param int $content_id 内容ID（用于范围校验）
+     * @return json 返回valid/discount/msg
+     * @api_auth yes
      */
     public function validate()
     {

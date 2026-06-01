@@ -20,13 +20,17 @@ use think\facade\Cache;
 use think\facade\Cookie;
 
 /**
- * 多语言前台API - V2.9新增
+ * 多语言前台API
+ * @api_group 多语言
+ * @api_desc 语言列表、切换、当前语言查询接口
  */
 class LanguageController extends BaseController
 {
     /**
      * 获取语言列表
-     * GET /api/language
+     * @api 语言列表
+     * @api_desc 获取系统中已启用的语言列表（缓存1小时）
+     * @return json 返回语言列表(code/name/is_default)
      */
     public function index()
     {
@@ -44,8 +48,11 @@ class LanguageController extends BaseController
     }
 
     /**
-     * 切换当前语言
-     * POST /api/language/switch
+     * 切换语言
+     * @api 切换语言
+     * @api_desc 切换当前用户的语言偏好，设置Cookie(30天有效期)
+     * @param string $lang 语言代码(如zh-CN/en/ja/ko)
+     * @return json 返回切换后的语言信息
      */
     public function switch()
     {
@@ -66,7 +73,9 @@ class LanguageController extends BaseController
 
     /**
      * 获取当前语言
-     * GET /api/language/current
+     * @api 当前语言
+     * @api_desc 获取当前用户的语言设置（优先Cookie，回退到默认语言）
+     * @return json 返回当前语言代码
      */
     public function current()
     {

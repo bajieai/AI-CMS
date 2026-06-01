@@ -18,33 +18,18 @@ use app\common\model\ImageTask;
 use think\facade\Log;
 
 /**
- * 配图任务状态查询API - V2.9.1 M14a
- *
- * 公开接口（无需认证），供前端AJAX轮询配图进度
+ * 配图任务状态查询API
+ * @api_group 配图任务
+ * @api_desc AI配图异步任务状态查询，供前端轮询进度
  */
 class ImageController extends BaseController
 {
     /**
      * 查询配图任务状态
-     *
-     * GET /api/image/status?task_id=xxx
-     *
-     * 响应:
-     * {
-     *   "code": 0,
-     *   "msg": "success",
-     *   "data": {
-     *     "task_id": "bfl-xxx",
-     *     "status": "processing",   // pending/processing/completed/failed
-     *     "progress": 33,           // 0-100
-     *     "image_url": "",          // 完成后返回
-     *     "local_path": "",         // 本地路径(M17)
-     *     "error_msg": "",
-     *     "attempts": 10,
-     *     "max_attempts": 30,
-     *     "retry_count": 0
-     *   }
-     * }
+     * @api 查询配图任务状态
+     * @api_desc 查询单个配图任务的状态和进度（pending/processing/completed/failed）
+     * @param string $task_id 任务ID
+     * @return json 返回任务状态、进度(0-100)、图片URL、错误信息等
      */
     public function status()
     {
@@ -93,9 +78,10 @@ class ImageController extends BaseController
 
     /**
      * 批量查询任务状态
-     *
-     * POST /api/image/batch_status
-     * body: { "task_ids": ["id1", "id2"] }
+     * @api 批量查询配图任务
+     * @api_desc 批量查询多个配图任务的状态和进度
+     * @param array $task_ids 任务ID数组
+     * @return json 返回任务状态列表
      */
     public function batchStatus()
     {

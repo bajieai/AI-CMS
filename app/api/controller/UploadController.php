@@ -18,12 +18,18 @@ use app\common\service\UploadService;
 
 /**
  * 上传接口控制器
+ * @api_group 文件上传
+ * @api_desc 图片等文件上传接口
  */
 class UploadController
 {
     /**
      * 图片上传
-     * POST /api/upload/image
+     * @api 图片上传
+     * @api_desc 上传图片文件，返回可访问的URL地址
+     * @param file $file 图片文件(multipart/form-data)
+     * @return json 返回文件URL
+     * @api_auth yes
      */
     public function image()
     {

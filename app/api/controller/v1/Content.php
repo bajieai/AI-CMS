@@ -23,7 +23,8 @@ use think\Request;
 
 /**
  * 内容API - V2.7安全加固：付费内容权限校验
- * member_id来源：apiMemberId(Cookie/X-Member-Token) > GET过渡兼容(已弃用)
+ * @api_group V1-内容
+ * @api_desc RESTful内容接口，支持列表、详情查询，付费内容权限控制
  */
 class Content
 {
@@ -31,7 +32,14 @@ class Content
 
     /**
      * 内容列表
-     * 付费内容不返回完整content字段，仅保留摘要
+     * @api 内容列表
+     * @api_desc 分页获取已发布内容，可按分类/类型筛选，付费内容不返回完整正文
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @param int $cate_id 分类ID筛选
+     * @param int $type 类型筛选(1产品/2案例/3新闻/4下载/5招聘/6单页)
+     * @return json 返回内容列表（付费内容标记is_locked）
+     * @api_auth yes (scope: content:read)
      */
     public function index(Request $request)
     {
@@ -72,7 +80,11 @@ class Content
 
     /**
      * 内容详情
-     * V2.7: 从认证信息获取member_id校验付费权限，未授权返回安全预览版本
+     * @api 内容详情
+     * @api_desc 获取内容完整信息，含付费权限校验，未授权仅返回预览内容
+     * @param int $id 内容ID
+     * @return json 返回内容详情（含付费状态/is_unlocked/price等）
+     * @api_auth yes (scope: content:read)
      */
     public function read(Request $request, int $id)
     {

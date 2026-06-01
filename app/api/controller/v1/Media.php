@@ -20,6 +20,8 @@ use think\Request;
 
 /**
  * 媒体资源API
+ * @api_group V1-媒体
+ * @api_desc RESTful媒体资源接口，支持按类型筛选
  */
 class Media
 {
@@ -27,6 +29,13 @@ class Media
 
     /**
      * 媒体列表
+     * @api 媒体资源列表
+     * @api_desc 分页获取媒体资源，可按文件类型筛选
+     * @param int $page 页码
+     * @param int $limit 每页数量
+     * @param string $filetype 文件类型筛选(image/video等)
+     * @return json 返回媒体资源列表
+     * @api_auth yes (scope: media:read)
      */
     public function index(Request $request)
     {

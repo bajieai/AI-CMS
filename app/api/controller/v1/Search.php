@@ -20,11 +20,18 @@ use think\Request;
 
 /**
  * 搜索API - V2.7增强：联想搜索+热门关键词
+ * @api_group V1-搜索
+ * @api_desc 全文搜索、联想补全、热门关键词接口
  */
 class Search
 {
     /**
-     * 搜索联想（前缀匹配）
+     * 搜索联想
+     * @api 搜索联想
+     * @api_desc 关键词前缀匹配，返回搜索建议（优先Meilisearch，补充历史热词）
+     * @param string $keyword 搜索关键词
+     * @param int $limit 返回数量(默认10)
+     * @return json 返回联想词列表
      */
     public function suggest(Request $request)
     {
@@ -69,6 +76,11 @@ class Search
 
     /**
      * 热门搜索关键词
+     * @api 热门搜索
+     * @api_desc 获取近N天内的热门搜索关键词排行榜
+     * @param int $limit 返回数量(默认10)
+     * @param int $days 统计天数(默认7天)
+     * @return json 返回热门关键词列表
      */
     public function hot(Request $request)
     {
@@ -85,7 +97,14 @@ class Search
     }
 
     /**
-     * 执行搜索（兼容无Meilisearch时回退MySQL）
+     * 全文搜索
+     * @api 全文搜索
+     * @api_desc 执行全文搜索（优先Meilisearch，自动回退MySQL LIKE），支持分类筛选
+     * @param string $keyword 搜索关键词
+     * @param int $page 页码
+     * @param int $limit 每页数量(默认20)
+     * @param int $cate_id 分类ID筛选
+     * @return json 返回搜索结果(hits/total/page)
      */
     public function index(Request $request)
     {
