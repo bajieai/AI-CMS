@@ -32,11 +32,12 @@ class ApiDocGenerator
         $this->docs = [];
         $this->loadRoutes();
 
-        $apiPath = app_path('api/controller');
+        // 使用 root_path() 而非 app_path()，因为 admin 应用下 app_path() 返回 app/admin/
+        $apiPath = root_path('app') . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'controller';
         $this->scanDirectory($apiPath, 'app\api\controller');
 
         // 扫描v1子目录
-        $v1Path = $apiPath . '/v1';
+        $v1Path = $apiPath . DIRECTORY_SEPARATOR . 'v1';
         if (is_dir($v1Path)) {
             $this->scanDirectory($v1Path, 'app\api\controller\v1');
         }
@@ -49,7 +50,7 @@ class ApiDocGenerator
      */
     protected function loadRoutes(): void
     {
-        $routeFile = app_path('api/route/app.php');
+        $routeFile = root_path('app') . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'route' . DIRECTORY_SEPARATOR . 'app.php';
         if (!file_exists($routeFile)) {
             return;
         }
