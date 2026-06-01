@@ -95,6 +95,11 @@ class TemplateService
         foreach ($dirs as $dir) {
             $name = basename($dir);
 
+            // 跳过非主题目录（如 shared/ 共享子模板目录）
+            if (in_array($name, ['shared'], true)) {
+                continue;
+            }
+
             // 检测截图
             $screenshot = '';
             foreach (['screenshot.png', 'screenshot.jpg', 'screenshot.webp'] as $ext) {

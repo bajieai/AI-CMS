@@ -89,6 +89,12 @@ class ThemeMarketService
 
         foreach ($dirs as $themeDir) {
             $code = basename($themeDir);
+
+            // 跳过非主题目录（如 shared/ 共享子模板目录）
+            if (in_array($code, ['shared'], true)) {
+                continue;
+            }
+
             $jsonFile = $themeDir . DIRECTORY_SEPARATOR . 'theme.json';
 
             if (file_exists($jsonFile)) {
