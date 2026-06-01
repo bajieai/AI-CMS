@@ -60,8 +60,8 @@ class ApiDocGenerator
 
         foreach ($matches as $match) {
             $method = strtoupper($match[1]);
-            $path = $match[2];
-            $handler = trim($match[3]);
+            $path = str_replace('$', '', $match[2]); // 去除ThinkPHP路由结尾$
+            $handler = trim($match[3], '\\'); // 去除前导\以匹配Reflection获取的类名
             $this->routes[$handler] = ['method' => $method, 'path' => $path];
         }
 
@@ -73,8 +73,8 @@ class ApiDocGenerator
             preg_match_all('/Route::(get|post|put|delete)\([\'"]([^\'"]+)[\'"]\s*,\s*[\'"]?([^\'",\)]+)/', $body, $subMatches, PREG_SET_ORDER);
             foreach ($subMatches as $sm) {
                 $method = strtoupper($sm[1]);
-                $path = '/' . $prefix . '/' . ltrim($sm[2], '/');
-                $handler = trim($sm[3]);
+                $path = '/' . $prefix . '/' . str_replace('$', '', ltrim($sm[2], '/'));
+                $handler = trim($sm[3], '\\');
                 $this->routes[$handler] = ['method' => $method, 'path' => $path];
             }
         }
@@ -121,7 +121,7 @@ class ApiDocGenerator
                 continue; // 没有@api注解的跳过
             }
 
-            $handler = str_replace('\\', '\\\\', $className) . '@' . $method->getName();
+            $handler = $className . '@' . $method->getName();
             $routeInfo = $this->routes[$handler] ?? ['method' => 'GET', 'path' => '/api/unknown'];
 
             $this->docs[] = [
