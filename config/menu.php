@@ -115,6 +115,8 @@ return [
         'children' => [
             ['id' => 60, 'name' => '数据看板', 'url' => '/admin/dashboard/index', 'permission' => 'dashboard.*', 'active' => 'dashboard', 'icon' => 'bi bi-speedometer2'],
             ['id' => 61, 'name' => 'SEO管理', 'url' => '/admin/seo/index', 'permission' => 'seo.*', 'active' => 'seo', 'icon' => 'bi bi-search'],
+            // V2.9.16: SEO诊断引擎
+            ['id' => 611, 'name' => 'SEO诊断', 'url' => '/admin/seo_diagnose/index', 'permission' => 'seo.*', 'active' => 'seo_diagnose', 'icon' => 'bi bi-activity'],
             ['id' => 64, 'name' => 'SEO关键词', 'url' => '/admin/seo_keyword/index', 'permission' => 'seo_keyword.*', 'active' => 'seo_keyword', 'icon' => 'bi bi-hash'],
             ['id' => 65, 'name' => '关键词分组', 'url' => '/admin/seo_keyword/group', 'permission' => 'seo_keyword.*', 'active' => 'seo_keyword_group', 'icon' => 'bi bi-folder'],
             ['id' => 62, 'name' => '数据导出', 'url' => '/admin/export/index', 'permission' => 'export.*', 'active' => 'export', 'icon' => 'bi bi-download'],

@@ -16,12 +16,12 @@ use think\facade\Config;
 use think\facade\Log;
 
 /**
- * V2.9.15: AI配图Provider路由器
+ * V2.9.16: AI配图Provider路由器（增强版）
  *
- * 根据Provider名称路由到对应实现，统一封装查询任务状态等操作。
- * 支持故障降级到fallback Provider。
- *
- * @todo V2.9.16 实现链式降级: tongyi→flux→mock
+ * 功能增强：
+ *   - 链式降级（多Provider遍历，不再仅限于单fallback）
+ *   - fallback_chain 配置支持
+ *   - 更完善的错误处理
  */
 class ImageProviderRouter
 {
@@ -45,9 +45,7 @@ class ImageProviderRouter
     /**
      * 查询异步任务状态（委托给对应Provider）
      *
-     * @param string $taskId   任务ID
-     * @param string $provider Provider名称
-     * @return array ['success'=>bool, 'url'=>string, 'failed'=>bool, 'message'=>string]
+     * V2.9.16: 增强链式降级，遍历 fallback_chain
      */
     public static function queryTaskStatus(string $taskId, string $provider): array
     {
@@ -57,47 +55,64 @@ class ImageProviderRouter
         } catch (\Throwable $e) {
             Log::error("[ImageProviderRouter] queryTaskStatus failed: provider={$provider}, taskId={$taskId}, error=" . $e->getMessage());
 
-            // 故障降级：尝试fallback Provider
-            $fallbackResult = self::tryFallback($taskId, $provider);
+            // V2.9.16: 链式降级，遍历所有备用Provider
+            $fallbackResult = self::tryFallbackChain($taskId, $provider);
             if ($fallbackResult !== null) {
                 return $fallbackResult;
             }
 
             return [
-                'success' => false,
-                'url' => '',
-                'failed' => true,
-                'message' => 'Provider查询失败: ' . $e->getMessage(),
+                'success'  => false,
+                'url'      => '',
+                'failed'   => true,
+                'message'  => 'Provider查询失败: ' . $e->getMessage(),
                 'progress' => 0,
             ];
         }
     }
 
     /**
-     * 尝试fallback Provider查询
-     * @todo V2.9.16 支持链式降级: tongyi→flux→mock
+     * V2.9.16: 链式降级 — 遍历所有已启用的Provider，返回第一个成功的结果
+     *
+     * 降级顺序：tongyi → flux → dalle（按配置 fallback_chain 或默认顺序）
      */
-    protected static function tryFallback(string $taskId, string $currentProvider): ?array
+    protected static function tryFallbackChain(string $taskId, string $excludeProvider): ?array
     {
         $config = Config::get('ai.image', []);
-        $fallbackName = $config['fallback_provider'] ?? '';
+        $fallbackChain = $config['fallback_chain'] ?? ['tongyi_wanxiang', 'flux', 'dalle'];
 
-        if (empty($fallbackName) || $fallbackName === $currentProvider) {
-            return null;
-        }
+        // 过滤掉当前失败的Provider和未启用的
+        $providersConfig = $config['providers'] ?? [];
+        $candidates = [];
 
-        try {
-            $fallback = self::getProvider($fallbackName);
-            $result = $fallback->queryTaskStatus($taskId);
-            if ($result['success']) {
-                $result['fallback'] = true;
-                $result['fallback_provider'] = $fallbackName;
+        foreach ($fallbackChain as $candidate) {
+            if ($candidate === $excludeProvider) {
+                continue;
             }
-            return $result;
-        } catch (\Throwable $e) {
-            Log::error("[ImageProviderRouter] fallback {$fallbackName} also failed: " . $e->getMessage());
-            return null;
+            // 检查Provider是否已启用（有api_key即视为启用）
+            $pc = $providersConfig[$candidate] ?? [];
+            if (!empty($pc['api_key']) && ($pc['enabled'] ?? true)) {
+                $candidates[] = $candidate;
+            }
         }
+
+        foreach ($candidates as $candidate) {
+            try {
+                $fallback = self::getProvider($candidate);
+                $result = $fallback->queryTaskStatus($taskId);
+                if ($result['success']) {
+                    $result['fallback'] = true;
+                    $result['fallback_provider'] = $candidate;
+                    Log::info("[ImageProviderRouter] 链式降级成功: {$candidate} → taskId={$taskId}");
+                    return $result;
+                }
+            } catch (\Throwable $e) {
+                Log::warning("[ImageProviderRouter] fallback {$candidate} failed: " . $e->getMessage());
+            }
+        }
+
+        Log::error("[ImageProviderRouter] 所有备用Provider均失败，taskId={$taskId}");
+        return null;
     }
 
     /**

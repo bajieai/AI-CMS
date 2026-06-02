@@ -8,7 +8,8 @@
 
     var TranslateEditor = {
         contentId: 0,
-        langs: {en:'英语', ja:'日语', ko:'韩语'},
+        // V2.9.16: 语言列表从后端动态获取，此处为兜底默认值
+        langs: {zh:'中文', en:'英语', ja:'日语', ko:'韩语', fr:'法语', de:'德语', es:'西班牙语', it:'意大利语', pt:'葡萄牙语', ru:'俄语', ar:'阿拉伯语', hi:'印地语', th:'泰语', vi:'越南语', id:'印尼语', tr:'土耳其语'},
         colors: {0:'secondary', 1:'primary', 2:'success', 3:'danger'},
         labels: {0:'待翻译', 1:'翻译中', 2:'已翻译', 3:'失败'},
 

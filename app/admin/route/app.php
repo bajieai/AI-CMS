@@ -165,6 +165,10 @@ Route::get('seo/index$', '\app\admin\controller\SeoController@index');
 Route::post('seo/sitemap$', '\app\admin\controller\SeoController@generateSitemap');
 Route::post('seo/robots$', '\app\admin\controller\SeoController@saveRobots');
 
+// V2.9.16: SEO诊断引擎
+Route::get('seo_diagnose/index$', '\app\admin\controller\SeoDiagnoseController@index');
+Route::get('seo_diagnose/run$', '\app\admin\controller\SeoDiagnoseController@run');
+
 // SEO关键词管理
 Route::get('seo_keyword/index$', '\app\admin\controller\SeoKeywordController@index');
 Route::get('seo_keyword/add$', '\app\admin\controller\SeoKeywordController@add');

@@ -35,7 +35,7 @@ class AiQueueConsume extends Command
     {
         $this->setName('ai-queue:consume')
             ->setDescription('AI任务队列消费者（Cron模式）')
-            ->addOption('type', 't', Option::VALUE_REQUIRED, '任务类型(ai_image_generate/batch_seo_optimize)', '')
+            ->addOption('type', 't', Option::VALUE_REQUIRED, '任务类型(ai_image_generate/batch_seo_optimize/content_translate)', '')
             ->addOption('limit', 'l', Option::VALUE_REQUIRED, '每次处理数量', '30')
             ->addOption('loop', null, Option::VALUE_NONE, '命令内循环模式（开发调试用）')
             ->addOption('interval', 'i', Option::VALUE_REQUIRED, '循环间隔秒数（配合--loop）', '5');
@@ -49,7 +49,7 @@ class AiQueueConsume extends Command
         $interval = (int) $input->getOption('interval');
 
         if (empty($type)) {
-            $output->error('请指定任务类型：--type=ai_image_generate 或 --type=batch_seo_optimize');
+            $output->error('请指定任务类型：--type=ai_image_generate / batch_seo_optimize / content_translate');
             return 1;
         }
 
@@ -198,15 +198,15 @@ class AiQueueConsume extends Command
     }
 
     /**
-     * V2.9.15: 处理内容翻译任务
+     * V2.9.16: 处理内容翻译任务（增强：支持多Provider/fallback/长文本）
      */
     protected function processContentTranslate(int $taskId, array $payload, Output $output): void
     {
         $queueService = new AiTaskQueueService();
-        $translateService = new \app\common\service\ai\AiTranslateService();
 
-        $contentId = $payload['content_id'] ?? 0;
+        $contentId  = $payload['content_id'] ?? 0;
         $targetLang = $payload['target_lang'] ?? 'en';
+        $options    = $payload['options'] ?? [];
 
         if (!$contentId) {
             $queueService->fail($taskId, '缺少content_id');
@@ -215,14 +215,61 @@ class AiQueueConsume extends Command
 
         $output->info("[AI-Queue] 内容翻译: content_id={$contentId}, lang={$targetLang}");
 
-        $result = $translateService->translateContent($contentId, $targetLang);
+        try {
+            // V2.9.16: 优先使用Router（支持多Provider+降级+限速）
+            $router = \app\common\service\ai\translate\TranslateProviderRouter::class;
 
-        if ($result['success']) {
-            $queueService->complete($taskId, ['content_id' => $contentId, 'lang' => $targetLang]);
-            $output->info("[AI-Queue] 翻译完成: task_id={$taskId}, content_id={$contentId}, lang={$targetLang}");
-        } else {
-            $queueService->fail($taskId, $result['message'] ?? '翻译失败');
-            $output->warning("[AI-Queue] 翻译失败: task_id={$taskId}, " . ($result['message'] ?? ''));
+            // 获取原始内容
+            $content = \app\common\model\Content::find($contentId);
+            if (!$content) {
+                $queueService->fail($taskId, '内容不存在: ' . $contentId);
+                return;
+            }
+
+            $text = $content->title . "\n\n" . strip_tags($content->content ?? '');
+
+            $result = $router::translate($text, $targetLang, array_merge([
+                'preserveHtml' => false,
+                'context'      => $content->cate_name ?? '',
+            ], $options));
+
+            if ($result['success']) {
+                // 保存翻译结果到内容翻译表
+                $translatedParts = explode("\n\n", $result['text'], 2);
+                $transTitle = $translatedParts[0] ?? '';
+                $transBody  = $translatedParts[1] ?? '';
+
+                $contentLang = \app\common\model\ContentLang::where('content_id', $contentId)
+                    ->where('lang', $targetLang)
+                    ->find();
+                if (!$contentLang) {
+                    $contentLang = new \app\common\model\ContentLang();
+                    $contentLang->content_id = $contentId;
+                    $contentLang->lang = $targetLang;
+                }
+                $contentLang->title = $transTitle;
+                $contentLang->content = $transBody;
+                $contentLang->translate_provider = $result['provider'] ?? '';
+                $contentLang->translate_status = \app\common\model\ContentLang::STATUS_COMPLETED;
+                $contentLang->translate_time = time();
+                $contentLang->save();
+
+                $queueService->complete($taskId, [
+                    'content_id' => $contentId,
+                    'lang'       => $targetLang,
+                    'provider'   => $result['provider'] ?? '',
+                    'fallback'   => $result['fallback'] ?? false,
+                ]);
+                $output->info("[AI-Queue] 翻译完成: task_id={$taskId}, provider=" . ($result['provider'] ?? '')
+                    . ($result['fallback'] ? ' (fallback)' : ''));
+            } else {
+                $queueService->fail($taskId, $result['message'] ?? '翻译失败');
+                $output->warning("[AI-Queue] 翻译失败: task_id={$taskId}, " . ($result['message'] ?? ''));
+            }
+        } catch (\Throwable $e) {
+            Log::error("[AiQueueConsume] 翻译任务异常 task_id={$taskId}: " . $e->getMessage());
+            $queueService->fail($taskId, '翻译异常: ' . $e->getMessage());
+            $output->error("[AI-Queue] 翻译异常: task_id={$taskId}, " . $e->getMessage());
         }
     }
 }

@@ -1,0 +1,174 @@
+{extend name="layout" /}
+
+{block name="title"}SEO诊断{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">SEO与数据</li>
+<li class="breadcrumb-item active">SEO诊断</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3">
+    <!-- 综合评分卡片 -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="position-relative" style="width:100px;height:100px;">
+                        <canvas id="scoreChart" width="100" height="100"></canvas>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                            <div class="fs-3 fw-bold" id="scoreValue">{$report.score}</div>
+                            <div class="small text-muted">分</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">SEO健康度综合评分</h5>
+                        <div class="mb-1">
+                            <span class="badge fs-6" id="gradeBadge">{$report.grade}</span>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            检测时间：{$report.checked_at} &middot;
+                            通过 {$report.passed}/{$report.total_items} 项
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="runDiagnosis()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>重新检测
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分类统计 -->
+    <div class="col-12">
+        <div class="row g-3" id="categoryStats">
+            {volist name="report.checks" id="check"}
+            {php}static $catStats=[]; if(!isset($catStats[$check.category]))$catStats[$check.category]=['total'=>0,'pass'=>0]; $catStats[$check.category]['total']++; if($check.pass)$catStats[$check.category]['pass']++;{/php}
+            {/volist}
+            {foreach name="catStats" item="stat" key="catName"}
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted mb-2">{$catName}</h6>
+                        <div class="fs-2 fw-bold">{$stat.pass}/{$stat.total}</div>
+                        <div class="progress mt-2" style="height:6px;">
+                            <div class="progress-bar {$stat.pass===$stat.total ? 'bg-success' : 'bg-warning'}"
+                                 style="width:{if condition='$stat.total>0'}{:intval($stat.pass/$stat.total*100)}{else /}0{/if}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {/foreach}
+        </div>
+    </div>
+
+    <!-- 详细检测项 -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list-check me-1"></i>详细检测报告
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:120px">分类</th>
+                                <th>检测项</th>
+                                <th style="width:180px">当前值</th>
+                                <th style="width:80px">状态</th>
+                                <th>改进建议</th>
+                            </tr>
+                        </thead>
+                        <tbody id="checksTable">
+                            {volist name="report.checks" id="check"}
+                            <tr class="{if condition='!$check.pass'}table-warning{/if}">
+                                <td><span class="badge bg-light text-dark">{$check.category}</span></td>
+                                <td>{$check.name}</td>
+                                <td class="text-muted small">{$check.value}</td>
+                                <td>
+                                    {if condition="$check.pass"}
+                                    <span class="badge bg-success"><i class="bi bi-check-lg"></i> 通过</span>
+                                    {else /}
+                                    <span class="badge bg-danger"><i class="bi bi-x-lg"></i> 未通过</span>
+                                    {/if}
+                                </td>
+                                <td class="small">
+                                    {if condition="!$check.pass && $check.suggest"}
+                                    <span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{$check.suggest}</span>
+                                    {else /}
+                                    <span class="text-muted">—</span>
+                                    {/if}
+                                </td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    var score = {$report.score};
+    var ctx = document.getElementById('scoreChart').getContext('2d');
+    var color = score >= 80 ? '#198754' : score >= 60 ? '#ffc107' : '#dc3545';
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['得分', '剩余'],
+            datasets: [{
+                data: [score, 100 - score],
+                backgroundColor: [color, '#e9ecef'],
+                borderWidth: 0,
+                cutout: '75%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            animation: { animateRotate: true, duration: 1000 }
+        }
+    });
+
+    var badge = document.getElementById('gradeBadge');
+    if (score >= 90) badge.classList.add('bg-success');
+    else if (score >= 80) badge.classList.add('bg-info');
+    else if (score >= 60) badge.classList.add('bg-warning');
+    else badge.classList.add('bg-danger');
+})();
+
+function runDiagnosis() {
+    var btn = document.querySelector('button[onclick="runDiagnosis()"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-1"></i>检测中...';
+
+    $.get('/admin/seo_diagnose/run', function(res) {
+        if (res.success) {
+            location.reload();
+        } else {
+            showToast('检测失败', 'danger');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>重新检测';
+        }
+    }).fail(function() {
+        showToast('网络错误', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>重新检测';
+    });
+}
+</script>
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; display: inline-block; }
+</style>
+{/block}

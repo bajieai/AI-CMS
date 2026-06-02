@@ -128,10 +128,12 @@ return [
         'context_budget' => (int) env('ai.theme_chat.context_budget', 15000),
     ],
 
-    // ==================== AI配图配置（V2.9补全Flux/DALL-E） ====================
+    // ==================== AI配图配置（V2.9.16增强） ====================
     'image' => [
         'default_provider'  => env('ai.image.default', 'tongyi_wanxiang'),
         'fallback_provider' => env('ai.image.fallback', 'flux'),
+        // V2.9.16: 链式降级顺序（按此顺序遍历所有备用Provider）
+        'fallback_chain'    => ['tongyi_wanxiang', 'flux', 'dalle'],
         'timeout'           => (int) env('ai.image.timeout', 30),
         // V3.1: 配图配额控制
         'daily_limit'       => (int) env('ai.image.daily_limit', 50),
@@ -162,20 +164,54 @@ return [
         ],
     ],
 
-    // ==================== AI翻译引擎配置（V2.9.15新增） ====================
+    // ==================== AI翻译引擎配置（V2.9.16增强） ====================
     'translate' => [
         'provider'          => env('AI_TRANSLATE_PROVIDER', 'deepseek'),
         'fallback_provider' => env('AI_TRANSLATE_FALLBACK', ''),
+        'fallback_chain'    => ['deepseek', 'openai'], // V2.9.16: fallback遍历顺序
+
+        // 速率限制（V2.9.16新增）
+        'rate_limit' => [
+            'rpm' => (int) env('AI_TRANSLATE_RATE_RPM', 30),   // 每分钟请求数
+            'rph' => (int) env('AI_TRANSLATE_RATE_RPH', 500),  // 每小时请求数
+        ],
+
+        // 通用配置（DeepSeek默认回退）
         'api_key'           => env('DEEPSEEK_API_KEY', ''),
         'base_url'          => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
         'model'             => env('DEEPSEEK_MODEL', 'deepseek-chat'),
         'timeout'           => (int) env('AI_TRANSLATE_TIMEOUT', 60),
         'max_tokens'        => (int) env('AI_TRANSLATE_MAX_TOKENS', 4096),
         'temperature'       => (float) env('AI_TRANSLATE_TEMPERATURE', 0.3),
+
+        // V2.9.16: 重试配置
+        'max_retries'       => (int) env('AI_TRANSLATE_MAX_RETRIES', 2),
+        'retry_delay'       => (int) env('AI_TRANSLATE_RETRY_DELAY', 1000), // ms
+
         // 缓存配置（建议2前台翻译缓存）
         'cache_ttl'         => (int) env('AI_TRANSLATE_CACHE_TTL', 3600),
         // 分段翻译阈值（建议1）
         'segment_threshold' => (int) env('AI_TRANSLATE_SEGMENT_THRESHOLD', 1500),
+
+        // V2.9.16: 多Provider/多账号支持
+        'providers' => [
+            'deepseek' => [
+                'api_key'  => env('DEEPSEEK_API_KEY', ''),
+                'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
+                'model'    => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+                'timeout'  => (int) env('DEEPSEEK_TIMEOUT', 60),
+            ],
+            'openai' => [
+                'api_key'  => env('OPENAI_API_KEY', ''),
+                'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com'),
+                'model'    => env('OPENAI_MODEL', 'gpt-4o-mini'),
+                'timeout'  => (int) env('OPENAI_TIMEOUT', 60),
+            ],
+        ],
+
+        // V2.9.16: 支持的语言列表（可在此扩展自定义语言）
+        // 内置已覆盖16种语言，此处用于扩展
+        'languages' => [],
     ],
 
     // ==================== AI多写作风格配置（V3.1新增） ====================

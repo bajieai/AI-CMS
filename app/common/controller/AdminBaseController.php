@@ -68,6 +68,7 @@ abstract class AdminBaseController extends \think\BaseController
         'comment'     => 'comment',
         'member'      => 'member',
         'seo'         => 'seo',
+        'seo_diagnose'     => 'seo_diagnose',
         'export'      => 'export',
         'token'       => 'token',
         'notification'     => 'notification',
@@ -165,12 +166,7 @@ abstract class AdminBaseController extends \think\BaseController
         ], 'app');
         // 3. 发送 Content-Type 响应头（确保传输层不丢失编码信息）
         header('Content-Type: text/html; charset=utf-8');
-        // 4. 设置数据库连接编码（确保 ORM 层写入时使用正确编码）
-        try {
-            \think\facade\Db::execute("SET NAMES utf8mb4");
-        } catch (\Throwable) {
-            // 数据库未连接时静默跳过
-        }
+        // 4. V2.9.16: 移除冗余 SET NAMES utf8mb4 — PDO 连接时已通过 charset 配置协商编码
 
         // 注入当前用户角色信息到所有视图
         $roleId = (int) session('role_id');
@@ -207,8 +203,10 @@ abstract class AdminBaseController extends \think\BaseController
         // V2.6 双栏菜单：注入菜单JSON数据供 admin-sidebar.js 使用
         $this->app->view->assign('menuDataJson', json_encode($filteredMenus, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG));
 
-        // V2.9.2 注入网站Logo及相关配置到后台视图
-        $cmsConfigs = CmsConfig::whereIn('name', ['site_logo', 'logo_icon_only', 'logo_name'])->column('value', 'name');
+        // V2.9.2 注入网站Logo及相关配置到后台视图（V2.9.16: 加缓存避免每次查库）
+        $cmsConfigs = Cache::tag(CacheService::TAG_CONFIG)->remember('cms_logo_configs', function () {
+            return CmsConfig::whereIn('name', ['site_logo', 'logo_icon_only', 'logo_name'])->column('value', 'name');
+        }, 3600);
         $siteLogo   = $cmsConfigs['site_logo'] ?? '';
         $iconOnly   = ($cmsConfigs['logo_icon_only'] ?? '') === '1';
         $brandName  = $cmsConfigs['logo_name'] ?: '八界AI-CMS';
