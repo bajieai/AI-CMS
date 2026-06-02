@@ -488,6 +488,17 @@ Route::get('translate/status/:id/:lang$', '\app\admin\controller\AiTranslateCont
 Route::post('translate/delete/:id/:lang$', '\app\admin\controller\AiTranslateController@delete');
 Route::get('translate/list/:id$', '\app\admin\controller\AiTranslateController@list');
 
+// V2.9.17 M-2: 翻译语言管理路由
+Route::get('translate/languages$', '\app\admin\controller\TranslateLanguageController@index');
+Route::get('translate/languages/list$', '\app\admin\controller\TranslateLanguageController@list');
+Route::post('translate/languages/toggle$', '\app\admin\controller\TranslateLanguageController@toggle');
+Route::post('translate/languages/batch$', '\app\admin\controller\TranslateLanguageController@batch');
+Route::post('translate/languages/sort$', '\app\admin\controller\TranslateLanguageController@sort');
+Route::post('translate/languages/custom$', '\app\admin\controller\TranslateLanguageController@custom');
+
+// V2.9.17 E-2: 翻译SSE路由
+Route::get('ai_translate/stream/:taskId$', '\app\admin\controller\AiTranslateController@stream');
+
 // V2.9.12: 模板开发者审核路由（管理员）
 Route::get('template_developer/index$', '\app\admin\controller\TemplateDeveloperAdminController@index');
 Route::get('template_developer/detail/:id$', '\app\admin\controller\TemplateDeveloperAdminController@detail');

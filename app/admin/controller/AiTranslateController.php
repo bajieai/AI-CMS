@@ -141,4 +141,84 @@ class AiTranslateController extends AdminBaseController
 
         return $this->success('查询成功', ['list' => $result]);
     }
+
+    /**
+     * V2.9.17 E-2: 翻译进度SSE实时流
+     * GET /admin/ai_translate/stream/:taskId
+     */
+    public function stream(int $taskId)
+    {
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no');
+        header('X-Content-Type-Options: nosniff');
+
+        echo "retry: 3000\n\n";
+        if (ob_get_level()) { ob_flush(); }
+        flush();
+
+        $maxWait = 120;
+        $start = time();
+        $lastHeartbeat = time();
+        $lastProgress = -1;
+
+        while (time() - $start < $maxWait) {
+            $record = ContentLang::find($taskId);
+            if (!$record) {
+                $this->sendSSEEvent('error', ['status' => 0, 'progress' => 0, 'message' => '翻译任务不存在', 'task_id' => $taskId, 'timestamp' => time()]);
+                return;
+            }
+
+            $currentStatus = (int) $record->translate_status;
+            $currentProgress = (int) ($record->translate_time > 0 ? 50 : 10); // 简版进度估算
+            $currentMessage = $record->error_msg ?: '翻译进行中';
+
+            if ($currentStatus === ContentLang::STATUS_COMPLETED) {
+                $currentProgress = 100;
+                $currentMessage = '翻译完成';
+            }
+
+            $isSpecial = $currentStatus !== ContentLang::STATUS_PROCESSING;
+            $progressChanged = abs($currentProgress - $lastProgress) >= 5;
+
+            if ($isSpecial || $progressChanged || $lastProgress === -1) {
+                $data = ['status' => $currentStatus, 'progress' => $currentProgress, 'message' => $currentMessage, 'task_id' => $taskId, 'timestamp' => time()];
+
+                if ($currentStatus === ContentLang::STATUS_COMPLETED) {
+                    $this->sendSSEEvent('complete', $data);
+                    return;
+                } elseif ($currentStatus === ContentLang::STATUS_FAILED) {
+                    $this->sendSSEEvent('error', $data);
+                    return;
+                } else {
+                    $this->sendSSEEvent('progress', $data);
+                }
+                $lastProgress = $currentProgress;
+            }
+
+            if (time() - $lastHeartbeat >= 15) {
+                $this->sendSSEEvent('heartbeat', []);
+                $lastHeartbeat = time();
+            }
+
+            sleep(2);
+        }
+
+        $this->sendSSEEvent('timeout', ['message' => 'SSE连接超时（120秒），请刷新页面', 'task_id' => $taskId, 'timestamp' => time()]);
+    }
+
+    /**
+     * V2.9.17 E-2: 发送SSE事件
+     */
+    protected function sendSSEEvent(string $event, array $data = []): void
+    {
+        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (!empty($event) && $event !== 'message') {
+            echo "event: {$event}\n";
+        }
+        echo "data: {$json}\n\n";
+        if (ob_get_level()) { ob_flush(); }
+        flush();
+    }
 }

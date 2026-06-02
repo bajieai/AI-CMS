@@ -109,6 +109,7 @@ abstract class AdminBaseController extends \think\BaseController
         'api_doc'          => 'api_doc',
         // V2.9.2 新增模块
         'ai_translation'   => 'ai_translation',
+        'translate_language' => 'translate_language',
         'plugin_market'    => 'plugin_market',
         'member_benefit'   => 'member_benefit',
         'monitor'          => 'monitor',

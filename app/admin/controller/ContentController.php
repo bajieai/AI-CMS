@@ -139,6 +139,8 @@ class ContentController extends AdminBaseController
             // V2.9.9: 会员等级列表
             $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
 
+            // V2.9.17 T-4: 翻译轮询可配置化
+            $polling = Config::get('ai.translate.polling', []);
             $this->assign([
                 'cates' => $cates,
                 'tags' => $tags,
@@ -152,6 +154,10 @@ class ContentController extends AdminBaseController
                 'ai_templates' => $aiTemplates,
                 'geo_score' => $geoScore,
                 'member_levels' => $memberLevels,
+                'translate_poll_interval'  => $polling['interval'] ?? 3000,
+                'translate_fast_interval'  => $polling['fast_interval'] ?? 1000,
+                'translate_max_poll'       => $polling['max_attempts'] ?? 60,
+                'translate_poll_timeout'   => $polling['timeout'] ?? 180,
             ]);
             return $this->view('/content_edit');
         }
@@ -210,6 +216,8 @@ class ContentController extends AdminBaseController
             // V2.9.9: 会员等级列表
             $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
 
+            // V2.9.17 T-4: 翻译轮询可配置化
+            $polling = Config::get('ai.translate.polling', []);
             $this->assign([
                 'info' => $info,
                 'cates' => $cates,
@@ -223,6 +231,10 @@ class ContentController extends AdminBaseController
                 'ai_templates' => $aiTemplates,
                 'geo_score' => $geoScore,
                 'member_levels' => $memberLevels,
+                'translate_poll_interval'  => $polling['interval'] ?? 3000,
+                'translate_fast_interval'  => $polling['fast_interval'] ?? 1000,
+                'translate_max_poll'       => $polling['max_attempts'] ?? 60,
+                'translate_poll_timeout'   => $polling['timeout'] ?? 180,
             ]);
             return $this->view('/content_edit');
         }

@@ -184,6 +184,14 @@ return [
         'max_tokens'        => (int) env('AI_TRANSLATE_MAX_TOKENS', 4096),
         'temperature'       => (float) env('AI_TRANSLATE_TEMPERATURE', 0.3),
 
+        // V2.9.17 T-4: 轮询可配置化
+        'polling' => [
+            'interval'       => (int) env('AI_TRANSLATE_POLL_INTERVAL', 3000),      // 常规轮询间隔(ms)
+            'fast_interval'  => (int) env('AI_TRANSLATE_FAST_INTERVAL', 1000),       // 快速轮询间隔(ms, 进度>80%)
+            'max_attempts'   => (int) env('AI_TRANSLATE_MAX_POLL', 60),              // 最大轮询次数
+            'timeout'        => (int) env('AI_TRANSLATE_POLL_TIMEOUT', 180),         // 翻译超时(秒)
+        ],
+
         // V2.9.16: 重试配置
         'max_retries'       => (int) env('AI_TRANSLATE_MAX_RETRIES', 2),
         'retry_delay'       => (int) env('AI_TRANSLATE_RETRY_DELAY', 1000), // ms

@@ -629,7 +629,12 @@
 <script>
 window.AI_CMS_CONFIG = {
     ai_image_candidate_count: parseInt('{$ai_image_candidate_count ?? 4}') || 4,
-    ext_data: {:json_encode($ext_data ?? [], JSON_UNESCAPED_UNICODE)}
+    ext_data: {:json_encode($ext_data ?? [], JSON_UNESCAPED_UNICODE)},
+    // V2.9.17 T-4: 翻译轮询可配置化
+    translate_poll_interval: parseInt('{$translate_poll_interval ?? 3000}') || 3000,
+    translate_poll_fast_interval: parseInt('{$translate_fast_interval ?? 1000}') || 1000,
+    translate_poll_max_attempts: parseInt('{$translate_max_poll ?? 60}') || 60,
+    translate_poll_timeout: parseInt('{$translate_poll_timeout ?? 180}') || 180
 };
 // V2.9.13: 初始化AI编辑器增强
 if (typeof initAiContentEditor === 'function' && window.AI_CMS_CONFIG.info_id) {

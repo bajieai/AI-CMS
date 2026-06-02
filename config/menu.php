@@ -103,6 +103,8 @@ return [
             ['id' => 75, 'name' => '模板设计器', 'url' => '/admin/template_design/index', 'permission' => 'template_design.*', 'active' => 'template_design', 'icon' => 'bi bi-palette'],
             // V2.9.2 M19a: AI翻译管理
             ['id' => 76, 'name' => 'AI翻译管理', 'url' => '/admin/ai_translation/index', 'permission' => 'ai_translation.*', 'active' => 'ai_translation', 'icon' => 'bi bi-translate'],
+            // V2.9.17 M-2: 翻译语言管理
+            ['id' => 761, 'name' => '翻译语言管理', 'url' => '/admin/translate/languages', 'permission' => 'ai_translation.*', 'active' => 'translate_language', 'icon' => 'bi bi-globe2'],
             // V2.9.10: AI配置中心
             ['id' => 77, 'name' => 'AI配置', 'url' => '/admin/system/aiConfig', 'permission' => 'ai_config.*', 'active' => 'ai_config', 'icon' => 'bi bi-sliders'],
         ],
