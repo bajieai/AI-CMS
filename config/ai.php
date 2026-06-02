@@ -209,9 +209,26 @@ return [
             ],
         ],
 
-        // V2.9.16: 支持的语言列表（可在此扩展自定义语言）
-        // 内置已覆盖16种语言，此处用于扩展
-        'languages' => [],
+        // V2.9.16: 支持的语言列表（11种含元数据）
+        // 管理员可直接编辑此配置文件来启用/禁用语言
+        'languages' => [
+            'zh' => ['name' => '中文',     'flag' => '🇨🇳', 'direction' => 'ltr', 'enabled' => true],
+            'en' => ['name' => '英语',     'flag' => '🇺🇸', 'direction' => 'ltr', 'enabled' => true],
+            'ja' => ['name' => '日语',     'flag' => '🇯🇵', 'direction' => 'ltr', 'enabled' => true],
+            'ko' => ['name' => '韩语',     'flag' => '🇰🇷', 'direction' => 'ltr', 'enabled' => true],
+            'fr' => ['name' => '法语',     'flag' => '🇫🇷', 'direction' => 'ltr', 'enabled' => true],
+            'de' => ['name' => '德语',     'flag' => '🇩🇪', 'direction' => 'ltr', 'enabled' => true],
+            'es' => ['name' => '西班牙语', 'flag' => '🇪🇸', 'direction' => 'ltr', 'enabled' => true],
+            'pt' => ['name' => '葡萄牙语', 'flag' => '🇵🇹', 'direction' => 'ltr', 'enabled' => false],
+            'ru' => ['name' => '俄语',     'flag' => '🇷🇺', 'direction' => 'ltr', 'enabled' => false],
+            'ar' => ['name' => '阿拉伯语', 'flag' => '🇸🇦', 'direction' => 'rtl', 'enabled' => false],
+            'th' => ['name' => '泰语',     'flag' => '🇹🇭', 'direction' => 'ltr', 'enabled' => false],
+            'vi' => ['name' => '越南语',   'flag' => '🇻🇳', 'direction' => 'ltr', 'enabled' => false],
+            'id' => ['name' => '印尼语',   'flag' => '🇮🇩', 'direction' => 'ltr', 'enabled' => false],
+            'tr' => ['name' => '土耳其语', 'flag' => '🇹🇷', 'direction' => 'ltr', 'enabled' => false],
+            'it' => ['name' => '意大利语', 'flag' => '🇮🇹', 'direction' => 'ltr', 'enabled' => false],
+            'hi' => ['name' => '印地语',   'flag' => '🇮🇳', 'direction' => 'ltr', 'enabled' => false],
+        ],
     ],
 
     // ==================== AI多写作风格配置（V3.1新增） ====================
