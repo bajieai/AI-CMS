@@ -1,14 +1,20 @@
-# 八界AI-CMS V2.9.16
+# 八界AI-CMS V2.9.17
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.16-blue)
+![Version](https://img.shields.io/badge/version-2.9.17-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.16 "翻译引擎增强·SEO诊断" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.17 "翻译体验精修·多语言管理闭环" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.17 核心定位：翻译体验精修·多语言管理闭环** — 2个Sprint 4项功能点（100%完成）：
+1. **M-2：后台翻译语言管理UI(P1)** — TranslateLanguageController+Service(settings持久化+排序+自定义语言) + 双皮肤管理界面 + 即时联动编辑页/前台
+2. **T-4：翻译轮询可配置化(P1)** — config/ai.php polling段(interval/fast/max/timeout) + ContentController注入 + 双皮肤content_edit模板 + translate_editor.js配置驱动+动态加速
+3. **M-6：前台语言切换器+RTL(P2)** — _lang_switcher组件(双皮肤+国旗+本地名) + language_switcher.css(RTL适配) + 后台翻译状态列国旗显示
+4. **E-2：翻译进度SSE实时推送(P2)** — AiTranslateController::stream() + SSE优先+轮询自动降级 + 30s超时保护
 
 **V2.9.16 核心定位：翻译引擎增强·SEO诊断引擎** — 4个Sprint 11项功能点（100%完成）：
 1. **Sprint 1：翻译引擎专项改进(P0)** — OpenAI翻译Provider完整实现(GPT-4o系列/重试/分段) + DeepSeek增强(16语言/指数退避/长文本分段) + Cache-based速率限制(RPM/RPH) + 插件化自动注册Provider + 统一语言配置类(消除硬编码)
@@ -123,6 +129,10 @@
 
 ### 核心特性
 
+- **🆕 后台语言管理UI(V2.9.17)** - 16语言checkbox管理+批量操作+拖拽排序+自定义语言添加，settings表持久化
+- **🆕 前台语言切换器(V2.9.17)** - 双皮肤组件(国旗+本地名+RTL) + language_switcher.css + 后台翻译状态列国旗
+- **🆕 翻译SSE实时推送(V2.9.17)** - stream()端点 + SSE优先+轮询降级 + 30s超时 + 5%阈值推送控制
+- **🆕 轮询可配置化(V2.9.17)** - config/ai.php polling段(interval/fast/max/timeout) + Controller注入 + translate_editor.js改造
 - **🆕 OpenAI翻译Provider(V2.9.16)** - GPT-4o/4o-mini/4-turbo 完整实现 + 指数退避重试 + 长文本自动分段翻译 + 16种语言
 - **🆕 翻译引擎增强(V2.9.16)** - Cache-based速率限制(RPM/RPH) + 多Provider链式降级(fallback_chain) + 插件化自动注册Provider
 - **🆕 SEO诊断引擎(V2.9.16)** - 4维度20+检测项 + 综合健康度评分(A-F) + Chart.js环形图 + 双皮肤模板(default+corporate)
@@ -673,7 +683,8 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
-| V2.9.16 | 2026-06-03 | **翻译引擎增强·SEO诊断** — 4个Sprint 12项功能点：S1 OpenAI翻译完整实现(GPT-4o/重试/分段/16语言)+DeepSeek增强+Cache限速+插件化注册+统一语言配置；S2 config/ai.php多Provider/多账号扩展；S3 SEO诊断引擎(4维度20+检测项/A-F评级/Chart.js环形图/双皮肤)；S4 前端语言扩展+队列翻译增强+配图链式降级(tongyi→flux→dalle)+默认社交分享图。 | |
+| V2.9.17 | 2026-06-04 | **翻译体验精修·多语言管理闭环** — 2个Sprint 4项功能：M-2后台语言管理UI(checkbox+排序+自定义语言+settings持久化) + T-4轮询可配置化(config polling段+Controller注入+JS改造+动态加速) + M-6前台语言切换器(_lang_switcher双皮肤+国旗/本地名/RTL CSS) + E-2翻译SSE实时推送(stream端点+SSE优先+轮询降级+30s超时)。0张新表，16文件+913行。 | |
+| V2.9.16 | 2026-06-03 | **翻译引擎增强·SEO诊断** — 4个Sprint 12项功能点：S1 OpenAI翻译完整实现(GPT-4o/重试/分段/16语言)+DeepSeek增强+Cache限速+插件化注册+统一语言配置；S2 config/ai.php多Provider/多账号扩展；S3 SEO诊断引擎(4维度20+检测项/A-F评级/Chart.js环形图/双皮肤)；S4 前端语言扩展+队列翻译增强+配图链式降级(tongyi→flux→dalle)+默认社交分享图。 |
 | V2.9.15 | 2026-06-01 | **质量增强·AI能力升级** — 3方向9功能点+11项P1修正：J技术负债清理(Provider真实轮询+@deprecated+Nginx SSE+composer自动化)+K AI翻译引擎(DeepSeek翻译+HTML分段+缓存+三端UI+批量队列)+L SEO增强(Schema.org 5类型+OG/Twitter增强+og:locale联动)。同日追加质量修复：命名规范化(20+文件)+`\r\n`乱码三层防御+模板路径修正。 |
 | V2.9.14 | 2026-05-30 | **体验精修·异步升级** — 3方向10项优化：P0配图异步化(同步循环→异步队列+轮询+超时解决)+P0批量SEO真进度SSE(真实进度+暂停继续+状态恢复)+P0 AI模态框组件化(3弹窗抽离shared子模板+CSS独立)。 |
 | V2.9.13 | 2026-05-28 | **内容智能化·运营增强** — 4方向18项：AI编辑器增强(配图候选选择+SEO对比弹窗+写作风格选择器+批量进度条+TinyMCE工具栏)、运营看板(PV/UV趋势+分类分布+热门Top10+ECharts)、版本差异对比(size_diff)+审核通知。 |
