@@ -75,3 +75,23 @@ Route::group('v1', function () {
 
 // V2.9.9: 分享追踪（公开API，无需认证）
 Route::post('share/track$', '\app\api\controller\ShareController@track');
+
+// ========== V2.9.18: 邮件订阅 + 通知 API ==========
+// D-3: 邮件订阅（公开）
+Route::post('subscribe/submit$', '\app\api\controller\v1\SubscribeController@submit');
+Route::get('subscribe/confirm$', '\app\api\controller\v1\SubscribeController@confirm');
+Route::get('subscribe/unsubscribe$', '\app\api\controller\v1\SubscribeController@unsubscribe');
+
+// U-3: 通知 API（需要登录）
+Route::get('v1/notify/list$', '\app\api\controller\v1\NotifyController@list');
+Route::get('v1/notify/unread_count$', '\app\api\controller\v1\NotifyController@unreadCount');
+Route::post('v1/notify/read$', '\app\api\controller\v1\NotifyController@read');
+Route::post('v1/notify/read_all$', '\app\api\controller\v1\NotifyController@readAll');
+
+// ========== V2.9.18 U-2: 注册登录 API ==========
+Route::post('auth/register$', '\app\api\controller\v1\AuthController@register');
+Route::get('auth/register/captcha$', '\app\api\controller\v1\AuthController@getCaptcha');
+Route::post('auth/register/send_code$', '\app\api\controller\v1\AuthController@sendVerifyCode');
+Route::post('auth/login$', '\app\api\controller\v1\AuthController@login');
+Route::post('auth/password/forgot$', '\app\api\controller\v1\AuthController@forgotPassword');
+Route::post('auth/password/reset$', '\app\api\controller\v1\AuthController@resetPassword');

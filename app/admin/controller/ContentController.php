@@ -140,7 +140,7 @@ class ContentController extends AdminBaseController
             $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
 
             // V2.9.17 T-4: 翻译轮询可配置化
-            $polling = Config::get('ai.translate.polling', []);
+            $polling = ThinkConfig::get('ai.translate.polling', []);
             $this->assign([
                 'cates' => $cates,
                 'tags' => $tags,
@@ -217,7 +217,7 @@ class ContentController extends AdminBaseController
             $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
 
             // V2.9.17 T-4: 翻译轮询可配置化
-            $polling = Config::get('ai.translate.polling', []);
+            $polling = ThinkConfig::get('ai.translate.polling', []);
             $this->assign([
                 'info' => $info,
                 'cates' => $cates,
@@ -470,6 +470,12 @@ class ContentController extends AdminBaseController
                 } catch (\Throwable $e) {
                     \think\facade\Log::warning("发布通知发送失败: " . $e->getMessage());
                 }
+            }
+            // V2.9.18: 触发内容发布事件（自动推送到已配置通道）
+            try {
+                event('ContentPublished', new \app\common\event\ContentPublished($info->id));
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning("推送事件触发失败: " . $e->getMessage());
             }
             return $this->success('发布成功');
         }

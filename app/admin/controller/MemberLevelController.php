@@ -47,11 +47,11 @@ class MemberLevelController extends AdminBaseController
      */
     public function edit(int $id = 0)
     {
-        $level = $id ? \app\common\model\MemberLevel::find($id) : null;
+        $level = $id ? \app\common\model\MemberLevel::find($id) : [];
         // V2.8: VIP免费阅读范围全局配置
         $vipFreeReadMode = (int) \app\common\service\ConfigService::get('vip_free_read_mode', 0);
         $this->assign([
-            'info' => $level,
+            'info' => $level ?: [],
             'vip_free_read_mode' => $vipFreeReadMode,
         ]);
         return $this->view('/member_level_edit');

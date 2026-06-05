@@ -1,0 +1,12 @@
+{extend name="/layout" /}
+{block name="title"}邮件日志 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4"><h4 class="mb-4">📧 邮件发送日志</h4>
+<div class="card"><div class="card-body p-0"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>ID</th><th>收件人</th><th>主题</th><th>状态</th><th>发送时间</th></tr></thead><tbody id="mlBody"><tr><td colspan="5" class="text-center py-4">加载中...</td></tr></tbody></table></div></div></div>
+{/block}
+{block name="js"}
+<script>
+function load(){$.get('/admin/mail_log/list',function(r){var h='',d=r.data||[];if(!d.length)h='<tr><td colspan="5" class="text-center py-4">暂无</td></tr>';else d.forEach(function(i){h+='<tr><td>'+i.id+'</td><td>'+i.email+'</td><td>'+i.subject+'</td><td><span class="badge '+(i.status==1?'bg-success':i.status==2?'bg-danger':'bg-warning')+'">'+(i.status==1?'已发送':i.status==2?'失败':'待发送')+'</span></td><td>'+i.sent_at+'</td></tr>'});$('#mlBody').html(h)})}
+$(load);
+</script>
+{/block}

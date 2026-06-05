@@ -86,6 +86,12 @@ abstract class AdminBaseController extends \think\BaseController
         'seo_keyword'      => 'seo_keyword',
         'visit_archive'    => 'visit_archive',
         'email_subscriber' => 'email_subscriber',
+        // V2.9.18 推送+订阅模块
+        'push_channel'     => 'push_channel',
+        'push_log'         => 'push_log',
+        'subscriber'       => 'subscriber',
+        'mail_log'         => 'mail_log',
+        'notify'           => 'notify',
         // V2.5 新增模块
         'payment'          => 'payment',
         'ai_batch'         => 'ai_batch',

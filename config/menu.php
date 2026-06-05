@@ -193,6 +193,12 @@ return [
             ['id' => 59, 'name' => '存储配置', 'url' => '/admin/storage/config', 'permission' => 'storage.*', 'active' => 'storage_config', 'icon' => 'bi bi-hdd-network'],
             // V2.9.10 菜单管理（数据库驱动）
             ['id' => 70, 'name' => '菜单管理', 'url' => '/admin/menu_manager/index', 'permission' => 'menu_manager.*', 'active' => 'menu_manager', 'icon' => 'bi bi-list-nested'],
+            // V2.9.18: 内容推送
+            ['id' => 481, 'name' => '内容推送', 'url' => '/admin/push/channel', 'permission' => 'push.*', 'active' => 'push_channel', 'icon' => 'bi bi-send'],
+            ['id' => 482, 'name' => '推送日志', 'url' => '/admin/push/log', 'permission' => 'push.*', 'active' => 'push_log', 'icon' => 'bi bi-journal-code'],
+            // V2.9.18: 订阅管理
+            ['id' => 483, 'name' => '订阅管理', 'url' => '/admin/subscriber/index', 'permission' => 'subscriber.*', 'active' => 'subscriber', 'icon' => 'bi bi-envelope-plus'],
+            ['id' => 484, 'name' => '邮件日志', 'url' => '/admin/mail_log/index', 'permission' => 'mail_log.*', 'active' => 'mail_log', 'icon' => 'bi bi-envelope-check'],
         ],
     ],
 ];

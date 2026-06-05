@@ -31,6 +31,7 @@ Route::get('search', '\app\home\controller\SearchController@index');
 Route::get('user', '\app\home\controller\UserController@index');
 
 // V2.3 会员系统
+Route::get('member/index$', '\app\home\controller\MemberController@index');
 Route::rule('member/register$', '\app\home\controller\MemberController@register', 'GET|POST');
 Route::rule('member/login$', '\app\home\controller\MemberController@login', 'GET|POST');
 Route::get('member/logout$', '\app\home\controller\MemberController@logout');
@@ -92,3 +93,7 @@ Route::get('404.html$', '\app\home\controller\IndexController@error404');
 
 // V2.9.12: 模板前台预览
 Route::get('template/preview/:slug$', '\app\home\controller\TemplatePreviewController@preview');
+
+// ========== V2.9.18 U-1: 个人中心扩展 ==========
+Route::get('member/publish$', '\app\home\controller\MemberController@publish');
+Route::rule('member/preferences$', '\app\home\controller\MemberController@preferences', 'GET|POST');

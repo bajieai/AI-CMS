@@ -1,14 +1,22 @@
-# 八界AI-CMS V2.9.17
+# 八界AI-CMS V2.9.18
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.17-blue)
+![Version](https://img.shields.io/badge/version-2.9.18-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.17 "翻译体验精修·多语言管理闭环" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.18 "内容分发增强·会员体系奠基" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.18 核心定位：内容分发增强·会员体系奠基** — 3个Sprint 6项功能点（100%完成）：
+1. **D-1：多渠道一键发布(P0)** — Webhook/微信/站内广播三通道 + PushDispatchService分发引擎 + PushChannelController后台管理 + ContentPublished事件自动触发
+2. **D-2：社交分享深化(P1)** — 分享预览面板(微信/微博/Twitter模拟卡片) + 前台分享工具栏(二维码/平台跳转/复制链接) + UTM追踪复用
+3. **D-3：邮件订阅基础版(P0)** — Double Opt-in确认流程 + SMTP/PHP Mail双模式 + 订阅者管理(列表/添加/删除/导出CSV) + 发布自动邮件通知 + 退订机制
+4. **U-1：前台个人中心基础版(P1)** — 我的发布(列表/筛选/编辑) + 偏好设置(语言/邮件/通知开关) + MemberController扩展(publish+preferences)
+5. **U-2：登录注册增强(P1)** — 邮箱注册(验证码+频率限制) + 密码找回(邮箱重置链接) + AuthService安全增强
+6. **U-3：站内通知系统(P2)** — 后台发送通知(选用户/角色/全部) + 前台通知铃铛(未读数角标+下拉列表+标记已读)
 
 **V2.9.17 核心定位：翻译体验精修·多语言管理闭环** — 2个Sprint 4项功能点（100%完成）：
 1. **M-2：后台翻译语言管理UI(P1)** — TranslateLanguageController+Service(settings持久化+排序+自定义语言) + 双皮肤管理界面 + 即时联动编辑页/前台
@@ -129,6 +137,13 @@
 
 ### 核心特性
 
+- **🆕 API推送引擎(V2.9.18)** - Webhook/微信(Server酱)/站内广播三通道 + PushDispatchService分发 + 自动/手动触发 + 推送日志+重试
+- **🆕 邮件订阅(V2.9.18)** - Double Opt-in确认流程 + SMTP/PHP Mail双模式 + 发布自动通知 + 退订机制 + 后台订阅者管理(CSV导出)
+- **🆕 分享预览+工具栏(V2.9.18)** - 编辑页微信/微博/Twitter模拟卡片 + 前台浮动分享工具栏(二维码/平台跳转/复制链接)
+- **🆕 站内通知系统(V2.9.18)** - 后台发送通知(选用户/角色/全部) + 前台铃铛(未读数角标+下拉列表+标记已读)
+- **🆕 个人中心扩展(V2.9.18)** - 我的发布(列表/编辑/筛选) + 偏好设置(语言/邮件/通知开关) + MemberController统一路由
+- **🆕 注册增强(V2.9.18)** - 邮箱注册+验证码+5分钟限频 + 密码找回(邮箱重置链接30分钟有效)
+- **🆕 全局性能优化(V2.9.18)** - Session→/dev/shm内存化 + OPcache 256M + realpath缓存600s + 模板编译缓存保障 + 未读消息60s缓存
 - **🆕 后台语言管理UI(V2.9.17)** - 16语言checkbox管理+批量操作+拖拽排序+自定义语言添加，settings表持久化
 - **🆕 前台语言切换器(V2.9.17)** - 双皮肤组件(国旗+本地名+RTL) + language_switcher.css + 后台翻译状态列国旗
 - **🆕 翻译SSE实时推送(V2.9.17)** - stream()端点 + SSE优先+轮询降级 + 30s超时 + 5%阈值推送控制
@@ -683,6 +698,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.18 | 2026-06-05 | **内容分发增强·会员体系奠基** — 3个Sprint 6项功能：D-1 API推送引擎(Webhook/微信/站内广播三通道+PushDispatch+ContentPublished事件+推送日志/重试) + D-2社交分享深化(编辑页预览面板+前台分享工具栏+UTM追踪) + D-3邮件订阅(Double Opt-in+SMTP/PHP Mail+订阅管理/CSV导出+发布自动通知) + U-1个人中心(我的发布+偏好设置+MemberController扩展) + U-2注册增强(邮箱验证码+密码找回+频率限制) + U-3站内通知(后台发送+前台铃铛组件)。5张新表+7个新Service+9个Controller+4个Model+3个Event/Listener+28个双皮肤模板+7个JS/CSS+性能优化(Session/OPcache/realpath)。56新增+14修改文件，~5500行。 | |
 | V2.9.17 | 2026-06-04 | **翻译体验精修·多语言管理闭环** — 2个Sprint 4项功能：M-2后台语言管理UI(checkbox+排序+自定义语言+settings持久化) + T-4轮询可配置化(config polling段+Controller注入+JS改造+动态加速) + M-6前台语言切换器(_lang_switcher双皮肤+国旗/本地名/RTL CSS) + E-2翻译SSE实时推送(stream端点+SSE优先+轮询降级+30s超时)。0张新表，16文件+913行。 | |
 | V2.9.16 | 2026-06-03 | **翻译引擎增强·SEO诊断** — 4个Sprint 12项功能点：S1 OpenAI翻译完整实现(GPT-4o/重试/分段/16语言)+DeepSeek增强+Cache限速+插件化注册+统一语言配置；S2 config/ai.php多Provider/多账号扩展；S3 SEO诊断引擎(4维度20+检测项/A-F评级/Chart.js环形图/双皮肤)；S4 前端语言扩展+队列翻译增强+配图链式降级(tongyi→flux→dalle)+默认社交分享图。 |
 | V2.9.15 | 2026-06-01 | **质量增强·AI能力升级** — 3方向9功能点+11项P1修正：J技术负债清理(Provider真实轮询+@deprecated+Nginx SSE+composer自动化)+K AI翻译引擎(DeepSeek翻译+HTML分段+缓存+三端UI+批量队列)+L SEO增强(Schema.org 5类型+OG/Twitter增强+og:locale联动)。同日追加质量修复：命名规范化(20+文件)+`\r\n`乱码三层防御+模板路径修正。 |

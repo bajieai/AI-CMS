@@ -42,6 +42,7 @@ class Notification extends Model
             'content_approve' => '内容审核通过',
             'content_reject' => '内容审核驳回',
             'reward_receive' => '收到打赏',
+            'push' => '内容推送', // V2.9.18 D-1: 站内广播推送
         ];
         return $map[$data['type']] ?? '未知';
     }

@@ -173,8 +173,14 @@ abstract class FrontBaseController extends \think\BaseController
             'isMemberLogin'    => $this->isMemberLogin,
             'is_member_login'  => $this->isMemberLogin, // 兼容layout.html等使用下划线命名
             'member_info'      => $this->memberInfo,
-            // V2.9.9-R5 消息未读数
-            'member_unread_count' => ($this->isMemberLogin && $this->memberInfo) ? (PrivateMessageService::getUnreadCount((int) $this->memberInfo['id']) + PrivateMessageService::getSystemUnreadCount((int) $this->memberInfo['id'])) : 0,
+            // V2.9.18: 消息未读数加缓存（60秒），避免每次页面都查2次DB
+            'member_unread_count' => ($this->isMemberLogin && $this->memberInfo) ? (function() {
+                $mid = (int) $this->memberInfo['id'];
+                $cacheKey = 'member_unread_' . $mid;
+                return Cache::tag(CacheService::TAG_CONFIG)->remember($cacheKey, function() use ($mid) {
+                    return PrivateMessageService::getUnreadCount($mid) + PrivateMessageService::getSystemUnreadCount($mid);
+                }, 60);
+            })() : 0,
             'seo_title'        => '',
             'seo_keywords'     => '',
             'seo_description'  => '',

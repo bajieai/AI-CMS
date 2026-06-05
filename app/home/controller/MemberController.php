@@ -498,4 +498,67 @@ class MemberController extends FrontBaseController
             'ucenter_active' => 'level',
         ]);
     }
+
+    /**
+     * V2.9.18 U-1: 我的发布
+     */
+    public function publish()
+    {
+        $memberId = $this->memberInfo['id'] ?? 0;
+        if (!$memberId) return redirect('/member/login');
+
+        $page = (int) request()->get('page', 1);
+        $status = request()->get('status', '');
+
+        $query = \app\common\model\Content::where('user_id', $memberId)
+            ->order('id', 'desc');
+
+        if ($status !== '') {
+            $query->where('status', (int) $status);
+        }
+
+        $total = $query->count();
+        $list = $query->page($page, 15)->select();
+
+        return $this->view('/member_publish', [
+            'list'     => $list,
+            'total'    => $total,
+            'page'     => $page,
+            'statusFilter' => $status,
+            'ucenter_active' => 'publish',
+        ]);
+    }
+
+    /**
+     * V2.9.18 U-1: 偏好设置
+     */
+    public function preferences(Request $request)
+    {
+        $memberId = $this->memberInfo['id'] ?? 0;
+        if (!$memberId) return redirect('/member/login');
+
+        if ($request->isPost()) {
+            $langPref  = $request->post('lang_pref', '');
+            $emailNotify = (int) $request->post('email_notify', 0);
+            $notifyOn   = (int) $request->post('notify_on', 1);
+
+            \app\common\model\Member::where('id', $memberId)->update([
+                'lang_pref'    => $langPref,
+                'email_notify' => $emailNotify,
+                'notify_on'    => $notifyOn,
+                'update_time'  => time(),
+            ]);
+
+            return json(['code' => 0, 'msg' => '偏好设置已保存']);
+        }
+
+        $member = \app\common\model\Member::find($memberId);
+        $languages = \app\common\model\TranslateLanguage::where('status', 1)->select();
+
+        return $this->view('/member_preferences', [
+            'member'    => $member,
+            'languages' => $languages,
+            'ucenter_active' => 'preferences',
+        ]);
+    }
 }

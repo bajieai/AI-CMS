@@ -507,3 +507,30 @@ Route::post('template_developer/reject/:id$', '\app\admin\controller\TemplateDev
 Route::post('template_developer/delete/:id$', '\app\admin\controller\TemplateDeveloperAdminController@delete');
 // V2.9.13 H-1: 网站主上传入口
 Route::rule('template_developer/upload$', '\app\admin\controller\TemplateDeveloperAdminController@uploadPage', 'GET|POST');
+
+// ========== V2.9.18: 推送通道管理 ==========
+Route::get('push/channel$', '\app\admin\controller\PushChannelController@index');
+Route::get('push/channel/list$', '\app\admin\controller\PushChannelController@list');
+Route::rule('push/channel/add$', '\app\admin\controller\PushChannelController@add', 'GET|POST');
+Route::rule('push/channel/edit/:id$', '\app\admin\controller\PushChannelController@edit', 'GET|POST');
+Route::post('push/channel/delete/:id$', '\app\admin\controller\PushChannelController@delete');
+Route::post('push/channel/test/:id$', '\app\admin\controller\PushChannelController@test');
+Route::get('push/log$', '\app\admin\controller\PushLogController@index');
+Route::get('push/log/list$', '\app\admin\controller\PushLogController@list');
+Route::post('push/log/retry/:id$', '\app\admin\controller\PushLogController@retry');
+Route::post('push/dispatch/:contentId$', '\app\admin\controller\PushChannelController@dispatch');
+Route::post('push/dispatch/channel$', '\app\admin\controller\PushChannelController@dispatchChannel');
+
+// ========== V2.9.18: 邮件订阅管理 ==========
+Route::get('subscriber/index$', '\app\admin\controller\SubscriberController@index');
+Route::get('subscriber/list$', '\app\admin\controller\SubscriberController@list');
+Route::post('subscriber/add$', '\app\admin\controller\SubscriberController@add');
+Route::post('subscriber/delete$', '\app\admin\controller\SubscriberController@delete');
+Route::get('subscriber/export$', '\app\admin\controller\SubscriberController@export');
+Route::get('mail_log/index$', '\app\admin\controller\MailLogController@index');
+Route::get('mail_log/list$', '\app\admin\controller\MailLogController@list');
+
+// ========== V2.9.18: 通知管理 ==========
+Route::get('notify/send$', '\app\admin\controller\NotifyController@sendPage');
+Route::post('notify/send$', '\app\admin\controller\NotifyController@doSend');
+Route::get('notify/history$', '\app\admin\controller\NotifyController@history');

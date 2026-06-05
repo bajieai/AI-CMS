@@ -12,5 +12,10 @@ return [
         'AiThemeGenerated' => [
             \app\common\listener\ThemeQualityCheckListener::class,
         ],
+        // V2.9.18: 内容发布后自动推送到已配置通道 + 邮件通知订阅者
+        'ContentPublished' => [
+            \app\common\listener\PushDispatchListener::class,
+            \app\common\listener\MailSendListener::class,
+        ],
     ],
 ];
