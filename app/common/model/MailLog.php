@@ -45,7 +45,7 @@ class MailLog extends Model
      */
     public static function record(array $data): self
     {
-        return self::create([
+        $log = self::create([
             'subscriber_id' => $data['subscriber_id'] ?? 0,
             'content_id'    => $data['content_id'] ?? 0,
             'email'         => $data['email'] ?? '',
@@ -55,6 +55,21 @@ class MailLog extends Model
             'sent_at'       => $data['sent_at'] ?? null,
             'created_at'    => date('Y-m-d H:i:s'),
         ]);
+
+        // V2.9.19 S-1c: 静默检测 — 发送失败时增加订阅者失败计数
+        if (($data['status'] ?? self::STATUS_PENDING) == self::STATUS_FAILED && !empty($data['subscriber_id'])) {
+            $sub = \app\common\model\Subscriber::find((int) $data['subscriber_id']);
+            if ($sub && $sub->status == \app\common\model\Subscriber::STATUS_CONFIRMED) {
+                $sub->fail_count += 1;
+                if ($sub->fail_count >= 3) {
+                    $sub->status     = \app\common\model\Subscriber::STATUS_INVALID;
+                    $sub->invalid_at = date('Y-m-d H:i:s');
+                }
+                $sub->save();
+            }
+        }
+
+        return $log;
     }
 
     public function getStatusTextAttr($value, $data): string

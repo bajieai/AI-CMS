@@ -43,6 +43,10 @@ class Notification extends Model
             'content_reject' => '内容审核驳回',
             'reward_receive' => '收到打赏',
             'push' => '内容推送', // V2.9.18 D-1: 站内广播推送
+            // V2.9.19 N-1: 新增3种等级类型映射
+            'level_upgrade' => '等级升级',
+            'level_downgrade' => '等级调整',
+            'level_grace_warning' => '等级降级预警',
         ];
         return $map[$data['type']] ?? '未知';
     }

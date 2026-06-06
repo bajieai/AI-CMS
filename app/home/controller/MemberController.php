@@ -20,6 +20,7 @@ use app\common\service\MemberFavoriteService;
 use app\common\service\CaptchaService;
 use app\common\service\MemberLevelService;
 use app\common\service\MemberService;
+use app\common\service\NotificationService;
 use app\common\service\UploadService;
 use think\Request;
 
@@ -361,11 +362,15 @@ class MemberController extends FrontBaseController
                 ->column('count(*)', 'type');
         } catch (\Throwable) {}
 
+        // V2.9.19 N-1b: 通知概览统计
+        $notifStats = NotificationService::getStats($memberId);
+
         return $this->view('/member_notification', [
             'list' => $list,
             'unread_count' => $unreadCount,
             'type_counts' => $typeCounts,
             'current_type' => $type,
+            'notif_stats' => $notifStats,
             'ucenter_active' => 'notification',
         ]);
     }
@@ -526,6 +531,60 @@ class MemberController extends FrontBaseController
             'page'     => $page,
             'statusFilter' => $status,
             'ucenter_active' => 'publish',
+        ]);
+    }
+
+    /**
+     * V2.9.19 U-1: 内容统计面板
+     */
+    public function stats()
+    {
+        $memberId = $this->memberInfo['id'] ?? 0;
+        if (!$memberId) return redirect('/member/login');
+
+        $cacheKey = 'member_stats_' . $memberId;
+        $cacheTag = 'member';
+
+        $stats = \think\facade\Cache::tag($cacheTag)->remember($cacheKey, function () use ($memberId) {
+            $totalPublished = \app\common\model\Content::where('user_id', $memberId)
+                ->where('status', 1)->count();
+            $monthPublished = \app\common\model\Content::where('user_id', $memberId)
+                ->where('status', 1)
+                ->whereTime('create_time', 'month')
+                ->count();
+            $totalViews = (int) \app\common\model\Content::where('user_id', $memberId)
+                ->sum('views');
+            $totalShares = \app\common\model\ShareClick::whereIn('content_id', function ($q) use ($memberId) {
+                $q->name('id')->from('content')->where('user_id', $memberId);
+            })->count();
+            $avgViews = $totalPublished > 0 ? round($totalViews / $totalPublished) : 0;
+
+            return compact('totalPublished', 'monthPublished', 'totalViews', 'totalShares', 'avgViews');
+        }, 60);
+
+        // 近30天阅读趋势
+        $trend = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = date('Y-m-d', strtotime("-{$i} days"));
+            $dayViews = \app\common\model\Content::where('user_id', $memberId)
+                ->where('status', 1)
+                ->whereDate('update_time', $date)
+                ->sum('views');
+            $trend[] = ['date' => $date, 'views' => (int) $dayViews];
+        }
+
+        // 阅读量 TOP5
+        $top5 = \app\common\model\Content::where('user_id', $memberId)
+            ->where('status', 1)
+            ->order('views', 'desc')
+            ->limit(5)
+            ->select();
+
+        return $this->view('/member_stats', [
+            'stats'  => $stats,
+            'trend'  => $trend,
+            'top5'   => $top5,
+            'ucenter_active' => 'stats',
         ]);
     }
 

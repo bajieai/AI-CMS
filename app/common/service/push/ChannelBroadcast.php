@@ -36,25 +36,41 @@ class ChannelBroadcast implements PushChannelInterface
                 return $this->failResult('站内广播标题为空');
             }
 
-            // 获取所有前台会员
-            $members = \app\common\model\Member::where('status', 1)->column('id');
-            if (empty($members)) {
-                return $this->successResult([], 0, '无可用推送目标用户');
+            $pageSize = 500;
+            $page = 1;
+            $count = 0;
+
+            while (true) {
+                $members = \app\common\model\Member::where('status', 1)
+                    ->page($page, $pageSize)
+                    ->field(['id'])
+                    ->select()
+                    ->toArray();
+
+                if (empty($members)) {
+                    break;
+                }
+
+                $batch = array_map(function ($user) use ($title, $content, $link) {
+                    return [
+                        'type'          => 'push',
+                        'receiver_type' => 'member',
+                        'receiver_id'   => $user['id'],
+                        'title'         => $title,
+                        'content'       => $content,
+                        'link'          => $link,
+                        'is_read'       => 0,
+                        'create_time'   => time(),
+                    ];
+                }, $members);
+
+                Notification::insertAll($batch);
+                $count += count($members);
+                $page++;
             }
 
-            $count = 0;
-            foreach ($members as $memberId) {
-                Notification::create([
-                    'type'          => 'push',
-                    'receiver_type' => 'member',
-                    'receiver_id'   => $memberId,
-                    'title'         => $title,
-                    'content'       => $content,
-                    'link'          => $link,
-                    'is_read'       => 0,
-                    'create_time'   => time(),
-                ]);
-                $count++;
+            if ($count === 0) {
+                return $this->successResult([], 0, '无可用推送目标用户');
             }
 
             return $this->successResult([], 0, "已推送 {$count} 位用户");

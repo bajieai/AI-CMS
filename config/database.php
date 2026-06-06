@@ -38,6 +38,8 @@ return [
             ],
             // 数据库编码默认采用utf8mb4
             'charset' => env('database.charset', 'utf8mb4'),
+            // V2.9.19 R-4: 显式设置时区，避免 Docker / 跨环境时区漂移
+            'timezone' => env('database.timezone', '+08:00'),
             // 数据库表前缀（安装时可配置）
             'prefix' => env('database.prefix', 'i8j_'),
             // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)

@@ -520,6 +520,13 @@ Route::get('push/log/list$', '\app\admin\controller\PushLogController@list');
 Route::post('push/log/retry/:id$', '\app\admin\controller\PushLogController@retry');
 Route::post('push/dispatch/:contentId$', '\app\admin\controller\PushChannelController@dispatch');
 Route::post('push/dispatch/channel$', '\app\admin\controller\PushChannelController@dispatchChannel');
+// V2.9.19 D-1d: 推送健康检查 + 重试队列
+Route::get('push/health$', '\app\admin\controller\PushChannelController@health');
+Route::get('push/retryStats$', '\app\admin\controller\PushChannelController@retryStats');
+Route::get('push/retry$', '\app\admin\controller\PushRetryController@index');
+Route::get('push/retry/list$', '\app\admin\controller\PushRetryController@list');
+Route::post('push/retry/process$', '\app\admin\controller\PushRetryController@process');
+Route::post('push/retry/cleanup$', '\app\admin\controller\PushRetryController@cleanup');
 
 // ========== V2.9.18: 邮件订阅管理 ==========
 Route::get('subscriber/index$', '\app\admin\controller\SubscriberController@index');
@@ -527,8 +534,20 @@ Route::get('subscriber/list$', '\app\admin\controller\SubscriberController@list'
 Route::post('subscriber/add$', '\app\admin\controller\SubscriberController@add');
 Route::post('subscriber/delete$', '\app\admin\controller\SubscriberController@delete');
 Route::get('subscriber/export$', '\app\admin\controller\SubscriberController@export');
+// V2.9.19 S-1c: CSV导入 + 标记无效/恢复有效 + 标签列表
+Route::post('subscriber/import$', '\app\admin\controller\SubscriberController@import');
+Route::post('subscriber/markInvalid$', '\app\admin\controller\SubscriberController@markInvalid');
+Route::post('subscriber/restoreValid$', '\app\admin\controller\SubscriberController@restoreValid');
+Route::get('subscriber/tagOptions$', '\app\admin\controller\SubscriberController@tagOptions');
+// V2.9.19 S-1b: 退订分析面板
+Route::get('subscriber/analysis$', '\app\admin\controller\UnsubscribeAnalysisController@index');
+Route::get('subscriber/analysis/overview$', '\app\admin\controller\UnsubscribeAnalysisController@overview');
+Route::get('subscriber/analysis/trend$', '\app\admin\controller\UnsubscribeAnalysisController@trend');
+// V2.9.19 S-1d: 邮件日志统计增强
 Route::get('mail_log/index$', '\app\admin\controller\MailLogController@index');
 Route::get('mail_log/list$', '\app\admin\controller\MailLogController@list');
+Route::get('mail_log/overview$', '\app\admin\controller\MailLogController@overview');
+Route::get('mail_log/stats$', '\app\admin\controller\MailLogController@stats');
 
 // ========== V2.9.18: 通知管理 ==========
 Route::get('notify/send$', '\app\admin\controller\NotifyController@sendPage');

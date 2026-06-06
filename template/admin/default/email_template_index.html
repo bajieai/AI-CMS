@@ -19,6 +19,7 @@
                 <td>{if $vo.is_enabled==1}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td>
                 <td>
                     <a href="/admin/email_template/edit/{$vo.id}" class="btn btn-sm btn-outline-info">编辑</a>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="resetDefault('{$vo.code}')">恢复默认</button>
                     <button class="btn btn-sm btn-outline-primary" onclick="testSend()">测试发送</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteItem({$vo.id})">删除</button>
                 </td>
@@ -35,6 +36,7 @@
 {/block}
 {block name="js"}
 <script>
+function resetDefault(code) { if(!confirm('确定恢复默认模板？当前内容将被覆盖。')) return; $.post('/admin/email_template/resetDefault', {code:code}, function(res) { alert(res.msg); if(res.code==0) location.reload(); }); }
 function testSend() {
     var email = prompt('请输入测试邮箱地址：');
     if (!email) return;

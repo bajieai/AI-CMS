@@ -170,4 +170,23 @@ class NotificationService
 
         return $query->page($page, $limit)->select()->toArray();
     }
+
+    /**
+     * V2.9.19 N-1b: 获取通知概览统计
+     */
+    public static function getStats(int $memberId): array
+    {
+        $base = NotificationModel::where('receiver_type', 'member')
+            ->where('receiver_id', $memberId);
+
+        return [
+            'total'  => (clone $base)->count(),
+            'unread' => (clone $base)->where('is_read', 0)->count(),
+            'today'  => (clone $base)->whereDay('create_time')->count(),
+            'type_distribution' => (clone $base)
+                ->where('is_read', 0)
+                ->group('type')
+                ->column('count(*) as count', 'type'),
+        ];
+    }
 }

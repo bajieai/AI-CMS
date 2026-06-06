@@ -38,16 +38,32 @@ class SubscriberController extends AdminBaseController
         $page     = (int) $this->request->get('page', 1);
         $pageSize = (int) $this->request->get('limit', 20);
         $status   = $this->request->get('status', '');
+        $tag      = $this->request->get('tag', '');
+        $showInvalid = (int) $this->request->get('show_invalid', 0);
 
         $query = Subscriber::order('id', 'desc');
         if ($status !== '') {
             $query->where('status', (int) $status);
         }
+        if ($tag !== '') {
+            $query->where('tag', $tag);
+        }
+        // 默认过滤无效订阅者，除非显式开启「显示无效」
+        if (!$showInvalid) {
+            $query->where('status', '<>', Subscriber::STATUS_INVALID);
+        }
 
         $total = $query->count();
         $data  = $query->page($page, $pageSize)->select();
 
-        return $this->success('ok', ['data' => $data, 'total' => $total]);
+        // 获取无效订阅者数量（用于灰色提示）
+        $invalidCount = Subscriber::where('status', Subscriber::STATUS_INVALID)->count();
+
+        return $this->success('ok', [
+            'data' => $data,
+            'total' => $total,
+            'invalid_count' => $invalidCount,
+        ]);
     }
 
     /**
@@ -103,5 +119,111 @@ class SubscriberController extends AdminBaseController
             'Content-Type'        => 'text/csv; charset=utf-8',
             'Content-Disposition' => 'attachment; filename=subscribers_' . date('Ymd') . '.csv',
         ]);
+    }
+
+    /**
+     * V2.9.19 S-1c: CSV 批量导入
+     */
+    public function import()
+    {
+        $file = $this->request->file('file');
+        if (!$file) {
+            return $this->error('请上传 CSV 文件');
+        }
+
+        $realPath = $file->getRealPath();
+        if (!$realPath || !file_exists($realPath)) {
+            return $this->error('文件读取失败');
+        }
+
+        $rows = array_map('str_getcsv', file($realPath));
+        if (empty($rows)) {
+            return $this->error('CSV 文件为空');
+        }
+
+        // 检测首行是否为表头
+        $firstRow = $rows[0];
+        $hasHeader = false;
+        if (isset($firstRow[0]) && strtolower(trim($firstRow[0])) === 'email') {
+            $hasHeader = true;
+            array_shift($rows);
+        }
+
+        $success = 0;
+        $skipped = 0;
+        $failed  = 0;
+        $failedRows = [];
+
+        foreach ($rows as $idx => $row) {
+            $email = trim($row[0] ?? '');
+            $tag   = trim($row[1] ?? '');
+
+            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $failed++;
+                $failedRows[] = $hasHeader ? ($idx + 2) : ($idx + 1);
+                continue;
+            }
+
+            $exists = Subscriber::where('email', $email)->find();
+            if ($exists) {
+                $skipped++;
+                continue;
+            }
+
+            Subscriber::create([
+                'email'         => $email,
+                'tag'           => $tag,
+                'status'        => Subscriber::STATUS_CONFIRMED,
+                'confirm_token' => Subscriber::generateToken(),
+                'source'        => 'csv_import',
+                'subscribed_at' => date('Y-m-d H:i:s'),
+                'confirmed_at'  => date('Y-m-d H:i:s'),
+            ]);
+            $success++;
+        }
+
+        return $this->success("导入完成：成功 {$success} 条，跳过 {$skipped} 条重复，失败 {$failed} 行", [
+            'success' => $success,
+            'skipped' => $skipped,
+            'failed'  => $failed,
+            'failed_rows' => $failedRows,
+        ]);
+    }
+
+    /**
+     * V2.9.19 S-1c: 手动标记无效
+     */
+    public function markInvalid()
+    {
+        $id = (int) $this->request->post('id', 0);
+        $subscriber = Subscriber::find($id);
+        if (!$subscriber) {
+            return $this->error('订阅者不存在');
+        }
+        $subscriber->markInvalid();
+        return $this->success('已标记为无效');
+    }
+
+    /**
+     * V2.9.19 S-1c: 恢复为有效
+     */
+    public function restoreValid()
+    {
+        $id = (int) $this->request->post('id', 0);
+        $subscriber = Subscriber::find($id);
+        if (!$subscriber) {
+            return $this->error('订阅者不存在');
+        }
+        $subscriber->restoreValid();
+        return $this->success('已恢复为有效');
+    }
+
+    /**
+     * V2.9.19 S-1c: 获取标签列表
+     */
+    public function tagOptions()
+    {
+        $tags = Subscriber::getTagOptions();
+        return $this->success('ok', ['tags' => $tags]);
     }
 }

@@ -16,6 +16,7 @@ namespace app\common\service\push;
 use app\common\model\PushChannel;
 use app\common\model\PushLog;
 use app\common\model\Content;
+use app\common\service\PushRetryService;
 
 /**
  * 推送分发服务 - V2.9.18 D-1
@@ -158,6 +159,8 @@ class PushDispatchService
 
     /**
      * 核心分发逻辑
+     *
+     * V2.9.19 D-1a: 增加整体超时60s，当前通道完成后退出
      */
     protected function doDispatch(int $contentId, array $channels): array
     {
@@ -165,9 +168,13 @@ class PushDispatchService
         $total     = count($channels);
         $success   = 0;
         $failed    = 0;
+        $skipped   = 0;
         $results   = [];
 
-        foreach ($channels as $channelData) {
+        $startTime = microtime(true);
+        $timeout   = (int) (\app\common\model\Config::where('name', 'push_global_timeout')->value('value') ?: 60);
+
+        foreach ($channels as $index => $channelData) {
             $result = $this->pushToChannel($channelData, $payload);
 
             // 记录日志
@@ -195,17 +202,49 @@ class PushDispatchService
             }
 
             $results[] = [
-                'channel_id' => $channelData['id'],
+                'channel_id'   => $channelData['id'],
                 'channel_name' => $channelData['name'],
-                'success'    => $result['success'],
-                'error_msg'  => $result['error_msg'],
+                'success'      => $result['success'],
+                'error_msg'    => $result['error_msg'],
             ];
+
+            // V2.9.19 D-1a: 当前通道完成后检查超时
+            if (microtime(true) - $startTime >= $timeout) {
+                // 记录剩余未执行通道为跳过
+                $remainingChannels = array_slice($channels, $index + 1);
+                foreach ($remainingChannels as $remaining) {
+                    PushLog::record([
+                        'channel_id'    => $remaining['id'],
+                        'content_id'    => $contentId,
+                        'request_url'   => $remaining['config']['url'] ?? '',
+                        'request_body'  => json_encode($payload, JSON_UNESCAPED_UNICODE),
+                        'response_code' => 0,
+                        'response_body' => '',
+                        'duration_ms'   => 0,
+                        'status'        => PushLog::STATUS_SKIPPED,
+                        'error_msg'     => '全局超时跳过',
+                    ]);
+
+                    // 入重试队列
+                    PushRetryService::enqueue($contentId, $remaining['name'], 'global_timeout');
+
+                    $skipped++;
+                    $results[] = [
+                        'channel_id'   => $remaining['id'],
+                        'channel_name' => $remaining['name'],
+                        'success'      => false,
+                        'error_msg'    => '全局超时跳过',
+                    ];
+                }
+                break;
+            }
         }
 
         return [
             'total'   => $total,
             'success' => $success,
             'failed'  => $failed,
+            'skipped' => $skipped,
             'results' => $results,
         ];
     }

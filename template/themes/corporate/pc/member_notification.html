@@ -9,6 +9,28 @@
     <span class="uc-section-title"><i class="bi bi-bell" style="color:#f59e0b;"></i>消息通知</span>
 </div>
 
+<!-- V2.9.19 N-1b: 通知概览统计 -->
+<div style="padding:16px 20px;display:flex;gap:12px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #f0f0f0;">
+    <div style="flex:1;min-width:110px;text-align:center;padding:10px;background:#f8fafc;border-radius:10px;">
+        <div style="font-size:20px;font-weight:700;color:var(--i8j-text,#1e293b);">{$notif_stats.total|default=0}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">总通知</div>
+    </div>
+    <div style="flex:1;min-width:110px;text-align:center;padding:10px;background:#f8fafc;border-radius:10px;">
+        <div style="font-size:20px;font-weight:700;color:#ef4444;">{$notif_stats.unread|default=0}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">未读</div>
+    </div>
+    <div style="flex:1;min-width:110px;text-align:center;padding:10px;background:#f8fafc;border-radius:10px;">
+        <div style="font-size:20px;font-weight:700;color:#3b82f6;">{$notif_stats.today|default=0}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">今日新增</div>
+    </div>
+    <div style="flex:1;min-width:110px;text-align:center;padding:10px;background:#f8fafc;border-radius:10px;">
+        <div style="font-size:20px;font-weight:700;color:#10b981;">
+            {php}$typeDist = $notif_stats['type_distribution'] ?? []; echo count($typeDist);{/php}
+        </div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">类型分布</div>
+    </div>
+</div>
+
 <!-- 消息分类筛选 -->
 <div style="padding:10px 20px;background:#fafcfd;border-bottom:1px solid #f0f0f0;display:flex;flex-wrap:wrap;gap:6px;">
     <a href="/member/notification" class="uc-tab-item {if $current_type == ''}active{/if}" style="flex:none;padding:6px 14px;font-size:12.5px;">

@@ -50,5 +50,9 @@ return [
         'theme:duplicate'       => 'app\common\command\ThemeDuplicateCommand',
         // V2.9.14: AI任务队列消费者（Cron模式）
         'ai-queue:consume'      => 'app\common\command\AiQueueConsume',
+        // V2.9.19 R-5: 菜单同步命令
+        'menu:sync'             => 'app\common\command\MenuSyncCommand',
+        // V2.9.19 D-1c: 推送重试命令
+        'push:retry'            => 'app\common\command\PushRetryCommand',
     ],
 ];

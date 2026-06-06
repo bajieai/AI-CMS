@@ -91,6 +91,64 @@ class EmailTemplateController extends AdminBaseController
     }
 
     /**
+     * V2.9.19 S-1a: 恢复默认模板
+     */
+    public function resetDefault()
+    {
+        $code = $this->request->post('code', '');
+        if (empty($code)) {
+            return json(['code' => 1, 'msg' => '模板编码不能为空']);
+        }
+
+        $defaults = [
+            'subscribe_confirm' => [
+                'name'    => '订阅确认邮件',
+                'subject' => '请确认订阅 {{site_name}} 的最新资讯',
+                'body'    => '<h2>感谢您的订阅</h2><p>请点击下方链接确认订阅：</p><div style="text-align:center;margin:20px 0"><a href="{{confirm_url}}" style="background:#007bff;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-size:16px">确认订阅</a></div><hr><p style="color:#999;font-size:12px">如果您没有订阅，忽略此邮件即可。<br><a href="{{unsubscribe_url}}">退订</a></p>',
+                'vars'    => 'site_name, confirm_url, unsubscribe_url, subscriber_email',
+            ],
+            'content_publish' => [
+                'name'    => '内容发布通知',
+                'subject' => '【{{site_name}}】新内容发布：{{content_title}}',
+                'body'    => '<h2>{{content_title}}</h2>{{content_cover}}<p>{{content_summary}}</p><div style="text-align:center;margin:20px 0"><a href="{{content_url}}" style="background:#007bff;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-size:16px">查看详情</a></div><hr><p style="color:#999;font-size:12px">此邮件由 {{site_name}} 自动发送<br><a href="{{unsubscribe_url}}">退订</a></p>',
+                'vars'    => 'site_name, content_title, content_summary, content_url, content_cover, unsubscribe_url, subscriber_email',
+            ],
+            'content_notify' => [
+                'name'    => '内容发布通知',
+                'subject' => '【{{site_name}}】新内容发布：{{content_title}}',
+                'body'    => '<h2>{{content_title}}</h2>{{content_cover}}<p>{{content_summary}}</p><div style="text-align:center;margin:20px 0"><a href="{{content_url}}" style="background:#007bff;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-size:16px">查看详情</a></div><hr><p style="color:#999;font-size:12px">此邮件由 {{site_name}} 自动发送<br><a href="{{unsubscribe_url}}">退订</a></p>',
+                'vars'    => 'site_name, content_title, content_summary, content_url, content_cover, unsubscribe_url, subscriber_email',
+            ],
+            'unsubscribe' => [
+                'name'    => '退订确认',
+                'subject' => '您已成功退订 {{site_name}} 的邮件通知',
+                'body'    => '<h2>退订确认</h2><p>您已成功退订 <strong>{{site_name}}</strong> 的邮件通知，将不再收到相关内容推送。</p><p>如想重新订阅，请 <a href="{{subscribe_url}}">点击此处</a>。</p>',
+                'vars'    => 'site_name, subscribe_url, subscriber_email',
+            ],
+        ];
+
+        if (!isset($defaults[$code])) {
+            return json(['code' => 1, 'msg' => '未知模板编码']);
+        }
+
+        $tpl = EmailTemplate::where('code', $code)->find();
+        if (!$tpl) {
+            return json(['code' => 1, 'msg' => '模板不存在']);
+        }
+
+        $def = $defaults[$code];
+        $tpl->save([
+            'name'    => $def['name'],
+            'subject' => $def['subject'],
+            'body'    => $def['body'],
+            'vars'    => $def['vars'],
+        ]);
+
+        \app\common\service\CacheService::clearByTag(\app\common\service\CacheService::TAG_EMAIL);
+        return json(['code' => 0, 'msg' => '已恢复默认模板']);
+    }
+
+    /**
      * 测试发送邮件
      */
     public function test()

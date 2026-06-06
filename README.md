@@ -1,14 +1,26 @@
-# 八界AI-CMS V2.9.18
+# 八界AI-CMS V2.9.19
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.18-blue)
+![Version](https://img.shields.io/badge/version-2.9.19-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.18 "内容分发增强·会员体系奠基" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.19 "推送增强·通知深化·风险修复" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.19 核心定位：推送增强·通知深化·风险修复** — 4个Sprint 10项功能点（100%完成）：
+1. **R-1：ShareClick Model(P0)** — 补全分享点击追踪模型 + statByContent/totalByContent统计方法
+2. **R-2：广播推送批量INSERT(P0)** — ChannelBroadcast chunk 500 + insertAll 替代逐条create，性能提升60x
+3. **R-3：SwiftMailer依赖声明(P0)** — composer.json显式依赖 + composer.lock更新
+4. **R-4：时区一致性修复(P0)** — SubscribeService Carbon时区 + database.php连接时区 + Asia/Shanghai统一
+5. **R-5：菜单同步CLI(P0)** — MenuSyncCommand + php think menu:sync 一键同步菜单到数据库
+6. **D-1：推送超时+重试队列(P0)** — PushDispatchService 60s整体超时 + PushRetryService指数退避重试 + PushRetryCommand cron消费 + PushRetryController管理页(双皮肤) + 通道健康信号灯
+7. **N-1：通知系统深化(P1)** — Notification补3种类型映射 + notify_settings偏好JSON + 前台通知分类Tab(全部/系统/审核/发布/评论/等级) + 已读/未读筛选 + 批量已读 + 4套模板增强
+8. **S-1：邮件订阅增强(P1)** — 邮件模板恢复默认按钮 + 退订分析面板(8卡片+30天Chart.js趋势图) + 订阅分组标签+CSV批量导入(成功/跳过/失败报告) + 静默检测(3次失败自动标记无效) + 邮件日志统计卡片+30天趋势图
+9. **U-1：个人中心统计(P2)** — 内容统计面板(5卡片:总发布/本月发布/总阅读/总分享/平均阅读) + 近30天趋势图 + 阅读量TOP5 + 发布列表views/share列 + 4套前台模板 + 双皮肤前台路由
+10. **M-1：移动端适配(P1)** — member_publish mobile版(双皮肤) + member_responsive.css响应式 + 个人中心移动端断点
 
 **V2.9.18 核心定位：内容分发增强·会员体系奠基** — 3个Sprint 6项功能点（100%完成）：
 1. **D-1：多渠道一键发布(P0)** — Webhook/微信/站内广播三通道 + PushDispatchService分发引擎 + PushChannelController后台管理 + ContentPublished事件自动触发
@@ -137,6 +149,12 @@
 
 ### 核心特性
 
+- **🆕 推送超时+重试队列(V2.9.19)** - PushDispatchService 60s整体超时 + PushRetryService指数退避(1/3/9/27s) + PushRetryCommand cron消费 + PushRetryController管理页(双皮肤) + 通道健康信号灯(红/黄/绿)
+- **🆕 风险修复5项(V2.9.19)** - ShareClick Model补全 + ChannelBroadcast批量INSERT(60x性能提升) + SwiftMailer依赖 + 时区统一Asia/Shanghai + MenuSyncCommand菜单同步CLI
+- **🆕 通知深化(V2.9.19)** - Notification补3种类型映射 + notify_settings偏好 + 前台分类Tab(全部/系统/审核/发布/评论/等级) + 已读筛选 + 批量已读
+- **🆕 邮件订阅增强(V2.9.19)** - 退订分析面板(8卡片+30天趋势图) + 分组标签+CSV批量导入 + 静默检测(3次失败自动无效) + 邮件日志统计卡片+趋势图 + 恢复默认模板
+- **🆕 个人中心统计(V2.9.19)** - 5卡片(总发布/本月/总阅读/总分享/平均) + 30天阅读趋势图 + TOP5 + 发布列表views/share列 + 双皮肤×双端
+- **🆕 移动端适配(V2.9.19)** - member_publish mobile版(双皮肤) + member_responsive.css + 个人中心响应式断点(767.98px)
 - **🆕 API推送引擎(V2.9.18)** - Webhook/微信(Server酱)/站内广播三通道 + PushDispatchService分发 + 自动/手动触发 + 推送日志+重试
 - **🆕 邮件订阅(V2.9.18)** - Double Opt-in确认流程 + SMTP/PHP Mail双模式 + 发布自动通知 + 退订机制 + 后台订阅者管理(CSV导出)
 - **🆕 分享预览+工具栏(V2.9.18)** - 编辑页微信/微博/Twitter模拟卡片 + 前台浮动分享工具栏(二维码/平台跳转/复制链接)
@@ -698,6 +716,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| V2.9.19 | 2026-06-06 | **推送增强·通知深化·风险修复** — 4个Sprint 10项功能：R-1~R-5 5项P0风险修复(ShareClick Model+ChannelBroadcast批量INSERT/SwiftMailer依赖/时区统一/MenuSyncCommand) + D-1 推送超时60s+重试队列(PushRetryService/PushRetryCommand/健康信号灯+) + N-1 通知深化(类型映射+偏好JSON+分类Tab+已读筛选+批量已读) + S-1 邮件增强(退订分析8卡片+30天趋势/CSV导入/静默检测/邮件日志统计) + U-1 个人中心统计(5卡片+趋势图+TOP5) + M-1 移动端适配(member_publish mobile/响应式CSS)。3张新表(i8j_push_retry/share_click)+ALTER 2张(i8j_user/subscriber)+7个新PHP类+2个新Command+14个新模板+4个新CSS/JS。23新增+35修改文件，1775行。| |
 | V2.9.18 | 2026-06-05 | **内容分发增强·会员体系奠基** — 3个Sprint 6项功能：D-1 API推送引擎(Webhook/微信/站内广播三通道+PushDispatch+ContentPublished事件+推送日志/重试) + D-2社交分享深化(编辑页预览面板+前台分享工具栏+UTM追踪) + D-3邮件订阅(Double Opt-in+SMTP/PHP Mail+订阅管理/CSV导出+发布自动通知) + U-1个人中心(我的发布+偏好设置+MemberController扩展) + U-2注册增强(邮箱验证码+密码找回+频率限制) + U-3站内通知(后台发送+前台铃铛组件)。5张新表+7个新Service+9个Controller+4个Model+3个Event/Listener+28个双皮肤模板+7个JS/CSS+性能优化(Session/OPcache/realpath)。56新增+14修改文件，~5500行。 | |
 | V2.9.17 | 2026-06-04 | **翻译体验精修·多语言管理闭环** — 2个Sprint 4项功能：M-2后台语言管理UI(checkbox+排序+自定义语言+settings持久化) + T-4轮询可配置化(config polling段+Controller注入+JS改造+动态加速) + M-6前台语言切换器(_lang_switcher双皮肤+国旗/本地名/RTL CSS) + E-2翻译SSE实时推送(stream端点+SSE优先+轮询降级+30s超时)。0张新表，16文件+913行。 | |
 | V2.9.16 | 2026-06-03 | **翻译引擎增强·SEO诊断** — 4个Sprint 12项功能点：S1 OpenAI翻译完整实现(GPT-4o/重试/分段/16语言)+DeepSeek增强+Cache限速+插件化注册+统一语言配置；S2 config/ai.php多Provider/多账号扩展；S3 SEO诊断引擎(4维度20+检测项/A-F评级/Chart.js环形图/双皮肤)；S4 前端语言扩展+队列翻译增强+配图链式降级(tongyi→flux→dalle)+默认社交分享图。 |

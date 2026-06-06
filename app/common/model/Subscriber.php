@@ -28,7 +28,8 @@ class Subscriber extends Model
     protected $updateTime = false;
 
     protected $type = [
-        'status' => 'integer',
+        'status'     => 'integer',
+        'fail_count' => 'integer',
     ];
 
     /** 状态：待确认 */
@@ -37,6 +38,8 @@ class Subscriber extends Model
     const STATUS_CONFIRMED = 1;
     /** 状态：已退订 */
     const STATUS_UNSUBSCRIBED = 2;
+    /** 状态：无效（静默检测） */
+    const STATUS_INVALID = 3;
 
     /**
      * 获取所有已确认的订阅者
@@ -68,7 +71,37 @@ class Subscriber extends Model
             self::STATUS_PENDING       => '待确认',
             self::STATUS_CONFIRMED     => '已确认',
             self::STATUS_UNSUBSCRIBED  => '已退订',
+            self::STATUS_INVALID       => '无效',
         ];
         return $map[$data['status'] ?? 0] ?? '未知';
+    }
+
+    /**
+     * 获取所有标签列表
+     */
+    public static function getTagOptions(): array
+    {
+        return self::where('tag', '<>', '')->group('tag')->column('tag');
+    }
+
+    /**
+     * 标记为无效
+     */
+    public function markInvalid(): bool
+    {
+        $this->status     = self::STATUS_INVALID;
+        $this->invalid_at = date('Y-m-d H:i:s');
+        return $this->save();
+    }
+
+    /**
+     * 恢复为有效
+     */
+    public function restoreValid(): bool
+    {
+        $this->status     = self::STATUS_CONFIRMED;
+        $this->invalid_at = null;
+        $this->fail_count = 0;
+        return $this->save();
     }
 }

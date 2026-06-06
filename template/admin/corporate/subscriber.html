@@ -6,18 +6,47 @@
         <h4 class="mb-0">📬 订阅管理</h4>
         <div>
             <a href="/admin/subscriber/export" class="btn btn-sm btn-outline-success"><i class="bi bi-download"></i> 导出CSV</a>
+            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bi bi-upload"></i> 导入CSV</button>
             <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg"></i> 添加</button>
         </div>
     </div>
-    <div class="card"><div class="card-body p-0"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>ID</th><th>邮箱</th><th>状态</th><th>来源</th><th>订阅时间</th><th>操作</th></tr></thead><tbody id="listBody"><tr><td colspan="6" class="text-center py-4">加载中...</td></tr></tbody></table></div></div>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <select id="filterTag" class="form-select form-select-sm" onchange="loadList()"><option value="">全部标签</option></select>
+        </div>
+        <div class="col-md-4">
+            <select id="filterStatus" class="form-select form-select-sm" onchange="loadList()">
+                <option value="">全部状态</option>
+                <option value="0">待确认</option>
+                <option value="1">已确认</option>
+                <option value="2">已退订</option>
+                <option value="3">无效</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="showInvalid" onchange="loadList()">
+                <label class="form-check-label" for="showInvalid">显示无效订阅者</label>
+            </div>
+        </div>
+    </div>
+    <div id="invalidTip" class="alert alert-secondary py-2 mb-3 d-none"><small>有 <strong id="invalidNum">0</strong> 个无效订阅者被隐藏</small></div>
+    <div class="card"><div class="card-body p-0"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>ID</th><th>邮箱</th><th>标签</th><th>状态</th><th>失败次数</th><th>来源</th><th>订阅时间</th><th>操作</th></tr></thead><tbody id="listBody"><tr><td colspan="8" class="text-center py-4">加载中...</td></tr></tbody></table></div></div>
     <div class="modal fade" id="addModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>添加订阅者</h5></div><div class="modal-body"><input type="email" id="addEmail" class="form-control" placeholder="输入邮箱"></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="addSub()">确认</button></div></div></div></div>
+    <div class="modal fade" id="importModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>导入 CSV</h5></div><div class="modal-body"><p class="text-muted small">格式：email,tag（首行可选表头）</p><input type="file" id="importFile" class="form-control" accept=".csv"></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="doImport()">导入</button></div></div></div></div>
+    <div class="modal fade" id="importResultModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>导入结果</h5></div><div class="modal-body" id="importResultBody"></div><div class="modal-footer"><button class="btn btn-primary" data-bs-dismiss="modal">确定</button></div></div></div></div>
 </div>
 {/block}
 {block name="js"}
 <script>
-function loadList(){$.get('/admin/subscriber/list',function(r){var h='',d=r.data||[];if(!d.length)h='<tr><td colspan="6" class="text-center py-4">暂无</td></tr>';else d.forEach(function(i){h+='<tr><td>'+i.id+'</td><td>'+i.email+'</td><td><span class="badge '+(i.status==1?'bg-success':i.status==0?'bg-warning':'bg-secondary')+'">'+(i.status==1?'已确认':i.status==0?'待确认':'已退订')+'</span></td><td>'+i.source+'</td><td>'+i.subscribed_at+'</td><td><button class="btn btn-sm btn-outline-danger" onclick="del('+i.id+')">删除</button></td></tr>'});$('#listBody').html(h)})}
+var currentStatus='';var currentTag='';var showInvalid=false;
+function loadTags(){$.get('/admin/subscriber/tagOptions',function(r){var opts='<option value=\"\">全部标签</option>';(r.data.tags||[]).forEach(function(t){opts+='<option value=\"'+t+'\">'+t+'</option>'});$('#filterTag').html(opts);$('#filterTag').val(currentTag)})}
+function loadList(){currentStatus=$('#filterStatus').val();currentTag=$('#filterTag').val();showInvalid=$('#showInvalid').prop('checked')?1:0;$.get('/admin/subscriber/list',{status:currentStatus,tag:currentTag,show_invalid:showInvalid},function(r){var h='',d=r.data||[],inv=r.invalid_count||0;if(inv>0&&!showInvalid){$('#invalidTip').removeClass('d-none');$('#invalidNum').text(inv)}else{$('#invalidTip').addClass('d-none')}if(!d.length)h='<tr><td colspan="8" class="text-center py-4">暂无</td></tr>';else d.forEach(function(i){var badge=i.status==1?'bg-success':i.status==0?'bg-warning':i.status==2?'bg-secondary':'bg-dark';var txt=i.status==1?'已确认':i.status==0?'待确认':i.status==2?'已退订':'无效';var actions='<button class="btn btn-sm btn-outline-danger" onclick="del('+i.id+')">删除</button>';if(i.status==1)actions=' <button class="btn btn-sm btn-outline-warning" onclick="markInvalid('+i.id+')">标记无效</button>'+actions;else if(i.status==3)actions=' <button class="btn btn-sm btn-outline-success" onclick="restoreValid('+i.id+')">恢复有效</button>'+actions;h+='<tr><td>'+i.id+'</td><td>'+i.email+'</td><td><span class="badge bg-info">'+(i.tag||'-')+'</span></td><td><span class="badge '+badge+'">'+txt+'</span></td><td>'+(i.fail_count||0)+'</td><td>'+i.source+'</td><td>'+i.subscribed_at+'</td><td>'+actions+'</td></tr>'});$('#listBody').html(h)})}
 function addSub(){var e=$('#addEmail').val();if(!e)return;$.post('/admin/subscriber/add',{email:e},function(r){alert(r.msg);$('#addModal').modal('hide');loadList()})}
 function del(id){if(!confirm('确定删除？'))return;$.post('/admin/subscriber/delete',{id:id},function(r){alert(r.msg);loadList()})}
-$(loadList);
+function markInvalid(id){if(!confirm('确定标记为无效？'))return;$.post('/admin/subscriber/markInvalid',{id:id},function(r){alert(r.msg);loadList()})}
+function restoreValid(id){if(!confirm('确定恢复为有效？'))return;$.post('/admin/subscriber/restoreValid',{id:id},function(r){alert(r.msg);loadList()})}
+function doImport(){var f=document.getElementById('importFile').files[0];if(!f){alert('请选择CSV文件');return}var fd=new FormData();fd.append('file',f);$.ajax({url:'/admin/subscriber/import',type:'POST',data:fd,processData:false,contentType:false,success:function(r){var msg='<p>成功：'+r.data.success+' 条</p><p>跳过（重复）：'+r.data.skipped+' 条</p><p>失败：'+r.data.failed+' 行</p>';if(r.data.failed_rows&&r.data.failed_rows.length)msg+='<p class="text-muted small">失败行号：'+r.data.failed_rows.join(', ')+'</p>';$('#importResultBody').html(msg);$('#importModal').modal('hide');$('#importResultModal').modal('show');loadList()}})}
+$(function(){loadTags();loadList()});
 </script>
 {/block}

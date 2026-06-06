@@ -1,0 +1,48 @@
+{extend name="layout" /}
+
+{block name="title"}我的发布{/block}
+
+{block name="content"}
+<div class="ucenter-main-title">我的发布</div>
+
+<!-- 状态筛选 -->
+<div class="member-filter-bar">
+    <a href="/member/publish" class="member-filter-item {if $statusFilter===''}active{/if}">全部</a>
+    <a href="/member/publish?status=2" class="member-filter-item {if $statusFilter==='2'}active{/if}">已发布</a>
+    <a href="/member/publish?status=0" class="member-filter-item {if $statusFilter==='0'}active{/if}">草稿</a>
+</div>
+
+{if $list->isEmpty()}
+<div class="ucenter-empty">
+    <i class="bi bi-inbox"></i>
+    <p>暂无发布内容</p>
+    <a href="/member/publish?act=add" class="btn btn-primary btn-sm mt-2">去发布</a>
+</div>
+{else}
+<div class="member-publish-list">
+    {volist name="list" id="vo"}
+    <a href="/info/{$vo.id}.html" class="member-publish-item">
+        <div class="member-publish-title">{$vo.title}</div>
+        <div class="member-publish-meta">
+            <span class="member-publish-time">{$vo.update_time|date='m-d H:i'}</span>
+            <span class="member-publish-badge badge-{if $vo.status==2}success{elseif $vo.status==0}warning{else}secondary{/if}">
+                {if $vo.status==2}已发布{elseif $vo.status==0}草稿{else}待审核{/if}
+            </span>
+        </div>
+        <div class="member-publish-stats">
+            <span><i class="bi bi-eye"></i> {$vo.views ?? 0}</span>
+            <span><i class="bi bi-share"></i> {:\app\common\model\ShareClick::where('content_id', $vo.id)->count()}</span>
+        </div>
+    </a>
+    {/volist}
+</div>
+
+<!-- 分页 -->
+{if $list->lastPage() > 1}
+<div class="member-publish-pagination">
+    {$list|raw}
+</div>
+{/if}
+
+{/if}
+{/block}

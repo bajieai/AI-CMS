@@ -16,6 +16,7 @@ namespace app\common\service;
 use app\common\model\Subscriber;
 use app\common\model\MailLog;
 use app\common\model\Content;
+use Carbon\Carbon;
 
 /**
  * 邮件订阅服务 - V2.9.18 D-3
@@ -137,12 +138,13 @@ class SubscribeService
         $body = $this->buildNotifyBody($content, $contentUrl, $siteName);
 
         $count = 0;
-        $today = date('Y-m-d');
+        $todayStart = Carbon::today()->startOfDay()->toDateTimeString();
+        $todayEnd   = Carbon::today()->endOfDay()->toDateTimeString();
 
         foreach ($subscribers as $sub) {
             // 每日频率限制：同订阅者每日最多 1 封
             $todayCount = MailLog::where('subscriber_id', $sub['id'])
-                ->whereTime('sent_at', '>=', $today . ' 00:00:00')
+                ->whereBetween('sent_at', [$todayStart, $todayEnd])
                 ->count();
             if ($todayCount > 0) continue;
 

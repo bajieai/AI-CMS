@@ -1,5 +1,10 @@
 {extend name="layout" /}
 {block name="title"}我的发布 - {/block}
+
+{block name="css"}
+<link rel="stylesheet" href="/static/css/member_responsive.css?v=2.9.19">
+{/block}
+
 {block name="content"}
 <div class="container py-4">
     <div class="row">
@@ -21,7 +26,10 @@
                         <a href="/info/{$vo.id}.html" class="text-decoration-none">{$vo.title}</a>
                         <br><small class="text-muted">{$vo.update_time|date='Y-m-d H:i'} · <span class="badge bg-{if $vo.status==2}success{elseif $vo.status==0}warning{else}secondary{/if}">{if $vo.status==2}已发布{elseif $vo.status==0}草稿{else}其他{/if}</span></small>
                     </div>
-                    <span class="badge bg-info">{$vo.hits ?? 0} 次浏览</span>
+                    <div class="text-end">
+                        <span class="badge bg-primary me-1"><i class="bi bi-eye"></i> {$vo.views ?? 0}</span>
+                        <span class="badge bg-success"><i class="bi bi-share"></i> {:\app\common\model\ShareClick::where('content_id', $vo.id)->count()}</span>
+                    </div>
                 </div>
                 {/volist}
             </div>

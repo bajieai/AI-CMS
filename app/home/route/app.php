@@ -97,3 +97,5 @@ Route::get('template/preview/:slug$', '\app\home\controller\TemplatePreviewContr
 // ========== V2.9.18 U-1: 个人中心扩展 ==========
 Route::get('member/publish$', '\app\home\controller\MemberController@publish');
 Route::rule('member/preferences$', '\app\home\controller\MemberController@preferences', 'GET|POST');
+// V2.9.19 U-1: 内容统计面板
+Route::get('member/stats$', '\app\home\controller\MemberController@stats');

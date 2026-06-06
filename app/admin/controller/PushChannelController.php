@@ -15,7 +15,9 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\model\PushChannel;
+use app\common\model\PushLog;
 use app\common\service\push\PushDispatchService;
+use app\common\service\PushRetryService;
 
 /**
  * 推送通道管理控制器 - V2.9.18 D-1
@@ -145,5 +147,61 @@ class PushChannelController extends AdminBaseController
             return $this->success('推送成功', $result);
         }
         return $this->error($result['error_msg'] ?? '推送失败', $result);
+    }
+
+    /**
+     * V2.9.19 D-1d: 推送通道健康检查
+     */
+    public function health()
+    {
+        $channels = PushLog::field('channel_id, status, count(*) as total')
+            ->group('channel_id, status')
+            ->select()
+            ->toArray();
+
+        $channelStats = [];
+        foreach ($channels as $row) {
+            $cid = $row['channel_id'];
+            if (!isset($channelStats[$cid])) {
+                $channelStats[$cid] = ['total' => 0, 'success' => 0, 'failed' => 0, 'skipped' => 0];
+            }
+            $channelStats[$cid]['total'] += $row['total'];
+            if ((int) $row['status'] === PushLog::STATUS_SUCCESS) {
+                $channelStats[$cid]['success'] += $row['total'];
+            } elseif ((int) $row['status'] === PushLog::STATUS_FAILED) {
+                $channelStats[$cid]['failed'] += $row['total'];
+            } elseif ((int) $row['status'] === PushLog::STATUS_SKIPPED) {
+                $channelStats[$cid]['skipped'] += $row['total'];
+            }
+        }
+
+        $result = [];
+        foreach ($channelStats as $cid => $stat) {
+            if ($stat['total'] <= 0) continue; // 过滤空通道
+            $rate = $stat['success'] / $stat['total'];
+            $health = $rate >= 0.8 ? 'green' : ($rate >= 0.5 ? 'yellow' : 'red');
+            $channel = PushChannel::find($cid);
+            $result[] = [
+                'channel_id'   => $cid,
+                'channel_name' => $channel->name ?? '未知通道',
+                'total'        => $stat['total'],
+                'success'      => $stat['success'],
+                'failed'       => $stat['failed'],
+                'skipped'      => $stat['skipped'],
+                'success_rate' => round($rate * 100, 1),
+                'health'       => $health,
+            ];
+        }
+
+        return $this->success('ok', ['data' => $result]);
+    }
+
+    /**
+     * V2.9.19 D-1d: 重试队列统计
+     */
+    public function retryStats()
+    {
+        $stats = PushRetryService::getStats();
+        return $this->success('ok', $stats);
     }
 }

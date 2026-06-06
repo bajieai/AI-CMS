@@ -41,6 +41,8 @@ class PushLog extends Model
     const STATUS_SUCCESS = 1;
     /** 状态：失败 */
     const STATUS_FAILED = 2;
+    /** V2.9.19 状态：跳过（超时） */
+    const STATUS_SKIPPED = -2;
 
     /**
      * 记录推送日志

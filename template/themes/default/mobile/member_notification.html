@@ -8,6 +8,22 @@
         <i class="bi bi-bell" style="color:#f59e0b;"></i>通知中心
     </h4>
 
+    <!-- V2.9.19 N-1b: 通知概览统计 -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:70px;text-align:center;padding:8px;background:#fff;border-radius:8px;border:1px solid #f1f5f9;">
+            <div style="font-size:16px;font-weight:700;color:#1e293b;">{$notif_stats.total|default=0}</div>
+            <div style="font-size:10.5px;color:#94a3b8;">总通知</div>
+        </div>
+        <div style="flex:1;min-width:70px;text-align:center;padding:8px;background:#fff;border-radius:8px;border:1px solid #f1f5f9;">
+            <div style="font-size:16px;font-weight:700;color:#ef4444;">{$notif_stats.unread|default=0}</div>
+            <div style="font-size:10.5px;color:#94a3b8;">未读</div>
+        </div>
+        <div style="flex:1;min-width:70px;text-align:center;padding:8px;background:#fff;border-radius:8px;border:1px solid #f1f5f9;">
+            <div style="font-size:16px;font-weight:700;color:#3b82f6;">{$notif_stats.today|default=0}</div>
+            <div style="font-size:10.5px;color:#94a3b8;">今日</div>
+        </div>
+    </div>
+
     <!-- V2.9.5 消息分类筛选 -->
     <div style="display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;padding:4px;background:#f8fafc;border-radius:10px;scrollbar-width:none;">
         <a href="/member/notification" class="uc-tab-item {if $current_type == ''}active{/if}" style="flex:none;padding:6px 12px;font-size:12px;">全部</a>
