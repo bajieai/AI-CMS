@@ -42,7 +42,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">预览截图</label>
-                        <input type="text" name="screenshots" class="form-control" value="{if condition="$info"}{:json_encode($info.screenshots)}{/if}" placeholder='JSON数组，如 ["https://example.com/1.jpg"]'>
+                        <input type="text" name="screenshots" class="form-control" value="{if condition="$info"}{if is_array($info.screenshots)}{:htmlentities(json_encode($info.screenshots, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE))}{else /}{:htmlentities($info.screenshots)}{/if}{/if}" placeholder='["https://example.com/1.jpg"]'>
                         <small class="text-muted">JSON格式图片URL数组，如 ["https://example.com/1.jpg", "https://example.com/2.jpg"]</small>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">环境要求</label>
-                                <input type="text" name="requirements" class="form-control" value="{if condition="$info"}{:json_encode($info.requirements)}{/if}" placeholder='如 {"php":">=8.0"}'>
+                                <input type="text" name="requirements" class="form-control" value="{if condition="$info"}{if is_array($info.requirements)}{:htmlentities(json_encode($info.requirements, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE))}{else /}{:htmlentities($info.requirements)}{/if}{/if}" placeholder='{"php":">=8.0"}'>
                                 <small class="text-muted">JSON格式</small>
                             </div>
                         </div>
