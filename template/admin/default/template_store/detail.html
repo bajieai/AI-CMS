@@ -15,6 +15,7 @@
     </div>
     <div class="card-body">
         <form id="storeForm" method="post" action="{if condition="$info"}/admin/template_store/edit/{$info.id}{else/}/admin/template_store/add{/if}">
+            {:token()}
             <div class="row">
                 <div class="col-md-8">
                     <div class="mb-3">
