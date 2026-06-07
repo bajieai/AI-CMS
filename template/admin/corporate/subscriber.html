@@ -47,6 +47,6 @@ function del(id){if(!confirm('确定删除？'))return;$.post('/admin/subscriber
 function markInvalid(id){if(!confirm('确定标记为无效？'))return;$.post('/admin/subscriber/markInvalid',{id:id},function(r){alert(r.msg);loadList()})}
 function restoreValid(id){if(!confirm('确定恢复为有效？'))return;$.post('/admin/subscriber/restoreValid',{id:id},function(r){alert(r.msg);loadList()})}
 function doImport(){var f=document.getElementById('importFile').files[0];if(!f){alert('请选择CSV文件');return}var fd=new FormData();fd.append('file',f);$.ajax({url:'/admin/subscriber/import',type:'POST',data:fd,processData:false,contentType:false,success:function(r){var msg='<p>成功：'+r.data.success+' 条</p><p>跳过（重复）：'+r.data.skipped+' 条</p><p>失败：'+r.data.failed+' 行</p>';if(r.data.failed_rows&&r.data.failed_rows.length)msg+='<p class="text-muted small">失败行号：'+r.data.failed_rows.join(', ')+'</p>';$('#importResultBody').html(msg);$('#importModal').modal('hide');$('#importResultModal').modal('show');loadList()}})}
-$(function(){loadTags();loadList()});
+loadTags();loadList();
 </script>
 {/block}

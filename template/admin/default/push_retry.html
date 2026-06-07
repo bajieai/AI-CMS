@@ -28,6 +28,6 @@ function loadStats(){$.get('/admin/push/retryStats',function(r){var d=r.data||{}
 function loadList(){var s=$('#filterStatus').val();$.get('/admin/push/retry/list',{status:s},function(r){var h='',d=r.data||[];if(!d.length)h='<tr><td colspan="8" class="text-center py-4">暂无</td></tr>';else d.forEach(function(i){var st=i.status==1?'bg-success':i.status==-1?'bg-danger':'bg-warning';var stxt=i.status==1?'成功':i.status==-1?'失败':'待重试';h+='<tr><td>'+i.id+'</td><td>'+i.push_id+'</td><td>'+i.channel+'</td><td><small>'+i.reason+'</small></td><td>'+i.retry_count+'</td><td><span class="badge '+st+'">'+stxt+'</span></td><td>'+(i.next_retry_at?new Date(i.next_retry_at*1000).toLocaleString():'-')+'</td><td>'+(i.created_at?new Date(i.created_at*1000).toLocaleString():'-')+'</td></tr>'});$('#retryBody').html(h)})}
 function processRetry(){$.post('/admin/push/retry/process',{limit:50},function(r){if(r.code===0){alert(r.msg);loadStats();loadList()}else{alert(r.msg||'执行失败')}})}
 function cleanup(){if(!confirm('确认清理7天前的已完成/失败记录？'))return;$.post('/admin/push/retry/cleanup',{days:7},function(r){if(r.code===0){alert(r.msg);loadStats();loadList()}else{alert(r.msg||'清理失败')}})}
-$(function(){loadStats();loadList()});
+loadStats();loadList();
 </script>
 {/block}
