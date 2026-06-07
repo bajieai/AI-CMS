@@ -73,7 +73,7 @@
                         <td>{$vo.id}</td>
                         <td>
                             {if condition="$vo.screenshots"}
-                            <img src="{:json_decode($vo.screenshots, true)[0] ?? ''}" class="rounded" style="width:48px;height:36px;object-fit:cover;" alt="">
+                            <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="rounded" style="width:48px;height:36px;object-fit:cover;" alt="">
                             {else/}
                             <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width:48px;height:36px;"><i class="bi bi-image text-muted"></i></div>
                             {/if}
