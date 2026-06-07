@@ -45,7 +45,7 @@
     <div class="col-12">
         <div class="row g-3" id="categoryStats">
             {volist name="report.checks" id="check"}
-            {php}static $catStats=[]; if(!isset($catStats[$check.category]))$catStats[$check.category]=['total'=>0,'pass'=>0]; $catStats[$check.category]['total']++; if($check.pass)$catStats[$check.category]['pass']++;{/php}
+            {php}static $catStats=[]; if(!isset($catStats[$check['category']]))$catStats[$check['category']]=['total'=>0,'pass'=>0]; $catStats[$check['category']]['total']++; if($check['pass'])$catStats[$check['category']]['pass']++;{/php}
             {/volist}
             {foreach name="catStats" item="stat" key="catName"}
             <div class="col-md-3">
