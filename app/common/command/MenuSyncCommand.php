@@ -61,10 +61,8 @@ class MenuSyncCommand extends Command
                 continue;
             }
 
-            $result = $this->syncItem($group, 0, $groupId, $sortIndex++, $dryRun);
-            $total++;
-            $created += $result['created'];
-            $updated += $result['updated'];
+            // 一级分组(group)不应作为菜单项(item)入库，否则L2列会重复显示分组名
+            // V2.9.19+ 修复：仅同步children，跳过group自身
 
             if (!empty($group['children']) && is_array($group['children'])) {
                 foreach ($group['children'] as $child) {
