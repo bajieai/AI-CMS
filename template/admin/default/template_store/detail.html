@@ -72,14 +72,14 @@
                             <div class="mb-3">
                                 <label class="form-label">PHP 最低版本</label>
                                 <select name="req_php" class="form-select">
-                                    <option value=">=8.0"{if condition="!empty($info.requirements.php) && $info.requirements.php == '>=8.0' || empty($info)} selected{/if}>PHP ≥ 8.0</option>
-                                    <option value=">=8.1"{if condition="!empty($info.requirements.php) && $info.requirements.php == '>=8.1'} selected{/if}>PHP ≥ 8.1</option>
-                                    <option value=">=8.2"{if condition="!empty($info.requirements.php) && $info.requirements.php == '>=8.2'} selected{/if}>PHP ≥ 8.2</option>
+                                    <option value=">=8.0"{if empty($info) || (!empty($info.requirements.php) && $info.requirements.php == '>=8.0')}selected{/if}>PHP ≥ 8.0</option>
+                                    <option value=">=8.1"{if !empty($info.requirements.php) && $info.requirements.php == '>=8.1'}selected{/if}>PHP ≥ 8.1</option>
+                                    <option value=">=8.2"{if !empty($info.requirements.php) && $info.requirements.php == '>=8.2'}selected{/if}>PHP ≥ 8.2</option>
                                 </select>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">CMS 最低版本</label>
-                                <input type="text" name="req_cms" class="form-control" value="{if condition="$info"}{$info.requirements.cms ?? '>=2.9.0'}{else /}>=2.9.0{/if}" placeholder="如 >=2.9.0">
+                                <input type="text" name="req_cms" class="form-control" value="{if $info}{$info.requirements.cms ?? '>=2.9.0'}{else /}>=2.9.0{/if}" placeholder="如 >=2.9.0">
                                 <small class="text-muted">格式如：>=2.9.0 / >=2.8.0 等</small>
                             </div>
                         </div>
