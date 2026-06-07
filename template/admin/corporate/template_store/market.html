@@ -18,7 +18,7 @@
             <div class="card h-100 border-primary border-opacity-25">
                 <div class="position-relative">
                     {if condition="$vo.screenshots"}
-                    <img src="{:json_decode($vo.screenshots, true)[0] ?? ''}" class="card-img-top" style="height:160px;object-fit:cover;" alt="{$vo.name}">
+                    <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:160px;object-fit:cover;" alt="{$vo.name}">
                     {else/}
                     <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;"><i class="bi bi-image text-muted fs-1"></i></div>
                     {/if}
@@ -88,7 +88,7 @@
         <div class="card h-100">
             <div class="position-relative">
                 {if condition="$vo.screenshots"}
-                <img src="{:json_decode($vo.screenshots, true)[0] ?? ''}" class="card-img-top" style="height:140px;object-fit:cover;" alt="{$vo.name}">
+                <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:140px;object-fit:cover;" alt="{$vo.name}">
                 {else/}
                 <div class="bg-light d-flex align-items-center justify-content-center" style="height:140px;"><i class="bi bi-image text-muted fs-1"></i></div>
                 {/if}

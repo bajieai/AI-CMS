@@ -19,7 +19,7 @@
         <div class="card h-100 {if condition="$vo.is_active == 1"}border-success border-2{/if}">
             <div class="position-relative">
                 {if condition="$vo.store.screenshots"}
-                <img src="{:json_decode($vo.store.screenshots, true)[0] ?? ''}" class="card-img-top" style="height:160px;object-fit:cover;" alt="{$vo.theme_name}">
+                <img src="{if is_string($vo.store.screenshots)}{:json_decode($vo.store.screenshots, true)[0] ?? ''}{else /}{$vo.store.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:160px;object-fit:cover;" alt="{$vo.theme_name}">
                 {else/}
                 <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;"><i class="bi bi-image text-muted fs-1"></i></div>
                 {/if}
