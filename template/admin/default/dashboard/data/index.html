@@ -224,6 +224,12 @@ function refreshDashboard() {
 }
 
 (function() {
+    // ECharts CDN 加载失败时跳过图表渲染，隐藏骨架屏
+    if (typeof echarts === 'undefined') {
+        document.querySelectorAll('.chart-skeleton').forEach(function(el) { el.style.display = 'none'; });
+        return;
+    }
+
     // 趋势图
     var trendData = {:json_encode($trend, JSON_UNESCAPED_UNICODE)};
     var dates = trendData.map(function(d) { return d.date; });
