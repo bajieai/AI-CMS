@@ -73,6 +73,9 @@ class TemplateStoreController extends AdminBaseController
 
         if ($result['success']) {
             $this->recordLog('添加模板', $data['name'] ?? '', $data);
+            if (!$this->request->isAjax()) {
+                return redirect('/admin/template_store/index')->with('success', '添加成功');
+            }
             return $this->success('添加成功', ['redirect' => '/admin/template_store/index']);
         }
         return $this->error($result['message']);
@@ -100,6 +103,10 @@ class TemplateStoreController extends AdminBaseController
 
         if ($result['success']) {
             $this->recordLog('编辑模板', $data['name'] ?? '', $data);
+            // 普通表单POST提交，服务端重定向
+            if (!$this->request->isAjax()) {
+                return redirect('/admin/template_store/index')->with('success', '保存成功');
+            }
             return $this->success('保存成功', ['redirect' => '/admin/template_store/index']);
         }
         return $this->error($result['message']);
