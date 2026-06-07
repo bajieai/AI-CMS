@@ -152,7 +152,7 @@ var editId = 0;
 // 加载列表
 function loadList() {
     $.get('/admin/push/channel/list', function(res) {
-        channelList = res.data || [];
+        channelList = res.data.data || res.data || [];
         renderTable();
     });
 }
@@ -295,8 +295,6 @@ function deleteChannel(id) {
 }
 
 // 初始化
-$(function() {
-    loadList();
-});
+loadList();
 </script>
 {/block}
