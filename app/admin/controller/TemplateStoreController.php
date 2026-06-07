@@ -193,7 +193,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 分类管理页
      */
-    public function categories(): string
+    public function categories()
     {
         $service = new TemplateStoreService();
         $list = $service->getCategories();
@@ -330,7 +330,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 模板市场（网站主-卡片列表）
      */
-    public function market(): string
+    public function market()
     {
         $service = new TemplateStoreService();
         $params = $this->request->get();
@@ -366,7 +366,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 模板详情（网站主）
      */
-    public function detail(int $id): string
+    public function detail(int $id)
     {
         $service = new TemplateStoreService();
         $info = $service->getDetail($id);
@@ -395,7 +395,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 预览模板
      */
-    public function preview(string $slug): string
+    public function preview(string $slug)
     {
         $service = new TemplateStoreService();
         $info = $service->getBySlug($slug);
@@ -414,7 +414,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 我的已安装模板
      */
-    public function myTemplates(): string
+    public function myTemplates()
     {
         $memberId = (int) session('user_id');
         $list = TemplateInstall::with('store')
@@ -591,7 +591,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 评论列表（管理员审核）
      */
-    public function reviews(): string
+    public function reviews()
     {
         $storeId = (int) $this->request->get('store_id', 0);
         $status = $this->request->get('status', '');
@@ -669,7 +669,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 备份列表页
      */
-    public function backups(): string
+    public function backups()
     {
         $theme = $this->request->get('theme', '');
         $service = new ThemeBackupService();
