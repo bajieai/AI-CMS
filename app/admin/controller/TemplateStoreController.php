@@ -36,7 +36,7 @@ class TemplateStoreController extends AdminBaseController
     /**
      * 模板列表（管理员）
      */
-    public function index(): string
+    public function index()
     {
         $service = new TemplateStoreService();
         $params = $this->request->get();

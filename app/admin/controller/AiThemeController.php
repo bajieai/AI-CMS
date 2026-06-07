@@ -43,7 +43,7 @@ class AiThemeController extends AdminBaseController
     /**
      * AI主题列表页（审核列表）
      */
-    public function index(): string
+    public function index()
     {
         $page = (int) $this->request->param('page', 1);
         $status = $this->request->param('status', '');
@@ -88,7 +88,7 @@ class AiThemeController extends AdminBaseController
     /**
      * AI主题生成页面
      */
-    public function generate(): string
+    public function generate()
     {
         $service = new AiThemeGenerateService();
         $remaining = $service->getRemainingQuota();
@@ -114,7 +114,7 @@ class AiThemeController extends AdminBaseController
     /**
      * V3.1-下一阶段 Sprint 14: 批量生成页面
      */
-    public function batchGenerate(): string
+    public function batchGenerate()
     {
         $batchService = new BatchThemeGenerateService();
         $industries = $batchService->getAllIndustries();
@@ -320,7 +320,7 @@ class AiThemeController extends AdminBaseController
     /**
      * 审核详情页
      */
-    public function detail(): string
+    public function detail()
     {
         $id = (int) $this->request->param('id', 0);
         $record = AiThemeRecord::find($id);
@@ -491,7 +491,7 @@ class AiThemeController extends AdminBaseController
     /**
      * CSS变量配置面板
      */
-    public function tweak(): string
+    public function tweak()
     {
         $id = (int) $this->request->param('id', 0);
         $record = AiThemeRecord::find($id);
@@ -777,7 +777,7 @@ class AiThemeController extends AdminBaseController
     /**
      * 主题管理页面
      */
-    public function manage(): string
+    public function manage()
     {
         $page = (int) $this->request->param('page', 1);
         $limit = 15;

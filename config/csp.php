@@ -41,7 +41,7 @@ return [
     // 各指令值为字符串数组，中间件会自动用空格拼接
     'directives' => [
         'default-src'     => ["'self'"],
-        'script-src'      => ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'],
+        'script-src'      => ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net', 'cdn.bootcdn.net'],
         'style-src'       => ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
         'img-src'         => ["'self'", 'data:', 'blob:', '*.gravatar.com', '*.googleusercontent.com'],
         'font-src'        => ["'self'", 'fonts.gstatic.com'],

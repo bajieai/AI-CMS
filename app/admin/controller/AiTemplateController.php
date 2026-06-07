@@ -27,7 +27,7 @@ class AiTemplateController extends AdminBaseController
     /**
      * 模板列表页
      */
-    public function index(): string
+    public function index()
     {
         $page = (int) $this->request->param('page', 1);
         $keyword = $this->request->param('keyword', '');
@@ -54,7 +54,7 @@ class AiTemplateController extends AdminBaseController
     /**
      * 编辑/新建模板页
      */
-    public function edit(): string
+    public function edit()
     {
         $id = (int) $this->request->param('id', 0);
         $template = $id > 0 ? AiTemplateModel::find($id) : null;
@@ -137,7 +137,7 @@ class AiTemplateController extends AdminBaseController
     /**
      * 使用模板 — 参数填写页
      */
-    public function use(): string
+    public function use()
     {
         $id = (int) $this->request->param('id', 0);
         if ($id <= 0) {
@@ -217,7 +217,7 @@ class AiTemplateController extends AdminBaseController
     /**
      * 生成进度页
      */
-    public function progress(): string
+    public function progress()
     {
         $taskId = (int) $this->request->param('task_id', 0);
         

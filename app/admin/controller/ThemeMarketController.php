@@ -35,7 +35,7 @@ class ThemeMarketController extends AdminBaseController
     /**
      * 主题市场首页（V3.1 全新UI）
      */
-    public function index(): string
+    public function index()
     {
         // 透传模式：后端仅获取模板列表，前端JS做筛选/排序
         $result = ThemeMarketService::getMarketList('frontend');

@@ -22,7 +22,7 @@ class TemplateDeveloperAdminController extends AdminBaseController
     /**
      * 待审核列表
      */
-    public function index(): string
+    public function index()
     {
         $status = $this->request->get('status', '');
         $query = TemplateDevUpload::with('member')
