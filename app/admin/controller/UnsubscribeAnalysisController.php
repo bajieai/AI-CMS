@@ -69,8 +69,14 @@ class UnsubscribeAnalysisController extends AdminBaseController
         $subscribed   = [];
         $unsubscribed = [];
         foreach ($days as $date) {
-            $subscribed[]   = Subscriber::whereDate('confirmed_at', $date)->count();
-            $unsubscribed[] = Subscriber::whereDate('unsubscribed_at', $date)->count();
+            $dayStart = $date . ' 00:00:00';
+            $dayEnd   = $date . ' 23:59:59';
+            $subscribed[]   = Subscriber::where('status', Subscriber::STATUS_CONFIRMED)
+                ->where('confirmed_at', '>=', $dayStart)
+                ->where('confirmed_at', '<=', $dayEnd)->count();
+            $unsubscribed[] = Subscriber::where('status', Subscriber::STATUS_UNSUBSCRIBED)
+                ->where('unsubscribed_at', '>=', $dayStart)
+                ->where('unsubscribed_at', '<=', $dayEnd)->count();
         }
 
         return $this->success('ok', [

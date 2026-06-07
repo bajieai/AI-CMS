@@ -52,7 +52,7 @@ function loadList(page) {
     currentPage = page;
     var status = $('#filterStatus').val();
     $.get('/admin/push/log/list', { page: page, limit: 15, status: status }, function(res) {
-        var list = res.data || [];
+        var list = res.data.data || res.data || [];
         var total = res.total || 0;
         totalPages = Math.ceil(total / 15);
 
@@ -112,8 +112,6 @@ function retryPush(id) {
     });
 }
 
-$(function() {
-    loadList();
-});
+loadList();
 </script>
 {/block}
