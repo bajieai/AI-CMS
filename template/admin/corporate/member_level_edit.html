@@ -74,7 +74,7 @@
                 </div>
                 <div class="col-md-8">
                     <label class="form-label">专属内容ID列表</label>
-                    <input type="text" class="form-control" name="exclusive_content_ids" value="{if condition="$info.exclusive_content_ids"}{:implode(',', json_decode($info.exclusive_content_ids, true) ?: [])}{/if}" placeholder="如：12,34,56">
+                    <input type="text" class="form-control" name="exclusive_content_ids" value="{if condition="$info.exclusive_content_ids ?? false"}{:implode(',', json_decode($info.exclusive_content_ids, true) ?: [])}{/if}" placeholder="如：12,34,56">
                     <div class="form-text">该等级会员专属的content_id列表，逗号分隔，留空表示无专属内容</div>
                 </div>
             </div>
