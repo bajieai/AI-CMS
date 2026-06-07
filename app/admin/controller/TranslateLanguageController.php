@@ -84,7 +84,7 @@ class TranslateLanguageController extends AdminBaseController
             return $this->error('至少需要启用一种语言');
         }
 
-        Setting::set('translate.enabled_languages', json_encode($enabledLanguages));
+        Setting::save('translate.enabled_languages', json_encode($enabledLanguages));
         cache('translate_enabled_languages', null);
 
         return $this->success(($enabled ? '已启用' : '已禁用') . "语言: {$code}");
@@ -117,7 +117,7 @@ class TranslateLanguageController extends AdminBaseController
                 return $this->error('无效的操作类型');
         }
 
-        Setting::set('translate.enabled_languages', json_encode($enabledLanguages));
+        Setting::save('translate.enabled_languages', json_encode($enabledLanguages));
         cache('translate_enabled_languages', null);
         return $this->success('批量操作成功');
     }
@@ -134,7 +134,7 @@ class TranslateLanguageController extends AdminBaseController
                 return $this->error("无效的语言代码: {$code}");
             }
         }
-        Setting::set('translate.language_order', json_encode($order));
+        Setting::save('translate.language_order', json_encode($order));
         cache('translate_language_order', null);
         return $this->success('排序已保存');
     }
@@ -169,12 +169,12 @@ class TranslateLanguageController extends AdminBaseController
         $customSaved = Setting::get('translate.custom_languages');
         $customLanguages = !empty($customSaved) ? json_decode($customSaved, true) : [];
         $customLanguages[$code] = $newLang;
-        Setting::set('translate.custom_languages', json_encode($customLanguages));
+        Setting::save('translate.custom_languages', json_encode($customLanguages));
 
         $enabledLanguages = $this->getEnabledLanguages();
         if (!in_array($code, $enabledLanguages, true)) {
             $enabledLanguages[] = $code;
-            Setting::set('translate.enabled_languages', json_encode($enabledLanguages));
+            Setting::save('translate.enabled_languages', json_encode($enabledLanguages));
         }
 
         cache('translate_enabled_languages', null);

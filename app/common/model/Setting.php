@@ -40,7 +40,7 @@ class Setting extends Model
     /**
      * 设置值（存在则更新，不存在则新增）
      */
-    public static function set(string $key, string $value): void
+    public static function save(string $key, string $value): void
     {
         $exists = Db::name('config')->where('name', $key)->find();
         if ($exists) {
