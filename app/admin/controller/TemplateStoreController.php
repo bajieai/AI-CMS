@@ -290,12 +290,24 @@ class TemplateStoreController extends AdminBaseController
         $store->name = $data['name'];
         $store->category_id = (int) ($data['category_id'] ?? 0);
         $store->description = $data['description'] ?? '';
-        $store->screenshots = $data['screenshots'] ?? null;
+        // 截图：textarea 每行一个URL → JSON数组
+        $screenshots = $data['screenshots'] ?? '';
+        if (is_string($screenshots) && !empty(trim($screenshots))) {
+            $lines = array_filter(array_map('trim', explode("\n", $screenshots)));
+            $store->screenshots = json_encode(array_values($lines), JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+        } else {
+            $store->screenshots = '[]';
+        }
         $store->price = (float) ($data['price'] ?? 0);
         $store->author_name = $data['author_name'] ?? '';
         $store->author_id = (int) ($data['author_id'] ?? 0);
         $store->version = $data['version'] ?? '1.0.0';
-        $store->requirements = $data['requirements'] ?? null;
+        // 环境要求：req_php + req_cms → JSON对象
+        $requirements = [
+            'php' => $data['req_php'] ?? '>=8.0',
+            'cms' => $data['req_cms'] ?? '>=2.9.0',
+        ];
+        $store->requirements = json_encode($requirements, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
         $store->file_size = (int) ($data['file_size'] ?? 0);
 
         // 新增时默认待审核

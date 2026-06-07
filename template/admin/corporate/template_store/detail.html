@@ -15,7 +15,6 @@
     </div>
     <div class="card-body">
         <form id="storeForm" method="post" action="{if condition="$info"}/admin/template_store/edit/{$info.id}{else/}/admin/template_store/add{/if}">
-            {:token()}
             <div class="row">
                 <div class="col-md-8">
                     <div class="mb-3">
@@ -42,8 +41,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">预览截图</label>
-                        <input type="text" name="screenshots" class="form-control" value="{if condition="$info"}{if is_array($info.screenshots)}{:htmlentities(json_encode($info.screenshots, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE))}{else /}{:htmlentities($info.screenshots)}{/if}{/if}" placeholder='["https://example.com/1.jpg"]'>
-                        <small class="text-muted">JSON格式图片URL数组，如 ["https://example.com/1.jpg", "https://example.com/2.jpg"]</small>
+                        <textarea name="screenshots" class="form-control" rows="3" placeholder="每行一个图片URL：&#10;https://example.com/preview1.jpg&#10;/skin/default/preview1.jpg">{if condition="$info"}{if is_string($info.screenshots)}{$info.screenshots}{elseif is_array($info.screenshots) && !empty($info.screenshots)}{:implode("&#10;", array_filter($info.screenshots))}{/if}{/if}</textarea>
+                        <small class="text-muted">每行一个图片URL，用于模板详情页预览展示</small>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -71,9 +70,17 @@
                                 <input type="number" name="file_size" class="form-control" value="{$info.file_size ?? 0}" placeholder="文件大小">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">环境要求</label>
-                                <input type="text" name="requirements" class="form-control" value="{if condition="$info"}{if is_array($info.requirements)}{:htmlentities(json_encode($info.requirements, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE))}{else /}{:htmlentities($info.requirements)}{/if}{/if}" placeholder='{"php":">=8.0"}'>
-                                <small class="text-muted">JSON格式</small>
+                                <label class="form-label">PHP 最低版本</label>
+                                <select name="req_php" class="form-select">
+                                    <option value=">=8.0"{if condition="!empty($info.requirements.php) && $info.requirements.php == '>=8.0' || empty($info)} selected{/if}>PHP ≥ 8.0</option>
+                                    <option value=">=8.1"{if condition="!empty($info.requirements.php) && $info.requirements.php == '>=8.1'} selected{/if}>PHP ≥ 8.1</option>
+                                    <option value=">=8.2"{if condition="!empty($info.requirements.php) && $info.requirements.php == '>=8.2'} selected{/if}>PHP ≥ 8.2</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">CMS 最低版本</label>
+                                <input type="text" name="req_cms" class="form-control" value="{if condition="$info"}{$info.requirements.cms ?? '>=2.9.0'}{else /}>=2.9.0{/if}" placeholder="如 >=2.9.0">
+                                <small class="text-muted">格式如：>=2.9.0 / >=2.8.0 等</small>
                             </div>
                         </div>
                     </div>
