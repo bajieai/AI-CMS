@@ -224,6 +224,14 @@ Route::post('form/delete$', '\app\admin\controller\FormController@delete');
 Route::post('form/toggleEnabled$', '\app\admin\controller\FormController@toggleEnabled');
 Route::get('form/dataIndex$', '\app\admin\controller\FormController@dataIndex');
 
+// V2.9.21: 模板分类管理
+Route::get('template_category/index$', '\app\admin\controller\TemplateCategoryController@index');
+Route::get('template_category/add$', '\app\admin\controller\TemplateCategoryController@add');
+Route::get('template_category/edit/:id$', '\app\admin\controller\TemplateCategoryController@edit');
+Route::post('template_category/save$', '\app\admin\controller\TemplateCategoryController@save');
+Route::post('template_category/delete$', '\app\admin\controller\TemplateCategoryController@delete');
+Route::post('template_category/toggleStatus$', '\app\admin\controller\TemplateCategoryController@toggleStatus');
+
 // V2.7 积分商城
 Route::get('points_product/index$', '\app\admin\controller\PointsProductController@index');
 Route::rule('points_product/edit/:id$', '\app\admin\controller\PointsProductController@edit', 'GET|POST');
@@ -436,6 +444,28 @@ Route::post('template_store/uploadTheme$', '\app\admin\controller\TemplateStoreC
 // V2.9.12: 版本管理
 Route::get('template_store/versionHistory$', '\app\admin\controller\TemplateStoreController@versionHistory');
 
+// V2.9.20 A-2: 内容模型管理路由
+Route::get('content_model/index$', '\app\admin\controller\ContentModelController@index');
+Route::rule('content_model/edit/:id$', '\app\admin\controller\ContentModelController@edit', 'GET|POST');
+Route::get('content_model/add$', '\app\admin\controller\ContentModelController@edit');
+Route::post('content_model/delete/:id$', '\app\admin\controller\ContentModelController@delete');
+Route::post('content_model/toggleStatus/:id$', '\app\admin\controller\ContentModelController@toggleStatus');
+Route::post('content_model/saveField$', '\app\admin\controller\ContentModelController@saveField');
+Route::post('content_model/deleteField/:id$', '\app\admin\controller\ContentModelController@deleteField');
+Route::get('content_model/getFields/:modelId$', '\app\admin\controller\ContentModelController@getFields');
+
+// V2.9.20 B-3: 模板安装与分类管理路由
+Route::get('template_install/market$', '\app\admin\controller\TemplateInstallController@market');
+Route::get('template_install/search$', '\app\admin\controller\TemplateInstallController@search');
+Route::get('template_install/hotTags$', '\app\admin\controller\TemplateInstallController@hotTags');
+Route::get('template_install/my_templates$', '\app\admin\controller\TemplateInstallController@myTemplates');
+Route::post('template_install/doInstall/:id$', '\app\admin\controller\TemplateInstallController@doInstall');
+Route::post('template_install/doUninstall/:id$', '\app\admin\controller\TemplateInstallController@doUninstall');
+Route::post('template_install/doActivate/:id$', '\app\admin\controller\TemplateInstallController@doActivate');
+Route::get('template_install/categories$', '\app\admin\controller\TemplateInstallController@categories');
+Route::post('template_install/saveCategory$', '\app\admin\controller\TemplateInstallController@saveCategory');
+Route::post('template_install/deleteCategory/:id$', '\app\admin\controller\TemplateInstallController@deleteCategory');
+
 // V2.9.9: AI内容模板路由（补全缺失）
 Route::get('ai_template/index$', '\app\admin\controller\AiTemplateController@index');
 Route::rule('ai_template/edit/:id$', '\app\admin\controller\AiTemplateController@edit', 'GET|POST');
@@ -553,3 +583,6 @@ Route::get('mail_log/stats$', '\app\admin\controller\MailLogController@stats');
 Route::get('notify/send$', '\app\admin\controller\NotifyController@sendPage');
 Route::post('notify/send$', '\app\admin\controller\NotifyController@doSend');
 Route::get('notify/history$', '\app\admin\controller\NotifyController@history');
+// V2.9.20 C-4: 通知默认设置
+Route::get('notification/setting$', '\app\admin\controller\NotificationSettingController@index');
+Route::post('notification/setting/save$', '\app\admin\controller\NotificationSettingController@save');

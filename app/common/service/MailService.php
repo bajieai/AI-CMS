@@ -15,30 +15,69 @@ namespace app\common\service;
 
 /**
  * 邮件发送服务 - V2.9.18 D-3
+ * @deprecated V2.9.20 起建议使用 EmailService，MailService 仅保留兼容
  * 
  * 封装 SMTP / PHPMail 邮件发送，从 setting 表读取 SMTP 配置
  */
 class MailService
 {
     /**
-     * 发送邮件
+     * 发送邮件（带重试）
      *
      * @param string $to      收件人邮箱
      * @param string $subject 主题
      * @param string $body    正文（HTML）
+     * @param int    $retries 重试次数
      * @return bool
      */
-    public function send(string $to, string $subject, string $body): bool
+    public function send(string $to, string $subject, string $body, int $retries = 1): bool
     {
         $config = $this->getConfig();
+        $subject = $this->replaceVars($subject);
+        $body = $this->replaceVars($body);
 
-        // 尝试 SMTP
-        if (!empty($config['host'])) {
-            return $this->sendBySmtp($to, $subject, $body, $config);
+        for ($i = 0; $i <= $retries; $i++) {
+            // 尝试 SMTP
+            if (!empty($config['host'])) {
+                if ($this->sendBySmtp($to, $subject, $body, $config)) {
+                    return true;
+                }
+            }
+
+            // 降级使用 PHP mail()
+            if ($this->sendByPhpMail($to, $subject, $body)) {
+                return true;
+            }
+
+            if ($i < $retries) {
+                usleep(500000); // 失败间隔 0.5 秒
+            }
         }
 
-        // 降级使用 PHP mail()
-        return $this->sendByPhpMail($to, $subject, $body);
+        return false;
+    }
+
+    /**
+     * 带重试的发送（兼容旧调用）
+     */
+    public function sendWithRetry(string $to, string $subject, string $body, int $retries = 2): bool
+    {
+        return $this->send($to, $subject, $body, $retries);
+    }
+
+    /**
+     * 模板变量替换
+     */
+    protected function replaceVars(string $content): string
+    {
+        $vars = [
+            '{{site_name}}' => $this->getConfig()['from_name'] ?? 'AI-CMS',
+            '{{site_url}}'  => request()->domain() ?? 'https://www.i8j.cn',
+            '{{year}}'      => date('Y'),
+            '{{date}}'      => date('Y-m-d'),
+            '{{time}}'      => date('Y-m-d H:i:s'),
+        ];
+        return strtr($content, $vars);
     }
 
     /**
