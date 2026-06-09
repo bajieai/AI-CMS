@@ -8,12 +8,20 @@
 
 ## 项目简介
 
-八界AI-CMS V2.9.20 "推送增强·通知深化·风险修复·收尾完善" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.20 "内容差异化·模板强化·基础设施" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.20 核心定位：Sprint 3 补全 + Sprint 4 收尾** — 补全通知设置页双皮肤模板/路由，验证移动端响应式并修复 CSS 引入缺失，MailService 标记废弃：
-1. **C-4 补全：通知默认设置页(P0)** — 补全 `notification_setting.html` 双皮肤模板 + 路由注册（Sprint 2 遗留缺口修复）
-2. **M-1 移动端响应式验证(P0)** — 验证 4 套前台模板移动端兼容性，修复 mobile `member_publish.html` CSS 引入缺失
-3. **D-5 MailService 废弃标记(P0)** — `MailService` 类注释添加 `@deprecated`，建议后续使用 `EmailService`
+**V2.9.20 核心定位：内容模型差异化 + 模板商店强化 + 基础设施补齐** — 3大方向10+功能点（100%完成）：
+1. **A-1 内容模型数据层(P0)** — 2张新表 `i8j_content_model` + `i8j_content_model_field`，6种预置模型（产品/案例/新闻/下载/招聘/单页），`i8j_content` 新增 `model_id` 字段
+2. **A-2 后台模型管理UI(P0)** — ContentModelController 模型CRUD + 字段管理（14种字段类型）+ 动态表单 + 双皮肤模板同步
+3. **A-3 前台差异化渲染(P0)** — 6种模型详情模板片段（`_partials/detail_model_*.html`）× 4套模板（双皮肤×双端）= 24个模板文件 + 空数据友好提示
+4. **A-4 预置交互行为(P0)** — 图片轮播（Lightbox 组件）+ 视频播放器（HTML5 video 封装）+ 下载计数 API（防刷机制）
+5. **B-1 模板分类体系(P0)** — 2张新表 `i8j_template_category` + `i8j_template_category_map`，model×industry×style 三维度18条种子数据 + 5级缓存体系 + 双皮肤管理UI
+6. **B-2 模板搜索推荐(P0)** — TemplateSearchService 多维度搜索 + 热门标签 API + 关联推荐
+7. **B-3 一键安装预览(P0)** — TemplateInstallController + TemplateInstallService，iframe预览 + 安装/卸载 + 安装计数统计
+8. **C-1 SSE推送深化(P1)** — SseController 3通道（审计/评论/系统）+ SsePushService + sse_client.js（EventSource + 自动重连 + 指数退避 + 轮询降级 + 30s心跳包）
+9. **C-2 邮件统一增强(P1)** — MailService 模板变量替换 + 失败重试机制 + mail:retry 命令行 + 日志打通
+10. **C-3 移动端适配收尾(P1)** — CSS按压态 + 分页touch优化 + `{include ignore_missing}` 兼容性兜底
+11. **C-4 V2.9.19 遗留修复(P1)** — 通知设置页 NotificationSettingController + 双皮肤模板 + 路由注册 + ucenter_sidebar 双皮肤模板补全
 
 **V2.9.19 核心定位：推送增强·通知深化·风险修复** — 4个Sprint 10项功能点（100%完成）：
 1. **R-1：ShareClick Model(P0)** — 补全分享点击追踪模型 + statByContent/totalByContent统计方法
@@ -154,6 +162,10 @@
 
 ### 核心特性
 
+- **🆕 内容模型差异化(V2.9.20)** - 2张新表 + 6种预置模型(产品/案例/新闻/下载/招聘/单页) + 后台模型CRUD(14种字段类型) + 前台24个差异化模板片段(双皮肤×双端) + 图片轮播Lightbox + 视频播放器 + 下载计数 + 空数据友好提示
+- **🆕 模板商店强化(V2.9.20)** - 模板分类体系(2张新表 + 三维度18条种子数据 + 5级缓存) + 多维搜索+热门标签+关联推荐 + 一键安装预览 + 双皮肤管理UI
+- **🆕 SSE推送深化(V2.9.20)** - 3通道SSE(审计/评论/系统) + EventSource自动重连+指数退避+轮询降级 + 30s心跳包防断连 + sse_client.js独立组件
+- **🆕 邮件统一增强(V2.9.20)** - MailService模板变量+失败重试+日志打通 + mail:retry CLI命令 + ucenter_sidebar双皮肤补全 + 通知设置页双皮肤模板
 - **🆕 推送超时+重试队列(V2.9.19)** - PushDispatchService 60s整体超时 + PushRetryService指数退避(1/3/9/27s) + PushRetryCommand cron消费 + PushRetryController管理页(双皮肤) + 通道健康信号灯(红/黄/绿)
 - **🆕 风险修复5项(V2.9.19)** - ShareClick Model补全 + ChannelBroadcast批量INSERT(60x性能提升) + SwiftMailer依赖 + 时区统一Asia/Shanghai + MenuSyncCommand菜单同步CLI
 - **🆕 通知深化(V2.9.19)** - Notification补3种类型映射 + notify_settings偏好 + 前台分类Tab(全部/系统/审核/发布/评论/等级) + 已读筛选 + 批量已读
@@ -721,7 +733,7 @@ AI-CMS/
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
-| V2.9.20 | 2026-06-09 | **Sprint 3 补全 + Sprint 4 收尾** — C-4 通知设置页双皮肤模板补全+路由注册（Sprint 2 遗留修复）+ M-1 移动端响应式验证（修复 mobile member_publish CSS 引入）+ D-5 MailService @deprecated 标记 + 文档收口。5修改文件+4新文档。 |
+| V2.9.20 | 2026-06-09 | **内容差异化·模板强化·基础设施** — 3大方向11项功能（100%完成）：A方向（内容模型差异化：2张新表+6种预置模型+后台CRUD+前台24个差异化模板片段+Lightbox轮播+视频播放器+下载计数API）+ B方向（模板商店强化：2张分类表+三维度18条种子数据+5级缓存+多维搜索+热门标签+一键安装预览）+ C方向（SSE 3通道推送+心跳包+sse_client.js+邮件重试CLI+移动端收尾+ucenter_sidebar补全+通知设置双皮肤模板）。4张新表+1张ALTER+14个PHP类+30个模板+3个JS+1个SQL迁移。75新增+7修改文件，5182行。 |
 | V2.9.19 | 2026-06-06 | **推送增强·通知深化·风险修复** — 4个Sprint 10项功能：R-1~R-5 5项P0风险修复(ShareClick Model+ChannelBroadcast批量INSERT/SwiftMailer依赖/时区统一/MenuSyncCommand) + D-1 推送超时60s+重试队列(PushRetryService/PushRetryCommand/健康信号灯+) + N-1 通知深化(类型映射+偏好JSON+分类Tab+已读筛选+批量已读) + S-1 邮件增强(退订分析8卡片+30天趋势/CSV导入/静默检测/邮件日志统计) + U-1 个人中心统计(5卡片+趋势图+TOP5) + M-1 移动端适配(member_publish mobile/响应式CSS)。3张新表(i8j_push_retry/share_click)+ALTER 2张(i8j_user/subscriber)+7个新PHP类+2个新Command+14个新模板+4个新CSS/JS。23新增+35修改文件，1775行。| |
 | V2.9.18 | 2026-06-05 | **内容分发增强·会员体系奠基** — 3个Sprint 6项功能：D-1 API推送引擎(Webhook/微信/站内广播三通道+PushDispatch+ContentPublished事件+推送日志/重试) + D-2社交分享深化(编辑页预览面板+前台分享工具栏+UTM追踪) + D-3邮件订阅(Double Opt-in+SMTP/PHP Mail+订阅管理/CSV导出+发布自动通知) + U-1个人中心(我的发布+偏好设置+MemberController扩展) + U-2注册增强(邮箱验证码+密码找回+频率限制) + U-3站内通知(后台发送+前台铃铛组件)。5张新表+7个新Service+9个Controller+4个Model+3个Event/Listener+28个双皮肤模板+7个JS/CSS+性能优化(Session/OPcache/realpath)。56新增+14修改文件，~5500行。 | |
 | V2.9.17 | 2026-06-04 | **翻译体验精修·多语言管理闭环** — 2个Sprint 4项功能：M-2后台语言管理UI(checkbox+排序+自定义语言+settings持久化) + T-4轮询可配置化(config polling段+Controller注入+JS改造+动态加速) + M-6前台语言切换器(_lang_switcher双皮肤+国旗/本地名/RTL CSS) + E-2翻译SSE实时推送(stream端点+SSE优先+轮询降级+30s超时)。0张新表，16文件+913行。 | |
