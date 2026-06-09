@@ -122,6 +122,8 @@ abstract class AdminBaseController extends \think\BaseController
         // V2.9.9 新增模块
         'social_share'     => 'social_share',
         'workflow'         => 'workflow',
+        // V2.9.21: 模板分类管理
+        'template_category' => 'template_category',
     ];
 
     /**

@@ -177,8 +177,7 @@ function uploadAvatar(input) {
 // 媒体库选择
 function openMediaBrowser() {
     $('#mediaBrowserIframe').attr('src', '/admin/media/select');
-    var modal = new bootstrap.Modal(document.getElementById('mediaBrowserModal'));
-    modal.show();
+    $('#mediaBrowserModal').modal('show');
 }
 window.addEventListener('message', function(e) {
     var data = e.data || {};

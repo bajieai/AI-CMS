@@ -95,6 +95,11 @@
                     </div>
                     {/if}
 
+                    <!-- V2.9.20 A-3: 内容模型差异化片段 -->
+                    {if condition="$model_partial"}
+                        {include file="$model_partial" /}
+                    {/if}
+
                     <!-- V2.9.5 浠樿垂内容瀹夊叏灞曠ず -->
                     <div class="content-body">
                         {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
@@ -491,6 +496,16 @@ $('#ratingForm').on('submit', function(e) {
 loadRatings(1);
 </script>
 {/if}
+<!-- V2.9.20 A-4: 下载计数 -->
+<script>
+function recordDownload(contentId) {
+    $.post('/api/content/download_count', {content_id: contentId, __token__: $('meta[name="csrf-token"]').attr('content')}, function(res) {
+        if (res.code === 0) {
+            console.log('下载计数成功:', res.data.count);
+        }
+    }, 'json');
+}
+</script>
 {/block}
 
 

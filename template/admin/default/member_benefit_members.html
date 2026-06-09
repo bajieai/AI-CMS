@@ -64,16 +64,21 @@
                         <td>{$item.total_points|default=0}</td>
                         <td>
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport">
-                                    <i class="bi bi-arrow-down-circle"></i> 降级
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport">
+                                    <i class="bi bi-arrow-repeat"></i> 更换等级
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     {volist name="levels" id="lv"}
                                     {if $lv.id != $item.level_id}
                                     <li>
-                                        <a class="dropdown-item btn-downgrade" href="javascript:;"
-                                           data-member="{$item.id}" data-level="{$lv.id}" data-name="{$lv.name}">
-                                            降级为 {$lv.name}
+                                        <a class="dropdown-item btn-change-level" href="javascript:;"
+                                           data-member="{$item.id}" data-level="{$lv.id}" data-name="{$lv.name}"
+                                           data-direction="{if $lv.sort > $item.level.sort}upgrade{else}downgrade{/if}">
+                                            {if $lv.sort > $item.level.sort}
+                                            <i class="bi bi-arrow-up-circle text-success me-1"></i>升级为 {$lv.name}
+                                            {else}
+                                            <i class="bi bi-arrow-down-circle text-warning me-1"></i>降级为 {$lv.name}
+                                            {/if}
                                         </a>
                                     </li>
                                     {/if}
@@ -97,12 +102,14 @@
 {block name="js"}
 <script>
 $(function() {
-    $('.btn-downgrade').on('click', function() {
+    $('.btn-change-level').on('click', function() {
         var memberId = $(this).data('member');
         var levelId = $(this).data('level');
         var levelName = $(this).data('name');
+        var direction = $(this).data('direction');
+        var actionText = direction === 'upgrade' ? '升级' : '降级';
 
-        if (!confirm('确定将该会员降级为「' + levelName + '」吗？降级后将发送通知。')) {
+        if (!confirm('确定将该会员' + actionText + '为「' + levelName + '」吗？' + actionText + '后将发送通知。')) {
             return;
         }
 

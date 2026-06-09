@@ -123,13 +123,20 @@ class PaidService
      */
     public static function createOrder(int $memberId, int $contentId, string $payType = ''): array
     {
-        $content = Content::find($contentId);
+        $content = Content::with('ext')->find($contentId);
         if (!$content || empty($content->is_paid)) {
             throw new \Exception('该内容无需付费');
         }
 
         if (self::canAccess($memberId, $contentId)) {
             throw new \Exception('您已购买该内容');
+        }
+
+        // V2.9.20 A-4: 产品库存检查
+        $extData = $content->ext ? ($content->ext->data ?? []) : [];
+        $stock = isset($extData['stock']) ? (int) $extData['stock'] : null;
+        if ($stock !== null && $stock <= 0) {
+            throw new \Exception('库存不足，暂时无法购买');
         }
 
         // V2.5：检查等级限制
@@ -299,6 +306,17 @@ class PaidService
             $order->status = 1;
             $order->paid_at = time();
             $order->save();
+
+            // V2.9.20 A-4: 扣减产品库存
+            $content = Content::with('ext')->find($order->content_id);
+            if ($content && $content->ext) {
+                $extData = $content->ext->data ?? [];
+                if (isset($extData['stock'])) {
+                    $extData['stock'] = max(0, (int) $extData['stock'] - 1);
+                    $content->ext->data = $extData;
+                    $content->ext->save();
+                }
+            }
 
             Db::commit();
 

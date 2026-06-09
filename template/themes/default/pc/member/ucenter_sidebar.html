@@ -1,0 +1,44 @@
+<div class="ucenter-sidebar list-group mb-4">
+    <a href="{:url('member/index')}" class="list-group-item list-group-item-action {if $ucenter_active=='index'}active{/if}">
+        <i class="bi bi-house"></i> 个人首页
+    </a>
+    <a href="{:url('member/profile')}" class="list-group-item list-group-item-action {if $ucenter_active=='profile'}active{/if}">
+        <i class="bi bi-person"></i> 个人资料
+    </a>
+    <a href="{:url('member/publish')}" class="list-group-item list-group-item-action {if $ucenter_active=='publish'}active{/if}">
+        <i class="bi bi-file-text"></i> 我的发布
+    </a>
+    <a href="{:url('member/stats')}" class="list-group-item list-group-item-action {if $ucenter_active=='stats'}active{/if}">
+        <i class="bi bi-bar-chart"></i> 内容统计
+    </a>
+    <a href="{:url('member/favorite')}" class="list-group-item list-group-item-action {if $ucenter_active=='favorite'}active{/if}">
+        <i class="bi bi-heart"></i> 我的收藏
+    </a>
+    <a href="{:url('member/comments')}" class="list-group-item list-group-item-action {if $ucenter_active=='comments'}active{/if}">
+        <i class="bi bi-chat-left-text"></i> 我的评论
+    </a>
+    <a href="{:url('member/notification')}" class="list-group-item list-group-item-action {if $ucenter_active=='notification'}active{/if}">
+        <i class="bi bi-bell"></i> 通知消息
+        {if $member_unread_count > 0}
+        <span class="badge bg-danger rounded-pill float-end">{$member_unread_count}</span>
+        {/if}
+    </a>
+    <a href="{:url('member/preferences')}" class="list-group-item list-group-item-action {if $ucenter_active=='preferences'}active{/if}">
+        <i class="bi bi-sliders"></i> 偏好设置
+    </a>
+    <a href="{:url('member/points')}" class="list-group-item list-group-item-action {if $ucenter_active=='points'}active{/if}">
+        <i class="bi bi-coin"></i> 我的积分
+    </a>
+    <a href="{:url('member/orders')}" class="list-group-item list-group-item-action {if $ucenter_active=='orders'}active{/if}">
+        <i class="bi bi-bag"></i> 我的订单
+    </a>
+    <a href="{:url('member/coupon')}" class="list-group-item list-group-item-action {if $ucenter_active=='coupon'}active{/if}">
+        <i class="bi bi-ticket-perforated"></i> 优惠券
+    </a>
+    <a href="{:url('member/level')}" class="list-group-item list-group-item-action {if $ucenter_active=='level'}active{/if}">
+        <i class="bi bi-award"></i> 等级权益
+    </a>
+    <a href="{:url('member/invite')}" class="list-group-item list-group-item-action {if $ucenter_active=='invite'}active{/if}">
+        <i class="bi bi-share"></i> 邀请好友
+    </a>
+</div>

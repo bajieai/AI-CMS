@@ -167,6 +167,15 @@ class ContentController extends FrontBaseController
             $contentLangs = \app\common\model\ContentLang::getTranslationsByContentId($id);
         }
 
+        // V2.9.20 A-3: 内容模型差异化片段路径
+        $modelPartial = '';
+        if ($info->model_id > 0) {
+            $contentModel = \app\common\model\ContentModel::find($info->model_id);
+            if ($contentModel && !empty($contentModel->code)) {
+                $modelPartial = '_partials/detail_' . $contentModel->code;
+            }
+        }
+
         $this->assign([
             'info'          => $info,
             'related'       => $related,
@@ -186,6 +195,7 @@ class ContentController extends FrontBaseController
             'schema_markup' => $schemaMarkup,
             'current_lang'  => $lang,
             'content_langs' => $contentLangs,
+            'model_partial' => $modelPartial,
         ]);
 
         return $this->view('/detail');

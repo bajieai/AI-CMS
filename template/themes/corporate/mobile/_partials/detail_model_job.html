@@ -1,0 +1,27 @@
+{/* V2.9.20 A-3: 招聘模型详情差异化片段 (corporate Mobile) */}
+{php}$ext = $info['ext']['data'] ?? [];{/php}
+<div class="model-job-card mb-3 p-3 bg-white border-start border-3 border-dark">
+    <div class="row g-2 text-center">
+        {if condition="!empty($ext['salary_range'])"}
+        <div class="col-4">
+            <div class="text-muted small">薪资</div>
+            <div class="fw-bold text-success small">{$ext['salary_range']|htmlentities}</div>
+        </div>
+        {/if}
+        {if condition="!empty($ext['location'])"}
+        <div class="col-4">
+            <div class="text-muted small">地点</div>
+            <div class="fw-bold small">{$ext['location']|htmlentities}</div>
+        </div>
+        {/if}
+        {if condition="!empty($ext['education'])"}
+        <div class="col-4">
+            <div class="text-muted small">学历</div>
+            <div class="fw-bold small"><span class="badge bg-secondary">{$ext['education']|htmlentities}</span></div>
+        </div>
+        {/if}
+    </div>
+    {if condition="empty($ext['salary_range']) && empty($ext['location']) && empty($ext['education'])"}
+    <div class="text-muted small text-center py-2"><i class="bi bi-info-circle me-1"></i>暂无职位详细信息</div>
+    {/if}
+</div>

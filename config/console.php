@@ -54,5 +54,7 @@ return [
         'menu:sync'             => 'app\common\command\MenuSyncCommand',
         // V2.9.19 D-1c: 推送重试命令
         'push:retry'            => 'app\common\command\PushRetryCommand',
+        // V2.9.20 C-2: 邮件失败重试命令
+        'mail:retry'            => 'app\common\command\MailRetry',
     ],
 ];

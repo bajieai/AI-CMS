@@ -59,6 +59,7 @@ class Content extends Model
         'seo_score' => 'integer',
         'lang' => 'string',
         'translation_of' => 'integer',
+        'model_id' => 'integer',
     ];
 
     /**
@@ -192,5 +193,45 @@ class Content extends Model
     public function scopeByLang($query, string $langCode)
     {
         return $query->where('lang', $langCode);
+    }
+
+    /**
+     * V2.9.20 A-1: 关联内容模型定义
+     */
+    public function contentModel()
+    {
+        return $this->belongsTo(ContentModel::class, 'model_id');
+    }
+
+    /**
+     * V2.9.20 A-1: 获取扩展字段值
+     * 从 content_ext.data JSON 中读取指定字段值
+     */
+    public function getFieldValue(string $fieldName, $default = null)
+    {
+        if (!$this->ext || empty($this->ext->data)) {
+            return $default;
+        }
+        return $this->ext->data[$fieldName] ?? $default;
+    }
+
+    /**
+     * V2.9.20 A-1: 查询作用域 — 按内容模型筛选
+     */
+    public function scopeByModelId($query, int $modelId)
+    {
+        return $query->where('model_id', $modelId);
+    }
+
+    /**
+     * V2.9.20 A-1: 查询作用域 — 按内容类型自动匹配默认模型
+     */
+    public function scopeWithDefaultModel($query, int $type)
+    {
+        $model = ContentModel::getDefaultByType($type);
+        if ($model) {
+            return $query->where('model_id', $model->id);
+        }
+        return $query;
     }
 }

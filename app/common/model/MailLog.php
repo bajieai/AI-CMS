@@ -22,8 +22,8 @@ class MailLog extends Model
 {
     protected $name = 'mail_log';
 
-    protected $autoWriteTimestamp = 'datetime';
-    protected $createTime = 'created_at';
+    protected $autoWriteTimestamp = 'int';
+    protected $createTime = 'create_time';
     protected $updateTime = false;
 
     protected $type = [
@@ -53,7 +53,7 @@ class MailLog extends Model
             'status'        => $data['status'] ?? self::STATUS_PENDING,
             'error_msg'     => $data['error_msg'] ?? '',
             'sent_at'       => $data['sent_at'] ?? null,
-            'created_at'    => date('Y-m-d H:i:s'),
+            'create_time'   => $data['create_time'] ?? time(),
         ]);
 
         // V2.9.19 S-1c: 静默检测 — 发送失败时增加订阅者失败计数

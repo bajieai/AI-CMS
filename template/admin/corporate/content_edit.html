@@ -44,6 +44,19 @@
                             <option value="6" {if condition="($info.type ?? 1) == 6"}selected{/if}>单页</option>
                         </select>
                     </div>
+                    <!-- V2.9.20 A-2: 内容模型选择 -->
+                    <div class="mb-3">
+                        <label class="form-label">内容模型</label>
+                        <select name="model_id" class="form-select" id="modelSelect">
+                            <option value="0">不使用模型</option>
+                            {volist name="content_models" id="model"}
+                            <option value="{$model.id}" {if condition="($model_id ?? 0) == $model.id"}selected{/if}>{$model.name}</option>
+                            {/volist}
+                        </select>
+                        <div class="form-text text-muted" id="modelFieldHint">
+                            {if condition="empty($model_fields)"}当前类型无模型字段{else /}已加载模型字段{/if}
+                        </div>
+                    </div>
                     <!-- V2.9.9: AI内容模板选择 -->
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between align-items-center">
@@ -249,10 +262,82 @@
                         </div>
                     </div>
 
-                    <!-- 扩展字段 -->
+                    <!-- V2.9.20 A-2: 模型动态扩展字段 -->
+                    {notempty name="model_fields"}
+                    <div class="card border-info mb-3" id="modelFieldsCard">
+                        <div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>模型字段</div>
+                        <div class="card-body py-2">
+                            {volist name="model_fields" id="field"}
+                            <div class="mb-2">
+                                <label class="form-label small">{$field.field_label} {if condition="$field.is_required"}<span class="text-danger">*</span>{/if}</label>
+                                {switch field.field_type}
+                                    {case value="text"}
+                                    <input type="text" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}"
+                                        placeholder="{$field.field_label}">
+                                    {/case}
+                                    {case value="number"}
+                                    <input type="number" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}"
+                                        placeholder="{$field.field_label}">
+                                    {/case}
+                                    {case value="textarea"}
+                                    <textarea name="ext[{$field.field_name}]" class="form-control form-control-sm" rows="3"
+                                        placeholder="{$field.field_label}">{$ext_data[$field.field_name] ?? $field.default_value}</textarea>
+                                    {/case}
+                                    {case value="select"}
+                                    <select name="ext[{$field.field_name}]" class="form-select form-select-sm">
+                                        {volist name=":explode(',', $field.options)" id="opt"}
+                                        <option value="{$opt}" {if condition="($ext_data[$field.field_name] ?? '') == $opt"}selected{/if}>{$opt}</option>
+                                        {/volist}
+                                    </select>
+                                    {/case}
+                                    {case value="radio"}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {volist name=":explode(',', $field.options)" id="opt"}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="ext[{$field.field_name}]" value="{$opt}"
+                                                {if condition="($ext_data[$field.field_name] ?? '') == $opt"}checked{/if}>
+                                            <label class="form-check-label small">{$opt}</label>
+                                        </div>
+                                        {/volist}
+                                    </div>
+                                    {/case}
+                                    {case value="checkbox"}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {php}$ckValues = explode(',', $ext_data[$field.field_name] ?? '');{/php}
+                                        {volist name=":explode(',', $field.options)" id="opt"}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" name="ext[{$field.field_name}][]" value="{$opt}"
+                                                {if condition="in_array($opt, $ckValues)"}checked{/if}>
+                                            <label class="form-check-label small">{$opt}</label>
+                                        </div>
+                                        {/volist}
+                                    </div>
+                                    {/case}
+                                    {case value="date"}
+                                    <input type="date" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}">
+                                    {/case}
+                                    {case value="datetime"}
+                                    <input type="datetime-local" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}">
+                                    {/case}
+                                    {default /}
+                                    <input type="text" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}"
+                                        placeholder="{$field.field_label}">
+                                {/switch}
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                    {/notempty}
+
+                    <!-- 扩展字段（静态配置保留兼容） -->
                     {notempty name="ext_fields"}
-                    <div class="card border-info mb-3" id="extFieldsCard">
-                        <div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>扩展字段</div>
+                    <div class="card border-secondary mb-3" id="extFieldsCard">
+                        <div class="card-header py-2 bg-secondary text-white"><i class="bi bi-sliders me-1"></i>基础扩展字段</div>
                         <div class="card-body py-2">
                             {volist name="ext_fields" id="field"}
                             <div class="mb-2">

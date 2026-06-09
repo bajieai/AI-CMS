@@ -1,0 +1,46 @@
+{/* V2.9.20 A-3: 产品模型详情差异化片段 (corporate PC) */}
+{php}$ext = $info['ext']['data'] ?? [];{/php}
+<div class="model-product-card card mb-4 shadow-sm">
+    <div class="card-body">
+        <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">产品规格</h6>
+        <div class="row g-4">
+            {if condition="!empty($ext['price']) || isset($ext['price'])"}
+            <div class="col-md-3 col-sm-6">
+                <div class="border-start border-3 border-primary ps-3">
+                    <div class="text-muted small">价格</div>
+                    <div class="fw-bold text-primary fs-4">&yen;{$ext['price']}</div>
+                </div>
+            </div>
+            {/if}
+            {if condition="isset($ext['stock'])"}
+            <div class="col-md-3 col-sm-6">
+                <div class="border-start border-3 {if $ext['stock']>0}border-success{else/}border-danger{/if} ps-3">
+                    <div class="text-muted small">库存状态</div>
+                    <div class="fw-bold">{if $ext['stock']>0}现货 ({$ext['stock']}件){else/}缺货{/if}</div>
+                </div>
+            </div>
+            {/if}
+            {if condition="!empty($ext['brand'])"}
+            <div class="col-md-3 col-sm-6">
+                <div class="border-start border-3 border-dark ps-3">
+                    <div class="text-muted small">品牌</div>
+                    <div class="fw-bold">{$ext['brand']|htmlentities}</div>
+                </div>
+            </div>
+            {/if}
+            {if condition="!empty($ext['spec'])"}
+            <div class="col-md-3 col-sm-6">
+                <div class="border-start border-3 border-secondary ps-3">
+                    <div class="text-muted small">规格</div>
+                    <div class="fw-bold">{$ext['spec']|htmlentities}</div>
+                </div>
+            </div>
+            {/if}
+        </div>
+        {if condition="empty($ext['price']) && empty($ext['stock']) && empty($ext['brand']) && empty($ext['spec'])"}
+        <div class="text-muted small text-center py-3 border-top mt-3">
+            <i class="bi bi-info-circle me-1"></i>此产品暂无详细信息，请联系客服咨询
+        </div>
+        {/if}
+    </div>
+</div>

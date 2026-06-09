@@ -1,0 +1,164 @@
+{extend name="layout" /}
+
+{block name="title"}模板分类管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/template_store/index">模板商店</a></li>
+<li class="breadcrumb-item active">分类管理</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-tags me-1"></i>模板分类管理（V2.9.20 三维度体系）</span>
+        <button type="button" class="btn btn-sm btn-primary" onclick="openCategoryModal()"><i class="bi bi-plus-lg me-1"></i>新增分类</button>
+    </div>
+    <div class="card-body">
+        {volist name="list" id="group"}
+        <div class="mb-4">
+            <h6 class="border-bottom pb-2 mb-3">
+                <span class="badge bg-primary me-2">{$group.label}</span>
+                <small class="text-muted">{$group.items|count} 个分类</small>
+            </h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>标识</th>
+                            <th>描述</th>
+                            <th>排序</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="group.items" id="item"}
+                        <tr data-id="{$item.id}">
+                            <td>{$item.name}</td>
+                            <td><code>{$item.value}</code></td>
+                            <td>{$item.description}</td>
+                            <td>{$item.sort}</td>
+                            <td>{$item.status ? '<span class="badge bg-success">启用</span>' : '<span class="badge bg-secondary">禁用</span>'}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="editCategory({$item.id}, '{$item.name}', '{$item.value}', '{$item.description}', '{$item.type}', {$item.sort}, {$item.status})"><i class="bi bi-pencil"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteCategory({$item.id}, '{$item.name}')"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {empty name="group.items"}
+                        <tr><td colspan="6" class="text-center text-muted">暂无分类</td></tr>
+                        {/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {/volist}
+    </div>
+</div>
+
+<!-- 分类编辑弹窗 -->
+<div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="catModalTitle">新增分类</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="catId" value="0">
+                <div class="mb-3">
+                    <label class="form-label">分类名称 <span class="text-danger">*</span></label>
+                    <input type="text" id="catName" class="form-control" placeholder="如：企业官网">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">维度类型</label>
+                    <select id="catType" class="form-select">
+                        {foreach $typeMap as $k => $v}
+                        <option value="{$k}">{$v}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">标识值 <span class="text-danger">*</span></label>
+                    <input type="text" id="catValue" class="form-control" placeholder="如：enterprise">
+                    <div class="form-text">英文标识，用于筛选条件</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">描述</label>
+                    <input type="text" id="catDesc" class="form-control" placeholder="分类描述">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">排序</label>
+                    <input type="number" id="catSort" class="form-control" value="0">
+                </div>
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="catStatus" checked>
+                        <label class="form-check-label" for="catStatus">启用</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveCategory()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function openCategoryModal() {
+    $('#catId').val(0);
+    $('#catName').val('');
+    $('#catType').val('model');
+    $('#catValue').val('').prop('readonly', false);
+    $('#catDesc').val('');
+    $('#catSort').val(0);
+    $('#catStatus').prop('checked', true);
+    $('#catModalTitle').text('新增分类');
+    new bootstrap.Modal(document.getElementById('categoryModal')).show();
+}
+
+function editCategory(id, name, value, desc, type, sort, status) {
+    $('#catId').val(id);
+    $('#catName').val(name);
+    $('#catType').val(type);
+    $('#catValue').val(value).prop('readonly', true);
+    $('#catDesc').val(desc);
+    $('#catSort').val(sort);
+    $('#catStatus').prop('checked', !!status);
+    $('#catModalTitle').text('编辑分类');
+    new bootstrap.Modal(document.getElementById('categoryModal')).show();
+}
+
+function saveCategory() {
+    const data = {
+        id: $('#catId').val(),
+        name: $('#catName').val().trim(),
+        type: $('#catType').val(),
+        value: $('#catValue').val().trim(),
+        description: $('#catDesc').val().trim(),
+        sort: $('#catSort').val(),
+        status: $('#catStatus').is(':checked') ? 1 : 0,
+    };
+    if (!data.name || !data.value) {
+        alert('名称和标识不能为空'); return;
+    }
+    $.post('/admin/template_install/saveCategory', data, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+
+function deleteCategory(id, name) {
+    if (!confirm('确定删除分类「' + name + '」？')) return;
+    $.post('/admin/template_install/deleteCategory/' + id, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+</script>
+{/block}

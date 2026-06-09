@@ -1,0 +1,14 @@
+{/* V2.9.20 A-3: 单页模型详情差异化片段 (corporate PC) */}
+{php}$ext = $info['ext']['data'] ?? [];{/php}
+{if condition="!empty($ext['subtitle']) || !empty($ext['cover_image'])"}
+<div class="model-page-header mb-4">
+    {if condition="!empty($ext['cover_image'])"}
+    <div class="mb-3">
+        <img src="{$ext['cover_image']}" class="img-fluid w-100" alt="{$info.title}" style="max-height:400px;object-fit:cover;" onerror="this.style.display='none'">
+    </div>
+    {/if}
+    {if condition="!empty($ext['subtitle'])"}
+    <p class="lead text-muted border-start border-3 border-dark ps-3">{$ext['subtitle']|htmlentities}</p>
+    {/if}
+</div>
+{/if}

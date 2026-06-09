@@ -62,12 +62,13 @@ class MemberLevelService
     }
 
     /**
-     * V2.9.2 M20: 手动降级会员
+     * V2.9.2 M20: 手动调整会员等级（支持升级/降级）
+     * V2.9.21: 根据 sort 自动区分升级/降级，返回对应提示文案
      */
     public static function manualDowngrade(int $memberId, int $targetLevelId): array
     {
         if (!config('member.level_manual_downgrade', 1)) {
-            return ['success' => false, 'msg' => '系统未启用手动降级功能'];
+            return ['success' => false, 'msg' => '系统未启用手动调整等级功能'];
         }
 
         $member = Member::find($memberId);
@@ -80,6 +81,7 @@ class MemberLevelService
             return ['success' => false, 'msg' => '目标等级不存在'];
         }
 
+        $oldLevel = MemberLevel::find($member->level_id);
         $oldLevelId = $member->level_id;
         if ($oldLevelId == $targetLevelId) {
             return ['success' => false, 'msg' => '目标等级与当前等级相同'];
@@ -88,10 +90,15 @@ class MemberLevelService
         $member->level_id = $targetLevelId;
         $member->save();
 
-        // 发送降级通知
+        // 发送等级变更通知
         self::notifyLevelChange($memberId, $oldLevelId, $targetLevelId);
 
-        return ['success' => true, 'msg' => '降级成功'];
+        // V2.9.21: 根据 sort 判断升级/降级方向，返回对应文案
+        $oldSort = $oldLevel ? $oldLevel->sort : 0;
+        $isUpgrade = $targetLevel->sort > $oldSort;
+        $direction = $isUpgrade ? '升级' : '降级';
+
+        return ['success' => true, 'msg' => "{$direction}成功"];
     }
 
     /**

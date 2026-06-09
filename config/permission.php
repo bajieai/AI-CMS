@@ -123,5 +123,14 @@ return [
         'menu_manager.*' => ['admin/menu_manager/index', 'admin/menu_manager/saveGroup', 'admin/menu_manager/saveItem', 'admin/menu_manager/deleteGroup', 'admin/menu_manager/deleteItem', 'admin/menu_manager/sort', 'admin/menu_manager/toggleStatus'],
         // V2.9.10: AI配置
         'ai_config.*' => ['admin/system/aiConfig'],
+        // V2.9.21: 模板分类管理
+        'template_category.*' => [
+            'admin/template_category/index',
+            'admin/template_category/add',
+            'admin/template_category/edit',
+            'admin/template_category/save',
+            'admin/template_category/delete',
+            'admin/template_category/toggleStatus',
+        ],
     ],
 ];

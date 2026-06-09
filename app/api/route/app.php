@@ -88,6 +88,12 @@ Route::get('v1/notify/unread_count$', '\app\api\controller\v1\NotifyController@u
 Route::post('v1/notify/read$', '\app\api\controller\v1\NotifyController@read');
 Route::post('v1/notify/read_all$', '\app\api\controller\v1\NotifyController@readAll');
 
+// V2.9.20 A-4: 下载计数（公开，防刷）
+Route::post('content/download_count$', '\app\api\controller\ContentController@downloadCount');
+
+// V2.9.20 C-1: SSE 推送（公开）
+Route::get('sse/stream$', '\app\api\controller\SseController@stream');
+
 // ========== V2.9.18 U-2: 注册登录 API ==========
 Route::post('auth/register$', '\app\api\controller\v1\AuthController@register');
 Route::get('auth/register/captcha$', '\app\api\controller\v1\AuthController@getCaptcha');

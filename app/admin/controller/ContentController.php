@@ -125,6 +125,21 @@ class ContentController extends AdminBaseController
             $tags = Tag::select();
             $extFields = ThinkConfig::get('info_type_fields.' . $type, []);
 
+            // V2.9.20 A-2: 注入内容模型选择
+            $contentModels = \app\common\model\ContentModel::where('status', 1)
+                ->where('type', $type)
+                ->order('sort', 'asc')
+                ->select();
+            $defaultModel = \app\common\model\ContentModel::getDefaultByType($type);
+            $modelId = $defaultModel ? $defaultModel->id : 0;
+            $modelFields = [];
+            if ($modelId > 0) {
+                $modelFields = \app\common\model\ContentModelField::where('model_id', $modelId)
+                    ->where('status', 1)
+                    ->order('sort', 'asc')
+                    ->select();
+            }
+
             // V2.9.9-R4: 注入AI配图默认配置
             $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
             $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
@@ -148,6 +163,10 @@ class ContentController extends AdminBaseController
                 'selected_tags' => [],
                 'ext_fields' => $extFields,
                 'ext_data' => [],
+                // V2.9.20 A-2: 内容模型
+                'content_models' => $contentModels,
+                'model_id' => $modelId,
+                'model_fields' => $modelFields,
                 'ai_image_default_size' => $aiImageDefaultSize,
                 'ai_image_default_style' => $aiImageDefaultStyle,
                 'ai_image_candidate_count' => $aiImageCandidateCount,
@@ -195,6 +214,19 @@ class ContentController extends AdminBaseController
             // 归一化换行符 \r\n → \n（防止在 input value 属性中显示为乱码）
             $extData = self::cleanLineEndings($extData);
 
+            // V2.9.20 A-2: 注入内容模型和动态字段
+            $contentModels = \app\common\model\ContentModel::where('status', 1)
+                ->where('type', $info->type)
+                ->order('sort', 'asc')
+                ->select();
+            $modelFields = [];
+            if ($info->model_id > 0) {
+                $modelFields = \app\common\model\ContentModelField::where('model_id', $info->model_id)
+                    ->where('status', 1)
+                    ->order('sort', 'asc')
+                    ->select();
+            }
+
             // V2.9.9-R4: 注入AI配图默认配置
             $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
             $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
@@ -225,6 +257,10 @@ class ContentController extends AdminBaseController
                 'selected_tags' => $selectedTags,
                 'ext_fields' => $extFields,
                 'ext_data' => $extData,
+                // V2.9.20 A-2: 内容模型
+                'content_models' => $contentModels,
+                'model_id' => $info->model_id,
+                'model_fields' => $modelFields,
                 'ai_image_default_size' => $aiImageDefaultSize,
                 'ai_image_default_style' => $aiImageDefaultStyle,
                 'ai_image_candidate_count' => $aiImageCandidateCount,
