@@ -41,6 +41,8 @@ class Content extends Model
         'sort' => 'integer',
         'is_top' => 'integer',
         'views' => 'integer',
+        'play_count' => 'integer',
+        'download_count' => 'integer',
         'publish_time' => 'integer',
         'hotness' => 'integer',
         'is_recommend' => 'integer',

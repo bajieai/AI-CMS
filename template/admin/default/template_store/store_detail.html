@@ -120,8 +120,121 @@
                 <li class="list-group-item d-flex justify-content-between"><span>质量评分</span><span>{$info.quality_score}</span></li>
             </ul>
         </div>
+
+        <!-- V2.9.21 D-3: 模板分类关联（可编辑） -->
+        {if condition="$isAdmin ?? false"}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-tags me-1"></i>分类关联</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="saveCategories()"><i class="bi bi-check-lg me-1"></i>保存</button>
+            </div>
+            <div class="card-body">
+                <div id="categorySelector">
+                    {volist name="categoryGroups" id="group"}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">{$group.label}</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {volist name="group.items" id="cat"}
+                            <label class="btn btn-sm btn-outline-secondary category-tag" style="cursor:pointer;">
+                                <input type="checkbox" name="category_ids[]" value="{$cat.id}" data-group="{$group.type}" class="d-none"
+                                    {if condition="in_array($cat.id, $selectedCategories)"}checked{/if}
+                                    onchange="onCategoryChange(this)">
+                                <i class="bi {if condition="in_array($cat.id, $selectedCategories)"}bi-star-fill text-warning{else}bi-star{/if} me-1 primary-star" onclick="togglePrimary(event, {$cat.id})"></i>
+                                {$cat.name}
+                            </label>
+                            {/volist}
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+                <div class="form-text text-muted">点击星标设置主分类（每维度只能选一个主分类）</div>
+            </div>
+        </div>
+        {/if}
     </div>
 </div>
+
+<!-- V2.9.21 D-3: 分类选择器 JS -->
+{if condition="$isAdmin ?? false"}
+<script>
+// 主分类状态（category_id => 1/0）
+var primaryMap = {:json_encode($primaryMap ?? [])};
+
+function onCategoryChange(chk) {
+    var $tag = $(chk).closest('.category-tag');
+    if (chk.checked) {
+        $tag.removeClass('btn-outline-secondary').addClass('btn-outline-primary active');
+    } else {
+        $tag.removeClass('btn-outline-primary active').addClass('btn-outline-secondary');
+        // 取消选中时清除主分类状态
+        var cid = parseInt(chk.value);
+        delete primaryMap[cid];
+        $tag.find('.primary-star').removeClass('bi-star-fill text-warning').addClass('bi-star');
+    }
+}
+
+function togglePrimary(event, cid) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var $star = $(event.target);
+    var $chk = $star.closest('.category-tag').find('input[type="checkbox"]');
+
+    // 如果未选中，先选中
+    if (!$chk.is(':checked')) {
+        $chk.prop('checked', true).trigger('change');
+    }
+
+    var group = $chk.data('group');
+    var isPrimary = $star.hasClass('bi-star');
+
+    if (isPrimary) {
+        // 设为 primary：同组其他取消 primary
+        $('input[data-group="' + group + '"]').each(function() {
+            var otherCid = parseInt($(this).val());
+            if (otherCid !== cid) {
+                delete primaryMap[otherCid];
+                $(this).closest('.category-tag').find('.primary-star')
+                    .removeClass('bi-star-fill text-warning').addClass('bi-star');
+            }
+        });
+        primaryMap[cid] = 1;
+        $star.removeClass('bi-star').addClass('bi-star-fill text-warning');
+    } else {
+        delete primaryMap[cid];
+        $star.removeClass('bi-star-fill text-warning').addClass('bi-star');
+    }
+}
+
+function saveCategories() {
+    var categories = [];
+    var meta = {};
+    $('input[name="category_ids[]"]:checked').each(function() {
+        var cid = parseInt($(this).val());
+        categories.push(cid);
+        meta[cid] = {
+            is_primary: primaryMap[cid] ? 1 : 0,
+            confidence: primaryMap[cid] ? 100 : 80
+        };
+    });
+
+    $.post('/admin/template_store/saveCategory', {
+        template_id: {$info.id},
+        category_ids: categories,
+        meta: JSON.stringify(meta)
+    }, function(res) {
+        alert(res.msg);
+    });
+}
+
+// 初始化样式
+$(function() {
+    $('input[name="category_ids[]"]:checked').each(function() {
+        $(this).closest('.category-tag').removeClass('btn-outline-secondary').addClass('btn-outline-primary active');
+    });
+});
+</script>
+{/if}
 
 <!-- 购买弹窗 -->
 {if condition="!$installed && $info.price > 0"}

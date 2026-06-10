@@ -306,4 +306,79 @@ class TemplateCategoryService
         self::clearCache();
         return true;
     }
+
+    /**
+     * V2.9.21 D-3: 获取模板的主分类信息
+     */
+    public static function getPrimaryCategory(int $templateId): ?array
+    {
+        $categoryId = \app\common\model\TemplateCategoryMap::getPrimaryCategoryId($templateId);
+        if (!$categoryId) {
+            return null;
+        }
+        $category = TemplateCategory::find($categoryId);
+        return $category ? $category->toArray() : null;
+    }
+
+    /**
+     * V2.9.21 D-3: 获取模板的分类列表（含 is_primary/confidence 元数据）
+     */
+    public static function getTemplateCategories(int $templateId): array
+    {
+        $maps = \app\common\model\TemplateCategoryMap::getCategoriesWithMeta($templateId);
+        if (empty($maps)) {
+            return [];
+        }
+
+        $categoryIds = array_column($maps, 'category_id');
+        $categories = TemplateCategory::whereIn('id', $categoryIds)
+            ->column('name', 'id');
+
+        $result = [];
+        foreach ($maps as $map) {
+            $result[] = [
+                'category_id' => $map['category_id'],
+                'name'        => $categories[$map['category_id']] ?? '未知分类',
+                'is_primary'  => $map['is_primary'],
+                'confidence'  => $map['confidence'],
+                'created_by'  => $map['created_by'],
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * V2.9.21 D-3: 设置模板分类（增强版，支持 is_primary/confidence）
+     */
+    public static function setTemplateCategories(int $templateId, array $categories, int $createdBy = 1): void
+    {
+        \app\common\model\TemplateCategoryMap::setTemplateCategories($templateId, $categories, $createdBy);
+    }
+
+    /**
+     * V2.9.21 D-3: 获取同分类推荐模板（按置信度排序）
+     */
+    public static function getRelatedTemplates(int $templateId, int $limit = 5): array
+    {
+        $categoryId = \app\common\model\TemplateCategoryMap::getPrimaryCategoryId($templateId);
+        if (!$categoryId) {
+            return [];
+        }
+
+        $relatedIds = \app\common\model\TemplateCategoryMap::where('category_id', $categoryId)
+            ->where('template_id', '<>', $templateId)
+            ->order('is_primary', 'desc')
+            ->order('confidence', 'desc')
+            ->limit($limit)
+            ->column('template_id');
+
+        if (empty($relatedIds)) {
+            return [];
+        }
+
+        return \app\common\model\TemplateStore::whereIn('id', $relatedIds)
+            ->where('status', 1)
+            ->select()
+            ->toArray();
+    }
 }

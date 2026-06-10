@@ -579,6 +579,10 @@ Route::get('mail_log/list$', '\app\admin\controller\MailLogController@list');
 Route::get('mail_log/overview$', '\app\admin\controller\MailLogController@overview');
 Route::get('mail_log/stats$', '\app\admin\controller\MailLogController@stats');
 
+// V2.9.21 D-2: 邮件统计看板
+Route::get('mail_log/statistics$', '\app\admin\controller\MailLogController@statistics');
+Route::get('mail_log/statistics_data$', '\app\admin\controller\MailLogController@statisticsData');
+
 // ========== V2.9.18: 通知管理 ==========
 Route::get('notify/send$', '\app\admin\controller\NotifyController@sendPage');
 Route::post('notify/send$', '\app\admin\controller\NotifyController@doSend');

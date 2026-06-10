@@ -1,0 +1,180 @@
+{extend name="/layout" /}
+{block name="title"}邮件统计看板 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">📊 邮件统计看板</h4>
+
+    <!-- 概览卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title" id="statTotal">-</h5>
+                    <p class="card-text text-muted">今日发送</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success" id="statSent">-</h5>
+                    <p class="card-text text-muted">今日成功</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-danger" id="statFailed">-</h5>
+                    <p class="card-text text-muted">今日失败</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title" id="statRate">-</h5>
+                    <p class="card-text text-muted">成功率</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 趋势图 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>近30天发送趋势</span>
+            <a href="/admin/mail_log/index" class="btn btn-sm btn-outline-primary">查看日志</a>
+        </div>
+        <div class="card-body">
+            <canvas id="trendChart" height="80"></canvas>
+        </div>
+    </div>
+
+    <!-- 分布图表 -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">状态分布</div>
+                <div class="card-body">
+                    <canvas id="statusChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">模板使用 Top10</div>
+                <div class="card-body">
+                    <canvas id="templateChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">今日时段分布</div>
+                <div class="card-body">
+                    <canvas id="hourlyChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script src="/static/js/Chart.min.js"></script>
+<script>
+var trendChart = null, statusChart = null, templateChart = null, hourlyChart = null;
+
+function loadOverview() {
+    $.get('/admin/mail_log/overview', function(r) {
+        var d = r.data || {};
+        $('#statTotal').text(d.total || 0);
+        $('#statSent').text(d.sent || 0);
+        $('#statFailed').text(d.failed || 0);
+        $('#statRate').text((d.rate || 0) + '%');
+    });
+}
+
+function loadTrend() {
+    $.get('/admin/mail_log/statistics_data?type=trend', function(r) {
+        var d = r.data || {}, labels = d.labels || [], datasets = d.datasets || [];
+        if (trendChart) trendChart.destroy();
+        var ctx = document.getElementById('trendChart').getContext('2d');
+        var ds = datasets.map(function(item) {
+            return {
+                label: item.label,
+                data: item.data,
+                borderColor: item.color,
+                backgroundColor: item.color.replace(')', ',0.1)').replace('rgb', 'rgba').replace('#', ''),
+                tension: 0.3,
+                fill: true
+            };
+        });
+        ds[0].backgroundColor = 'rgba(40,167,69,0.1)';
+        ds[1].backgroundColor = 'rgba(220,53,69,0.1)';
+        ds[0].borderColor = '#28a745';
+        ds[1].borderColor = '#dc3545';
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: ds },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        });
+    });
+}
+
+function loadStatusChart() {
+    $.get('/admin/mail_log/statistics_data?type=status', function(r) {
+        var d = r.data || {}, labels = d.labels || [], data = d.data || [];
+        if (statusChart) statusChart.destroy();
+        var ctx = document.getElementById('statusChart').getContext('2d');
+        statusChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{ data: data, backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    });
+}
+
+function loadTemplateChart() {
+    $.get('/admin/mail_log/statistics_data?type=template', function(r) {
+        var d = r.data || {}, labels = d.labels || [], data = d.data || [];
+        if (templateChart) templateChart.destroy();
+        var ctx = document.getElementById('templateChart').getContext('2d');
+        var colors = ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0'];
+        templateChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ label: '发送量', data: data, backgroundColor: colors.slice(0, data.length) }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    });
+}
+
+function loadHourlyChart() {
+    $.get('/admin/mail_log/statistics_data?type=hourly', function(r) {
+        var d = r.data || {}, labels = d.labels || [], data = d.data || [];
+        if (hourlyChart) hourlyChart.destroy();
+        var ctx = document.getElementById('hourlyChart').getContext('2d');
+        hourlyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ label: '发送量', data: data, backgroundColor: 'rgba(13,110,253,0.6)', borderColor: '#0d6efd', borderWidth: 1 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    });
+}
+
+loadOverview();
+loadTrend();
+loadStatusChart();
+loadTemplateChart();
+loadHourlyChart();
+</script>
+{/block}

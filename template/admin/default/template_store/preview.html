@@ -57,7 +57,14 @@
             <a href="/admin/template_store/detail/{$info.id}" class="btn btn-sm btn-outline-light ms-2"><i class="bi bi-x-lg"></i></a>
         </div>
     </div>
-    <iframe id="previewFrame" class="preview-frame" src="{$preview_url}" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    <!-- V2.9.21 D-5: 加载遮罩 -->
+    <div id="previewLoading" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:10;">
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-2" role="status"></div>
+            <p class="text-muted">加载预览中...</p>
+        </div>
+    </div>
+    <iframe id="previewFrame" class="preview-frame" src="{$preview_url}" sandbox="allow-scripts allow-same-origin allow-forms" onload="hidePreviewLoading()"></iframe>
 </div>
 
 <script>
@@ -71,5 +78,13 @@ function setDevice(device, btn) {
         frame.classList.remove('mobile');
     }
 }
+
+function hidePreviewLoading() {
+    var el = document.getElementById('previewLoading');
+    if (el) el.style.display = 'none';
+}
+
+// 5秒超时自动隐藏遮罩
+setTimeout(hidePreviewLoading, 5000);
 </script>
 {/block}

@@ -1,0 +1,25 @@
+<!-- V2.9.21 D-4: 产品型列表项 -->
+<div class="col-md-6">
+    <div class="card h-100 product-card">
+        {if condition="$vo.cover"}
+        <div class="product-img-wrap">
+            <img data-src="{$vo.cover}" class="card-img-top lazyload" alt="{$vo.title}" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+        </div>
+        {/if}
+        <div class="card-body">
+            <h5 class="card-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a>
+                {include file="shared/paid_badge" /}
+            </h5>
+            <p class="card-text text-muted small">{$vo.excerpt|msubstr=0,100}</p>
+            <div class="product-meta d-flex gap-3 text-muted small">
+                <span><i class="bi bi-eye me-1"></i>{$vo.views|default=0}</span>
+                <span><i class="bi bi-hand-thumbs-up me-1"></i>{$vo.like_count|default=0}</span>
+            </div>
+        </div>
+        <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+            <small class="text-muted">{$vo.create_time|date='Y-m-d'}</small>
+            <a href="{$vo.url}" class="btn btn-sm btn-outline-primary">查看详情</a>
+        </div>
+    </div>
+</div>

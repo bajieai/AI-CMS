@@ -91,6 +91,9 @@ Route::post('v1/notify/read_all$', '\app\api\controller\v1\NotifyController@read
 // V2.9.20 A-4: 下载计数（公开，防刷）
 Route::post('content/download_count$', '\app\api\controller\ContentController@downloadCount');
 
+// V2.9.21 D-1: 播放量计数（公开，防刷）
+Route::post('content/play_count$', '\app\api\controller\ContentController@playCount');
+
 // V2.9.20 C-1: SSE 推送（公开）
 Route::get('sse/stream$', '\app\api\controller\SseController@stream');
 

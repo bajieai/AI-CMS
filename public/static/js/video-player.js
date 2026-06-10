@@ -16,6 +16,8 @@
             var poster = container.dataset.poster || '';
             if (!src) return;
 
+            var contentId = container.dataset.contentId || '';
+
             var video = document.createElement('video');
             video.className = 'i8j-video-element';
             video.src = src;
@@ -24,6 +26,19 @@
             video.preload = 'metadata';
             video.playsInline = true;
             video.style.cssText = 'width:100%;max-height:480px;border-radius:8px;background:#000;';
+
+            // V2.9.21 D-1: 播放上报（首次播放时触发）
+            var playReported = false;
+            video.addEventListener('play', function() {
+                if (playReported || !contentId) return;
+                playReported = true;
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/content/play_count', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.send('content_id=' + encodeURIComponent(contentId));
+            });
 
             // 响应式高度限制
             function adjustHeight() {
