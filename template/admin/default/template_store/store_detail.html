@@ -218,12 +218,16 @@ function saveCategories() {
         };
     });
 
-    $.post('/admin/template_store/saveCategory', {
+    $.post('/admin/template_store/saveTemplateCategories', {
         template_id: {$info.id},
         category_ids: categories,
         meta: JSON.stringify(meta)
     }, function(res) {
-        alert(res.msg);
+        if (res.code === 1) {
+            alert(res.msg + '（已关联 ' + res.data.total + ' 个分类，主分类 ' + res.data.primary + ' 个）');
+        } else {
+            alert(res.msg);
+        }
     });
 }
 

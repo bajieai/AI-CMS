@@ -418,6 +418,7 @@ Route::post('template_store/unpublish/:id$', '\app\admin\controller\TemplateStor
 Route::post('template_store/toggleFeatured/:id$', '\app\admin\controller\TemplateStoreController@toggleFeatured');
 Route::get('template_store/categories$', '\app\admin\controller\TemplateStoreController@categories');
 Route::post('template_store/saveCategory$', '\app\admin\controller\TemplateStoreController@saveCategory');
+Route::post('template_store/saveTemplateCategories$', '\app\admin\controller\TemplateStoreController@saveTemplateCategories');
 Route::post('template_store/deleteCategory/:id$', '\app\admin\controller\TemplateStoreController@deleteCategory');
 // V2.9.12: 模板商店路由（网站主）
 Route::get('template_store/market$', '\app\admin\controller\TemplateStoreController@market');

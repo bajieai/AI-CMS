@@ -18,6 +18,7 @@ use app\common\model\TemplateInstall;
 use app\common\model\TemplateReview;
 use app\common\model\TemplateStore;
 use app\common\model\TemplateStoreCategory;
+use app\common\service\TemplateCategoryService;
 use app\common\service\template\TemplatePaymentService;
 use app\common\service\template\TemplateStoreService;
 use app\common\service\theme\ThemeBackupService;
@@ -229,6 +230,75 @@ class TemplateStoreController extends AdminBaseController
             return $this->success('保存成功', ['redirect' => '/admin/template_store/categories']);
         }
         return $this->error('保存失败');
+    }
+
+    /**
+     * V2.9.21 D-3: 保存模板的分类关联（含 is_primary / confidence / created_by）
+     * 路由: /admin/template_store/saveTemplateCategories
+     * 区别于 saveCategory() — saveCategory 处理 TemplateStoreCategory 自身的 CRUD
+     *
+     * @return \think\Response
+     */
+    public function saveTemplateCategories(): \think\Response
+    {
+        $data = $this->request->post();
+
+        $templateId = (int) ($data['template_id'] ?? 0);
+        if ($templateId <= 0) {
+            return $this->error('模板ID无效');
+        }
+
+        $template = TemplateStore::find($templateId);
+        if (empty($template)) {
+            return $this->error('模板不存在');
+        }
+
+        // 解析参数
+        $categoryIds = $data['category_ids'] ?? [];
+        if (is_string($categoryIds)) {
+            $categoryIds = json_decode($categoryIds, true) ?: [];
+        }
+        $categoryIds = array_map('intval', (array) $categoryIds);
+        $categoryIds = array_values(array_unique(array_filter($categoryIds, fn($v) => $v > 0)));
+
+        // 解析 meta（is_primary / confidence）
+        $meta = [];
+        if (!empty($data['meta'])) {
+            $rawMeta = is_string($data['meta']) ? json_decode($data['meta'], true) : $data['meta'];
+            if (is_array($rawMeta)) {
+                foreach ($rawMeta as $cid => $info) {
+                    $cid = (int) $cid;
+                    $meta[$cid] = [
+                        'is_primary' => !empty($info['is_primary']) ? 1 : 0,
+                        'confidence' => isset($info['confidence']) ? max(0, min(100, (int) $info['confidence'])) : 80,
+                    ];
+                }
+            }
+        }
+
+        // 组装 Service 期望的格式: [['category_id'=>x, 'is_primary'=>y, 'confidence'=>z], ...]
+        $categories = [];
+        foreach ($categoryIds as $cid) {
+            $categories[] = [
+                'category_id' => $cid,
+                'is_primary'  => $meta[$cid]['is_primary'] ?? 0,
+                'confidence'  => $meta[$cid]['confidence'] ?? 80,
+            ];
+        }
+
+        try {
+            // 1=人工（来自后台 store_detail.html 编辑）
+            TemplateCategoryService::setTemplateCategories($templateId, $categories, 1);
+            $primaryCount = count(array_filter($categories, fn($c) => $c['is_primary'] === 1));
+            $this->recordLog('保存模板分类关联', "模板ID={$templateId} 关联分类数=" . count($categories) . " 主分类数={$primaryCount}");
+            return $this->success('保存成功', [
+                'total'        => count($categories),
+                'primary'      => $primaryCount,
+                'template_id'  => $templateId,
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error('保存失败：' . $e->getMessage());
+        }
     }
 
     /**
