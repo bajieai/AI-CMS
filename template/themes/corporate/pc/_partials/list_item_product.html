@@ -1,4 +1,5 @@
-<!-- V2.9.21 D-4: 产品型列表项 (corporate) -->
+<!-- V2.9.22 F-2: 产品型列表项 (corporate) — 展示字段对齐PRD(价格+库存) -->
+{php}$ext = (isset($vo['ext']['data']) && is_array($vo['ext']['data'])) ? $vo['ext']['data'] : [];{/php}
 <div class="col-md-4 col-sm-6">
     <div class="card h-100 product-card border-0 shadow-sm">
         {if condition="$vo.cover"}
@@ -12,10 +13,23 @@
                 {include file="shared/paid_badge" /}
             </h5>
             <p class="card-text text-muted small">{$vo.excerpt|msubstr=0,80}</p>
-            <div class="product-meta d-flex gap-3 text-muted small">
-                <span><i class="bi bi-eye me-1"></i>{$vo.views|default=0}</span>
-                <span><i class="bi bi-hand-thumbs-up me-1"></i>{$vo.like_count|default=0}</span>
+            {if condition="!empty($ext['price']) || !empty($ext['stock'])"}
+            <div class="product-meta d-flex align-items-center gap-2 flex-wrap">
+                {if condition="!empty($ext['price'])"}
+                <span class="text-danger fw-bold fs-5">¥{$ext['price']}</span>
+                {/if}
+                {if condition="!empty($ext['original_price'])"}
+                <del class="text-muted small">¥{$ext['original_price']}</del>
+                {/if}
+                {if condition="isset($ext['stock'])"}
+                {if condition="$ext['stock'] > 0"}
+                <span class="badge bg-success">有货</span>
+                {else/}
+                <span class="badge bg-secondary">缺货</span>
+                {/if}
+                {/if}
             </div>
+            {/if}
         </div>
         <div class="card-footer bg-transparent border-0 pt-0">
             <a href="{$vo.url}" class="btn btn-sm btn-primary w-100">查看详情</a>

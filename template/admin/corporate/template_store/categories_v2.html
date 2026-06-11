@@ -11,17 +11,20 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-tags me-1"></i>模板分类管理（V2.9.20 三维度体系）</span>
-        <button type="button" class="btn btn-sm btn-primary" onclick="openCategoryModal()"><i class="bi bi-plus-lg me-1"></i>新增分类</button>
+        <div class="d-flex gap-2">
+            <input type="text" id="catSearchInput" class="form-control form-control-sm" placeholder="搜索分类名称..." style="width:200px" onkeyup="filterCategories()">
+            <button type="button" class="btn btn-sm btn-primary" onclick="openCategoryModal()"><i class="bi bi-plus-lg me-1"></i>新增分类</button>
+        </div>
     </div>
-    <div class="card-body">
+    <div class="card-body" id="categoryListBody">
         {volist name="list" id="group"}
-        <div class="mb-4">
+        <div class="mb-4 category-group" data-group-label="{$group.label}">
             <h6 class="border-bottom pb-2 mb-3">
                 <span class="badge bg-primary me-2">{$group.label}</span>
-                <small class="text-muted">{$group.items|count} 个分类</small>
+                <small class="text-muted"><span class="group-count">{$group.items|count}</span> 个分类</small>
             </h6>
             <div class="table-responsive">
-                <table class="table table-sm table-hover">
+                <table class="table table-sm table-hover category-table">
                     <thead>
                         <tr>
                             <th>名称</th>
@@ -34,7 +37,7 @@
                     </thead>
                     <tbody>
                         {volist name="group.items" id="item"}
-                        <tr data-id="{$item.id}">
+                        <tr data-id="{$item.id}" class="category-row" data-name="{$item.name}">
                             <td>{$item.name}</td>
                             <td><code>{$item.value}</code></td>
                             <td>{$item.description}</td>
@@ -47,13 +50,25 @@
                         </tr>
                         {/volist}
                         {empty name="group.items"}
-                        <tr><td colspan="6" class="text-center text-muted">暂无分类</td></tr>
+                        <tr class="empty-row"><td colspan="6" class="text-center text-muted">暂无分类</td></tr>
                         {/empty}
                     </tbody>
                 </table>
             </div>
         </div>
         {/volist}
+        <!-- V2.9.22 F-3: 搜索无结果提示 -->
+        <div id="searchNoResult" class="text-center py-5 text-muted" style="display:none">
+            <i class="bi bi-search" style="font-size:2rem"></i>
+            <p class="mt-2">未找到匹配的分类</p>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="clearSearch()">清除搜索</button>
+        </div>
+        <!-- V2.9.22 F-3: 全部为空提示 -->
+        <div id="allEmptyTip" class="text-center py-5 text-muted" style="display:none">
+            <i class="bi bi-inbox" style="font-size:2rem"></i>
+            <p class="mt-2">暂无分类数据</p>
+            <button type="button" class="btn btn-sm btn-primary" onclick="openCategoryModal()">创建第一个分类</button>
+        </div>
     </div>
 </div>
 
@@ -160,5 +175,51 @@ function deleteCategory(id, name) {
         if (res.code === 0) location.reload();
     });
 }
+
+// V2.9.22 F-3: 分类搜索过滤
+function filterCategories() {
+    var kw = $('#catSearchInput').val().trim().toLowerCase();
+    var hasMatch = false, totalVisible = 0;
+
+    $('.category-group').each(function() {
+        var $group = $(this), groupMatch = false;
+        $group.find('.category-row').each(function() {
+            var name = $(this).data('name').toLowerCase();
+            if (!kw || name.indexOf(kw) >= 0) {
+                $(this).show();
+                groupMatch = true;
+                totalVisible++;
+            } else {
+                $(this).hide();
+            }
+        });
+
+        // 更新分组计数
+        var visibleRows = $group.find('.category-row:visible').length;
+        $group.find('.group-count').text(visibleRows);
+
+        if (groupMatch) {
+            $group.show();
+            hasMatch = true;
+        } else {
+            $group.hide();
+        }
+    });
+
+    $('#searchNoResult').toggle(!hasMatch && kw !== '');
+}
+
+function clearSearch() {
+    $('#catSearchInput').val('');
+    filterCategories();
+}
+
+// 页面加载时检查是否全部为空
+$(function() {
+    var totalRows = $('.category-row').length;
+    if (totalRows === 0) {
+        $('#allEmptyTip').show();
+    }
+});
 </script>
 {/block}

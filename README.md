@@ -1,24 +1,19 @@
-# 八界AI-CMS V2.9.21
+# 八界AI-CMS V2.9.22
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.21-blue)
+![Version](https://img.shields.io/badge/version-2.9.22-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.21 "交互增强·数据洞察·体验优化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.22 "验收修复·体验对齐" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.21 核心定位：内容播放统计 + 邮件数据看板 + 模板分类增强 + 列表页差异化 + 交互体验优化** — 5大方向8项功能点（100%完成）：
-1. **D-1 播放量统计(P0)** — `play_count` 独立字段 + API 防刷递增 + video-player.js 播放上报
-2. **D-2 邮件统计看板(P0)** — 4 种 Chart.js 图表（趋势/状态/模板/时段）+ `stats()` GROUP BY 性能优化
-3. **D-3 模板分类映射增强(P0)** — `is_primary`/`confidence`/`created_by` 3 字段 + saveMap/batchSaveMaps + store_detail 分类选择器
-4. **D-4 前台列表页差异化(P0)** — 6 模型 × 2 皮肤 = 12 个 list_item 片段 + 4 个 list.html switch 动态引入
-5. **D-5 模板商店交互增强(P1)** — 分类搜索过滤 + 空结果提示 + 预览加载遮罩 + template_install.js 安装进度
-6. **BUG-1 修复** — `i8j_content` 表补建 `download_count` 字段（V2.9.20 遗留）
-7. **BUG-2 修复** — `downloadCount()` inc() 后重新查询获取最新值
-8. **BUG-3 修复** — `stats()` 60 次循环查询改为 GROUP BY 单次查询
+**V2.9.22 核心定位：验收修复·体验对齐** — 3项功能修复（100%完成）：
+1. **F-1 移动端list_item模板补齐(P0)** — 6模型×2皮肤=12个移动端模板文件新建，纵向全宽布局适配触摸操作，移动端列表页不再崩溃
+2. **F-2 D-4展示字段与PRD对齐(P1)** — PC端产品展示价格+库存(红大字)、下载展示文件大小+版本号，案例/新闻/单页/招聘保持默认样式
+3. **F-3 corporate皮肤D-5搜索增强同步(P1)** — categories_v2.html增加搜索框+搜索无结果提示+空分类提示+JS函数，与default皮肤功能一致
 
 **V2.9.20 核心定位：内容模型差异化 + 模板商店强化 + 基础设施补齐** — 3大方向10+功能点（100%完成）：
 1. **A-1 内容模型数据层(P0)** — 2张新表 `i8j_content_model` + `i8j_content_model_field`，6种预置模型（产品/案例/新闻/下载/招聘/单页），`i8j_content` 新增 `model_id` 字段
