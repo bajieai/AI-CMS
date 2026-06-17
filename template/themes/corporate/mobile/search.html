@@ -2,10 +2,26 @@
 
 {block name="title"}搜索: {$keyword} - {$site_name}{/block}
 
+{block name="css"}
+<link href="/static/mobile/css/search_enhance.css?v=2.9.24" rel="stylesheet">
+{/block}
+
 {block name="content"}
+<!-- V2.9.24 H-3: 搜索增强 — 顶部搜索框 -->
+<div class="search-enhance-bar" style="position:relative;margin-bottom:14px;">
+    <form action="/search" method="get" class="d-flex gap-2">
+        <div class="position-relative flex-grow-1">
+            <i class="bi bi-search position-absolute" style="left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;"></i>
+            <input type="text" name="keyword" id="searchInput" class="form-control" style="padding-left:38px;border-radius:20px;border-color:#e2e8f0;" value="{$keyword}" placeholder="搜索内容..." autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-primary" style="border-radius:20px;padding:0 20px;background:var(--i8j-primary,#3b82f6);border:none;">搜索</button>
+    </form>
+</div>
+
 <nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">首页</a></li><li class="breadcrumb-item active">搜索结果</li></ol></nav>
 
-<h4 style="font-size:17px;font-weight:700;margin-bottom:14px;color:var(--i8j-text,#1e293b);">搜索：<span style="color:var(--i8j-primary,#3b82f6);">{$keyword}</span></h4>
+{if $keyword}
+<h4 style="font-size:17px;font-weight:700;margin-bottom:14px;color:var(--i8j-text,#1e293b);">搜索：<span style="color:var(--i8j-primary,#3b82f6);">{$keyword}</span> <small style="font-size:13px;font-weight:400;color:var(--i8j-text-secondary,#94a3b8);">共 {$total|default=0} 条结果</small></h4>
 
 {volist name="list" id="vo"}
 <div class="cm-card"><div class="cm-card-bd"><h5 class="cm-card-tit"><a href="{$vo.url}">{if $vo.title_highlight}{$vo.title_highlight|raw}{else}{$vo.title}{/if}</a></h5><p class="cm-card-txt">{if $vo.content_highlight}{$vo.content_highlight|raw|strip_tags='<mark>'|msubstr=0,80}{else}{$vo.excerpt|msubstr=0,80}{/if}</p><small style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);">{$vo.create_time|date='Y-m-d'}</small></div></div>
@@ -14,4 +30,16 @@
 {empty name="list"}<div class="cm-empty"><i class="bi bi-search"></i><p>未找到与 "{$keyword}" 相关的内容</p><br><a href="/" class="btn btn-sm rounded-pill px-4" style="color:var(--i8j-primary,#3b82f6);border:1px solid #e2e8f0;text-decoration:none;">返回首页</a></div>{/empty}
 
 {if condition="$total > ($page * 20) || $page > 1"}<div class="m-pagination d-flex justify-content-center gap-2">{if $page > 1}<a href="/search?keyword={$keyword|urlencode}&page={$page-1}" class="btn btn-sm" style="color:var(--i8j-primary,#3b82f6);border:1px solid #e2e8f0;">上一页</a>{/if}{if $total > ($page * 20)}<a href="/search?keyword={$keyword|urlencode}&page={$page+1}" class="btn btn-sm" style="color:var(--i8j-primary,#3b82f6);border:1px solid #e2e8f0;">下一页</a>{/if}</div>{/if}
+{else /}
+<div class="cm-empty"><i class="bi bi-search"></i><p>请输入关键词搜索</p></div>
+{/if}
+{/block}
+
+{block name="js"}
+<script src="/static/mobile/js/search_enhance.js?v=2.9.24"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    SearchEnhance.init('#searchInput');
+});
+</script>
 {/block}

@@ -19,6 +19,7 @@ use app\common\model\Config as ConfigModel;
 use app\common\model\CustomVar;
 use app\common\model\Module;
 use app\common\service\TemplateService;
+use app\common\model\MobileNavTab;
 
 /**
  * 系统管理控制器
@@ -752,5 +753,136 @@ class SystemController extends AdminBaseController
         } catch (\Throwable $e) {
             return $this->error('获取模板列表失败: ' . $e->getMessage());
         }
+    }
+
+    // ==================== V2.9.24 H-2: 移动端导航管理 ====================
+
+    /**
+     * 移动端导航Tab管理
+     */
+    public function mobileNav()
+    {
+        $list = MobileNavTab::order('sort', 'asc')->order('id', 'asc')->select();
+
+        $this->assign([
+            'list' => $list,
+            'typeMap' => MobileNavTab::$typeMap,
+            'menuActive' => 'system_mobile_nav',
+        ]);
+
+        return $this->view('/system/mobile_nav');
+    }
+
+    /**
+     * 移动端导航Tab编辑
+     */
+    public function mobileNavEdit(int $id = 0)
+    {
+        if ($this->request->isGet()) {
+            $info = $id > 0 ? MobileNavTab::find($id) : null;
+            $this->assign([
+                'info' => $info,
+                'typeMap' => MobileNavTab::$typeMap,
+                'menuActive' => 'system_mobile_nav',
+            ]);
+            return $this->view('/system/mobile_nav_edit');
+        }
+
+        $data = [
+            'name' => trim($this->request->post('name', '')),
+            'icon' => trim($this->request->post('icon', '')),
+            'icon_active' => trim($this->request->post('icon_active', '')),
+            'tab_type' => trim($this->request->post('tab_type', 'custom')),
+            'url' => trim($this->request->post('url', '')),
+            'require_login' => (int)$this->request->post('require_login', 0),
+            'show_badge' => (int)$this->request->post('show_badge', 0),
+            'sort' => (int)$this->request->post('sort', 0),
+            'is_enabled' => (int)$this->request->post('is_enabled', 1),
+        ];
+
+        if (empty($data['name'])) {
+            return $this->error('Tab名称不能为空');
+        }
+        if (empty($data['icon'])) {
+            return $this->error('图标不能为空');
+        }
+
+        try {
+            if ($id > 0) {
+                $tab = MobileNavTab::find($id);
+                if (!$tab) {
+                    return $this->error('Tab不存在');
+                }
+                $tab->save($data);
+            } else {
+                MobileNavTab::create($data);
+            }
+            MobileNavTab::clearCache();
+            $this->recordLog($id > 0 ? '编辑移动端导航Tab' : '添加移动端导航Tab', $data['name']);
+            return $this->success('保存成功', ['redirect' => '/admin/system/mobileNav']);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    /**
+     * 移动端导航Tab删除
+     */
+    public function mobileNavDelete(int $id)
+    {
+        $tab = MobileNavTab::find($id);
+        if (!$tab) {
+            return $this->error('Tab不存在');
+        }
+        $tab->delete();
+        MobileNavTab::clearCache();
+        $this->recordLog('删除移动端导航Tab', "ID: {$id}");
+        return $this->success('删除成功');
+    }
+
+    /**
+     * 移动端导航Tab排序
+     */
+    public function mobileNavSort()
+    {
+        $ids = $this->request->post('ids/a', []);
+        if (empty($ids)) {
+            return $this->error('参数错误');
+        }
+        foreach ($ids as $index => $id) {
+            MobileNavTab::where('id', $id)->update(['sort' => $index + 1]);
+        }
+        MobileNavTab::clearCache();
+        return $this->success('排序已更新');
+    }
+
+    // ==================== V2.9.24 J-1: 缓存仪表盘增强 ====================
+
+    /**
+     * J-1: 保存自动清理策略配置
+     */
+    public function saveCacheConfig()
+    {
+        $data = [
+            'enabled' => (bool)$this->request->post('auto_clean_enabled', 0),
+            'max_size_mb' => (int)$this->request->post('auto_clean_max_size', 100),
+            'interval_hours' => (int)$this->request->post('auto_clean_interval', 24),
+        ];
+
+        $service = new TemplateCacheService();
+        $service->saveAutoCleanConfig($data);
+        $this->recordLog('保存缓存自动清理策略', json_encode($data));
+        return $this->success('配置已保存');
+    }
+
+    /**
+     * J-1: 重置命中率统计
+     */
+    public function resetHitRate()
+    {
+        $service = new TemplateCacheService();
+        $service->resetHitRate();
+        $this->recordLog('重置缓存命中率统计');
+        return $this->success('命中率统计已重置');
     }
 }

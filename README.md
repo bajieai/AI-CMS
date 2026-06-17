@@ -1,14 +1,22 @@
-# 八界AI-CMS V2.9.23
+# 八界AI-CMS V2.9.24
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.23-blue)
+![Version](https://img.shields.io/badge/version-2.9.24-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.23 "模板生态启动 · AI能力深化" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.24 "模板商店运营完善 · 移动端体验升级 · AI编辑器增强" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.24 核心定位：模板商店运营完善 · 移动端体验升级 · AI编辑器增强** — 5大Sprint 24项功能点（100%完成）：
+
+1. **Sprint F 遗留修复** — 恢复system/config路由、插件开发者文档
+2. **Sprint G 模板商店后台管理完善** — Banner管理、推荐位配置、分类排序展示、安装/购买统计看板、评论批量管理
+3. **Sprint H 移动端体验升级** — 下拉刷新兼容修复、底部导航栏、搜索增强、分享功能（含分享卡片图）、骨架屏加载
+4. **Sprint I AI编辑器增强** — 设计面板界面优化、配色自定义保存、多页面设计支持、AI配色超时优化、区块编辑基础能力
+5. **Sprint J 系统管理与体验优化** — 缓存管理仪表盘、系统设置页面优化、后台导航完善、双皮肤同步回归检查
 
 **V2.9.23 核心定位：模板生态启动 · AI能力深化** — 5大Sprint 20项功能点（100%完成）：
 

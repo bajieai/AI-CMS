@@ -1,0 +1,88 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if $info}编辑Banner{else}添加Banner{/if}</h4>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="row g-3" id="bannerForm">
+                <div class="col-md-6">
+                    <label class="form-label">标题 <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control" value="{$info.title|default=''}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">副标题</label>
+                    <input type="text" name="subtitle" class="form-control" value="{$info.subtitle|default=''}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Banner图片 <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="text" name="image" id="imageInput" class="form-control" value="{$info.image|default=''}" required readonly>
+                        <button type="button" class="btn btn-outline-secondary" onclick="openMediaSelect()">选择图片</button>
+                    </div>
+                    <div class="mt-2" id="imagePreview">
+                        {if $info.image}<img src="{$info.image}" style="max-height:120px;border-radius:4px;">{/if}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">跳转类型</label>
+                    <select name="target_type" class="form-select" id="targetType">
+                        {foreach $targetTypes as $k=>$v}
+                        <option value="{$k}" {if ($info.target_type|default==$k)}selected{/if}>{$v}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="col-md-6" id="targetUrlBox">
+                    <label class="form-label">跳转目标</label>
+                    <input type="text" name="target_url" class="form-control" value="{$info.target_url|default=''}" placeholder="URL或模板ID">
+                    <small class="text-muted" id="targetHint">填写完整URL地址</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">排序</label>
+                    <input type="number" name="sort" class="form-control" value="{$info.sort|default='0'}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">开始时间</label>
+                    <input type="date" name="start_time" class="form-control" value="{if $info.start_time>0}{:date('Y-m-d',$info.start_time)}{/if}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">结束时间</label>
+                    <input type="date" name="end_time" class="form-control" value="{if $info.end_time>0}{:date('Y-m-d',$info.end_time)}{/if}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">状态</label>
+                    <select name="status" class="form-select">
+                        <option value="1" {if ($info.status|default==1)}selected{/if}>启用</option>
+                        <option value="0" {if ($info.status|default==0)}selected{/if}>禁用</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                    <a href="/admin/template_store_ops/bannerIndex" class="btn btn-outline-secondary">返回</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+// 媒体选择器回调
+function mediaSelectCallback(url) {
+    document.getElementById('imageInput').value = url;
+    document.getElementById('imagePreview').innerHTML = '<img src="' + url + '" style="max-height:120px;border-radius:4px;">';
+}
+function openMediaSelect() {
+    layer.open({type:2,title:'选择图片',area:['900px','600px'],content:'/admin/media/select'});
+}
+
+// 跳转类型切换提示
+const targetType = document.getElementById('targetType');
+const targetHint = document.getElementById('targetHint');
+const hints = {1:'填写完整URL地址',2:'填写模板ID',3:'填写分类ID'};
+if(targetType){
+    targetType.addEventListener('change',function(){
+        targetHint.textContent = hints[this.value] || '填写目标标识';
+    });
+}
+</script>
+{/block}

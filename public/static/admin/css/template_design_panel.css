@@ -1,5 +1,5 @@
 /**
- * V2.9.23 C-1: 前台模板设计面板样式
+ * V2.9.24 I-1: 前台模板设计面板样式（增强版）
  */
 .template-design-float-btn {
     position: fixed;
@@ -93,4 +93,58 @@
 
 .preview-options button {
     margin-right: 5px;
+}
+
+/* V2.9.24 I-1: 面板响应式改进 */
+@media (max-width: 768px) {
+    .template-design-panel { width: 100%; }
+}
+
+/* V2.9.24 I-3: 多页面类型 Tab */
+.page-type-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+.page-type-tab {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+.page-type-tab.active {
+    background: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+/* V2.9.24 I-5: 区块管理样式 */
+.section-item {
+    padding: 8px 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+.section-item:hover {
+    border-color: #0d6efd;
+}
+.section-item.section-hidden {
+    opacity: 0.5;
+    background: #f8f9fa;
+}
+.section-drag-handle {
+    cursor: move;
+    font-size: 14px;
+}
+
+/* V2.9.24 I-2: 自定义配色保存按钮 */
+#saveCustomColorBtn {
+    display: none;
 }

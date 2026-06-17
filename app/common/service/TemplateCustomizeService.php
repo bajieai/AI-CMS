@@ -147,13 +147,18 @@ class TemplateCustomizeService
 
     /**
      * AI生成配色方案（调用DeepSeek API）
+     * V2.9.24 I-4: 修复调用链 + 超时处理 + 降级策略
      */
     public function generateAIColors(string $description): ?array
     {
         try {
-            $aiService = new AiTemplateService();
+            $provider = \app\common\service\ai\AiProviderFactory::getDefault();
+            if (!$provider) {
+                return null;
+            }
+
             $prompt = $this->buildColorPrompt($description);
-            $response = $aiService->callDeepSeek($prompt);
+            $response = $provider->write($prompt);
 
             if (empty($response)) {
                 return null;
@@ -167,6 +172,8 @@ class TemplateCustomizeService
 
             return null;
         } catch (\Throwable $e) {
+            // 记录日志便于排查
+            \think\facade\Log::warning('AI配色生成失败: ' . $e->getMessage());
             return null;
         }
     }

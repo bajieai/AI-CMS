@@ -1,0 +1,140 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">评论批量管理</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-chat-square-text me-2"></i>评论列表</span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success btn-sm" onclick="batchAudit(1)"><i class="bi bi-check-lg me-1"></i>批量通过</button>
+                <button class="btn btn-warning btn-sm" onclick="batchAudit(0)"><i class="bi bi-x-lg me-1"></i>批量拒绝</button>
+                <button class="btn btn-danger btn-sm" onclick="batchDelete()"><i class="bi bi-trash me-1"></i>批量删除</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-10">
+                    <form class="d-flex gap-2 flex-wrap" method="get">
+                        <input type="text" name="keyword" class="form-control" style="width:180px" placeholder="搜索评论内容..." value="{$params.keyword|default=''}">
+                        <select name="status" class="form-select" style="width:120px">
+                            <option value="all">全部状态</option>
+                            <option value="1" {if ($params.status|default=='')=='1'}selected{/if}>已通过</option>
+                            <option value="0" {if ($params.status|default=='')=='0'}selected{/if}>待审核</option>
+                        </select>
+                        <select name="rating" class="form-select" style="width:100px">
+                            <option value="">评分</option>
+                            <option value="5" {if ($params.rating|default=='')=='5'}selected{/if}>5星</option>
+                            <option value="4" {if ($params.rating|default=='')=='4'}selected{/if}>4星</option>
+                            <option value="3" {if ($params.rating|default=='')=='3'}selected{/if}>3星</option>
+                            <option value="2" {if ($params.rating|default=='')=='2'}selected{/if}>2星</option>
+                            <option value="1" {if ($params.rating|default=='')=='1'}selected{/if}>1星</option>
+                        </select>
+                        <input type="date" name="start_date" class="form-control" style="width:140px" value="{$params.start_date|default=''}">
+                        <input type="date" name="end_date" class="form-control" style="width:140px" value="{$params.end_date|default=''}">
+                        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th><input type="checkbox" class="form-check-input" id="checkAll"></th>
+                            <th>ID</th>
+                            <th>模板</th>
+                            <th>评分</th>
+                            <th>评论内容</th>
+                            <th>状态</th>
+                            <th>时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input row-check" value="{$item.id}"></td>
+                            <td>{$item.id}</td>
+                            <td>
+                                {if $item.template}
+                                <img src="{$item.template.thumb}" style="height:30px;border-radius:4px;" class="me-2">
+                                {$item.template.name}
+                                {else/}-{/if}
+                            </td>
+                            <td>
+                                {for start="1" end="6"}
+                                <i class="bi bi-star{if $i<=$item.rating}-fill text-warning{/if}"></i>
+                                {/for}
+                            </td>
+                            <td>{$item.content|mb_substr=0,50}</td>
+                            <td>
+                                {if $item.status==1}
+                                <span class="badge bg-success">已通过</span>
+                                {else}
+                                <span class="badge bg-warning">待审核</span>
+                                {/if}
+                            </td>
+                            <td>{:date('Y-m-d H:i',$item.create_time)}</td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            {if $pages>1}
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center">
+                    {for start="1" end="$pages+1"}
+                    <li class="page-item {if $page==$i}active{/if}">
+                        <a class="page-link" href="?page={$i}&keyword={$params.keyword|default=''}&status={$params.status|default='all'}&rating={$params.rating|default=''}&start_date={$params.start_date|default=''}&end_date={$params.end_date|default=''}">{$i}</a>
+                    </li>
+                    {/for}
+                </ul>
+            </nav>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+// 全选
+const checkAll = document.getElementById('checkAll');
+if(checkAll){
+    checkAll.addEventListener('change',function(){
+        document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+    });
+}
+
+function getCheckedIds() {
+    return Array.from(document.querySelectorAll('.row-check:checked')).map(cb => cb.value);
+}
+
+function batchAudit(status) {
+    const ids = getCheckedIds();
+    if(!ids.length){ layer.msg('请选择评论'); return; }
+    layer.confirm('确定批量'+(status?'通过':'拒绝')+'选中的 '+ids.length+' 条评论？', function(){
+        fetch('/admin/template_store_ops/reviewBatchAudit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'ids='+JSON.stringify(ids)+'&status='+status
+        }).then(r=>r.json()).then(res=>{
+            layer.msg(res.msg||res.message);
+            if(res.code===1) setTimeout(()=>location.reload(),500);
+        });
+    });
+}
+
+function batchDelete() {
+    const ids = getCheckedIds();
+    if(!ids.length){ layer.msg('请选择评论'); return; }
+    layer.confirm('确定批量删除选中的 '+ids.length+' 条评论？', function(){
+        fetch('/admin/template_store_ops/reviewBatchDelete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'ids='+JSON.stringify(ids)
+        }).then(r=>r.json()).then(res=>{
+            layer.msg(res.msg||res.message);
+            if(res.code===1) setTimeout(()=>location.reload(),500);
+        });
+    });
+}
+</script>
+{/block}

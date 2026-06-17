@@ -96,6 +96,7 @@ Route::post('user/delete/:id$', '\app\admin\controller\UserController@delete');
 Route::rule('user/profile$', '\app\admin\controller\UserController@profile', 'GET|POST');
 
 // V2.9.23 A-4: 模板缓存管理
+Route::rule('system/config$', '\app\admin\controller\SystemController@config', 'GET|POST');
 Route::rule('system/cache$', '\app\admin\controller\SystemController@cache', 'GET|POST');
 Route::post('system/checkTemplateCache$', '\app\admin\controller\SystemController@checkTemplateCache');
 Route::post('system/clearTemplateCache$', '\app\admin\controller\SystemController@clearTemplateCacheAjax');
@@ -111,6 +112,16 @@ Route::post('system/setTheme$', '\app\admin\controller\SystemController@setTheme
 Route::get('system/adminTemplates$', '\app\admin\controller\SystemController@adminTemplates');
 Route::post('system/setAdminTheme$', '\app\admin\controller\SystemController@setAdminTheme');
 Route::get('system/allTemplates$', '\app\admin\controller\SystemController@allTemplates');
+
+// V2.9.24 H-2: 移动端导航管理
+Route::rule('system/mobileNav$', '\app\admin\controller\SystemController@mobileNav', 'GET');
+Route::rule('system/mobileNavEdit/:id$', '\app\admin\controller\SystemController@mobileNavEdit', 'GET|POST');
+Route::post('system/mobileNavDelete/:id$', '\app\admin\controller\SystemController@mobileNavDelete');
+Route::post('system/mobileNavSort$', '\app\admin\controller\SystemController@mobileNavSort');
+
+// V2.9.24 J-1: 缓存仪表盘增强
+Route::post('system/saveCacheConfig$', '\app\admin\controller\SystemController@saveCacheConfig');
+Route::post('system/resetHitRate$', '\app\admin\controller\SystemController@resetHitRate');
 // 头条号OAuth
 Route::get('toutiaoOAuth/authorize$', '\app\admin\controller\ToutiaoOAuthController@authorize');
 Route::get('toutiaoOAuth/callback$', '\app\admin\controller\ToutiaoOAuthController@callback');
@@ -593,3 +604,26 @@ Route::get('notify/history$', '\app\admin\controller\NotifyController@history');
 // V2.9.20 C-4: 通知默认设置
 Route::get('notification/setting$', '\app\admin\controller\NotificationSettingController@index');
 Route::post('notification/setting/save$', '\app\admin\controller\NotificationSettingController@save');
+
+// V2.9.24 G-1~G-5: 模板商店运营（Banner/推荐位/统计/评论批量管理）
+Route::rule('template_store_ops/bannerIndex$', '\app\admin\controller\TemplateStoreOpsController@bannerIndex', 'GET');
+Route::rule('template_store_ops/bannerEdit/:id$', '\app\admin\controller\TemplateStoreOpsController@bannerEdit', 'GET|POST');
+Route::post('template_store_ops/bannerDelete/:id$', '\app\admin\controller\TemplateStoreOpsController@bannerDelete');
+Route::post('template_store_ops/bannerSort$', '\app\admin\controller\TemplateStoreOpsController@bannerSort');
+Route::rule('template_store_ops/recommendIndex$', '\app\admin\controller\TemplateStoreOpsController@recommendIndex', 'GET');
+Route::rule('template_store_ops/recommendEdit/:id$', '\app\admin\controller\TemplateStoreOpsController@recommendEdit', 'GET|POST');
+Route::post('template_store_ops/recommendDelete/:id$', '\app\admin\controller\TemplateStoreOpsController@recommendDelete');
+Route::rule('template_store_ops/statsDashboard$', '\app\admin\controller\TemplateStoreOpsController@statsDashboard', 'GET');
+Route::get('template_store_ops/statsExport$', '\app\admin\controller\TemplateStoreOpsController@statsExport');
+Route::post('template_store_ops/migrateBaseline$', '\app\admin\controller\TemplateStoreOpsController@migrateBaseline');
+Route::rule('template_store_ops/reviewBatch$', '\app\admin\controller\TemplateStoreOpsController@reviewBatch', 'GET');
+Route::post('template_store_ops/reviewBatchAudit$', '\app\admin\controller\TemplateStoreOpsController@reviewBatchAudit');
+Route::post('template_store_ops/reviewBatchDelete$', '\app\admin\controller\TemplateStoreOpsController@reviewBatchDelete');
+
+// V2.9.24 G-3: 模板商店分类管理
+Route::rule('template_store_ops/categoryIndex$', '\app\admin\controller\TemplateStoreOpsController@categoryIndex', 'GET');
+Route::rule('template_store_ops/categoryEdit/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryEdit', 'GET|POST');
+Route::post('template_store_ops/categoryDelete/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryDelete');
+Route::post('template_store_ops/categorySort$', '\app\admin\controller\TemplateStoreOpsController@categorySort');
+Route::post('template_store_ops/categoryToggleVisible/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryToggleVisible');
+Route::post('template_store_ops/categoryToggleEnabled/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryToggleEnabled');

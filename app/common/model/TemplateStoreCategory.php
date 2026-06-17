@@ -29,7 +29,16 @@ class TemplateStoreCategory extends Model
     protected $type = [
         'sort' => 'integer',
         'is_enabled' => 'integer',
+        'is_visible' => 'integer',
     ];
+
+    /**
+     * 获取是否可见文本
+     */
+    public function getIsVisibleTextAttr($value, $data): string
+    {
+        return ($data['is_visible'] ?? 1) ? '显示' : '隐藏';
+    }
 
     /**
      * 关联模板
@@ -45,5 +54,21 @@ class TemplateStoreCategory extends Model
     public function scopeEnabled($query)
     {
         return $query->where('is_enabled', 1);
+    }
+
+    /**
+     * 查询作用域 — 只查询前台可见的分类
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('is_enabled', 1)->where('is_visible', 1);
+    }
+
+    /**
+     * 查询作用域 — 按排序字段升序
+     */
+    public function scopeSorted($query)
+    {
+        return $query->order('sort', 'asc')->order('id', 'asc');
     }
 }

@@ -125,8 +125,8 @@
 <script src="/static/home/js/ucenter.js?v=2.9.10"></script>
 {/if}
 
-<!-- 底部 TabBar -->
-<nav class="m-tabbar">
+<!-- 底部 TabBar (V2.9.24 H-2: 动态导航) -->
+<nav class="m-tabbar" id="mTabbar">
     <a href="/" class="m-tabitem active"><i class="bi bi-house-fill"></i>首页</a>
     <a href="/product" class="m-tabitem"><i class="bi bi-grid-fill"></i>分类</a>
     {if condition="$is_member_login"}
@@ -136,6 +136,7 @@
     {/if}
     <a href="{if condition="$is_member_login"}/message/index{else /}/member/login{/if}" class="m-tabitem position-relative"><i class="bi bi-bell-fill"></i>消息 {if $member_unread_count > 0}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.5rem;">{$member_unread_count}</span>{/if}</a>
 </nav>
+<script>window._memberUnreadCount={$member_unread_count|default=0};</script>
 
 <!-- 友情链接（简化） -->
 {i8j:linklist limit="12" status="1"}
@@ -164,6 +165,9 @@
     <script src="/assets/js/front-csrf.js?v=2.9.5"></script>
 <!-- V2.9.2 前台移动端布局脚本（搜索/菜单/分类树/Toast） -->
 <script src="{$skin}js/layout.js?v=2.9.2"></script>
+<!-- V2.9.24 H-2: 动态底部导航 -->
+<script src="/static/mobile/js/bottom_nav.js?v=2.9.24"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){BottomNav.init('#mTabbar');});</script>
 <!-- V2.9.1 M14b: 统一图片懒加载 -->
 <script src="/assets/js/lazyload.js"></script>
 <!-- V2.9.2 M22a: PWA安装提示 -->

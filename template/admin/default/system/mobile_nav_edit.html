@@ -1,0 +1,99 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if condition="!empty($info)"}编辑导航Tab{else/}添加导航Tab{/if}</h4>
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-phone me-2"></i>Tab信息</div>
+        <div class="card-body">
+            <form id="formEdit" onsubmit="return false;" style="max-width:640px">
+                <input type="hidden" name="id" value="{$info.id|default=0}">
+                <div class="mb-3">
+                    <label class="form-label">Tab名称 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name" value="{$info.name|default=''}" required placeholder="如：首页">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">图标类名 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="icon" value="{$info.icon|default=''}" required placeholder="如：bi bi-house">
+                        <div class="form-text">默认状态图标，参考 Bootstrap Icons</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">激活图标类名</label>
+                        <input type="text" class="form-control" name="icon_active" value="{$info.icon_active|default=''}" placeholder="如：bi bi-house-fill">
+                        <div class="form-text">选中状态图标（留空则使用默认图标）</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tab类型</label>
+                        <select class="form-select" name="tab_type" id="inputType">
+                            {volist name="typeMap" id="label" key="t"}
+                            <option value="{$t}" {if isset($info) && $info.tab_type==$t}selected{/if}>{$label}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">链接URL</label>
+                        <input type="text" class="form-control" name="url" value="{$info.url|default=''}" placeholder="如：/product">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">排序号</label>
+                        <input type="number" class="form-control" name="sort" value="{$info.sort|default=0}" min="0">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">需要登录</label>
+                        <select class="form-select" name="require_login">
+                            <option value="0" {if !isset($info) || $info.require_login==0}selected{/if}>否</option>
+                            <option value="1" {if isset($info) && $info.require_login==1}selected{/if}>是</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">显示角标</label>
+                        <select class="form-select" name="show_badge">
+                            <option value="0" {if !isset($info) || $info.show_badge==0}selected{/if}>否</option>
+                            <option value="1" {if isset($info) && $info.show_badge==1}selected{/if}>是</option>
+                        </select>
+                        <div class="form-text">消息类Tab建议开启</div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">启用状态</label>
+                        <select class="form-select" name="is_enabled">
+                            <option value="1" {if !isset($info) || $info.is_enabled==1}selected{/if}>启用</option>
+                            <option value="0" {if isset($info) && $info.is_enabled==0}selected{/if}>禁用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+                    <a href="/admin/system/mobileNav" class="btn btn-outline-secondary ms-2">返回</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+$('#btnSave').click(function(){
+    const data = {};
+    $('#formEdit').serializeArray().forEach(function(item){
+        if(['sort','require_login','show_badge','is_enabled'].includes(item.name)){
+            data[item.name] = parseInt(item.value);
+        }else{
+            data[item.name] = item.value;
+        }
+    });
+    const id = data.id || 0;
+    fetch('/admin/system/mobileNavEdit/' + id, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams(data)
+    }).then(r => r.json()).then(res => {
+        if(res.code === 1){ layer.msg(res.msg); setTimeout(() => location.href='/admin/system/mobileNav', 800); }
+        else { layer.msg(res.msg || '保存失败'); }
+    });
+});
+</script>
+{/block}

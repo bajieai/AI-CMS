@@ -6,6 +6,13 @@
 html { overscroll-behavior: none; -webkit-overflow-scrolling: auto; }
 body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif; font-size: 15px; color: var(--txt); background: var(--bg-alt); line-height: 1.6; padding-bottom: 64px; overscroll-behavior: none; }
 
+/* V2.9.24 H-1: 下拉刷新兼容性增强 */
+.pull-to-refresh-indicator { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.ptr-icon { display: inline-block; will-change: transform; }
+@supports not (overscroll-behavior-y: contain) {
+    body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+}
+
 /* 深色顶部导航 */
 .cm-nav { position:fixed;top:0;left:0;right:0;z-index:1050;background:var(--pri);height:50px;display:flex;align-items:center;padding:0 14px;color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.2); }
 .cm-brand { font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;letter-spacing:-.01em; }

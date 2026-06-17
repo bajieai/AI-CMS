@@ -1,0 +1,88 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if condition="!empty($info)"}编辑分类{else/}添加分类{/if}</h4>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-folder2-open me-2"></i>分类信息
+        </div>
+        <div class="card-body">
+            <form id="formEdit" onsubmit="return false;" style="max-width:640px">
+                <input type="hidden" name="id" value="{$info.id|default=0}">
+                <div class="mb-3">
+                    <label class="form-label">分类名称 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name" value="{$info.name|default=''}" required placeholder="如：企业商务">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">分类标识 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="slug" value="{$info.slug|default=''}" required placeholder="如：corporate（英文唯一标识）">
+                    <div class="form-text">用于URL和程序识别，创建后不建议修改</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">分类描述</label>
+                    <textarea class="form-control" name="description" rows="2" placeholder="分类简要描述">{$info.description|default=''}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">图标类名</label>
+                    <input type="text" class="form-control" name="icon" value="{$info.icon|default=''}" placeholder="如：bi bi-briefcase">
+                    <div class="form-text">Bootstrap Icons 图标类名，参考 https://icons.getbootstrap.com</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">排序号</label>
+                        <input type="number" class="form-control" name="sort" value="{$info.sort|default=0}" min="0">
+                        <div class="form-text">数值越小越靠前</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">启用状态</label>
+                        <select class="form-select" name="is_enabled">
+                            <option value="1" {if !isset($info) || $info.is_enabled==1}selected{/if}>启用</option>
+                            <option value="0" {if isset($info) && $info.is_enabled==0}selected{/if}>禁用</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">前台可见</label>
+                        <select class="form-select" name="is_visible">
+                            <option value="1" {if !isset($info) || $info.is_visible==1}selected{/if}>显示</option>
+                            <option value="0" {if isset($info) && $info.is_visible==0}selected{/if}>隐藏</option>
+                        </select>
+                        <div class="form-text">隐藏后前台不展示，后台仍可管理</div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+                    <a href="/admin/template_store_ops/categoryIndex" class="btn btn-outline-secondary ms-2">返回</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+$('#btnSave').click(function(){
+    const data = {};
+    $('#formEdit').serializeArray().forEach(function(item){
+        if(item.name === 'sort' || item.name === 'is_enabled' || item.name === 'is_visible'){
+            data[item.name] = parseInt(item.value);
+        }else{
+            data[item.name] = item.value;
+        }
+    });
+    const id = data.id || 0;
+    const url = '/admin/template_store_ops/categoryEdit/' + id;
+    fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams(data)
+    }).then(r => r.json()).then(res => {
+        if(res.code === 1){
+            layer.msg(res.msg);
+            setTimeout(() => location.href = '/admin/template_store_ops/categoryIndex', 800);
+        }else{
+            layer.msg(res.msg || '保存失败');
+        }
+    });
+});
+</script>
+{/block}

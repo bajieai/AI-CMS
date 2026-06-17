@@ -38,6 +38,14 @@
 html { overscroll-behavior: none; -webkit-overflow-scrolling: auto; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 15px; color: var(--text); background: var(--bg-alt); line-height: 1.6; padding-bottom: 60px; overscroll-behavior: none; }
 
+/* V2.9.24 H-1: 下拉刷新兼容性增强 */
+.pull-to-refresh-indicator { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.ptr-icon { display: inline-block; will-change: transform; }
+/* iOS Safari < 16 降级：使用 body 级别 overscroll-behavior 替代容器级 */
+@supports not (overscroll-behavior-y: contain) {
+    body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+}
+
 /* 顶部导航（固定、紧凑） */
 .m-navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1050; background: var(--bg); box-shadow: var(--shadow-navbar); height: 52px; display: flex; align-items: center; padding: 0 14px; }
 .m-navbar-brand { font-weight: 700; font-size: 1.15rem; color: var(--dark); text-decoration: none; display: flex; align-items: center; }
@@ -105,9 +113,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 
 /* 底部 TabBar */
 .m-tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1050; background: var(--bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 env(safe-area-inset-bottom); box-shadow: var(--shadow-tabbar); }
-.m-tabitem { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 4px 0; text-decoration: none; color: var(--text-muted); font-size: 11px; transition: color .2s; -webkit-user-select: none; }
+.m-tabitem { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 4px 0; text-decoration: none; color: var(--text-muted); font-size: 11px; transition: color .2s; -webkit-user-select: none; position: relative; }
 .m-tabitem i { font-size: 19px; margin-bottom: 2px; }
 .m-tabitem.active, .m-tabitem:active { color: var(--primary); }
+/* V2.9.24 H-2: 动态导航角标 */
+.m-tabitem .nav-badge { position: absolute; top: 0; right: 50%; transform: translateX(20px); background: #dc3545; color: #fff; font-size: 10px; min-width: 16px; height: 16px; line-height: 16px; border-radius: 8px; padding: 0 4px; text-align: center; }
 
 /* 页脚（简化） */
 .m-footer { background: var(--dark); color: rgba(255,255,255,.55); padding: 20px 14px; text-align: center; margin: 0 -14px -60px; font-size: 12px; }

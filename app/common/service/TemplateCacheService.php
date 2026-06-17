@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use think\facade\Cache;
+use think\facade\Db;
 
 /**
  * V2.9.23 A-4: 模板缓存服务
@@ -84,6 +85,8 @@ class TemplateCacheService
                     $result['changed'][] = $relativePath;
                     if ($cleared) {
                         $result['cleared'][] = $relativePath;
+                        // V2.9.24 J-1: 写入日志
+                        $this->writeLog($relativePath, 'refresh', 'auto');
                     }
                 }
 
@@ -195,6 +198,9 @@ class TemplateCacheService
         // 同时清除MD5缓存
         Cache::tag(self::CACHE_TAG)->clear();
 
+        // V2.9.24 J-1: 写入日志
+        $this->writeLog('ALL', 'clear', 'admin');
+
         return $result;
     }
 
@@ -246,7 +252,132 @@ class TemplateCacheService
 
         $stats['compile_cache_size_human'] = $this->formatBytes($stats['compile_cache_size']);
 
+        // V2.9.24 J-1: 命中率统计
+        $stats['hit_rate'] = $this->getHitRate();
+        $stats['recent_logs'] = $this->getRecentLogs(10);
+
         return $stats;
+    }
+
+    /**
+     * V2.9.24 J-1: 获取缓存命中率
+     */
+    public function getHitRate(): array
+    {
+        $hitCount = (int) Cache::get('template_cache_hit_count', 0);
+        $missCount = (int) Cache::get('template_cache_miss_count', 0);
+        $total = $hitCount + $missCount;
+
+        return [
+            'hit' => $hitCount,
+            'miss' => $missCount,
+            'total' => $total,
+            'rate' => $total > 0 ? round($hitCount / $total * 100, 1) : 0,
+        ];
+    }
+
+    /**
+     * V2.9.24 J-1: 记录缓存命中
+     */
+    public function recordHit(): void
+    {
+        Cache::inc('template_cache_hit_count');
+    }
+
+    /**
+     * V2.9.24 J-1: 记录缓存未命中
+     */
+    public function recordMiss(): void
+    {
+        Cache::inc('template_cache_miss_count');
+    }
+
+    /**
+     * V2.9.24 J-1: 重置命中率计数
+     */
+    public function resetHitRate(): void
+    {
+        Cache::set('template_cache_hit_count', 0);
+        Cache::set('template_cache_miss_count', 0);
+    }
+
+    /**
+     * V2.9.24 J-1: 获取最近的缓存操作日志
+     */
+    public function getRecentLogs(int $limit = 10): array
+    {
+        try {
+            $prefix = config('database.connections.mysql.prefix', 'i8j_');
+            return Db::table($prefix . 'template_cache_log')
+                ->order('id', 'desc')
+                ->limit($limit)
+                ->select()
+                ->toArray();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * V2.9.24 J-1: 写入缓存操作日志
+     */
+    public function writeLog(string $templatePath, string $action, string $operator = 'system'): void
+    {
+        try {
+            $prefix = config('database.connections.mysql.prefix', 'i8j_');
+            Db::table($prefix . 'template_cache_log')->insert([
+                'template_path' => $templatePath,
+                'template_md5' => md5_file(root_path() . $templatePath) ?: '',
+                'action' => $action,
+                'file_size' => file_exists(root_path() . $templatePath) ? filesize(root_path() . $templatePath) : 0,
+                'operator' => $operator,
+                'create_time' => time(),
+            ]);
+        } catch (\Throwable $e) {
+            // 日志写入失败不影响主流程
+        }
+    }
+
+    /**
+     * V2.9.24 J-1: 获取自动清理策略配置
+     */
+    public function getAutoCleanConfig(): array
+    {
+        return [
+            'enabled' => (bool) Cache::get('template_cache_auto_clean_enabled', false),
+            'max_size_mb' => (int) Cache::get('template_cache_auto_clean_max_size', 100),
+            'interval_hours' => (int) Cache::get('template_cache_auto_clean_interval', 24),
+        ];
+    }
+
+    /**
+     * V2.9.24 J-1: 保存自动清理策略配置
+     */
+    public function saveAutoCleanConfig(array $config): void
+    {
+        Cache::set('template_cache_auto_clean_enabled', $config['enabled'] ?? false);
+        Cache::set('template_cache_auto_clean_max_size', (int)($config['max_size_mb'] ?? 100));
+        Cache::set('template_cache_auto_clean_interval', (int)($config['interval_hours'] ?? 24));
+    }
+
+    /**
+     * V2.9.24 J-1: 执行自动清理（超过阈值时触发）
+     */
+    public function autoCleanIfNeeded(): ?array
+    {
+        $config = $this->getAutoCleanConfig();
+        if (!$config['enabled']) {
+            return null;
+        }
+
+        $stats = $this->getStats();
+        $sizeMb = $stats['compile_cache_size'] / (1024 * 1024);
+
+        if ($sizeMb > $config['max_size_mb']) {
+            return $this->clearAll();
+        }
+
+        return null;
     }
 
     /**

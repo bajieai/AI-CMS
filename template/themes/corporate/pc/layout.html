@@ -217,9 +217,9 @@
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/jquery.min.js"></script>
     <script>var THEME_SLUG = '{$theme_slug|default=\'corporate\'}';</script>
-    <!-- V2.9.23 C-1: 前台模板设计面板（仅管理员可见） -->
+    <!-- V2.9.24 I-1~I-5: 前台模板设计面板（增强版，仅管理员可见） -->
     {if condition="session('?member.id') && session('member.is_admin')"}
-    <link rel="stylesheet" href="/static/admin/css/template_design_panel.css">
+    <link rel="stylesheet" href="/static/admin/css/template_design_panel.css?v=2.9.24">
     <div id="templateDesignBtn" class="template-design-float-btn" title="模板设计">
         <i class="bi bi-palette"></i>
     </div>
@@ -231,21 +231,23 @@
         <div class="panel-body">
             <ul class="nav nav-tabs nav-fill small mb-3" id="designTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="color-tab" data-bs-toggle="tab" data-bs-target="#colorTab" type="button">配色</button>
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#colorTab" type="button">配色</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="layout-tab" data-bs-toggle="tab" data-bs-target="#layoutTab" type="button">布局</button>
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#layoutTab" type="button">布局</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#previewTab" type="button">预览</button>
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sectionTab" type="button">区块</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#previewTab" type="button">预览</button>
                 </li>
             </ul>
             <div class="tab-content" id="designTabContent">
                 <div class="tab-pane fade show active" id="colorTab" role="tabpanel">
                     <div class="mb-2 small text-muted">预设配色</div>
-                    <div class="color-presets" id="colorPresets">
-                        <div class="text-muted small">加载中...</div>
-                    </div>
+                    <div class="color-presets" id="colorPresets"><div class="text-muted small">加载中...</div></div>
+                    <div id="customColors"></div>
                     <div class="mt-3">
                         <label class="form-label small">AI配色（描述风格）</label>
                         <div class="input-group input-group-sm">
@@ -253,13 +255,22 @@
                             <button class="btn btn-primary" id="aiColorBtn" type="button">生成</button>
                         </div>
                         <div id="aiColorResult" class="mt-2 small"></div>
+                        <button class="btn btn-outline-success btn-sm w-100 mt-2" id="saveCustomColorBtn" type="button"><i class="bi bi-bookmark-plus"></i> 保存为我的配色</button>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="layoutTab" role="tabpanel">
                     <div class="mb-2 small text-muted">布局方案</div>
-                    <div class="layout-presets" id="layoutPresets">
-                        <div class="text-muted small">加载中...</div>
+                    <div class="layout-presets" id="layoutPresets"><div class="text-muted small">加载中...</div></div>
+                </div>
+                <div class="tab-pane fade" id="sectionTab" role="tabpanel">
+                    <div class="page-type-tabs">
+                        <button class="page-type-tab active" data-page-type="index">首页</button>
+                        <button class="page-type-tab" data-page-type="list">列表页</button>
+                        <button class="page-type-tab" data-page-type="detail">详情页</button>
                     </div>
+                    <div class="mb-2 small text-muted">区块管理（拖拽排序 · 点击编辑）</div>
+                    <div id="sectionList"><div class="text-muted small">加载中...</div></div>
+                    <button class="btn btn-outline-primary btn-sm w-100 mt-2" id="saveSectionOrder" type="button"><i class="bi bi-check-lg"></i> 保存区块配置</button>
                 </div>
                 <div class="tab-pane fade" id="previewTab" role="tabpanel">
                     <div class="mb-2 small text-muted">设备预览</div>
@@ -275,6 +286,9 @@
             <button class="btn btn-primary btn-sm w-100" id="saveDesignConfig">保存设计</button>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="/static/admin/js/template_design_panel.js?v=2.9.24"></script>
+    {/if}
     <script src="/static/admin/js/template_design_panel.js"></script>
     {/if}
     <!-- V2.9.5 前台通用组件 -->

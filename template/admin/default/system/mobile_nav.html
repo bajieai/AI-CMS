@@ -1,0 +1,97 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">移动端底部导航管理</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-phone me-2"></i>导航Tab列表</span>
+            <a href="/admin/system/mobileNavEdit" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>添加Tab
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:40px"><i class="bi bi-grip-vertical text-muted"></i></th>
+                            <th style="width:60px">ID</th>
+                            <th>名称</th>
+                            <th>图标</th>
+                            <th>类型</th>
+                            <th>链接</th>
+                            <th style="width:80px">排序</th>
+                            <th style="width:80px">需登录</th>
+                            <th style="width:80px">角标</th>
+                            <th style="width:80px">启用</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sortableList">
+                        {volist name="list" id="item"}
+                        <tr data-id="{$item.id}">
+                            <td class="drag-handle cursor-move"><i class="bi bi-grip-vertical text-muted"></i></td>
+                            <td>{$item.id}</td>
+                            <td>{$item.name}</td>
+                            <td><i class="{$item.icon} fs-5"></i></td>
+                            <td><span class="badge bg-info">{$typeMap[$item.tab_type]}</span></td>
+                            <td><code>{$item.url}</code></td>
+                            <td>{$item.sort}</td>
+                            <td>
+                                {if $item.require_login==1}<span class="badge bg-warning">是</span>{else/}<span class="badge bg-light text-dark">否</span>{/if}
+                            </td>
+                            <td>
+                                {if $item.show_badge==1}<span class="badge bg-danger">显示</span>{else/}<span class="badge bg-light text-dark">无</span>{/if}
+                            </td>
+                            <td>
+                                {if $item.is_enabled==1}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}
+                            </td>
+                            <td>
+                                <a href="/admin/system/mobileNavEdit/{$item.id}" class="btn btn-sm btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="{$item.id}" title="删除"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {if $list|count == 0}
+                        <tr><td colspan="11" class="text-center text-muted py-4">暂无导航Tab数据</td></tr>
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+const el = document.getElementById('sortableList');
+if (el) {
+    new Sortable(el, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function() {
+            const ids = [];
+            el.querySelectorAll('tr[data-id]').forEach(tr => ids.push(tr.dataset.id));
+            fetch('/admin/system/mobileNavSort', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'ids=' + JSON.stringify(ids)
+            }).then(r => r.json()).then(res => {
+                if (res.code === 1) { layer.msg('排序已保存'); setTimeout(() => location.reload(), 500); }
+            });
+        }
+    });
+}
+$('.btn-delete').click(function(){
+    const id = $(this).data('id');
+    layer.confirm('确定删除该导航Tab？', function() {
+        fetch('/admin/system/mobileNavDelete/' + id, {method: 'POST'})
+            .then(r => r.json()).then(res => {
+                if (res.code === 1) { layer.msg('删除成功'); setTimeout(() => location.reload(), 500); }
+                else { layer.msg(res.msg || '删除失败'); }
+            });
+    });
+});
+</script>
+{/block}

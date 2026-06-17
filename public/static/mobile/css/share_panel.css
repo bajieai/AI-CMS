@@ -1,0 +1,82 @@
+/* V2.9.24 H-4: 移动端分享面板样式 */
+.share-panel-overlay {
+    position: fixed; inset: 0; z-index: 1090;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity .3s ease;
+}
+.share-panel-overlay.show { opacity: 1; }
+
+.share-panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    padding: 16px 16px env(safe-area-inset-bottom);
+    transform: translateY(100%);
+    transition: transform .3s ease;
+}
+.share-panel-overlay.show .share-panel { transform: translateY(0); }
+
+.share-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 16px; font-weight: 600; color: #333;
+    padding-bottom: 14px; border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 16px;
+}
+.share-panel-close {
+    border: none; background: none; font-size: 18px; color: #999;
+    padding: 4px 8px; cursor: pointer;
+}
+
+.share-panel-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+.share-card {
+    display: flex; flex-direction: column; align-items: center;
+    text-decoration: none; color: #666; font-size: 12px;
+}
+.share-card-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 24px; margin-bottom: 6px;
+}
+
+.share-panel-wechat-tip {
+    margin-top: 16px; padding: 12px;
+    background: #fff8e1; border-radius: 8px;
+    font-size: 13px; color: #856404; text-align: center;
+}
+
+/* 分享卡片预览 */
+.share-card-overlay {
+    position: fixed; inset: 0; z-index: 1095;
+    background: rgba(0,0,0,.85);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity .3s ease;
+    padding: 20px;
+}
+.share-card-overlay.show { opacity: 1; }
+.share-card-preview {
+    text-align: center;
+}
+.share-card-preview img {
+    max-width: 100%; max-height: 70vh;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
+}
+.share-card-preview p {
+    color: #fff; font-size: 14px; margin: 16px 0;
+}
+.share-card-preview .btn {
+    border-radius: 20px; padding: 8px 32px;
+}
+
+@keyframes shareTipBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}

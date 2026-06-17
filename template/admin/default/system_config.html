@@ -101,12 +101,22 @@
 {/if}
 
 <form id="configForm" method="post" action="/admin/system/config">
-    {volist name="groups" id="group" key="groupName"}
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-<?php echo $groupIcons[$key] ?? 'sliders'; ?> me-1"></i>
-            <?php echo $groupNames[$key] ?? $key; ?>
+    <!-- V2.9.24 J-2: 配置搜索框 -->
+    <div class="mb-3">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="configSearchInput" placeholder="搜索配置项名称或说明...">
+            <button class="btn btn-outline-secondary" type="button" id="configSearchClear"><i class="bi bi-x-lg"></i></button>
         </div>
+        <small class="text-muted">输入关键词实时过滤配置项，匹配的分组会自动展开</small>
+    </div>
+    {volist name="groups" id="group" key="groupName"}
+    <div class="card mb-3 config-group-card" data-group-name="<?php echo $groupNames[$key] ?? $key; ?>">
+        <div class="card-header d-flex justify-content-between align-items-center config-group-header" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#groupCollapse<?php echo $key; ?>">
+            <span><i class="bi bi-<?php echo $groupIcons[$key] ?? 'sliders'; ?> me-1"></i><?php echo $groupNames[$key] ?? $key; ?></span>
+            <i class="bi bi-chevron-down config-collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="groupCollapse<?php echo $key; ?>">
         <div class="card-body">
             {volist name="group" id="item"}
             {if condition="$item.name == 'logo_icon_only' || $item.name == 'logo_name'"}
@@ -191,11 +201,14 @@
             </div>
             {/volist}
         </div>
+        </div>
     </div>
     {/volist}
 
     <div class="mb-3">
         <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+        <!-- V2.9.24 J-2: 配置修改审计预留 -->
+        <!-- TODO: V2.10.0 - 配置修改审计日志 -->
     </div>
 </form>
 
@@ -398,6 +411,33 @@ $('#configForm').on('submit', function(e) {
 
 // 初始化加载
 $(function() { loadThemes(); });
+
+// V2.9.24 J-2: 配置搜索功能
+$('#configSearchInput').on('input', function() {
+    var keyword = $(this).val().toLowerCase().trim();
+    if (!keyword) {
+        $('.config-group-card').show();
+        $('.config-group-card .collapse').addClass('show');
+        $('.config-group-card .row').show();
+        return;
+    }
+    $('.config-group-card').each(function() {
+        var $card = $(this);
+        var hasMatch = false;
+        $card.find('.row').each(function() {
+            var text = $(this).text().toLowerCase();
+            var match = text.indexOf(keyword) > -1;
+            $(this).toggle(match);
+            if (match) hasMatch = true;
+        });
+        $card.toggle(hasMatch);
+        if (hasMatch) {
+            $card.find('.collapse').addClass('show');
+        }
+    });
+});
+$('#configSearchClear').click(function() {
+    $('#configSearchInput').val('').trigger('input');
+});
 </script>
 {/block}
-{block name="js"}{/block}

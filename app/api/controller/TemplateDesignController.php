@@ -8,6 +8,7 @@ namespace app\api\controller;
 
 use app\common\service\TemplateCustomizeService;
 use app\common\model\TemplateSectionConfig;
+use app\common\model\TemplatePresetColor;
 use think\facade\Cache;
 
 class TemplateDesignController extends BaseController
@@ -198,5 +199,202 @@ class TemplateDesignController extends BaseController
         }, 3600);
 
         return json(['code' => 0, 'data' => $sections]);
+    }
+
+    // ==================== V2.9.24 I-2: 自定义配色CRUD ====================
+
+    /**
+     * I-2: 获取用户自定义配色方案列表
+     */
+    public function customColors(): \think\Response
+    {
+        $memberId = (int) session('member.id');
+        if ($memberId <= 0) {
+            return json(['code' => 0, 'data' => []]);
+        }
+
+        $list = TemplatePresetColor::where('member_id', $memberId)
+            ->where('is_system', 0)
+            ->order('sort', 'asc')
+            ->order('id', 'desc')
+            ->select();
+
+        return json(['code' => 0, 'data' => $list]);
+    }
+
+    /**
+     * I-2: 保存自定义配色方案
+     */
+    public function saveCustomColor(): \think\Response
+    {
+        $memberId = (int) session('member.id');
+        if ($memberId <= 0) {
+            return json(['code' => 403, 'msg' => '请先登录']);
+        }
+
+        $id = (int) $this->request->post('id', 0);
+        $name = trim($this->request->post('name', ''));
+        $colors = $this->request->post('colors/a', []);
+
+        if (empty($name)) {
+            return json(['code' => 1, 'msg' => '配色名称不能为空']);
+        }
+        if (empty($colors) || empty($colors['primary'])) {
+            return json(['code' => 1, 'msg' => '配色数据不完整']);
+        }
+
+        $data = [
+            'name' => $name,
+            'colors' => $colors,
+            'is_system' => 0,
+            'member_id' => $memberId,
+            'sort' => (int) $this->request->post('sort', 0),
+        ];
+
+        try {
+            if ($id > 0) {
+                $existing = TemplatePresetColor::where('id', $id)
+                    ->where('member_id', $memberId)
+                    ->where('is_system', 0)
+                    ->find();
+                if (!$existing) {
+                    return json(['code' => 1, 'msg' => '配色方案不存在']);
+                }
+                $existing->save($data);
+            } else {
+                TemplatePresetColor::create($data);
+            }
+            return json(['code' => 0, 'msg' => '配色方案已保存']);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => '保存失败: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * I-2: 删除自定义配色方案
+     */
+    public function deleteCustomColor(): \think\Response
+    {
+        $memberId = (int) session('member.id');
+        if ($memberId <= 0) {
+            return json(['code' => 403, 'msg' => '请先登录']);
+        }
+
+        $id = (int) $this->request->post('id', 0);
+        if ($id <= 0) {
+            return json(['code' => 1, 'msg' => '参数错误']);
+        }
+
+        $color = TemplatePresetColor::where('id', $id)
+            ->where('member_id', $memberId)
+            ->where('is_system', 0)
+            ->find();
+
+        if (!$color) {
+            return json(['code' => 1, 'msg' => '配色方案不存在']);
+        }
+
+        $color->delete();
+        return json(['code' => 0, 'msg' => '已删除']);
+    }
+
+    // ==================== V2.9.24 I-5: 区块内容编辑 ====================
+
+    /**
+     * I-5: 保存区块内容（标题/描述文字的实时编辑）
+     */
+    public function saveSectionContent(): \think\Response
+    {
+        $memberId = (int) session('member.id');
+        if ($memberId <= 0) {
+            return json(['code' => 403, 'msg' => '请先登录']);
+        }
+
+        $themeSlug = $this->request->post('theme_slug', '');
+        $pageType = $this->request->post('page_type', 'index');
+        $sectionId = $this->request->post('section_id', '');
+        $content = $this->request->post('content/a', []);
+
+        if (empty($themeSlug) || empty($sectionId)) {
+            return json(['code' => 1, 'msg' => '参数错误']);
+        }
+
+        try {
+            $config = TemplateSectionConfig::where('theme_slug', $themeSlug)
+                ->where('member_id', $memberId)
+                ->where('page_type', $pageType)
+                ->find();
+
+            if ($config) {
+                $sections = json_decode($config->sections, true) ?: [];
+            } else {
+                $sections = [];
+            }
+
+            // 更新指定区块的内容
+            $found = false;
+            foreach ($sections as &$section) {
+                if ($section['id'] === $sectionId) {
+                    $section['content'] = $content;
+                    $found = true;
+                    break;
+                }
+            }
+            unset($section);
+
+            if (!$found) {
+                $sections[] = ['id' => $sectionId, 'name' => '', 'visible' => true, 'sort' => count($sections), 'content' => $content];
+            }
+
+            if ($config) {
+                $config->sections = json_encode($sections);
+                $config->save();
+            } else {
+                TemplateSectionConfig::create([
+                    'theme_slug' => $themeSlug,
+                    'member_id' => $memberId,
+                    'page_type' => $pageType,
+                    'sections' => json_encode($sections),
+                ]);
+            }
+
+            Cache::tag('section_config')->clear();
+            return json(['code' => 0, 'msg' => '区块内容已保存']);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => '保存失败: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * I-5: 获取区块内容
+     */
+    public function getSectionContent(): \think\Response
+    {
+        $memberId = (int) session('member.id');
+        $themeSlug = $this->request->get('theme_slug', '');
+        $pageType = $this->request->get('page_type', 'index');
+        $sectionId = $this->request->get('section_id', '');
+
+        if (empty($themeSlug) || $memberId <= 0) {
+            return json(['code' => 0, 'data' => null]);
+        }
+
+        $config = TemplateSectionConfig::where('theme_slug', $themeSlug)
+            ->where('member_id', $memberId)
+            ->where('page_type', $pageType)
+            ->find();
+
+        if (!$config) {
+            return json(['code' => 0, 'data' => null]);
+        }
+
+        $sections = json_decode($config->sections, true) ?: [];
+        foreach ($sections as $section) {
+            if ($section['id'] === $sectionId) {
+                return json(['code' => 0, 'data' => $section['content'] ?? null]);
+            }
+        }
+
+        return json(['code' => 0, 'data' => null]);
     }
 }

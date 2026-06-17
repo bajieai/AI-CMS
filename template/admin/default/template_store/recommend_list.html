@@ -1,0 +1,111 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">推荐位配置</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-stars me-2"></i>推荐位列表</span>
+            <a href="/admin/template_store_ops/recommendEdit" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>添加推荐位
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <form class="d-flex gap-2" method="get">
+                        <select name="position" class="form-select" style="width:160px">
+                            <option value="all">全部位置</option>
+                            {foreach $positions as $k=>$v}
+                            <option value="{$k}" {if ($params.position|default=='all')==$k}selected{/if}>{$v}</option>
+                            {/foreach}
+                        </select>
+                        <select name="status" class="form-select" style="width:120px">
+                            <option value="all">全部状态</option>
+                            <option value="1" {if ($params.status|default=='')=='1'}selected{/if}>启用</option>
+                            <option value="0" {if ($params.status|default=='')=='0'}selected{/if}>禁用</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>位置</th>
+                            <th>推荐类型</th>
+                            <th>模板</th>
+                            <th>排序</th>
+                            <th>有效期</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td>{$item.id}</td>
+                            <td><span class="badge bg-primary">{$item.position_text}</span></td>
+                            <td><span class="badge bg-info">{$item.recommend_type_text}</span></td>
+                            <td>
+                                {if $item.template}
+                                <img src="{$item.template.thumb}" style="height:30px;border-radius:4px;" class="me-2">
+                                {$item.template.name}
+                                {else}
+                                <span class="text-muted">自动推荐</span>
+                                {/if}
+                            </td>
+                            <td>{$item.sort}</td>
+                            <td>
+                                {if $item.start_time>0}{:date('Y-m-d',$item.start_time)}{/if}
+                                {if $item.end_time>0} ~ {:date('Y-m-d',$item.end_time)}{/if}
+                            </td>
+                            <td>
+                                {if $item.status==1}
+                                <span class="badge bg-success">启用</span>
+                                {else}
+                                <span class="badge bg-secondary">禁用</span>
+                                {/if}
+                            </td>
+                            <td>
+                                <a href="/admin/template_store_ops/recommendEdit/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteRecommend({$item.id})"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            {if $pages>1}
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center">
+                    {for start="1" end="$pages+1"}
+                    <li class="page-item {if $page==$i}active{/if}">
+                        <a class="page-link" href="?page={$i}&position={$params.position|default='all'}&status={$params.status|default='all'}">{$i}</a>
+                    </li>
+                    {/for}
+                </ul>
+            </nav>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function deleteRecommend(id) {
+    layer.confirm('确定删除该推荐位？', function() {
+        fetch('/admin/template_store_ops/recommendDelete/' + id, {method: 'POST'})
+            .then(r => r.json()).then(res => {
+                if (res.code === 1) {
+                    layer.msg('删除成功');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    layer.msg(res.msg || '删除失败');
+                }
+            });
+    });
+}
+</script>
+{/block}

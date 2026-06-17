@@ -1,0 +1,144 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">统计看板</h4>
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="small">总安装量</div>
+                            <div class="fs-3">{$stats.summary.total_installs}</div>
+                        </div>
+                        <i class="bi bi-download fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="small">已上架模板</div>
+                            <div class="fs-3">{$stats.summary.online_templates}</div>
+                        </div>
+                        <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="small">模板总数</div>
+                            <div class="fs-3">{$stats.summary.total_templates}</div>
+                        </div>
+                        <i class="bi bi-grid fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-dark mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="small">基线迁移</div>
+                            <div class="fs-3">{$stats.summary.migrate_count}</div>
+                        </div>
+                        <i class="bi bi-arrow-repeat fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-graph-up me-2"></i>安装趋势</span>
+            <div class="d-flex gap-2">
+                <form class="d-flex gap-2" method="get">
+                    <input type="date" name="start" class="form-control form-control-sm" value="{$params.start|default=$stats.date_range.start}">
+                    <span class="align-self-center">~</span>
+                    <input type="date" name="end" class="form-control form-control-sm" value="{$params.end|default=$stats.date_range.end}">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">筛选</button>
+                </form>
+                <a href="/admin/template_store_ops/statsExport?start={$params.start|default=$stats.date_range.start}&end={$params.end|default=$stats.date_range.end}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-download me-1"></i>导出CSV
+                </a>
+                <button class="btn btn-sm btn-outline-primary" onclick="migrateBaseline()">
+                    <i class="bi bi-arrow-repeat me-1"></i>基线迁移
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <canvas id="trendChart" height="80"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><i class="bi bi-fire me-2"></i>热门模板TOP10</div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr><th>排名</th><th>模板</th><th>安装量</th><th>评分</th></tr>
+                    </thead>
+                    <tbody>
+                        {volist name="stats.hot_templates" id="t"}
+                        <tr>
+                            <td>{if $i<=3}<span class="badge bg-danger">{$i}</span>{else}{$i}{/if}</td>
+                            <td><img src="{$t.thumb}" style="height:30px;border-radius:4px;" class="me-2">{$t.name}</td>
+                            <td>{$t.install_count}</td>
+                            <td>{$t.rating_avg}</td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const trendData = {:json_encode($stats.install_trend)};
+const labels = trendData.map(d => d.date);
+const data = trendData.map(d => d.count);
+
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: '日安装量',
+            data: data,
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {legend: {display: false}},
+        scales: {
+            y: {beginAtZero: true, ticks: {precision: 0}}
+        }
+    }
+});
+
+function migrateBaseline() {
+    layer.confirm('基线迁移将现有模板安装量标记为历史数据，确定执行？', function() {
+        fetch('/admin/template_store_ops/migrateBaseline', {method: 'POST'})
+            .then(r => r.json()).then(res => {
+                layer.msg(res.msg || res.message);
+                if (res.code === 1) setTimeout(() => location.reload(), 1000);
+            });
+    });
+}
+</script>
+{/block}

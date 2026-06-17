@@ -1,0 +1,163 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">模板商店分类管理</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-folder2-open me-2"></i>分类列表</span>
+            <a href="/admin/template_store_ops/categoryEdit" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>添加分类
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <form class="d-flex gap-2" method="get">
+                        <input type="text" name="keyword" class="form-control" placeholder="搜索分类名称/标识..." value="{$params.keyword|default=''}">
+                        <select name="is_enabled" class="form-select" style="width:120px">
+                            <option value="all" {if ($params.is_enabled|default='all')=='all'}selected{/if}>全部状态</option>
+                            <option value="1" {if ($params.is_enabled|default='')=='1'}selected{/if}>启用</option>
+                            <option value="0" {if ($params.is_enabled|default='')=='0'}selected{/if}>禁用</option>
+                        </select>
+                        <select name="is_visible" class="form-select" style="width:120px">
+                            <option value="all" {if ($params.is_visible|default='all')=='all'}selected{/if}>全部可见</option>
+                            <option value="1" {if ($params.is_visible|default='')=='1'}selected{/if}>显示</option>
+                            <option value="0" {if ($params.is_visible|default='')=='0'}selected{/if}>隐藏</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:40px"><i class="bi bi-grip-vertical text-muted"></i></th>
+                            <th style="width:60px">ID</th>
+                            <th>分类名称</th>
+                            <th>标识</th>
+                            <th>图标</th>
+                            <th style="width:80px">排序</th>
+                            <th style="width:80px">模板数</th>
+                            <th style="width:80px">启用</th>
+                            <th style="width:80px">前台可见</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sortableList">
+                        {volist name="list" id="item"}
+                        <tr data-id="{$item.id}">
+                            <td class="drag-handle cursor-move"><i class="bi bi-grip-vertical text-muted"></i></td>
+                            <td>{$item.id}</td>
+                            <td>{$item.name}</td>
+                            <td><code>{$item.slug}</code></td>
+                            <td>{if $item.icon}<i class="{$item.icon}"></i>{else/}-{/if}</td>
+                            <td>{$item.sort}</td>
+                            <td><span class="badge bg-light text-dark">{$item.template_count}</span></td>
+                            <td>
+                                <button class="btn btn-sm p-0 border-0 btn-toggle-enabled" data-id="{$item.id}">
+                                    {if $item.is_enabled==1}
+                                    <i class="bi bi-toggle-on text-success fs-4"></i>
+                                    {else}
+                                    <i class="bi bi-toggle-off text-muted fs-4"></i>
+                                    {/if}
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm p-0 border-0 btn-toggle-visible" data-id="{$item.id}">
+                                    {if $item.is_visible==1}
+                                    <i class="bi bi-eye text-success fs-5"></i>
+                                    {else}
+                                    <i class="bi bi-eye-slash text-muted fs-5"></i>
+                                    {/if}
+                                </button>
+                            </td>
+                            <td>
+                                <a href="/admin/template_store_ops/categoryEdit/{$item.id}" class="btn btn-sm btn-outline-primary" title="编辑">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="{$item.id}" title="删除">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {if $list|count == 0}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">暂无分类数据</td>
+                        </tr>
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+const el = document.getElementById('sortableList');
+if (el) {
+    new Sortable(el, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function() {
+            const ids = [];
+            el.querySelectorAll('tr[data-id]').forEach(tr => ids.push(tr.dataset.id));
+            fetch('/admin/template_store_ops/categorySort', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'ids=' + JSON.stringify(ids)
+            }).then(r => r.json()).then(res => {
+                if (res.code === 1) {
+                    layer.msg('排序已保存');
+                    setTimeout(() => location.reload(), 500);
+                }
+            });
+        }
+    });
+}
+
+$('.btn-delete').click(function(){
+    const id = $(this).data('id');
+    layer.confirm('确定删除该分类？', function() {
+        fetch('/admin/template_store_ops/categoryDelete/' + id, {method: 'POST'})
+            .then(r => r.json()).then(res => {
+                if (res.code === 1) {
+                    layer.msg('删除成功');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    layer.msg(res.msg || '删除失败');
+                }
+            });
+    });
+});
+
+$('.btn-toggle-visible').click(function(){
+    const id = $(this).data('id');
+    fetch('/admin/template_store_ops/categoryToggleVisible/' + id, {method: 'POST'})
+        .then(r => r.json()).then(res => {
+            if (res.code === 1) {
+                layer.msg(res.msg);
+                setTimeout(() => location.reload(), 500);
+            } else {
+                layer.msg(res.msg || '操作失败');
+            }
+        });
+});
+
+$('.btn-toggle-enabled').click(function(){
+    const id = $(this).data('id');
+    fetch('/admin/template_store_ops/categoryToggleEnabled/' + id, {method: 'POST'})
+        .then(r => r.json()).then(res => {
+            if (res.code === 1) {
+                layer.msg(res.msg);
+                setTimeout(() => location.reload(), 500);
+            } else {
+                layer.msg(res.msg || '操作失败');
+            }
+        });
+});
+</script>
+{/block}

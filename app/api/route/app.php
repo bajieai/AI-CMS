@@ -113,3 +113,13 @@ Route::post('template/saveDesignConfig$', '\app\api\controller\TemplateDesignCon
 Route::get('template/layoutPresets$', '\app\api\controller\TemplateDesignController@layoutPresets');
 Route::post('template/saveSectionOrder$', '\app\api\controller\TemplateDesignController@saveSectionOrder');
 Route::get('template/getSectionOrder$', '\app\api\controller\TemplateDesignController@getSectionOrder');
+
+// ========== V2.9.24 I-2/I-5: 自定义配色CRUD + 区块内容编辑 ==========
+Route::get('template/customColors$', '\app\api\controller\TemplateDesignController@customColors');
+Route::post('template/saveCustomColor$', '\app\api\controller\TemplateDesignController@saveCustomColor');
+Route::post('template/deleteCustomColor$', '\app\api\controller\TemplateDesignController@deleteCustomColor');
+Route::post('template/saveSectionContent$', '\app\api\controller\TemplateDesignController@saveSectionContent');
+Route::get('template/getSectionContent$', '\app\api\controller\TemplateDesignController@getSectionContent');
+
+// ========== V2.9.24 H-2: 移动端导航API ==========
+Route::get('mobile/navTabs$', '\app\api\controller\MobileNavController@navTabs');

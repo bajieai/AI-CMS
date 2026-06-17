@@ -8,8 +8,37 @@
 {/block}
 
 {block name="content"}
-<!-- V2.9.23 A-4: 模板缓存管理页面 -->
+<!-- V2.9.24 J-1: 模板缓存管理页面（增强版） -->
 <div class="row">
+    <!-- V2.9.24 J-1: 缓存命中率仪表盘 -->
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-2"></i>缓存命中率</span>
+                <button class="btn btn-sm btn-outline-secondary" id="btnResetHitRate"><i class="bi bi-arrow-clockwise"></i> 重置统计</button>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h2 class="text-success mb-0">{$stats.hit_rate.rate|default=0}%</h2>
+                        <small class="text-muted">命中率</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-primary mb-0">{$stats.hit_rate.hit|default=0}</h4>
+                        <small class="text-muted">缓存命中</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning mb-0">{$stats.hit_rate.miss|default=0}</h4>
+                        <small class="text-muted">缓存未命中</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info mb-0">{$stats.hit_rate.total|default=0}</h4>
+                        <small class="text-muted">总请求</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="col-md-8">
         <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -104,6 +133,47 @@
             </div>
         </div>
 
+        <!-- V2.9.24 J-1: 自动清理策略 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-gear me-2"></i>自动清理策略</div>
+            <div class="card-body">
+                <form id="autoCleanForm">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="auto_clean_enabled" id="autoCleanEnabled">
+                        <label class="form-check-label small" for="autoCleanEnabled">启用自动清理</label>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">最大缓存大小(MB)</label>
+                        <input type="number" class="form-control form-control-sm" name="auto_clean_max_size" value="100" min="10" max="1000">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">检查间隔(小时)</label>
+                        <input type="number" class="form-control form-control-sm" name="auto_clean_interval" value="24" min="1" max="168">
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">保存策略</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- V2.9.24 J-1: 最近操作日志 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-list-check me-2"></i>最近操作</div>
+            <div class="card-body" style="max-height:300px;overflow-y:auto;">
+                {volist name="stats.recent_logs" id="log"}
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div>
+                        <span class="badge bg-{if $log.action=='clear'}danger{elseif $log.action=='refresh'}info{else /}secondary{/if}">{$log.action}</span>
+                        <small class="ms-1">{$log.template_path}</small>
+                    </div>
+                    <small class="text-muted">{:date('m-d H:i',$log.create_time)}</small>
+                </div>
+                {/volist}
+                {if $stats.recent_logs|count == 0}
+                <small class="text-muted">暂无操作记录</small>
+                {/if}
+            </div>
+        </div>
+
         <!-- 检查结果 -->
         {if condition="isset($checkResult)"}
         <div class="card mb-3">
@@ -147,4 +217,28 @@
         {/if}
     </div>
 </div>
+{/block}
+
+{block name="js"}
+<script>
+// V2.9.24 J-1: 缓存仪表盘交互
+$('#btnResetHitRate').click(function(){
+    $.post('/admin/system/resetHitRate', function(res){
+        if(res.code===1){ layer.msg(res.msg); setTimeout(()=>location.reload(),500); }
+    });
+});
+
+$('#autoCleanForm').on('submit', function(e){
+    e.preventDefault();
+    var data = {
+        auto_clean_enabled: $('#autoCleanEnabled').is(':checked') ? 1 : 0,
+        auto_clean_max_size: $('input[name=auto_clean_max_size]').val(),
+        auto_clean_interval: $('input[name=auto_clean_interval]').val()
+    };
+    $.post('/admin/system/saveCacheConfig', data, function(res){
+        if(res.code===1){ layer.msg(res.msg); }
+        else { layer.msg(res.msg||'保存失败'); }
+    });
+});
+</script>
 {/block}

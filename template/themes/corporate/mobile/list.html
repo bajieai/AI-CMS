@@ -5,6 +5,8 @@
 {/block}
 
 {block name="content"}
+<!-- V2.9.24 H-5: 骨架屏CSS -->
+<link href="/static/mobile/css/skeleton.css?v=2.9.24" rel="stylesheet">
 <nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">首页</a></li><li class="breadcrumb-item active">{if condition="$type==1"}产品中心{elseif condition="$type==2"/}成功案例{elseif condition="$type==3"/}新闻动态{/elseif condition="$type==4"/}资料下载{elseif condition="$type==5"/}人才招聘{/if}</li></ol></nav>
 
 {$cate_tree_html|raw}
@@ -44,14 +46,20 @@ if (window.MobileEnhance && document.querySelector('.m-pagination')) {
 }
 <!-- V2.9.23 E-3: 下拉刷新 -->
 <script src="/static/mobile/js/pull_to_refresh.js"></script>
+<script src="/static/mobile/js/skeleton.js"></script>
 <script>
 if (document.querySelector('.cm-card') && 'ontouchstart' in window) {
     new PullToRefresh({
         container: '#ptrContainer',
         onRefresh: function() {
             return new Promise(function(resolve) {
-                window.location.reload();
-                resolve();
+                // V2.9.24 H-5: 显示骨架屏
+                var listContainer = document.querySelector('.cm-card').parentElement;
+                if (listContainer) Skeleton.showList(listContainer, 5);
+                setTimeout(function() {
+                    window.location.reload();
+                    resolve();
+                }, 300);
             });
         }
     });

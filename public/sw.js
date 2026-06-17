@@ -1,8 +1,8 @@
 /**
- * Service Worker - V2.9.23 E-2
- * PWA离线缓存优化：版本升级 + 智能缓存策略
+ * Service Worker - V2.9.24 H-5
+ * PWA离线缓存优化：版本升级 + 智能缓存策略 + 骨架屏预缓存
  */
-const CACHE_NAME = 'ai-cms-v2';
+const CACHE_NAME = 'ai-cms-v2.9.24';
 const STATIC_ASSETS = [
     '/',
     '/assets/css/bootstrap.min.css',
@@ -10,6 +10,14 @@ const STATIC_ASSETS = [
     '/assets/js/jquery.min.js',
     '/assets/css/mobile.css',
     '/assets/js/mobile.js',
+    // V2.9.24 H-5: 骨架屏 + 移动端增强资源预缓存
+    '/static/mobile/css/skeleton.css',
+    '/static/mobile/js/skeleton.js',
+    '/static/mobile/js/bottom_nav.js',
+    '/static/mobile/js/search_enhance.js',
+    '/static/mobile/css/search_enhance.css',
+    '/static/mobile/js/share_panel.js',
+    '/static/mobile/css/share_panel.css',
 ];
 
 // 安装：预缓存静态资源
