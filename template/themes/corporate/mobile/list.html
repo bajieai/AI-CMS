@@ -26,8 +26,8 @@
 {if condition="($list->hasPages() ?? false)"}<div class="m-pagination">{$list->render()|raw}</div>{/if}
 </div>
 
-<!-- V2.9.23 E-3: 下拉刷新容器 -->
-<div id="ptrContainer" style="position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+<!-- V2.9.23 E-3: 下拉刷新容器（iOS Safari 回弹已通过 PullToRefresh.init() 管理） -->
+<div id="ptrContainer" style="position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;">
 </div>
 {/block}
 

@@ -17,7 +17,9 @@
         gap: 0.5rem;
         margin-bottom: 1rem;
         overflow-x: auto;
+        overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
         scrollbar-width: none;
     }
     .member-filter-bar::-webkit-scrollbar {

@@ -32,6 +32,7 @@ class TemplateStore extends Model
         'author_id' => 'integer',
         'status' => 'integer',
         'is_featured' => 'integer',
+        'is_recommended' => 'integer',
         'quality_score' => 'integer',
         'install_count' => 'integer',
         'rating_avg' => 'float',

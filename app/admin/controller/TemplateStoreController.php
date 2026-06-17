@@ -379,6 +379,9 @@ class TemplateStoreController extends AdminBaseController
         ];
         $store->requirements = json_encode($requirements, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
         $store->file_size = (int) ($data['file_size'] ?? 0);
+        // V2.9.23 B-3: 推荐标记 + Banner 图
+        $store->is_recommended = (int) ($data['is_recommended'] ?? 0);
+        $store->banner_url = $data['banner_url'] ?? '';
 
         // 新增时默认待审核
         if ($id === 0) {

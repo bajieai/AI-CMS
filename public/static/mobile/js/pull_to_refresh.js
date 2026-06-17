@@ -30,6 +30,10 @@
     PullToRefresh.prototype.init = function () {
         if (!this.container) return;
 
+        // iOS Safari 回弹微调：限制默认触摸行为，由组件自行管理
+        this.container.style.touchAction = 'pan-y';
+        this.container.style.overscrollBehaviorY = 'contain';
+
         this.createIndicator();
         this.bindEvents();
     };

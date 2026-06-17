@@ -104,3 +104,12 @@ Route::post('auth/register/send_code$', '\app\api\controller\v1\AuthController@s
 Route::post('auth/login$', '\app\api\controller\v1\AuthController@login');
 Route::post('auth/password/forgot$', '\app\api\controller\v1\AuthController@forgotPassword');
 Route::post('auth/password/reset$', '\app\api\controller\v1\AuthController@resetPassword');
+
+// ========== V2.9.23 C-1/C-2/C-4: 前台模板设计API ==========
+Route::get('template/presetColors$', '\app\api\controller\TemplateDesignController@presetColors');
+Route::get('template/recommendColors$', '\app\api\controller\TemplateDesignController@recommendColors');
+Route::post('template/aiGenerateColor$', '\app\api\controller\TemplateDesignController@aiGenerateColor');
+Route::post('template/saveDesignConfig$', '\app\api\controller\TemplateDesignController@saveDesignConfig');
+Route::get('template/layoutPresets$', '\app\api\controller\TemplateDesignController@layoutPresets');
+Route::post('template/saveSectionOrder$', '\app\api\controller\TemplateDesignController@saveSectionOrder');
+Route::get('template/getSectionOrder$', '\app\api\controller\TemplateDesignController@getSectionOrder');

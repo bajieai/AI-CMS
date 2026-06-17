@@ -44,11 +44,31 @@
                         <textarea name="screenshots" class="form-control" rows="3" placeholder="每行一个图片URL：&#10;https://example.com/preview1.jpg&#10;/skin/default/preview1.jpg">{if condition="$info"}{if is_string($info.screenshots)}{$info.screenshots}{elseif is_array($info.screenshots) && !empty($info.screenshots)}{:implode("&#10;", array_filter($info.screenshots))}{/if}{/if}</textarea>
                         <small class="text-muted">每行一个图片URL，用于模板详情页预览展示</small>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">商店首页轮播Banner图</label>
+                        <div class="input-group">
+                            <input type="text" name="banner_url" id="bannerUrl" class="form-control" value="{$info.banner_url ?? ''}" placeholder="请输入图片URL或上传">
+                            <button type="button" class="btn btn-outline-secondary" onclick="selectBanner()"><i class="bi bi-image"></i> 选择图片</button>
+                        </div>
+                        <div class="mt-2" id="bannerPreview">
+                            {if condition="($info.banner_url ?? '')"}
+                            <img src="{$info.banner_url}" class="img-thumbnail" style="max-height:150px">
+                            {/if}
+                        </div>
+                        <small class="text-muted">推荐尺寸 1140×280，用于商店首页顶部轮播展示</small>
+                    </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card bg-light mb-3">
                         <div class="card-header py-2"><i class="bi bi-gear me-1"></i>基本设置</div>
                         <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">推荐到商店首页</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_recommended" value="1" id="isRecommended" {if condition="($info.is_recommended ?? 0) == 1"}checked{/if}>
+                                    <label class="form-check-label" for="isRecommended">开启后将在商店首页轮播展示</label>
+                                </div>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label">售价</label>
                                 <div class="input-group">
@@ -117,4 +137,27 @@
         </form>
     </div>
 </div>
+{/block}
+
+{block name="js"}
+<script>
+$('#storeForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+
+function selectBanner() {
+    window.open('/admin/media/select?filetype=image', 'mediaSelect', 'width=900,height=600');
+}
+
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.mceAction === 'insertContent' && e.data.content) {
+        var url = e.data.content.match(/src="([^"]+)"/);
+        if (url && url[1]) {
+            $('#bannerUrl').val(url[1]);
+            $('#bannerPreview').html('<img src="' + url[1] + '" class="img-thumbnail" style="max-height:150px">');
+        }
+    }
+});
+</script>
 {/block}
