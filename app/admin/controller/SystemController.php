@@ -26,6 +26,87 @@ use app\common\service\TemplateService;
 class SystemController extends AdminBaseController
 {
     /**
+     * V2.9.23 A-4: 模板缓存管理页面
+     */
+    public function cache()
+    {
+        $this->app->view->assign('menuActive', 'system');
+
+        $cacheService = new \app\common\service\TemplateCacheService();
+        $stats = $cacheService->getStats();
+
+        // 处理POST请求：一键清除缓存
+        if ($this->request->isPost()) {
+            $action = $this->request->post('action');
+            if ($action === 'clear_all') {
+                $result = $cacheService->clearAll();
+                $this->app->view->assign('clearResult', $result);
+                if ($result['success']) {
+                    $this->app->view->assign('success', '已清除 ' . $result['count'] . ' 个模板缓存文件');
+                } else {
+                    $this->app->view->assign('error', '清除缓存时发生错误');
+                }
+            } elseif ($action === 'check') {
+                $checkResult = $cacheService->checkAndClear();
+                $this->app->view->assign('checkResult', $checkResult);
+                $changedCount = count($checkResult['changed']);
+                if ($changedCount > 0) {
+                    $this->app->view->assign('success', '检测到 ' . $changedCount . ' 个模板文件变更，已自动清除对应缓存');
+                } else {
+                    $this->app->view->assign('success', '模板文件未检测到变更');
+                }
+            }
+            // 清除后重新获取统计
+            $stats = $cacheService->getStats();
+        }
+
+        $this->app->view->assign('stats', $stats);
+        return $this->view('system_cache');
+    }
+
+    /**
+     * V2.9.23 A-4: AJAX接口 - 检查模板变更并自动清除缓存
+     */
+    public function checkTemplateCache()
+    {
+        if (!$this->request->isAjax()) {
+            return json(['code' => 403, 'msg' => '非法请求']);
+        }
+
+        $cacheService = new \app\common\service\TemplateCacheService();
+        $result = $cacheService->checkAndClear();
+
+        return json([
+            'code' => 0,
+            'msg' => 'success',
+            'data' => [
+                'changed_count' => count($result['changed']),
+                'cleared_count' => count($result['cleared']),
+                'changed_files' => $result['changed'],
+            ],
+        ]);
+    }
+
+    /**
+     * V2.9.23 A-4: AJAX接口 - 一键清除所有模板缓存
+     */
+    public function clearTemplateCacheAjax()
+    {
+        if (!$this->request->isAjax()) {
+            return json(['code' => 403, 'msg' => '非法请求']);
+        }
+
+        $cacheService = new \app\common\service\TemplateCacheService();
+        $result = $cacheService->clearAll();
+
+        return json([
+            'code' => $result['success'] ? 0 : 500,
+            'msg' => $result['success'] ? '已清除 ' . $result['count'] . ' 个缓存文件' : '清除失败',
+            'data' => $result,
+        ]);
+    }
+
+    /**
      * V2.9.10: AI配置中心（3Tab独立页面，含子分组）
      */
     public function aiConfig()

@@ -24,6 +24,11 @@
 {empty name="list"}<div class="cm-empty"><i class="bi bi-inbox"></i><p>暂无相关内容</p></div>{/empty}
 
 {if condition="($list->hasPages() ?? false)"}<div class="m-pagination">{$list->render()|raw}</div>{/if}
+</div>
+
+<!-- V2.9.23 E-3: 下拉刷新容器 -->
+<div id="ptrContainer" style="position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+</div>
 {/block}
 
 {block name="js"}
@@ -36,6 +41,20 @@ if (window.MobileEnhance && document.querySelector('.m-pagination')) {
         itemSelector: '.cm-card'
     });
     document.querySelector('.m-pagination').style.display = 'none';
+}
+<!-- V2.9.23 E-3: 下拉刷新 -->
+<script src="/static/mobile/js/pull_to_refresh.js"></script>
+<script>
+if (document.querySelector('.cm-card') && 'ontouchstart' in window) {
+    new PullToRefresh({
+        container: '#ptrContainer',
+        onRefresh: function() {
+            return new Promise(function(resolve) {
+                window.location.reload();
+                resolve();
+            });
+        }
+    });
 }
 </script>
 {/block}

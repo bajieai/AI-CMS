@@ -1,39 +1,76 @@
 {extend name="layout" /}
 
-{block name="title"}模板市场{/block}
+{block name="title"}模板商店{/block}
 
 {block name="breadcrumb"}
 <li class="breadcrumb-item">平台扩展</li>
-<li class="breadcrumb-item active">模板市场</li>
+<li class="breadcrumb-item active">模板商店</li>
 {/block}
 
 {block name="content"}
-<!-- 推荐模板 -->
+<!-- V2.9.23 B-3: 模板商店首页（corporate销售型商店） -->
+
+<!-- 轮播推荐位 -->
 {if condition="count($featured) > 0"}
-<div class="mb-4">
-    <h5 class="mb-3"><i class="bi bi-stars text-warning me-1"></i>推荐模板</h5>
-    <div class="row row-cols-1 row-cols-md-3 g-3">
-        {volist name="featured" id="vo"}
-        <div class="col">
-            <div class="card h-100 border-primary border-opacity-25">
-                <div class="position-relative">
-                    {if condition="$vo.screenshots"}
-                    <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:160px;object-fit:cover;" alt="{$vo.name}">
-                    {else/}
-                    <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;"><i class="bi bi-image text-muted fs-1"></i></div>
-                    {/if}
-                    <span class="position-absolute top-0 end-0 m-2 badge bg-primary">推荐</span>
-                </div>
-                <div class="card-body">
-                    <h6 class="card-title mb-1">{$vo.name}</h6>
-                    <p class="text-muted small mb-2 text-truncate">{$vo.description}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-warning small"><i class="bi bi-star-fill"></i> {$vo.rating_avg} <span class="text-muted">({$vo.rating_count})</span></span>
-                        <span class="fw-medium text-danger">{if condition="$vo.price > 0"}¥{$vo.price}{else/}<span class="badge bg-success">免费</span>{/if}</span>
+<div id="featuredCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {volist name="featured" id="vo" key="k"}
+        <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="{$k-1}" {if condition="$k == 1"}class="active"{/if}></button>
+        {/volist}
+    </div>
+    <div class="carousel-inner rounded-3 overflow-hidden" style="max-height:280px;">
+        {volist name="featured" id="vo" key="k"}
+        <div class="carousel-item {if condition="$k == 1"}active{/if}">
+            <div class="position-relative">
+                {if condition="$vo.banner_url"}
+                <img src="{$vo.banner_url}" class="d-block w-100" style="height:280px;object-fit:cover;" alt="{$vo.name}">
+                {else /}
+                <div class="d-flex align-items-center justify-content-center" style="height:280px;background:linear-gradient(135deg,#1a237e,#3949ab);">
+                    <div class="text-center text-white">
+                        <h3>{$vo.name}</h3>
+                        <p class="mb-0">{$vo.description|mb_substr=0,60}</p>
                     </div>
                 </div>
-                <div class="card-footer bg-white border-top-0">
-                    <a href="/admin/template_store/detail/{$vo.id}" class="btn btn-outline-primary btn-sm w-100">查看详情</a>
+                {/if}
+                <div class="carousel-caption d-none d-md-block" style="background:rgba(0,0,0,0.4);border-radius:8px;padding:12px;">
+                    <h5>{$vo.name}</h5>
+                    <p class="mb-2">{$vo.description|mb_substr=0,40}</p>
+                    <a href="/admin/template_store/detail/{$vo.id}" class="btn btn-light btn-sm">查看详情</a>
+                </div>
+            </div>
+        </div>
+        {/volist}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+    <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+</div>
+{/if}
+
+<!-- 热门模板 -->
+{if condition="count($hotTemplates) > 0"}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="bi bi-fire text-danger me-1"></i>热门模板</h5>
+        <a href="/admin/template_store/market?sort=install_count" class="small text-decoration-none">查看更多 <i class="bi bi-chevron-right"></i></a>
+    </div>
+    <div class="row row-cols-2 row-cols-md-4 g-3">
+        {volist name="hotTemplates" id="vo"}
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm template-card">
+                <div class="position-relative">
+                    {if condition="$vo.screenshots"}
+                    <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:120px;object-fit:cover;" alt="{$vo.name}">
+                    {else/}
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height:120px;"><i class="bi bi-image text-muted fs-1"></i></div>
+                    {/if}
+                    {if condition="$vo.is_featured == 1"}<span class="position-absolute top-0 end-0 m-1 badge bg-primary">推荐</span>{/if}
+                </div>
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 small">{$vo.name}</h6>
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <span class="text-warning"><i class="bi bi-star-fill"></i> {$vo.rating_avg}</span>
+                        <span class="text-muted"><i class="bi bi-download me-1"></i>{if $vo.install_count > 1000}{:round($vo.install_count/1000,1)}k{else /}{$vo.install_count}{/if}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,7 +122,7 @@
 <div class="row row-cols-1 row-cols-md-4 g-3">
     {volist name="list" id="vo"}
     <div class="col">
-        <div class="card h-100">
+        <div class="card h-100 border-0 shadow-sm template-card">
             <div class="position-relative">
                 {if condition="$vo.screenshots"}
                 <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:140px;object-fit:cover;" alt="{$vo.name}">
@@ -93,6 +130,7 @@
                 <div class="bg-light d-flex align-items-center justify-content-center" style="height:140px;"><i class="bi bi-image text-muted fs-1"></i></div>
                 {/if}
                 {if condition="$vo.is_featured == 1"}<span class="position-absolute top-0 end-0 m-2 badge bg-primary">推荐</span>{/if}
+                {if condition="$vo.price == 0"}<span class="position-absolute top-0 start-0 m-2 badge bg-success">免费</span>{/if}
             </div>
             <div class="card-body">
                 <h6 class="card-title mb-1">{$vo.name}</h6>
@@ -110,7 +148,11 @@
     </div>
     {/volist}
     {empty name="list"}
-    <div class="col-12 text-center text-muted py-5">暂无符合条件的模板</div>
+    <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-search fs-1"></i>
+        <p class="mt-2">暂无符合条件的模板</p>
+        <a href="/admin/template_store/market" class="btn btn-outline-primary btn-sm">查看全部</a>
+    </div>
     {/empty}
 </div>
 
@@ -125,4 +167,11 @@
     </ul>
 </nav>
 {/if}
+{/block}
+
+{block name="style"}
+<style>
+.template-card { transition: transform .2s, box-shadow .2s; }
+.template-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important; }
+</style>
 {/block}

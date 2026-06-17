@@ -1,6 +1,6 @@
 /**
- * V2.9.21 D-5: 模板安装交互增强
- * 功能：安装进度动画、错误重试、状态提示
+ * V2.9.23 B-2: 模板安装交互增强（含步骤进度可视化）
+ * 功能：安装进度动画、步骤提示、错误重试、状态提示
  */
 (function() {
     'use strict';
@@ -35,6 +35,119 @@
                     $btn.prop('disabled', false).html('<i class="bi bi-download me-1"></i>安装');
                 }
             });
+        },
+
+        /**
+         * V2.9.23 B-2: 增强版安装（含步骤进度可视化）
+         * @param {number} templateId 模板ID
+         * @param {string} templateName 模板名称
+         * @param {HTMLElement} btn 触发按钮
+         */
+        doInstallEnhanced: function(templateId, templateName, btn) {
+            if (!templateId) return;
+
+            var $btn = btn ? $(btn) : null;
+            var steps = ['准备安装', '下载模板文件', '解压模板包', '注册到系统', '激活模板'];
+            var $modal = TemplateInstall.showProgressModal(templateName, steps);
+
+            if ($btn) {
+                $btn.prop('disabled', true);
+            }
+
+            TemplateInstall.updateProgress($modal, 0, '准备安装...');
+
+            setTimeout(function() {
+                TemplateInstall.updateProgress($modal, 1, '下载模板文件...');
+
+                $.post('/admin/template_install/doInstall/' + templateId, function(res) {
+                    if (res.code === 0) {
+                        TemplateInstall.updateProgress($modal, 2, '解压模板包...');
+                        setTimeout(function() {
+                            TemplateInstall.updateProgress($modal, 3, '注册到系统...');
+                            setTimeout(function() {
+                                TemplateInstall.updateProgress($modal, 4, '激活模板...');
+                                setTimeout(function() {
+                                    TemplateInstall.closeProgress($modal);
+                                    TemplateInstall.showToast('模板「' + templateName + '」安装成功', 'success');
+                                    setTimeout(function() { location.reload(); }, 800);
+                                }, 500);
+                            }, 500);
+                        }, 500);
+                    } else {
+                        TemplateInstall.closeProgress($modal);
+                        TemplateInstall.showToast(res.msg || '安装失败', 'error');
+                        if ($btn) {
+                            $btn.prop('disabled', false).html('<i class="bi bi-download me-1"></i>重新安装');
+                        }
+                    }
+                }).fail(function() {
+                    TemplateInstall.closeProgress($modal);
+                    TemplateInstall.showToast('网络错误，请重试', 'error');
+                    if ($btn) {
+                        $btn.prop('disabled', false).html('<i class="bi bi-download me-1"></i>安装');
+                    }
+                });
+            }, 300);
+        },
+
+        /**
+         * 显示进度弹窗
+         */
+        showProgressModal: function(templateName, steps) {
+            var html = '<div class="modal fade" id="installProgressModal" tabindex="-1" data-bs-backdrop="static">' +
+                '<div class="modal-dialog modal-dialog-centered">' +
+                '<div class="modal-content">' +
+                '<div class="modal-header">' +
+                '<h5 class="modal-title"><i class="bi bi-download me-1"></i>安装「' + (templateName || '模板') + '」</h5>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                '<div class="progress mb-3" style="height:8px;">' +
+                '<div class="progress-bar progress-bar-striped progress-bar-animated" id="installProgressBar" style="width:0%"></div>' +
+                '</div>' +
+                '<div id="installStepList">';
+
+            for (var i = 0; i < steps.length; i++) {
+                html += '<div class="d-flex align-items-center mb-2 step-item" data-step="' + i + '">' +
+                    '<span class="badge bg-secondary me-2 step-badge">' + (i + 1) + '</span>' +
+                    '<span class="step-text">' + steps[i] + '</span>' +
+                    '</div>';
+            }
+
+            html += '</div></div></div></div></div>';
+
+            $('body').append(html);
+            var $modal = $('#installProgressModal');
+            $modal.modal('show');
+            return $modal;
+        },
+
+        /**
+         * 更新进度
+         */
+        updateProgress: function($modal, stepIndex, message) {
+            var totalSteps = $modal.find('.step-item').length;
+            var percent = ((stepIndex + 1) / totalSteps) * 100;
+
+            $modal.find('#installProgressBar').css('width', percent + '%');
+            $modal.find('.step-item').each(function() {
+                var idx = parseInt($(this).data('step'));
+                var $badge = $(this).find('.step-badge');
+                if (idx < stepIndex) {
+                    $badge.removeClass('bg-secondary').addClass('bg-success');
+                    $badge.html('<i class="bi bi-check-lg"></i>');
+                } else if (idx === stepIndex) {
+                    $badge.removeClass('bg-secondary').addClass('bg-primary');
+                    $badge.html('<span class="spinner-border spinner-border-sm"></span>');
+                }
+            });
+        },
+
+        /**
+         * 关闭进度弹窗
+         */
+        closeProgress: function($modal) {
+            $modal.modal('hide');
+            setTimeout(function() { $modal.remove(); }, 300);
         },
 
         /**

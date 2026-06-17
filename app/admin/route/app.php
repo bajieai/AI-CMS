@@ -95,8 +95,10 @@ Route::rule('user/edit/:id$', '\app\admin\controller\UserController@edit', 'GET|
 Route::post('user/delete/:id$', '\app\admin\controller\UserController@delete');
 Route::rule('user/profile$', '\app\admin\controller\UserController@profile', 'GET|POST');
 
-// 系统设置
-Route::rule('system/config$', '\app\admin\controller\SystemController@config', 'GET|POST');
+// V2.9.23 A-4: 模板缓存管理
+Route::rule('system/cache$', '\app\admin\controller\SystemController@cache', 'GET|POST');
+Route::post('system/checkTemplateCache$', '\app\admin\controller\SystemController@checkTemplateCache');
+Route::post('system/clearTemplateCache$', '\app\admin\controller\SystemController@clearTemplateCacheAjax');
 Route::rule('system/customVar$', '\app\admin\controller\SystemController@customVar', 'GET|POST');
 Route::post('system/customVarSave$', '\app\admin\controller\SystemController@customVarSave');
 Route::post('system/customVarDelete$', '\app\admin\controller\SystemController@customVarDelete');

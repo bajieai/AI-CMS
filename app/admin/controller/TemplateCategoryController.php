@@ -77,7 +77,7 @@ class TemplateCategoryController extends AdminBaseController
      */
     public function edit(int $id = 0)
     {
-        $category = $id ? TemplateCategory::find($id) : [];
+        $category = $id ? TemplateCategory::find($id) : null;
         // 父级分类列表（按维度分组）
         $parentOptions = [];
         foreach (TemplateCategory::$typeMap as $t => $label) {
@@ -89,7 +89,7 @@ class TemplateCategoryController extends AdminBaseController
             $parentOptions[$t] = $parents;
         }
 
-        $this->assign('category', $category ?: []);
+        $this->assign('category', $category);
         $this->assign('typeMap', TemplateCategory::$typeMap);
         $this->assign('parentOptions', $parentOptions);
         return $this->view('/template_category_form');

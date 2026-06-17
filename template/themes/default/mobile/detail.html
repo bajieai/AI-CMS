@@ -58,7 +58,10 @@
     {/if}
 
     <!-- V2.9.20 A-3: 内容模型差异化片段 -->
-    {if condition="$model_partial"}
+    <!-- V2.9.23 E-1: 移动端优先使用 mobile_model_partial -->
+    {if condition="$mobile_model_partial"}
+        {include file="$mobile_model_partial" /}
+    {elseif condition="$model_partial"}
         {include file="$model_partial" /}
     {/if}
 

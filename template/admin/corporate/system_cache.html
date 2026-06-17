@@ -1,0 +1,146 @@
+{extend name="layout" /}
+
+{block name="title"}模板缓存管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">模板缓存管理</li>
+{/block}
+
+{block name="content"}
+<!-- V2.9.23 A-4: 模板缓存管理页面 (corporate) -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <span class="fw-bold"><i class="bi bi-speedometer2 me-2 text-primary"></i>模板缓存统计</span>
+                <span class="badge bg-primary rounded-pill">V2.9.23 A-4</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h3 class="text-primary mb-1 fw-bold">{$stats.template_files}</h3>
+                            <small class="text-muted">监控模板文件</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h3 class="text-info mb-1 fw-bold">{$stats.compile_cache_files}</h3>
+                            <small class="text-muted">编译缓存文件</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h3 class="text-success mb-1 fw-bold">{$stats.compile_cache_size_human}</h3>
+                            <small class="text-muted">缓存总大小</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-folder-check me-2 text-primary"></i>监控目录
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>目录</th>
+                            <th class="text-end">模板文件数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="stats.watch_dirs" id="dir"}
+                        <tr>
+                            <td><code class="bg-light px-2 py-1 rounded">{$dir.path}</code></td>
+                            <td class="text-end"><span class="badge bg-secondary">{$dir.file_count}</span></td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-tools me-2 text-primary"></i>缓存操作
+            </div>
+            <div class="card-body">
+                {if condition="isset($success)"}
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle me-1"></i>{$success}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {/if}
+                {if condition="isset($error)"}
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{$error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {/if}
+
+                <form method="post" action="/admin/system/cache" class="mb-3">
+                    <input type="hidden" name="action" value="check">
+                    <button type="submit" class="btn btn-outline-primary w-100 rounded-3">
+                        <i class="bi bi-search me-1"></i>检查模板变更
+                    </button>
+                    <small class="text-muted d-block mt-2">扫描模板文件MD5，自动清除变更文件的缓存</small>
+                </form>
+
+                <form method="post" action="/admin/system/cache" onsubmit="return confirm('确定要清除所有模板编译缓存吗？');">
+                    <input type="hidden" name="action" value="clear_all">
+                    <button type="submit" class="btn btn-danger w-100 rounded-3">
+                        <i class="bi bi-trash me-1"></i>一键清除所有缓存
+                    </button>
+                    <small class="text-muted d-block mt-2">清除所有模板编译缓存，下次访问时重新编译</small>
+                </form>
+            </div>
+        </div>
+
+        {if condition="isset($checkResult)"}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-clipboard-check me-2 text-primary"></i>检查结果
+            </div>
+            <div class="card-body">
+                <p>变更文件: <strong>{:count($checkResult.changed)}</strong></p>
+                <p>已清除缓存: <strong>{:count($checkResult.cleared)}</strong></p>
+                {if condition="count($checkResult.changed) > 0"}
+                <ul class="list-group list-group-flush mt-2">
+                    {volist name="checkResult.changed" id="file"}
+                    <li class="list-group-item py-1"><small><code>{$file}</code></small></li>
+                    {/volist}
+                </ul>
+                {/if}
+            </div>
+        </div>
+        {/if}
+
+        {if condition="isset($clearResult)"}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-trash me-2 text-primary"></i>清除结果
+            </div>
+            <div class="card-body">
+                <p>已清除: <strong>{$clearResult.count}</strong> 个文件</p>
+                {if condition="count($clearResult.errors) > 0"}
+                <div class="alert alert-warning mt-2">
+                    <p class="mb-1"><i class="bi bi-exclamation-triangle me-1"></i>以下文件清除失败:</p>
+                    <ul class="mb-0">
+                        {volist name="clearResult.errors" id="err"}
+                        <li><small>{$err}</small></li>
+                        {/volist}
+                    </ul>
+                </div>
+                {/if}
+            </div>
+        </div>
+        {/if}
+    </div>
+</div>
+{/block}

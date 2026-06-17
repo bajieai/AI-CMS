@@ -398,7 +398,7 @@ class TemplateStoreController extends AdminBaseController
     // ============================================================
 
     /**
-     * 模板市场（网站主-卡片列表）
+     * V2.9.23 B-3: 模板商店首页（增强版）
      */
     public function market()
     {
@@ -406,7 +406,13 @@ class TemplateStoreController extends AdminBaseController
         $params = $this->request->get();
         $data = $service->getList($params);
         $categories = $service->getCategories();
-        $featured = $service->getFeatured(6);
+        $featured = $service->getFeatured(5);
+
+        // V2.9.23 B-3: 热门模板（按安装量排行）
+        $hotTemplates = \app\common\model\TemplateStore::where('status', 1)
+            ->order('install_count DESC, rating_avg DESC')
+            ->limit(8)
+            ->select();
 
         $this->assign([
             'list' => $data['list'],
@@ -416,6 +422,7 @@ class TemplateStoreController extends AdminBaseController
             'pages' => $data['pages'],
             'categories' => $categories,
             'featured' => $featured,
+            'hotTemplates' => $hotTemplates,
             'params' => $params,
         ]);
 

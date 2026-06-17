@@ -56,5 +56,7 @@ return [
         'push:retry'            => 'app\common\command\PushRetryCommand',
         // V2.9.20 C-2: 邮件失败重试命令
         'mail:retry'            => 'app\common\command\MailRetry',
+        // V2.9.23 D-1: 插件管理CLI
+        'plugin'                => 'app\admin\command\PluginCommand',
     ],
 ];

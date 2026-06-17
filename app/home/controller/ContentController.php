@@ -168,11 +168,19 @@ class ContentController extends FrontBaseController
         }
 
         // V2.9.20 A-3: 内容模型差异化片段路径
+        // V2.9.23 E-1: 移动端详情模板差异化
         $modelPartial = '';
+        $mobileModelPartial = '';
         if ($info->model_id > 0) {
             $contentModel = \app\common\model\ContentModel::find($info->model_id);
             if ($contentModel && !empty($contentModel->code)) {
                 $modelPartial = '_partials/detail_' . $contentModel->code;
+                // 检查是否存在移动端专用模板
+                $themePath = config('view.view_path') ?: root_path() . 'template/themes/' . config('view.theme', 'default') . '/';
+                $mobilePartialPath = $themePath . 'mobile/_partials/mobile_detail_' . $contentModel->code . '.html';
+                if (file_exists($mobilePartialPath)) {
+                    $mobileModelPartial = '_partials/mobile_detail_' . $contentModel->code;
+                }
             }
         }
 
@@ -196,6 +204,8 @@ class ContentController extends FrontBaseController
             'current_lang'  => $lang,
             'content_langs' => $contentLangs,
             'model_partial' => $modelPartial,
+            // V2.9.23 E-1: 移动端详情差异化
+            'mobile_model_partial' => $mobileModelPartial,
         ]);
 
         return $this->view('/detail');

@@ -22,7 +22,7 @@
 {$cate_tree_html|raw}
 
 <!-- 内容列表 -->
-<div class="m-card-list">
+<div class="m-card-list" id="mCardList">
 {volist name="list" id="vo"}
 {switch vo.type}
     {case 1}{include file="_partials/list_item_product" /}{/case}
@@ -56,6 +56,25 @@ if (window.MobileEnhance && document.querySelector('.m-pagination')) {
     });
     // 隐藏传统分页，使用无限滚动替代
     document.querySelector('.m-pagination').style.display = 'none';
+}
+<!-- V2.9.23 E-3: 下拉刷新 -->
+<script src="/static/mobile/js/pull_to_refresh.js"></script>
+<script>
+if (document.querySelector('.m-card-list') && 'ontouchstart' in window) {
+    new PullToRefresh({
+        container: '#mCardList',
+        onRefresh: function() {
+            return new Promise(function(resolve, reject) {
+                var nextLink = document.querySelector('.m-pagination a[rel="next"]');
+                if (nextLink) {
+                    window.location.href = nextLink.href;
+                } else {
+                    window.location.reload();
+                    resolve();
+                }
+            });
+        }
+    });
 }
 </script>
 {/block}

@@ -1,13 +1,15 @@
 /**
- * Service Worker - V2.9.2 M22a
- * 预缓存 + StaleWhileRevalidate策略
+ * Service Worker - V2.9.23 E-2
+ * PWA离线缓存优化：版本升级 + 智能缓存策略
  */
-const CACHE_NAME = 'ai-cms-v1';
+const CACHE_NAME = 'ai-cms-v2';
 const STATIC_ASSETS = [
     '/',
     '/assets/css/bootstrap.min.css',
     '/assets/js/bootstrap.bundle.min.js',
     '/assets/js/jquery.min.js',
+    '/assets/css/mobile.css',
+    '/assets/js/mobile.js',
 ];
 
 // 安装：预缓存静态资源
@@ -21,7 +23,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 激活：清理旧缓存
+// 激活：清理旧缓存（V2.9.23 E-2：清理v1旧缓存）
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -36,7 +38,7 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// 接收页面消息（登录/登出后清除缓存、强制更新）
+// 接收页面消息
 self.addEventListener('message', (event) => {
     if (!event.data) return;
     if (event.data.type === 'SKIP_WAITING') {
@@ -65,11 +67,21 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // 图片资源：Cache First
+    // 图片资源：Cache First + 30天过期
     if (request.destination === 'image') {
         event.respondWith(
             caches.match(request).then((response) => {
-                return response || fetch(request).then((fetchResponse) => {
+                if (response) {
+                    // 检查缓存是否过期（30天）
+                    const dateHeader = response.headers.get('date');
+                    if (dateHeader) {
+                        const age = (Date.now() - new Date(dateHeader).getTime()) / (1000 * 60 * 60 * 24);
+                        if (age < 30) return response;
+                    } else {
+                        return response;
+                    }
+                }
+                return fetch(request).then((fetchResponse) => {
                     return caches.open(CACHE_NAME).then((cache) => {
                         cache.put(request, fetchResponse.clone());
                         return fetchResponse;
@@ -90,10 +102,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // 页面请求：Network First（优先网络，确保登录状态等动态内容始终最新）
-    // V2.9.4 修复：原 StaleWhileRevalidate 会先返回旧缓存（含游客版本），
-    // 导致用户登录后首次访问已缓存页面时仍显示未登录状态。改为 Network First
-    // 后，在线时总是获取最新内容；离线时回退到缓存。
+    // 页面请求：Network First（优先网络，确保动态内容最新）
     if (request.mode === 'navigate' || request.destination === 'document') {
         event.respondWith(
             fetch(request).then((networkResponse) => {
@@ -105,7 +114,6 @@ self.addEventListener('fetch', (event) => {
                 }
                 return networkResponse;
             }).catch(() => {
-                // 网络失败时回退缓存
                 return caches.match(request).then((cachedResponse) => {
                     return cachedResponse || new Response('<h1>离线模式</h1><p>您当前处于离线状态，请连接网络后重试。</p>', {
                         headers: { 'Content-Type': 'text/html' }
