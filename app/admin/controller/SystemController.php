@@ -62,7 +62,7 @@ class SystemController extends AdminBaseController
         }
 
         $this->app->view->assign('stats', $stats);
-        return $this->view('system_cache');
+        return $this->view('/system_cache');
     }
 
     /**
@@ -869,7 +869,7 @@ class SystemController extends AdminBaseController
             'interval_hours' => (int)$this->request->post('auto_clean_interval', 24),
         ];
 
-        $service = new TemplateCacheService();
+        $service = new \app\common\service\TemplateCacheService();
         $service->saveAutoCleanConfig($data);
         $this->recordLog('保存缓存自动清理策略', json_encode($data));
         return $this->success('配置已保存');
@@ -880,7 +880,7 @@ class SystemController extends AdminBaseController
      */
     public function resetHitRate()
     {
-        $service = new TemplateCacheService();
+        $service = new \app\common\service\TemplateCacheService();
         $service->resetHitRate();
         $this->recordLog('重置缓存命中率统计');
         return $this->success('命中率统计已重置');

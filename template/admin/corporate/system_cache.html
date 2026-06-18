@@ -114,6 +114,7 @@
                 {/if}
 
                 <form method="post" action="/admin/system/cache" class="mb-3">
+                    {:token_field()}
                     <input type="hidden" name="action" value="check">
                     <button type="submit" class="btn btn-outline-primary w-100 rounded-3">
                         <i class="bi bi-search me-1"></i>检查模板变更
@@ -122,6 +123,7 @@
                 </form>
 
                 <form method="post" action="/admin/system/cache" onsubmit="return confirm('确定要清除所有模板编译缓存吗？');">
+                    {:token_field()}
                     <input type="hidden" name="action" value="clear_all">
                     <button type="submit" class="btn btn-danger w-100 rounded-3">
                         <i class="bi bi-trash me-1"></i>一键清除所有缓存
@@ -166,7 +168,7 @@
                     <small class="text-muted">{:date('m-d H:i',$log.create_time)}</small>
                 </div>
                 {/volist}
-                {if $stats.recent_logs|count == 0}
+                {if count($stats['recent_logs'] ?? []) == 0}
                 <small class="text-muted">暂无操作记录</small>
                 {/if}
             </div>
@@ -215,21 +217,25 @@
 
 {block name="js"}
 <script>
+var csrfToken = $('[name=__token__]').val();
+
 $('#btnResetHitRate').click(function(){
-    $.post('/admin/system/resetHitRate', function(res){
-        if(res.code===1){ layer.msg(res.msg); setTimeout(()=>location.reload(),500); }
+    $.post('/admin/system/resetHitRate', {__token__: csrfToken}, function(res){
+        if(res.code===0){ layer.msg(res.msg); setTimeout(()=>location.reload(),500); }
+        else { layer.msg(res.msg||'操作失败'); if(res.data && res.data.token) csrfToken=res.data.token; }
     });
 });
 $('#autoCleanForm').on('submit', function(e){
     e.preventDefault();
     var data = {
+        __token__: csrfToken,
         auto_clean_enabled: $('#autoCleanEnabled').is(':checked') ? 1 : 0,
         auto_clean_max_size: $('input[name=auto_clean_max_size]').val(),
         auto_clean_interval: $('input[name=auto_clean_interval]').val()
     };
     $.post('/admin/system/saveCacheConfig', data, function(res){
-        if(res.code===1){ layer.msg(res.msg); }
-        else { layer.msg(res.msg||'保存失败'); }
+        if(res.code===0){ layer.msg(res.msg); }
+        else { layer.msg(res.msg||'保存失败'); if(res.data && res.data.token) csrfToken=res.data.token; }
     });
 });
 </script>

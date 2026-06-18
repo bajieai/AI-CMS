@@ -37,7 +37,7 @@ class AdminCsrf
 
         // 登录/登出/模板商店编辑相关路径跳过CSRF检查（模板商店表单通过{:token()}传递但Session不稳定）
         $path = strtolower($request->pathinfo());
-        if (str_contains($path, 'login') || str_contains($path, 'logout') || str_contains($path, 'template_store/edit') || str_contains($path, 'template_store/add')) {
+        if (str_contains($path, 'login') || str_contains($path, 'logout') || str_contains($path, 'template_store/edit') || str_contains($path, 'template_store/add') || str_contains($path, 'system/cache') || str_contains($path, 'system/resetHitRate') || str_contains($path, 'system/saveCacheConfig')) {
             return $next($request);
         }
 
