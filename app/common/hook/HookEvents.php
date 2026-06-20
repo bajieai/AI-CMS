@@ -21,14 +21,13 @@ namespace app\common\hook;
  * - 常量名：{MODULE}_{ACTION}，全大写下划线分割
  * - 事件标识：{module}.{action}，全小写点号分割
  *
- * 事件分类（共 28 个）：
+ * 事件分类（共 29 个）：
  * - 内容模块（9个）
  * - 用户模块（3个）
- * - 模板模块（4个）
+ * - 模板模块（5个）
  * - 缓存模块（3个）
- * - 插件模块（6个）
+ * - 插件模块（7个）
  * - 系统配置模块（2个）
- * - 模板渲染模块（1个）
  */
 class HookEvents
 {
@@ -48,9 +47,10 @@ class HookEvents
     const USER_AFTER_REGISTER = 'user.after_register';
     const USER_BEFORE_LOGOUT  = 'user.before_logout';
 
-    // ─── 模板模块（4个） ───
+    // ─── 模板模块（5个） ───
     const TEMPLATE_BEFORE_RENDER    = 'template.before_render';
     const TEMPLATE_AFTER_RENDER     = 'template.after_render';
+    const TEMPLATE_BEFORE_INSTALL   = 'template.before_install';
     const TEMPLATE_AFTER_INSTALL    = 'template.after_install';
     const TEMPLATE_AFTER_UNINSTALL  = 'template.after_uninstall';
 
@@ -59,13 +59,14 @@ class HookEvents
     const CACHE_AFTER_HIT   = 'cache.after_hit';
     const CACHE_AFTER_MISS  = 'cache.after_miss';
 
-    // ─── 插件模块（6个） ───
+    // ─── 插件模块（7个） ───
     const PLUGIN_BEFORE_ENABLE    = 'plugin.before_enable';
     const PLUGIN_AFTER_ENABLE     = 'plugin.after_enable';
     const PLUGIN_BEFORE_DISABLE   = 'plugin.before_disable';
     const PLUGIN_AFTER_DISABLE    = 'plugin.after_disable';
     const PLUGIN_BEFORE_UNINSTALL = 'plugin.before_uninstall';
     const PLUGIN_AFTER_UNINSTALL  = 'plugin.after_uninstall';
+    const PLUGIN_AFTER_DOWNLOAD   = 'plugin.after_download';
 
     // ─── 系统配置模块（2个） ───
     const SYSTEM_CONFIG_BEFORE_UPDATE = 'system.config.before_update';
@@ -107,6 +108,7 @@ class HookEvents
             'template' => [
                 self::TEMPLATE_BEFORE_RENDER,
                 self::TEMPLATE_AFTER_RENDER,
+                self::TEMPLATE_BEFORE_INSTALL,
                 self::TEMPLATE_AFTER_INSTALL,
                 self::TEMPLATE_AFTER_UNINSTALL,
             ],
@@ -122,6 +124,7 @@ class HookEvents
                 self::PLUGIN_AFTER_DISABLE,
                 self::PLUGIN_BEFORE_UNINSTALL,
                 self::PLUGIN_AFTER_UNINSTALL,
+                self::PLUGIN_AFTER_DOWNLOAD,
             ],
             'system' => [
                 self::SYSTEM_CONFIG_BEFORE_UPDATE,
@@ -273,6 +276,16 @@ class HookEvents
                     'html_content' => ['type' => 'string', 'required' => true, 'description' => '渲染后的HTML'],
                 ],
             ],
+            self::TEMPLATE_BEFORE_INSTALL => [
+                'description' => '模板安装前触发（可阻止安装）',
+                'since' => '2.9.26',
+                'supports_block' => true,
+                'parameters' => [
+                    'template_id' => ['type' => 'int', 'required' => true, 'description' => '模板ID'],
+                    'version' => ['type' => 'string', 'required' => false, 'description' => '模板版本'],
+                    'user_id' => ['type' => 'int', 'required' => true, 'description' => '操作人ID'],
+                ],
+            ],
             self::TEMPLATE_AFTER_INSTALL => [
                 'description' => '模板安装完成后触发',
                 'since' => '2.9.25',
@@ -375,6 +388,16 @@ class HookEvents
                 'parameters' => [
                     'plugin_name' => ['type' => 'string', 'required' => true, 'description' => '插件标识'],
                     'version' => ['type' => 'string', 'required' => false, 'description' => '插件版本'],
+                ],
+            ],
+            self::PLUGIN_AFTER_DOWNLOAD => [
+                'description' => '插件下载完成后触发',
+                'since' => '2.9.26',
+                'supports_block' => false,
+                'parameters' => [
+                    'plugin_name' => ['type' => 'string', 'required' => true, 'description' => '插件标识'],
+                    'version' => ['type' => 'string', 'required' => false, 'description' => '插件版本'],
+                    'user_id' => ['type' => 'int', 'required' => false, 'description' => '下载用户ID'],
                 ],
             ],
 

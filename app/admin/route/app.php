@@ -620,6 +620,59 @@ Route::rule('template_store_ops/reviewBatch$', '\app\admin\controller\TemplateSt
 Route::post('template_store_ops/reviewBatchAudit$', '\app\admin\controller\TemplateStoreOpsController@reviewBatchAudit');
 Route::post('template_store_ops/reviewBatchDelete$', '\app\admin\controller\TemplateStoreOpsController@reviewBatchDelete');
 
+// V2.9.26 P-1: AI模板智能推荐系统路由
+Route::get('template_store_ops/recommendRuleIndex$', '\app\admin\controller\TemplateStoreOpsController@recommendRuleIndex');
+Route::rule('template_store_ops/recommendRuleEdit/:id$', '\app\admin\controller\TemplateStoreOpsController@recommendRuleEdit', 'GET|POST');
+Route::post('template_store_ops/recommendRuleDelete/:id$', '\app\admin\controller\TemplateStoreOpsController@recommendRuleDelete');
+Route::post('template_store_ops/recommendRuleToggle/:id$', '\app\admin\controller\TemplateStoreOpsController@recommendRuleToggle');
+Route::get('template_store_ops/recommendStats$', '\app\admin\controller\TemplateStoreOpsController@recommendStats');
+Route::get('template_store_ops/recommendPreview$', '\app\admin\controller\TemplateStoreOpsController@recommendPreview');
+
+// V2.9.26 P-3: 审核流程路由
+Route::get('template_store_ops/auditPending$', '\app\admin\controller\TemplateStoreOpsController@auditPendingList');
+Route::post('template_store_ops/auditApprove/:id$', '\app\admin\controller\TemplateStoreOpsController@auditApprove');
+Route::post('template_store_ops/auditReject/:id$', '\app\admin\controller\TemplateStoreOpsController@auditReject');
+Route::get('template_store_ops/auditHistory/:id$', '\app\admin\controller\TemplateStoreOpsController@auditHistory');
+Route::get('template_store_ops/rejectReasons$', '\app\admin\controller\TemplateStoreOpsController@rejectReasons');
+
+// V2.9.26 P-4: 定价促销路由
+Route::get('template_store_ops/promotionIndex$', '\app\admin\controller\TemplateStoreOpsController@promotionIndex');
+Route::rule('template_store_ops/promotionEdit/:id$', '\app\admin\controller\TemplateStoreOpsController@promotionEdit', 'GET|POST');
+Route::post('template_store_ops/promotionDelete/:id$', '\app\admin\controller\TemplateStoreOpsController@promotionDelete');
+Route::get('template_store_ops/couponIndex$', '\app\admin\controller\TemplateStoreOpsController@couponIndex');
+Route::rule('template_store_ops/couponEdit/:id$', '\app\admin\controller\TemplateStoreOpsController@couponEdit', 'GET|POST');
+Route::post('template_store_ops/couponDelete/:id$', '\app\admin\controller\TemplateStoreOpsController@couponDelete');
+Route::get('template_store_ops/priceHistory/:id$', '\app\admin\controller\TemplateStoreOpsController@priceHistory');
+
+// V2.9.26 P-5/P-6/P-7: 质量+版本+报表路由
+Route::get('template_store_ops/qualityIndex$', '\app\admin\controller\TemplateStoreOpsController@qualityIndex');
+Route::post('template_store_ops/qualityAutoScore/:id$', '\app\admin\controller\TemplateStoreOpsController@qualityAutoScore');
+Route::post('template_store_ops/qualityAddTag/:id$', '\app\admin\controller\TemplateStoreOpsController@qualityAddTag');
+Route::get('template_store_ops/versionHistory/:id$', '\app\admin\controller\TemplateStoreOpsController@versionHistoryPage');
+Route::post('template_store_ops/versionCreate/:id$', '\app\admin\controller\TemplateStoreOpsController@versionCreate');
+Route::post('template_store_ops/versionPublish/:id$', '\app\admin\controller\TemplateStoreOpsController@versionPublish');
+Route::post('template_store_ops/versionRollback/:id$', '\app\admin\controller\TemplateStoreOpsController@versionRollback');
+Route::get('template_store_ops/analyticsDashboard$', '\app\admin\controller\TemplateStoreOpsController@analyticsDashboard');
+Route::get('template_store_ops/analyticsCategory$', '\app\admin\controller\TemplateStoreOpsController@analyticsCategory');
+Route::get('template_store_ops/analyticsExport$', '\app\admin\controller\TemplateStoreOpsController@analyticsExport');
+
+// V2.9.26 R-1~R-5: AI编辑器增强路由
+Route::post('ai_content/continue$', '\app\admin\controller\AiContentController@continueWriting');
+Route::post('ai_content/rewrite$', '\app\admin\controller\AiContentController@rewrite');
+Route::post('ai_content/expand$', '\app\admin\controller\AiContentController@expand');
+Route::post('ai_content/summarize$', '\app\admin\controller\AiContentController@summarize');
+Route::post('ai_translate/batch$', '\app\admin\controller\AiTranslateController@batchTranslateEnhanced');
+Route::get('ai_translate/memoryStats$', '\app\admin\controller\AiTranslateController@memoryStats');
+Route::get('ai_translate/glossaryStats$', '\app\admin\controller\AiTranslateController@glossaryStats');
+Route::get('ai_theme/cssPresets$', '\app\admin\controller\AiThemeController@cssPresets');
+Route::post('ai_theme/generatePreset$', '\app\admin\controller\AiThemeController@generatePreset');
+Route::post('ai_theme/applyCss/:id$', '\app\admin\controller\AiThemeController@applyCss');
+Route::post('ai_seo/analyze$', '\app\admin\controller\AiSeoController@analyze');
+Route::post('ai_seo/keywords$', '\app\admin\controller\AiSeoController@suggestKeywords');
+Route::post('ai_seo/meta$', '\app\admin\controller\AiSeoController@optimizeMeta');
+Route::post('ai_seo/readability$', '\app\admin\controller\AiSeoController@readabilityScore');
+
+
 // V2.9.25 L-2: 插件包管理后台路由
 Route::get('plugin_store/index$', '\app\admin\controller\PluginStoreController@index');
 Route::rule('plugin_store/add$', '\app\admin\controller\PluginStoreController@add', 'GET|POST');

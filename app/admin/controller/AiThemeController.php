@@ -879,4 +879,54 @@ class AiThemeController extends AdminBaseController
         }
         return $this->error($result['message']);
     }
+
+    // ==================== V2.9.26 R-4: AI主题CSS定制 ====================
+
+    /**
+     * 获取CSS预设方案
+     */
+    public function cssPresets()
+    {
+        $service = new \app\common\service\ai\AiThemeCssService();
+        $presets = $service->getPresetSchemes();
+        return json(['code' => 0, 'data' => $presets]);
+    }
+
+    /**
+     * AI生成CSS预设方案
+     */
+    public function generatePreset()
+    {
+        $description = $this->request->post('description', '');
+        $style = $this->request->post('style', 'modern');
+
+        if (empty($description)) {
+            return json(['code' => -1, 'msg' => '请描述主题需求']);
+        }
+
+        $service = new \app\common\service\ai\AiThemeCssService();
+        $result = $service->generatePreset($description, $style);
+
+        return $result['success']
+            ? json(['code' => 0, 'msg' => '方案已生成', 'data' => $result['vars']])
+            : json(['code' => -1, 'msg' => $result['message']]);
+    }
+
+    /**
+     * 应用CSS变量到主题
+     */
+    public function applyCss(int $id)
+    {
+        $vars = $this->request->post('vars', []);
+        if (empty($vars)) {
+            return json(['code' => -1, 'msg' => '请提供CSS变量']);
+        }
+
+        $service = new \app\common\service\ai\AiThemeCssService();
+        $result = $service->applyToTheme($id, $vars);
+
+        return $result['success']
+            ? $this->success($result['message'])
+            : $this->error($result['message']);
+    }
 }

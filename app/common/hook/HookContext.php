@@ -25,7 +25,7 @@ class HookContext
     /** @var string 事件名称 */
     public string $event;
 
-    /** @var int 触发时间戳 */
+    /** @var int 触发时间戳（毫秒级，V2.9.26升级） */
     public int $timestamp;
 
     /** @var array 事件特定数据 */
@@ -58,7 +58,7 @@ class HookContext
     public function __construct(string $event, array $data, array $context = [])
     {
         $this->event = $event;
-        $this->timestamp = time();
+        $this->timestamp = (int)(microtime(true) * 1000);
         $this->data = $data;
         $this->context = array_merge([
             'user_id' => 0,

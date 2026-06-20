@@ -221,4 +221,45 @@ class AiTranslateController extends AdminBaseController
         if (ob_get_level()) { ob_flush(); }
         flush();
     }
+
+    // ==================== V2.9.26 R-2: AI翻译增强 ====================
+
+    /**
+     * 批量翻译增强（含翻译记忆+术语库）
+     */
+    public function batchTranslateEnhanced()
+    {
+        $texts = $this->request->post('texts', []);
+        $sourceLang = $this->request->post('source_lang', 'zh-CN');
+        $targetLang = $this->request->post('target_lang', 'en');
+
+        if (empty($texts) || !is_array($texts)) {
+            return json(['code' => -1, 'msg' => '请提供待翻译文本数组']);
+        }
+
+        $service = new \app\common\service\ai\AiTranslateEnhanceService();
+        $result = $service->batchTranslate($texts, $sourceLang, $targetLang);
+
+        return json(['code' => 0, 'msg' => '翻译完成', 'data' => $result['results']]);
+    }
+
+    /**
+     * 翻译记忆统计
+     */
+    public function memoryStats()
+    {
+        $service = new \app\common\service\ai\AiTranslateEnhanceService();
+        $stats = $service->getMemoryStats();
+        return json(['code' => 0, 'data' => $stats]);
+    }
+
+    /**
+     * 术语库统计
+     */
+    public function glossaryStats()
+    {
+        $service = new \app\common\service\ai\AiTranslateEnhanceService();
+        $stats = $service->getGlossaryStats();
+        return json(['code' => 0, 'data' => $stats]);
+    }
 }

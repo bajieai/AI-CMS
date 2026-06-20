@@ -3,20 +3,26 @@
 <div class="container-fluid px-4">
     <h4 class="mt-4 mb-3">{if condition="!empty($info)"}编辑分类{else/}添加分类{/if}</h4>
     <div class="card mb-4">
-        <div class="card-header">
-            <i class="bi bi-folder2-open me-2"></i>分类信息
-        </div>
+        <div class="card-header"><i class="bi bi-folder2-open me-2"></i>分类信息</div>
         <div class="card-body">
             <form id="formEdit" onsubmit="return false;" style="max-width:640px">
                 <input type="hidden" name="id" value="{$info.id|default=0}">
+                <div class="mb-3">
+                    <label class="form-label">父分类</label>
+                    <select class="form-select" name="parent_id">
+                        {volist name="parentOptions" id="opt"}
+                        <option value="{$opt.id}" {if ($info.parent_id|default=0)==$opt.id}selected{/if}>{$opt.name}</option>
+                        {/volist}
+                    </select>
+                    <div class="form-text">选择父分类可实现多级分类，顶级分类请选"— 顶级分类 —"</div>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">分类名称 <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="name" value="{$info.name|default=''}" required placeholder="如：企业商务">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">分类标识 <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="slug" value="{$info.slug|default=''}" required placeholder="如：corporate（英文唯一标识）">
-                    <div class="form-text">用于URL和程序识别，创建后不建议修改</div>
+                    <input type="text" class="form-control" name="slug" value="{$info.slug|default=''}" required placeholder="如：corporate">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">分类描述</label>
@@ -25,13 +31,25 @@
                 <div class="mb-3">
                     <label class="form-label">图标类名</label>
                     <input type="text" class="form-control" name="icon" value="{$info.icon|default=''}" placeholder="如：bi bi-briefcase">
-                    <div class="form-text">Bootstrap Icons 图标类名，参考 https://icons.getbootstrap.com</div>
+                </div>
+                <hr class="my-4">
+                <h6 class="text-muted mb-3"><i class="bi bi-search me-1"></i>SEO 设置</h6>
+                <div class="mb-3">
+                    <label class="form-label">SEO 标题</label>
+                    <input type="text" class="form-control" name="meta_title" value="{$info.meta_title|default=''}" placeholder="留空则使用分类名称">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">SEO 描述</label>
+                    <textarea class="form-control" name="meta_description" rows="2" placeholder="留空则使用分类描述">{$info.meta_description|default=''}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">SEO 关键词</label>
+                    <input type="text" class="form-control" name="meta_keywords" value="{$info.meta_keywords|default=''}" placeholder="逗号分隔">
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">排序号</label>
                         <input type="number" class="form-control" name="sort" value="{$info.sort|default=0}" min="0">
-                        <div class="form-text">数值越小越靠前</div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">启用状态</label>
@@ -46,7 +64,6 @@
                             <option value="1" {if !isset($info) || $info.is_visible==1}selected{/if}>显示</option>
                             <option value="0" {if isset($info) && $info.is_visible==0}selected{/if}>隐藏</option>
                         </select>
-                        <div class="form-text">隐藏后前台不展示，后台仍可管理</div>
                     </div>
                 </div>
                 <div class="mt-4">
@@ -63,9 +80,9 @@
 $('#btnSave').click(function(){
     const data = {};
     $('#formEdit').serializeArray().forEach(function(item){
-        if(item.name === 'sort' || item.name === 'is_enabled' || item.name === 'is_visible'){
+        if(item.name === 'sort' || item.name === 'is_enabled' || item.name === 'is_visible' || item.name === 'parent_id'){
             data[item.name] = parseInt(item.value);
-        }else{
+        } else {
             data[item.name] = item.value;
         }
     });
@@ -76,11 +93,11 @@ $('#btnSave').click(function(){
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams(data)
     }).then(r => r.json()).then(res => {
-        if(res.code === 1){
-            layer.msg(res.msg);
-            setTimeout(() => location.href = '/admin/template_store_ops/categoryIndex', 800);
-        }else{
-            layer.msg(res.msg || '保存失败');
+        if(res.code === 1 || res.code === 0){
+            alert(res.msg || '保存成功');
+            location.href = '/admin/template_store_ops/categoryIndex';
+        } else {
+            alert(res.msg || '保存失败');
         }
     });
 });

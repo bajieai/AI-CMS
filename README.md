@@ -1,21 +1,23 @@
-# 八界AI-CMS V2.9.25
+# 八界AI-CMS V2.9.26
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.25-blue)
+![Version](https://img.shields.io/badge/version-2.9.26-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.25 "插件生态开放 · Hook事件扩展 · 模板商店数据运营" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.26 "模板商店运营增强 · 移动端体验优化 · AI编辑器升级" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.26 核心定位：模板商店运营增强 · 移动端体验优化 · AI编辑器升级** — 4大Sprint 21项功能点（100%完成）：
+
+1. **Sprint O 验收补丁** — Hook开发者参考文档(29事件)、HookEvents补全(27→29)、V2.9.25计数修正记录、HookContext微秒时间戳
+2. **Sprint P 模板商店运营增强** — AI智能推荐(5层策略+冷启动+兜底)、多级分类管理(树形+SEO)、审核流程(提交/通过/驳回/撤回)、定价促销(活动+优惠码三重校验)、质量评分(自动+手动加权)、版本管理(快照+行级diff+回滚+灰度)、数据报表(看板+分类分析+CSV导出)
+3. **Sprint Q 移动端体验优化** — 前台响应式增强、后台自适应、AI编辑器移动端适配、分享按钮优化、性能优化(懒加载+骨架屏)
+4. **Sprint R AI编辑器增强** — AI写作增强(续写/改写/扩写/摘要+5种风格)、AI翻译增强(翻译记忆SHA256+术语库预处理+批量)、AI主题CSS定制(预设方案+AI生成+实时预览)、AI SEO建议(分析+关键词+Meta+可读性)
 
 **V2.9.25 核心定位：插件生态开放 · Hook事件扩展 · 模板商店数据运营** — 4大Sprint 24项功能点（100%完成）：
-
-1. **Sprint K 验收修复** — 路由统计口径修正、插件指南位置修正、Hook事件注册表框架(28事件)、统计看板缓存策略、移动端分享面板本地QR修复、双皮肤回归测试清单
-2. **Sprint L 插件市场在线安装** — 5张新表数据模型、管理后台(CRUD+分类+版本+依赖+日志)、前端浏览页面、安全校验(SHA256+HMAC)、依赖解析与冲突检测、更新机制、启用/禁用/卸载管理
-3. **Sprint M Hook事件扩展** — HookRegistry统一注册表(优先级+中断+过滤)、28个注入点覆盖6大模块、内容发布/插件安装/主题切换Hook触发、Hook调试面板
-4. **Sprint N 模板商店运营数据统计增强** — 安装趋势统计(下钻+卸载分析)、使用数据统计(DAU/MAU+埋点)、营收统计(收入+结算)、多格式导出(CSV/Excel/PDF)、数据看板升级(7指标卡片)
 
 **V2.9.24 核心定位：模板商店运营完善 · 移动端体验升级 · AI编辑器增强** — 5大Sprint 24项功能点（100%完成）：
 
