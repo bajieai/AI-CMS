@@ -232,7 +232,7 @@ class HookRegistry
         self::$debugLogs[] = [
             'event' => $event,
             'trace_id' => $ctx->traceId,
-            'timestamp' => date('Y-m-d H:i:s', (int)($ctx->timestamp / 1000)) . sprintf('.%03d', $ctx->timestamp % 1000),
+            'timestamp' => date('Y-m-d H:i:s', (int)($ctx->timestamp / 1000000)) . sprintf('.%06d', $ctx->timestamp % 1000000),
             'status' => $status,
             'code' => $result->code,
             'message' => $result->message,
