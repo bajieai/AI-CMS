@@ -1,0 +1,44 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if $category}编辑分类{else}新增分类{/if}</h4>
+    <div class="card">
+        <div class="card-body">
+            <form id="catForm" method="post" action="/admin/plugin_store/categoryEdit/{if $category}{$category.id}{/if}">
+                <div class="mb-3">
+                    <label class="form-label">分类名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{if $category}{$category.name}{/if}" required maxlength="64">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">排序</label>
+                    <input type="number" name="sort" class="form-control" value="{if $category}{$category.sort}{else}0{/if}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">状态</label>
+                    <select name="status" class="form-select">
+                        <option value="1" {if $category}{if $category.status == 1}selected{/if}{/if}>启用</option>
+                        <option value="0" {if $category}{if $category.status == 0}selected{/if}{/if}>禁用</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/admin/plugin_store/categories" class="btn btn-outline-secondary">返回</a>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+document.getElementById('catForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(this.action, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    }).then(r => r.json()).then(res => {
+        layer.msg(res.msg);
+        if (res.code === 0) setTimeout(() => location.href = '/admin/plugin_store/categories', 800);
+    });
+});
+</script>
+{/block}

@@ -99,3 +99,7 @@ Route::get('member/publish$', '\app\home\controller\MemberController@publish');
 Route::rule('member/preferences$', '\app\home\controller\MemberController@preferences', 'GET|POST');
 // V2.9.19 U-1: 内容统计面板
 Route::get('member/stats$', '\app\home\controller\MemberController@stats');
+
+// V2.9.25 L-3: 插件市场前台浏览
+Route::get('plugin_store/index$', '\app\home\controller\PluginStoreController@index');
+Route::get('plugin_store/detail/:code$', '\app\home\controller\PluginStoreController@detail');

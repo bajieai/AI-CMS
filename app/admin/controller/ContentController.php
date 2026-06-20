@@ -494,6 +494,20 @@ class ContentController extends AdminBaseController
             }
         }
 
+        // V2.9.25 M-2: 触发内容发布前 Hook
+        try {
+            $hookResult = \app\common\hook\Hook::fire(\app\common\hook\HookEvents::CONTENT_BEFORE_PUBLISH, [
+                'content_id' => $id,
+                'content_data' => $info->toArray(),
+                'user_id' => $this->adminId ?? 0,
+            ], ['module' => 'admin', 'ip' => $this->request->ip()]);
+            if ($hookResult->stopped) {
+                return $this->error('发布被Hook拦截: ' . $hookResult->message);
+            }
+        } catch (\Throwable $e) {
+            \think\facade\Log::warning('CONTENT_BEFORE_PUBLISH Hook 执行失败: ' . $e->getMessage());
+        }
+
         $info->status = 2;
         if ($info->save()) {
             $this->recordLog('发布内容', $info->title ?? '');
@@ -512,6 +526,16 @@ class ContentController extends AdminBaseController
                 event('ContentPublished', new \app\common\event\ContentPublished($info->id));
             } catch (\Throwable $e) {
                 \think\facade\Log::warning("推送事件触发失败: " . $e->getMessage());
+            }
+            // V2.9.25 M-2: 触发内容发布后 Hook
+            try {
+                \app\common\hook\Hook::fire(\app\common\hook\HookEvents::CONTENT_AFTER_PUBLISH, [
+                    'content_id' => $id,
+                    'content_data' => $info->toArray(),
+                    'user_id' => $this->adminId ?? 0,
+                ], ['module' => 'admin', 'ip' => $this->request->ip()]);
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning('CONTENT_AFTER_PUBLISH Hook 执行失败: ' . $e->getMessage());
             }
             return $this->success('发布成功');
         }

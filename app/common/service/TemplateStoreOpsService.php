@@ -254,12 +254,50 @@ class TemplateStoreOpsService
         $startTs = strtotime($start . ' 00:00:00');
         $endTs = strtotime($end . ' 23:59:59');
 
-        // 安装趋势
+        // 安装趋势（N-1增强：含卸载量）
         $installTrend = TemplateInstallLog::whereBetween('create_time', [$startTs, $endTs])
-            ->where('action', TemplateInstallLog::ACTION_INSTALL)
-            ->field("DATE_FORMAT(FROM_UNIXTIME(create_time), '%Y-%m-%d') as date, COUNT(*) as count")
-            ->group('date')
+            ->whereIn('action', [TemplateInstallLog::ACTION_INSTALL, TemplateInstallLog::ACTION_UNINSTALL])
+            ->field("DATE_FORMAT(FROM_UNIXTIME(create_time), '%Y-%m-%d') as date, action, COUNT(*) as count")
+            ->group('date, action')
             ->order('date', 'asc')
+            ->select()
+            ->toArray();
+
+        // 整理为日期=>安装/卸载的格式
+        $trendData = [];
+        foreach ($installTrend as $row) {
+            $date = $row['date'];
+            if (!isset($trendData[$date])) {
+                $trendData[$date] = ['date' => $date, 'count' => 0, 'uninstall_count' => 0, 'net' => 0];
+            }
+            if ($row['action'] == TemplateInstallLog::ACTION_INSTALL) {
+                $trendData[$date]['count'] = $row['count'];
+            } elseif ($row['action'] == TemplateInstallLog::ACTION_UNINSTALL) {
+                $trendData[$date]['uninstall_count'] = $row['count'];
+            }
+        }
+        foreach ($trendData as &$td) {
+            $td['net'] = $td['count'] - $td['uninstall_count'];
+        }
+        $installTrend = array_values($trendData);
+
+        // N-1: 安装下钻（按模板）
+        $installByTemplate = TemplateInstallLog::whereBetween('create_time', [$startTs, $endTs])
+            ->where('action', TemplateInstallLog::ACTION_INSTALL)
+            ->field('template_id, COUNT(*) as count')
+            ->group('template_id')
+            ->order('count', 'desc')
+            ->limit(10)
+            ->select()
+            ->toArray();
+
+        // N-1: 卸载分析（按模板）
+        $uninstallByTemplate = TemplateInstallLog::whereBetween('create_time', [$startTs, $endTs])
+            ->where('action', TemplateInstallLog::ACTION_UNINSTALL)
+            ->field('template_id, COUNT(*) as count')
+            ->group('template_id')
+            ->order('count', 'desc')
+            ->limit(10)
             ->select()
             ->toArray();
 
@@ -285,6 +323,13 @@ class TemplateStoreOpsService
         // 基线迁移数据（V2.9.24新增）
         $migrateCount = TemplateInstallLog::where('action', TemplateInstallLog::ACTION_MIGRATE)->count();
 
+        // N-5: 7指标卡片数据
+        $periodInstalls = TemplateInstallLog::whereBetween('create_time', [$startTs, $endTs])
+            ->where('action', TemplateInstallLog::ACTION_INSTALL)->count();
+        $periodUninstalls = TemplateInstallLog::whereBetween('create_time', [$startTs, $endTs])
+            ->where('action', TemplateInstallLog::ACTION_UNINSTALL)->count();
+        $retentionRate = $totalInstalls > 0 ? round((1 - $totalUninstalls / $totalInstalls) * 100, 1) : 100;
+
         return [
             'date_range' => ['start' => $start, 'end' => $end],
             'summary' => [
@@ -293,10 +338,15 @@ class TemplateStoreOpsService
                 'total_templates' => $totalTemplates,
                 'online_templates' => $onlineTemplates,
                 'migrate_count' => $migrateCount,
+                'period_installs' => $periodInstalls,
+                'period_uninstalls' => $periodUninstalls,
+                'retention_rate' => $retentionRate,
             ],
             'install_trend' => $installTrend,
             'hot_templates' => $hotTemplates,
             'category_distribution' => $categoryDist,
+            'install_by_template' => $installByTemplate,
+            'uninstall_by_template' => $uninstallByTemplate,
         ];
     }
 

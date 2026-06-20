@@ -1,0 +1,152 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-graph-up me-2"></i>安装趋势统计</h4>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">周期安装量</div>
+                            <div class="fs-3 text-primary">{$stats.summary.period_installs}</div>
+                        </div>
+                        <i class="bi bi-download fs-1 text-primary opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-danger mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">周期卸载量</div>
+                            <div class="fs-3 text-danger">{$stats.summary.period_uninstalls}</div>
+                        </div>
+                        <i class="bi bi-box-arrow-up fs-1 text-danger opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-success mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">留存率</div>
+                            <div class="fs-3 text-success">{$stats.summary.retention_rate}%</div>
+                        </div>
+                        <i class="bi bi-shield-check fs-1 text-success opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-info mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">总安装量</div>
+                            <div class="fs-3 text-info">{$stats.summary.total_installs}</div>
+                        </div>
+                        <i class="bi bi-cloud-download fs-1 text-info opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">安装/卸载趋势</span>
+            <form class="d-flex gap-2" method="get">
+                <input type="date" name="start" class="form-control form-control-sm" value="{$stats.date_range.start}">
+                <input type="date" name="end" class="form-control form-control-sm" value="{$stats.date_range.end}">
+                <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+                <a href="/admin/usage_stats/installTrend" class="btn btn-sm btn-outline-secondary">重置</a>
+            </form>
+        </div>
+        <div class="card-body">
+            <canvas id="trendChart" style="max-height:350px;"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">安装TOP10（下钻）</div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light"><tr><th>模板ID</th><th>安装次数</th><th>占比</th></tr></thead>
+                        <tbody>
+                            {volist name="stats.install_by_template" id="item"}
+                            <tr>
+                                <td>{$item.template_id}</td>
+                                <td>{$item.count}</td>
+                                <td>
+                                    <div class="progress" style="height:6px;">
+                                        <div class="progress-bar bg-primary" style="width: {php echo $stats['summary']['period_installs'] > 0 ? round($item['count'] / $stats['summary']['period_installs'] * 100) : 0; {/php}%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {if empty($stats.install_by_template)}
+                            <tr><td colspan="3" class="text-center text-muted py-3">暂无数据</td></tr>
+                            {/if}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">卸载TOP10（分析）</div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light"><tr><th>模板ID</th><th>卸载次数</th><th>占比</th></tr></thead>
+                        <tbody>
+                            {volist name="stats.uninstall_by_template" id="item"}
+                            <tr>
+                                <td>{$item.template_id}</td>
+                                <td><span class="text-danger">{$item.count}</span></td>
+                                <td>
+                                    <div class="progress" style="height:6px;">
+                                        <div class="progress-bar bg-danger" style="width: {php echo $stats['summary']['period_uninstalls'] > 0 ? round($item['count'] / $stats['summary']['period_uninstalls'] * 100) : 0; {/php}%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {if empty($stats.uninstall_by_template)}
+                            <tr><td colspan="3" class="text-center text-muted py-3">暂无数据</td></tr>
+                            {/if}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+var trendData = {json_encode($stats.install_trend)};
+var labels = trendData.map(function(d) { return d.date; });
+var installs = trendData.map(function(d) { return d.count; });
+var uninstalls = trendData.map(function(d) { return d.uninstall_count; });
+
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [
+            { label: '安装', data: installs, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', fill: true },
+            { label: '卸载', data: uninstalls, borderColor: '#dc3545', backgroundColor: 'rgba(220,53,69,0.1)', fill: true }
+        ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{/block}

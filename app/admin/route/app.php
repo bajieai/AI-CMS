@@ -620,10 +620,46 @@ Route::rule('template_store_ops/reviewBatch$', '\app\admin\controller\TemplateSt
 Route::post('template_store_ops/reviewBatchAudit$', '\app\admin\controller\TemplateStoreOpsController@reviewBatchAudit');
 Route::post('template_store_ops/reviewBatchDelete$', '\app\admin\controller\TemplateStoreOpsController@reviewBatchDelete');
 
-// V2.9.24 G-3: 模板商店分类管理
-Route::rule('template_store_ops/categoryIndex$', '\app\admin\controller\TemplateStoreOpsController@categoryIndex', 'GET');
-Route::rule('template_store_ops/categoryEdit/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryEdit', 'GET|POST');
-Route::post('template_store_ops/categoryDelete/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryDelete');
-Route::post('template_store_ops/categorySort$', '\app\admin\controller\TemplateStoreOpsController@categorySort');
-Route::post('template_store_ops/categoryToggleVisible/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryToggleVisible');
-Route::post('template_store_ops/categoryToggleEnabled/:id$', '\app\admin\controller\TemplateStoreOpsController@categoryToggleEnabled');
+// V2.9.25 L-2: 插件包管理后台路由
+Route::get('plugin_store/index$', '\app\admin\controller\PluginStoreController@index');
+Route::rule('plugin_store/add$', '\app\admin\controller\PluginStoreController@add', 'GET|POST');
+Route::rule('plugin_store/edit/:id$', '\app\admin\controller\PluginStoreController@edit', 'GET|POST');
+Route::post('plugin_store/delete$', '\app\admin\controller\PluginStoreController@delete');
+Route::post('plugin_store/toggleStatus$', '\app\admin\controller\PluginStoreController@toggleStatus');
+Route::post('plugin_store/setFeatured$', '\app\admin\controller\PluginStoreController@setFeatured');
+Route::post('plugin_store/uploadPackage$', '\app\admin\controller\PluginStoreController@uploadPackage');
+// 分类管理
+Route::get('plugin_store/categories$', '\app\admin\controller\PluginStoreController@categories');
+Route::rule('plugin_store/categoryEdit/:id$', '\app\admin\controller\PluginStoreController@categoryEdit', 'GET|POST');
+Route::rule('plugin_store/categoryEdit$', '\app\admin\controller\PluginStoreController@categoryEdit', 'GET|POST');
+Route::post('plugin_store/categoryDelete$', '\app\admin\controller\PluginStoreController@categoryDelete');
+// 版本管理
+Route::get('plugin_store/versions/:plugin_id$', '\app\admin\controller\PluginStoreController@versions');
+Route::rule('plugin_store/versionAdd/:plugin_id$', '\app\admin\controller\PluginStoreController@versionAdd', 'GET|POST');
+Route::post('plugin_store/versionDelete$', '\app\admin\controller\PluginStoreController@versionDelete');
+// 依赖管理
+Route::get('plugin_store/dependencies/:plugin_id$', '\app\admin\controller\PluginStoreController@dependencies');
+Route::post('plugin_store/dependencyAdd$', '\app\admin\controller\PluginStoreController@dependencyAdd');
+Route::post('plugin_store/dependencyDelete$', '\app\admin\controller\PluginStoreController@dependencyDelete');
+// 安装日志
+Route::get('plugin_store/logs$', '\app\admin\controller\PluginStoreController@logs');
+
+// V2.9.25 M-5: Hook 调试面板
+Route::get('hook_debug/index$', '\app\admin\controller\HookDebugController@index');
+Route::post('hook_debug/toggleDebug$', '\app\admin\controller\HookDebugController@toggleDebug');
+Route::get('hook_debug/logs$', '\app\admin\controller\HookDebugController@logs');
+Route::post('hook_debug/clearLogs$', '\app\admin\controller\HookDebugController@clearLogs');
+Route::get('hook_debug/meta$', '\app\admin\controller\HookDebugController@meta');
+Route::post('hook_debug/testFire$', '\app\admin\controller\HookDebugController@testFire');
+
+// V2.9.25 N-1/N-2: 使用统计 + 安装趋势
+Route::get('usage_stats/index$', '\app\admin\controller\UsageStatsController@index');
+Route::get('usage_stats/installTrend$', '\app\admin\controller\UsageStatsController@installTrend');
+
+// V2.9.25 N-3/N-4: 营收统计 + 结算 + 导出
+Route::get('revenue/index$', '\app\admin\controller\RevenueController@index');
+Route::get('revenue/settlements$', '\app\admin\controller\RevenueController@settlements');
+Route::post('revenue/createSettlement$', '\app\admin\controller\RevenueController@createSettlement');
+Route::post('revenue/auditSettlement$', '\app\admin\controller\RevenueController@auditSettlement');
+Route::get('revenue/export$', '\app\admin\controller\RevenueController@export');
+Route::get('revenue/doExport$', '\app\admin\controller\RevenueController@doExport');

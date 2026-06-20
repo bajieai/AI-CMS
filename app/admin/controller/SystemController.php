@@ -665,6 +665,7 @@ class SystemController extends AdminBaseController
         }
 
         $config = ConfigModel::where('name', 'frontend_theme')->find();
+        $oldTheme = $config ? $config->value : '';
         if (!$config) {
             ConfigModel::create([
                 'name'   => 'frontend_theme',
@@ -677,6 +678,18 @@ class SystemController extends AdminBaseController
         } else {
             $config->value = $theme;
             $config->save();
+        }
+
+        // V2.9.25 M-4: 触发模板切换 Hook
+        try {
+            \app\common\hook\Hook::fire(\app\common\hook\HookEvents::TEMPLATE_AFTER_INSTALL, [
+                'template_id' => 0,
+                'old_theme' => $oldTheme,
+                'new_theme' => $theme,
+                'user_id' => $this->adminId ?? 0,
+            ], ['module' => 'admin', 'ip' => $this->request->ip()]);
+        } catch (\Throwable $e) {
+            \think\facade\Log::warning('TEMPLATE_AFTER_INSTALL Hook 执行失败: ' . $e->getMessage());
         }
 
         TemplateService::clearCache();

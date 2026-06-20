@@ -1,0 +1,111 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-bar-chart me-2"></i>模板使用统计</h4>
+
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-primary mb-3"><div class="card-body text-center">
+                <div class="text-muted small">总浏览量</div>
+                <div class="fs-4 text-primary">{$overview.total_views}</div>
+            </div></div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-success mb-3"><div class="card-body text-center">
+                <div class="text-muted small">独立访客</div>
+                <div class="fs-4 text-success">{$overview.unique_visitors}</div>
+            </div></div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-info mb-3"><div class="card-body text-center">
+                <div class="text-muted small">7日DAU均值</div>
+                <div class="fs-4 text-info">{$overview.dau_7day_avg}</div>
+            </div></div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-warning mb-3"><div class="card-body text-center">
+                <div class="text-muted small">MAU</div>
+                <div class="fs-4 text-warning">{$overview.mau}</div>
+            </div></div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-danger mb-3"><div class="card-body text-center">
+                <div class="text-muted small">安装次数</div>
+                <div class="fs-4 text-danger">{$overview.installs}</div>
+            </div></div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-secondary mb-3"><div class="card-body text-center">
+                <div class="text-muted small">卸载次数</div>
+                <div class="fs-4 text-secondary">{$overview.uninstalls}</div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">使用趋势</span>
+            <form class="d-flex gap-2" method="get">
+                <input type="date" name="start" class="form-control form-control-sm" value="{$overview.date_range.start}">
+                <input type="date" name="end" class="form-control form-control-sm" value="{$overview.date_range.end}">
+                <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+            </form>
+        </div>
+        <div class="card-body">
+            <canvas id="usageChart" style="max-height:300px;"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">设备分布</div>
+                <div class="card-body">
+                    <canvas id="deviceChart" style="max-height:250px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">浏览量TOP10模板</div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light"><tr><th>模板ID</th><th>浏览量</th></tr></thead>
+                        <tbody>
+                            {volist name="hotTemplates" id="item"}
+                            <tr><td>{$item.template_id}</td><td>{$item.view_count}</td></tr>
+                            {/volist}
+                            {if empty($hotTemplates)}
+                            <tr><td colspan="2" class="text-center text-muted py-3">暂无数据</td></tr>
+                            {/if}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+var trendData = {json_encode($trend)};
+var labels = trendData.map(function(d) { return d.stats_date; });
+new Chart(document.getElementById('usageChart'), {
+    type: 'line',
+    data: { labels: labels, datasets: [
+        { label: '浏览', data: trendData.map(function(d){return d.views}), borderColor: '#0d6efd', fill: false },
+        { label: '访客', data: trendData.map(function(d){return d.visitors}), borderColor: '#198754', fill: false },
+        { label: '安装', data: trendData.map(function(d){return d.installs}), borderColor: '#dc3545', fill: false }
+    ]},
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+var deviceData = {json_encode($overview.device_distribution)};
+new Chart(document.getElementById('deviceChart'), {
+    type: 'doughnut',
+    data: { labels: deviceData.map(function(d){return d.device}), datasets: [{ data: deviceData.map(function(d){return d.count}), backgroundColor: ['#0d6efd','#198754','#ffc107'] }] },
+    options: { responsive: true }
+});
+</script>
+{/block}
