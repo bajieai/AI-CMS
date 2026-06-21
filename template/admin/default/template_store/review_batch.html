@@ -15,22 +15,22 @@
             <div class="row mb-3">
                 <div class="col-md-10">
                     <form class="d-flex gap-2 flex-wrap" method="get">
-                        <input type="text" name="keyword" class="form-control" style="width:180px" placeholder="搜索评论内容..." value="{$params.keyword|default=''}">
+                        <input type="text" name="keyword" class="form-control" style="width:180px" placeholder="搜索评论内容..." value="{$params.keyword??''}">
                         <select name="status" class="form-select" style="width:120px">
                             <option value="all">全部状态</option>
-                            <option value="1" {if ($params.status|default=='')=='1'}selected{/if}>已通过</option>
-                            <option value="0" {if ($params.status|default=='')=='0'}selected{/if}>待审核</option>
+                            <option value="1" {if ($params.status??'')=='1'}selected{/if}>已通过</option>
+                            <option value="0" {if ($params.status??'')=='0'}selected{/if}>待审核</option>
                         </select>
                         <select name="rating" class="form-select" style="width:100px">
                             <option value="">评分</option>
-                            <option value="5" {if ($params.rating|default=='')=='5'}selected{/if}>5星</option>
-                            <option value="4" {if ($params.rating|default=='')=='4'}selected{/if}>4星</option>
-                            <option value="3" {if ($params.rating|default=='')=='3'}selected{/if}>3星</option>
-                            <option value="2" {if ($params.rating|default=='')=='2'}selected{/if}>2星</option>
-                            <option value="1" {if ($params.rating|default=='')=='1'}selected{/if}>1星</option>
+                            <option value="5" {if ($params.rating??'')=='5'}selected{/if}>5星</option>
+                            <option value="4" {if ($params.rating??'')=='4'}selected{/if}>4星</option>
+                            <option value="3" {if ($params.rating??'')=='3'}selected{/if}>3星</option>
+                            <option value="2" {if ($params.rating??'')=='2'}selected{/if}>2星</option>
+                            <option value="1" {if ($params.rating??'')=='1'}selected{/if}>1星</option>
                         </select>
-                        <input type="date" name="start_date" class="form-control" style="width:140px" value="{$params.start_date|default=''}">
-                        <input type="date" name="end_date" class="form-control" style="width:140px" value="{$params.end_date|default=''}">
+                        <input type="date" name="start_date" class="form-control" style="width:140px" value="{$params.start_date??''}">
+                        <input type="date" name="end_date" class="form-control" style="width:140px" value="{$params.end_date??''}">
                         <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
                     </form>
                 </div>
@@ -83,7 +83,7 @@
                 <ul class="pagination justify-content-center">
                     {for start="1" end="$pages+1"}
                     <li class="page-item {if $page==$i}active{/if}">
-                        <a class="page-link" href="?page={$i}&keyword={$params.keyword|default=''}&status={$params.status|default='all'}&rating={$params.rating|default=''}&start_date={$params.start_date|default=''}&end_date={$params.end_date|default=''}">{$i}</a>
+                        <a class="page-link" href="?page={$i}&keyword={$params.keyword??''}&status={$params.status??'all'}&rating={$params.rating??''}&start_date={$params.start_date??''}&end_date={$params.end_date??''}">{$i}</a>
                     </li>
                     {/for}
                 </ul>

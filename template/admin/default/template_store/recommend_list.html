@@ -16,13 +16,13 @@
                         <select name="position" class="form-select" style="width:160px">
                             <option value="all">全部位置</option>
                             {foreach $positions as $k=>$v}
-                            <option value="{$k}" {if ($params.position|default=='all')==$k}selected{/if}>{$v}</option>
+                            <option value="{$k}" {if ($params.position??='all')==$k}selected{/if}>{$v}</option>
                             {/foreach}
                         </select>
                         <select name="status" class="form-select" style="width:120px">
                             <option value="all">全部状态</option>
-                            <option value="1" {if ($params.status|default=='')=='1'}selected{/if}>启用</option>
-                            <option value="0" {if ($params.status|default=='')=='0'}selected{/if}>禁用</option>
+                            <option value="1" {if ($params.status??='')=='1'}selected{/if}>启用</option>
+                            <option value="0" {if ($params.status??='')=='0'}selected{/if}>禁用</option>
                         </select>
                         <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
                     </form>
@@ -82,7 +82,7 @@
                 <ul class="pagination justify-content-center">
                     {for start="1" end="$pages+1"}
                     <li class="page-item {if $page==$i}active{/if}">
-                        <a class="page-link" href="?page={$i}&position={$params.position|default='all'}&status={$params.status|default='all'}">{$i}</a>
+                        <a class="page-link" href="?page={$i}&position={$params.position??'all'}&status={$params.status??'all'}">{$i}</a>
                     </li>
                     {/for}
                 </ul>

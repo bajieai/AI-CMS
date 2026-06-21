@@ -13,11 +13,11 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <form class="d-flex gap-2" method="get">
-                        <input type="text" name="keyword" class="form-control" placeholder="搜索标题..." value="{$params.keyword|default=''}">
+                        <input type="text" name="keyword" class="form-control" placeholder="搜索标题..." value="{$params.keyword??''}">
                         <select name="status" class="form-select" style="width:120px">
-                            <option value="all" {if ($params.status|default='all')=='all'}selected{/if}>全部状态</option>
-                            <option value="1" {if ($params.status|default='')=='1'}selected{/if}>启用</option>
-                            <option value="0" {if ($params.status|default='')=='0'}selected{/if}>禁用</option>
+                            <option value="all" {if ($params.status??'all')=='all'}selected{/if}>全部状态</option>
+                            <option value="1" {if ($params.status??'')=='1'}selected{/if}>启用</option>
+                            <option value="0" {if ($params.status??'')=='0'}selected{/if}>禁用</option>
                         </select>
                         <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
                     </form>
@@ -72,7 +72,7 @@
                 <ul class="pagination justify-content-center">
                     {for start="1" end="$pages+1"}
                     <li class="page-item {if $page==$i}active{/if}">
-                        <a class="page-link" href="?page={$i}&keyword={$params.keyword|default=''}&status={$params.status|default='all'}">{$i}</a>
+                        <a class="page-link" href="?page={$i}&keyword={$params.keyword??''}&status={$params.status??'all'}">{$i}</a>
                     </li>
                     {/for}
                 </ul>

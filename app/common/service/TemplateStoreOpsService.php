@@ -302,7 +302,7 @@ class TemplateStoreOpsService
             ->toArray();
 
         // 热门模板TOP10
-        $hotTemplates = TemplateStore::field('id, name, thumb, install_count, rating_avg')
+        $hotTemplates = TemplateStore::field('id, name, banner_url, install_count, rating_avg')
             ->order('install_count', 'desc')
             ->limit(10)
             ->select()

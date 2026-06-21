@@ -25,13 +25,13 @@
                         <select name="rule_type" class="form-select" style="width:150px">
                             <option value="">全部类型</option>
                             {foreach $ruleTypes as $key => $label}
-                            <option value="{$key}" {if ($params.rule_type|default='')==$key}selected{/if}>{$label}</option>
+                            <option value="{$key}" {if ($params.rule_type??'')==$key}selected{/if}>{$label}</option>
                             {/foreach}
                         </select>
                         <select name="status" class="form-select" style="width:120px">
                             <option value="">全部状态</option>
-                            <option value="1" {if ($params.status|default='')=='1'}selected{/if}>启用</option>
-                            <option value="0" {if ($params.status|default='')=='0'}selected{/if}>禁用</option>
+                            <option value="1" {if ($params.status??'')=='1'}selected{/if}>启用</option>
+                            <option value="0" {if ($params.status??'')=='0'}selected{/if}>禁用</option>
                         </select>
                         <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
                     </form>
@@ -75,7 +75,7 @@
                             </td>
                             <td>
                                 {if $item.start_time || $item.end_time}
-                                {$item.start_time|default='不限'} ~ {$item.end_time|default='不限'}
+                                {$item.start_time??'不限'} ~ {$item.end_time??'不限'}
                                 {else}
                                 <span class="text-muted">永久</span>
                                 {/if}
@@ -106,7 +106,7 @@
                 <ul class="pagination justify-content-center">
                     {for $i = 1 to ceil($total / $limit)}
                     <li class="page-item {if $i == $page}active{/if}">
-                        <a class="page-link" href="?page={$i}&rule_type={$params.rule_type|default=''}&status={$params.status|default=''}">{$i}</a>
+                        <a class="page-link" href="?page={$i}&rule_type={$params.rule_type??''}&status={$params.status??''}">{$i}</a>
                     </li>
                     {/for}
                 </ul>

@@ -194,7 +194,12 @@ class TemplateStoreOpsController extends AdminBaseController
     {
         $service = new TemplateStoreOpsService();
         $params = $this->request->get();
-        $stats = $service->getDashboardStats($params['start'] ?? '', $params['end'] ?? '');
+        // V2.9.27 修复: 确保所有模板变量有默认值
+        $params['start'] = $params['start'] ?? '';
+        $params['end'] = $params['end'] ?? '';
+        $params['keyword'] = $params['keyword'] ?? '';
+        $params['category_id'] = $params['category_id'] ?? '';
+        $stats = $service->getDashboardStats($params['start'], $params['end']);
 
         $this->assign([
             'stats' => $stats,
@@ -244,6 +249,13 @@ class TemplateStoreOpsController extends AdminBaseController
     public function reviewBatch()
     {
         $params = $this->request->get();
+        // V2.9.27 修复: 确保所有模板变量有默认值,避免|default语法编译错误
+        $params['status'] = $params['status'] ?? 'all';
+        $params['keyword'] = $params['keyword'] ?? '';
+        $params['template_id'] = $params['template_id'] ?? '';
+        $params['rating'] = $params['rating'] ?? '';
+        $params['start_date'] = $params['start_date'] ?? '';
+        $params['end_date'] = $params['end_date'] ?? '';
         $query = \app\common\model\TemplateReview::with('template')
             ->order('id', 'desc');
 
