@@ -137,7 +137,7 @@ class TemplateSearchService
             }
 
             // 统计这些模板关联的分类出现频次
-            $categoryCounts = TemplateCategoryMap::whereIn('store_id', $topStores)
+            $categoryCounts = TemplateCategoryMap::whereIn('template_id', $topStores)
                 ->field('category_id, COUNT(*) as count')
                 ->group('category_id')
                 ->order('count', 'desc')
@@ -216,7 +216,7 @@ class TemplateSearchService
             }
 
             $ids = TemplateCategoryMap::where('category_id', $cat->id)
-                ->column('store_id');
+                ->column('template_id');
 
             if (empty($ids)) {
                 return [];

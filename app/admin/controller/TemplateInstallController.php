@@ -43,15 +43,20 @@ class TemplateInstallController extends AdminBaseController
         $hotTags = $searchService->getHotTags(12);
         $featured = $searchService->search(['status' => TemplateStore::STATUS_ONLINE, 'sort' => 'install_count', 'limit' => 6]);
 
+        // 获取全部分类用于筛选下拉框
+        $categories = TemplateCategory::where('status', 1)->order('sort', 'asc')->select()->toArray();
+
         $this->assign([
-            'list' => $data['list'],
-            'total' => $data['total'],
-            'page' => $data['page'],
-            'limit' => $data['limit'],
-            'pages' => $data['pages'],
+            'list' => $data['list'] ?? [],
+            'total' => $data['total'] ?? 0,
+            'page' => $data['page'] ?? 1,
+            'limit' => $data['limit'] ?? 15,
+            'pages' => $data['pages'] ?? 0,
             'aggregations' => $aggregations,
             'hot_tags' => $hotTags,
+            'hotTemplates' => $data['list'] ?? [],
             'featured' => $featured['list'] ?? [],
+            'categories' => $categories,
             'params' => $params,
         ]);
 
