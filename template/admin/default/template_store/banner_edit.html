@@ -20,7 +20,7 @@
                         <button type="button" class="btn btn-outline-secondary" onclick="openMediaSelect()">选择图片</button>
                     </div>
                     <div class="mt-2" id="imagePreview">
-                        {if $info.image}<img src="{$info.image}" style="max-height:120px;border-radius:4px;">{/if}
+                        {if ($info.image??'')}<img src="{$info.image}" style="max-height:120px;border-radius:4px;">{/if}
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -42,11 +42,11 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">开始时间</label>
-                    <input type="date" name="start_time" class="form-control" value="{if $info.start_time>0}{:date('Y-m-d',$info.start_time)}{/if}">
+                    <input type="date" name="start_time" class="form-control" value="{if ($info.start_time??0)>0}{:date('Y-m-d',$info.start_time)}{/if}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">结束时间</label>
-                    <input type="date" name="end_time" class="form-control" value="{if $info.end_time>0}{:date('Y-m-d',$info.end_time)}{/if}">
+                    <input type="date" name="end_time" class="form-control" value="{if ($info.end_time??0)>0}{:date('Y-m-d',$info.end_time)}{/if}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">状态</label>
