@@ -91,7 +91,7 @@ class TemplateRecommend extends Model
     public function template()
     {
         return $this->belongsTo(TemplateStore::class, 'template_id', 'id')
-            ->field('id, name, thumb, price, install_count, rating_avg');
+            ->field('id, name, banner_url, price, install_count, rating_avg');
     }
 
     /**

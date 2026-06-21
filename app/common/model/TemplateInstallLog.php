@@ -64,7 +64,7 @@ class TemplateInstallLog extends Model
     public function template()
     {
         return $this->belongsTo(TemplateStore::class, 'template_id', 'id')
-            ->field('id, name, thumb');
+            ->field('id, name, banner_url');
     }
 
     /**

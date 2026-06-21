@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\controller\AdminBaseController;
 use app\common\service\ContentQualityService;
 
 /**

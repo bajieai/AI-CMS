@@ -84,7 +84,7 @@ class TemplateBanner extends Model
     public function targetTemplate()
     {
         return $this->belongsTo(TemplateStore::class, 'target_id', 'id')
-            ->field('id, name, thumb');
+            ->field('id, name, banner_url');
     }
 
     /**
