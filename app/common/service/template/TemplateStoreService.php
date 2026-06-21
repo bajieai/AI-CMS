@@ -125,8 +125,8 @@ class TemplateStoreService
 
         $result = TemplateStore::online()
             ->featured()
-            ->order('sort', 'desc')
             ->order('install_count', 'desc')
+            ->order('id', 'desc')
             ->limit($limit)
             ->select()
             ->toArray();
