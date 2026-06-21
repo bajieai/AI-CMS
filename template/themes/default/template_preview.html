@@ -2,106 +2,23 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>预览 - {$store.name}</title>
-    <link rel="stylesheet" href="/skin/admin/default/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/skin/admin/default/css/bootstrap-icons.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .preview-bar {
-            background: #0f172a;
-            color: #e2e8f0;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 1000;
-            height: 52px;
-        }
-        .preview-bar .info { display: flex; align-items: center; gap: 12px; }
-        .preview-bar .info .name { font-weight: 500; color: #fff; }
-        .preview-bar .info .meta { font-size: 12px; color: #94a3b8; }
-        .preview-bar .actions { display: flex; align-items: center; gap: 8px; }
-        .preview-bar .btn-device {
-            background: transparent;
-            border: 1px solid #334155;
-            color: #94a3b8;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .preview-bar .btn-device:hover, .preview-bar .btn-device.active {
-            background: #334155;
-            color: #fff;
-            border-color: #475569;
-        }
-        .preview-bar .btn-close {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            font-size: 18px;
-            cursor: pointer;
-            margin-left: 8px;
-        }
-        .preview-bar .btn-close:hover { color: #fff; }
-        .preview-wrapper {
-            padding-top: 52px;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            background: #f1f5f9;
-        }
-        .preview-frame {
-            border: none;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            transition: width 0.3s ease;
-        }
-        .preview-frame.mobile {
-            width: 375px;
-            border-left: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-        }
-        .preview-frame.tablet {
-            width: 768px;
-            border-left: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-        }
-    </style>
+    <title>模板预览 - 八界AI-CMS</title>
 </head>
 <body>
-    <div class="preview-bar">
-        <div class="info">
-            <i class="bi bi-eye"></i>
-            <span class="name">{$store.name}</span>
-            <span class="meta">{$store.slug} · v{$store.version}</span>
-        </div>
-        <div class="actions">
-            <button class="btn-device active" onclick="setDevice('desktop', this)" title="桌面端"><i class="bi bi-laptop"></i></button>
-            <button class="btn-device" onclick="setDevice('tablet', this)" title="平板端"><i class="bi bi-tablet"></i></button>
-            <button class="btn-device" onclick="setDevice('mobile', this)" title="手机端"><i class="bi bi-phone"></i></button>
-            <a href="javascript:history.back()" class="btn-close" title="关闭预览"><i class="bi bi-x-lg"></i></a>
-        </div>
+    <h1>{{ template.name }}</h1>
+    <p>{{ template.description }}</p>
+    {% if screenshots %}
+    <div class="screenshots">
+        {% for img in screenshots %}<img src="{{ img }}" style="max-width:200px;margin:5px;"/>{% endfor %}
     </div>
-    <div class="preview-wrapper">
-        <iframe id="previewFrame" class="preview-frame" src="{$preview_url}" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    {% endif %}
+    {% if iframe_url %}
+    <iframe src="{{ iframe_url }}" style="width:100%;height:600px;border:1px solid #ddd;"></iframe>
+    {% endif %}
+    <div class="share">
+        <a href="{{ share.wechat }}">微信</a>
+        <a href="{{ share.weibo }}">微博</a>
+        <a href="{{ share.qq }}">QQ</a>
     </div>
-
-    <script>
-    function setDevice(device, btn) {
-        const frame = document.getElementById('previewFrame');
-        document.querySelectorAll('.btn-device').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        frame.classList.remove('mobile', 'tablet');
-        if (device === 'mobile') frame.classList.add('mobile');
-        if (device === 'tablet') frame.classList.add('tablet');
-    }
-    </script>
 </body>
 </html>

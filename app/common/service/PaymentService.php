@@ -187,7 +187,17 @@ class PaymentService
                 return $enabled ? new \app\common\adapter\WechatPayAdapter() : null;
             case 'alipay':
                 $enabled = Config::get('pay_alipay_enabled', 0);
-                return $enabled ? new \app\common\adapter\AlipayAdapter() : null;
+                if ($enabled) {
+                    return new \app\common\adapter\AlipayAdapter();
+                }
+                // V2.9.27 U-3: 优先使用新的AlipayPaymentChannel
+                try {
+                    $channel = new \app\common\service\payment\AlipayPaymentChannel();
+                    if ($channel->isAvailable()) {
+                        return $channel;
+                    }
+                } catch (\Throwable) {}
+                return null;
             default:
                 return null;
         }

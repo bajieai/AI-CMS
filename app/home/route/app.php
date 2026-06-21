@@ -49,6 +49,12 @@ Route::get('oauth/toutiao/callback$', '\app\home\controller\ToutiaoOAuthControll
 Route::get('rss/:type$', '\app\home\controller\RssController@feed')->pattern(['type' => '[a-z]+']);
 Route::get('rss$', '\app\home\controller\RssController@feed');
 
+// V2.9.27 U-7: 已购模板
+Route::get('my_templates$', '\app\home\controller\MyTemplateController@index');
+
+// V2.9.27 U-4: 模板预览增强
+Route::get('template/preview/:id$', '\app\home\controller\TemplatePreviewController@preview')->pattern(['id' => '\d+']);
+
 // V2.3 前台评论AJAX
 Route::post('comment/submit$', '\app\home\controller\CommentController@submit');
 Route::get('comment/list$', '\app\home\controller\CommentController@list');

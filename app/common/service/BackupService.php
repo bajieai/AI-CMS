@@ -478,4 +478,20 @@ class BackupService
         }
         return $size . ' B';
     }
+
+    /**
+     * V2.9.27 V-5: 执行定时备份
+     */
+    public function runScheduledBackup(): array
+    {
+        $schedule = \app\common\service\ConfigService::get('backup_schedule', []);
+        if (empty($schedule['enabled'])) {
+            return ['success' => false, 'msg' => '定时备份未启用'];
+        }
+        $type = $schedule['type'] ?? 'all';
+        $gzip = (bool) ($schedule['gzip'] ?? true);
+        $result = $this->create($type, $gzip);
+        $this->cleanup((int) ($schedule['keep_count'] ?? 7));
+        return $result;
+    }
 }

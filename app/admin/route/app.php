@@ -508,6 +508,11 @@ Route::post('template_order_admin/refund/:id$', '\app\admin\controller\TemplateO
 // V2.9.27 Sprint V: 基础设施完善路由
 Route::get('system_health/index$', '\app\admin\controller\SystemHealthController@index');
 
+// V2.9.27 V-5: 备份定时配置路由
+Route::get('backup/schedule$', '\app\admin\controller\BackupController@schedule');
+Route::post('backup/saveSchedule$', '\app\admin\controller\BackupController@saveSchedule');
+Route::post('backup/runScheduled$', '\app\admin\controller\BackupController@runScheduled');
+
 // V2.9.20 B-3: 模板安装与分类管理路由
 Route::get('template_install/market$', '\app\admin\controller\TemplateInstallController@market');
 Route::get('template_install/search$', '\app\admin\controller\TemplateInstallController@search');

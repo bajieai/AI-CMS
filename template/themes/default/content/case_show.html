@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>案例详情 - 八界AI-CMS</title>
+</head>
+<body>
+    <h1>{{ content.title }}</h1>
+    <p>客户：{{ content.client }}</p>
+    <p>行业：{{ content.industry }}</p>
+    <div>{{ content.content|raw }}</div>
+    {% if relations %}
+    <h3>相关案例</h3>
+    <ul>{% for r in relations %}<li><a href="{{ r.url }}">{{ r.title }}</a></li>{% endfor %}</ul>
+    {% endif %}
+</body>
+</html>

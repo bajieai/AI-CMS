@@ -154,4 +154,49 @@ class BackupController extends AdminBaseController
             return $this->error('清理失败：' . $e->getMessage());
         }
     }
+
+    /**
+     * V2.9.27 V-5: 定时备份配置页面
+     */
+    public function schedule()
+    {
+        $config = \app\common\service\ConfigService::get('backup_schedule', []);
+        $this->app->view->assign('config', $config);
+        return $this->app->view->fetch('/backup_schedule');
+    }
+
+    /**
+     * V2.9.27 V-5: 保存定时备份配置
+     */
+    public function saveSchedule()
+    {
+        $data = Request::post();
+        $schedule = [
+            'enabled' => (bool) ($data['enabled'] ?? false),
+            'frequency' => $data['frequency'] ?? 'daily',
+            'hour' => (int) ($data['hour'] ?? 2),
+            'minute' => (int) ($data['minute'] ?? 0),
+            'type' => $data['type'] ?? 'all',
+            'gzip' => (bool) ($data['gzip'] ?? true),
+            'keep_count' => (int) ($data['keep_count'] ?? 7),
+        ];
+        \app\common\service\ConfigService::set('backup_schedule', $schedule);
+        $this->recordLog('backup', '更新定时备份配置');
+        return $this->success('配置已保存');
+    }
+
+    /**
+     * V2.9.27 V-5: 执行定时备份（手动触发）
+     */
+    public function runScheduled()
+    {
+        try {
+            $backupService = new BackupService();
+            $result = $backupService->runScheduledBackup();
+            $this->recordLog('backup', '手动执行定时备份：' . $result['filename']);
+            return $this->success('定时备份执行成功', $result);
+        } catch (\Exception $e) {
+            return $this->error('执行失败：' . $e->getMessage());
+        }
+    }
 }

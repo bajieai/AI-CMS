@@ -25,6 +25,7 @@ use app\common\service\oauth\OauthProviderInterface;
 use app\common\service\oauth\WechatOauthProvider;
 use app\common\service\oauth\GiteeOauthProvider;
 use app\common\service\oauth\QqOauthProvider;
+use app\common\service\oauth\GitHubOauthProvider;
 use think\facade\Cache;
 use think\facade\Cookie;
 
@@ -41,6 +42,7 @@ class OauthController extends FrontBaseController
         'wechat' => WechatOauthProvider::class,
         'qq'     => QqOauthProvider::class,
         'gitee'  => GiteeOauthProvider::class,
+        'github' => GitHubOauthProvider::class,
     ];
 
     /**
@@ -291,7 +293,8 @@ class OauthController extends FrontBaseController
         return match($provider) {
             'wechat' => (bool) ConfigService::get('oauth_wechat_enabled', 0),
             'qq'     => (bool) ConfigService::get('oauth_qq_enabled', 0),
-            'gitee'  => true, // Gitee默认启用（向后兼容）
+            'gitee'  => true,
+            'github' => (bool) ConfigService::get('oauth_github_enabled', 0),
             default  => false,
         };
     }
@@ -305,6 +308,7 @@ class OauthController extends FrontBaseController
             'wechat' => !empty(ConfigService::get('wechat_open_appid')) && !empty(ConfigService::get('wechat_open_secret')),
             'qq'     => !empty(ConfigService::get('qq_appid')) && !empty(ConfigService::get('qq_appkey')),
             'gitee'  => !empty(ConfigService::get('gitee_client_id')) || !empty(config('oauth.gitee_client_id')),
+            'github' => !empty(config('oauth.github.client_id')) && !empty(config('oauth.github.client_secret')),
             default  => false,
         };
     }
