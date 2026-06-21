@@ -32,6 +32,14 @@ class TemplateInstallController extends AdminBaseController
     }
 
     /**
+     * 模板安装管理首页（已安装模板列表）
+     */
+    public function index()
+    {
+        return $this->myTemplates();
+    }
+
+    /**
      * 模板市场（增强版搜索+分类筛选）
      */
     public function market()

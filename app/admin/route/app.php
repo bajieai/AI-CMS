@@ -514,6 +514,7 @@ Route::post('backup/saveSchedule$', '\app\admin\controller\BackupController@save
 Route::post('backup/runScheduled$', '\app\admin\controller\BackupController@runScheduled');
 
 // V2.9.20 B-3: 模板安装与分类管理路由
+Route::get('template_install/index$', '\app\admin\controller\TemplateInstallController@index');
 Route::get('template_install/market$', '\app\admin\controller\TemplateInstallController@market');
 Route::get('template_install/search$', '\app\admin\controller\TemplateInstallController@search');
 Route::get('template_install/hotTags$', '\app\admin\controller\TemplateInstallController@hotTags');
