@@ -6,20 +6,20 @@
         <div class="card-header"><i class="bi bi-phone me-2"></i>Tab信息</div>
         <div class="card-body">
             <form id="formEdit" onsubmit="return false;" style="max-width:640px">
-                <input type="hidden" name="id" value="{$info.id|default=0}">
+                <input type="hidden" name="id" value="{$info.id??0}">
                 <div class="mb-3">
                     <label class="form-label">Tab名称 <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="name" value="{$info.name|default=''}" required placeholder="如：首页">
+                    <input type="text" class="form-control" name="name" value="{$info.name??''}" required placeholder="如：首页">
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">图标类名 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="icon" value="{$info.icon|default=''}" required placeholder="如：bi bi-house">
+                        <input type="text" class="form-control" name="icon" value="{$info.icon??''}" required placeholder="如：bi bi-house">
                         <div class="form-text">默认状态图标，参考 Bootstrap Icons</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">激活图标类名</label>
-                        <input type="text" class="form-control" name="icon_active" value="{$info.icon_active|default=''}" placeholder="如：bi bi-house-fill">
+                        <input type="text" class="form-control" name="icon_active" value="{$info.icon_active??''}" placeholder="如：bi bi-house-fill">
                         <div class="form-text">选中状态图标（留空则使用默认图标）</div>
                     </div>
                 </div>
@@ -34,13 +34,13 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">链接URL</label>
-                        <input type="text" class="form-control" name="url" value="{$info.url|default=''}" placeholder="如：/product">
+                        <input type="text" class="form-control" name="url" value="{$info.url??''}" placeholder="如：/product">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <label class="form-label">排序号</label>
-                        <input type="number" class="form-control" name="sort" value="{$info.sort|default=0}" min="0">
+                        <input type="number" class="form-control" name="sort" value="{$info.sort??0}" min="0">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label">需要登录</label>

@@ -18,19 +18,19 @@
         <div class="row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label mb-1">表单名称</label>
-                <input type="text" class="form-control form-control-sm" id="formName" value="{$form.name|default=''}" placeholder="如：联系我们">
+                <input type="text" class="form-control form-control-sm" id="formName" value="{$form.name??''}" placeholder="如：联系我们">
             </div>
             <div class="col-md-3">
                 <label class="form-label mb-1">唯一标识</label>
-                <input type="text" class="form-control form-control-sm" id="formCode" value="{$form.code|default=''}" placeholder="如 contact_us">
+                <input type="text" class="form-control form-control-sm" id="formCode" value="{$form.code??''}" placeholder="如 contact_us">
             </div>
             <div class="col-md-2">
                 <label class="form-label mb-1">提交按钮</label>
-                <input type="text" class="form-control form-control-sm" id="formSubmitText" value="{$form.submit_text|default='提交'}">
+                <input type="text" class="form-control form-control-sm" id="formSubmitText" value="{$form.submit_text??'提交'}">
             </div>
             <div class="col-md-2">
                 <label class="form-label mb-1">成功提示</label>
-                <input type="text" class="form-control form-control-sm" id="formSuccessMsg" value="{$form.success_msg|default='提交成功'}">
+                <input type="text" class="form-control form-control-sm" id="formSuccessMsg" value="{$form.success_msg??'提交成功'}">
             </div>
             <div class="col-md-2 text-end">
                 <button type="button" class="btn btn-primary btn-sm" id="btnSaveForm">
@@ -101,7 +101,7 @@
 <script src="/assets/js/form-editor.js?v=2.7"></script>
 <script>
 $(function() {
-    var existingFields = {$form.fields|raw|default='[]'};
+    var existingFields = {$form.fields|raw??'[]'};
     FormEditor.init(existingFields);
 
     $('#btnSaveForm').on('click', function() {
@@ -111,7 +111,7 @@ $(function() {
         if (!code) return showToast('请输入表单标识', 'danger');
 
         var payload = {
-            id: {$form.id|default=0},
+            id: {$form.id??0},
             name: name,
             code: code,
             submit_text: $('#formSubmitText').val() || '提交',

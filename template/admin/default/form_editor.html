@@ -35,7 +35,7 @@
 
 {block name="content"}
 <div class="mb-3 d-flex align-items-center gap-2">
-    <input type="text" id="formTitle" class="form-control form-control-sm" placeholder="表单名称" value="{$form.title|default='未命名表单'}" style="max-width:300px;">
+    <input type="text" id="formTitle" class="form-control form-control-sm" placeholder="表单名称" value="{$form.title??'未命名表单'}" style="max-width:300px;">
     <select id="fePresetSelect" class="form-select form-select-sm" style="max-width:160px;">
         <option value="">加载预设模板</option>
         <option value="contact">联系我们</option>
@@ -69,7 +69,7 @@
     </div>
 </div>
 
-<input type="hidden" id="formId" value="{$form.id|default=0}">
+<input type="hidden" id="formId" value="{$form.id??0}">
 {/block}
 
 {block name="js"}
@@ -78,7 +78,7 @@
 $(function() {
     FormEditor.init();
     // 如果后端传了现有字段配置，加载之
-    var existing = '{$form.fields_config|default=""|raw}';
+    var existing = '{$form.fields_config??""|raw}';
     if (existing) {
         try { FormEditor.loadJson(existing); } catch(e) {}
     }

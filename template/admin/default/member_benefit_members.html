@@ -51,17 +51,17 @@
                         <td>{$item.id}</td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <img src="{$item.avatar|default='/assets/img/default-avatar.png'}" class="rounded-circle me-2" width="32" height="32">
+                                <img src="{$item.avatar??'/assets/img/default-avatar.png'}" class="rounded-circle me-2" width="32" height="32">
                                 <div>
-                                    <div class="fw-bold">{$item.nickname|default=$item.username}</div>
-                                    <div class="small text-muted">{$item.phone|default='-'}</div>
+                                    <div class="fw-bold">{$item.nickname??$item.username}</div>
+                                    <div class="small text-muted">{$item.phone??'-'}</div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-primary">{$item.level.name|default='-'}</span>
+                            <span class="badge bg-primary">{$item.level.name??'-'}</span>
                         </td>
-                        <td>{$item.total_points|default=0}</td>
+                        <td>{$item.total_points??0}</td>
                         <td>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport">

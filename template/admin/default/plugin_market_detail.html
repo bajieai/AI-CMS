@@ -1,5 +1,5 @@
 {extend name="layout" /}
-{block name="title"}插件详情 - {$plugin.name|default=''}{/block}
+{block name="title"}插件详情 - {$plugin.name??''}{/block}
 
 {block name="content"}
 <div class="container-fluid">
@@ -63,7 +63,7 @@
                 <div class="card-body">
                     <h6 class="card-title"><i class="bi bi-file-text me-1"></i>插件介绍</h6>
                     <div class="plugin-description">
-                        {$plugin.description_full|default=$plugin.description|default='暂无详细描述'|raw}
+                        {$plugin.description_full??$plugin.description??'暂无详细描述'|raw}
                     </div>
                 </div>
             </div>
@@ -86,14 +86,14 @@
                         {/if}
                     </div>
 
-                    <p class="text-muted">{$plugin.description|default='暂无描述'}</p>
+                    <p class="text-muted">{$plugin.description??'暂无描述'}</p>
 
                     <!-- 信息表 -->
                     <table class="table table-sm table-borderless mb-0">
                         <tr>
                             <td class="text-muted" style="width:100px;">版本</td>
                             <td>
-                                <span class="badge bg-primary">{$plugin.version|default='1.0.0'}</span>
+                                <span class="badge bg-primary">{$plugin.version??'1.0.0'}</span>
                                 {if $plugin.is_installed && $plugin.local_version}
                                 <span class="text-muted small ms-1">当前: v{$plugin.local_version}</span>
                                 {/if}
@@ -101,7 +101,7 @@
                         </tr>
                         <tr>
                             <td class="text-muted">作者</td>
-                            <td>{$plugin.author|default='未知'}</td>
+                            <td>{$plugin.author??'未知'}</td>
                         </tr>
                         {if !empty($plugin.category)}
                         <tr>
@@ -124,7 +124,7 @@
                         {if !empty($plugin.download_count)}
                         <tr>
                             <td class="text-muted">安装量</td>
-                            <td><i class="bi bi-download me-1"></i>{$plugin.download_count|default=0} 次</td>
+                            <td><i class="bi bi-download me-1"></i>{$plugin.download_count??0} 次</td>
                         </tr>
                         {/if}
                         {if !empty($plugin.require)}
@@ -149,13 +149,13 @@
                     {if !$plugin.is_installed}
                         <button class="btn btn-primary w-100 btn-install"
                                 data-code="{$plugin.code}"
-                                data-url="{$plugin.download_url|default=''}">
+                                data-url="{$plugin.download_url??''}">
                             <i class="bi bi-cloud-download me-1"></i> 一键安装
                         </button>
                     {elseif $plugin.has_update}
                         <button class="btn btn-warning w-100 btn-install"
                                 data-code="{$plugin.code}"
-                                data-url="{$plugin.download_url|default=''}">
+                                data-url="{$plugin.download_url??''}">
                             <i class="bi bi-arrow-up-circle me-1"></i> 更新到 v{$plugin.version}
                         </button>
                     {else}
@@ -173,12 +173,12 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <span class="display-4 fw-bold text-warning me-2">{$plugin.avg_rating|default='0'}</span>
+                        <span class="display-4 fw-bold text-warning me-2">{$plugin.avg_rating??'0'}</span>
                         <div>
                             <div class="text-warning mb-1">
                                 {:str_repeat('<i class="bi bi-star-fill"></i>', (int)$plugin['avg_rating']) . str_repeat('<i class="bi bi-star"></i>', 5 - (int)$plugin['avg_rating'])}
                             </div>
-                            <small class="text-muted">{$plugin.rating_count|default=0} 人评价</small>
+                            <small class="text-muted">{$plugin.rating_count??0} 人评价</small>
                         </div>
                     </div>
 
@@ -234,7 +234,7 @@
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="fw-bold">v{$ver.version}</span>
-                                <span class="text-muted small">{$ver.date|default=''}</span>
+                                <span class="text-muted small">{$ver.date??''}</span>
                             </div>
                             {if !empty($ver.changelog)}
                             <p class="text-muted small mb-0 mt-1">{$ver.changelog}</p>

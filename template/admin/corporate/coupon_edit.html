@@ -20,12 +20,12 @@
             </div>
             <div class="card-body">
                 <form id="couponForm">
-                    <input type="hidden" name="id" value="{$template.id|default=0}">
+                    <input type="hidden" name="id" value="{$template.id??0}">
 
                     <!-- 优惠券名称 -->
                     <div class="mb-3">
                         <label class="form-label">优惠券名称 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="coupon_name" value="{$template.coupon_name|default=''}" required
+                        <input type="text" class="form-control" name="coupon_name" value="{$template.coupon_name??''}" required
                                placeholder="如：满100减20">
                     </div>
 
@@ -43,7 +43,7 @@
                     <div class="mb-3" id="conditionAmountDiv">
                         <label class="form-label">门槛金额（元）</label>
                         <input type="number" class="form-control" name="condition_amount" 
-                               value="{$template.condition_amount|default=0}" min="0" step="0.01"
+                               value="{$template.condition_amount??0}" min="0" step="0.01"
                                placeholder="0表示无门槛">
                         <div class="form-text">订单满此金额才可使用，0表示无门槛</div>
                     </div>
@@ -52,7 +52,7 @@
                     <div class="mb-3" id="reduceAmountDiv">
                         <label class="form-label" id="reduceAmountLabel">减免金额（元）</label>
                         <input type="number" class="form-control" name="reduce_amount" 
-                               value="{$template.reduce_amount|default=0}" min="0" step="0.01">
+                               value="{$template.reduce_amount??0}" min="0" step="0.01">
                     </div>
 
                     <!-- 库存 -->
@@ -60,14 +60,14 @@
                         <div class="col-md-6">
                             <label class="form-label">发行总量</label>
                             <input type="number" class="form-control" name="total_stock" 
-                                   value="{$template.total_stock|default=0}" min="0"
+                                   value="{$template.total_stock??0}" min="0"
                                    placeholder="0表示不限量">
                             <div class="form-text">0 = 不限量</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">每人限领</label>
                             <input type="number" class="form-control" name="per_user_limit" 
-                                   value="{$template.per_user_limit|default=1}" min="1">
+                                   value="{$template.per_user_limit??1}" min="1">
                         </div>
                     </div>
 

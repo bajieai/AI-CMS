@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}邀请明细 - {$member.nickname|default=$member.username}{/block}
+{block name="title"}邀请明细 - {$member.nickname??$member.username}{/block}
 
 {block name="breadcrumb"}
 <li class="breadcrumb-item"><a href="/admin/dashboard/index">首页</a></li>
@@ -13,7 +13,7 @@
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-person-badge me-2"></i>
-            {$member.nickname|default=$member.username} 的邀请明细
+            {$member.nickname??$member.username} 的邀请明细
         </h5>
         <a href="/admin/invite/index" class="btn btn-sm btn-outline-secondary">返回排行</a>
     </div>

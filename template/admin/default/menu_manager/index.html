@@ -24,7 +24,7 @@
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
                 <div class="d-flex align-items-center">
                     <i class="bi bi-grip-vertical text-muted me-2 drag-handle" style="cursor:grab;"></i>
-                    <i class="{$group.icon|default='bi bi-folder'} me-2 text-primary"></i>
+                    <i class="{$group.icon??'bi bi-folder'} me-2 text-primary"></i>
                     <strong>{$group.name}</strong>
                     <span class="badge bg-light text-muted ms-2" style="font-size:.7rem;">{$group.code}</span>
                 </div>
@@ -47,7 +47,7 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center py-2 item-row" data-item-id="{$item.id}">
                         <div class="d-flex align-items-center">
                             <i class="bi bi-grip-vertical text-muted me-2 drag-handle" style="cursor:grab;"></i>
-                            <i class="{$item.icon|default='bi bi-circle'} me-2 text-secondary"></i>
+                            <i class="{$item.icon??'bi bi-circle'} me-2 text-secondary"></i>
                             <span>{$item.name}</span>
                             <small class="text-muted ms-2">{$item.url}</small>
                         </div>

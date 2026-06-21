@@ -5,10 +5,10 @@
     <h4 class="mb-4">{if $info}编辑{else/}添加{/if}采集源</h4>
     <div class="card"><div class="card-body">
         <form id="sourceForm">
-            <input type="hidden" name="id" value="{$info.id|default=0}">
+            <input type="hidden" name="id" value="{$info.id??0}">
             <div class="mb-3">
                 <label class="form-label">名称 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="name" value="{$info.name|default=''}" required>
+                <input type="text" class="form-control" name="name" value="{$info.name??''}" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">类型 <span class="text-danger">*</span></label>
@@ -20,19 +20,19 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">采集URL <span class="text-danger">*</span></label>
-                <input type="url" class="form-control" name="url" value="{$info.url|default=''}" required placeholder="http://example.com/feed.xml">
+                <input type="url" class="form-control" name="url" value="{$info.url??''}" required placeholder="http://example.com/feed.xml">
             </div>
             <div class="mb-3">
                 <label class="form-label">采集规则 (JSON)</label>
-                <textarea class="form-control" name="rules" rows="6" placeholder='{"title":"xpath","content":"xpath"}'>{$info.rules|default=''}</textarea>
+                <textarea class="form-control" name="rules" rows="6" placeholder='{"title":"xpath","content":"xpath"}'>{$info.rules??''}</textarea>
             </div>
             <div class="mb-3">
                 <label class="form-label">目标分类ID</label>
-                <input type="number" class="form-control" name="cate_id" value="{$info.cate_id|default=0}">
+                <input type="number" class="form-control" name="cate_id" value="{$info.cate_id??0}">
             </div>
             <div class="mb-3">
                 <label class="form-label">采集间隔 (分钟)</label>
-                <input type="number" class="form-control" name="interval_minutes" value="{$info.interval_minutes|default=60}" min="1">
+                <input type="number" class="form-control" name="interval_minutes" value="{$info.interval_minutes??60}" min="1">
             </div>
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" name="is_enabled" value="1" id="swEnabled" {if !isset($info) || $info.is_enabled==1}checked{/if}>

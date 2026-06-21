@@ -35,7 +35,7 @@
                     <td style="font-weight:600">{$vo.name}</td>
                     <td><code style="font-size:.82rem">{$vo.code}</code></td>
                     <td>{$vo.fields|count}</td>
-                    <td><a href="/admin/form/dataIndex/form_id/{$vo.id}">{$vo.submit_count|default=0}</a></td>
+                    <td><a href="/admin/form/dataIndex/form_id/{$vo.id}">{$vo.submit_count??0}</a></td>
                     <td>
                         <div class="form-check form-switch">
                             <input class="form-check-input toggle-enabled" type="checkbox" data-id="{$vo.id}"

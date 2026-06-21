@@ -27,7 +27,7 @@
         <textarea name="keywords" class="form-control" rows="8" required placeholder="每行输入一个关键词或主题&#10;&#10;示例：&#10;2025年人工智能发展趋势&#10;ChatGPT在医疗领域的应用前景"></textarea>
         <div class="form-text">每行一个关键词，共生成N篇文章</div></div>
     <div class="row g-3">
-        <div class="col-md-4"><label class="form-label">生成数量</label><input type="number" name="total" class="form-control" min="1" max="100" value="{$template.default_batch|default=10}"></div>
+        <div class="col-md-4"><label class="form-label">生成数量</label><input type="number" name="total" class="form-control" min="1" max="100" value="{$template.default_batch??10}"></div>
         <div class="col-md-4"><label class="form-label">覆盖分类</label><select name="cate_id" class="form-select"><option value="0">使用模板预设 ({$template.cate_id > 0 ? '已设':'未设'})</option>{volist name="cate_list" id="cate"}<option value="{$cate.id}"{if condition="$template.cate_id == $cate.id"} selected{/if}>{$cate.name}</option>{/volist}</select></div>
         <div class="col-md-4"><label class="form-label">覆盖模型</label><select name="model_id" class="form-select"><option value="0">使用模板预设</option>{volist name="model_list" id="model"}<option value="{$model.id}">{$model.name}</option>{/volist}</select></div>
     </div></div></div></div>

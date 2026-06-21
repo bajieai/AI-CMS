@@ -16,9 +16,9 @@
                 <td>{$vo.name}</td>
                 <td>{$vo.type}</td>
                 <td><small>{$vo.url}</small></td>
-                <td>{$vo.interval_minutes|default=60}</td>
+                <td>{$vo.interval_minutes??60}</td>
                 <td>{if $vo.is_enabled==1}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td>
-                <td>{$vo.last_collect_time|default='-'}</td>
+                <td>{$vo.last_collect_time??'-'}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-success" onclick="runCollect({$vo.id})">采集</button>
                     <a href="/admin/collect_source/edit/{$vo.id}" class="btn btn-sm btn-outline-info">编辑</a>

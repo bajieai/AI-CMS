@@ -163,8 +163,8 @@
                         <tbody>
                             {volist name="batch_progress" id="bp"}
                             <tr>
-                                <td><code class="small">{$bp.batch_id|default=''}</code></td>
-                                <td>{$bp.industry|default=''}</td>
+                                <td><code class="small">{$bp.batch_id??''}</code></td>
+                                <td>{$bp.industry??''}</td>
                                 <td>{$bp.total}</td>
                                 <td class="text-success">{$bp.completed}</td>
                                 <td class="text-danger">{$bp.failed}</td>

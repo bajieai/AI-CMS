@@ -70,7 +70,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
-                    <p>连接数: <span class="fw-bold">{$mysql.connections.threads_connected|default='-'}</span></p>
+                    <p>连接数: <span class="fw-bold">{$mysql.connections.threads_connected??'-'}</span></p>
                     {if $mysql.slow_queries.status == 'ok'}
                         <p>慢查询: <span class="fw-bold text-warning">{$mysql.slow_queries.count}</span></p>
                     {else}
@@ -83,7 +83,7 @@
                         <thead><tr><th>表名</th><th>大小(MB)</th></tr></thead>
                         <tbody>
                             {volist name="mysql.tables" id="tb"}
-                            <tr><td>{$tb.table_name|default='-'}</td><td>{$tb.size_mb|default='0'}</td></tr>
+                            <tr><td>{$tb.table_name??'-'}</td><td>{$tb.size_mb??'0'}</td></tr>
                             {/volist}
                         </tbody>
                     </table>
@@ -102,7 +102,7 @@
                 <p class="text-muted">{$cache.message}</p>
                 {/if}
             {else}
-                <p class="text-muted">{$cache.error|default='缓存状态异常'}</p>
+                <p class="text-muted">{$cache.error??'缓存状态异常'}</p>
             {/if}
         </div>
     </div>

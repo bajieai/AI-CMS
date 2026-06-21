@@ -42,7 +42,7 @@
                             {$vo.name}
                         </span>
                     </td>
-                    <td><code style="font-size:.82rem">{$vo.code|default='-'}</code></td>
+                    <td><code style="font-size:.82rem">{$vo.code??'-'}</code></td>
                     <td>{$vo.sort}</td>
                     <td>
                         <span class="badge {if $vo.status == 1}bg-success{else/}bg-secondary{/if}">

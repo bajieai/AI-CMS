@@ -49,7 +49,7 @@
                         <td>
                             <a href="{$item.url}" target="_blank" class="text-decoration-none">{$item.title}</a>
                         </td>
-                        <td>{$item.cate.name|default='-'}</td>
+                        <td>{$item.cate.name??'-'}</td>
                         <td>
                             {if $item.translation_count > 0}
                                 <span class="badge bg-success">已翻译 {$item.translation_count} 种</span>

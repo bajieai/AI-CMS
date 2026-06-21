@@ -9,7 +9,7 @@
                     <label class="form-label">推荐位置 <span class="text-danger">*</span></label>
                     <select name="position" class="form-select" required>
                         {foreach $positions as $k=>$v}
-                        <option value="{$k}" {if ($info.position|default==$k)}selected{/if}>{$v}</option>
+                        <option value="{$k}" {if ($info.position??$k)}selected{/if}>{$v}</option>
                         {/foreach}
                     </select>
                 </div>
@@ -17,32 +17,32 @@
                     <label class="form-label">推荐类型</label>
                     <select name="recommend_type" class="form-select" id="recType">
                         {foreach $recommendTypes as $k=>$v}
-                        <option value="{$k}" {if ($info.recommend_type|default==$k)}selected{/if}>{$v}</option>
+                        <option value="{$k}" {if ($info.recommend_type??$k)}selected{/if}>{$v}</option>
                         {/foreach}
                     </select>
                 </div>
                 <div class="col-md-6" id="templateBox">
                     <label class="form-label">指定模板ID</label>
-                    <input type="number" name="template_id" class="form-control" value="{$info.template_id|default='0'}" placeholder="自动推荐填0">
+                    <input type="number" name="template_id" class="form-control" value="{$info.template_id??'0'}" placeholder="自动推荐填0">
                     <small class="text-muted">手动指定时填写模板ID，自动推荐填0</small>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">排序</label>
-                    <input type="number" name="sort" class="form-control" value="{$info.sort|default='0'}">
+                    <input type="number" name="sort" class="form-control" value="{$info.sort??'0'}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">开始时间</label>
-                    <input type="date" name="start_time" class="form-control" value="{if $info.start_time>0}{:date('Y-m-d',$info.start_time)}{/if}">
+                    <input type="date" name="start_time" class="form-control" value="{if ($info.start_time??0)>0}{:date('Y-m-d',$info.start_time)}{/if}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">结束时间</label>
-                    <input type="date" name="end_time" class="form-control" value="{if $info.end_time>0}{:date('Y-m-d',$info.end_time)}{/if}">
+                    <input type="date" name="end_time" class="form-control" value="{if ($info.end_time??0)>0}{:date('Y-m-d',$info.end_time)}{/if}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">状态</label>
                     <select name="status" class="form-select">
-                        <option value="1" {if ($info.status|default==1)}selected{/if}>启用</option>
-                        <option value="0" {if ($info.status|default==0)}selected{/if}>禁用</option>
+                        <option value="1" {if ($info.status??1)}selected{/if}>启用</option>
+                        <option value="0" {if ($info.status??0)}selected{/if}>禁用</option>
                     </select>
                 </div>
                 <div class="col-12">

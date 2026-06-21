@@ -21,31 +21,31 @@
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">AccessKey ID</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="oss_access_key_id" value="{$config.oss_access_key_id|default=''}" placeholder="AccessKey ID">
+                        <input type="text" class="form-control" name="oss_access_key_id" value="{$config.oss_access_key_id??''}" placeholder="AccessKey ID">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">AccessKey Secret</label>
                     <div class="col-sm-9">
-                        <input type="password" class="form-control" name="oss_access_key_secret" value="{$config.oss_access_key_secret|default=''}" placeholder="AccessKey Secret">
+                        <input type="password" class="form-control" name="oss_access_key_secret" value="{$config.oss_access_key_secret??''}" placeholder="AccessKey Secret">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Bucket名称</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="oss_bucket" value="{$config.oss_bucket|default=''}" placeholder="Bucket名称">
+                        <input type="text" class="form-control" name="oss_bucket" value="{$config.oss_bucket??''}" placeholder="Bucket名称">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Endpoint</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="oss_endpoint" value="{$config.oss_endpoint|default=''}" placeholder="oss-cn-hangzhou.aliyuncs.com">
+                        <input type="text" class="form-control" name="oss_endpoint" value="{$config.oss_endpoint??''}" placeholder="oss-cn-hangzhou.aliyuncs.com">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">CDN域名</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="oss_cdn_domain" value="{$config.oss_cdn_domain|default=''}" placeholder="https://cdn.example.com">
+                        <input type="text" class="form-control" name="oss_cdn_domain" value="{$config.oss_cdn_domain??''}" placeholder="https://cdn.example.com">
                     </div>
                 </div>
 
@@ -53,31 +53,31 @@
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">SecretId</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="cos_secret_id" value="{$config.cos_secret_id|default=''}" placeholder="SecretId">
+                        <input type="text" class="form-control" name="cos_secret_id" value="{$config.cos_secret_id??''}" placeholder="SecretId">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">SecretKey</label>
                     <div class="col-sm-9">
-                        <input type="password" class="form-control" name="cos_secret_key" value="{$config.cos_secret_key|default=''}" placeholder="SecretKey">
+                        <input type="password" class="form-control" name="cos_secret_key" value="{$config.cos_secret_key??''}" placeholder="SecretKey">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Bucket名称</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="cos_bucket" value="{$config.cos_bucket|default=''}" placeholder="Bucket名称">
+                        <input type="text" class="form-control" name="cos_bucket" value="{$config.cos_bucket??''}" placeholder="Bucket名称">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Region地域</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="cos_region" value="{$config.cos_region|default=''}" placeholder="ap-guangzhou">
+                        <input type="text" class="form-control" name="cos_region" value="{$config.cos_region??''}" placeholder="ap-guangzhou">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">CDN域名</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="cos_cdn_domain" value="{$config.cos_cdn_domain|default=''}" placeholder="https://cdn.example.com">
+                        <input type="text" class="form-control" name="cos_cdn_domain" value="{$config.cos_cdn_domain??''}" placeholder="https://cdn.example.com">
                     </div>
                 </div>
 

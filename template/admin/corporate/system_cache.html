@@ -20,19 +20,19 @@
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-md-3">
-                        <h2 class="text-success mb-0 fw-bold">{$stats.hit_rate.rate|default=0}%</h2>
+                        <h2 class="text-success mb-0 fw-bold">{$stats.hit_rate.rate??0}%</h2>
                         <small class="text-muted">命中率</small>
                     </div>
                     <div class="col-md-3">
-                        <h4 class="text-primary mb-0 fw-bold">{$stats.hit_rate.hit|default=0}</h4>
+                        <h4 class="text-primary mb-0 fw-bold">{$stats.hit_rate.hit??0}</h4>
                         <small class="text-muted">缓存命中</small>
                     </div>
                     <div class="col-md-3">
-                        <h4 class="text-warning mb-0 fw-bold">{$stats.hit_rate.miss|default=0}</h4>
+                        <h4 class="text-warning mb-0 fw-bold">{$stats.hit_rate.miss??0}</h4>
                         <small class="text-muted">缓存未命中</small>
                     </div>
                     <div class="col-md-3">
-                        <h4 class="text-info mb-0 fw-bold">{$stats.hit_rate.total|default=0}</h4>
+                        <h4 class="text-info mb-0 fw-bold">{$stats.hit_rate.total??0}</h4>
                         <small class="text-muted">总请求</small>
                     </div>
                 </div>

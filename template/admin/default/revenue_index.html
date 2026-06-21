@@ -7,22 +7,22 @@
         <div class="col-md-4">
             <div class="card text-center"><div class="card-body">
                 <h6 class="text-muted">今日收入</h6>
-                <h3>¥{$stats.today_revenue|default='0.00'}</h3>
-                <small class="text-muted">{$stats.today_orders|default=0} 笔订单</small>
+                <h3>¥{$stats.today_revenue??'0.00'}</h3>
+                <small class="text-muted">{$stats.today_orders??0} 笔订单</small>
             </div></div>
         </div>
         <div class="col-md-4">
             <div class="card text-center"><div class="card-body">
                 <h6 class="text-muted">本月收入</h6>
-                <h3>¥{$stats.month_revenue|default='0.00'}</h3>
-                <small class="text-muted">{$stats.month_orders|default=0} 笔订单</small>
+                <h3>¥{$stats.month_revenue??'0.00'}</h3>
+                <small class="text-muted">{$stats.month_orders??0} 笔订单</small>
             </div></div>
         </div>
         <div class="col-md-4">
             <div class="card text-center"><div class="card-body">
                 <h6 class="text-muted">累计收入</h6>
-                <h3>¥{$stats.total_revenue|default='0.00'}</h3>
-                <small class="text-muted">{$stats.total_orders|default=0} 笔订单</small>
+                <h3>¥{$stats.total_revenue??'0.00'}</h3>
+                <small class="text-muted">{$stats.total_orders??0} 笔订单</small>
             </div></div>
         </div>
     </div>

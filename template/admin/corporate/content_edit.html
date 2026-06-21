@@ -208,7 +208,7 @@
                             <!-- V2.8 SEO预览 -->
                             <div class="mt-2 p-2 bg-light rounded" id="seoPreview" style="display:none;">
                                 <div class="text-primary" style="font-size:.85rem" id="previewTitle"></div>
-                                <div class="text-success" style="font-size:.75rem">{$site_url|default=''}/detail/<span id="previewSlug"></span></div>
+                                <div class="text-success" style="font-size:.75rem">{$site_url??''}/detail/<span id="previewSlug"></span></div>
                                 <div class="text-secondary" style="font-size:.78rem" id="previewDesc"></div>
                             </div>
                         </div>
@@ -614,7 +614,7 @@
 <script>
 window.AI_CMS_CONFIG = {
     ext_data: {:json_encode($ext_data ?? [], JSON_UNESCAPED_UNICODE)},
-    info_id: {$info.id|default=0},
+    info_id: {$info.id??0},
     // V2.9.17 T-4: 翻译轮询可配置化
     translate_poll_interval: parseInt('{$translate_poll_interval ?? 3000}') || 3000,
     translate_poll_fast_interval: parseInt('{$translate_fast_interval ?? 1000}') || 1000,

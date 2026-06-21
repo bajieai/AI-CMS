@@ -147,17 +147,17 @@
                             <td>
                                 {if isset($log.content) && $log.content}
                                     <a href="/admin/content/edit/{$log.content_id}" target="_blank">
-                                        {$log.content.title|default='内容#'|raw}{$log.content_id}
+                                        {$log.content.title??'内容#'|raw}{$log.content_id}
                                     </a>
                                 {else}
                                     内容#{$log.content_id}
                                 {/if}
                             </td>
                             <td>
-                                <span class="badge bg-info">{$log.platform_name|default='未知'}</span>
+                                <span class="badge bg-info">{$log.platform_name??'未知'}</span>
                             </td>
                             <td>
-                                <span class="badge bg-secondary">{$log.action|default='publish'}</span>
+                                <span class="badge bg-secondary">{$log.action??'publish'}</span>
                             </td>
                             <td>
                                 <span class="badge {$log.status_badge}">{$log.status_text}</span>
@@ -171,7 +171,7 @@
                                 <span class="text-muted">-</span>
                                 {/if}
                             </td>
-                            <td>{$log.retry_count|default=0}</td>
+                            <td>{$log.retry_count??0}</td>
                             <td>{$log.create_time|date='Y-m-d H:i'}</td>
                             <td>
                                 {if $log.status == 2}

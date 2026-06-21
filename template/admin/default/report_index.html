@@ -31,7 +31,7 @@
                         <td>{$vo.id}</td>
                         <td>
                             <span class="badge bg-{$vo.type=='daily'?'info':($vo.type=='weekly'?'primary':'success')}">
-                                {$types[$vo.type]|default='未知'}
+                                {$types[$vo.type]??'未知'}
                             </span>
                         </td>
                         <td><a href="{:url('detail',['id'=>$vo.id])}">{$vo.title}</a></td>

@@ -18,7 +18,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">总分享次数</div>
-                    <div class="fs-3 fw-bold">{$overview.total|default=0}</div>
+                    <div class="fs-3 fw-bold">{$overview.total??0}</div>
                     {if condition="$overview.mom > 0"}
                     <span class="badge bg-success bg-opacity-10 text-success">+{$overview.mom}%</span>
                     {elseif condition="$overview.mom < 0"}
@@ -38,7 +38,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">微信分享</div>
-                    <div class="fs-3 fw-bold">{$overview.channels.wechat|default=0}</div>
+                    <div class="fs-3 fw-bold">{$overview.channels.wechat??0}</div>
                 </div>
             </div>
         </div>
@@ -51,7 +51,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">微博分享</div>
-                    <div class="fs-3 fw-bold">{$overview.channels.weibo|default=0}</div>
+                    <div class="fs-3 fw-bold">{$overview.channels.weibo??0}</div>
                 </div>
             </div>
         </div>
@@ -64,7 +64,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">QQ分享</div>
-                    <div class="fs-3 fw-bold">{$overview.channels.qq|default=0}</div>
+                    <div class="fs-3 fw-bold">{$overview.channels.qq??0}</div>
                 </div>
             </div>
         </div>
@@ -128,7 +128,7 @@
                         {/if}
                     </td>
                     <td class="text-truncate" style="max-width:400px">
-                        <a href="/info/{$item.content_id}" target="_blank" class="text-decoration-none">{$item.title|default='未命名'}</a>
+                        <a href="/info/{$item.content_id}" target="_blank" class="text-decoration-none">{$item.title??'未命名'}</a>
                     </td>
                     <td><span class="fw-bold text-primary">{$item.share_count}</span></td>
                 </tr>

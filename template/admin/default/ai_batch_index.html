@@ -15,8 +15,8 @@
                 <td>{$vo.id}</td>
                 <td>{$vo.title}</td>
                 <td><small>{$vo.keywords}</small></td>
-                <td>{$vo.total|default=0}</td>
-                <td>{$vo.style|default='default'}</td>
+                <td>{$vo.total??0}</td>
+                <td>{$vo.style??'default'}</td>
                 <td>
                     {if $vo.status==0}<span class="badge bg-secondary">待执行</span>
                     {elseif $vo.status==1}<span class="badge bg-primary">执行中</span>
@@ -24,7 +24,7 @@
                     {elseif $vo.status==3}<span class="badge bg-danger">失败</span>
                     {else/}<span class="badge bg-warning">未知</span>{/if}
                 </td>
-                <td>{$vo.completed|default=0}/{$vo.total|default=0}</td>
+                <td>{$vo.completed??0}/{$vo.total??0}</td>
                 <td>{$vo.create_time|date='Y-m-d H:i'}</td>
                 <td>
                     <a href="/admin/ai_batch/detail/{$vo.id}" class="btn btn-sm btn-outline-info">详情</a>

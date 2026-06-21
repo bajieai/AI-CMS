@@ -49,7 +49,7 @@
                             {elseif $lic.status == 'expired'}<span class="badge bg-secondary">已过期</span>
                             {else}<span class="badge bg-secondary">{$lic.status}</span>{/if}
                         </td>
-                        <td>{$lic.bind_domain|default='-'}</td>
+                        <td>{$lic.bind_domain??'-'}</td>
                         <td>{if $lic.valid_until > 0}{$lic.valid_until|date='Y-m-d'}{else}永久{/if}</td>
                         <td>
                             {if $lic.status == 'active'}

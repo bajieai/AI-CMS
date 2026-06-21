@@ -27,7 +27,7 @@
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col-md-9">
-                        <h5 class="mb-1">{$task.title|default='批量生成任务'}</h5>
+                        <h5 class="mb-1">{$task.title??'批量生成任务'}</h5>
                         <div class="d-flex gap-3 small text-secondary">
                             <span><i class="bi bi-clock me-1"></i>{$task.create_time|date='Y-m-d H:i:s',###}</span>
                             {if condition="$template"}

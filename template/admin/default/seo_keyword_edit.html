@@ -12,11 +12,11 @@
 <div class="card" style="border:none;box-shadow:var(--card-shadow)">
     <div class="card-body">
         <form id="kwForm" onsubmit="return false;">
-            <input type="hidden" name="id" value="{$info.id|default=0}">
+            <input type="hidden" name="id" value="{$info.id??0}">
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">关键词</label>
-                    <input type="text" class="form-control" name="keyword" value="{$info.keyword|default=''}" required>
+                    <input type="text" class="form-control" name="keyword" value="{$info.keyword??''}" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">分组</label>
@@ -29,11 +29,11 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">搜索量</label>
-                    <input type="number" class="form-control" name="search_volume" value="{$info.search_volume|default=0}" min="0">
+                    <input type="number" class="form-control" name="search_volume" value="{$info.search_volume??0}" min="0">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">难度指数 (0-100)</label>
-                    <input type="number" class="form-control" name="difficulty" value="{$info.difficulty|default=50}" min="0" max="100">
+                    <input type="number" class="form-control" name="difficulty" value="{$info.difficulty??50}" min="0" max="100">
                 </div>
                 <div class="col-md-4">
                     <div class="form-check form-switch mt-4">

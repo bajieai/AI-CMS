@@ -34,11 +34,11 @@
                 <tbody>
                     {foreach $categories as $key=>$cat}
                     <tr>
-                        <td>{$cat.sort|default=0}</td>
+                        <td>{$cat.sort??0}</td>
                         <td><code>{$key}</code></td>
                         <td><strong>{$cat.name}</strong></td>
-                        <td><span class="badge" style="background:{$cat.color|default='#6c757d'};">{$cat.color|default=''}</span></td>
-                        <td><i class="bi {$cat.icon|default='bi-folder'}"></i> {$cat.icon|default=''}</td>
+                        <td><span class="badge" style="background:{$cat.color??'#6c757d'};">{$cat.color??''}</span></td>
+                        <td><i class="bi {$cat.icon??'bi-folder'}"></i> {$cat.icon??''}</td>
                         <td>
                             <button class="btn btn-link btn-sm p-0 text-primary me-2" onclick='editCategory(&quot;{$key}&quot;, {:htmlentities(json_encode($cat, JSON_UNESCAPED_UNICODE|JSON_HEX_APOS|JSON_HEX_QUOT))})'>编辑</button>
                             <button class="btn btn-link btn-sm p-0 text-danger" onclick="deleteCategory('{$key}', '{$cat.name}')">删除</button>

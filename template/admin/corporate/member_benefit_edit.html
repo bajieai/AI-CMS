@@ -20,7 +20,7 @@
                         <div class="mb-3">
                             <label class="form-label">购买折扣倍率</label>
                             <div class="input-group">
-                                <input type="number" name="discount" class="form-control" value="{$level.discount|default='1.0'}" step="0.01" min="0" max="100">
+                                <input type="number" name="discount" class="form-control" value="{$level.discount??'1.0'}" step="0.01" min="0" max="100">
                                 <span class="input-group-text">倍</span>
                             </div>
                             <div class="form-text text-muted">1.0=无折扣，0.8=8折。兼容旧数据：填写80也表示8折。</div>
@@ -30,7 +30,7 @@
                         <div class="mb-3">
                             <label class="form-label">签到积分倍率</label>
                             <div class="input-group">
-                                <input type="number" name="points_rate" class="form-control" value="{$level.points_rate|default='1.0'}" step="0.1" min="0">
+                                <input type="number" name="points_rate" class="form-control" value="{$level.points_rate??'1.0'}" step="0.1" min="0">
                                 <span class="input-group-text">倍</span>
                             </div>
                             <div class="form-text text-muted">1.0=无倍率，2.0=双倍积分</div>
@@ -42,7 +42,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">每日AI配额</label>
-                            <input type="number" name="daily_ai_quota" class="form-control" value="{$level.daily_ai_quota|default='0'}" min="0">
+                            <input type="number" name="daily_ai_quota" class="form-control" value="{$level.daily_ai_quota??'0'}" min="0">
                             <div class="form-text text-muted">0=不限，-1=禁用</div>
                         </div>
                     </div>
@@ -50,10 +50,10 @@
                         <div class="mb-3">
                             <label class="form-label">VIP标识图标类名</label>
                             <div class="input-group">
-                                <input type="text" name="vip_badge_icon" class="form-control" value="{$level.vip_badge_icon|default=''}" placeholder="如 bi bi-gem" id="iconInput">
+                                <input type="text" name="vip_badge_icon" class="form-control" value="{$level.vip_badge_icon??''}" placeholder="如 bi bi-gem" id="iconInput">
                                 <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#iconPickerModal"><i class="bi bi-grid"></i> 选择</button>
                             </div>
-                            <div class="form-text text-muted">当前预览：<i id="iconPreview" class="{$level.vip_badge_icon|default=''}"></i> Bootstrap Icons类名，留空不显示</div>
+                            <div class="form-text text-muted">当前预览：<i id="iconPreview" class="{$level.vip_badge_icon??''}"></i> Bootstrap Icons类名，留空不显示</div>
                         </div>
                     </div>
                 </div>
@@ -68,7 +68,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">自动降级天数（预留V3.0）</label>
-                    <input type="number" name="auto_downgrade_days" class="form-control" value="{$level.auto_downgrade_days|default='0'}" min="0">
+                    <input type="number" name="auto_downgrade_days" class="form-control" value="{$level.auto_downgrade_days??'0'}" min="0">
                     <div class="form-text text-muted">0=不自动降级，N=连续N天未活跃则降级。当前版本仅记录，V3.0启用定时任务。</div>
                 </div>
 

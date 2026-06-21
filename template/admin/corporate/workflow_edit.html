@@ -6,11 +6,11 @@
     <div class="card">
         <div class="card-body">
             <form id="workflowForm">
-                <input type="hidden" name="id" value="{$info.id|default='0'}">
+                <input type="hidden" name="id" value="{$info.id??'0'}">
                 <div class="row mb-3">
                     <label class="col-sm-2 col-form-label">流程名称</label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" name="name" value="{$info.name|default=''}" placeholder="请输入流程名称" required>
+                        <input type="text" class="form-control" name="name" value="{$info.name??''}" placeholder="请输入流程名称" required>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -26,7 +26,7 @@
                 <div class="row mb-3">
                     <label class="col-sm-2 col-form-label">审核步骤JSON</label>
                     <div class="col-sm-10">
-                        <textarea class="form-control" name="steps" rows="5" placeholder='[{&quot;step&quot;:1,&quot;role_id&quot;:0,&quot;name&quot;:&quot;一审&quot;},{&quot;step&quot;:2,&quot;role_id&quot;:0,&quot;name&quot;:&quot;二审&quot;}]'>{$info.steps|default=''}</textarea>
+                        <textarea class="form-control" name="steps" rows="5" placeholder='[{&quot;step&quot;:1,&quot;role_id&quot;:0,&quot;name&quot;:&quot;一审&quot;},{&quot;step&quot;:2,&quot;role_id&quot;:0,&quot;name&quot;:&quot;二审&quot;}]'>{$info.steps??''}</textarea>
                         <div class="form-text">JSON格式，示例：[{"step":1,"role_id":0,"name":"一审"}]</div>
                     </div>
                 </div>

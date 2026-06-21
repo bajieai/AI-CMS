@@ -13,7 +13,7 @@
                 <td>{$vo.content_id}</td>
                 <td>{$vo.platform_id}</td>
                 <td>{if $vo.status==1}<span class="badge bg-success">已发布</span>{elseif $vo.status==0}<span class="badge bg-warning">待发布</span>{else/}<span class="badge bg-danger">失败</span>{/if}</td>
-                <td><small>{$vo.platform_content_id|default='-'}</small></td>
+                <td><small>{$vo.platform_content_id??'-'}</small></td>
                 <td>{$vo.create_time|date='Y-m-d H:i'}</td>
             </tr>
             {/volist}

@@ -50,12 +50,12 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div style="font-size:.78rem;opacity:.85">内容总数</div>
-                    <div style="font-size:1.8rem;font-weight:700">{$content_count|default=0}</div>
+                    <div style="font-size:1.8rem;font-weight:700">{$content_count??0}</div>
                 </div>
                 <i class="bi bi-file-earmark-text-fill" style="font-size:2rem;opacity:.3"></i>
             </div>
             <div style="font-size:.72rem;opacity:.7;margin-top:4px">
-                本月新增 <span>{$month_content|default=0}</span>
+                本月新增 <span>{$month_content??0}</span>
             </div>
         </div>
     </div>
@@ -64,12 +64,12 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div style="font-size:.78rem;opacity:.85">会员总数</div>
-                    <div style="font-size:1.8rem;font-weight:700">{$member_count|default=0}</div>
+                    <div style="font-size:1.8rem;font-weight:700">{$member_count??0}</div>
                 </div>
                 <i class="bi bi-person-check-fill" style="font-size:2rem;opacity:.3"></i>
             </div>
             <div style="font-size:.72rem;opacity:.7;margin-top:4px">
-                本月新增 <span>{$month_member|default=0}</span>
+                本月新增 <span>{$month_member??0}</span>
             </div>
         </div>
     </div>
@@ -196,25 +196,25 @@
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted" style="font-size:.84rem">总订单数</span>
-                        <span style="font-size:1.2rem;font-weight:700;color:var(--primary)">{$paid_stats.total_orders|default=0}</span>
+                        <span style="font-size:1.2rem;font-weight:700;color:var(--primary)">{$paid_stats.total_orders??0}</span>
                     </div>
                 </div>
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted" style="font-size:.84rem">总收入</span>
-                        <span style="font-size:1.2rem;font-weight:700;color:#43e97b">¥{$paid_stats.total_revenue|default='0.00'}</span>
+                        <span style="font-size:1.2rem;font-weight:700;color:#43e97b">¥{$paid_stats.total_revenue??'0.00'}</span>
                     </div>
                 </div>
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted" style="font-size:.84rem">今日订单</span>
-                        <span style="font-size:1.2rem;font-weight:700">{$paid_stats.today_orders|default=0}</span>
+                        <span style="font-size:1.2rem;font-weight:700">{$paid_stats.today_orders??0}</span>
                     </div>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="text-muted" style="font-size:.84rem">积分消耗</span>
-                    <span style="font-weight:600;color:#f5576c">{$paid_stats.total_points|default=0}</span>
+                    <span style="font-weight:600;color:#f5576c">{$paid_stats.total_points??0}</span>
                 </div>
             </div>
         </div>
@@ -226,15 +226,15 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted" style="font-size:.84rem">今日调用</span>
-                    <span style="font-weight:600">{$ai_stats.today_calls|default=0}</span>
+                    <span style="font-weight:600">{$ai_stats.today_calls??0}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted" style="font-size:.84rem">今日Token</span>
-                    <span style="font-weight:600">{$ai_stats.today_tokens|default=0}</span>
+                    <span style="font-weight:600">{$ai_stats.today_tokens??0}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="text-muted" style="font-size:.84rem">成功率</span>
-                    <span style="font-weight:600;color:#43e97b">{$ai_stats.success_rate|default='0'}%</span>
+                    <span style="font-weight:600;color:#43e97b">{$ai_stats.success_rate??'0'}%</span>
                 </div>
             </div>
         </div>

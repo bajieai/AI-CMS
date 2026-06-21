@@ -7,16 +7,16 @@
             <form method="post" class="row g-3" id="bannerForm">
                 <div class="col-md-6">
                     <label class="form-label">标题 <span class="text-danger">*</span></label>
-                    <input type="text" name="title" class="form-control" value="{$info.title|default=''}" required>
+                    <input type="text" name="title" class="form-control" value="{$info.title??''}" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">副标题</label>
-                    <input type="text" name="subtitle" class="form-control" value="{$info.subtitle|default=''}">
+                    <input type="text" name="subtitle" class="form-control" value="{$info.subtitle??''}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Banner图片 <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        <input type="text" name="image" id="imageInput" class="form-control" value="{$info.image|default=''}" required readonly>
+                        <input type="text" name="image" id="imageInput" class="form-control" value="{$info.image??''}" required readonly>
                         <button type="button" class="btn btn-outline-secondary" onclick="openMediaSelect()">选择图片</button>
                     </div>
                     <div class="mt-2" id="imagePreview">
@@ -27,18 +27,18 @@
                     <label class="form-label">跳转类型</label>
                     <select name="target_type" class="form-select" id="targetType">
                         {foreach $targetTypes as $k=>$v}
-                        <option value="{$k}" {if ($info.target_type|default==$k)}selected{/if}>{$v}</option>
+                        <option value="{$k}" {if ($info.target_type??$k)}selected{/if}>{$v}</option>
                         {/foreach}
                     </select>
                 </div>
                 <div class="col-md-6" id="targetUrlBox">
                     <label class="form-label">跳转目标</label>
-                    <input type="text" name="target_url" class="form-control" value="{$info.target_url|default=''}" placeholder="URL或模板ID">
+                    <input type="text" name="target_url" class="form-control" value="{$info.target_url??''}" placeholder="URL或模板ID">
                     <small class="text-muted" id="targetHint">填写完整URL地址</small>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">排序</label>
-                    <input type="number" name="sort" class="form-control" value="{$info.sort|default='0'}">
+                    <input type="number" name="sort" class="form-control" value="{$info.sort??'0'}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">开始时间</label>
@@ -51,8 +51,8 @@
                 <div class="col-md-6">
                     <label class="form-label">状态</label>
                     <select name="status" class="form-select">
-                        <option value="1" {if ($info.status|default==1)}selected{/if}>启用</option>
-                        <option value="0" {if ($info.status|default==0)}selected{/if}>禁用</option>
+                        <option value="1" {if ($info.status??1)}selected{/if}>启用</option>
+                        <option value="0" {if ($info.status??0)}selected{/if}>禁用</option>
                     </select>
                 </div>
                 <div class="col-12">

@@ -75,7 +75,7 @@
                         <td><span class="badge bg-info">{$order.source}</span></td>
                         <td class="fw-bold">¥{$order.amount}</td>
                         <td><span class="badge {$order.status_badge}">{$order.status_text}</span></td>
-                        <td>{$order.pay_method|default='-'}</td>
+                        <td>{$order.pay_method??'-'}</td>
                         <td>{$order.create_time|date='Y-m-d H:i'}</td>
                         <td>
                             {if $order.status == 0}

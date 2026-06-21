@@ -43,10 +43,10 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start">
-                                <h6 class="card-title">{$item.name|default='未命名'}</h6>
+                                <h6 class="card-title">{$item.name??'未命名'}</h6>
                                 <span class="badge bg-{switch $item.recommend_type}{case manual}primary{/case}{case ai}success{/case}{case category}info{/case}{case festival}warning{/case}{case new_release}secondary{/case}{default /}light{/switch}">{$item.recommend_type}</span>
                             </div>
-                            <p class="card-text small text-muted">ID: {$item.id} | 版本: {$item.version|default='-'} | 安装: {$item.install_count|default=0}</p>
+                            <p class="card-text small text-muted">ID: {$item.id} | 版本: {$item.version??'-'} | 安装: {$item.install_count??0}</p>
                             {if !empty($item.recommend_rule)}<p class="small"><i class="bi bi-tag me-1"></i>{$item.recommend_rule}</p>{/if}
                         </div>
                     </div>

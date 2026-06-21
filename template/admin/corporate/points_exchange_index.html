@@ -21,8 +21,8 @@
                 <td>
                     {if $vo.member}
                     <div class="d-flex align-items-center gap-2">
-                        <img src="{$vo.member.avatar|default='/assets/img/default-avatar.png'}" class="rounded-circle" width="28" height="28" alt="">
-                        <span>{$vo.member.nickname|default='用户'.$vo.user_id}</span>
+                        <img src="{$vo.member.avatar??'/assets/img/default-avatar.png'}" class="rounded-circle" width="28" height="28" alt="">
+                        <span>{$vo.member.nickname??'用户'.$vo.user_id}</span>
                     </div>
                     {else/}用户{$vo.user_id}{/if}
                 </td>

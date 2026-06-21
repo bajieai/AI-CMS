@@ -41,7 +41,7 @@
                     <h6 class="card-title">{$vo.name}</h6>
                     <p class="text-muted small mb-1">{$vo.code}</p>
                     <p class="text-muted small mb-2">v{$vo.version} {if $vo.author}by {$vo.author}{/if}</p>
-                    <p class="small">{$vo.description|default='暂无描述'}</p>
+                    <p class="small">{$vo.description??'暂无描述'}</p>
                 </div>
                 <div class="card-footer bg-transparent d-flex justify-content-between">
                     {if $vo.is_installed}

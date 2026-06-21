@@ -32,7 +32,7 @@
                     {volist name="list" id="item"}
                     <tr>
                         <td>{$item.id}</td>
-                        <td><i class="bi bi-{$item.icon|default='file-text'}"></i></td>
+                        <td><i class="bi bi-{$item.icon??'file-text'}"></i></td>
                         <td>{$item.name}</td>
                         <td><span class="badge bg-light text-dark">{$typeMap[$item.type] ?? '未知'}</span></td>
                         <td>{$item.field_count}</td>

@@ -38,7 +38,7 @@
                 {foreach $writingStyles as $key => $style}
                 <tr>
                     <td><code>{$key}</code></td>
-                    <td><strong>{$style.name|default=''}</strong></td>
+                    <td><strong>{$style.name??''}</strong></td>
                     <td class="text-muted">{$style.system_prompt|mb_substr=0,60}{if mb_strlen($style.system_prompt) > 60}…{/if}</td>
                 </tr>
                 {/foreach}

@@ -5,18 +5,18 @@
     <h4 class="mb-4">{if $info}编辑{else/}添加{/if}发布平台</h4>
     <div class="card"><div class="card-body">
         <form id="platformForm">
-            <input type="hidden" name="id" value="{$info.id|default=0}">
+            <input type="hidden" name="id" value="{$info.id??0}">
             <div class="mb-3">
                 <label class="form-label">平台标识 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="name" value="{$info.name|default=''}" required placeholder="如：wechat, weibo">
+                <input type="text" class="form-control" name="name" value="{$info.name??''}" required placeholder="如：wechat, weibo">
             </div>
             <div class="mb-3">
                 <label class="form-label">显示名称 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="display_name" value="{$info.display_name|default=''}" required placeholder="如：微信公众号">
+                <input type="text" class="form-control" name="display_name" value="{$info.display_name??''}" required placeholder="如：微信公众号">
             </div>
             <div class="mb-3">
                 <label class="form-label">配置参数 (JSON)</label>
-                <textarea class="form-control" name="config_json" rows="6" placeholder='{"app_id":"xxx","secret":"xxx"}'>{$info.config_json|default=''}</textarea>
+                <textarea class="form-control" name="config_json" rows="6" placeholder='{"app_id":"xxx","secret":"xxx"}'>{$info.config_json??''}</textarea>
             </div>
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" name="is_enabled" value="1" id="swEnabled" {if !isset($info) || $info.is_enabled==1}checked{/if}>

@@ -10,13 +10,13 @@
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Client ID</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="gitee_client_id" value="{$config.gitee_client_id|default=''}" placeholder="Gitee Client ID">
+                        <input type="text" class="form-control" name="gitee_client_id" value="{$config.gitee_client_id??''}" placeholder="Gitee Client ID">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Client Secret</label>
                     <div class="col-sm-9">
-                        <input type="password" class="form-control" name="gitee_client_secret" value="{$config.gitee_client_secret|default=''}" placeholder="Gitee Client Secret">
+                        <input type="password" class="form-control" name="gitee_client_secret" value="{$config.gitee_client_secret??''}" placeholder="Gitee Client Secret">
                     </div>
                 </div>
 
@@ -24,13 +24,13 @@
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">AppID</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="wechat_open_appid" value="{$config.wechat_open_appid|default=''}" placeholder="微信开放平台AppID">
+                        <input type="text" class="form-control" name="wechat_open_appid" value="{$config.wechat_open_appid??''}" placeholder="微信开放平台AppID">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">AppSecret</label>
                     <div class="col-sm-9">
-                        <input type="password" class="form-control" name="wechat_open_secret" value="{$config.wechat_open_secret|default=''}" placeholder="微信开放平台AppSecret">
+                        <input type="password" class="form-control" name="wechat_open_secret" value="{$config.wechat_open_secret??''}" placeholder="微信开放平台AppSecret">
                     </div>
                 </div>
 
@@ -38,13 +38,13 @@
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">AppID</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="qq_appid" value="{$config.qq_appid|default=''}" placeholder="QQ AppID">
+                        <input type="text" class="form-control" name="qq_appid" value="{$config.qq_appid??''}" placeholder="QQ AppID">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">AppKey</label>
                     <div class="col-sm-9">
-                        <input type="password" class="form-control" name="qq_appkey" value="{$config.qq_appkey|default=''}" placeholder="QQ AppKey">
+                        <input type="password" class="form-control" name="qq_appkey" value="{$config.qq_appkey??''}" placeholder="QQ AppKey">
                     </div>
                 </div>
 

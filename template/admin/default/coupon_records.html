@@ -38,7 +38,7 @@
                     <tr>
                         <td>{$vo.id}</td>
                         <td><code>{$vo.code}</code></td>
-                        <td>{$vo.member.nickname|default=$vo.member.username|default='未知'}</td>
+                        <td>{$vo.member.nickname??$vo.member.username??'未知'}</td>
                         <td>
                             {if $vo.coupon_type=='reduce'}
                             <span class="badge bg-primary">满减</span>

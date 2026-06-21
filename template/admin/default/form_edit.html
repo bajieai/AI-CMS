@@ -12,24 +12,24 @@
 <div class="card" style="border:none;box-shadow:var(--card-shadow)">
     <div class="card-body">
         <form id="formEdit" onsubmit="return false;">
-            <input type="hidden" name="id" value="{$form.id|default=0}">
+            <input type="hidden" name="id" value="{$form.id??0}">
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">表单名称</label>
-                    <input type="text" class="form-control" name="name" value="{$form.name|default=''}" required>
+                    <input type="text" class="form-control" name="name" value="{$form.name??''}" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">唯一标识</label>
-                    <input type="text" class="form-control" name="code" value="{$form.code|default=''}" placeholder="如 contact_us" required>
+                    <input type="text" class="form-control" name="code" value="{$form.code??''}" placeholder="如 contact_us" required>
                     <div class="form-text">调用标签：{literal}{i8j:form code="标识" /}{/literal}</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">提交按钮文案</label>
-                    <input type="text" class="form-control" name="submit_text" value="{$form.submit_text|default='提交'}">
+                    <input type="text" class="form-control" name="submit_text" value="{$form.submit_text??'提交'}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">成功提示</label>
-                    <input type="text" class="form-control" name="success_msg" value="{$form.success_msg|default='提交成功'}">
+                    <input type="text" class="form-control" name="success_msg" value="{$form.success_msg??'提交成功'}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">提交后动作</label>
@@ -40,7 +40,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">跳转URL（如需跳转）</label>
-                    <input type="text" class="form-control" name="redirect_url" value="{$form.redirect_url|default=''}">
+                    <input type="text" class="form-control" name="redirect_url" value="{$form.redirect_url??''}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">防刷策略</label>
@@ -52,7 +52,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">排序</label>
-                    <input type="number" class="form-control" name="sort" value="{$form.sort|default=0}">
+                    <input type="number" class="form-control" name="sort" value="{$form.sort??0}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">状态</label>

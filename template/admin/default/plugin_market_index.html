@@ -79,10 +79,10 @@
                                 <span class="badge bg-primary">推荐</span>
                             {/if}
                         </div>
-                        <p class="card-text text-muted small" style="min-height:2.5em;">{$plugin.description|default='暂无描述'}</p>
+                        <p class="card-text text-muted small" style="min-height:2.5em;">{$plugin.description??'暂无描述'}</p>
                         <div class="small text-muted mb-2">
                             <span class="me-2"><i class="bi bi-tag"></i> {$plugin.version}</span>
-                            <span class="me-2"><i class="bi bi-person"></i> {$plugin.author|default='未知'}</span>
+                            <span class="me-2"><i class="bi bi-person"></i> {$plugin.author??'未知'}</span>
                             {if $plugin.avg_rating > 0}<span><i class="bi bi-star-fill text-warning"></i> {$plugin.avg_rating}</span>{/if}
                         </div>
                     </div>
@@ -90,13 +90,13 @@
                         {if !$plugin.is_installed}
                             <button class="btn btn-sm btn-primary w-100 btn-install"
                                     data-code="{$plugin.code}"
-                                    data-url="{$plugin.download_url|default=''}">
+                                    data-url="{$plugin.download_url??''}">
                                 <i class="bi bi-cloud-download"></i> 一键安装
                             </button>
                         {elseif $plugin.has_update}
                             <button class="btn btn-sm btn-warning w-100 btn-install"
                                     data-code="{$plugin.code}"
-                                    data-url="{$plugin.download_url|default=''}">
+                                    data-url="{$plugin.download_url??''}">
                                 <i class="bi bi-arrow-up-circle"></i> 更新到 {$plugin.version}
                             </button>
                         {else}
@@ -133,10 +133,10 @@
                             <span class="badge bg-secondary">未安装</span>
                         {/if}
                     </div>
-                    <p class="card-text text-muted small">{$plugin.description|default='暂无描述'}</p>
+                    <p class="card-text text-muted small">{$plugin.description??'暂无描述'}</p>
                     <div class="small text-muted mb-2">
                         <span class="me-2"><i class="bi bi-tag"></i> {$plugin.version}</span>
-                        <span class="me-2"><i class="bi bi-person"></i> {$plugin.author|default='未知'}</span>
+                        <span class="me-2"><i class="bi bi-person"></i> {$plugin.author??'未知'}</span>
                         {if $plugin.avg_rating > 0}<span><i class="bi bi-star-fill text-warning"></i> {$plugin.avg_rating}</span>{/if}
                     </div>
                 </div>
@@ -144,13 +144,13 @@
                     {if !$plugin.is_installed}
                         <button class="btn btn-sm btn-outline-primary w-100 btn-install"
                                 data-code="{$plugin.code}"
-                                data-url="{$plugin.download_url|default=''}">
+                                data-url="{$plugin.download_url??''}">
                             <i class="bi bi-cloud-download"></i> 一键安装
                         </button>
                     {elseif $plugin.has_update}
                         <button class="btn btn-sm btn-outline-warning w-100 btn-install"
                                 data-code="{$plugin.code}"
-                                data-url="{$plugin.download_url|default=''}">
+                                data-url="{$plugin.download_url??''}">
                             <i class="bi bi-arrow-up-circle"></i> 更新到 {$plugin.version}
                         </button>
                     {else}

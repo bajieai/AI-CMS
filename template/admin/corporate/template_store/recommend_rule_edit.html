@@ -9,22 +9,22 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">规则名称 <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" required value="{$rule.name|default=''}" placeholder="如：首页精选推荐">
+                        <input type="text" name="name" class="form-control" required value="{$rule.name??''}" placeholder="如：首页精选推荐">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">规则类型 <span class="text-danger">*</span></label>
                         <select name="rule_type" class="form-select" required id="ruleType">
                             {foreach $ruleTypes as $key => $label}
-                            <option value="{$key}" {if ($rule.rule_type|default='manual')==$key}selected{/if}>{$label}</option>
+                            <option value="{$key}" {if ($rule.rule_type??'manual')==$key}selected{/if}>{$label}</option>
                             {/foreach}
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">A/B测试分组</label>
                         <select name="ab_group" class="form-select">
-                            <option value="ALL" {if ($rule.ab_group|default='A')=='ALL'}selected{/if}>全部分组</option>
-                            <option value="A" {if ($rule.ab_group|default='A')=='A'}selected{/if}>A组</option>
-                            <option value="B" {if ($rule.ab_group|default='')=='B'}selected{/if}>B组</option>
+                            <option value="ALL" {if ($rule.ab_group??'A')=='ALL'}selected{/if}>全部分组</option>
+                            <option value="A" {if ($rule.ab_group??'A')=='A'}selected{/if}>A组</option>
+                            <option value="B" {if ($rule.ab_group??'')=='B'}selected{/if}>B组</option>
                         </select>
                     </div>
                 </div>
@@ -32,27 +32,27 @@
                 <div class="row mb-3">
                     <div class="col-md-3">
                         <label class="form-label">优先级</label>
-                        <input type="number" name="priority" class="form-control" value="{$rule.priority|default=10}" min="0">
+                        <input type="number" name="priority" class="form-control" value="{$rule.priority??10}" min="0">
                         <small class="text-muted">数字越大越优先</small>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">排序</label>
-                        <input type="number" name="sort" class="form-control" value="{$rule.sort|default=100}" min="0">
+                        <input type="number" name="sort" class="form-control" value="{$rule.sort??100}" min="0">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">关联分类</label>
                         <select name="category_id" class="form-select">
                             <option value="0">不关联分类</option>
                             {volist name="categories" id="cat"}
-                            <option value="{$cat.id}" {if ($rule.category_id|default=0)==$cat.id}selected{/if}>{$cat.name}</option>
+                            <option value="{$cat.id}" {if ($rule.category_id??0)==$cat.id}selected{/if}>{$cat.name}</option>
                             {/volist}
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">状态</label>
                         <select name="status" class="form-select">
-                            <option value="1" {if ($rule.status|default=1)==1}selected{/if}>启用</option>
-                            <option value="0" {if ($rule.status|default=1)==0}selected{/if}>禁用</option>
+                            <option value="1" {if ($rule.status??1)==1}selected{/if}>启用</option>
+                            <option value="0" {if ($rule.status??1)==0}selected{/if}>禁用</option>
                         </select>
                     </div>
                 </div>
@@ -60,11 +60,11 @@
                 <div class="row mb-3">
                     <div class="col-md-3">
                         <label class="form-label">生效开始时间</label>
-                        <input type="datetime-local" name="start_time" class="form-control" value="{$rule.start_time|default=''}">
+                        <input type="datetime-local" name="start_time" class="form-control" value="{$rule.start_time??''}">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">生效结束时间</label>
-                        <input type="datetime-local" name="end_time" class="form-control" value="{$rule.end_time|default=''}">
+                        <input type="datetime-local" name="end_time" class="form-control" value="{$rule.end_time??''}">
                     </div>
                 </div>
 

@@ -27,7 +27,7 @@
                         {/if}
                     </div>
                     <p class="text-muted small mb-1">{$vo.code} v{$vo.version}</p>
-                    <p class="small">{$vo.description|default='暂无描述'}</p>
+                    <p class="small">{$vo.description??'暂无描述'}</p>
                     {if $vo.author}<p class="small text-muted">作者: {$vo.author}</p>{/if}
                 </div>
                 <div class="card-footer bg-transparent d-flex justify-content-between">

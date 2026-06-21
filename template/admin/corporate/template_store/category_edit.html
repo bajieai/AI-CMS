@@ -6,50 +6,50 @@
         <div class="card-header"><i class="bi bi-folder2-open me-2"></i>分类信息</div>
         <div class="card-body">
             <form id="formEdit" onsubmit="return false;" style="max-width:640px">
-                <input type="hidden" name="id" value="{$info.id|default=0}">
+                <input type="hidden" name="id" value="{$info.id??0}">
                 <div class="mb-3">
                     <label class="form-label">父分类</label>
                     <select class="form-select" name="parent_id">
                         {volist name="parentOptions" id="opt"}
-                        <option value="{$opt.id}" {if ($info.parent_id|default=0)==$opt.id}selected{/if}>{$opt.name}</option>
+                        <option value="{$opt.id}" {if ($info.parent_id??0)==$opt.id}selected{/if}>{$opt.name}</option>
                         {/volist}
                     </select>
                     <div class="form-text">选择父分类可实现多级分类，顶级分类请选"— 顶级分类 —"</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">分类名称 <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="name" value="{$info.name|default=''}" required placeholder="如：企业商务">
+                    <input type="text" class="form-control" name="name" value="{$info.name??''}" required placeholder="如：企业商务">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">分类标识 <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="slug" value="{$info.slug|default=''}" required placeholder="如：corporate">
+                    <input type="text" class="form-control" name="slug" value="{$info.slug??''}" required placeholder="如：corporate">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">分类描述</label>
-                    <textarea class="form-control" name="description" rows="2" placeholder="分类简要描述">{$info.description|default=''}</textarea>
+                    <textarea class="form-control" name="description" rows="2" placeholder="分类简要描述">{$info.description??''}</textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">图标类名</label>
-                    <input type="text" class="form-control" name="icon" value="{$info.icon|default=''}" placeholder="如：bi bi-briefcase">
+                    <input type="text" class="form-control" name="icon" value="{$info.icon??''}" placeholder="如：bi bi-briefcase">
                 </div>
                 <hr class="my-4">
                 <h6 class="text-muted mb-3"><i class="bi bi-search me-1"></i>SEO 设置</h6>
                 <div class="mb-3">
                     <label class="form-label">SEO 标题</label>
-                    <input type="text" class="form-control" name="meta_title" value="{$info.meta_title|default=''}" placeholder="留空则使用分类名称">
+                    <input type="text" class="form-control" name="meta_title" value="{$info.meta_title??''}" placeholder="留空则使用分类名称">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">SEO 描述</label>
-                    <textarea class="form-control" name="meta_description" rows="2" placeholder="留空则使用分类描述">{$info.meta_description|default=''}</textarea>
+                    <textarea class="form-control" name="meta_description" rows="2" placeholder="留空则使用分类描述">{$info.meta_description??''}</textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">SEO 关键词</label>
-                    <input type="text" class="form-control" name="meta_keywords" value="{$info.meta_keywords|default=''}" placeholder="逗号分隔">
+                    <input type="text" class="form-control" name="meta_keywords" value="{$info.meta_keywords??''}" placeholder="逗号分隔">
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">排序号</label>
-                        <input type="number" class="form-control" name="sort" value="{$info.sort|default=0}" min="0">
+                        <input type="number" class="form-control" name="sort" value="{$info.sort??0}" min="0">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">启用状态</label>

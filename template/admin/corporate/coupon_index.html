@@ -31,7 +31,7 @@
                 </div>
                 <div class="ms-3">
                     <div class="text-muted small">已启用</div>
-                    <div class="fs-4 fw-bold">{$stats.enabled|default=0}</div>
+                    <div class="fs-4 fw-bold">{$stats.enabled??0}</div>
                 </div>
             </div>
         </div>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="ms-3">
                     <div class="text-muted small">已发放</div>
-                    <div class="fs-4 fw-bold">{$stats.issued|default=0}</div>
+                    <div class="fs-4 fw-bold">{$stats.issued??0}</div>
                 </div>
             </div>
         </div>
@@ -57,7 +57,7 @@
                 </div>
                 <div class="ms-3">
                     <div class="text-muted small">已使用</div>
-                    <div class="fs-4 fw-bold">{$stats.used|default=0}</div>
+                    <div class="fs-4 fw-bold">{$stats.used??0}</div>
                 </div>
             </div>
         </div>

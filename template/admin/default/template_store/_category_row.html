@@ -7,7 +7,7 @@
         {$item.name}
     </td>
     <td><code>{$item.slug}</code></td>
-    <td><span class="badge bg-secondary">L{$item.level|default=1}</span></td>
+    <td><span class="badge bg-secondary">L{$item.level??1}</span></td>
     <td>{if $item.icon}<i class="{$item.icon}"></i>{else/}-{/if}</td>
     <td>{$item.sort}</td>
     <td>

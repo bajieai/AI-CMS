@@ -14,7 +14,7 @@
             <div class="card-body">
                 <p class="mb-1"><strong>ID:</strong> {$record.id}</p>
                 <p class="mb-1"><strong>主题名:</strong> <code>{$record.theme_name}</code></p>
-                <p class="mb-1"><strong>版本:</strong> v{$record.version|default=0}</p>
+                <p class="mb-1"><strong>版本:</strong> v{$record.version??0}</p>
                 <p class="mb-1"><strong>状态:</strong> <span class="badge bg-{$record.status_style}">{$record.status_text}</span></p>
                 <p class="mb-1"><strong>Token:</strong> {$record.token_cost}</p>
                 <p class="mb-1"><strong>重试:</strong> {$record.retry_count}</p>
@@ -38,32 +38,32 @@
                 <div class="small">
                     <div class="d-flex justify-content-between mb-1">
                         <span>结构完整性</span>
-                        <span class="text-muted">{$qd.structure|default=0}</span>
+                        <span class="text-muted">{$qd.structure??0}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span>CSS变量引用</span>
-                        <span class="text-muted">{$qd.css_variable|default=0}</span>
+                        <span class="text-muted">{$qd.css_variable??0}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span>硬编码检测</span>
-                        <span class="text-muted">{$qd.hardcoded|default=0}</span>
+                        <span class="text-muted">{$qd.hardcoded??0}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span>页面完整性</span>
-                        <span class="text-muted">{$qd.pages|default=0}</span>
+                        <span class="text-muted">{$qd.pages??0}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span>代码简洁度</span>
-                        <span class="text-muted">{$qd.cleanliness|default=0}</span>
+                        <span class="text-muted">{$qd.cleanliness??0}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span>相似度检测</span>
-                        <span class="text-muted">{$qd.similarity|default=0}</span>
+                        <span class="text-muted">{$qd.similarity??0}</span>
                     </div>
                     <hr class="my-2">
                     <div class="d-flex justify-content-between fw-bold">
                         <span>总分</span>
-                        <span>{$qd.total|default=0}</span>
+                        <span>{$qd.total??0}</span>
                     </div>
                     {if condition="!empty($qd.warnings)"}
                     <div class="mt-2">
