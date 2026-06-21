@@ -468,6 +468,46 @@ Route::post('content_model/saveField$', '\app\admin\controller\ContentModelContr
 Route::post('content_model/deleteField/:id$', '\app\admin\controller\ContentModelController@deleteField');
 Route::get('content_model/getFields/:modelId$', '\app\admin\controller\ContentModelController@getFields');
 
+// V2.9.27 Sprint S: 内容模型差异化路由
+Route::post('content/switchTemplate/:id$', '\app\admin\controller\ContentController@switchTemplate');
+Route::get('content/getAvailableTemplates/:id$', '\app\admin\controller\ContentController@getAvailableTemplates');
+Route::post('content/saveRelations/:id$', '\app\admin\controller\ContentController@saveRelations');
+Route::get('content/getRelations/:id$', '\app\admin\controller\ContentController@getRelations');
+// S-7 模型统计
+Route::get('content_model_stats/index$', '\app\admin\controller\ContentModelStatsController@index');
+Route::get('content_model_stats/getModelDetail$', '\app\admin\controller\ContentModelStatsController@getModelDetail');
+Route::get('content_model_stats/getTrend$', '\app\admin\controller\ContentModelStatsController@getTrend');
+Route::post('content_model_stats/refresh$', '\app\admin\controller\ContentModelStatsController@refresh');
+// S-5 模型模板映射
+Route::get('content_model_map/index$', '\app\admin\controller\ContentModelMapController@index');
+Route::rule('content_model_map/edit/:id$', '\app\admin\controller\ContentModelMapController@edit', 'GET|POST');
+Route::get('content_model_map/add$', '\app\admin\controller\ContentModelMapController@edit');
+Route::post('content_model_map/delete/:id$', '\app\admin\controller\ContentModelMapController@delete');
+Route::post('content_model_map/setDefault/:id$', '\app\admin\controller\ContentModelMapController@setDefault');
+Route::post('content_model_map/toggleStatus/:id$', '\app\admin\controller\ContentModelMapController@toggleStatus');
+// S-8 迁移工具
+Route::get('content_model_migration/index$', '\app\admin\controller\ContentModelMigrationController@index');
+Route::post('content_model_migration/batchAssign$', '\app\admin\controller\ContentModelMigrationController@batchAssign');
+Route::post('content_model_migration/importFromType$', '\app\admin\controller\ContentModelMigrationController@importFromType');
+Route::post('content_model_migration/initFields$', '\app\admin\controller\ContentModelMigrationController@initFields');
+
+// V2.9.27 Sprint T: SSE监控路由
+Route::get('sse_monitor/index$', '\app\admin\controller\SseMonitorController@index');
+Route::post('sse_monitor/refresh$', '\app\admin\controller\SseMonitorController@refresh');
+Route::post('sse_monitor/cleanup$', '\app\admin\controller\SseMonitorController@cleanup');
+Route::get('sse_monitor/detail$', '\app\admin\controller\SseMonitorController@detail');
+
+// V2.9.27 Sprint U: 模板商店商业化路由
+Route::get('template_pricing/index$', '\app\admin\controller\TemplatePricingController@index');
+Route::rule('template_pricing/edit/:templateId$', '\app\admin\controller\TemplatePricingController@edit', 'GET|POST');
+Route::post('template_pricing/calculatePrice$', '\app\admin\controller\TemplatePricingController@calculatePrice');
+Route::get('template_order_admin/index$', '\app\admin\controller\TemplateOrderAdminController@index');
+Route::get('template_order_admin/detail/:id$', '\app\admin\controller\TemplateOrderAdminController@detail');
+Route::post('template_order_admin/refund/:id$', '\app\admin\controller\TemplateOrderAdminController@refund');
+
+// V2.9.27 Sprint V: 基础设施完善路由
+Route::get('system_health/index$', '\app\admin\controller\SystemHealthController@index');
+
 // V2.9.20 B-3: 模板安装与分类管理路由
 Route::get('template_install/market$', '\app\admin\controller\TemplateInstallController@market');
 Route::get('template_install/search$', '\app\admin\controller\TemplateInstallController@search');

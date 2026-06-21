@@ -1,0 +1,176 @@
+{extend name="layout" /}
+
+{block name="title"}内容模型统计{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item active">模型统计</li>
+{/block}
+
+{block name="content"}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-white-50 small">内容总数</div>
+                        <div class="h3 mb-0">{$summary.total}</div>
+                    </div>
+                    <i class="bi bi-file-earmark-text fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-white-50 small">已发布</div>
+                        <div class="h3 mb-0">{$summary.published}</div>
+                        <div class="text-white-50 small">发布率 {$summary.publish_rate}%</div>
+                    </div>
+                    <i class="bi bi-check-circle fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-white-50 small">总浏览量</div>
+                        <div class="h3 mb-0">{$summary.total_views}</div>
+                    </div>
+                    <i class="bi bi-eye fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-white-50 small">已分配模型</div>
+                        <div class="h3 mb-0">{$summary.with_model}</div>
+                        <div class="text-white-50 small">未分配 {$summary.without_model}</div>
+                    </div>
+                    <i class="bi bi-layers fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-graph-up me-1"></i>近7天新增内容趋势
+        <button class="btn btn-sm btn-outline-secondary float-end" onclick="refreshStats()"><i class="bi bi-arrow-clockwise"></i> 刷新</button>
+    </div>
+    <div class="card-body">
+        <canvas id="trendChart" height="80"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><i class="bi bi-table me-1"></i>各模型数据统计</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>模型</th><th>标识</th><th>总数</th><th>已发布</th>
+                        <th>草稿</th><th>待审</th><th>浏览量</th><th>质量分</th>
+                        <th>字段数</th><th>发布率</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="model_stats" id="stat"}
+                    <tr>
+                        <td>{$stat.model_name}</td>
+                        <td><code>{$stat.model_code}</code></td>
+                        <td><strong>{$stat.total}</strong></td>
+                        <td><span class="text-success">{$stat.published}</span></td>
+                        <td>{$stat.draft}</td>
+                        <td>{$stat.pending}</td>
+                        <td>{$stat.total_views}</td>
+                        <td>{$stat.avg_quality}</td>
+                        <td>{$stat.field_count}</td>
+                        <td>
+                            <div class="progress" style="height:20px;">
+                                <div class="progress-bar" style="width:{$stat.publish_rate}%">{$stat.publish_rate}%</div>
+                            </div>
+                        </td>
+                        <td><button class="btn btn-sm btn-outline-info" onclick="loadModelDetail({$stat.model_id})"><i class="bi bi-bar-chart"></i></button></td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modelDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">模型详细统计</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modelDetailBody">加载中...</div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+var trendData = {:json_encode($trend)};
+var ctx = document.getElementById('trendChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: trendData.map(function(d) { return d.date; }),
+        datasets: [{
+            label: '新增内容',
+            data: trendData.map(function(d) { return d.new_count; }),
+            borderColor: 'rgb(13,110,253)',
+            backgroundColor: 'rgba(13,110,253,0.1)',
+            fill: true, tension: 0.3
+        }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+function refreshStats() {
+    $.post('/admin/content_model_stats/refresh', function(res) {
+        if (res.code === 0) { location.reload(); }
+    });
+}
+
+function loadModelDetail(modelId) {
+    $('#modelDetailModal').modal('show');
+    $('#modelDetailBody').html('加载中...');
+    $.get('/admin/content_model_stats/getModelDetail/modelId/' + modelId, function(res) {
+        if (res.code !== 0) { $('#modelDetailBody').html(res.msg); return; }
+        var s = res.data.stats;
+        var html = '<div class="row mb-3">';
+        html += '<div class="col-md-4"><div class="stat-card"><div class="stat-label">总内容数</div><div class="stat-value">'+s.total+'</div></div></div>';
+        html += '<div class="col-md-4"><div class="stat-card"><div class="stat-label">已发布</div><div class="stat-value text-success">'+s.published+'</div></div></div>';
+        html += '<div class="col-md-4"><div class="stat-card"><div class="stat-label">总浏览量</div><div class="stat-value">'+s.total_views+'</div></div></div>';
+        html += '</div>';
+        html += '<h6>字段填充率</h6><table class="table table-sm">';
+        html += '<thead><tr><th>字段</th><th>标签</th><th>类型</th><th>已填</th><th>填充率</th></tr></thead><tbody>';
+        res.data.field_stats.forEach(function(f) {
+            html += '<tr><td><code>'+f.name+'</code></td><td>'+f.label+'</td><td>'+f.type+'</td><td>'+f.filled_count+'/'+f.total_checked+'</td><td>'+f.fill_rate+'%</td></tr>';
+        });
+        html += '</tbody></table>';
+        $('#modelDetailBody').html(html);
+    });
+}
+</script>
+{/block}

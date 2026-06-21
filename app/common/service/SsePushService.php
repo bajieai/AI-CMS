@@ -13,9 +13,12 @@ use think\facade\Cache;
 
 /**
  * V2.9.20 C-1: SSE 推送服务
+ * V2.9.27 T-1: 升级为DB持久化队列兼容层
  * 
  * 3通道推送：audit(审计)/comment(评论)/system(系统)
- * 基于缓存的消息队列，适配 PHP-FPM 环境
+ * V2.9.27新增：notification(通知)通道
+ * 
+ * @deprecated V2.9.27 请直接使用 app\common\service\sse\SseEngine
  */
 class SsePushService
 {
@@ -26,6 +29,7 @@ class SsePushService
 
     /**
      * 推送消息到指定通道
+     * V2.9.27: 转发到SseEngine(DB持久化队列)
      */
     public static function push(string $channel, array $payload, int $ttl = 3600): bool
     {
@@ -34,24 +38,25 @@ class SsePushService
             return false;
         }
 
-        $message = [
-            'id'        => uniqid('sse_', true),
-            'channel'   => $channel,
-            'payload'   => $payload,
-            'time'      => time(),
-        ];
-
-        $key = self::queueKey($channel);
-        $queue = Cache::get($key, []);
-        $queue[] = $message;
-
-        // 限制队列长度，防止内存膨胀
-        if (count($queue) > 100) {
-            $queue = array_slice($queue, -50);
+        // V2.9.27 T-1: 转发到DB持久化队列
+        try {
+            $msgId = \app\common\service\sse\SseEngine::push($channel, $payload, 0, 'message', $ttl);
+            return $msgId > 0;
+        } catch (\Throwable $e) {
+            // 降级到缓存队列
+            $message = [
+                'id'        => uniqid('sse_', true),
+                'channel'   => $channel,
+                'payload'   => $payload,
+                'time'      => time(),
+            ];
+            $key = self::queueKey($channel);
+            $queue = Cache::get($key, []);
+            $queue[] = $message;
+            if (count($queue) > 100) $queue = array_slice($queue, -50);
+            Cache::set($key, $queue, $ttl);
+            return true;
         }
-
-        Cache::set($key, $queue, $ttl);
-        return true;
     }
 
     /**

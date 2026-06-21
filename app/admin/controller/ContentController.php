@@ -328,6 +328,87 @@ class ContentController extends AdminBaseController
     }
 
     /**
+     * V2.9.27 S-5c: 一键切换内容模板 (AJAX)
+     */
+    public function switchTemplate(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $template = $this->request->post('template', '');
+        $info->template = $template;
+        $info->save();
+
+        $this->recordLog('切换内容模板', "内容ID:{$id}, 模板:{$template}");
+        return $this->success('模板已切换', ['template' => $template]);
+    }
+
+    /**
+     * V2.9.27 S-5c: 获取可用模板列表 (AJAX)
+     */
+    public function getAvailableTemplates(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $templates = \app\common\service\home\ModelTemplateResolver::getAvailableTemplates(
+            (int)($info->model_id ?? 0),
+            (int)$info->type
+        );
+
+        // 标记当前模板
+        $currentTemplate = $info->template ?? '';
+        foreach ($templates as &$t) {
+            $t['is_current'] = ($t['template'] === $currentTemplate);
+        }
+
+        return $this->success('获取成功', ['templates' => $templates, 'current' => $currentTemplate]);
+    }
+
+    /**
+     * V2.9.27 S-3e: 保存内容关系 (AJAX)
+     */
+    public function saveRelations(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $relationIds = $this->request->post('relation_ids', []);
+        $relationType = $this->request->post('relation_type', 'related');
+
+        $count = \app\common\service\content\TypeContentService::saveRelations(
+            $id, $relationIds, $relationType
+        );
+
+        $this->recordLog('保存内容关系', "内容ID:{$id}, 关系类型:{$relationType}, 数量:{$count}");
+        return $this->success('保存成功', ['count' => $count]);
+    }
+
+    /**
+     * V2.9.27 S-3e: 获取内容关系 (AJAX)
+     */
+    public function getRelations(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $relationType = $this->request->get('relation_type', 'related');
+        $relations = \app\common\service\content\TypeContentService::getRelations(
+            $id, $relationType, 50
+        );
+
+        return $this->success('获取成功', ['relations' => $relations]);
+    }
+
+    /**
      * 获取扩展字段配置（AJAX）
      */
     public function getExtFields()

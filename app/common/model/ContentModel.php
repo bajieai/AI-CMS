@@ -32,6 +32,10 @@ class ContentModel extends Model
         'sort' => 'integer',
     ];
 
+    // V2.9.27 S-1: SEO字段和模板文件
+    protected $field = ['name', 'code', 'description', 'icon', 'type', 'status', 'sort',
+                         'seo_title', 'seo_keywords', 'seo_description', 'template_file'];
+
     // 状态常量
     const STATUS_DISABLED = 0;
     const STATUS_ENABLED = 1;

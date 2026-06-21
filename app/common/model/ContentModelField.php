@@ -49,16 +49,28 @@ class ContentModelField extends Model
     const TYPE_IMAGE = 'image';
     const TYPE_FILE = 'file';
 
+    // V2.9.27 S-2: 新增字段类型
+    const TYPE_RICH_TEXT = 'rich_text';
+    const TYPE_DATETIME = 'datetime';
+    const TYPE_COLOR = 'color';
+    const TYPE_TAGS = 'tags';
+    const TYPE_LOCATION = 'location';
+
     public static array $typeMap = [
         self::TYPE_TEXT => '单行文本',
         self::TYPE_TEXTAREA => '多行文本',
+        self::TYPE_RICH_TEXT => '富文本编辑器',
         self::TYPE_NUMBER => '数字',
         self::TYPE_SELECT => '下拉选择',
         self::TYPE_RADIO => '单选',
         self::TYPE_CHECKBOX => '多选',
         self::TYPE_DATE => '日期',
+        self::TYPE_DATETIME => '日期时间',
         self::TYPE_IMAGE => '图片',
         self::TYPE_FILE => '文件',
+        self::TYPE_COLOR => '颜色选择器',
+        self::TYPE_TAGS => '标签输入',
+        self::TYPE_LOCATION => '地理位置',
     ];
 
     /**

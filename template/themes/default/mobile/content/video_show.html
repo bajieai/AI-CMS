@@ -1,0 +1,66 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
+{block name="keywords"}{$info.seo_keywords|default=''}{/block}
+{block name="description"}{$info.seo_description|default=$info.title|msubstr=0,120}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">{$info.title}</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-3">{$info.title}</h1>
+        
+        {if condition="$model_fields && $model_fields|count > 0"}
+        <div class="d-flex align-items-center gap-3 mb-3 text-muted">
+            {volist name="model_fields" id="mf"}
+            {if condition="$mf.field_def.name == 'duration' && $mf.value"}
+            <span><i class="bi bi-clock"></i> {$mf.formatted|raw}</span>
+            {/if}
+            {/volist}
+            {if condition="$info.create_time"}<span><i class="bi bi-calendar"></i> {:date('Y-m-d', $info.create_time)}</span>{/if}
+            <span><i class="bi bi-eye"></i> {$info.views|default=0}</span>
+        </div>
+        {/if}
+
+        <!-- 视频播放器 -->
+        <div class="video-player-wrapper mb-4" style="background:#000;border-radius:8px;overflow:hidden">
+            {if condition="$model_fields && $model_fields|count > 0"}
+            {volist name="model_fields" id="mf"}
+            {if condition="$mf.field_def.name == 'video_url' && $mf.value"}
+            <video controls class="w-100" style="max-height:500px" poster="{$info.cover|default=''}">
+                <source src="{$mf.value}" type="video/mp4">
+                您的浏览器不支持视频播放。
+            </video>
+            {/if}
+            {/volist}
+            {/if}
+        </div>
+
+        {if condition="$info.content"}
+        <div class="row"><div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">视频介绍</h5>
+            <div class="content-body">{$info.content|raw}</div>
+        </div></div>
+        {/if}
+
+        {if condition="$related_contents && $related_contents|count > 0"}
+        <div class="row mt-4"><div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">相关视频</h5>
+            <div class="row">
+                {volist name="related_contents" id="rel"}
+                <div class="col-md-3 mb-3"><div class="card h-100">
+                    {if condition="$rel.cover"}<img src="{$rel.cover}" class="card-img-top" alt="{$rel.title}" style="height:150px;object-fit:cover">{/if}
+                    <div class="card-body"><h6 class="card-title"><a href="{$rel.url}">{$rel.title}</a></h6></div>
+                </div></div>
+                {/volist}
+            </div>
+        </div></div>
+        {/if}
+    </div>
+</section>
+{/block}

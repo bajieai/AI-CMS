@@ -16,6 +16,7 @@ namespace app\admin\controller;
 use app\common\controller\AdminBaseController;
 use app\common\model\ContentModel;
 use app\common\model\ContentModelField;
+use app\common\service\content\FieldTypeRegistry;
 use think\facade\Cache;
 
 /**
@@ -36,10 +37,10 @@ class ContentModelController extends AdminBaseController
         $list = ContentModel::order('sort', 'asc')->order('id', 'asc')->select();
 
         $this->assign([
-            'list' => $list,
-            'typeMap' => ContentModel::$typeMap,
-        ]);
-        return $this->view('/content_model_index');
+                'list' => $list,
+                'typeMap' => ContentModel::$typeMap,
+            ]);
+            return $this->view('/content_model_index');
     }
 
     /**
@@ -61,7 +62,7 @@ class ContentModelController extends AdminBaseController
                 'info' => $info,
                 'fields' => $fields,
                 'typeMap' => ContentModel::$typeMap,
-                'fieldTypeMap' => ContentModelField::$typeMap,
+                'fieldTypeMap' => FieldTypeRegistry::getTypeMap(),
             ]);
             return $this->view('/content_model_edit');
         }
@@ -75,6 +76,11 @@ class ContentModelController extends AdminBaseController
             'description' => $data['description'] ?? '',
             'sort' => (int) ($data['sort'] ?? 0),
             'status' => (int) ($data['status'] ?? 1),
+            // V2.9.27 S-1/S-6: SEO字段和模板文件
+            'seo_title' => $data['seo_title'] ?? '',
+            'seo_keywords' => $data['seo_keywords'] ?? '',
+            'seo_description' => $data['seo_description'] ?? '',
+            'template_file' => $data['template_file'] ?? '',
         ];
 
         if (empty($saveData['name'])) {
@@ -150,6 +156,20 @@ class ContentModelController extends AdminBaseController
             'options' => $data['options'] ?? '',
             'status' => (int) ($data['status'] ?? 1),
         ];
+
+        // V2.9.27 S-2: 新增字段属性
+        if (isset($data['placeholder'])) {
+            $saveData['placeholder'] = $data['placeholder'];
+        }
+        if (isset($data['validation'])) {
+            $saveData['validation'] = $data['validation'];
+        }
+        if (isset($data['is_searchable'])) {
+            $saveData['is_searchable'] = (int) $data['is_searchable'];
+        }
+        if (isset($data['is_list_show'])) {
+            $saveData['is_list_show'] = (int) $data['is_list_show'];
+        }
 
         if (empty($saveData['field_name']) || empty($saveData['field_label'])) {
             return $this->error('字段名和标签不能为空');

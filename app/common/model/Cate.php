@@ -37,7 +37,7 @@ class Cate extends Model
     ];
 
     // 允许批量赋值的字段
-    protected $field = ['name', 'type', 'parent_id', 'sort', 'status', 'seo_title', 'seo_keywords', 'seo_description', 'default_style'];
+    protected $field = ['name', 'type', 'parent_id', 'sort', 'status', 'seo_title', 'seo_keywords', 'seo_description', 'default_style', 'model_id'];
 
     /**
      * 获取URL（模型获取器）

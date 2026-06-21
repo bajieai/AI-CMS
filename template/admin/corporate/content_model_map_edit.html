@@ -1,0 +1,65 @@
+{extend name="layout" /}
+
+{block name="title"}新增/编辑模型模板映射{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content_model_map/index">模型模板映射</a></li>
+<li class="breadcrumb-item active">{if $info}编辑{else}新增{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="mapForm">
+            {if $info}<input type="hidden" name="id" value="{$info.id}">{/if}
+            <div class="mb-3">
+                <label class="form-label">内容模型 <span class="text-danger">*</span></label>
+                <select class="form-select" name="model_id" required>
+                    <option value="">请选择模型</option>
+                    {volist name="models" id="m"}
+                    <option value="{$m.id}" {if $info && $info.model_id==$m.id}selected{/if}>{$m.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">模板 <span class="text-danger">*</span></label>
+                <select class="form-select" name="template_id" required>
+                    <option value="">请选择模板</option>
+                    {volist name="templates" id="t"}
+                    <option value="{$t.id}" {if $info && $info.template_id==$t.id}selected{/if}>{$t.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">标签匹配规则</label>
+                <textarea class="form-control" name="tag_match" rows="3" placeholder='JSON格式, 如: ["产品","科技"]'>{$info ? json_encode($info.tag_match) : ''}</textarea>
+                <small class="text-muted">用于根据内容标签自动推荐模板</small>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">优先级 (1-100)</label>
+                    <input type="number" class="form-control" name="priority" value="{$info ? $info.priority : 50}" min="1" max="100">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">是否默认</label>
+                    <select class="form-select" name="is_default">
+                        <option value="0" {if !$info || !$info.is_default}selected{/if}>否</option>
+                        <option value="1" {if $info && $info.is_default}selected{/if}>是</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">状态</label>
+                    <select class="form-select" name="status">
+                        <option value="1" {if !$info || $info.status}selected{/if}>启用</option>
+                        <option value="0" {if $info && !$info.status}selected{/if}>禁用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存</button>
+                <a href="/admin/content_model_map/index" class="btn btn-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}

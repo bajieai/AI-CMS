@@ -1,18 +1,21 @@
-# 八界AI-CMS V2.9.26
+# 八界AI-CMS V2.9.27
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.26-blue)
+![Version](https://img.shields.io/badge/version-2.9.27-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.26 "模板商店运营增强 · 移动端体验优化 · AI编辑器升级" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.27 "内容模型差异化 · SSE实时推送 · 模板商店商业化 · 基础设施完善" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.26 核心定位：模板商店运营增强 · 移动端体验优化 · AI编辑器升级** — 4大Sprint 21项功能点（100%完成）：
+**V2.9.27 核心定位：内容模型差异化 · SSE实时推送 · 模板商店商业化 · 基础设施完善** — 4大Sprint 28项功能点（100%完成）：
 
-1. **Sprint O 验收补丁** — Hook开发者参考文档(29事件)、HookEvents补全(27→29)、V2.9.25计数修正记录、HookContext微秒时间戳
+1. **Sprint S 内容模型差异化** — FieldTypeRegistry(13种类型)/动态表单/5张扩展表/模型专属分类/内容关系/5个前台专属模板/模板推荐联动/一键切换/SEO增强/5维度统计/迁移工具
+2. **Sprint T SSE实时推送** — DB持久化队列升级/通知推送/审核通告/SSE监控仪表盘/Last-Event-Id断线重连/安全限流
+3. **Sprint U 模板商店商业化** — 4种定价模式/订单+授权+购物车/AlipayPaymentChannel增强/预览增强/ZIP导出/社交分享/已购管理/订单后台
+4. **Sprint V 基础设施完善** — EmailService统一/导出增强/RSS Feed/GitHubOauthProvider增强/备份增强/系统健康检查面板
 2. **Sprint P 模板商店运营增强** — AI智能推荐(5层策略+冷启动+兜底)、多级分类管理(树形+SEO)、审核流程(提交/通过/驳回/撤回)、定价促销(活动+优惠码三重校验)、质量评分(自动+手动加权)、版本管理(快照+行级diff+回滚+灰度)、数据报表(看板+分类分析+CSV导出)
 3. **Sprint Q 移动端体验优化** — 前台响应式增强、后台自适应、AI编辑器移动端适配、分享按钮优化、性能优化(懒加载+骨架屏)
 4. **Sprint R AI编辑器增强** — AI写作增强(续写/改写/扩写/摘要+5种风格)、AI翻译增强(翻译记忆SHA256+术语库预处理+批量)、AI主题CSS定制(预设方案+AI生成+实时预览)、AI SEO建议(分析+关键词+Meta+可读性)
@@ -113,6 +116,7 @@ bin\migrate.bat
 | 版本 | 日期 | 核心功能 |
 |------|------|----------|
 | V2.9.26 | 2026-06 | **模板商店运营增强·移动端体验优化·AI编辑器升级**: 21功能点(Sprint O/P/Q/R)/Hook29事件/推荐引擎5层策略/多级分类SEO/审核流程/定价促销/质量评分/版本管理/数据报表/移动端响应式/AI写作增强/翻译记忆/术语库/主题CSS/SEO建议 |
+| V2.9.27 | 2026-06 | **内容模型差异化·SSE实时推送·模板商店商业化·基础设施完善**: 28功能点(Sprint S/T/U/V)/FieldTypeRegistry(13种)/动态表单/5张扩展表/模型专属分类/内容关系/5个前台专属模板/SSE DB持久化队列/Last-Event-Id断线重连/4种定价模式/AlipayPaymentChannel/GitHubOauthProvider/RSS Feed/系统健康检查 |
 | V2.9.25 | 2026-06 | **插件生态开放·Hook事件扩展·模板商店数据运营**: 插件市场在线安装/HookRegistry统一注册表(28事件)/模板商店运营统计(DAU/MAU/营收)/多格式导出(CSV/Excel/PDF)/数据看板升级 |
 | V2.9.22 | 2026-06 | **验收修复·体验对齐**: 移动端模板补齐/展示字段对齐/搜索增强同步 |
 | V2.9.21 | 2026-05 | **模板商店·会员等级**: 模板分类体系/搜索推荐/一键安装/SSE推送/邮件增强/移动端适配/通知设置/菜单同步 |

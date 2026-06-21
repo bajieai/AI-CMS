@@ -45,6 +45,10 @@ Route::get('oauth/gitee_callback$', '\app\home\controller\OauthController@giteeC
 // V2.7 头条号OAuth回调
 Route::get('oauth/toutiao/callback$', '\app\home\controller\ToutiaoOAuthController@callback');
 
+// V2.9.27 V-3: RSS Feed
+Route::get('rss/:type$', '\app\home\controller\RssController@feed')->pattern(['type' => '[a-z]+']);
+Route::get('rss$', '\app\home\controller\RssController@feed');
+
 // V2.3 前台评论AJAX
 Route::post('comment/submit$', '\app\home\controller\CommentController@submit');
 Route::get('comment/list$', '\app\home\controller\CommentController@list');
