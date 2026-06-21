@@ -246,9 +246,10 @@ class MailLogController extends AdminBaseController
      */
     protected function getTemplateDistribution()
     {
-        $rows = MailLog::field(['template', 'COUNT(*) as count'])
+        // V2.9.27 修复: i8j_mail_log表无template列,改用subject
+        $rows = MailLog::field(['subject', 'COUNT(*) as count'])
             ->where('status', MailLog::STATUS_SENT)
-            ->group('template')
+            ->group('subject')
             ->order('count', 'desc')
             ->limit(10)
             ->select();
@@ -256,7 +257,7 @@ class MailLogController extends AdminBaseController
         $labels = [];
         $data = [];
         foreach ($rows as $row) {
-            $labels[] = $row['template'] ?: '默认模板';
+            $labels[] = $row['subject'] ?: '默认模板';
             $data[] = (int) $row['count'];
         }
 
