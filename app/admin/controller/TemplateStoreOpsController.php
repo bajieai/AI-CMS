@@ -345,12 +345,65 @@ class TemplateStoreOpsController extends AdminBaseController
         // V2.9.26 P-2: 使用树形结构展示
         $tree = TemplateStoreCategory::getTree(0, false);
 
+        // V2.9.27 修复: 递归构建树形HTML(避免模板include自身导致编译死循环)
+        $treeHtml = $this->buildCategoryTreeHtml($tree, 0);
+
         $this->assign([
             'tree'       => $tree,
+            'treeHtml'   => $treeHtml,
             'menuActive' => 'template_store_category',
         ]);
 
         return $this->view('/template_store/category_list');
+    }
+
+    /**
+     * 递归构建分类树HTML
+     */
+    private function buildCategoryTreeHtml(array $items, int $depth = 0): string
+    {
+        $html = '';
+        foreach ($items as $item) {
+            $indent = str_repeat('　　', $depth);
+            $prefix = $depth > 0 ? '├ ' : '';
+            $icon = !empty($item['icon']) ? "<i class=\"{$item['icon']} me-1\"></i>" : '';
+            $name = htmlspecialchars($item['name'] ?? '');
+            $slug = htmlspecialchars($item['slug'] ?? '');
+            $level = $item['level'] ?? 1;
+            $sort = $item['sort'] ?? 0;
+            $enabledIcon = ($item['is_enabled'] ?? 1) == 1
+                ? '<i class="bi bi-toggle-on text-success fs-4"></i>'
+                : '<i class="bi bi-toggle-off text-muted fs-4"></i>';
+            $visibleIcon = ($item['is_visible'] ?? 1) == 1
+                ? '<i class="bi bi-eye text-success fs-5"></i>'
+                : '<i class="bi bi-eye-slash text-muted fs-5"></i>';
+            $seoIcon = (!empty($item['meta_title']) || !empty($item['meta_description']) || !empty($item['meta_keywords']))
+                ? '<i class="bi bi-check-circle text-success"></i>'
+                : '<i class="bi bi-dash text-muted"></i>';
+            $iconCell = !empty($item['icon']) ? "<i class=\"{$item['icon']}\"></i>" : '-';
+
+            $html .= "<tr data-id=\"{$item['id']}\">";
+            $html .= "<td>{$item['id']}</td>";
+            $html .= "<td>{$indent}{$prefix}{$icon}{$name}</td>";
+            $html .= "<td><code>{$slug}</code></td>";
+            $html .= "<td><span class=\"badge bg-secondary\">L{$level}</span></td>";
+            $html .= "<td>{$iconCell}</td>";
+            $html .= "<td>{$sort}</td>";
+            $html .= "<td><button class=\"btn btn-sm p-0 border-0 btn-toggle-enabled\" data-id=\"{$item['id']}\">{$enabledIcon}</button></td>";
+            $html .= "<td><button class=\"btn btn-sm p-0 border-0 btn-toggle-visible\" data-id=\"{$item['id']}\">{$visibleIcon}</button></td>";
+            $html .= "<td>{$seoIcon}</td>";
+            $html .= "<td>";
+            $html .= "<a href=\"/admin/template_store_ops/categoryEdit/{$item['id']}\" class=\"btn btn-sm btn-outline-primary\" title=\"编辑\"><i class=\"bi bi-pencil\"></i></a> ";
+            $html .= "<a href=\"/admin/template_store_ops/categoryEdit?parent_id={$item['id']}\" class=\"btn btn-sm btn-outline-success\" title=\"添加子分类\"><i class=\"bi bi-plus\"></i></a> ";
+            $html .= "<button class=\"btn btn-sm btn-outline-danger btn-delete\" data-id=\"{$item['id']}\" title=\"删除\"><i class=\"bi bi-trash\"></i></button>";
+            $html .= "</td>";
+            $html .= "</tr>";
+
+            if (!empty($item['children'])) {
+                $html .= $this->buildCategoryTreeHtml($item['children'], $depth + 1);
+            }
+        }
+        return $html;
     }
 
     /**

@@ -27,9 +27,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {foreach $tree as $item}
-                        {include file="template_store/_category_row" item=$item depth=0 /}
-                        {/foreach}
+                        {$treeHtml|raw}
                         {if empty($tree)}
                         <tr><td colspan="10" class="text-center text-muted py-4">暂无分类数据</td></tr>
                         {/if}
