@@ -1,0 +1,51 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">审核工作流</h4>
+    <div class="mb-3">
+        <div class="btn-group">
+            <a href="/admin/template_audit_workflow/index" class="btn btn-sm {if $stage==''}btn-primary{else/}btn-outline-primary{/if}">全部</a>
+            <a href="?stage=first" class="btn btn-sm {if $stage=='first'}btn-primary{else/}btn-outline-primary{/if}">待初审</a>
+            <a href="?stage=final" class="btn btn-sm {if $stage=='final'}btn-primary{else/}btn-outline-primary{/if}">待终审</a>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light"><tr><th>ID</th><th>模板名称</th><th>审核状态</th><th>更新时间</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td>{$item.id}</td>
+                            <td>{$item.name}</td>
+                            <td>
+                                {if $item.review_status=='pending_first'}<span class="badge bg-info">待初审</span>
+                                {elseif $item.review_status=='pending_final'}<span class="badge bg-primary">待终审</span>
+                                {elseif $item.review_status=='approved'}<span class="badge bg-success">已通过</span>
+                                {elseif $item.review_status=='rejected'}<span class="badge bg-danger">已驳回</span>
+                                {else/}<span class="badge bg-secondary">{$item.review_status}</span>
+                                {/if}
+                            </td>
+                            <td>{:date('Y-m-d H:i:s', $item.update_time)}</td>
+                            <td>
+                                <a href="/admin/template_audit_workflow/detail/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> 详情</a>
+                                <a href="/admin/template_audit_workflow/diff/{$item.id}" class="btn btn-sm btn-outline-info"><i class="bi bi-file-diff"></i> 对比</a>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <span class="text-muted">共 {$total} 条</span>
+                <nav><ul class="pagination pagination-sm">
+                    {for start="1" end="$page+1"}
+                    <li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}&stage={$stage}">{$i}</a></li>
+                    {/for}
+                </ul></nav>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

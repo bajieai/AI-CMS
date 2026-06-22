@@ -1,140 +1,78 @@
 /**
- * Service Worker - V2.9.24 H-5
- * PWA离线缓存优化：版本升级 + 智能缓存策略 + 骨架屏预缓存
+ * MO-5: PWA Service Worker — V2.9.28
+ * 离线缓存 + 后台更新
  */
-const CACHE_NAME = 'ai-cms-v2.9.24-1';
+const CACHE_VERSION = 'v2.9.28';
+const STATIC_CACHE = `aicms-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `aicms-dynamic-${CACHE_VERSION}`;
+const OFFLINE_URL = '/offline.html';
+
 const STATIC_ASSETS = [
     '/',
-    '/assets/css/bootstrap.min.css',
-    '/assets/js/bootstrap.bundle.min.js',
-    '/assets/js/jquery.min.js',
-    // V2.9.24 H-5: 骨架屏 + 移动端增强资源预缓存
-    // 注: mobile.css/mobile.js 实际为 mobile-enhance.js + mobile-swipe.js
-    '/static/mobile/css/skeleton.css',
-    '/static/mobile/js/skeleton.js',
-    '/static/mobile/js/bottom_nav.js',
-    '/static/mobile/js/search_enhance.js',
-    '/static/mobile/css/search_enhance.css',
-    '/static/mobile/js/share_panel.js',
-    '/static/mobile/css/share_panel.css',
+    '/offline.html',
+    '/static/home/css/mobile_nav.css',
+    '/static/home/css/mobile_content.css',
+    '/static/home/js/lazy_load.js',
 ];
 
-// 安装：预缓存静态资源
+// 安装：缓存静态资源
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(STATIC_ASSETS);
-        }).then(() => {
-            return self.skipWaiting();
-        })
+        caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting())
     );
 });
 
-// 激活：清理旧缓存（V2.9.23 E-2：清理v1旧缓存）
+// 激活：清理旧缓存
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
+        caches.keys().then(keys => {
             return Promise.all(
-                cacheNames
-                    .filter((name) => name !== CACHE_NAME)
-                    .map((name) => caches.delete(name))
+                keys.filter(key => !key.includes(CACHE_VERSION))
+                    .map(key => caches.delete(key))
             );
-        }).then(() => {
-            return self.clients.claim();
-        })
+        }).then(() => self.clients.claim())
     );
 });
 
-// 接收页面消息
-self.addEventListener('message', (event) => {
-    if (!event.data) return;
-    if (event.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
-    if (event.data.type === 'CLEAR_PAGES') {
-        caches.open(CACHE_NAME).then((cache) => {
-            cache.keys().then((requests) => {
-                const toDelete = requests.filter((req) => {
-                    const url = new URL(req.url);
-                    return req.mode === 'navigate' || url.pathname === '/';
-                });
-                return Promise.all(toDelete.map((req) => cache.delete(req)));
-            });
-        });
-    }
-});
-
-// 拦截请求
+// 请求拦截：缓存优先，网络降级
 self.addEventListener('fetch', (event) => {
-    const { request } = event;
-    const url = new URL(request.url);
+    if (event.request.method !== 'GET') return;
 
-    // API请求：Network Only
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin/')) {
-        return;
-    }
-
-    // 图片资源：Cache First + 30天过期
-    if (request.destination === 'image') {
-        event.respondWith(
-            caches.match(request).then((response) => {
-                if (response) {
-                    // 检查缓存是否过期（30天）
-                    const dateHeader = response.headers.get('date');
-                    if (dateHeader) {
-                        const age = (Date.now() - new Date(dateHeader).getTime()) / (1000 * 60 * 60 * 24);
-                        if (age < 30) return response;
-                    } else {
-                        return response;
-                    }
-                }
-                return fetch(request).then((fetchResponse) => {
-                    return caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(request, fetchResponse.clone());
-                        return fetchResponse;
-                    });
-                });
-            })
-        );
-        return;
-    }
-
-    // 静态资源：Cache First
-    if (request.destination === 'style' || request.destination === 'script' || request.destination === 'font') {
-        event.respondWith(
-            caches.match(request).then((response) => {
-                return response || fetch(request);
-            })
-        );
-        return;
-    }
-
-    // 页面请求：Network First（优先网络，确保动态内容最新）
-    if (request.mode === 'navigate' || request.destination === 'document') {
-        event.respondWith(
-            fetch(request).then((networkResponse) => {
-                if (networkResponse && networkResponse.status === 200) {
-                    const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(request, responseToCache);
-                    });
-                }
-                return networkResponse;
-            }).catch(() => {
-                return caches.match(request).then((cachedResponse) => {
-                    return cachedResponse || new Response('<h1>离线模式</h1><p>您当前处于离线状态，请连接网络后重试。</p>', {
-                        headers: { 'Content-Type': 'text/html' }
-                    });
-                });
-            })
-        );
-        return;
-    }
-
-    // 默认：Network First
     event.respondWith(
-        fetch(request).catch(() => {
-            return caches.match(request);
+        caches.match(event.request).then(cached => {
+            if (cached) return cached;
+
+            return fetch(event.request).then(response => {
+                if (!response || response.status !== 200 || response.type !== 'basic') {
+                    return response;
+                }
+                const responseClone = response.clone();
+                caches.open(DYNAMIC_CACHE).then(cache => cache.put(event.request, responseClone));
+                return response;
+            }).catch(() => {
+                if (event.request.destination === 'document') {
+                    return caches.match(OFFLINE_URL);
+                }
+            });
         })
     );
+});
+
+// 推送通知
+self.addEventListener('push', (event) => {
+    const data = event.data ? event.data.json() : {};
+    event.waitUntil(
+        self.registration.showNotification(data.title || 'AI-CMS通知', {
+            body: data.body || '',
+            icon: '/static/home/img/icon-192.png',
+            badge: '/static/home/img/badge-72.png',
+            data: { url: data.url || '/' }
+        })
+    );
+});
+
+// 通知点击
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(clients.openWindow(event.notification.data.url));
 });

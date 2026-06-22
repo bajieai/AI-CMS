@@ -103,4 +103,76 @@ class HookDebugController extends AdminBaseController
             ],
         ]);
     }
+
+    // ==================== V2.9.28 H-6: 增强调试功能 ====================
+
+    /**
+     * 执行链详情（显示每个监听器的执行结果）
+     */
+    public function executionChain()
+    {
+        $event = $this->request->get('event', '');
+        $logs = HookRegistry::getDebugLogs(200);
+        $chain = [];
+        foreach ($logs as $log) {
+            if ($log['event'] === $event) {
+                $chain[] = $log;
+            }
+        }
+        return json(['code' => 0, 'data' => $chain]);
+    }
+
+    /**
+     * 性能分析（各事件执行耗时统计）
+     */
+    public function performance()
+    {
+        $logs = HookRegistry::getDebugLogs(500);
+        $stats = [];
+        foreach ($logs as $log) {
+            $event = $log['event'] ?? 'unknown';
+            $elapsed = $log['elapsed'] ?? 0;
+            if (!isset($stats[$event])) {
+                $stats[$event] = ['count' => 0, 'total_ms' => 0, 'avg_ms' => 0, 'max_ms' => 0];
+            }
+            $stats[$event]['count']++;
+            $stats[$event]['total_ms'] += $elapsed;
+            $stats[$event]['max_ms'] = max($stats[$event]['max_ms'], $elapsed);
+        }
+        foreach ($stats as &$s) {
+            $s['avg_ms'] = $s['count'] > 0 ? round($s['total_ms'] / $s['count'], 3) : 0;
+        }
+
+        $this->assign([
+            'stats' => $stats,
+            'menuActive' => 'hook_debug',
+        ]);
+        return $this->view('/hook_debug/performance');
+    }
+
+    /**
+     * 监听器列表（所有已注册的监听器）
+     */
+    public function listeners()
+    {
+        $registered = HookRegistry::getRegisteredEvents();
+        $allMeta = HookEvents::getMeta();
+
+        $listeners = [];
+        foreach ($registered as $event => $callbacks) {
+            $meta = $allMeta[$event] ?? null;
+            $listeners[] = [
+                'event' => $event,
+                'listener_count' => is_array($callbacks) ? count($callbacks) : 1,
+                'since' => $meta['since'] ?? 'unknown',
+                'description' => $meta['description'] ?? '',
+            ];
+        }
+
+        $this->assign([
+            'listeners' => $listeners,
+            'menuActive' => 'hook_debug',
+        ]);
+        return $this->view('/hook_debug/listeners');
+    }
 }

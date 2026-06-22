@@ -1,0 +1,42 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">模板排行榜 Top50</h4>
+    <div class="mb-3">
+        <div class="btn-group">
+            <a href="?order_by=revenue" class="btn btn-sm {if $orderBy=='revenue'}btn-primary{else/}btn-outline-primary{/if}">按收入</a>
+            <a href="?order_by=downloads" class="btn btn-sm {if $orderBy=='downloads'}btn-primary{else/}btn-outline-primary{/if}">按下载量</a>
+            <a href="?order_by=rating" class="btn btn-sm {if $orderBy=='rating'}btn-primary{else/}btn-outline-primary{/if}">按评分</a>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light"><tr><th>排名</th><th>模板</th><th>价格</th><th>下载量</th><th>评分</th><th>评分数</th><th>浏览量</th></tr></thead>
+                    <tbody>
+                        {volist name="list" id="item" key="k"}
+                        <tr>
+                            <td>
+                                {if $k<=3}<span class="badge bg-danger fs-6">{$k}</span>
+                                {else/}<span class="text-muted">{$k}</span>
+                                {/if}
+                            </td>
+                            <td>
+                                {if $item.cover}<img src="{$item.cover}" style="height:30px;border-radius:4px" class="me-2">{/if}
+                                {$item.name}
+                            </td>
+                            <td>¥{$item.price}</td>
+                            <td>{$item.install_count}</td>
+                            <td><i class="bi bi-star-fill text-warning"></i> {$item.rating_avg}</td>
+                            <td>{$item.rating_count}</td>
+                            <td>{$item.view_count}</td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

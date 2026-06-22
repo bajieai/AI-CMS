@@ -1,26 +1,28 @@
-# 八界AI-CMS V2.9.27
+# 八界AI-CMS V2.9.28
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.27-blue)
+![Version](https://img.shields.io/badge/version-2.9.28-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.27 "内容模型差异化 · SSE实时推送 · 模板商店商业化 · 基础设施完善" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.28 "模板商店后台完善 · AI编辑器增强 · 插件市场在线安装 · Hook事件扩展 · 移动端体验微调" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.27 核心定位：内容模型差异化 · SSE实时推送 · 模板商店商业化 · 基础设施完善** — 4大Sprint 28项功能点（100%完成）：
+**V2.9.28 核心定位：模板商店后台完善 · AI编辑器增强 · 插件市场在线安装 · Hook事件扩展 · 移动端体验微调** — 5大Sprint 34项功能点（100%完成）：
 
-1. **Sprint S 内容模型差异化** — FieldTypeRegistry(13种类型)/动态表单/5张扩展表/模型专属分类/内容关系/5个前台专属模板/模板推荐联动/一键切换/SEO增强/5维度统计/迁移工具
-2. **Sprint T SSE实时推送** — DB持久化队列升级/通知推送/审核通告/SSE监控仪表盘/Last-Event-Id断线重连/安全限流
-3. **Sprint U 模板商店商业化** — 4种定价模式/订单+授权+购物车/AlipayPaymentChannel增强/预览增强/ZIP导出/社交分享/已购管理/订单后台
-4. **Sprint V 基础设施完善** — EmailService统一/导出增强/RSS Feed/GitHubOauthProvider增强/备份增强/系统健康检查面板
+1. **Sprint M 模板商店后台管理完善** — 订单退款/发票管理/评价管理后台/数据统计看板/模板包管理/审核工作流/推荐位管理/结算管理/商店SEO增强
+2. **Sprint A AI编辑器功能增强** — 段落级优化/多轮对话/格式保留/选段翻译/快捷模板库(20+模板)/快捷键工具栏(Alt键防冲突)/历史版本快照/后台配置管理
+3. **Sprint P 插件市场在线安装** — SSE进度推送在线安装/安全沙箱(token_get_all静态分析)/依赖解析/批量管理/自动更新检查
+4. **Sprint H Hook事件扩展** — 19个新事件(SEO/模型/支付/搜索/补充)/48个总计事件/增强调试面板/自动文档生成
+5. **Sprint MO 移动端体验微调** — 底部Tab导航/内容自适应/后台移动适配(P0/P1/P2三级)/图片懒加载/PWA增强(离线页面+推送)
 
 ## 版本历史
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| V2.9.28 | 2026-06 | **模板商店后台完善·AI编辑器增强·插件市场在线安装·Hook事件扩展·移动端体验微调**: 34功能点(Sprint M/A/P/H/MO)/订单退款/发票管理/评价管理/统计看板/审核工作流/结算管理/段落优化/多轮对话/格式保留/选段翻译/20+模板库/版本快照/在线安装(SSE)/安全沙箱/19个新Hook事件/移动端导航/PWA增强 |
 | V2.9.27 | 2026-06 | **内容模型差异化·SSE实时推送·模板商店商业化·基础设施完善**: 28功能点(Sprint S/T/U/V)/FieldTypeRegistry(13种)/动态表单/5张扩展表/模型专属分类/内容关系/5个前台专属模板/SSE DB持久化队列/Last-Event-Id断线重连/4种定价模式/AlipayPaymentChannel/GitHubOauthProvider/RSS Feed/系统健康检查 |
 3. **Sprint Q 移动端体验优化** — 前台响应式增强、后台自适应、AI编辑器移动端适配、分享按钮优化、性能优化(懒加载+骨架屏)
 4. **Sprint R AI编辑器增强** — AI写作增强(续写/改写/扩写/摘要+5种风格)、AI翻译增强(翻译记忆SHA256+术语库预处理+批量)、AI主题CSS定制(预设方案+AI生成+实时预览)、AI SEO建议(分析+关键词+Meta+可读性)

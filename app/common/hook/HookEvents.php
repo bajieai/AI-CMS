@@ -72,6 +72,37 @@ class HookEvents
     const SYSTEM_CONFIG_BEFORE_UPDATE = 'system.config.before_update';
     const SYSTEM_CONFIG_AFTER_UPDATE  = 'system.config.after_update';
 
+    // ═══ V2.9.28 H-1~H-4 新增事件（19个） ═══
+
+    // ─── H-1: SEO模块（3个） ───
+    const SEO_BEFORE_OPTIMIZE  = 'seo.before_optimize';
+    const SEO_AFTER_OPTIMIZE   = 'seo.after_optimize';
+    const SEO_SUGGESTION_GENERATED = 'seo.suggestion_generated';
+
+    // ─── H-2: 内容模型模块（4个） ───
+    const CONTENT_MODEL_BEFORE_SAVE   = 'content_model.before_save';
+    const CONTENT_MODEL_AFTER_SAVE    = 'content_model.after_save';
+    const CONTENT_MODEL_BEFORE_DELETE = 'content_model.before_delete';
+    const CONTENT_MODEL_AFTER_DELETE  = 'content_model.after_delete';
+
+    // ─── H-3: 支付模块（4个） ───
+    const PAYMENT_BEFORE_CREATE  = 'payment.before_create';
+    const PAYMENT_AFTER_PAID     = 'payment.after_paid';
+    const PAYMENT_BEFORE_REFUND  = 'payment.before_refund';
+    const PAYMENT_AFTER_REFUND   = 'payment.after_refund';
+
+    // ─── H-4: 搜索模块（2个） ───
+    const SEARCH_BEFORE_QUERY = 'search.before_query';
+    const SEARCH_AFTER_QUERY  = 'search.after_query';
+
+    // ─── 补充事件（6个） ───
+    const CONTENT_BEFORE_REVIEW = 'content.before_review';
+    const CONTENT_AFTER_REVIEW  = 'content.after_review';
+    const EMAIL_BEFORE_SEND     = 'email.before_send';
+    const EMAIL_AFTER_SEND      = 'email.after_send';
+    const FILE_BEFORE_UPLOAD    = 'file.before_upload';
+    const FILE_AFTER_UPLOAD     = 'file.after_upload';
+
     /**
      * 获取所有事件常量
      * @return array<string, string> [常量名 => 事件标识]
@@ -129,6 +160,44 @@ class HookEvents
             'system' => [
                 self::SYSTEM_CONFIG_BEFORE_UPDATE,
                 self::SYSTEM_CONFIG_AFTER_UPDATE,
+            ],
+            // V2.9.28 H-1: SEO模块
+            'seo' => [
+                self::SEO_BEFORE_OPTIMIZE,
+                self::SEO_AFTER_OPTIMIZE,
+                self::SEO_SUGGESTION_GENERATED,
+            ],
+            // V2.9.28 H-2: 内容模型模块
+            'content_model' => [
+                self::CONTENT_MODEL_BEFORE_SAVE,
+                self::CONTENT_MODEL_AFTER_SAVE,
+                self::CONTENT_MODEL_BEFORE_DELETE,
+                self::CONTENT_MODEL_AFTER_DELETE,
+            ],
+            // V2.9.28 H-3: 支付模块
+            'payment' => [
+                self::PAYMENT_BEFORE_CREATE,
+                self::PAYMENT_AFTER_PAID,
+                self::PAYMENT_BEFORE_REFUND,
+                self::PAYMENT_AFTER_REFUND,
+            ],
+            // V2.9.28 H-4: 搜索模块
+            'search' => [
+                self::SEARCH_BEFORE_QUERY,
+                self::SEARCH_AFTER_QUERY,
+            ],
+            // V2.9.28 补充事件
+            'review' => [
+                self::CONTENT_BEFORE_REVIEW,
+                self::CONTENT_AFTER_REVIEW,
+            ],
+            'email' => [
+                self::EMAIL_BEFORE_SEND,
+                self::EMAIL_AFTER_SEND,
+            ],
+            'file' => [
+                self::FILE_BEFORE_UPLOAD,
+                self::FILE_AFTER_UPLOAD,
             ],
         ];
 
@@ -420,6 +489,198 @@ class HookEvents
                     'config_key' => ['type' => 'string', 'required' => true, 'description' => '配置键'],
                     'old_value' => ['type' => 'mixed', 'required' => false, 'description' => '旧值'],
                     'new_value' => ['type' => 'mixed', 'required' => true, 'description' => '新值'],
+                ],
+            ],
+
+            // ═══ V2.9.28 H-1~H-4 新增事件元数据 ═══
+
+            // ─── H-1: SEO模块 ───
+            self::SEO_BEFORE_OPTIMIZE => [
+                'description' => 'AI SEO优化前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'content_id' => ['type' => 'int', 'required' => true, 'description' => '内容ID'],
+                    'content_text' => ['type' => 'string', 'required' => true, 'description' => '内容文本'],
+                ],
+            ],
+            self::SEO_AFTER_OPTIMIZE => [
+                'description' => 'AI SEO优化后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'content_id' => ['type' => 'int', 'required' => true, 'description' => '内容ID'],
+                    'optimized_data' => ['type' => 'array', 'required' => true, 'description' => '优化结果'],
+                ],
+            ],
+            self::SEO_SUGGESTION_GENERATED => [
+                'description' => 'AI SEO建议生成后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'content_id' => ['type' => 'int', 'required' => true, 'description' => '内容ID'],
+                    'suggestions' => ['type' => 'array', 'required' => true, 'description' => '建议列表'],
+                ],
+            ],
+
+            // ─── H-2: 内容模型模块 ───
+            self::CONTENT_MODEL_BEFORE_SAVE => [
+                'description' => '内容模型创建/更新前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'model_data' => ['type' => 'array', 'required' => true, 'description' => '模型数据'],
+                    'user_id' => ['type' => 'int', 'required' => true, 'description' => '操作人ID'],
+                ],
+            ],
+            self::CONTENT_MODEL_AFTER_SAVE => [
+                'description' => '内容模型创建/更新后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'model_id' => ['type' => 'int', 'required' => true, 'description' => '模型ID'],
+                    'model_data' => ['type' => 'array', 'required' => true, 'description' => '模型数据'],
+                ],
+            ],
+            self::CONTENT_MODEL_BEFORE_DELETE => [
+                'description' => '内容模型删除前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'model_id' => ['type' => 'int', 'required' => true, 'description' => '模型ID'],
+                ],
+            ],
+            self::CONTENT_MODEL_AFTER_DELETE => [
+                'description' => '内容模型删除后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'model_id' => ['type' => 'int', 'required' => true, 'description' => '模型ID'],
+                ],
+            ],
+
+            // ─── H-3: 支付模块 ───
+            self::PAYMENT_BEFORE_CREATE => [
+                'description' => '支付订单创建前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'order_type' => ['type' => 'string', 'required' => true, 'description' => '订单类型'],
+                    'order_id' => ['type' => 'int', 'required' => true, 'description' => '订单ID'],
+                    'amount' => ['type' => 'float', 'required' => true, 'description' => '支付金额'],
+                    'user_id' => ['type' => 'int', 'required' => true, 'description' => '用户ID'],
+                ],
+            ],
+            self::PAYMENT_AFTER_PAID => [
+                'description' => '支付成功后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'order_type' => ['type' => 'string', 'required' => true, 'description' => '订单类型'],
+                    'order_id' => ['type' => 'int', 'required' => true, 'description' => '订单ID'],
+                    'amount' => ['type' => 'float', 'required' => true, 'description' => '支付金额'],
+                    'pay_method' => ['type' => 'string', 'required' => true, 'description' => '支付方式'],
+                ],
+            ],
+            self::PAYMENT_BEFORE_REFUND => [
+                'description' => '退款前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'order_id' => ['type' => 'int', 'required' => true, 'description' => '订单ID'],
+                    'refund_amount' => ['type' => 'float', 'required' => true, 'description' => '退款金额'],
+                    'reason' => ['type' => 'string', 'required' => false, 'description' => '退款原因'],
+                ],
+            ],
+            self::PAYMENT_AFTER_REFUND => [
+                'description' => '退款完成后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'order_id' => ['type' => 'int', 'required' => true, 'description' => '订单ID'],
+                    'refund_amount' => ['type' => 'float', 'required' => true, 'description' => '退款金额'],
+                    'status' => ['type' => 'string', 'required' => true, 'description' => '退款状态'],
+                ],
+            ],
+
+            // ─── H-4: 搜索模块 ───
+            self::SEARCH_BEFORE_QUERY => [
+                'description' => '搜索查询前触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'keyword' => ['type' => 'string', 'required' => true, 'description' => '搜索关键词'],
+                    'scope' => ['type' => 'string', 'required' => false, 'description' => '搜索范围'],
+                ],
+            ],
+            self::SEARCH_AFTER_QUERY => [
+                'description' => '搜索查询后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'keyword' => ['type' => 'string', 'required' => true, 'description' => '搜索关键词'],
+                    'result_count' => ['type' => 'int', 'required' => true, 'description' => '结果数'],
+                    'elapsed_ms' => ['type' => 'int', 'required' => false, 'description' => '耗时(毫秒)'],
+                ],
+            ],
+
+            // ─── 补充事件 ───
+            self::CONTENT_BEFORE_REVIEW => [
+                'description' => '内容审核前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'content_id' => ['type' => 'int', 'required' => true, 'description' => '内容ID'],
+                    'reviewer_id' => ['type' => 'int', 'required' => true, 'description' => '审核人ID'],
+                ],
+            ],
+            self::CONTENT_AFTER_REVIEW => [
+                'description' => '内容审核后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'content_id' => ['type' => 'int', 'required' => true, 'description' => '内容ID'],
+                    'review_status' => ['type' => 'string', 'required' => true, 'description' => '审核状态'],
+                    'reviewer_id' => ['type' => 'int', 'required' => true, 'description' => '审核人ID'],
+                ],
+            ],
+            self::EMAIL_BEFORE_SEND => [
+                'description' => '邮件发送前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'to' => ['type' => 'string', 'required' => true, 'description' => '收件人'],
+                    'subject' => ['type' => 'string', 'required' => true, 'description' => '邮件主题'],
+                ],
+            ],
+            self::EMAIL_AFTER_SEND => [
+                'description' => '邮件发送后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'to' => ['type' => 'string', 'required' => true, 'description' => '收件人'],
+                    'subject' => ['type' => 'string', 'required' => true, 'description' => '邮件主题'],
+                    'success' => ['type' => 'bool', 'required' => true, 'description' => '是否成功'],
+                ],
+            ],
+            self::FILE_BEFORE_UPLOAD => [
+                'description' => '文件上传前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'filename' => ['type' => 'string', 'required' => true, 'description' => '文件名'],
+                    'file_size' => ['type' => 'int', 'required' => true, 'description' => '文件大小'],
+                    'user_id' => ['type' => 'int', 'required' => false, 'description' => '上传用户ID'],
+                ],
+            ],
+            self::FILE_AFTER_UPLOAD => [
+                'description' => '文件上传后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'filename' => ['type' => 'string', 'required' => true, 'description' => '文件名'],
+                    'file_path' => ['type' => 'string', 'required' => true, 'description' => '存储路径'],
+                    'url' => ['type' => 'string', 'required' => false, 'description' => '访问URL'],
                 ],
             ],
         ];

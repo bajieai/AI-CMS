@@ -58,5 +58,9 @@ return [
         'mail:retry'            => 'app\common\command\MailRetry',
         // V2.9.23 D-1: 插件管理CLI
         'plugin'                => 'app\admin\command\PluginCommand',
+        // V2.9.28 M-3: 模板统计每日聚合
+        'template:aggregate-stats' => 'app\common\command\TemplateStatsAggregateCommand',
+        // V2.9.28 P-6: 插件更新检查
+        'plugin:check-update' => 'app\common\command\PluginCheckUpdateCommand',
     ],
 ];

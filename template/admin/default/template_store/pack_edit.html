@@ -1,0 +1,48 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if $id>0}编辑模板包{else/}新建模板包{/if}</h4>
+    <div class="mb-3"><a href="/admin/template_pack/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a></div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post" id="packForm">
+                <div class="row mb-3">
+                    <div class="col-md-6"><label class="form-label">包名称</label><input type="text" name="name" class="form-control" value="{$pack.name??''}" required></div>
+                    <div class="col-md-3"><label class="form-label">打包价格</label><input type="number" step="0.01" name="price" class="form-control" value="{$pack.price??0}" required></div>
+                    <div class="col-md-3"><label class="form-label">排序</label><input type="number" name="sort" class="form-control" value="{$pack.sort??99}"></div>
+                </div>
+                <div class="mb-3"><label class="form-label">包描述</label><textarea name="description" class="form-control" rows="2">{$pack.description??''}</textarea></div>
+                <div class="mb-3"><label class="form-label">封面图URL</label><input type="text" name="cover" class="form-control" value="{$pack.cover??''}"></div>
+                <div class="mb-3"><label class="form-label">状态</label><select name="status" class="form-select" style="width:120px">
+                    <option value="1" {if ($pack.status??1)==1}selected{/if}>启用</option>
+                    <option value="0" {if ($pack.status??1)==0}selected{/if}>禁用</option>
+                </select></div>
+                <div class="mb-3">
+                    <label class="form-label">选择模板</label>
+                    <div class="border rounded p-3" style="max-height:400px;overflow-y:auto">
+                        {volist name="templates" id="tpl"}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input pack-template" value="{$tpl.id}" id="tpl_{$tpl.id}" {if in_array($tpl.id, array_column($pack.items??[], 'template_id'))}checked{/if}>
+                            <label class="form-check-label" for="tpl_{$tpl.id}">{$tpl.name} (¥{$tpl.price})</label>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+                <input type="hidden" name="template_ids" id="template_ids">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>保存</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+$('#packForm').on('submit', function(e) {
+    e.preventDefault();
+    var ids = [];
+    $('.pack-template:checked').each(function() { ids.push(parseInt($(this).val())); });
+    $('#template_ids').val(JSON.stringify(ids));
+    $.post(location.pathname, $(this).serialize(), function(res) {
+        if (res.code === 0) { location.href = '/admin/template_pack/index'; } else { alert(res.msg); }
+    });
+});
+</script>
+{/block}

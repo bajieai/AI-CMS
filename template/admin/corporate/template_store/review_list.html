@@ -1,0 +1,84 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">评价管理</h4>
+    <div class="row mb-3">
+        <div class="col-md-3"><div class="card text-white bg-primary"><div class="card-body"><div class="small">评价总数</div><div class="fs-4">{$stats.total}</div></div></div></div>
+        <div class="col-md-3"><div class="card text-white bg-success"><div class="card-body"><div class="small">平均评分</div><div class="fs-4">{$stats.avg_rating}</div></div></div></div>
+        <div class="col-md-3"><div class="card text-white bg-warning"><div class="card-body"><div class="small">待处理举报</div><div class="fs-4">{$stats.pending_reports}</div></div></div></div>
+        <div class="col-md-3"><div class="card text-white bg-info"><div class="card-body"><div class="small">5星评价</div><div class="fs-4">{$stats.distribution[5] ?? 0}</div></div></div></div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-star me-2"></i>评价列表
+            <a href="/admin/template_review_admin/reports" class="btn btn-sm btn-outline-warning float-end">举报处理({$stats.pending_reports})</a>
+        </div>
+        <div class="card-body">
+            <form class="d-flex gap-2 flex-wrap mb-3" method="get">
+                <input type="text" name="keyword" class="form-control" style="width:180px" placeholder="搜索评价内容..." value="{$params.keyword??''}">
+                <select name="status" class="form-select" style="width:120px">
+                    <option value="all">全部状态</option>
+                    <option value="1" {if ($params.status??'')=='1'}selected{/if}>已通过</option>
+                    <option value="0" {if ($params.status??'')=='0'}selected{/if}>待审核</option>
+                    <option value="2" {if ($params.status??'')=='2'}selected{/if}>已拒绝</option>
+                </select>
+                <select name="rating" class="form-select" style="width:100px">
+                    <option value="">全部评分</option>
+                    {for start="1" end="6"}
+                    <option value="{$i}" {if ($params.rating??'')==(string)$i}selected{/if}>{$i}星</option>
+                    {/for}
+                </select>
+                <input type="date" name="start_date" class="form-control" style="width:140px" value="{$params.start_date??''}">
+                <input type="date" name="end_date" class="form-control" style="width:140px" value="{$params.end_date??''}">
+                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light"><tr><th>ID</th><th>模板</th><th>评分</th><th>内容</th><th>状态</th><th>回复</th><th>时间</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td>{$item.id}</td>
+                            <td>{$item.store.name ?? '-'}</td>
+                            <td>{for start="1" end="$item.rating+1"}<i class="bi bi-star-fill text-warning"></i>{/for}</td>
+                            <td style="max-width:300px">{$item.content}</td>
+                            <td>
+                                {if $item.is_audited==0}<span class="badge bg-warning">待审核</span>
+                                {elseif $item.is_audited==1}<span class="badge bg-success">已通过</span>
+                                {elseif $item.is_audited==2}<span class="badge bg-danger">已拒绝</span>
+                                {/if}
+                            </td>
+                            <td>{if $item.reply}<span class="text-success">已回复</span>{else/}<span class="text-muted">-</span>{/if}</td>
+                            <td>{:date('Y-m-d', $item.create_time)}</td>
+                            <td>
+                                <a href="/admin/template_review_admin/reply/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-reply"></i></a>
+                                {if $item.is_audited!=1}
+                                <button class="btn btn-sm btn-outline-success" onclick="auditReview({$item.id}, 1)"><i class="bi bi-check-lg"></i></button>
+                                {/if}
+                                {if $item.is_audited!=2}
+                                <button class="btn btn-sm btn-outline-danger" onclick="auditReview({$item.id}, 2)"><i class="bi bi-x-lg"></i></button>
+                                {/if}
+                            </td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <span class="text-muted">共 {$total} 条</span>
+                <nav><ul class="pagination pagination-sm">
+                    {for start="1" end="$page+1"}
+                    <li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}&keyword={$params.keyword??''}&status={$params.status??''}">{$i}</a></li>
+                    {/for}
+                </ul></nav>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function auditReview(id, status) {
+    $.post('/admin/template_review_admin/audit/' + id, {status: status}, function(res) {
+        if (res.code === 0) { location.reload(); } else { alert(res.msg); }
+    });
+}
+</script>
+{/block}

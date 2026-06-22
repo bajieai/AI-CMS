@@ -702,11 +702,88 @@ Route::get('template_store_ops/analyticsDashboard$', '\app\admin\controller\Temp
 Route::get('template_store_ops/analyticsCategory$', '\app\admin\controller\TemplateStoreOpsController@analyticsCategory');
 Route::get('template_store_ops/analyticsExport$', '\app\admin\controller\TemplateStoreOpsController@analyticsExport');
 
+// V2.9.28 Sprint M: 模板商店后台管理完善路由
+// M-1: 订单管理增强（退款/发票）
+Route::get('template_order_admin/index$', '\app\admin\controller\TemplateOrderAdminController@index');
+Route::get('template_order_admin/detail/:id$', '\app\admin\controller\TemplateOrderAdminController@detail');
+Route::get('template_order_admin/refundHandle/:id$', '\app\admin\controller\TemplateOrderAdminController@refundHandle');
+Route::post('template_order_admin/approveRefund/:id$', '\app\admin\controller\TemplateOrderAdminController@approveRefund');
+Route::post('template_order_admin/rejectRefund/:id$', '\app\admin\controller\TemplateOrderAdminController@rejectRefund');
+Route::post('template_order_admin/refund/:id$', '\app\admin\controller\TemplateOrderAdminController@refund');
+Route::get('template_order_admin/invoiceList$', '\app\admin\controller\TemplateOrderAdminController@invoiceList');
+Route::post('template_order_admin/issueInvoice/:id$', '\app\admin\controller\TemplateOrderAdminController@issueInvoice');
+Route::post('template_order_admin/rejectInvoice/:id$', '\app\admin\controller\TemplateOrderAdminController@rejectInvoice');
+// M-2: 评价管理
+Route::get('template_review_admin/index$', '\app\admin\controller\TemplateReviewAdminController@index');
+Route::get('template_review_admin/reply/:id$', '\app\admin\controller\TemplateReviewAdminController@reply');
+Route::post('template_review_admin/saveReply/:id$', '\app\admin\controller\TemplateReviewAdminController@saveReply');
+Route::post('template_review_admin/audit/:id$', '\app\admin\controller\TemplateReviewAdminController@audit');
+Route::get('template_review_admin/reports$', '\app\admin\controller\TemplateReviewAdminController@reports');
+Route::post('template_review_admin/handleReport/:id$', '\app\admin\controller\TemplateReviewAdminController@handleReport');
+Route::get('template_review_admin/stats$', '\app\admin\controller\TemplateReviewAdminController@stats');
+// M-3: 统计看板
+Route::get('template_store_stats/index$', '\app\admin\controller\TemplateStoreStatsController@index');
+Route::get('template_store_stats/ranking$', '\app\admin\controller\TemplateStoreStatsController@ranking');
+Route::get('template_store_stats/revenueTrend$', '\app\admin\controller\TemplateStoreStatsController@revenueTrend');
+Route::post('template_store_stats/aggregate$', '\app\admin\controller\TemplateStoreStatsController@aggregate');
+// M-4: 模板包管理
+Route::get('template_pack/index$', '\app\admin\controller\TemplatePackController@index');
+Route::rule('template_pack/edit/:id$', '\app\admin\controller\TemplatePackController@edit', 'GET|POST');
+Route::get('template_pack/add$', '\app\admin\controller\TemplatePackController@edit');
+Route::post('template_pack/delete/:id$', '\app\admin\controller\TemplatePackController@delete');
+// M-5: 审核工作流
+Route::get('template_audit_workflow/index$', '\app\admin\controller\TemplateAuditWorkflowController@index');
+Route::get('template_audit_workflow/detail/:id$', '\app\admin\controller\TemplateAuditWorkflowController@detail');
+Route::post('template_audit_workflow/firstPass/:id$', '\app\admin\controller\TemplateAuditWorkflowController@firstPass');
+Route::post('template_audit_workflow/finalPass/:id$', '\app\admin\controller\TemplateAuditWorkflowController@finalPass');
+Route::post('template_audit_workflow/reject/:id$', '\app\admin\controller\TemplateAuditWorkflowController@reject');
+Route::get('template_audit_workflow/diff/:id$', '\app\admin\controller\TemplateAuditWorkflowController@diff');
+Route::post('template_audit_workflow/saveConfig/:id$', '\app\admin\controller\TemplateAuditWorkflowController@saveConfig');
+// M-6: 推荐位管理
+Route::get('template_recommend_position/index$', '\app\admin\controller\TemplateRecommendPositionController@index');
+Route::rule('template_recommend_position/edit/:id$', '\app\admin\controller\TemplateRecommendPositionController@edit', 'GET|POST');
+Route::get('template_recommend_position/add$', '\app\admin\controller\TemplateRecommendPositionController@edit');
+Route::post('template_recommend_position/delete/:id$', '\app\admin\controller\TemplateRecommendPositionController@delete');
+// M-7: 结算管理
+Route::get('template_settlement_admin/index$', '\app\admin\controller\TemplateSettlementAdminController@index');
+Route::rule('template_settlement_admin/rule$', '\app\admin\controller\TemplateSettlementAdminController@rule', 'GET|POST');
+Route::get('template_settlement_admin/withdrawList$', '\app\admin\controller\TemplateSettlementAdminController@withdrawList');
+Route::post('template_settlement_admin/approveWithdraw/:id$', '\app\admin\controller\TemplateSettlementAdminController@approveWithdraw');
+Route::post('template_settlement_admin/confirmWithdraw/:id$', '\app\admin\controller\TemplateSettlementAdminController@confirmWithdraw');
+Route::post('template_settlement_admin/rejectWithdraw/:id$', '\app\admin\controller\TemplateSettlementAdminController@rejectWithdraw');
+Route::get('template_settlement_admin/monthlyReport$', '\app\admin\controller\TemplateSettlementAdminController@monthlyReport');
+// M-8: 商店SEO
+Route::get('template_store_seo/index$', '\app\admin\controller\TemplateStoreSeoController@index');
+Route::post('template_store_seo/save$', '\app\admin\controller\TemplateStoreSeoController@save');
+Route::get('template_store_seo/templateList$', '\app\admin\controller\TemplateStoreSeoController@templateList');
+Route::rule('template_store_seo/editTemplateSeo/:id$', '\app\admin\controller\TemplateStoreSeoController@editTemplateSeo', 'GET|POST');
+
 // V2.9.26 R-1~R-5: AI编辑器增强路由
 Route::post('ai_content/continue$', '\app\admin\controller\AiContentController@continueWriting');
 Route::post('ai_content/rewrite$', '\app\admin\controller\AiContentController@rewrite');
 Route::post('ai_content/expand$', '\app\admin\controller\AiContentController@expand');
 Route::post('ai_content/summarize$', '\app\admin\controller\AiContentController@summarize');
+// V2.9.28 Sprint A: AI编辑器增强路由
+Route::post('ai_content/optimizeParagraph$', '\app\admin\controller\AiContentController@optimizeParagraph');
+Route::post('ai_content/chat$', '\app\admin\controller\AiContentController@chat');
+Route::get('ai_content/chatHistory$', '\app\admin\controller\AiContentController@chatHistory');
+Route::get('ai_content/exportChat$', '\app\admin\controller\AiContentController@exportChat');
+Route::post('ai_content/formatPreserveProcess$', '\app\admin\controller\AiContentController@formatPreserveProcess');
+Route::post('ai_content/translate$', '\app\admin\controller\AiContentController@translate');
+Route::get('ai_content/translateLanguages$', '\app\admin\controller\AiContentController@translateLanguages');
+Route::get('ai_content/snapshotList$', '\app\admin\controller\AiContentController@snapshotList');
+Route::get('ai_content/snapshotDiff$', '\app\admin\controller\AiContentController@snapshotDiff');
+Route::post('ai_content/snapshotRollback$', '\app\admin\controller\AiContentController@snapshotRollback');
+// V2.9.28 A-5: AI模板库
+Route::get('ai_editor_template/index$', '\app\admin\controller\AiEditorTemplateController@index');
+Route::rule('ai_editor_template/edit/:id$', '\app\admin\controller\AiEditorTemplateController@edit', 'GET|POST');
+Route::get('ai_editor_template/add$', '\app\admin\controller\AiEditorTemplateController@edit');
+Route::post('ai_editor_template/delete/:id$', '\app\admin\controller\AiEditorTemplateController@delete');
+Route::post('ai_editor_template/useTemplate/:id$', '\app\admin\controller\AiEditorTemplateController@useTemplate');
+// V2.9.28 A-8: AI配置管理
+Route::get('ai_config/index$', '\app\admin\controller\AiConfigController@index');
+Route::post('ai_config/save$', '\app\admin\controller\AiConfigController@save');
+Route::get('ai_config/apiStats$', '\app\admin\controller\AiConfigController@apiStats');
 Route::post('ai_translate/batch$', '\app\admin\controller\AiTranslateController@batchTranslateEnhanced');
 Route::get('ai_translate/memoryStats$', '\app\admin\controller\AiTranslateController@memoryStats');
 Route::get('ai_translate/glossaryStats$', '\app\admin\controller\AiTranslateController@glossaryStats');
@@ -718,6 +795,22 @@ Route::post('ai_seo/keywords$', '\app\admin\controller\AiSeoController@suggestKe
 Route::post('ai_seo/meta$', '\app\admin\controller\AiSeoController@optimizeMeta');
 Route::post('ai_seo/readability$', '\app\admin\controller\AiSeoController@readabilityScore');
 
+// V2.9.28 Sprint P: 插件市场在线安装路由
+Route::get('plugin_store/index$', '\app\admin\controller\PluginStoreController@index');
+Route::post('plugin_store/install$', '\app\admin\controller\PluginStoreController@install');
+Route::post('plugin_store/update$', '\app\admin\controller\PluginStoreController@update');
+Route::get('plugin_store/logs$', '\app\admin\controller\PluginStoreController@logs');
+Route::post('plugin_store/securityScan$', '\app\admin\controller\PluginStoreController@securityScan');
+
+// V2.9.28 Sprint H: Hook事件扩展路由
+Route::get('hook_debug/performance$', '\app\admin\controller\HookDebugController@performance');
+Route::get('hook_debug/listeners$', '\app\admin\controller\HookDebugController@listeners');
+Route::get('hook_debug/executionChain$', '\app\admin\controller\HookDebugController@executionChain');
+Route::get('hook_doc/index$', '\app\admin\controller\HookDocController@index');
+Route::get('hook_doc/exportMarkdown$', '\app\admin\controller\HookDocController@exportMarkdown');
+// V2.9.28 Sprint MO: PWA配置路由
+Route::get('pwa_config/index$', '\app\admin\controller\PwaConfigController@index');
+Route::post('pwa_config/save$', '\app\admin\controller\PwaConfigController@save');
 
 // V2.9.25 L-2: 插件包管理后台路由
 Route::get('plugin_store/index$', '\app\admin\controller\PluginStoreController@index');
