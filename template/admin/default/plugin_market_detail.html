@@ -222,6 +222,52 @@
                 </div>
             </div>
 
+            <!-- V2.9.28 P-4a: 评分分布柱状图 -->
+            {if !empty($ratingDistribution) && is_array($ratingDistribution)}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-bar-chart me-1"></i>评分分布</h6>
+                </div>
+                <div class="card-body">
+                    {volist name="ratingDistribution" id="rd"}
+                    <div class="d-flex align-items-center mb-1">
+                        <span class="text-warning me-2" style="width:60px;">
+                            {$rd.star}<i class="bi bi-star-fill ms-1"></i>
+                        </span>
+                        <div class="progress flex-grow-1 me-2" style="height:18px;">
+                            <div class="progress-bar bg-warning" style="width:{$rd.percent}%;">{$rd.percent}%</div>
+                        </div>
+                        <span class="text-muted small" style="width:40px;">{$rd.count}</span>
+                    </div>
+                    {/volist}
+                    {if isset($ratingInfo) && ($ratingInfo.total_count ?? 0) > 0}
+                    <div class="text-center text-muted small mt-2">共 {$ratingInfo.total_count} 人评分</div>
+                    {/if}
+                </div>
+            </div>
+            {/if}
+
+            <!-- V2.9.28 P-4b: 兼容性矩阵 -->
+            {if !empty($compatibilityMatrix) && is_array($compatibilityMatrix)}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-check2-square me-1"></i>兼容性矩阵</h6>
+                </div>
+                <div class="card-body py-2">
+                    {volist name="compatibilityMatrix" id="cm"}
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                        <span>AI-CMS V{$cm.version}</span>
+                        {if $cm.compatible}
+                            <span class="badge bg-success"><i class="bi bi-check-lg"></i> 兼容</span>
+                        {else}
+                            <span class="badge bg-danger"><i class="bi bi-x-lg"></i> 不兼容</span>
+                        {/if}
+                    </div>
+                    {/volist}
+                </div>
+            </div>
+            {/if}
+
             <!-- 版本历史 -->
             {if !empty($plugin.versions) && is_array($plugin.versions)}
             <div class="card shadow-sm">
@@ -247,6 +293,44 @@
             {/if}
         </div>
     </div>
+
+    <!-- V2.9.28 P-4c: 相关推荐 -->
+    {if !empty($relatedPlugins) && is_array($relatedPlugins)}
+    <div class="card shadow-sm mt-3">
+        <div class="card-header bg-transparent">
+            <h6 class="mb-0"><i class="bi bi-grid me-1"></i>相关推荐</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {volist name="relatedPlugins" id="rp"}
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <a href="/admin/plugin_market/detail?code={$rp.code}" class="text-decoration-none">
+                        <div class="card h-100 border">
+                            {if !empty($rp.icon)}
+                            <img src="{$rp.icon}" class="card-img-top" style="height:80px;object-fit:contain;background:#f8f9fa;">
+                            {else}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:80px;">
+                                <i class="bi bi-puzzle fs-1 text-muted"></i>
+                            </div>
+                            {/if}
+                            <div class="card-body p-2">
+                                <h6 class="card-title small text-truncate mb-1">{$rp.name}</h6>
+                                <p class="card-text text-muted" style="font-size:11px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{$rp.description??''}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-primary">v{$rp.version??'1.0'}</span>
+                                    {if !empty($rp.avg_rating)}
+                                    <span class="text-warning small"><i class="bi bi-star-fill"></i> {$rp.avg_rating}</span>
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </div>
+    {/if}
     {/if}
 </div>
 {/block}
