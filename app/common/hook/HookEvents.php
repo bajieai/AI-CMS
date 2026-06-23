@@ -79,29 +79,34 @@ class HookEvents
     const SEO_AFTER_OPTIMIZE   = 'seo.after_optimize';
     const SEO_SUGGESTION_GENERATED = 'seo.suggestion_generated';
 
-    // ─── H-2: 内容模型模块（4个） ───
+    // ─── H-2: 内容模型模块（6个，含字段级） ───
     const CONTENT_MODEL_BEFORE_SAVE   = 'content_model.before_save';
     const CONTENT_MODEL_AFTER_SAVE    = 'content_model.after_save';
     const CONTENT_MODEL_BEFORE_DELETE = 'content_model.before_delete';
     const CONTENT_MODEL_AFTER_DELETE  = 'content_model.after_delete';
+    const MODEL_FIELD_BEFORE_ADD      = 'model.field.before_add';
+    const MODEL_FIELD_AFTER_DELETE    = 'model.field.after_delete';
 
-    // ─── H-3: 支付模块（4个） ───
+    // ─── H-3: 支付/订单模块（5个） ───
     const PAYMENT_BEFORE_CREATE  = 'payment.before_create';
     const PAYMENT_AFTER_PAID     = 'payment.after_paid';
     const PAYMENT_BEFORE_REFUND  = 'payment.before_refund';
     const PAYMENT_AFTER_REFUND   = 'payment.after_refund';
+    const ORDER_AFTER_CANCEL     = 'order.after_cancel';
 
     // ─── H-4: 搜索模块（2个） ───
     const SEARCH_BEFORE_QUERY = 'search.before_query';
     const SEARCH_AFTER_QUERY  = 'search.after_query';
 
-    // ─── 补充事件（6个） ───
-    const CONTENT_BEFORE_REVIEW = 'content.before_review';
-    const CONTENT_AFTER_REVIEW  = 'content.after_review';
-    const EMAIL_BEFORE_SEND     = 'email.before_send';
-    const EMAIL_AFTER_SEND      = 'email.after_send';
-    const FILE_BEFORE_UPLOAD    = 'file.before_upload';
-    const FILE_AFTER_UPLOAD     = 'file.after_upload';
+    // ─── 补充事件（8个） ───
+    const CONTENT_BEFORE_REVIEW     = 'content.before_review';
+    const CONTENT_AFTER_REVIEW      = 'content.after_review';
+    const EMAIL_BEFORE_SEND         = 'email.before_send';
+    const EMAIL_AFTER_SEND          = 'email.after_send';
+    const FILE_BEFORE_UPLOAD        = 'file.before_upload';
+    const FILE_AFTER_UPLOAD         = 'file.after_upload';
+    const USER_BEFORE_VERIFY_EMAIL  = 'user.before_verify_email';
+    const EXPORT_AFTER_COMPLETE     = 'export.after_complete';
 
     /**
      * 获取所有事件常量
@@ -135,6 +140,7 @@ class HookEvents
                 self::USER_AFTER_LOGIN,
                 self::USER_AFTER_REGISTER,
                 self::USER_BEFORE_LOGOUT,
+                self::USER_BEFORE_VERIFY_EMAIL,
             ],
             'template' => [
                 self::TEMPLATE_BEFORE_RENDER,
@@ -167,19 +173,22 @@ class HookEvents
                 self::SEO_AFTER_OPTIMIZE,
                 self::SEO_SUGGESTION_GENERATED,
             ],
-            // V2.9.28 H-2: 内容模型模块
+            // V2.9.28 H-2: 内容模型模块（含字段级）
             'content_model' => [
                 self::CONTENT_MODEL_BEFORE_SAVE,
                 self::CONTENT_MODEL_AFTER_SAVE,
                 self::CONTENT_MODEL_BEFORE_DELETE,
                 self::CONTENT_MODEL_AFTER_DELETE,
+                self::MODEL_FIELD_BEFORE_ADD,
+                self::MODEL_FIELD_AFTER_DELETE,
             ],
-            // V2.9.28 H-3: 支付模块
+            // V2.9.28 H-3: 支付/订单模块
             'payment' => [
                 self::PAYMENT_BEFORE_CREATE,
                 self::PAYMENT_AFTER_PAID,
                 self::PAYMENT_BEFORE_REFUND,
                 self::PAYMENT_AFTER_REFUND,
+                self::ORDER_AFTER_CANCEL,
             ],
             // V2.9.28 H-4: 搜索模块
             'search' => [
@@ -198,6 +207,9 @@ class HookEvents
             'file' => [
                 self::FILE_BEFORE_UPLOAD,
                 self::FILE_AFTER_UPLOAD,
+            ],
+            'export' => [
+                self::EXPORT_AFTER_COMPLETE,
             ],
         ];
 
@@ -681,6 +693,59 @@ class HookEvents
                     'filename' => ['type' => 'string', 'required' => true, 'description' => '文件名'],
                     'file_path' => ['type' => 'string', 'required' => true, 'description' => '存储路径'],
                     'url' => ['type' => 'string', 'required' => false, 'description' => '访问URL'],
+                ],
+            ],
+
+            // ─── H-2补充: 字段级事件 ───
+            self::MODEL_FIELD_BEFORE_ADD => [
+                'description' => '模型字段添加前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'model_id' => ['type' => 'int', 'required' => true, 'description' => '模型ID'],
+                    'field_data' => ['type' => 'array', 'required' => true, 'description' => '字段数据'],
+                ],
+            ],
+            self::MODEL_FIELD_AFTER_DELETE => [
+                'description' => '模型字段删除后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'model_id' => ['type' => 'int', 'required' => true, 'description' => '模型ID'],
+                    'field_id' => ['type' => 'int', 'required' => true, 'description' => '字段ID'],
+                ],
+            ],
+
+            // ─── H-3补充: 订单取消 ───
+            self::ORDER_AFTER_CANCEL => [
+                'description' => '订单取消后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'order_id' => ['type' => 'int', 'required' => true, 'description' => '订单ID'],
+                    'order_type' => ['type' => 'string', 'required' => true, 'description' => '订单类型'],
+                    'user_id' => ['type' => 'int', 'required' => false, 'description' => '用户ID'],
+                ],
+            ],
+
+            // ─── H-5补充: 邮箱验证+导出完成 ───
+            self::USER_BEFORE_VERIFY_EMAIL => [
+                'description' => '用户邮箱验证前触发',
+                'since' => '2.9.28',
+                'supports_block' => true,
+                'parameters' => [
+                    'user_id' => ['type' => 'int', 'required' => true, 'description' => '用户ID'],
+                    'email' => ['type' => 'string', 'required' => true, 'description' => '邮箱地址'],
+                ],
+            ],
+            self::EXPORT_AFTER_COMPLETE => [
+                'description' => '数据导出完成后触发',
+                'since' => '2.9.28',
+                'supports_block' => false,
+                'parameters' => [
+                    'export_type' => ['type' => 'string', 'required' => true, 'description' => '导出类型'],
+                    'row_count' => ['type' => 'int', 'required' => true, 'description' => '导出行数'],
+                    'file_path' => ['type' => 'string', 'required' => false, 'description' => '文件路径'],
                 ],
             ],
         ];

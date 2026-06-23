@@ -80,6 +80,49 @@
             <canvas id="trendChart" height="80"></canvas>
         </div>
     </div>
+
+    {if condition="isset($stats['funnel'])"}
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-funnel me-2"></i>转化漏斗</div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="p-3 rounded bg-light">
+                        <div class="text-muted small">浏览量</div>
+                        <div class="fs-2 text-primary">{$stats.funnel.views}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded bg-light">
+                        <div class="text-muted small">加购量</div>
+                        <div class="fs-2 text-info">{$stats.funnel.carts}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded bg-light">
+                        <div class="text-muted small">购买量</div>
+                        <div class="fs-2 text-success">{$stats.funnel.purchases}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3 text-center">
+                <div class="col-md-4">
+                    <span class="badge bg-primary fs-6">浏览→加购: {$stats.funnel.view_to_cart}%</span>
+                </div>
+                <div class="col-md-4">
+                    <span class="badge bg-info fs-6">加购→购买: {$stats.funnel.cart_to_purchase}%</span>
+                </div>
+                <div class="col-md-4">
+                    <span class="badge bg-success fs-6">浏览→购买: {$stats.funnel.view_to_purchase}%</span>
+                </div>
+            </div>
+            <div class="mt-3">
+                <canvas id="funnelChart" height="60"></canvas>
+            </div>
+        </div>
+    </div>
+    {/if}
+
     <div class="card">
         <div class="card-header"><i class="bi bi-fire me-2"></i>热门模板TOP10</div>
         <div class="card-body">
@@ -142,5 +185,28 @@ function migrateBaseline() {
             });
     });
 }
+
+// V2.9.28 M-3: 转化漏斗图表
+{if condition="isset($stats['funnel'])"}
+new Chart(document.getElementById('funnelChart'), {
+    type: 'bar',
+    data: {
+        labels: ['浏览量', '加购量', '购买量'],
+        datasets: [{
+            label: '数量',
+            data: [{$stats.funnel.views}, {$stats.funnel.carts}, {$stats.funnel.purchases}],
+            backgroundColor: ['rgba(13,110,253,0.6)', 'rgba(13,202,240,0.6)', 'rgba(25,135,84,0.6)'],
+            borderColor: ['#0d6efd', '#0dcaf0', '#198754'],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {legend: {display: false}},
+        scales: {x: {beginAtZero: true, ticks: {precision: 0}}}
+    }
+});
+{/if}
 </script>
 {/block}

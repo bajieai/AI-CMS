@@ -88,7 +88,7 @@ class PluginMarketController extends AdminBaseController
     }
 
     /**
-     * V2.9.3 M25: 插件详情页
+     * V2.9.3 M25: 插件详情页 — V2.9.28 P-4 增强：评分分布/兼容性矩阵/相关推荐
      */
     public function detail()
     {
@@ -103,9 +103,64 @@ class PluginMarketController extends AdminBaseController
         if (!$result['success']) {
             $this->assign('error', $result['msg']);
             $this->assign('plugin', null);
+            $this->assign('ratingDistribution', []);
+            $this->assign('compatibilityMatrix', []);
+            $this->assign('relatedPlugins', []);
         } else {
-            $this->assign('plugin', $result['data']);
+            $plugin = $result['data'];
+            $this->assign('plugin', $plugin);
             $this->assign('error', '');
+
+            // V2.9.28 P-4a: 评分分布柱状图数据
+            $ratingInfo = PluginRating::getAverageRating($code);
+            $ratingDistribution = [];
+            for ($i = 5; $i >= 1; $i--) {
+                $count = PluginRating::where('plugin_code', $code)
+                    ->where('rating', $i)
+                    ->count();
+                $ratingDistribution[] = [
+                    'star' => $i,
+                    'count' => $count,
+                    'percent' => $ratingInfo['total_count'] > 0 ? round($count / $ratingInfo['total_count'] * 100, 1) : 0,
+                ];
+            }
+            $this->assign('ratingDistribution', $ratingDistribution);
+            $this->assign('ratingInfo', $ratingInfo);
+
+            // V2.9.28 P-4b: 兼容性矩阵
+            $compatMatrix = [];
+            $cmsVersions = ['2.9.25', '2.9.26', '2.9.27', '2.9.28'];
+            $pluginMinVersion = $plugin['min_cms_version'] ?? '2.9.20';
+            $pluginMaxVersion = $plugin['max_cms_version'] ?? '';
+            foreach ($cmsVersions as $ver) {
+                $compatible = version_compare($ver, $pluginMinVersion, '>=');
+                if (!empty($pluginMaxVersion)) {
+                    $compatible = $compatible && version_compare($ver, $pluginMaxVersion, '<=');
+                }
+                $compatMatrix[] = ['version' => $ver, 'compatible' => $compatible];
+            }
+            $this->assign('compatibilityMatrix', $compatMatrix);
+
+            // V2.9.28 P-4c: 相关推荐（同分类的其他插件）
+            $relatedPlugins = [];
+            $categoryId = $plugin['category_id'] ?? 0;
+            if ($categoryId) {
+                $relatedResult = $service->getMarketList([
+                    'category' => $categoryId,
+                    'page' => 1,
+                    'limit' => 5,
+                ]);
+                foreach (($relatedResult['data'] ?? []) as $rp) {
+                    if (($rp['code'] ?? '') !== $code) {
+                        $relatedPlugins[] = $rp;
+                    }
+                    if (count($relatedPlugins) >= 4) break;
+                }
+            }
+            $this->assign('relatedPlugins', $relatedPlugins);
+
+            // V2.9.28 P-4d: 版本历史
+            $this->assign('versionHistory', $plugin['versions'] ?? []);
         }
 
         // 保留搜索/分类上下文以便返回

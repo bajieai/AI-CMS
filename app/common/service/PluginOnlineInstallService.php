@@ -44,7 +44,7 @@ class PluginOnlineInstallService
             $this->notifyProgress($logId, 2, $this->stepCount, 'verifying', '正在校验文件...');
             $this->verifyZip($zipFile);
             // 安全扫描
-            $securityService = new \app\common\service\PluginSecurityService();
+            $securityService = new \app\common\service\PluginSandboxService();
             $scanResult = $securityService->scanZip($zipFile);
             if (!$scanResult['safe']) {
                 throw new \RuntimeException('安全扫描未通过: ' . ($scanResult['message'] ?? ''));
