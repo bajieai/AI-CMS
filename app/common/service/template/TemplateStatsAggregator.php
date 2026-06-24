@@ -161,6 +161,13 @@ class TemplateStatsAggregator
                 ],
                 'funnel' => $funnel,
                 'trend' => $trend,
+                'install_trend' => $trend,
+                'hot_templates' => TemplateStore::where('status', 1)
+                    ->order('install_count', 'desc')
+                    ->limit(10)
+                    ->field('id, name, banner_url, install_count, rating_avg')
+                    ->select()
+                    ->toArray(),
             ];
         }, self::CACHE_TTL);
     }
