@@ -102,11 +102,11 @@ class AiConfigService
      */
     public function getApiUsageStats(int $days = 30): array
     {
-        $startTime = strtotime("-{$days} days");
+        $startDate = date('Y-m-d', strtotime("-{$days} days"));
 
         $stats = Db::name('ai_content_log')
-            ->where('create_time', '>=', $startTime)
-            ->field('FROM_UNIXTIME(create_time, "%Y-%m-%d") as date, COUNT(*) as count, SUM(token_count) as tokens')
+            ->where('created_at', '>=', $startDate)
+            ->field('DATE(created_at) as date, COUNT(*) as count, SUM(tokens_used) as tokens')
             ->group('date')
             ->order('date', 'asc')
             ->select()
