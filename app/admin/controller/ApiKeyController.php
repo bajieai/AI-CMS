@@ -64,7 +64,7 @@ class ApiKeyController extends AdminBaseController
     public function doc()
     {
         $generator = new ApiDocGenerator();
-        $doc = $generator->generate();
+        $doc = $generator->generateOpenAPISpec();
         $this->assign('doc', $doc);
         return $this->view('/api_doc');
     }
