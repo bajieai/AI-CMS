@@ -27,7 +27,7 @@
                                 {else/}<span class="badge bg-secondary">{$item.review_status}</span>
                                 {/if}
                             </td>
-                            <td>{:date('Y-m-d H:i:s', $item.update_time)}</td>
+                            <td>{:isset($item['update_time']) && $item['update_time'] > 0 ? date('Y-m-d H:i:s', (int)$item['update_time']) : '-'}</td>
                             <td>
                                 <a href="/admin/template_audit_workflow/detail/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> 详情</a>
                                 <a href="/admin/template_audit_workflow/diff/{$item.id}" class="btn btn-sm btn-outline-info"><i class="bi bi-file-diff"></i> 对比</a>
