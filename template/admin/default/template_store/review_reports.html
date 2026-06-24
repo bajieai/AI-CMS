@@ -16,7 +16,7 @@
             {/volist}
             </tbody>
         </table>
-        {$list|raw}
+        {if empty($list)}<div class="text-center text-muted py-4">暂无举报记录</div>{/if}
     </div>
 </div>
 {/block}
