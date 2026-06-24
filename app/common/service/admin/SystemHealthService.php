@@ -10,13 +10,13 @@ class SystemHealthService
     public static function checkAll(): array
     {
         return [
-            'php' => self::checkPhp(),
-            'mysql' => self::checkMysql(),
-            'disk' => self::checkDisk(),
-            'cache' => self::checkCache(),
-            'upload' => self::checkUpload(),
-            'permission' => self::checkPermission(),
-            'extension' => self::checkExtensions(),
+            self::checkPhp(),
+            self::checkMysql(),
+            self::checkDisk(),
+            self::checkCache(),
+            self::checkUpload(),
+            self::checkPermission(),
+            self::checkExtensions(),
         ];
     }
 
