@@ -34,7 +34,7 @@ class TemplateSettlementService
         }
 
         $query = TemplateOrder::with('template')
-            ->whereIn('template_id', $templateIds)
+            ->whereIn('store_id', $templateIds)
             ->where('status', TemplateOrder::STATUS_PAID);
 
         if (!empty($params['start_date'])) {
@@ -84,7 +84,7 @@ class TemplateSettlementService
             $rule = TemplateSettlementRule::getForDeveloper($developerId);
             $commissionRate = $rule['commission_rate'] ?? 30;
 
-            $totalRevenue = TemplateOrder::whereIn('template_id', $templateIds)
+            $totalRevenue = TemplateOrder::whereIn('store_id', $templateIds)
                 ->where('status', TemplateOrder::STATUS_PAID)
                 ->sum('pay_amount');
 
@@ -265,7 +265,7 @@ class TemplateSettlementService
 
         // 按开发者分组
         $developerStats = TemplateOrder::alias('o')
-            ->join('template_store s', 'o.template_id = s.id')
+            ->join('template_store s', 'o.store_id = s.id')
             ->where('o.status', TemplateOrder::STATUS_PAID)
             ->whereBetweenTime('o.pay_time', $startTime, $endTime)
             ->field('s.author_id as developer_id, COUNT(*) as order_count, SUM(o.pay_amount) as revenue')
