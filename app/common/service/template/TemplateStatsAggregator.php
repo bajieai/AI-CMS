@@ -140,6 +140,10 @@ class TemplateStatsAggregator
                     'total_templates' => TemplateStore::count(),
                     'migrate_count' => 0,
                 ],
+                'date_range' => [
+                    'start' => $startDate ?: date('Y-m-d', strtotime('-30 days')),
+                    'end' => $endDate ?: date('Y-m-d'),
+                ],
                 'today' => [
                     'revenue' => (float)$todayRevenue,
                     'orders' => $todayOrders,
