@@ -54,7 +54,7 @@ class TemplatePackController extends AdminBaseController
 
         $pack = $id > 0 ? $service->getDetail($id) : null;
         $templates = \app\common\model\TemplateStore::where('status', 1)
-            ->field('id, name, price, cover')
+            ->field('id, name, price, screenshots')
             ->order('id', 'desc')
             ->select();
 
