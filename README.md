@@ -1,14 +1,16 @@
-# 八界AI-CMS V2.9.29
+# 八界AI-CMS V2.9.30
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.29-blue)
+![Version](https://img.shields.io/badge/version-2.9.30-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.29 "内容模型差异化 · V2.9.28修复完善 · 开发者生态启动 · 模板生态进阶 · 内容智能增强" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.30 "内容模型差异化 · V2.9.28修复完善 · 开发者生态启动 · 模板生态进阶 · 内容智能增强" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+
+**V2.9.30 验收修复：** corporate皮肤developer_list补全/移动端4模板双皮肤补全/T-5检测器分离独立Service/TemplateBuyService迁移到common命名空间
 
 **V2.9.29 核心定位：内容模型差异化 · V2.9.28修复完善 · 开发者生态启动 · 模板生态进阶 · 内容智能增强** — 5大Sprint 31项功能点：
 
@@ -28,6 +30,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| V2.9.30 | 2026-06 | **V2.9.29验收修复**: corporate皮肤developer_list补全/移动端4模板(my_favorites+my_subscriptions+template_buy+template_cart)双皮肤补全/T-5审核检测器分离为独立Service调用/TemplateBuyService从home迁移到common命名空间 |
 | V2.9.29 | 2026-06 | **内容模型差异化·V2.9.28修复完善·开发者生态启动·模板生态进阶·内容智能增强**: 31功能点(Sprint C/F/D/T/I)/Fallback链渲染引擎/5预置模型/pc+mobile双版40模板/Hook 3别名/用户画像/拼音搜索/开发者注册认证/模板打包ZIP/Webhook(HMAC+3s/5s超时)/API开放平台(双认证+IP白名单)/AI协同过滤推荐/模板自动审核/vis.js关系图谱/内容推荐引擎/定时发布/质量诊断/评论收藏点赞/字段级审计+回滚/订阅摘要推送 |
 | V2.9.28 | 2026-06 | **模板商店后台完善·AI编辑器增强·插件市场在线安装·Hook事件扩展·移动端体验微调**: 34功能点(Sprint M/A/P/H/MO)/订单退款/发票管理/评价管理/统计看板/审核工作流/结算管理/段落优化/多轮对话/格式保留/选段翻译/20+模板库/版本快照/在线安装(SSE)/安全沙箱/19个新Hook事件/移动端导航/PWA增强 |
 | V2.9.27 | 2026-06 | **内容模型差异化·SSE实时推送·模板商店商业化·基础设施完善**: 28功能点(Sprint S/T/U/V)/FieldTypeRegistry(13种)/动态表单/5张扩展表/模型专属分类/内容关系/5个前台专属模板/SSE DB持久化队列/Last-Event-Id断线重连/4种定价模式/AlipayPaymentChannel/GitHubOauthProvider/RSS Feed/系统健康检查 |

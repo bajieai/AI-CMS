@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace app\home\controller;
 
 use app\common\controller\FrontBaseController;
-use app\home\service\TemplateBuyService;
+use app\common\service\template\TemplateBuyService;
 
 /**
  * 模板购买前台控制器 - V2.9.29 Sprint T-1

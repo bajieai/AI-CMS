@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace app\home\service;
+namespace app\common\service\template;
 
 use app\common\model\TemplateStore;
-use app\common\model\TemplateOrder;
 use think\facade\Cache;
 use think\facade\Db;
 
 /**
  * 模板购买服务 - V2.9.29 Sprint T-1
+ * V2.9.30: 从 app\home\service 迁移到 app\common\service\template
  */
 class TemplateBuyService
 {
