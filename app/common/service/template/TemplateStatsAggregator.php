@@ -134,6 +134,12 @@ class TemplateStatsAggregator
             $trend = $this->getRevenueTrend(30);
 
             return [
+                'summary' => [
+                    'total_installs' => (int)TemplateStore::sum('install_count'),
+                    'online_templates' => TemplateStore::where('status', 1)->count(),
+                    'total_templates' => TemplateStore::count(),
+                    'migrate_count' => 0,
+                ],
                 'today' => [
                     'revenue' => (float)$todayRevenue,
                     'orders' => $todayOrders,
