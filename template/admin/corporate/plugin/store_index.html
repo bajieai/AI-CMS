@@ -13,7 +13,7 @@
             <tr>
                 <td>{$vo.id}</td><td>{$vo.name}</td><td><code>{$vo.code}</code></td>
                 <td>{$vo.version}</td>
-                <td>{if $vo.status==1}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                <td>{if $vo.is_enabled}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
                 <td><a href="/admin/plugin_store/edit/{$vo.id}" class="btn btn-sm btn-outline-primary">编辑</a></td>
             </tr>
             {/volist}
