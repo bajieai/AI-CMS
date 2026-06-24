@@ -213,7 +213,7 @@ class TemplateSettlementService
     {
         $query = new TemplateWithdraw();
 
-        if (!empty($params['status']) || $params['status'] === '0') {
+        if (isset($params['status']) && $params['status'] !== '') {
             $query->where('status', (int)$params['status']);
         }
         if (!empty($params['developer_id'])) {
@@ -259,8 +259,8 @@ class TemplateSettlementService
             ->sum('pay_amount');
 
         // 退款
-        $refundAmount = TemplateRefund::where('status', TemplateRefund::STATUS_APPROVED)
-            ->whereBetweenTime('process_time', $startTime, $endTime)
+        $refundAmount = TemplateOrder::where('status', 4)
+            ->whereBetweenTime('pay_time', $startTime, $endTime)
             ->sum('amount');
 
         // 按开发者分组

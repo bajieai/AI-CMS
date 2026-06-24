@@ -54,7 +54,7 @@ class TemplateRecommendPositionController extends AdminBaseController
 
         $position = $id > 0 ? $service->getDetail($id) : null;
         $templates = \app\common\model\TemplateStore::where('status', 1)
-            ->field('id, name, cover, price')
+            ->field('id, name, screenshots, price')
             ->order('install_count', 'desc')
             ->limit(100)
             ->select();
