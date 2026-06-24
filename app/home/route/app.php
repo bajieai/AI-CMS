@@ -113,3 +113,23 @@ Route::get('member/stats$', '\app\home\controller\MemberController@stats');
 // V2.9.25 L-3: 插件市场前台浏览
 Route::get('plugin_store/index$', '\app\home\controller\PluginStoreController@index');
 Route::get('plugin_store/detail/:code$', '\app\home\controller\PluginStoreController@detail');
+
+// ========== V2.9.29 Sprint D: 开发者前台 ==========
+Route::rule('developer/apply$', '\app\home\controller\DeveloperApplyController@apply', 'GET|POST');
+Route::get('developer/panel$', '\app\home\controller\DeveloperApplyController@panel');
+
+// ========== V2.9.29 Sprint T: 模板购买前台 ==========
+Route::rule('template_store/buy/:id$', '\app\home\controller\TemplateStoreBuyController@buy', 'GET|POST');
+Route::get('template_store/cart$', '\app\home\controller\TemplateStoreBuyController@cart');
+Route::post('template_store/addToCart$', '\app\home\controller\TemplateStoreBuyController@addToCart');
+Route::post('template_store/checkout$', '\app\home\controller\TemplateStoreBuyController@checkout');
+
+// ========== V2.9.29 Sprint I: 内容互动前台 ==========
+// I-5: 收藏
+Route::post('favorite/toggle$', '\app\home\controller\FavoriteController@toggle');
+Route::get('member/favorites$', '\app\home\controller\FavoriteController@myFavorites');
+// I-5: 点赞
+Route::post('like/toggle$', '\app\home\controller\LikeController@toggle');
+// I-7: 订阅
+Route::post('subscribe/toggle$', '\app\home\controller\ContentSubscribeController@toggle');
+Route::get('member/subscriptions$', '\app\home\controller\ContentSubscribeController@mySubscriptions');

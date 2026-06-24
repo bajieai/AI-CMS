@@ -1,0 +1,17 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">绠＄悊</h5></div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>鍚嶇О</th><th>鐘舵€?/th><th>鎿嶄綔</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr><td>{.id}</td><td>{.name}</td><td>{.status}</td><td><a href="#" class="btn btn-sm btn-outline-primary">缂栬緫</a></td></tr>
+            {/volist}
+            </tbody>
+        </table>
+        {|raw}
+    </div>
+</div>
+{/block}

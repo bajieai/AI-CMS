@@ -19,6 +19,7 @@ use app\common\model\Cate;
 use app\common\model\Content;
 use app\common\service\CateService;
 use app\common\service\seo\SchemaMarkupService;
+use app\home\service\ListRenderService;
 
 /**
  * 前台分类控制器
@@ -79,7 +80,17 @@ class CateController extends FrontBaseController
             'schema_markup' => $schemaMarkup,
         ]);
 
-        return $this->view('/list');
+        return ListRenderService::render($this, '/list', $currentCate, [
+            'type' => $type,
+            'cate_id' => $cateId,
+            'cates' => $cates,
+            'cate_tree_html' => $this->renderCateTree($cates, $typeSlug, $cateId),
+            'list' => $list,
+            'lists' => $list,
+            'type_slug' => $typeSlug,
+            'current_cate' => $currentCate,
+            'schema_markup' => $schemaMarkup,
+        ]);
     }
 
     /**

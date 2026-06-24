@@ -855,3 +855,62 @@ Route::post('revenue/createSettlement$', '\app\admin\controller\RevenueControlle
 Route::post('revenue/auditSettlement$', '\app\admin\controller\RevenueController@auditSettlement');
 Route::get('revenue/export$', '\app\admin\controller\RevenueController@export');
 Route::get('revenue/doExport$', '\app\admin\controller\RevenueController@doExport');
+
+// ========== V2.9.29 Sprint D: 开发者生态启动 ==========
+// D-1: 开发者管理
+Route::get('developer/index$', '\app\admin\controller\DeveloperController@index');
+Route::get('developer/detail/:id$', '\app\admin\controller\DeveloperController@detail');
+Route::post('developer/audit$', '\app\admin\controller\DeveloperController@audit');
+Route::post('developer/disable$', '\app\admin\controller\DeveloperController@disable');
+Route::post('developer/enable$', '\app\admin\controller\DeveloperController@enable');
+// D-2: 模板打包导出
+Route::rule('template_pack_export/export/:id$', '\app\admin\controller\TemplatePackExportController@export', 'GET|POST');
+Route::rule('template_pack_export/import$', '\app\admin\controller\TemplatePackExportController@import', 'GET|POST');
+// D-3: 插件开发工具
+Route::get('plugin_dev/docs$', '\app\admin\controller\PluginDevController@docs');
+Route::get('plugin_dev/examples$', '\app\admin\controller\PluginDevController@examples');
+Route::get('plugin_dev/debug$', '\app\admin\controller\PluginDevController@debug');
+Route::post('plugin_dev/scaffold$', '\app\admin\controller\PluginDevController@scaffold');
+// D-4: Webhook管理
+Route::get('webhook/index$', '\app\admin\controller\WebhookController@index');
+Route::rule('webhook/edit/:id$', '\app\admin\controller\WebhookController@edit', 'GET|POST');
+Route::post('webhook/delete/:id$', '\app\admin\controller\WebhookController@delete');
+Route::post('webhook/toggle/:id$', '\app\admin\controller\WebhookController@toggle');
+Route::get('webhook/logs/:id$', '\app\admin\controller\WebhookController@logs');
+Route::get('webhook/logs$', '\app\admin\controller\WebhookController@logs');
+// D-5: API密钥管理
+Route::get('api_key/index$', '\app\admin\controller\ApiKeyController@index');
+Route::post('api_key/create$', '\app\admin\controller\ApiKeyController@create');
+Route::post('api_key/revoke/:id$', '\app\admin\controller\ApiKeyController@revoke');
+Route::get('api_key/logs$', '\app\admin\controller\ApiKeyController@logs');
+Route::get('api_key/doc$', '\app\admin\controller\ApiKeyController@doc');
+
+// ========== V2.9.29 Sprint T: 模板生态进阶 ==========
+// T-4: 分类V2
+Route::get('template_category_v2/index$', '\app\admin\controller\TemplateCategoryV2Controller@index');
+Route::rule('template_category_v2/edit/:id$', '\app\admin\controller\TemplateCategoryV2Controller@edit', 'GET|POST');
+Route::post('template_category_v2/delete/:id$', '\app\admin\controller\TemplateCategoryV2Controller@delete');
+// T-5/T-6: 审核报告+统计详情
+Route::get('template_stats_detail/detail/:id$', '\app\admin\controller\TemplateStatsDetailController@detail');
+Route::get('template_stats_detail/compare$', '\app\admin\controller\TemplateStatsDetailController@compare');
+Route::get('template_stats_detail/auditReport/:id$', '\app\admin\controller\TemplateStatsDetailController@auditReport');
+
+// ========== V2.9.29 Sprint I: 内容智能增强 ==========
+// I-1: 内容关联管理
+Route::get('content_relation/index$', '\app\admin\controller\ContentRelationController@index');
+Route::post('content_relation/add$', '\app\admin\controller\ContentRelationController@add');
+Route::post('content_relation/delete/:id$', '\app\admin\controller\ContentRelationController@delete');
+Route::get('content_relation/network/:id$', '\app\admin\controller\ContentRelationController@network');
+// I-3: 行动计划
+Route::get('content_action_plan/index$', '\app\admin\controller\ContentActionPlanController@index');
+Route::post('content_action_plan/cancel/:id$', '\app\admin\controller\ContentActionPlanController@cancel');
+// I-4: 质量诊断
+Route::get('content_diagnosis/diagnose/:id$', '\app\admin\controller\ContentDiagnosisController@diagnose');
+// I-5: 评论管理
+Route::get('comment_admin/index$', '\app\admin\controller\CommentAdminController@index');
+Route::post('comment_admin/audit/:id/:status$', '\app\admin\controller\CommentAdminController@audit');
+Route::post('comment_admin/delete/:id$', '\app\admin\controller\CommentAdminController@delete');
+Route::post('comment_admin/batchDelete$', '\app\admin\controller\CommentAdminController@batchDelete');
+// I-6: 审计日志
+Route::get('content_audit_log/index$', '\app\admin\controller\ContentAuditLogController@index');
+Route::post('content_audit_log/rollback/:id$', '\app\admin\controller\ContentAuditLogController@rollback');

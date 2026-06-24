@@ -1,17 +1,11 @@
 <?php
 
-// +----------------------------------------------------------------------
-// | 八界AI-CMS 内容管理系统
-// +----------------------------------------------------------------------
-// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
-// +----------------------------------------------------------------------
-// | 官网: http://www.i8j.cn
-// +----------------------------------------------------------------------
-// | Author: 八界AI Team <admin@i8j.cn>
-// +----------------------------------------------------------------------
 declare(strict_types=1);
 
 namespace app\home\service;
+
+use app\common\controller\FrontBaseController;
+use app\common\model\Cate;
 
 /**
  * 列表页渲染服务 (V2.9.29 C-3)
@@ -30,19 +24,58 @@ class ListRenderService
     }
 
     /**
-     * 渲染列表页
+     * 渲染列表页（静态方法，供Controller直接调用）
      * 
-     * @param int $cateId 栏目ID
-     * @param array $data 模板变量（列表数据、分页、栏目信息等）
-     * @return string 渲染结果HTML
+     * @param FrontBaseController $controller 前台控制器实例
+     * @param string $defaultTemplate 默认模板（如 '/list'）
+     * @param Cate|null $cate 当前栏目对象
+     * @param array $extraData 额外模板变量
+     * @return \think\Response
      */
-    public function render(int $cateId, array $data = []): string
-    {
-        return $this->renderService->renderList($cateId, $data);
+    public static function render(
+        FrontBaseController $controller,
+        string $defaultTemplate,
+        ?Cate $cate,
+        array $extraData = []
+    ): \think\Response {
+        $template = $defaultTemplate;
+
+        // Fallback链：栏目自定义模板 → 模型默认模板 → 系统默认
+        if ($cate) {
+            // 1. 栏目自定义列表模板
+            if (!empty($cate->list_template)) {
+                $template = '/' . $cate->list_template;
+            } elseif (!empty($cate->model_id)) {
+                // 2. 模型默认列表模板
+                $modelCode = self::getModelCodeByModelId((int) $cate->model_id);
+                if ($modelCode) {
+                    $modelTemplate = '/list_' . $modelCode;
+                    $instance = new self();
+                    if ($instance->renderService->templateExists('list_' . $modelCode)) {
+                        $template = $modelTemplate;
+                    }
+                }
+            }
+        }
+
+        if (!empty($extraData)) {
+            $controller->assign($extraData);
+        }
+
+        return $controller->view($template);
     }
 
     /**
-     * 获取列表页模板路径
+     * 根据model_id获取模型code
+     */
+    private static function getModelCodeByModelId(int $modelId): string
+    {
+        $model = \app\common\model\ContentModel::find($modelId);
+        return $model ? ($model->code ?? '') : '';
+    }
+
+    /**
+     * 获取列表页模板路径（实例方法）
      */
     public function getTemplate(int $cateId): string
     {
@@ -50,7 +83,7 @@ class ListRenderService
     }
 
     /**
-     * 获取栏目对应的模型code
+     * 获取栏目对应的模型code（实例方法）
      */
     public function getModelCode(int $cateId): string
     {

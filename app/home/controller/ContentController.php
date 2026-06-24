@@ -27,6 +27,7 @@ use app\common\service\GeoService;
 use app\common\service\ai\AiTranslateService;
 use app\common\service\ai\translate\TranslateProviderRouter;
 use app\common\service\seo\SchemaMarkupService;
+use app\home\service\DetailRenderService;
 use think\facade\Db;
 
 /**
@@ -184,6 +185,8 @@ class ContentController extends FrontBaseController
             }
         }
 
+        $cate = $info->cate ?? null;
+
         $this->assign([
             'info'          => $info,
             'related'       => $related,
@@ -198,17 +201,17 @@ class ContentController extends FrontBaseController
             'share_links'   => $shareLinks,
             'content_translations' => $contentTranslations,
             'geo_data'      => $geoData,
-            // V2.9.15 新增
             'og_locale'     => $ogLocale,
             'schema_markup' => $schemaMarkup,
             'current_lang'  => $lang,
             'content_langs' => $contentLangs,
             'model_partial' => $modelPartial,
-            // V2.9.23 E-1: 移动端详情差异化
             'mobile_model_partial' => $mobileModelPartial,
         ]);
 
-        return $this->view('/detail');
+        return DetailRenderService::render($this, '/detail', $cate, $info, [
+            'field' => $info,
+        ]);
     }
 
     /**
