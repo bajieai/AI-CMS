@@ -22,9 +22,9 @@ class TemplateOrderAdminController extends AdminBaseController
     public function index()
     {
         $params = $this->request->param();
-        $list = TemplateOrderAdminService::getOrderList($params, 20);
+        $result = TemplateOrderAdminService::getOrderList($params, 20);
         $stats = TemplateOrderAdminService::getStats();
-        $this->assign(['list' => $list, 'stats' => $stats, 'params' => $params, 'menuActive' => 'template_order_admin']);
+        $this->assign(['list' => $result['data'] ?? [], 'stats' => $stats, 'params' => $params, 'menuActive' => 'template_order_admin']);
         return $this->view('/template_store/order_list');
     }
 
