@@ -20,7 +20,7 @@
                     <td><input type="checkbox" name="codes[]" value="{$vo.code}"></td>
                     <td>{$vo.name}</td><td><code>{$vo.code}</code></td>
                     <td>{$vo.version}</td>
-                    <td>{if $vo.status=='active'}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                    <td>{if $vo.is_enabled}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
                 </tr>
                 {/volist}
                 </tbody>
