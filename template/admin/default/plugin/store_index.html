@@ -9,7 +9,7 @@
         <table class="table table-hover mb-0">
             <thead><tr><th>ID</th><th>名称</th><th>标识</th><th>版本</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
-            {volist name="list" id="vo"}
+            {volist name="installedPlugins" id="vo"}
             <tr>
                 <td>{$vo.id}</td><td>{$vo.name}</td><td><code>{$vo.code}</code></td>
                 <td>{$vo.version}</td>
@@ -19,7 +19,7 @@
             {/volist}
             </tbody>
         </table>
-        {$list|raw}
+        {$installedPlugins|raw}
     </div>
 </div>
 {/block}
