@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
-use app\common\service\ApiDocGenerator;
+use app\common\service\api\ApiDocGenerator;
 
 /**
  * API文档管理 - V2.9.1 M10
@@ -27,30 +27,31 @@ class ApiDocController extends AdminBaseController
     public function index()
     {
         $generator = new ApiDocGenerator();
-        $docs = $generator->scan();
+        $spec = $generator->generateOpenAPISpec();
 
-        // 按分组整理
-        $groups = [];
-        foreach ($docs as $doc) {
-            $groups[$doc['group']]['desc'] = $doc['group_desc'];
-            $groups[$doc['group']]['items'][] = $doc;
-        }
-
-        $this->app->view->assign('groups', $groups);
-        $this->app->view->assign('total', count($docs));
-        return $this->app->view->fetch('/api_doc_index');
+        $this->assign([
+            'spec' => $spec,
+            'paths' => $spec['paths'] ?? [],
+        ]);
+        return $this->view('/api_doc_index');
     }
 
-    /**
-     * 导出Markdown
-     */
     public function export()
     {
         $generator = new ApiDocGenerator();
-        $docs = $generator->scan();
-        $markdown = $generator->toMarkdown($docs);
+        $spec = $generator->generateOpenAPISpec();
 
-        return response($markdown, 200, [
+        $md = "# {$spec['info']['title']} API 文档\n\n";
+        $md .= "版本: {$spec['info']['version']}\n\n";
+        foreach ($spec['paths'] as $path => $methods) {
+            foreach ($methods as $method => $info) {
+                $md .= "## " . strtoupper($method) . " `{$path}`\n";
+                $md .= "- 说明: {$info['summary']}\n";
+                $md .= "- 权限: `{$info['x-required-scope']}`\n\n";
+            }
+        }
+
+        return response($md, 200, [
             'Content-Type' => 'text/markdown; charset=utf-8',
             'Content-Disposition' => 'attachment; filename="api-doc-' . date('Ymd') . '.md"',
         ]);

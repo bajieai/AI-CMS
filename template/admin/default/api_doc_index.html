@@ -1,86 +1,18 @@
 {extend name="layout" /}
-{block name="title"}API文档中心{/block}
 {block name="content"}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4><i class="bi bi-file-code me-2"></i>API文档中心</h4>
-        <div>
-            <a href="/admin/api_doc/export" data-no-pjax class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-download me-1"></i>导出Markdown
-            </a>
-        </div>
-    </div>
-
-    <div class="row">
-        {volist name="groups" id="group"}
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-folder2-open me-1"></i>{$key}</span>
-                    <span class="badge bg-primary">{:count($group.items)} 个接口</span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        {volist name="group.items" id="item"}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <span class="badge bg-{$item.method=='GET'?'info':($item.method=='POST'?'success':($item.method=='PUT'?'warning':'danger'))} me-2">{$item.method}</span>
-                                    <code class="text-dark">{$item.path}</code>
-                                </div>
-                                {if $item.auth}
-                                <span class="badge bg-warning text-dark"><i class="bi bi-lock me-1"></i>需认证</span>
-                                {/if}
-                            </div>
-                            <h6 class="mb-1">{$item.title}</h6>
-                            {if $item.desc}
-                            <p class="text-muted small mb-2">{$item.desc}</p>
-                            {/if}
-                            {if !empty($item.params)}
-                            <div class="small">
-                                <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#params-{$item.group}-{$key}">
-                                    <i class="bi bi-chevron-expand me-1"></i>参数列表
-                                </button>
-                                <div class="collapse mt-2" id="params-{$item.group}-{$key}">
-                                    <table class="table table-sm table-bordered mb-0 small">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>参数名</th>
-                                                <th>类型</th>
-                                                <th>说明</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {volist name="item.params" id="p"}
-                                            <tr>
-                                                <td><code>{$p.name}</code></td>
-                                                <td><span class="text-muted">{$p.type}</span></td>
-                                                <td>{$p.desc}</td>
-                                            </tr>
-                                            {/volist}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            {/if}
-                        </div>
-                        {/volist}
-                    </div>
-                </div>
-                {if $group.desc}
-                <div class="card-footer text-muted small">
-                    <i class="bi bi-info-circle me-1"></i>{$group.desc}
-                </div>
-                {/if}
-            </div>
-        </div>
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-book me-1"></i>API 文档</h5></div>
+    <div class="card-body">
+        <p>{$spec.info.title} v{$spec.info.version} — {$spec.info.description}</p>
+        {volist name="paths" id="methods" key="path"}
+        <div class="card mb-3"><div class="card-header bg-light"><code class="text-primary">{$path}</code></div>
+        <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+        <thead><tr><th>方法</th><th>说明</th><th>权限</th></tr></thead><tbody>
+        {volist name="methods" id="info" key="method"}
+        <tr><td><span class="badge bg-primary">{:strtoupper($method)}</span></td><td>{$info.summary}</td><td><code>{$info['x-required-scope']}</code></td></tr>
+        {/volist}</tbody></table></div></div>
         {/volist}
     </div>
-
-    {if $total == 0}
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle me-2"></i>暂未发现API接口文档。请在Controller方法上添加@api注解来生成文档。
-    </div>
-    {/if}
 </div>
 {/block}
