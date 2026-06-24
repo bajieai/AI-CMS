@@ -168,7 +168,7 @@
         var id = 'toast_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         var style = 'z-index:9999;transform:translateY(' + toastStackOffset + 'px);';
         var html = '<div class="toast ui-toast align-items-center border-0 position-fixed top-0 end-0 m-3" role="alert" id="' + id + '" style="' + style + '">' +
-            '<div class="d-flex align-items-center"><i class="bi ' + icon + ' fs-5 me-2"></i>' +
+            '<div class="d-flex align-items-center"><i class="bi ' + icon + ' fs-5 me-2 ms-1"></i>' +
             '<div class="toast-body">' + msg + '</div>' +
             (duration !== 0 ? '<button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast"></button>' : '') +
             '</div></div>';
