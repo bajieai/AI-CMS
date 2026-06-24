@@ -1,0 +1,42 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name}{else /}资源下载{/if} - {$site_name}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">资源下载</li>
+            </ol>
+        </nav>
+        <div class="row g-3">
+            {volist name="list" id="vo"}
+            {php}$ext = (isset($vo['ext']['data']) && is_array($vo['ext']['data'])) ? $vo['ext']['data'] : [];{/php}
+            <div class="col-md-6">
+                <a href="{$vo.url}" class="text-decoration-none">
+                    <div class="card download-card h-100">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="download-icon me-3"><i class="bi bi-file-earmark-zip text-primary" style="font-size:2.5rem"></i></div>
+                            <div class="flex-grow-1">
+                                <h6 class="card-title text-truncate">{$vo.title}</h6>
+                                <p class="card-text text-muted small mb-1">{$vo.excerpt|default=''|msubstr=0,50}</p>
+                                <div class="d-flex gap-3 text-muted small">
+                                    {if condition="isset($ext['file_size']) && $ext['file_size']"}<span><i class="bi bi-hdd me-1"></i>{$ext['file_size']}</span>{/if}
+                                    {if condition="isset($ext['version']) && $ext['version']"}<span><i class="bi bi-tag me-1"></i>v{$ext['version']}</span>{/if}
+                                    <span><i class="bi bi-download me-1"></i>{$vo.download_count|default=0}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+        {if condition="$list->hasPages()"}
+        <div class="pagination justify-content-center mt-4">{$list->render()|raw}</div>
+        {/if}
+    </div>
+</section>
+{/block}

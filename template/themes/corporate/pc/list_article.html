@@ -1,0 +1,56 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name}{else /}文章列表{/if} - {$site_name}{/block}
+
+{block name="keywords"}{if condition="$current_cate && $current_cate.seo_keywords"}{$current_cate.seo_keywords}{else /}{$site_keywords}{/if}{/block}
+
+{block name="description"}{if condition="$current_cate && $current_cate.seo_description"}{$current_cate.seo_description}{else /}{$site_description}{/if}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">文章列表</li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-lg-3 mb-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white"><i class="bi bi-folder2 me-1"></i>分类</div>
+                    <div class="list-group list-group-flush">{$cate_tree_html|raw}</div>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <div class="article-list">
+                    {volist name="list" id="vo"}
+                    <div class="card mb-3 article-card">
+                        <div class="row g-0">
+                            {if condition="$vo.cover"}
+                            <div class="col-md-3">
+                                <a href="{$vo.url}"><img src="{$vo.cover}" class="img-fluid rounded-start h-100 w-100" style="object-fit:cover" alt="{$vo.title}"></a>
+                            </div>
+                            {/if}
+                            <div class="col-md-{if condition='$vo.cover'}9{else /}12{/if}">
+                                <div class="card-body">
+                                    <h5 class="card-title"><a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a></h5>
+                                    <p class="card-text text-muted small">{$vo.excerpt|default=''|msubstr=0,120}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted small"><i class="bi bi-clock me-1"></i>{:date('Y-m-d', $vo.create_time)}</span>
+                                        <span class="text-muted small"><i class="bi bi-eye me-1"></i>{$vo.views|default=0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+                {if condition="$list->hasPages()"}
+                <div class="pagination justify-content-center mt-4">{$list->render()|raw}</div>
+                {/if}
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

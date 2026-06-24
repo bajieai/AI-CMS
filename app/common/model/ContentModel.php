@@ -33,8 +33,10 @@ class ContentModel extends Model
     ];
 
     // V2.9.27 S-1: SEO字段和模板文件
+    // V2.9.29 C-1: 增加默认列表/详情模板字段
     protected $field = ['name', 'code', 'description', 'icon', 'type', 'status', 'sort',
-                         'seo_title', 'seo_keywords', 'seo_description', 'template_file'];
+                         'seo_title', 'seo_keywords', 'seo_description', 'template_file',
+                         'default_list_template', 'default_detail_template'];
 
     // 状态常量
     const STATUS_DISABLED = 0;

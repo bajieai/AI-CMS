@@ -1,0 +1,55 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+{block name="keywords"}{if condition="$info.seo_keywords"}{$info.seo_keywords}{else /}{volist name="info.tags" id="tag"}{$tag.name},{/volist}{$site_keywords}{/if}{/block}
+{block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="{$type_url}">文章列表</a></li>
+                <li class="breadcrumb-item active">{$info.title|msubstr=0,20}</li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-lg-9">
+                <article>
+                    <h1 class="mb-3">{$info.title}</h1>
+                    <div class="article-meta mb-3 text-muted small">
+                        <span><i class="bi bi-clock me-1"></i>{:date('Y-m-d H:i', $info.create_time)}</span>
+                        <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views|default=0} 次浏览</span>
+                        {if condition="isset($info.ext.data.author) && $info.ext.data.author"}<span class="ms-3"><i class="bi bi-person me-1"></i>{$info.ext.data.author}</span>{/if}
+                        {if condition="isset($info.ext.data.source) && $info.ext.data.source"}<span class="ms-3"><i class="bi bi-link-45deg me-1"></i>来源：{$info.ext.data.source}</span>{/if}
+                    </div>
+                    <hr>
+                    <div class="article-content">{$safe_content|raw}</div>
+                    {if condition="isset($info.tags) && count($info.tags) > 0"}
+                    <div class="article-tags mt-4">
+                        {volist name="info.tags" id="tag"}<a href="{$tag.url}" class="badge bg-light text-decoration-none me-1">{$tag.name}</a>{/volist}
+                    </div>
+                    {/if}
+                </article>
+                {if condition="$related && count($related) > 0"}
+                <div class="related-content mt-4">
+                    <h5>相关推荐</h5>
+                    <div class="row g-2">
+                        {volist name="related" id="rel" length="3"}
+                        <div class="col-md-4"><a href="{$rel.url}" class="text-decoration-none"><div class="card h-100"><div class="card-body small">{$rel.title}</div></div></a></div>
+                        {/volist}
+                    </div>
+                </div>
+                {/if}
+            </div>
+            <div class="col-lg-3">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">分类</div>
+                    <div class="list-group list-group-flush">{$cate_tree_html|raw}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

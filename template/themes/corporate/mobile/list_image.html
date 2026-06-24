@@ -1,0 +1,38 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name}{else /}图片图集{/if} - {$site_name}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">图片图集</li>
+            </ol>
+        </nav>
+        <div class="row g-3">
+            {volist name="list" id="vo"}
+            <div class="col-md-4 col-sm-6">
+                <a href="{$vo.url}" class="text-decoration-none">
+                    <div class="card image-card h-100">
+                        {if condition="$vo.cover"}
+                        <img src="{$vo.cover}" class="card-img-top" style="height:200px;object-fit:cover" alt="{$vo.title}" loading="lazy">
+                        {else /}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px"><i class="bi bi-image text-muted" style="font-size:3rem"></i></div>
+                        {/if}
+                        <div class="card-body">
+                            <h6 class="card-title text-truncate">{$vo.title}</h6>
+                            <p class="card-text text-muted small">{$vo.excerpt|default=''|msubstr=0,60}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+        {if condition="$list->hasPages()"}
+        <div class="pagination justify-content-center mt-4">{$list->render()|raw}</div>
+        {/if}
+    </div>
+</section>
+{/block}

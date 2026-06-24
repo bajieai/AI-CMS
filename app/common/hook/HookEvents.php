@@ -79,6 +79,11 @@ class HookEvents
     const SEO_AFTER_OPTIMIZE   = 'seo.after_optimize';
     const SEO_SUGGESTION_GENERATED = 'seo.suggestion_generated';
 
+    // V2.9.29 F-1: SEO事件别名（与上面3个事件绑定相同ID，保持向后兼容）
+    const SEO_BEFORE_GENERATE  = 'seo.before_generate';
+    const SEO_AFTER_GENERATE   = 'seo.after_generate';
+    const SEO_AFTER_DIAGNOSE   = 'seo.after_diagnose';
+
     // ─── H-2: 内容模型模块（6个，含字段级） ───
     const CONTENT_MODEL_BEFORE_SAVE   = 'content_model.before_save';
     const CONTENT_MODEL_AFTER_SAVE    = 'content_model.after_save';

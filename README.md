@@ -1,16 +1,22 @@
-# 八界AI-CMS V2.9.28
+# 八界AI-CMS V2.9.29
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.28-blue)
+![Version](https://img.shields.io/badge/version-2.9.29-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.28 "模板商店后台完善 · AI编辑器增强 · 插件市场在线安装 · Hook事件扩展 · 移动端体验微调" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.29 "内容模型差异化 · V2.9.28修复完善 · 开发者生态启动 · 模板生态进阶 · 内容智能增强" 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
-**V2.9.28 核心定位：模板商店后台完善 · AI编辑器增强 · 插件市场在线安装 · Hook事件扩展 · 移动端体验微调** — 5大Sprint 34项功能点（100%完成）：
+**V2.9.29 核心定位：内容模型差异化 · V2.9.28修复完善 · 开发者生态启动 · 模板生态进阶 · 内容智能增强** — 5大Sprint 31项功能点：
+
+1. **Sprint C 内容模型差异化** — 扩展V2.9.27体系/ALTER现有表0新表/Fallback链(ContentRenderService/ListRenderService/DetailRenderService)/5预置模型(article/image/download/product/video)/pc+mobile双版40模板/模板商店兼容/迁移工具
+2. **Sprint F V2.9.28修复完善** — Hook 3个别名事件/用户画像聚合表/插件推荐+评分分布+兼容性检查/AI配额管理+告警/移动端骨架屏/拼音模糊搜索
+3. **Sprint D 开发者生态启动** — 开发者注册认证(三级)/模板打包ZIP(manifest.json)/插件脚手架SDK/Webhook(curl 3s/5s+失败10次禁用+HMAC签名)/API开放平台(双认证+IP白名单+100次/分钟)
+4. **Sprint T 模板生态进阶** — 购买闭环(4定价+试用+退款)/AI协同过滤推荐/前台预览(设备切换)/三维分类/自动审核(4检测器+评分)/使用数据统计
+5. **Sprint I 内容智能增强** — 关系图谱(vis.js力导向图)/混合推荐引擎/定时发布(Cron 5分钟)/AI质量诊断/评论收藏点赞(ip_address+deleted_at)/字段级审计日志+回滚/订阅摘要推送
 
 1. **Sprint M 模板商店后台管理完善** — 订单退款/发票管理/评价管理后台/数据统计看板/模板包管理/审核工作流/推荐位管理/结算管理/商店SEO增强
 2. **Sprint A AI编辑器功能增强** — 段落级优化/多轮对话/格式保留/选段翻译/快捷模板库(20+模板)/快捷键工具栏(Alt键防冲突)/历史版本快照/后台配置管理
@@ -22,6 +28,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| V2.9.29 | 2026-06 | **内容模型差异化·V2.9.28修复完善·开发者生态启动·模板生态进阶·内容智能增强**: 31功能点(Sprint C/F/D/T/I)/Fallback链渲染引擎/5预置模型/pc+mobile双版40模板/Hook 3别名/用户画像/拼音搜索/开发者注册认证/模板打包ZIP/Webhook(HMAC+3s/5s超时)/API开放平台(双认证+IP白名单)/AI协同过滤推荐/模板自动审核/vis.js关系图谱/内容推荐引擎/定时发布/质量诊断/评论收藏点赞/字段级审计+回滚/订阅摘要推送 |
 | V2.9.28 | 2026-06 | **模板商店后台完善·AI编辑器增强·插件市场在线安装·Hook事件扩展·移动端体验微调**: 34功能点(Sprint M/A/P/H/MO)/订单退款/发票管理/评价管理/统计看板/审核工作流/结算管理/段落优化/多轮对话/格式保留/选段翻译/20+模板库/版本快照/在线安装(SSE)/安全沙箱/19个新Hook事件/移动端导航/PWA增强 |
 | V2.9.27 | 2026-06 | **内容模型差异化·SSE实时推送·模板商店商业化·基础设施完善**: 28功能点(Sprint S/T/U/V)/FieldTypeRegistry(13种)/动态表单/5张扩展表/模型专属分类/内容关系/5个前台专属模板/SSE DB持久化队列/Last-Event-Id断线重连/4种定价模式/AlipayPaymentChannel/GitHubOauthProvider/RSS Feed/系统健康检查 |
 | V2.9.26 | 2026-06 | **模板商店增强·AI翻译增强·AI编辑器增强·移动端体验优化**: 21功能点(Sprint O/P/Q/R)/模板审核流/定价方案/质量标签/版本管理/分类SEO/AI翻译记忆+术语库/写作风格/主题CSS/SEO建议/前台响应式/分享按钮/懒加载 |

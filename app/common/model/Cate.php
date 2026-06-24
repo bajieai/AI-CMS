@@ -37,7 +37,8 @@ class Cate extends Model
     ];
 
     // 允许批量赋值的字段
-    protected $field = ['name', 'type', 'parent_id', 'sort', 'status', 'seo_title', 'seo_keywords', 'seo_description', 'default_style', 'model_id'];
+    // V2.9.29 C-1: 增加 content_model_code, list_template, detail_template
+    protected $field = ['name', 'type', 'parent_id', 'sort', 'status', 'seo_title', 'seo_keywords', 'seo_description', 'default_style', 'model_id', 'content_model_code', 'list_template', 'detail_template'];
 
     /**
      * 获取URL（模型获取器）
