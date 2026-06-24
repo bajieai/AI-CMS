@@ -163,4 +163,42 @@ class PluginController extends AdminBaseController
         $this->assign('schema', $schema);
         return $this->view('/plugin_config');
     }
+
+    /**
+     * 批量管理插件 — V2.9.30 补全
+     */
+    public function batchIndex()
+    {
+        $plugins = [];
+        try {
+            $plugins = PluginService::scanPlugins();
+        } catch (\Exception) {}
+
+        if ($this->request->isPost()) {
+            $action = $this->request->post('action', '');
+            $codes = $this->request->post('codes', []);
+            if (empty($action) || empty($codes)) {
+                return $this->error('请选择操作和插件');
+            }
+            $success = 0;
+            $fail = 0;
+            foreach ($codes as $code) {
+                try {
+                    match ($action) {
+                        'enable' => PluginService::enable($code),
+                        'disable' => PluginService::disable($code),
+                        'uninstall' => PluginService::uninstall($code),
+                        default => null,
+                    };
+                    $success++;
+                } catch (\Exception) {
+                    $fail++;
+                }
+            }
+            return $this->success("批量操作完成：成功{$success}个" . ($fail > 0 ? "，失败{$fail}个" : ''));
+        }
+
+        $this->assign('plugins', $plugins);
+        return $this->view('/plugin_batch');
+    }
 }

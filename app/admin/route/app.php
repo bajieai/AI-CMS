@@ -835,6 +835,8 @@ Route::post('plugin_store/dependencyAdd$', '\app\admin\controller\PluginStoreCon
 Route::post('plugin_store/dependencyDelete$', '\app\admin\controller\PluginStoreController@dependencyDelete');
 // 安装日志
 Route::get('plugin_store/logs$', '\app\admin\controller\PluginStoreController@logs');
+// V2.9.30: 批量管理插件
+Route::rule('plugin/batchIndex$', '\app\admin\controller\PluginController@batchIndex', 'GET|POST');
 
 // V2.9.25 M-5: Hook 调试面板
 Route::get('hook_debug/index$', '\app\admin\controller\HookDebugController@index');

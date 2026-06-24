@@ -1,0 +1,32 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-puzzle me-1"></i>批量管理插件</h5></div>
+    <div class="card-body">
+        <form method="post" action="/admin/plugin/batchIndex">
+            <div class="mb-3">
+                <select name="action" class="form-select" style="width:200px;">
+                    <option value="">选择操作...</option>
+                    <option value="enable">批量启用</option>
+                    <option value="disable">批量禁用</option>
+                    <option value="uninstall">批量卸载</option>
+                </select>
+            </div>
+            <table class="table table-hover">
+                <thead><tr><th><input type="checkbox" onclick="var c=this.checked;$('input[name=\'codes[]\']').prop('checked',c)"></th><th>名称</th><th>标识</th><th>版本</th><th>状态</th></tr></thead>
+                <tbody>
+                {volist name="plugins" id="vo"}
+                <tr>
+                    <td><input type="checkbox" name="codes[]" value="{$vo.code}"></td>
+                    <td>{$vo.name}</td><td><code>{$vo.code}</code></td>
+                    <td>{$vo.version}</td>
+                    <td>{if $vo.status=='active'}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                </tr>
+                {/volist}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">执行</button>
+        </form>
+    </div>
+</div>
+{/block}
