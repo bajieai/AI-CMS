@@ -1,0 +1,25 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-puzzle me-1"></i>插件市场</h5>
+        <a href="/admin/plugin_store/add" class="btn btn-sm btn-primary"><i class="bi bi-plus"></i> 添加插件</a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>ID</th><th>名称</th><th>标识</th><th>版本</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td><td>{$vo.name}</td><td><code>{$vo.code}</code></td>
+                <td>{$vo.version}</td>
+                <td>{if $vo.status==1}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                <td><a href="/admin/plugin_store/edit/{$vo.id}" class="btn btn-sm btn-outline-primary">编辑</a></td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div>
+</div>
+{/block}
