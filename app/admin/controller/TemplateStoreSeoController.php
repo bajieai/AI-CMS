@@ -21,8 +21,16 @@ class TemplateStoreSeoController extends AdminBaseController
         $service = new TemplateStoreSeoService();
         $config = $service->getStoreSeoConfig();
 
+        $list = \app\common\model\TemplateStore::where('status', 1)
+            ->field('id, name, seo_title, seo_description, seo_keywords')
+            ->order('id', 'desc')
+            ->paginate(20, false, ['page' => $this->request->get('page', 1)]);
+
         $this->assign([
             'config' => $config,
+            'list' => $list->items(),
+            'total' => $list->total(),
+            'page' => $list->currentPage(),
             'menuActive' => 'template_store_seo',
         ]);
 
