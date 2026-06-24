@@ -141,4 +141,29 @@ class PluginStoreController extends AdminBaseController
         }
         return $this->view('/plugin/store_add');
     }
+
+    /**
+     * 编辑插件 — V2.9.30 补全
+     */
+    public function edit(int $id = 0)
+    {
+        $info = $id > 0 ? Db::name('plugin')->find($id) : null;
+        if (!$info) return $this->error('插件不存在');
+
+        if ($this->request->isPost()) {
+            $data = $this->request->post();
+            Db::name('plugin')->where('id', $id)->update([
+                'name' => $data['name'],
+                'version' => $data['version'] ?? '1.0.0',
+                'author' => $data['author'] ?? '',
+                'description' => $data['description'] ?? '',
+                'is_enabled' => (int)($data['is_enabled'] ?? 0),
+                'update_time' => time(),
+            ]);
+            return $this->success('保存成功', ['redirect' => '/admin/plugin_store/index']);
+        }
+
+        $this->assign('info', $info);
+        return $this->view('/plugin/store_edit');
+    }
 }
