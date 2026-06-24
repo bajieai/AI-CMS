@@ -19,7 +19,7 @@
             {/volist}
             </tbody>
         </table>
-        {$installedPlugins|raw}
+        {if condition="empty($installedPlugins)"}<div class="text-center text-muted py-4">暂无插件</div>{/if}
     </div>
 </div>
 {/block}
