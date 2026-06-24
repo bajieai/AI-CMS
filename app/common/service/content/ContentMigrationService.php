@@ -120,10 +120,11 @@ class ContentMigrationService
             $listTemplate = $this->modelService->resolveListTemplate($cate->id);
             $detailTemplate = $this->modelService->resolveDetailTemplate($cate->id);
 
-            // 检查模板文件是否存在（仅检查非系统默认模板）
-            $viewPath = config('view.view_path', root_path('template/home/default/'));
-            $listFile = $viewPath . str_replace('.', '/', $listTemplate) . '.html';
-            $detailFile = $viewPath . str_replace('.', '/', $detailTemplate) . '.html';
+            // 检查模板文件是否存在（检查themes目录）
+            $skin = 'default';
+            $basePath = app()->getRootPath() . 'template/themes/' . $skin . '/pc/';
+            $listFile = $basePath . $listTemplate . '.html';
+            $detailFile = $basePath . $detailTemplate . '.html';
 
             if (is_file($listFile) && is_file($detailFile)) {
                 $report['consistent']++;

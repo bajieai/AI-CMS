@@ -62,5 +62,13 @@ return [
         'template:aggregate-stats' => 'app\common\command\TemplateStatsAggregateCommand',
         // V2.9.28 P-6: 插件更新检查
         'plugin:check-update' => 'app\common\command\PluginCheckUpdateCommand',
+        // V2.9.29 C-6: 内容模型迁移
+        'content_model:migrate' => 'app\admin\command\ContentModelMigrateCommand',
+        // V2.9.29 D-4: Webhook失败重试
+        'webhook:retry'        => 'app\admin\command\WebhookRetryCommand',
+        // V2.9.29 I-3: 内容行动计划定时执行
+        'content:action_plan'  => 'app\admin\command\ContentActionPlanCommand',
+        // V2.9.29 I-7: 内容摘要推送
+        'content:digest'       => 'app\admin\command\ContentDigestCommand',
     ],
 ];

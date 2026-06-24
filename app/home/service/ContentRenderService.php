@@ -97,12 +97,27 @@ class ContentRenderService
 
     /**
      * 检查模板文件是否存在
+     * 模板路径：template/themes/{skin}/pc/ 或 template/themes/{skin}/mobile/
      */
     private function templateExists(string $template): bool
     {
-        $viewPath = config('view.view_path', root_path('template/home/default/'));
-        $file = $viewPath . str_replace('.', '/', $template) . '.html';
-        return is_file($file);
+        // 获取当前皮肤
+        $skin = cookie('theme_skin') ?: 'default';
+        $isMobile = request()->isMobile();
+
+        // 尝试多个可能的路径
+        $paths = [
+            root_path("template/themes/{$skin}/" . ($isMobile ? 'mobile' : 'pc') . "/{$template}.html"),
+            root_path("template/themes/{$skin}/pc/{$template}.html"),
+            root_path("template/themes/default/pc/{$template}.html"),
+        ];
+
+        foreach ($paths as $path) {
+            if (is_file($path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
