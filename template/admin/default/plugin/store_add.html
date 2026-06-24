@@ -1,0 +1,17 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-plus-circle me-1"></i>添加插件</h5></div>
+    <div class="card-body">
+        <form method="post" action="/admin/plugin_store/add">
+            <div class="mb-3"><label class="form-label">插件名称</label><input type="text" name="name" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">插件标识(code)</label><input type="text" name="code" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">版本</label><input type="text" name="version" class="form-control" value="1.0.0"></div>
+            <div class="mb-3"><label class="form-label">作者</label><input type="text" name="author" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">描述</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+            <button type="submit" class="btn btn-primary">保存</button>
+            <a href="/admin/plugin_store/index" class="btn btn-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{/block}

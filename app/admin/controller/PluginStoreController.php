@@ -119,4 +119,26 @@ class PluginStoreController extends AdminBaseController
 
         return json(['code' => 0, 'data' => $result]);
     }
+
+    /**
+     * 添加插件 — V2.9.30 补全
+     */
+    public function add()
+    {
+        if ($this->request->isPost()) {
+            $data = $this->request->post();
+            Db::name('plugin')->insert([
+                'name' => $data['name'],
+                'code' => $data['code'],
+                'version' => $data['version'] ?? '1.0.0',
+                'author' => $data['author'] ?? '',
+                'description' => $data['description'] ?? '',
+                'is_enabled' => 0,
+                'create_time' => time(),
+                'update_time' => time(),
+            ]);
+            return $this->success('添加成功', ['redirect' => '/admin/plugin_store/index']);
+        }
+        return $this->view('/plugin/store_add');
+    }
 }
