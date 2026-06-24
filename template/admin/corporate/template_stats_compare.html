@@ -1,17 +1,17 @@
 {extend name="layout" /}
 {block name="content"}
 <div class="card">
-    <div class="card-header"><h5 class="mb-0">绠＄悊</h5></div>
+    <div class="card-header"><h5 class="mb-0">模板对比分析</h5></div>
     <div class="card-body">
         <table class="table table-hover">
-            <thead><tr><th>ID</th><th>鍚嶇О</th><th>鐘舵€?/th><th>鎿嶄綔</th></tr></thead>
+            <thead><tr><th>ID</th><th>名称</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
             {volist name="list" id="vo"}
-            <tr><td>{.id}</td><td>{.name}</td><td>{.status}</td><td><a href="#" class="btn btn-sm btn-outline-primary">缂栬緫</a></td></tr>
+            <tr><td>{$vo.id}</td><td>{$vo.name}</td><td>{$vo.status}</td><td><a href="#" class="btn btn-sm btn-outline-primary">编辑</a></td></tr>
             {/volist}
             </tbody>
         </table>
-        {|raw}
+        {if empty($list)}<div class="text-center text-muted py-4">暂无数据</div>{/if}
     </div>
 </div>
 {/block}
