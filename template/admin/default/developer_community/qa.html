@@ -1,0 +1,118 @@
+{extend name="layout" /}
+
+{block name="title"}问答列表 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">插件生态</li>
+<li class="breadcrumb-item"><a href="{:url('/admin/developer_community/index')}">开发者社区</a></li>
+<li class="breadcrumb-item active">问答</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-question-circle me-1"></i>开发者问答</span>
+        <a href="{:url('/admin/developer_community/qa_create')}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>提问
+        </a>
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" action="{:url('/admin/developer_community/qa')}">
+            <div class="col-md-3">
+                <input type="text" name="keyword" value="{$keyword|default=''}" class="form-control form-control-sm" placeholder="搜索问题">
+            </div>
+            <div class="col-md-2">
+                <select name="tag" class="form-control form-control-sm">
+                    <option value="">全部标签</option>
+                    {volist name="tags" id="t"}
+                    <option value="{$t}" {if condition="$tag|default='' eq $t"}selected{/if}>{$t}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-control form-control-sm">
+                    <option value="">全部状态</option>
+                    <option value="open" {if condition="$status|default='' eq 'open'"}selected{/if}>待回答</option>
+                    <option value="answered" {if condition="$status|default='' eq 'answered'"}selected{/if}>已回答</option>
+                    <option value="closed" {if condition="$status|default='' eq 'closed'"}selected{/if}>已关闭</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary btn-sm">搜索</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>问题</th>
+                    <th>标签</th>
+                    <th>回答数</th>
+                    <th>浏览数</th>
+                    <th>状态</th>
+                    <th>提问时间</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td class="text-truncate" style="max-width:300px;"><a href="{:url('/admin/developer_community/qa_detail', ['id'=>$vo.id])}">{$vo.question}</a></td>
+                    <td>
+                        {volist name="vo.tags_arr" id="t"}
+                        <span class="badge bg-light text-dark me-1">{$t}</span>
+                        {/volist}
+                    </td>
+                    <td>{$vo.answers ?? 0}</td>
+                    <td>{$vo.views ?? 0}</td>
+                    <td>
+                        {if condition="$vo.status eq 'open'"}
+                        <span class="badge bg-warning text-dark">待回答</span>
+                        {elseif condition="$vo.status eq 'answered'" /}
+                        <span class="badge bg-success">已回答</span>
+                        {else /}
+                        <span class="badge bg-secondary">已关闭</span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.created_at}</td>
+                    <td class="text-end">
+                        <a href="{:url('/admin/developer_community/qa_detail', ['id'=>$vo.id])}" class="btn btn-outline-primary btn-sm" title="查看">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteQa({$vo.id})" title="删除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无问答</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function deleteQa(id) {
+    if (!confirm('确定删除此问答？')) return;
+    $.post('{:url("/admin/developer_community/qa_delete")}', {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) location.reload();
+        else alert(res.msg || '删除失败');
+    });
+}
+</script>
+{/block}

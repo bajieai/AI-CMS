@@ -1,0 +1,22 @@
+{extend name="layout" /}
+{block name="title"}AI推荐引擎{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">AI助手</li><li class="breadcrumb-item active">推荐引擎</li>{/block}
+{block name="content"}
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-primary">{$stats.total_events|default=0}</h4><p class="small text-muted">总事件</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-success">{$stats.click_events|default=0}</h4><p class="small text-muted">点击事件</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-info">{$stats.view_events|default=0}</h4><p class="small text-muted">浏览事件</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-warning">{$stats.ctr|default=0}%</h4><p class="small text-muted">点击率(CTR)</p></div></div></div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-sliders me-1"></i>推荐算法权重配置</div>
+    <div class="card-body">
+        <div class="mb-2"><label class="form-label">用户行为权重: {$config.weight_behavior|default=40}%</label><input type="range" class="form-range" min="0" max="100" value="{$config.weight_behavior|default=40}"></div>
+        <div class="mb-2"><label class="form-label">内容特征权重: {$config.weight_content|default=30}%</label><input type="range" class="form-range" min="0" max="100" value="{$config.weight_content|default=30}"></div>
+        <div class="mb-2"><label class="form-label">用户画像权重: {$config.weight_profile|default=20}%</label><input type="range" class="form-range" min="0" max="100" value="{$config.weight_profile|default=20}"></div>
+        <div class="mb-2"><label class="form-label">时间衰减权重: {$config.weight_time_decay|default=10}%</label><input type="range" class="form-range" min="0" max="100" value="{$config.weight_time_decay|default=10}"></div>
+        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" {if condition="$config.exclude_viewed"}checked{/if}><label class="form-check-label">排除已浏览内容</label></div>
+        <button class="btn btn-primary btn-sm mt-2">保存配置</button>
+    </div>
+</div>
+{/block}

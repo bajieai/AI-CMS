@@ -1,0 +1,14 @@
+{extend name="layout" /}
+
+{block name="content"}
+<!-- 移动端分类树组件（手风琴折叠） -->
+<div class="m-cate-card">
+    <div class="m-cate-header cate-toggle" data-target="cateBody{$id}">
+        <span><i class="bi bi-chevron-right me-2"></i>{$name}</span>
+        <small style="color:#aaa;font-size:12px;">{$count}篇</small>
+    </div>
+    <div class="m-cate-body" id="cateBody{$id}" style="{if condition="$level > 0"}display:block;{else/}display:none;{/if}">
+        {$children|raw}
+    </div>
+</div>
+{/block}

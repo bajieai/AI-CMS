@@ -1,0 +1,101 @@
+{extend name="layout" /}
+
+{block name="title"}手动发放优惠券{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/dashboard/index">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/coupon/index">优惠券管理</a></li>
+<li class="breadcrumb-item active">手动发放</li>
+{/block}
+
+{block name="content"}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-send me-2"></i>手动发放优惠券</h5>
+            </div>
+            <div class="card-body">
+                <form id="issueForm">
+                    <!-- 选择会员 -->
+                    <div class="mb-3">
+                        <label class="form-label">会员ID <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="member_id" required placeholder="输入会员ID">
+                        <div class="form-text">输入要发放优惠券的会员ID</div>
+                    </div>
+
+                    <!-- 选择优惠券模板 -->
+                    <div class="mb-3">
+                        <label class="form-label">优惠券模板 <span class="text-danger">*</span></label>
+                        <select class="form-select" name="template_id" required>
+                            <option value="">请选择优惠券模板</option>
+                            {volist name="templates" id="t"}
+                            <option value="{$t.id}">{$t.coupon_name}（剩余：{if $t.remain_stock>0}{$t.remain_stock}{else/}不限{/if}）</option>
+                            {/volist}
+                        </select>
+                    </div>
+
+                    <!-- 发放数量 -->
+                    <div class="mb-3">
+                        <label class="form-label">发放数量</label>
+                        <input type="number" class="form-control" name="quantity" value="1" min="1" max="10">
+                        <div class="form-text">单次最多发放10张</div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="text-center pt-3">
+                        <button type="button" class="btn btn-primary px-5" onclick="submitIssue()">
+                            <i class="bi bi-check-lg me-1"></i>确认发放
+                        </button>
+                        <a href="/admin/coupon/index" class="btn btn-outline-secondary px-5 ms-2">返回</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+function submitIssue() {
+    var form = document.getElementById('issueForm');
+    var formData = new FormData(form);
+    var data = {};
+    formData.forEach(function(value, key) {
+        data[key] = value;
+    });
+    
+    if (!data.member_id || !data.template_id) {
+        alert('请填写完整信息');
+        return;
+    }
+    
+    fetch('/admin/coupon/issue', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            if (typeof showToast === 'function') {
+                showToast(res.msg + '，优惠券码：' + res.data.coupon_codes.join(', '), 'success');
+            } else {
+                alert(res.msg + '\n优惠券码：' + res.data.coupon_codes.join(', '));
+            }
+            setTimeout(function() { window.location.href = '/admin/coupon/index'; }, 2000);
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(res.msg, 'error');
+            } else {
+                alert(res.msg);
+            }
+        }
+    })
+    .catch(err => {
+        alert('发放失败：' + err);
+    });
+}
+</script>
+{/block}

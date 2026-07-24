@@ -1,0 +1,268 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+
+{block name="meta_extra"}
+<meta name="content-id" content="{$info.id}">
+<!-- V2.9.9 社交分享OG元标签 -->
+{if condition="$og_meta"}
+{foreach $og_meta as $property=>$content}
+{if condition="strpos($property, 'twitter:') === 0"}
+<meta name="{$property}" content="{$content}">
+{else /}
+<meta property="{$property}" content="{$content}">
+{/if}
+{/foreach}
+{/if}
+<!-- V2.9.2 M19b: Schema.org JSON-LD -->
+{:app\common\service\SchemaService::content($info)}
+<!-- V2.9.2 M19b: BreadcrumbList -->
+{:app\common\service\SchemaService::breadcrumb(['首页'=>$site_url,'分类'=>$site_url.$type_url,$info.title=>$site_url.$Request.url])}
+<!-- V2.9.9: 多语言hreflang标签 -->
+{if condition="count($content_translations) > 1"}
+{foreach $content_translations as $lang_code => $trans}
+<link rel="alternate" hreflang="{$lang_code}" href="{$site_url}/info/{$trans.id}?lang={$lang_code}">
+{/foreach}
+<link rel="alternate" hreflang="x-default" href="{$site_url}{$Request.url}">
+{/if}
+{/block}
+
+{block name="content"}
+<nav aria-label="breadcrumb" class="m-breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">首页</a></li>
+        <li class="breadcrumb-item"><a href="{$type_url}">
+            {if condition="$info.type == 1"}产品中心{elseif condition="$info.type == 2"/}成功案例{elseif condition="$info.type == 3"/}新闻动态{/elseif condition="$info.type == 4"/}资料下载{elseif condition="$info.type == 5"/}人才招聘{/if}
+        </a></li>
+        <li class="breadcrumb-item active">{$info.title}</li>
+    </ol>
+</nav>
+
+<article>
+    <h1 style="font-size:19px;font-weight:700;margin-bottom:10px;line-height:1.35;">
+        {$info.title}
+        {if condition="$safe_content.is_paid_content"}
+        <i class="bi bi-lock-fill text-warning" style="font-size:16px;" title="浠樿垂内容"></i>
+        {/if}
+    </h1>
+    <div style="color:#888;font-size:12.5px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
+            <span><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>
+            {if condition="$info.cate"}<span><i class="bi bi-folder2 me-1"></i>{$info.cate.name}</span>{/if}
+        </div>
+        <!-- V2.9.24 H-4: 分享按钮 -->
+        <button class="btn btn-sm btn-outline-primary" data-share-panel style="border-radius:20px;padding:2px 14px;font-size:12px;">
+            <i class="bi bi-share me-1"></i>分享
+        </button>
+    </div>
+
+    {if condition="$info.cover"}
+    <div style="margin-bottom:14px;border-radius:10px;overflow:hidden;">
+        <img data-src="{$info.cover}" class="w-100 lazyload" alt="{$info.title}" style="border-radius:10px;" onerror="this.parentElement.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+    </div>
+    {/if}
+
+    <!-- V2.9.20 A-3: 内容模型差异化片段 -->
+    <!-- V2.9.23 E-1: 移动端优先使用 mobile_model_partial -->
+    {if condition="$mobile_model_partial"}
+        {include file="$mobile_model_partial" /}
+    {elseif condition="$model_partial"}
+        {include file="$model_partial" /}
+    {/if}
+
+    <!-- V2.9.5 浠樿垂内容瀹夊叏灞曠ず -->
+    <div class="m-content-body">
+        {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
+        <div style="color:#555;line-height:1.7;margin-bottom:12px;">{$safe_content.preview}</div>
+        <div class="text-center py-3 my-2 rounded" style="background:var(--i8j-bg-secondary,#f8fafc);border:1px dashed #cbd5e1;">
+            <i class="bi bi-lock-fill text-warning fs-2 mb-1 d-block"></i>
+            <p class="text-secondary mb-1 small">此内容为付费内容，解锁后可阅读全文</p>
+            <p class="fw-bold text-primary mb-2">
+                {if $safe_content.price > 0}
+                    {if $info.paid_type == 'points'}
+                        {$safe_content.price} 积分
+                    {else}
+                        &yen;{$safe_content.price}
+                    {/if}
+                {else}
+                    免费
+                {/if}
+            </p>
+            {if $isMemberLogin}
+            <button type="button" class="btn btn-primary btn-sm" onclick="unlockContent({$info.id})">立嬪嵆瑙ｉ攣</button>
+            {else}
+            <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary btn-sm">登录后解锁</a>
+            {/if}
+        </div>
+        {else}
+        {$safe_content.full|raw}
+        {/if}
+    </div>
+
+    <!-- 浜掑姩鏁版嵁 -->
+    <div style="display:flex;gap:16px;padding:12px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;margin-top:18px;font-size:13px;color:#888;">
+        <span><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 璧</span>
+        <span><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
+    </div>
+    {include file="shared/reward_button" info="$info" /}
+
+    <!-- V2.9.9 社交分享轻量版 -->
+    {if condition="$share_links"}
+    <div class="social-share-bar mb-3">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;">
+            <span style="color:#888;">分享到：</span>
+            {if condition="$share_links.wechat"}
+            <button type="button" class="btn btn-sm btn-outline-success" style="font-size:12px;padding:2px 8px;" data-share="wechat" data-share-url="{$share_links.wechat}">微信</button>
+            {/if}
+            {if condition="$share_links.weibo"}
+            <button type="button" class="btn btn-sm btn-outline-danger" style="font-size:12px;padding:2px 8px;" data-share="weibo" data-share-url="{$share_links.weibo}">微博</button>
+            {/if}
+            {if condition="$share_links.qq"}
+            <button type="button" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:2px 8px;" data-share="qq" data-share-url="{$share_links.qq}">QQ</button>
+            {/if}
+            <button type="button" class="btn btn-sm btn-outline-secondary" style="font-size:12px;padding:2px 8px;" data-share="copy" data-share-url="{$share_links.wechat|default=$share_links.weibo|default=""}">复制链接</button>
+        </div>
+    </div>
+    {/if}
+</article>
+
+<!-- 相关鎺ㄨ崘 -->
+{if condition="!empty($related)"}
+<h5 style="font-weight:700;font-size:15px;margin:20px 0 10px;">相关内容</h5>
+{volist name="related" id="vo"}
+<div class="m-card" style="padding:10px 14px;">
+    <small class="text-muted" style="font-size:11.5px;">{$vo.create_time|date='Y-m-d'}</small>
+    <h6 class="m-card-tit" style="font-size:13.5px;"><a href="{$vo.url}">{$vo.title}</a></h6>
+</div>
+{/volist}
+{/if}
+
+<!-- 璇勪环鍖?- V2.9鏂板 -->
+{if condition="config('rating_enabled') !== 0"}
+<section style="margin-top:20px;">
+    <h5 style="font-size:15px;font-weight:700;margin-bottom:12px;"><i class="bi bi-star me-1"></i>璇勪环璇勫垎</h5>
+    
+    <!-- 璇勫垎缁熻 -->
+    <div style="display:flex;gap:14px;margin-bottom:16px;" id="mRatingStats">
+        <div style="text-align:center;">
+            <h3 style="color:var(--i8j-warning,#ffc107);margin:0;" id="mAvgRating">0.0</h3>
+            <small style="color:#888;">骞冲潎</small>
+        </div>
+        <div style="flex:1;">
+            <div style="font-size:12px;color:#888;" id="mStarStats">加载中...</div>
+        </div>
+    </div>
+
+    <!-- 璇勪环列表 -->
+    <div id="mRatingList"></div>
+
+    <!-- 提交璇勪环 -->
+    <div style="border:1px solid #eee;border-radius:10px;padding:12px;margin-top:14px;">
+        <div style="margin-bottom:8px;font-weight:600;font-size:13px;">可戣〃璇勪环</div>
+        <form id="mRatingForm">
+            <input type="hidden" name="content_id" value="{$info.id}">
+            <div style="margin-bottom:8px;">
+                <span class="m-rating-star" data-rating="1" style="font-size:24px;cursor:pointer;color:#e2e8f0;">☆</span>
+                <span class="m-rating-star" data-rating="2" style="font-size:24px;cursor:pointer;color:#e2e8f0;">☆</span>
+                <span class="m-rating-star" data-rating="3" style="font-size:24px;cursor:pointer;color:#e2e8f0;">☆</span>
+                <span class="m-rating-star" data-rating="4" style="font-size:24px;cursor:pointer;color:#e2e8f0;">☆</span>
+                <span class="m-rating-star" data-rating="5" style="font-size:24px;cursor:pointer;color:#e2e8f0;">☆</span>
+                <input type="hidden" name="rating" id="mRatingValue" value="0">
+            </div>
+            <textarea name="content" class="m-form-control" rows="2" placeholder="分享浣撻獙..." style="resize:none;font-size:13px;"></textarea>
+            <!-- 媒体上传 - V2.9.1 M15a -->
+            <div id="mRatingMediaUploader" style="margin-top:8px;"></div>
+            <button type="submit" class="m-btn m-btn-primary" style="margin-top:8px;width:100%;">提交璇勪环</button>
+        </form>
+    </div>
+</section>
+{/if}
+
+<!-- 评论鍖?-->
+{if condition="config('comment.comment_enabled') !== 0"}
+<section style="margin-top:20px;">
+    <h5 style="font-size:15px;font-weight:700;margin-bottom:12px;"><i class="bi bi-chat-dots me-1"></i>评论 ({$info.comment_count})</h5>
+    <form id="commentForm">
+        <input type="hidden" name="content_id" value="{$info.id}">
+        {if condition="!$isMemberLogin"}
+        <div class="m-form-group"><input type="text" name="nickname" class="m-form-control" placeholder="是电О" required></div>
+        {/if}
+        <div class="m-form-group"><textarea name="content" class="m-form-control" rows="3" placeholder="可戣〃浣犵殑鐪嬫硶..." required style="resize:none;"></textarea></div>
+        <button type="submit" class="m-btn m-btn-primary">提交评论</button>
+    </form>
+    <div id="commentList" style="margin-top:14px;"></div>
+</section>
+{/if}
+{/block}
+
+{block name="css"}
+<style>.m-content-body img{max-width:100%!important;height:auto!important;border-radius:8px;} .m-content-body table{display:block;overflow-x:auto;width:100%;font-size:13px;} .m-content-body a{color:#0d6efd;}</style>
+{/block}
+
+{block name="js"}
+<script type="application/ld+json">{$jsonLd|raw}</script>
+
+<!-- 璇勪环JS - V2.9鏂板 -->
+{if condition="config('rating_enabled') !== 0"}
+<script src="/assets/js/rating-media-uploader.js"></script>
+<script>
+// 鍒濆鍖栧獟浣撲笂浼?- V2.9.1 M15a
+var mRatingUploader = new RatingMediaUploader({
+    container: '#mRatingMediaUploader',
+    inputName: 'media_urls',
+    maxFiles: 3
+});
+
+function loadMobileRatings(){$.get('/api/rating/list',{content_id:{$info.id},page:1,limit:10},function(r){if(r.code===1&&r.data){var h='';(r.data.list||[]).forEach(function(i){var s='';for(var n=1;n<=5;n++)s+=n<=i.rating?'☆:'☆;var t=i.is_anonymous?'匿名用户':(i.member_nickname||'用户');var v=i.vip_badge?'<span class="badge bg-warning ms-1"><i class="bi '+i.vip_badge+'"></i></span>':'';h+='<div style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong>'+t+v+'</strong><span class="text-warning">'+s+'</span></div>'+(i.content?'<p style="margin:4px 0;font-size:12.5px;">'+i.content+'</p>':'')+'<small style="color:#888;">'+i.create_time+'</small>';if(i.replies&&i.replies.length){h+='<div style="margin-top:6px;padding-left:8px;border-left:2px solid #0d6efd;">';i.replies.forEach(function(rp){h+='<div style="font-size:12px;margin-bottom:4px;"><span class="badge bg-primary" style="font-size:10px;">鍟嗗</span><span style="color:#888;">'+rp.create_time+'</span><p style="margin:2px 0;font-size:11.5px;">'+rp.content+'</p></div>';});h+='</div>';}h+='</div></div>';});$('#mRatingList').html(h||'<p class="text-muted text-center py-3" style="font-size:12.5px;">暂无璇勪环</p>');}},'json');$.get('/api/rating/stats',{content_id:{$info.id}},function(r){if(r.code===1&&r.data){$('#mAvgRating').text(r.data.average||'0.0');var s='';for(var i=5;i>=1;i--){s+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;font-size:11px;"><span style="width:20px;">'+i+'是</span><div style="flex:1;height:6px;background:#eee;border-radius:3px;"><div style="height:100%;background:#ffc107;border-radius:3px;width:'+(r.data.count>0?Math.round(r.data.stars[i]/r.data.count*100):0)+'%;"></div></div><span style="width:24px;text-align:right;">'+(r.data.stars[i]||0)+'</span></div>';}$('#mStarStats').html(s);}},'json');}
+$('.m-rating-star').on('click',function(){var r=$(this).data('rating');$('#mRatingValue').val(r);$('.m-rating-star').each(function(){$(this).css('color',$(this).data('rating')<=r?'#ffc107':'#e2e8f0');});}).on('mouseenter',function(){var r=$(this).data('rating');$('.m-rating-star').each(function(){$(this).css('color',$(this).data('rating')<=r?'#ffc107':'#e2e8f0');});}).on('mouseleave',function(){var r=$('#mRatingValue').val();$('.m-rating-star').each(function(){$(this).css('color',$(this).data('rating')<=r?'#ffc107':'#e2e8f0');});});
+$('#mRatingForm').on('submit',function(e){e.preventDefault();if($('#mRatingValue').val()==0){showToast('璇烽态夋嫨璇勫垎','warning');return;}$.post('/api/rating/submit',$(this).serialize(),function(r){if(r.code===1){showToast(r.msg||'评价成功','success');$('#mRatingForm')[0].reset();$('#mRatingValue').val(0);$('.m-rating-star').css('color','#e2e8f0');loadMobileRatings();}else showToast(r.msg||'提交失败','danger');},'json');});
+loadMobileRatings();
+</script>
+{/if}
+
+<!-- 评论JS -->
+{if condition="config('comment.comment_enabled') !== 0"}
+<script>
+function loadComments(p){p=p||1;$.get('/home/comment/list',{content_id:{$info.id},page:p},function(r){if(r.code===0&&r.data){var h='';(r.data.list||[]).forEach(function(i){var v=i.vip_badge?'<span class="badge bg-warning ms-1"><i class="bi '+i.vip_badge+'"></i></span>':'';h+='<div style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13.5px;"><strong>'+i.nickname+v+'</strong> <small class="text-muted">'+i.create_time+'</small><p style="margin:4px 0 0;">'+i.content+'</p></div>';});$('#commentList').html(h||'<p class="text-muted text-center py-3">暂无评论</p>');}},'json');}
+loadComments(1);
+$('#commentForm').on('submit',function(e){e.preventDefault();$.post('/home/comment/submit',$(this).serialize(),function(r){if(r.code===0){showToast('评论宸叉彁浜?,'success');$(this)[0].reset();loadComments(1);}else showToast(r.msg,'danger');});});
+{/if}
+</script>
+
+<!-- V2.9.9 社交分享组件 -->
+{if condition="$share_links"}
+<script src="/assets/js/social-share.js?v=2.9.9"></script>
+<script>
+window.SocialShare.init({
+    url: '{$share_links.wechat|default=$site_url.$Request.url}',
+    title: '{$info.seo_title ?: $info.title}',
+    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    image: '{$info.cover}',
+    enabled: true
+});
+</script>
+{/if}
+<!-- V2.9.24 H-4: 分享面板增强 -->
+<link href="/static/mobile/css/share_panel.css?v=2.9.24" rel="stylesheet">
+<script src="/static/mobile/js/share_panel.js?v=2.9.24"></script>
+<script>
+SharePanel.init({
+    url: window.location.href,
+    title: '{$info.seo_title ?: $info.title}',
+    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    image: '{$info.cover}',
+    siteName: '{$site_name|default="AI-CMS"}'
+});
+</script>
+<!-- V2.9.20 A-4: 下载计数 -->
+<script>
+function recordDownload(contentId) {
+    $.post('/api/content/download_count', {content_id: contentId, __token__: $('meta[name="csrf-token"]').attr('content')}, function(res) {
+        if (res.code === 0) {
+            console.log('下载计数成功:', res.data.count);
+        }
+    }, 'json');
+}
+</script>
+{/block}

@@ -1,0 +1,182 @@
+{extend name="layout" /}
+
+{block name="title"}自定义变量{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">自定义变量</li>
+{/block}
+
+{block name="content"}
+<!-- Tab 导航 -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=basic">基本设置</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=features">功能配置</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=business">业务设置</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=system">系统与安全</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/admin/system/customVar">自定义变量</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/moduleControl">功能开关</a></li>
+</ul>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-braces me-1"></i>自定义变量列表</span>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#varModal" onclick="resetForm()">
+            <i class="bi bi-plus-lg me-1"></i>新增变量
+        </button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">排序</th>
+                        <th>变量名</th>
+                        <th>变量值</th>
+                        <th>备注</th>
+                        <th style="width:120px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr>
+                        <td><input type="number" class="form-control form-control-sm sort-input" data-id="{$item.id}" value="{$item.sort}" style="width:60px;"></td>
+                        <td><code>{$item.name}</code></td>
+                        <td>
+                            {if condition="strlen($item.value) > 50"}
+                            <span class="text-muted" title="{$item.value}">{$item.value|mb_substr=0,50}...</span>
+                            {else /}
+                            {$item.value}
+                            {/if}
+                        </td>
+                        <td class="text-muted">{$item.remark}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="editVar({$item.id}, '{$item.name}', '{$item.value|raw|addslashes}', '{$item.remark|raw|addslashes}', {$item.sort})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteVar({$item.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">暂无自定义变量</td>
+                    </tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {notempty name="list"}
+    <div class="card-footer">
+        <button type="button" class="btn btn-sm btn-secondary" onclick="saveSort()">
+            <i class="bi bi-save me-1"></i>保存排序
+        </button>
+    </div>
+    {/notempty}
+</div>
+
+<div class="card">
+    <div class="card-header"><i class="bi bi-info-circle me-1"></i>使用说明</div>
+    <div class="card-body">
+        <p class="mb-1">1. 在模板中使用 <code>{literal}{$custom.变量名}{/literal}</code> 输出变量值，如：<code>{literal}{$custom.company_phone}{/literal}</code></p>
+        <p class="mb-1">2. 在 I8j 标签中使用 <code>{literal}{i8j:customvar name="company_phone" /}{/literal}</code></p>
+        <p class="mb-0">3. 变量名只能包含字母、数字和下划线，且不能以数字开头</p>
+    </div>
+</div>
+
+<!-- 新增/编辑弹窗 -->
+<div class="modal fade" id="varModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="varModalTitle">新增变量</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="varForm">
+                    <input type="hidden" name="id" id="varId" value="0">
+                    <div class="mb-3">
+                        <label class="form-label">变量名 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="varName" class="form-control" placeholder="如：company_phone">
+                        <div class="form-text">只能包含字母、数字和下划线，不能以数字开头</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">变量值</label>
+                        <textarea name="value" id="varValue" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">备注</label>
+                        <input type="text" name="remark" id="varRemark" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" id="varSort" class="form-control" value="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveVar()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var varModal = new bootstrap.Modal(document.getElementById('varModal'));
+
+function resetForm() {
+    $('#varId').val(0);
+    $('#varName').val('').prop('readonly', false);
+    $('#varValue').val('');
+    $('#varRemark').val('');
+    $('#varSort').val(0);
+    $('#varModalTitle').text('新增变量');
+}
+
+function editVar(id, name, value, remark, sort) {
+    $('#varId').val(id);
+    $('#varName').val(name).prop('readonly', true);
+    $('#varValue').val(value);
+    $('#varRemark').val(remark);
+    $('#varSort').val(sort);
+    $('#varModalTitle').text('编辑变量');
+    varModal.show();
+}
+
+function saveVar() {
+    var name = $('#varName').val().trim();
+    if (!name) {
+        showToast('变量名不能为空', 'danger');
+        return;
+    }
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+        showToast('变量名格式不正确', 'danger');
+        return;
+    }
+    ajaxPost('/admin/system/customVarSave', $('#varForm').serialize(), function() {
+        varModal.hide();
+        setTimeout(function() { location.reload(); }, 600);
+    });
+}
+
+function deleteVar(id) {
+    showConfirm('确定要删除吗？', '删除后模板中引用该变量的位置将显示为空', function() {
+        ajaxPost('/admin/system/customVarDelete', { id: id });
+    });
+}
+
+function saveSort() {
+    var sortData = {};
+    $('.sort-input').each(function() {
+        sortData[$(this).data('id')] = $(this).val();
+    });
+    ajaxPost('/admin/system/customVar', { sort: sortData });
+}
+</script>
+{/block}

@@ -1,0 +1,17 @@
+{extend name="/layout" /}
+{block name="title"}统计报表 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-bar-chart"></i> 统计报表</h5></div>
+<div class="card-body">
+    <div class="row g-3 mb-3">
+        <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>总访客</h6><h3>{$total_visitors??0}</h3></div></div></div>
+        <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>总浏览量</h6><h3>{$total_pageviews??0}</h3></div></div></div>
+        <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>总内容</h6><h3>{$total_content??0}</h3></div></div></div>
+        <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>总用户</h6><h3>{$total_users??0}</h3></div></div></div>
+    </div>
+    <div class="text-center text-muted py-4">
+        <i class="bi bi-graph-up" style="font-size:2rem;"></i>
+        <p class="mt-2">详细统计报表正在加载中...如需更丰富的数据看板，请访问 <a href="{:url('/admin/data_dashboard/index')}">数据大屏</a></p>
+    </div>
+</div></div>
+{/block}

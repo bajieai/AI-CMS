@@ -1,0 +1,97 @@
+{extend name="layout" /}
+{block name="title"}系统健康监控{/block}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-heart-pulse me-2"></i>系统健康监控</h4>
+
+    <!-- 整体状态 -->
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-activity me-1"></i>系统状态: 
+            {if $health.overall.status == 'healthy'}<span class="badge bg-success">正常</span>
+            {elseif $health.overall.status == 'warning'}<span class="badge bg-warning">警告</span>
+            {else}<span class="badge bg-danger">危险</span>{/if}
+            <button class="btn btn-sm btn-outline-secondary float-end" onclick="location.reload()"><i class="bi bi-arrow-clockwise"></i> 刷新</button>
+        </div>
+        <div class="card-body">
+            <!-- 资源监控 -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h6 class="text-muted">CPU使用率</h6>
+                        <div class="progress" style="height:20px;">
+                            <div class="progress-bar {if $health.resources.cpu_percent > 90}bg-danger{elseif $health.resources.cpu_percent > 70}bg-warning{else}bg-success{/if}" style="width:{$health.resources.cpu_percent}%">{$health.resources.cpu_percent}%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h6 class="text-muted">内存使用率</h6>
+                        <div class="progress" style="height:20px;">
+                            <div class="progress-bar {if $health.resources.memory_percent > 85}bg-danger{elseif $health.resources.memory_percent > 70}bg-warning{else}bg-success{/if}" style="width:{$health.resources.memory_percent}%">{$health.resources.memory_percent}%</div>
+                        </div>
+                        <small class="text-muted">{$health.resources.memory_used_mb} MB</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h6 class="text-muted">磁盘使用率</h6>
+                        <div class="progress" style="height:20px;">
+                            <div class="progress-bar {if $health.resources.disk_percent > 90}bg-danger{elseif $health.resources.disk_percent > 75}bg-warning{else}bg-success{/if}" style="width:{$health.resources.disk_percent}%">{$health.resources.disk_percent}%</div>
+                        </div>
+                        <small class="text-muted">剩余 {$health.resources.disk_free_gb} GB</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h6 class="text-muted">PHP进程数</h6>
+                        <h3>{$health.resources.php_processes}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 服务状态 -->
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-hdd-network me-1"></i>服务状态</div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead><tr><th>服务</th><th>状态</th><th>延迟(ms)</th></tr></thead>
+                <tbody>
+                    {foreach $health.services as $name => $svc}
+                    <tr>
+                        <td>{$name}</td>
+                        <td>{if $svc.status == 'running'}<span class="badge bg-success">运行中</span>{else}<span class="badge bg-danger">异常</span>{/if}</td>
+                        <td>{$svc.latency_ms ?? 0}</td>
+                    </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 性能指标 -->
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-speedometer2 me-1"></i>性能指标</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center"><h6 class="text-muted">缓存命中率</h6><h4>{$health.performance.cache_hit_rate}%</h4></div>
+                <div class="col-md-3 text-center"><h6 class="text-muted">DB查询耗时</h6><h4>{$health.performance.db_query_avg_ms}ms</h4></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 告警 -->
+    {if !empty($health.alerts)}
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white"><i class="bi bi-bell me-1"></i>活跃告警</div>
+        <div class="card-body">
+            {volist name="health.alerts" id="alert"}
+            <div class="alert alert-danger mb-1">{$alert.message}</div>
+            {/volist}
+        </div>
+    </div>
+    {/if}
+</div>
+<script>setTimeout(function(){ location.reload(); }, 30000);</script>
+{/block}

@@ -1,0 +1,80 @@
+{extend name="layout" /}
+
+{block name="title"}功能开关{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">功能开关</li>
+{/block}
+
+{block name="content"}
+<!-- Tab 导航 -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=basic">基本设置</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=features">功能配置</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=business">业务设置</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/config?tab=system">系统与安全</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/system/customVar">自定义变量</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/admin/system/moduleControl">功能开关</a></li>
+</ul>
+
+<div class="alert alert-info d-flex align-items-center mb-3">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <div>关闭模块后，后台侧边栏将自动隐藏该模块菜单，前台对应功能将暂停。核心模块不可关闭。</div>
+</div>
+
+{foreach $categories as $catKey => $catName}
+{php}$modules = $grouped[$catKey] ?? [];{/php}
+{if condition="!empty($modules)"}
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="bi bi-grid-3x3-gap me-1"></i>{$catName}
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            {volist name="modules" id="module"}
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex align-items-start p-3 border rounded" style="background:#fff;">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="d-flex align-items-center justify-content-center rounded" style="width:48px;height:48px;background:#f1f5f9;">
+                            <i class="bi bi-{$module.icon|default='puzzle'} fs-4 text-secondary"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-semibold">{$module.name}</h6>
+                            {if condition="$module.is_system"}
+                            <span class="badge bg-secondary">系统</span>
+                            {else /}
+                            <div class="form-check form-switch">
+                                <input class="form-check-input module-toggle" type="checkbox" data-id="{$module.id}" {if condition="$module.is_enabled"}checked{/if}>
+                            </div>
+                            {/if}
+                        </div>
+                        <p class="text-muted small mb-0">{$module.description}</p>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</div>
+{/if}
+{/foreach}
+{/block}
+
+{block name="js"}
+<script>
+$('.module-toggle').on('change', function() {
+    var $this = $(this);
+    var id = $this.data('id');
+    var isEnabled = $this.is(':checked') ? 1 : 0;
+    var actionText = isEnabled ? '启用' : '禁用';
+
+    ajaxPost('/admin/system/moduleToggle', { id: id, is_enabled: isEnabled }, function(res) {
+        showToast(actionText + '成功，页面即将刷新', 'success');
+        setTimeout(function() { location.reload(); }, 1200);
+    });
+});
+</script>
+{/block}

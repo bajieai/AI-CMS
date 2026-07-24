@@ -1,0 +1,8 @@
+{extend name="layout" /}
+{block name="title"}告警管理 - AI-CMS{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">系统管理</li><li class="breadcrumb-item"><a href="/admin/monitor/index">系统监控</a></li><li class="breadcrumb-item active">告警规则</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header d-flex justify-content-between"><span><i class="bi bi-bell me-1"></i>告警规则列表</span><a href="/admin/monitor/create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> 新建规则</a></div>
+<div class="table-responsive"><table class="table table-hover table-sm"><thead class="table-light"><tr><th>ID</th><th>名称</th><th>类型</th><th>指标</th><th>级别</th><th>状态</th><th>触发次数</th><th>最后触发</th><th>操作</th></tr></thead><tbody>{volist name="list" id="vo" empty="<tr><td colspan='9' class='text-center text-muted py-4'>暂无告警规则</td></tr>"}<tr><td>{$vo.id}</td><td>{$vo.alert_name}</td><td>{$vo.monitor_type}</td><td>{$vo.monitor_metric}</td><td><span class="badge bg-{if $vo.alert_level eq 'critical'}danger{elseif $vo.alert_level eq 'warning'}warning{else/}info{/if}">{$vo.alert_level}</span></td><td>{if $vo.is_active}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td><td>{$vo.trigger_count}</td><td>{$vo.last_triggered|default='—'}</td><td><a href="/admin/monitor/edit?id={$vo.id}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a> <button class="btn btn-outline-danger btn-sm" onclick="del({$vo.id})"><i class="bi bi-trash"></i></button></td></tr>{/volist}</tbody></table></div></div>
+<script>function del(id){if(!confirm('确认删除？'))return;$.post('/admin/monitor/delete',{id:id},function(r){if(r.code===0)location.reload();else alert(r.msg)})}</script>
+{/block}

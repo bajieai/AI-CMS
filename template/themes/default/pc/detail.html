@@ -1,0 +1,558 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+
+{block name="keywords"}{if condition="$info.seo_keywords"}{$info.seo_keywords}{else/}{volist name="info.tags" id="tag"}{$tag.name},{/volist}{$site_keywords}{/if}{/block}
+
+{block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
+
+{block name="meta_extra"}
+<meta name="content-id" content="{$info.id}">
+<!-- V2.9.15: OG/Twitter标签增强 -->
+<meta property="og:title" content="{$info.seo_title ?: $info.title}">
+<meta property="og:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
+{if condition="$info.cover"}<meta property="og:image" content="{$info.cover}">{/if}
+<meta property="og:type" content="article">
+<meta property="og:url" content="{$site_url}{$Request.url}">
+<meta property="og:site_name" content="{$site_name}">
+<!-- V2.9.15: og:locale联动翻译语言切换 -->
+<meta property="og:locale" content="{$og_locale|default='zh_CN'}">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{$info.seo_title ?: $info.title}">
+<meta name="twitter:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
+{if condition="$info.cover"}<meta name="twitter:image" content="{$info.cover}">{/if}
+<!-- V2.9.15: Schema.org 结构化标记（新SchemaMarkupService） -->
+{$schema_markup|raw}
+<!-- V2.9.9: AI-GEO FAQ结构化数据 -->
+{if condition="$geo_data.faq"}
+{:app\common\service\GeoService::renderFaqJsonLd($geo_data.faq)}
+{/if}
+<!-- V2.9.9: AI-GEO HowTo结构化数据 -->
+{if condition="$geo_data.key_points"}
+{:app\common\service\GeoService::renderHowToJsonLd($info.title, $geo_data.key_points)}
+{/if}
+<!-- V2.9.9: 多语言hreflang标签 -->
+{if condition="count($content_translations) > 1"}
+{foreach $content_translations as $lang_code => $trans}
+<link rel="alternate" hreflang="{$lang_code}" href="{$site_url}/info/{$trans.id}?lang={$lang_code}">
+{/foreach}
+<link rel="alternate" hreflang="x-default" href="{$site_url}{$Request.url}">
+{/if}
+{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">棣栭〉</a></li>
+                <li class="breadcrumb-item">
+                    <a href="{$type_url}">
+                        {if condition="$info.type == 1"}产品中心{/if}
+                        {if condition="$info.type == 2"}鎴愬姛妗堜緥{/if}
+                        {if condition="$info.type == 3"}新闻动态{/if}
+                        {if condition="$info.type == 4"}璧勬枡中嬭浇{/if}
+                        {if condition="$info.type == 5"}浜烘墠鎷涜仒{/if}
+                        {if condition="$info.type == 6"}卡曢〉{/if}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">{$info.title}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-9">
+                <article>
+                    <h1 class="mb-3">
+                        {$info.title}
+                        {if condition="$safe_content.is_paid_content"}
+                        <i class="bi bi-lock-fill text-warning fs-5" title="浠樿垂内容"></i>
+                        {/if}
+                    </h1>
+                    <!-- V2.9.15: 前台语言切换器 -->
+                    {if condition="$info.id"}
+                    <div class="lang-switcher mb-3">
+                        <span class="text-muted small me-2"><i class="bi bi-translate"></i> 语言:</span>
+                        <!-- 中文原文 -->
+                        <a href="{$site_url}{$Request.url}" class="lang-item {if !$current_lang}active{else/}available{/if}" title="中文原文">中文</a>
+                        <!-- 翻译版本 -->
+                        {php}$langNames=['en'=>'English','ja'=>'日本語','ko'=>'한국어'];$langStatus=[0=>'暂未翻译',1=>'翻译中...',2=>'已翻译',3=>'翻译失败'];{/php}
+                        {foreach name="content_langs" item="al"}
+                            {if condition="$al.lang == 'en' || $al.lang == 'ja' || $al.lang == 'ko'"}
+                                {if condition="$al.translate_status == 2"}
+                                <a href="{$site_url}{$Request.url}?lang={$al.lang}" class="lang-item {if $current_lang == $al.lang}active{else/}available{/if}" title="{$langNames[$al.lang] ?? $al.lang}: 已翻译">{$langNames[$al.lang] ?? $al.lang|strtoupper}</a>
+                                {elseif condition="$al.translate_status == 1"}
+                                <span class="lang-item unavailable translating" title="{$langNames[$al.lang] ?? $al.lang}: 翻译中...">{$langNames[$al.lang] ?? $al.lang|strtoupper}</span>
+                                {else}
+                                <span class="lang-item unavailable" title="{$langNames[$al.lang] ?? $al.lang}: {$langStatus[$al.translate_status] ?? '暂未翻译'}">{$langNames[$al.lang] ?? $al.lang|strtoupper}</span>
+                                {/if}
+                            {/if}
+                        {/foreach}
+                    </div>
+                    {/if}
+                    <div class="text-muted mb-4">
+                        <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
+                        <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>
+                        {if condition="$info.cate"}
+                        <span class="ms-3"><i class="bi bi-folder2 me-1"></i>{$info.cate.name}</span>
+                        {/if}
+                    </div>
+
+                    {if condition="$info.cover"}
+                    <div class="mb-4">
+                        <img data-src="{$info.cover}" class="img-fluid rounded lazyload" alt="{$info.title}" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                    </div>
+                    {/if}
+
+                    <!-- V2.9.20 A-3: 内容模型差异化片段 -->
+                    {if condition="$model_partial"}
+                        {include file="$model_partial" /}
+                    {/if}
+
+                    <!-- V2.9.5 浠樿垂内容瀹夊叏灞曠ず -->
+                    <div class="content-body">
+                        {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
+                        <div class="i8j-paywall-preview">{$safe_content.preview}</div>
+                        <div class="i8j-paywall-box text-center py-4 my-3 rounded" style="background:var(--i8j-bg-secondary,#f8fafc);border:1px dashed #cbd5e1;">
+                            <i class="bi bi-lock-fill text-warning fs-2 mb-2 d-block"></i>
+                            <p class="text-secondary mb-2">此内容为付费内容，解锁后可阅读全文</p>
+                            <p class="fw-bold text-primary mb-3">
+                                {if $safe_content.price > 0}
+                                    {if $info.paid_type == 'points'}
+                                        {$safe_content.price} 积分
+                                    {else}
+                                        &yen;{$safe_content.price}
+                                    {/if}
+                                {else}
+                                    免费
+                                {/if}
+                            </p>
+                            {if $isMemberLogin}
+                            <button type="button" class="btn btn-primary" onclick="unlockContent({$info.id})">
+                                <i class="bi bi-unlock me-1"></i>立嬪嵆瑙ｉ攣
+                            </button>
+                            {else}
+                            <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>登录后解锁
+                            </a>
+                            {/if}
+                        </div>
+                        {else}
+                        {$safe_content.full|raw}
+                        {/if}
+                    </div>
+
+                    <!-- 浜掑姩鏁版嵁 -->
+                    <div class="d-flex align-items-center gap-3 mt-4 mb-3 py-2 border-top border-bottom">
+                        <span class="text-muted small"><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 璧</span>
+                        <span class="text-muted small"><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
+                    </div>
+                    
+                    <!-- V2.9.9 社交分享轻量版 -->
+                    {if condition="$share_links"}
+                    <div class="social-share-bar mb-4">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="text-muted small">分享到：</span>
+                            {if condition="$share_links.wechat"}
+                            <button type="button" class="btn btn-sm btn-outline-success" data-share="wechat" data-share-url="{$share_links.wechat}" title="微信">
+                                <i class="bi bi-wechat"></i> 微信
+                            </button>
+                            {/if}
+                            {if condition="$share_links.weibo"}
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-share="weibo" data-share-url="{$share_links.weibo}" title="微博">
+                                <i class="bi bi-sina-weibo"></i> 微博
+                            </button>
+                            {/if}
+                            {if condition="$share_links.qq"}
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-share="qq" data-share-url="{$share_links.qq}" title="QQ">
+                                <i class="bi bi-tencent-qq"></i> QQ
+                            </button>
+                            {/if}
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-share="copy" data-share-url="{$share_links.wechat|default=$share_links.weibo|default=""}" title="复制链接">
+                                <i class="bi bi-link-45deg"></i> 复制链接
+                            </button>
+                        </div>
+                    </div>
+                    {/if}
+
+                    <!-- V2.9.9 多语言翻译版本 -->
+                    {if condition="count($content_translations) > 1"}
+                    <div class="content-translations mb-3">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="text-muted small"><i class="bi bi-globe me-1"></i>其他语言：</span>
+                            {foreach $content_translations as $lang_code => $trans}
+                            {if condition="$lang_code != $current_lang"}
+                            <a href="/info/{$trans.id}?lang={$lang_code}" class="badge bg-light text-dark text-decoration-none border">{$lang_code}</a>
+                            {/if}
+                            {/foreach}
+                        </div>
+                    </div>
+                    {/if}
+                    {include file="shared/reward_button" info="$info" /}
+                </article>
+
+                <!-- 璇勪环鍖?- V2.9鏂板 -->
+                {if condition="config('rating_enabled') !== 0"}
+                <section class="mt-4" id="ratingSection">
+                    <h5 class="mb-3"><i class="bi bi-star me-1"></i>璇勪环璇勫垎</h5>
+                    
+                    <!-- 鐠囧嫬鍨庣紒鐔活吀 -->
+                    <div class="row mb-4" id="ratingStats">
+                        <div class="col-md-3 text-center">
+                            <h2 class="text-warning mb-0" id="avgRating">0.0</h2>
+                            <small class="text-muted">骞冲潎璇勫垎</small>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="mb-1" id="starStats">
+                                <!-- JS动态生成 -->
+                            </div>
+                            <small class="text-muted" id="ratingCount">共鏉¤瘎浠</small>
+                        </div>
+                    </div>
+
+                    <!-- 璇勪环列表 -->
+                    <div id="ratingList"></div>
+                    <nav id="ratingPagination" class="mt-3"></nav>
+
+                    <!-- 提交璇勪环琛ㄥ崟 -->
+                    <div class="card mt-4" id="ratingFormCard">
+                        <div class="card-header">可戣〃璇勪环</div>
+                        <div class="card-body">
+                            <form id="ratingForm">
+                                <input type="hidden" name="content_id" value="{$info.id}">
+                                
+                                <!-- 璇勫垎 -->
+                                <div class="mb-3">
+                                    <label class="form-label">璇勫垎 <span class="text-danger">*</span></label>
+                                    <div class="rating-input">
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="1"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="2"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="3"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="4"></i>
+                                        <i class="bi bi-star-fill fs-3 cursor-pointer" data-rating="5"></i>
+                                        <input type="hidden" name="rating" id="ratingValue" value="0" required>
+                                    </div>
+                                </div>
+
+                                <!-- 标题 -->
+                                <div class="mb-3">
+                                    <input type="text" name="title" class="form-control form-control-sm" placeholder="评价标题（可选）">
+                                </div>
+
+                                <!-- 内容 -->
+                                <div class="mb-3">
+                                    <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="分享鎮ㄧ殑浣跨敤浣撻獙..."></textarea>
+                                </div>
+
+                                <!-- 媒体上传 - V2.9.1 M15a -->
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">上传图片（可选）</label>
+                                    <div id="ratingMediaUploader"></div>
+                                </div>
+
+                                <!-- 鍖垮悕璇勪环 -->
+                                {if condition="$isMemberLogin"}
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" name="is_anonymous" id="isAnonymous">
+                                    <label class="form-check-label small" for="isAnonymous">鍖垮悕璇勪环</label>
+                                </div>
+                                {/if}
+
+                                <button type="submit" class="btn btn-primary btn-sm">提交璇勪环</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                {/if}
+
+                <!-- 评论鍖?-->
+                {if condition="config('comment.comment_enabled') !== 0"}
+                <section class="mt-4" id="commentSection">
+                    <h5 class="mb-3"><i class="bi bi-chat-dots me-1"></i>评论 ({$info.comment_count})</h5>
+
+                    <!-- 评论提交琛ㄥ崟 -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <form id="commentForm">
+                                <input type="hidden" name="content_id" value="{$info.id}">
+                                {if condition="!$isMemberLogin"}
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <input type="text" name="nickname" class="form-control form-control-sm" placeholder="閺勭數袨" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="email" name="email" class="form-control form-control-sm" placeholder="邮箱（不公开）">
+                                    </div>
+                                </div>
+                                {/if}
+                                <div class="mb-2">
+                                    <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="可戣〃浣犵殑鐪嬫硶..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">提交评论</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 评论列表 -->
+                    <div id="commentList"></div>
+                    <nav id="commentPagination" class="mt-3"></nav>
+                </section>
+                {/if}
+            </div>
+
+            <!-- 渚ц竟鏍?-->
+            <div class="col-lg-3">
+                <div class="card mb-3">
+                    <div class="card-header"><i class="bi bi-lightning me-1"></i>相关内容</div>
+                    <div class="list-group list-group-flush">
+                        {volist name="related" id="vo"}
+                        <a href="{$vo.url}" class="list-group-item list-group-item-action">
+                            <small class="text-muted">{$vo.create_time|date='m-d'}</small><br>
+                            {$vo.title}
+                        </a>
+                        {/volist}
+                        {empty name="related"}
+                        <div class="list-group-item text-muted small">暂无相关内容</div>
+                        {/empty}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}
+
+{block name="css"}
+<style>
+.content-body img { max-width: 100%; height: auto; }
+.content-body table { width: 100%; margin-bottom: 1rem; }
+.content-body a { color: var(--primary); }
+.comment-item { border-left: 3px solid #e2e8f0; padding-left: 12px; margin-bottom: 16px; }
+.comment-item .reply { background: var(--i8j-bg-secondary,#f8fafc); border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
+</style>
+{/block}
+
+{block name="js"}
+<!-- JSON-LD 缁撴瀯鍖栨暟鎹?-->
+<script type="application/ld+json">
+{$jsonLd|raw}
+</script>
+<!-- V2.9.5 浠樿垂内容瑙ｉ攣 -->
+<script>
+function unlockContent(contentId) {
+    if (!confirm('确认解锁该付费内容？')) return;
+    $.post('/home/paid/buy', {content_id: contentId, __token__: $('meta[name="csrf-token"]').attr('content')}, function(res) {
+        if (res.code === 0 || res.success) {
+            I8JToast.success('解锁成功，即将刷新页面);
+            setTimeout(function(){ location.reload(); }, 1200);
+        } else if (res.msg && res.msg.indexOf('鏀粯') !== -1) {
+            // 真钱支付：跳转支浠橀〉
+            location.href = '/home/payment/pay?content_id=' + contentId;
+        } else {
+            I8JToast.error(res.msg || '瑙ｉ攣失败');
+        }
+    }, 'json').fail(function(xhr) {
+        if (xhr.status === 419) {
+            I8JToast.error('页面已过期，请刷新后重试');
+        } else {
+            I8JToast.error('请求失败，请稍后重试');
+        }
+    });
+}
+</script>
+{if condition="config('comment.comment_enabled') !== 0"}
+<script>
+// 加载评论列表
+function loadComments(page) {
+    page = page || 1;
+    $.get('/home/comment/list', {content_id: {$info.id}, page: page}, function(res) {
+        if (res.code === 0 && res.data) {
+            var html = '';
+            (res.data.list || []).forEach(function(item) {
+                var vipBadge = item.vip_badge ? '<span class="badge bg-warning ms-1"><i class="bi ' + item.vip_badge + '"></i></span>' : '';
+                html += '<div class="comment-item"><div class="d-flex justify-content-between"><strong>' + item.nickname + vipBadge + '</strong><small class="text-muted">' + item.create_time + '</small></div><p class="mb-1">' + item.content + '</p>';
+                if (item.replies && item.replies.length) {
+                    html += '<div class="reply">';
+                    item.replies.forEach(function(r) {
+                        html += '<div class="mb-1"><strong class="small">' + r.nickname + '</strong> <span class="small text-muted">' + r.create_time + '</span><p class="mb-0 small">' + r.content + '</p></div>';
+                    });
+                    html += '</div>';
+                }
+                html += '</div>';
+            });
+            $('#commentList').html(html || '<p class="text-muted">暂无评论</p>');
+        }
+    }, 'json');
+}
+loadComments(1);
+
+// 提交评论
+$('#commentForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/home/comment/submit', $(this).serialize(), function(res) {
+        if (res.code === 0) {
+            showToast('评论提交成功，等待审核, 'success');
+            $('#commentForm')[0].reset();
+            loadComments(1);
+        } else {
+            showToast(res.msg || '评论失败', 'danger');
+        }
+    }, 'json');
+});
+</script>
+{/if}
+
+{if condition="config('rating_enabled') !== 0"}
+<script src="/assets/js/rating-media-uploader.js"></script>
+<script>
+// 鍒濆鍖栧獟浣撲笂浼?- V2.9.1 M15a
+var ratingUploader = new RatingMediaUploader({
+    container: '#ratingMediaUploader',
+    inputName: 'media_urls',
+    maxFiles: 5
+});
+
+// 加载评价列表和统计
+function loadRatings(page) {
+    page = page || 1;
+    $.get('/api/rating/list', {content_id: {$info.id}, page: page, limit: 10}, function(res) {
+        if (res.code === 1 && res.data) {
+            var html = '';
+            (res.data.list || []).forEach(function(item) {
+                var stars = '';
+                for (var i = 1; i <= 5; i++) {
+                    stars += i <= item.rating ? '☆ : '☆;
+                }
+                var nickname = item.is_anonymous ? '匿名用户' : (item.member_nickname || '用户#' + item.member_id);
+                var vipBadge = item.vip_badge ? '<span class="badge bg-warning ms-1"><i class="bi ' + item.vip_badge + '"></i></span>' : '';
+                html += '<div class="card mb-2"><div class="card-body"><div class="d-flex justify-content-between mb-2"><span>' + nickname + vipBadge + '</span>';
+                html += '<div><strong>' + nickname + '</strong> <span class="text-warning">' + stars + '</span></div>';
+                html += '<small class="text-muted">' + item.create_time + '</small>';
+                html += '</div>';
+                if (item.title) html += '<h6>' + item.title + '</h6>';
+                if (item.content) html += '<p class="mb-2">' + item.content + '</p>';
+                html += '<div class="d-flex align-items-center gap-3"><button class="btn btn-sm btn-outline-secondary" onclick="likeRating(' + item.id + ')"><i class="bi bi-hand-thumbs-up"></i> <span class="like-count">' + (item.like_count || 0) + '</span></button></div>';
+                // 鍥炲灞曠ず - V2.9.1 M15b
+                if (item.replies && item.replies.length) {
+                    html += '<div class="mt-2 ms-2 ps-2 border-start border-2 border-light">';
+                    item.replies.forEach(function(reply) {
+                        html += '<div class="small mb-1"><span class="badge bg-primary me-1">鍟嗗</span><span class="text-muted">' + reply.create_time + '</span><p class="mb-0">' + reply.content + '</p></div>';
+                    });
+                    html += '</div>';
+                }
+                html += '</div></div>';
+            });
+            $('#ratingList').html(html || '<p class="text-muted">暂无璇勪环</p>');
+            
+            // 鍒嗛〉
+            var total = res.data.total || 0;
+            var totalPages = Math.ceil(total / 10);
+            if (totalPages > 1) {
+                var pageHtml = '<ul class="pagination pagination-sm">';
+                for (var p = 1; p <= totalPages; p++) {
+                    pageHtml += '<li class="page-item ' + (p === page ? 'active' : '') + '"><a class="page-link" href="javascript:;" onclick="loadRatings(' + p + ')">' + p + '</a></li>';
+                }
+                pageHtml += '</ul>';
+                $('#ratingPagination').html(pageHtml);
+            }
+        }
+    }, 'json');
+    
+    // 閸旂姾娴囩紒鐔活吀
+    $.get('/api/rating/stats', {content_id: {$info.id}}, function(res) {
+        if (res.code === 1 && res.data) {
+            $('#avgRating').text(res.data.average || '0.0');
+            $('#ratingCount').text('共 + (res.data.count || 0) + '鏉¤瘎浠?);
+            
+            var starHtml = '';
+            for (var i = 5; i >= 1; i--) {
+                var count = res.data.stars[i] || 0;
+                starHtml += '<div class="d-flex align-items-center mb-1"><small class="me-2">' + i + '是</small><div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar bg-warning" style="width:' + (res.data.count > 0 ? (count/res.data.count*100) : 0) + '%"></div></div><small class="ms-2">' + count + '</small></div>';
+            }
+            $('#starStats').html(starHtml);
+        }
+    }, 'json');
+}
+
+// 点赞璇勪环
+function likeRating(ratingId) {
+    $.post('/api/rating/like', {rating_id: ratingId}, function(res) {
+        if (res.code === 1) {
+            loadRatings(1);
+        }
+    }, 'json');
+}
+
+// 鐠囧嫬鍨庢潏鎾冲弳
+$('.rating-input i').css('cursor', 'pointer').css('color', '#e2e8f0');
+$('.rating-input i').hover(function() {
+    var rating = $(this).data('rating');
+    $('.rating-input i').each(function() {
+        $(this).css('color', $(this).data('rating') <= rating ? '#ffc107' : '#e2e8f0');
+    });
+}, function() {
+    var currentRating = $('#ratingValue').val();
+    $('.rating-input i').each(function() {
+        $(this).css('color', $(this).data('rating') <= currentRating ? '#ffc107' : '#e2e8f0');
+    });
+}).click(function() {
+    var rating = $(this).data('rating');
+    $('#ratingValue').val(rating);
+    $('.rating-input i').each(function() {
+        $(this).css('color', $(this).data('rating') <= rating ? '#ffc107' : '#e2e8f0');
+    });
+});
+
+// 提交璇勪环
+$('#ratingForm').on('submit', function(e) {
+    e.preventDefault();
+    var rating = $('#ratingValue').val();
+    if (rating == 0) {
+        showToast('璇烽态夋嫨璇勫垎', 'warning');
+        return;
+    }
+    $.post('/api/rating/submit', $(this).serialize(), function(res) {
+        if (res.code === 1) {
+            showToast(res.msg || '评价成功', 'success');
+            $('#ratingForm')[0].reset();
+            $('#ratingValue').val(0);
+            $('.rating-input i').css('color', '#e2e8f0');
+            loadRatings(1);
+        } else {
+            showToast(res.msg || '提交失败', 'danger');
+        }
+    }, 'json');
+});
+
+// 鍒濆鍖栧姞杞借瘎浠?
+loadRatings(1);
+</script>
+{/if}
+
+<!-- V2.9.9 社交分享组件 -->
+{if condition="$share_links"}
+<script src="/assets/js/social-share.js?v=2.9.9"></script>
+<script>
+window.SocialShare.init({
+    url: '{$share_links.wechat|default=$site_url.$Request.url}',
+    title: '{$info.seo_title ?: $info.title}',
+    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    image: '{$info.cover}',
+    enabled: true
+});
+</script>
+{/if}
+<!-- V2.9.20 A-4: 下载计数 -->
+<script>
+function recordDownload(contentId) {
+    $.post('/api/content/download_count', {content_id: contentId, __token__: $('meta[name="csrf-token"]').attr('content')}, function(res) {
+        if (res.code === 0) {
+            console.log('下载计数成功:', res.data.count);
+        }
+    }, 'json');
+}
+</script>
+{/block}
+
+

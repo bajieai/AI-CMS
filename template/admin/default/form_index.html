@@ -1,0 +1,98 @@
+{extend name="layout" /}
+
+{block name="title"}表单管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/form/index">系统设置</a></li>
+<li class="breadcrumb-item active">表单管理</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-ui-forms me-2" style="color:var(--primary)"></i>表单管理</h5>
+    <a href="/admin/form/add" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>创建表单</a>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="50">ID</th>
+                    <th>表单名称</th>
+                    <th width="120">标识码</th>
+                    <th width="80">字段数</th>
+                    <th width="80">提交数</th>
+                    <th width="80">状态</th>
+                    <th width="80">防刷</th>
+                    <th width="180">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td style="font-weight:600">{$vo.name}</td>
+                    <td><code style="font-size:.82rem">{$vo.code}</code></td>
+                    <td>{$vo.fields|count}</td>
+                    <td><a href="/admin/form/dataIndex/form_id/{$vo.id}">{$vo.submit_count??0}</a></td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input toggle-enabled" type="checkbox" data-id="{$vo.id}"
+                                {if condition="$vo.is_enabled == 1"}checked{/if}>
+                        </div>
+                    </td>
+                    <td>
+                        {if condition="$vo.anti_spam == 0"}<span class="badge bg-light text-dark">无</span>
+                        {elseif condition="$vo.anti_spam == 1"}<span class="badge bg-info">验证码</span>
+                        {elseif condition="$vo.anti_spam == 2"}<span class="badge bg-warning text-dark">IP限制</span>
+                        {/if}
+                    </td>
+                    <td>
+                        <a href="/admin/form/edit/id/{$vo.id}" class="btn btn-sm btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                        <a href="/admin/form/dataIndex/form_id/{$vo.id}" class="btn btn-sm btn-outline-info" title="查看数据"><i class="bi bi-table"></i></a>
+                        <button class="btn btn-sm btn-outline-secondary btn-copy-tag" data-code="{$vo.code}" title="复制标签">
+                            <i class="bi bi-code-slash"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="{$vo.id}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无表单</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('.toggle-enabled').change(function(){
+        var id=$(this).data('id'), checked=$(this).is(':checked');
+        ajaxPost('/admin/form/toggleEnabled',{id:id,is_enabled:checked?1:0},function(d){
+            if(d.code!==0) { $.toast(d.msg,'danger'); location.reload(); }
+        });
+    });
+
+    $('.btn-copy-tag').click(function(){
+        var tag = '{' + 'i8j:form code="'+$(this).data('code')+'" /}';
+        navigator.clipboard.writeText(tag).then(function(){
+            $.toast('标签已复制：'+tag,'success');
+        });
+    });
+
+    $('.btn-delete').click(function(){
+        if(!confirm('确定删除该表单及其所有提交数据？')) return;
+        var id=$(this).data('id');
+        ajaxPost('/admin/form/delete',{id:id},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+});
+</script>
+{/block}

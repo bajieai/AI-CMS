@@ -1,0 +1,27 @@
+{extend name="/layout" /}
+{block name="title"}资源优化 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-zoom-in"></i> 静态资源优化</h5></div>
+<div class="card-body">
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>CSS压缩</h6><h3><span class="badge bg-{if $config.css_minify??0}success{else}secondary{/if} fs-6">{if $config.css_minify??0}已启用{else}未启用{/if}</span></h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>JS压缩</h6><h3><span class="badge bg-{if $config.js_minify??0}success{else}secondary{/if} fs-6">{if $config.js_minify??0}已启用{else}未启用{/if}</span></h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>图片优化</h6><h3><span class="badge bg-{if $config.image_optimize??0}success{else}secondary{/if} fs-6">{if $config.image_optimize??0}已启用{else}未启用{/if}</span></h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>CDN加速</h6><h3><span class="badge bg-{if $config.cdn_enabled??0}success{else}secondary{/if} fs-6">{if $config.cdn_enabled??0}已启用{else}未启用{/if}</span></h3></div></div></div>
+</div>
+{if !empty($config)}
+<div class="card"><div class="card-header"><h6 class="mb-0">详细配置</h6></div>
+<table class="table table-sm mb-0"><tbody>
+    <tr><td width="180">CSS 合并</td><td>{if $config.css_merge??0}是{else}否{/if}</td></tr>
+    <tr><td>JS 合并</td><td>{if $config.js_merge??0}是{else}否{/if}</td></tr>
+    <tr><td>Gzip 压缩</td><td>{if $config.gzip??0}是{else}否{/if}</td></tr>
+    <tr><td>浏览器缓存</td><td>{$config.browser_cache_ttl??'--'} 秒</td></tr>
+    <tr><td>CDN 域名</td><td>{$config.cdn_domain??'--'}</td></tr>
+    <tr><td>图片格式</td><td>{$config.image_format??'--'}</td></tr>
+    <tr><td>图片质量</td><td>{$config.image_quality??'--'}%</td></tr>
+</tbody></table></div>
+{else/}
+<div class="text-center text-muted py-3">暂无优化配置数据</div>
+{/if}
+</div></div>
+{/block}

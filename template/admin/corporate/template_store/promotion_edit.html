@@ -1,0 +1,94 @@
+{extend name="layout" /}
+
+{block name="title"}编辑推广活动{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">平台扩展</li>
+<li class="breadcrumb-item"><a href="/admin/template_store/index">模板商店管理</a></li>
+<li class="breadcrumb-item"><a href="/admin/template_store/promotions">推广活动</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑{else/}新建{/if}活动</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-megaphone me-1"></i>{if condition="$info"}编辑{else/}新建{/if}推广活动</div>
+    <div class="card-body">
+        <form method="post" action="/admin/template_store/promotionSave" class="row g-3">
+            <input type="hidden" name="id" value="{$info.id ?? 0}">
+
+            <div class="col-md-6">
+                <label class="form-label">选择模板</label>
+                <select name="template_id" class="form-select" required>
+                    <option value="">请选择模板</option>
+                    {foreach $templates as $tid => $tname}
+                    <option value="{$tid}" {if condition="($info.template_id ?? 0) == $tid"}selected{/if}>{$tname}</option>
+                    {/foreach}
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">推广类型</label>
+                <select name="promo_type" class="form-select" required>
+                    <option value="0" {if condition="($info.promo_type ?? 0) == 0"}selected{/if}>限时折扣</option>
+                    <option value="1" {if condition="($info.promo_type ?? 0) == 1"}selected{/if}>新用户专享</option>
+                    <option value="2" {if condition="($info.promo_type ?? 0) == 2"}selected{/if}>满减</option>
+                    <option value="3" {if condition="($info.promo_type ?? 0) == 3"}selected{/if}>组合优惠</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">折扣率 (0-1)</label>
+                <input type="number" step="0.01" max="1" min="0" name="discount_rate" class="form-control" value="{$info.discount_rate ?? 0.80}">
+                <div class="form-text">如 0.8 表示 8 折</div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">直减金额</label>
+                <input type="number" step="0.01" name="discount_amount" class="form-control" value="{$info.discount_amount ?? 0}">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">最低消费金额</label>
+                <input type="number" step="0.01" name="min_amount" class="form-control" value="{$info.min_amount ?? 0}">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">最大优惠金额</label>
+                <input type="number" step="0.01" name="max_discount" class="form-control" value="{$info.max_discount ?? 0}">
+                <div class="form-text">0 表示不限制</div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">使用次数限制</label>
+                <input type="number" name="usage_limit" class="form-control" value="{$info.usage_limit ?? 0}">
+                <div class="form-text">0 表示不限</div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">状态</label>
+                <select name="status" class="form-select">
+                    <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                    <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">开始时间</label>
+                <input type="datetime-local" name="start_time" class="form-control"
+                    value="{if condition="$info"}{:date('Y-m-d\TH:i', $info.start_time)}{else/}{:date('Y-m-d\TH:i', time())}{/if}">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">结束时间</label>
+                <input type="datetime-local" name="end_time" class="form-control"
+                    value="{if condition="$info"}{:date('Y-m-d\TH:i', $info.end_time)}{else/}{:date('Y-m-d\TH:i', time() + 7*86400)}{/if}">
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/template_store/promotions" class="btn btn-outline-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}

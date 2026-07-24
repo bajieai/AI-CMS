@@ -1,0 +1,76 @@
+{extend name="layout" /}
+
+{block name="title"}模板导入{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">模板管理</li>
+<li class="breadcrumb-item active">模板导入</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-box-arrow-in-down me-1"></i>模板导入</div>
+    <div class="card-body">
+        <form id="importForm" method="post" action="/admin/template/import" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">上传文件 <span class="text-danger">*</span></label>
+                <div class="border border-2 border-dashed rounded p-4 text-center" style="cursor:pointer;" onclick="document.getElementById('importFile').click()">
+                    <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
+                    <p class="mt-2 mb-1">点击选择文件或拖拽文件到此处</p>
+                    <small class="text-muted">支持 .zip / .tar 格式，单个文件最大 50MB</small>
+                    <input type="file" name="file" class="d-none" id="importFile" accept=".zip,.tar" onchange="document.getElementById('fileName').textContent = this.files[0] ? this.files[0].name : '未选择文件'">
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">已选择: </small>
+                    <small id="fileName" class="fw-bold">未选择文件</small>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">导入方式</label>
+                <div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" value="overwrite" id="mode_overwrite">
+                        <label class="form-check-label" for="mode_overwrite">覆盖（同名模板将被替换）</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" value="skip" id="mode_skip" checked>
+                        <label class="form-check-label" for="mode_skip">跳过（同名模板保持不变）</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" value="merge" id="mode_merge">
+                        <label class="form-check-label" for="mode_merge">合并（同名模板合并配置）</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="import_settings" value="1" id="import_settings" checked>
+                    <label class="form-check-label" for="import_settings">同时导入模板设置（配置参数）</label>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>上传导入</button>
+                <a href="/admin/template/index" class="btn btn-outline-secondary">取消返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#importForm').on('submit', function(e) {
+    e.preventDefault();
+    var file = document.getElementById('importFile').files[0];
+    if (!file) {
+        showToast('请选择要导入的文件', 'warning');
+        return;
+    }
+    showToast('正在导入，请稍候...', 'info');
+    this.submit();
+});
+</script>
+{/block}

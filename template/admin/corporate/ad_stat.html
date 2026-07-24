@@ -1,0 +1,48 @@
+{extend name="layout" /}
+
+{block name="title"}广告统计{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">运营管理</li>
+<li class="breadcrumb-item"><a href="/admin/ad/index">广告管理</a></li>
+<li class="breadcrumb-item active">广告统计</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>广告效果统计</span>
+        <small class="text-muted">{$start_date} ~ {$end_date}</small>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>日期</th>
+                    <th>展示次数</th>
+                    <th>点击次数</th>
+                    <th>点击率</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="stats" id="vo"}
+                <tr>
+                    <td>{$vo.stat_date}</td>
+                    <td>{$vo.views}</td>
+                    <td>{$vo.clicks}</td>
+                    <td>
+                        {if condition="$vo.views > 0"}
+                        {php}$rate = round($vo['clicks'] / $vo['views'] * 100, 2);{/php}
+                        {$rate}%
+                        {else /}0%{/if}
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="stats"}
+                <tr><td colspan="4" class="text-center text-muted py-4">暂无统计数据</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

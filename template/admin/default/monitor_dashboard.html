@@ -1,0 +1,64 @@
+{extend name="/layout" /}
+{block name="title"}系统监控 - AI-CMS{/block}
+{block name="content"}
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center"><h6 class="text-muted">CPU</h6><h3 class="mb-0">{if ($cpu.status??'')=='ok'}{$cpu.value??'--'}%{else}--{/if}</h3><small class="text-{if ($cpu.status??'')=='ok'}success{else}warning{/if}">{if ($cpu.status??'')=='ok'}正常{else}无法获取{/if}</small></div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center"><h6 class="text-muted">内存</h6><h3 class="mb-0">{if ($memory.status??'')=='ok'}{$memory.value??'--'}{else}--{/if}</h3><small class="text-{if ($memory.status??'')=='ok'}success{else}warning{/if}">{if ($memory.status??'')=='ok'}正常{else}无法获取{/if}</small></div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center"><h6 class="text-muted">磁盘</h6><h3 class="mb-0">{if ($disk.status??'')=='ok'}{$disk.value??'--'}{else}--{/if}</h3><small class="text-{if ($disk.status??'')=='ok'}success{else}warning{/if}">{if ($disk.status??'')=='ok'}正常{else}无法获取{/if}</small></div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center"><h6 class="text-muted">负载</h6><h3 class="mb-0">{if ($load.status??'')=='ok'}{$load.value??'--'}{else}--{/if}</h3><small class="text-{if ($load.status??'')=='ok'}success{else}warning{/if}">{if ($load.status??'')=='ok'}正常{else}无法获取{/if}</small></div></div>
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card"><div class="card-header"><h6 class="mb-0">PHP 环境</h6></div>
+            <table class="table table-sm mb-0"><tbody>
+                {php}$php = is_array($php) ? $php : [];{/php}
+                <tr><td width="140">版本</td><td>{$php.version??'--'}</td></tr>
+                <tr><td>SAPI</td><td>{$php.sapi??'--'}</td></tr>
+                <tr><td>最大执行时间</td><td>{$php.max_execution_time??'--'}s</td></tr>
+                <tr><td>内存限制</td><td>{$php.memory_limit??'--'}</td></tr>
+                <tr><td>上传限制</td><td>{$php.upload_max_filesize??'--'}</td></tr>
+                <tr><td>OPcache</td><td><span class="badge bg-{if $php.opcache_enabled??false}success{else}secondary{/if}">{if $php.opcache_enabled??false}已启用{else}未启用{/if}</span></td></tr>
+            </tbody></table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card"><div class="card-header"><h6 class="mb-0">MySQL</h6></div>
+            <table class="table table-sm mb-0"><tbody>
+                <tr><td width="140">版本</td><td>{$mysql.version??'--'}</td></tr>
+                <tr><td>连接数</td><td>{if is_array($mysql.connections??null)}{$mysql.connections.threads_connected??0}{else}{$mysql.connections??'--'}{/if}</td></tr>
+                <tr><td>数据表数</td><td>{if is_array($mysql.tables??null)}{:count($mysql.tables)}{else}{$mysql.tables??'--'}{/if}</td></tr>
+                <tr><td>慢查询</td><td>{if is_array($mysql.slow_queries??null)}{$mysql.slow_queries.count??0}{else}{$mysql.slow_queries??'--'}{/if}</td></tr>
+            </tbody></table>
+        </div>
+        <div class="card mt-3"><div class="card-header"><h6 class="mb-0">缓存（{$cache.driver??'--'}）</h6></div>
+            <table class="table table-sm mb-0"><tbody>
+                {if ($cache.driver??'')=='redis'}
+                <tr><td width="140">内存使用</td><td>{$cache.used_memory??'--'}</td></tr>
+                <tr><td>命中率</td><td>{$cache.hit_rate??'--'}%</td></tr>
+                <tr><td>未命中</td><td>{$cache.misses??'--'}</td></tr>
+                {else}
+                <tr><td colspan="2"><span class="badge bg-{if ($cache.status??'')=='connected'}success{else}warning{/if}">{$cache.status??'unknown'}</span></td></tr>
+                {/if}
+            </tbody></table>
+        </div>
+    </div>
+</div>
+<div class="card mt-3">
+    <div class="card-header"><h6 class="mb-0">运行时日志</h6></div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4"><strong>日志文件数：</strong>{:is_array($logs.total_files??null) ? 0 : ($logs.total_files ?? 0)}</div>
+            <div class="col-md-4"><strong>总大小：</strong>{:is_array($logs.total_size??null) ? '0B' : ($logs.total_size ?? '0B')}</div>
+            <div class="col-md-4"><strong>近期错误：</strong>{:is_array($logs.recent_errors??null) ? count($logs.recent_errors ?? []) . ' 条' : (($logs.recent_errors ?? 0) . ' 条')}</div>
+        </div>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,25 @@
+﻿{
+    "name": "博客文艺清新",
+    "description": "适用于个人博客，文艺清新风格，适合文字创作。绿色系主色调，单列阅读布局。",
+    "author": "八界AI",
+    "version": "1.0.0",
+    "industry": "blog",
+    "style_tag": "文艺清新",
+    "supports": ["pc", "mobile"],
+    "colors": {
+        "primary": "#16a34a",
+        "secondary": "#65a30d",
+        "bg": "#fefce8",
+        "bg_secondary": "#fef9c3",
+        "text": "#292524",
+        "text_secondary": "#78716c",
+        "border": "#d9f99d",
+        "accent": "#84cc16"
+    },
+    "options": {
+        "show_breadcrumb": false,
+        "show_sidebar": true,
+        "hero_enabled": false,
+        "infos_per_page": 10
+    }
+}

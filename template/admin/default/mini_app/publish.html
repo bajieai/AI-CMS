@@ -1,0 +1,169 @@
+{extend name="layout" /}
+
+{block name="title"}小程序发布管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">小程序管理</li>
+<li class="breadcrumb-item active">发布管理</li>
+{/block}
+
+{block name="content"}
+<!-- 发布状态 -->
+<div class="card mb-4">
+    <div class="card-header"><i class="bi bi-cloud-upload me-1"></i>发布状态</div>
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                {if condition="$publish.status == 'published'"}
+                    <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>已发布</span>
+                {elseif condition="$publish.status == 'uploading'"}
+                    <span class="badge bg-warning text-dark fs-6"><i class="bi bi-hourglass-split me-1"></i>上传中</span>
+                {elseif condition="$publish.status == 'reviewing'"}
+                    <span class="badge bg-info fs-6"><i class="bi bi-eye me-1"></i>审核中</span>
+                {else/}
+                    <span class="badge bg-secondary fs-6"><i class="bi bi-circle me-1"></i>未发布</span>
+                {/if}
+                <span class="ms-3 text-muted small">
+                    {if condition="$publish.last_version"}版本 {$publish.last_version}{/if}
+                    {if condition="$publish.last_time"} · {$publish.last_time|date='Y-m-d H:i'}{/if}
+                </span>
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="uploadCode()">
+                    <i class="bi bi-cloud-arrow-up me-1"></i>上传代码
+                </button>
+                <button type="button" class="btn btn-outline-info btn-sm" onclick="checkStatus()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>刷新状态
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- 版本历史 -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-clock-history me-1"></i>版本历史</div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr><th width="80">版本</th><th width="100">类型</th><th>说明</th><th width="140">上传时间</th><th width="100">状态</th><th width="80">操作</th></tr>
+                    </thead>
+                    <tbody>
+                        {volist name="versions" id="ver"}
+                        <tr>
+                            <td><span class="badge bg-primary">v{$ver.version}</span></td>
+                            <td>
+                                {if condition="$ver.type == 'major'"}<span class="badge bg-danger">大版本</span>{/if}
+                                {if condition="$ver.type == 'minor'"}<span class="badge bg-warning text-dark">小版本</span>{/if}
+                                {if condition="$ver.type == 'patch'"}<span class="badge bg-info">补丁</span>{/if}
+                            </td>
+                            <td class="small">{$ver.description}</td>
+                            <td class="small text-muted">{$ver.create_time|date='Y-m-d H:i'}</td>
+                            <td>
+                                {if condition="$ver.status == 1"}<span class="badge bg-success">已发布</span>{/if}
+                                {if condition="$ver.status == 0"}<span class="badge bg-warning text-dark">待审核</span>{/if}
+                                {if condition="$ver.status == 2"}<span class="badge bg-danger">被拒绝</span>{/if}
+                                {if condition="$ver.status == -1"}<span class="badge bg-secondary">已撤回</span>{/if}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-info" title="查看详情" onclick="viewVersion({$ver.id})"><i class="bi bi-eye"></i></button>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {empty name="versions"}<tr><td colspan="6" class="text-center text-muted py-4">暂无版本记录</td></tr>{/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计数据 -->
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-bar-chart me-1"></i>统计数据</div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-6"><div class="p-3 rounded" style="background:#f0f7ff"><div class="text-muted small">总访问量</div><div style="font-size:1.5rem;font-weight:700;color:#4facfe">{$stats.visits ?? 0}</div></div></div>
+                    <div class="col-6"><div class="p-3 rounded" style="background:#f0fff4"><div class="text-muted small">用户数</div><div style="font-size:1.5rem;font-weight:700;color:#43e97b">{$stats.users ?? 0}</div></div></div>
+                    <div class="col-6"><div class="p-3 rounded" style="background:#fff4f0"><div class="text-muted small">页面数</div><div style="font-size:1.5rem;font-weight:700;color:#f5576c">{$stats.pages ?? 0}</div></div></div>
+                    <div class="col-6"><div class="p-3 rounded" style="background:#f8f0ff"><div class="text-muted small">内容数</div><div style="font-size:1.5rem;font-weight:700;color:#667eea">{$stats.contents ?? 0}</div></div></div>
+                </div>
+            </div>
+        </div>
+        <!-- 今日数据 -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-calendar-day me-1"></i>今日数据</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted small">今日访问</span><span class="fw-bold">{$stats.today_visits ?? 0}</span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted small">今日新增用户</span><span class="fw-bold">{$stats.today_new_users ?? 0}</span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted small">今日分享次数</span><span class="fw-bold">{$stats.today_shares ?? 0}</span></div>
+                <div class="d-flex justify-content-between"><span class="text-muted small">在线峰值</span><span class="fw-bold">{$stats.peak_online ?? 0}</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 上传代码弹窗 -->
+<div class="modal fade" id="uploadModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i>上传代码</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">版本号</label><input type="text" id="uploadVersion" class="form-control" placeholder="如：1.0.0" value="{$next_version ?? '1.0.0'}"></div>
+            <div class="mb-3"><label class="form-label">版本类型</label><select id="uploadType" class="form-select"><option value="patch">补丁（Bug修复）</option><option value="minor">小版本（新功能）</option><option value="major">大版本（重大更新）</option></select></div>
+            <div class="mb-3"><label class="form-label">版本说明</label><textarea id="uploadDesc" class="form-control" rows="3" placeholder="描述本次更新内容..."></textarea></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary btn-sm" onclick="confirmUpload()"><i class="bi bi-cloud-arrow-up me-1"></i>上传</button></div>
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var uploadModal = null;
+$(function() { uploadModal = new bootstrap.Modal(document.getElementById('uploadModal')); });
+
+function uploadCode() {
+    $('#uploadDesc').val('');
+    uploadModal.show();
+}
+
+function confirmUpload() {
+    var version = $('#uploadVersion').val().trim();
+    var desc = $('#uploadDesc').val().trim();
+    if (!version) { showToast('请输入版本号', 'warning'); return; }
+    if (!desc) { showToast('请填写版本说明', 'warning'); return; }
+    $.post('/admin/mini_app/uploadCode', {
+        version: version, type: $('#uploadType').val(), description: desc
+    }, function(res) {
+        if (res.success) {
+            showToast('代码上传成功，等待审核', 'success');
+            uploadModal.hide();
+            setTimeout(function() { location.reload(); }, 1500);
+        } else {
+            showToast(res.msg || '上传失败', 'danger');
+        }
+    });
+}
+
+function checkStatus() {
+    $.post('/admin/mini_app/checkStatus', {}, function(res) {
+        if (res.success) {
+            showToast('状态已刷新', 'success');
+            setTimeout(function() { location.reload(); }, 800);
+        } else {
+            showToast(res.msg || '刷新失败', 'danger');
+        }
+    });
+}
+
+function viewVersion(id) {
+    $.get('/admin/mini_app/versionDetail?id=' + id, function(res) {
+        if (res.success) {
+            alert('版本：v' + res.data.version + '\n说明：' + res.data.description + '\n上传时间：' + res.data.create_time + '\n状态：' + res.data.status_label);
+        }
+    });
+}
+</script>
+{/block}

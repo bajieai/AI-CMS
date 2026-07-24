@@ -1,0 +1,34 @@
+{extend name="layout" /}
+{block name="title"}开发者审核 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-clipboard-check"></i> 开发者审核</h5></div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <tr><th width="120">开发者名称</th><td>{$info.developer_name|default=''}</td></tr>
+            <tr><th>邮箱</th><td>{$info.email|default=''}</td></tr>
+            <tr><th>类型</th><td>{$info.developer_type|default=''}</td></tr>
+            <tr><th>公司/组织</th><td>{$info.company|default='-'}</td></tr>
+            <tr><th>联系电话</th><td>{$info.phone|default='-'}</td></tr>
+            <tr><th>申请说明</th><td>{$info.description|default='-'}</td></tr>
+            <tr><th>当前状态</th><td>{if condition="$info.status eq 'approved'"}<span class="badge bg-success">已认证</span>{elseif condition="$info.status eq 'pending'"/}<span class="badge bg-warning">待审核</span>{else/}<span class="badge bg-danger">已拒绝</span>{/if}</td></tr>
+        </table>
+        <form method="post" action="{:url('/admin/platform_developer/audit')}">
+            <input type="hidden" name="developer_id" value="{$developer_id}">
+            <div class="mb-3">
+                <label class="form-label">审核结果</label>
+                <select name="audit_result" class="form-select">
+                    <option value="approved">通过</option>
+                    <option value="rejected">拒绝</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">审核意见</label>
+                <textarea name="audit_remark" class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">提交审核</button>
+            <a href="{:url('/admin/platform_developer/index')}" class="btn btn-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{/block}

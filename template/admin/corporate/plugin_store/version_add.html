@@ -1,0 +1,55 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-plus-lg me-2"></i>新增版本 - {$package.name}</h4>
+    <div class="card">
+        <div class="card-body">
+            <form id="verForm" method="post" action="/admin/plugin_store/versionAdd/{$package.id}">
+                <div class="mb-3">
+                    <label class="form-label">版本号 <span class="text-danger">*</span></label>
+                    <input type="text" name="version" class="form-control" placeholder="如: 1.0.1" required maxlength="32">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">文件路径 <span class="text-danger">*</span></label>
+                    <input type="text" name="file_path" class="form-control" placeholder="如: upload/plugin/20260101/xxx.zip" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">文件哈希 (SHA256)</label>
+                    <input type="text" name="file_hash" class="form-control" placeholder="可选，用于安全校验">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">签名</label>
+                    <input type="text" name="signature" class="form-control" placeholder="可选，HMAC-SHA256签名">
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_current" value="1" id="curCheck">
+                        <label class="form-check-label" for="curCheck">设为当前版本</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">更新说明</label>
+                    <textarea name="changelog" class="form-control" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/admin/plugin_store/versions/{$package.id}" class="btn btn-outline-secondary">返回</a>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+document.getElementById('verForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(this.action, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    }).then(r => r.json()).then(res => {
+        layer.msg(res.msg);
+        if (res.code === 0) setTimeout(() => location.href = '/admin/plugin_store/versions/' + {$package.id}, 800);
+    });
+});
+</script>
+{/block}

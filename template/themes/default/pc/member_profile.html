@@ -1,0 +1,87 @@
+{extend name="layout" /}
+
+{block name="title"}个人中心{/block}
+
+{block name="content"}
+
+<!-- 头像区 -->
+<div style="text-align:center;padding:24px 0;margin-bottom:0;">
+    <div style="position:relative;display:inline-block;width:88px;height:88px;border-radius:50%;overflow:hidden;border:3px solid #e2e8f0;">
+        <img id="avatarPreview" src="{$member.avatar|default='/assets/img/default-avatar.png'}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/img/default-avatar.png'">
+    </div>
+    <div style="margin-top:10px;">
+        <button type="button" class="uc-action-link" onclick="document.getElementById('avatarInput').click()" style="font-size:12px;padding:5px 14px;background:#e2e8f0;color:#475569 !important;">
+            <i class="bi bi-camera me-1"></i>更换头像
+        </button>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+    </div>
+    <input type="hidden" name="avatar" id="avatarField" value="{$member.avatar|default=''}">
+    <div style="margin-top:8px;font-size:16px;font-weight:600;color:#1e293b;">{$member.nickname|default=$member.username}</div>
+    <div style="font-size:12px;color:#94a3b8;">{$member.email}</div>
+</div>
+
+<!-- 编辑表单 -->
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:24px;">
+    <div class="uc-section-header" style="padding:0 0 14px;margin-bottom:16px;">
+        <span class="uc-section-title"><i class="bi bi-gear"></i>基本信息</span>
+    </div>
+    <form id="profileForm">
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;">用户名（不可修改）</label>
+            <input type="text" class="form-control" value="{$member.username}" disabled style="border-radius:10px;background:#f8fafc;border:1.5px solid #e2e8f0;padding:10px 14px;font-size:14px;">
+        </div>
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;">昵称</label>
+            <input type="text" name="nickname" class="form-control" value="{$member.nickname}" style="border-radius:10px;border:1.5px solid #e2e8f0;padding:10px 14px;font-size:14px;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;">邮箱（不可修改）</label>
+            <input type="email" class="form-control" value="{$member.email}" disabled style="border-radius:10px;background:#f8fafc;border:1.5px solid #e2e8f0;padding:10px 14px;font-size:14px;">
+        </div>
+        <button type="submit" class="uc-signin-btn" style="width:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:12px;font-size:14px;padding:12px;">
+            <i class="bi bi-check-lg"></i>保存修改
+        </button>
+    </form>
+    <div style="text-align:center;margin-top:18px;padding-top:16px;border-top:1px solid #f0f0f0;">
+        <a href="/member/logout" style="color:#ef4444;font-size:13px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+            <i class="bi bi-box-arrow-right"></i>退出登录
+        </a>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+function uploadAvatar(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var formData = new FormData();
+    formData.append('file', file);
+    var token = $('meta[name="csrf-token"]').attr('content');
+    formData.append('__token__', token);
+    $.ajax({
+        url: '/member/uploadAvatar',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {'X-CSRF-TOKEN': token},
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.url) {
+                $('#avatarField').val(res.data.url);
+                $('#avatarPreview').attr('src', res.data.url);
+                showToast('头像上传成功', 'success');
+            } else { showToast(res.msg || '上传失败', 'danger'); }
+        },
+        error: function() { showToast('上传失败', 'danger'); }
+    });
+    input.value = '';
+}
+$('#profileForm').on('submit', function(e) {
+    e.preventDefault();
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({url:'/member/profile',type:'POST',dataType:'json',data:$(this).serialize() + '&__token__=' + token,headers:{'X-CSRF-TOKEN':token},success:function(res){alert(res.msg || '已更新');}});
+});
+</script>
+{/block}

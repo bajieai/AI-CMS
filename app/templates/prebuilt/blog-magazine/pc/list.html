@@ -1,0 +1,47 @@
+﻿{extend name="pc/layout" /}
+
+{block name="main"}
+<section class="list-hero">
+    <div class="container">
+        <h1 class="list-title">文章列表</h1>
+        <p class="list-desc">每一篇文章都是一次心灵的旅行</p>
+    </div>
+</section>
+
+<section class="list-section">
+    <div class="container">
+        <div class="list-content">
+            <div class="content-list">
+                {volist name="contents" id="content" empty="暂无文章"}
+                <article class="list-item">
+                    <div class="item-image">
+                        <img src="/assets/placeholder/content-{$i}.jpg" alt="{$content.title}">
+                    </div>
+                    <div class="item-body">
+                        <h2 class="item-title"><a href="/content/{$content.id}">{$content.title}</a></h2>
+                        <p class="item-excerpt">{$content.summary|default=''}</p>
+                        <div class="item-meta">
+                            <span class="meta-date">{$content.create_time|date='Y-m-d',###}</span>
+                            <span class="meta-category">{$content.category|default='随笔'}</span>
+                            <span class="meta-views">{$content.views|default=0} 阅读</span>
+                        </div>
+                    </div>
+                </article>
+                {/volist}
+            </div>
+
+            <div class="pagination">
+                {if condition="$page_count > 1"}
+                <div class="pagination-inner">
+                    <a href="/list?page=1" class="page-link">首页</a>
+                    {for start="1" end="$page_count+1" name="i"}
+                    <a href="/list?page={$i}" class="page-link {if condition='$i == $current_page'}active{/if}">{$i}</a>
+                    {/for}
+                    <a href="/list?page={$page_count}" class="page-link">末页</a>
+                </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

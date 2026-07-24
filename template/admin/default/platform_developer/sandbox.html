@@ -1,0 +1,36 @@
+{extend name="layout" /}
+{block name="title"}沙箱环境 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-terminal"></i> 沙箱环境</h5>
+        <a href="javascript:void(0)" onclick="resetSandbox()" class="btn btn-outline-warning btn-sm"><i class="bi bi-arrow-clockwise"></i> 重置沙箱</a>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-4"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">沙箱状态</h6><h4>{if condition="$sandbox.status eq 'active'"}<span class="text-success">运行中</span>{else/}<span class="text-danger">已停止</span>{/if}</h4></div></div></div>
+            <div class="col-md-4"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">API调用次数</h6><h4>{$sandbox.api_calls|default=0}</h4></div></div></div>
+            <div class="col-md-4"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">测试应用数</h6><h4>{$sandbox.app_count|default=0}</h4></div></div></div>
+        </div>
+        <h6><i class="bi bi-list-ul"></i> 沙箱日志</h6>
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>时间</th><th>操作</th><th>详情</th><th>状态</th></tr></thead>
+                <tbody>
+                    {volist name="logs" id="vo"}
+                    <tr><td>{$vo.create_time}</td><td>{$vo.action}</td><td>{$vo.detail}</td><td>{if condition="$vo.status eq 1"}<span class="badge bg-success">成功</span>{else/}<span class="badge bg-danger">失败</span>{/if}</td></tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+function resetSandbox() {
+    if(!confirm('确定重置沙箱环境？所有测试数据将被清除。')) return;
+    $.post('{:url("/admin/platform_developer/resetSandbox")}', {developer_id: {$developer_id}}, function(res){
+        if(res.code === 0) { alert('沙箱已重置'); location.reload(); } else alert(res.msg);
+    });
+}
+</script>
+{/block}

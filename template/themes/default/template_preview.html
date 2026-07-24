@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>模板预览 - 八界AI-CMS</title>
+</head>
+<body>
+    <h1>{{ template.name }}</h1>
+    <p>{{ template.description }}</p>
+    {% if screenshots %}
+    <div class="screenshots">
+        {% for img in screenshots %}<img src="{{ img }}" style="max-width:200px;margin:5px;"/>{% endfor %}
+    </div>
+    {% endif %}
+    {% if iframe_url %}
+    <iframe src="{{ iframe_url }}" style="width:100%;height:600px;border:1px solid #ddd;"></iframe>
+    {% endif %}
+    <div class="share">
+        <a href="{{ share.wechat }}">微信</a>
+        <a href="{{ share.weibo }}">微博</a>
+        <a href="{{ share.qq }}">QQ</a>
+    </div>
+</body>
+</html>

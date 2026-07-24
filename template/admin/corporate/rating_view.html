@@ -1,0 +1,264 @@
+{extend name="layout" /}
+
+{block name="title"}评价详情{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/dashboard/index">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/rating/index">评价管理</a></li>
+<li class="breadcrumb-item active">评价详情</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-star"></i> 评价详情 #{$rating.id}</h5>
+                <a href="/admin/rating/index" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> 返回列表
+                </a>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th width="120">ID</th>
+                        <td>{$rating.id}</td>
+                    </tr>
+                    <tr>
+                        <th>内容</th>
+                        <td>
+                            <a href="/home/content/view?id={$rating.content_id}" target="_blank">
+                                {$rating.content_title ?? '内容#'.$rating.content_id}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>评分</th>
+                        <td>
+                            <span class="text-warning">
+                                {php}
+                                for ($i = 1; $i <= $rating['rating']; $i++) {
+                                    echo '<i class="bi bi-star-fill"></i>';
+                                }
+                                for ($i = $rating['rating'] + 1; $i <= 5; $i++) {
+                                    echo '<i class="bi bi-star"></i>';
+                                }
+                                {/php}
+                                <span class="ms-2">{$rating.rating} 分</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>评价标题</th>
+                        <td>{$rating.title ?: '-'}</td>
+                    </tr>
+                    <tr>
+                        <th>评价内容</th>
+                        <td>{$rating.content ?: '-'}</td>
+                    </tr>
+                    <tr>
+                        <th>评价会员</th>
+                        <td>
+                            {if condition="$rating.is_anonymous"}
+                            <span class="text-muted">匿名用户</span>
+                            {else /}
+                            <a href="/admin/member/edit?id={$rating.member_id}">
+                                {$rating.member_nickname ?? '会员#'.$rating.member_id}
+                            </a>
+                            {/if}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>点赞数</th>
+                        <td><span class="badge bg-secondary">{$rating.like_count ?? 0}</span></td>
+                    </tr>
+                    <tr>
+                        <th>回复数</th>
+                        <td><span class="badge bg-info">{$rating.reply_count ?? 0}</span></td>
+                    </tr>
+                    <tr>
+                        <th>有媒体</th>
+                        <td>
+                            {if condition="$rating.has_media"}
+                            <span class="badge bg-success">是</span>
+                            {else /}
+                            <span class="badge bg-secondary">否</span>
+                            {/if}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>状态</th>
+                        <td>
+                            {if condition="$rating.status == 0"}
+                            <span class="badge bg-warning">待审核</span>
+                            {elseif condition="$rating.status == 1"}
+                            <span class="badge bg-success">已通过</span>
+                            {elseif condition="$rating.status == 2"}
+                            <span class="badge bg-danger">已拒绝</span>
+                            {/if}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>创建时间</th>
+                        <td>{$rating.create_time|date='Y-m-d H:i:s'}</td>
+                    </tr>
+                    <tr>
+                        <th>更新时间</th>
+                        <td>{$rating.update_time ? date('Y-m-d H:i:s', $rating.update_time) : '-'}</td>
+                    </tr>
+                </table>
+
+                {if condition="$rating.has_media && $rating.media_urls"}
+                <div class="mt-3">
+                    <h6>媒体文件</h6>
+                    <div class="d-flex flex-wrap">
+                        {foreach $rating.media_urls as $url}
+                        <a href="{$url}" target="_blank" class="me-2 mb-2">
+                            {if condition="in_array(strtolower(pathinfo($url, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp'])"}
+                            <img src="{$url}" class="img-thumbnail" style="max-width:200px;max-height:200px;">
+                            {else /}
+                            <span class="badge bg-primary">{$url}</span>
+                            {/if}
+                        </a>
+                        {/foreach}
+                    </div>
+                </div>
+                {/if}
+
+                <!-- 回复管理 - V2.9.1 M15b -->
+                <div class="mt-4">
+                    <h6><i class="bi bi-chat-dots me-1"></i>管理员回复</h6>
+                    <form id="replyForm" class="mb-3">
+                        <input type="hidden" name="rating_id" value="{$rating.id}">
+                        <div class="input-group">
+                            <input type="text" name="content" class="form-control" placeholder="输入回复内容..." required>
+                            <button type="submit" class="btn btn-primary">发送回复</button>
+                        </div>
+                    </form>
+                    <div id="replyList">
+                        {if condition="!empty($rating.replies)"}
+                        {foreach $rating.replies as $reply}
+                        <div class="card mb-2" id="reply-{$reply.id}">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="badge bg-primary me-1">管理员</span>
+                                        <small class="text-muted">{$reply.create_time|date='Y-m-d H:i'}</small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteReply({$reply.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <p class="mb-0 mt-1">{$reply.content}</p>
+                            </div>
+                        </div>
+                        {/foreach}
+                        {else}
+                        <p class="text-muted small">暂无回复</p>
+                        {/if}
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    {if condition="$rating.status == 0"}
+                    <button onclick="approveRating({$rating.id})" class="btn btn-success">
+                        <i class="bi bi-check"></i> 通过
+                    </button>
+                    <button onclick="rejectRating({$rating.id})" class="btn btn-warning">
+                        <i class="bi bi-x"></i> 拒绝
+                    </button>
+                    {/if}
+                    <button onclick="deleteRating({$rating.id})" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> 删除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">快捷操作</h6>
+            </div>
+            <div class="card-body">
+                <a href="/admin/rating/index?status=0" class="btn btn-warning w-100 mb-2">
+                    <i class="bi bi-hourglass"></i> 待审核评价
+                </a>
+                <a href="/admin/rating/index?status=1" class="btn btn-success w-100 mb-2">
+                    <i class="bi bi-check-circle"></i> 已通过评价
+                </a>
+                <a href="/admin/content/edit?id={$rating.content_id}" class="btn btn-info w-100">
+                    <i class="bi bi-pencil"></i> 编辑内容
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+// 回复评价 - V2.9.1 M15b
+$('#replyForm').on('submit', function(e) {
+    e.preventDefault();
+    var content = $(this).find('input[name=content]').val();
+    if (!content.trim()) {
+        alert('请输入回复内容');
+        return;
+    }
+    $.post('/admin/rating/reply', $(this).serialize(), function(res) {
+        if (res.code === 1) {
+            location.reload();
+        } else {
+            alert(res.msg || '回复失败');
+        }
+    }, 'json');
+});
+
+// 删除回复 - V2.9.1 M15b
+function deleteReply(replyId) {
+    if (!confirm('确定删除此回复？')) return;
+    $.post('/admin/rating/deleteReply', {reply_id: replyId}, function(res) {
+        if (res.code === 1) {
+            $('#reply-' + replyId).remove();
+        } else {
+            alert(res.msg || '删除失败');
+        }
+    }, 'json');
+}
+
+function approveRating(id) {
+    if (!confirm('确定通过此评价？')) return;
+    $.post('/admin/rating/approve', {id: id}, function(res) {
+        if (res.code === 1) {
+            location.reload();
+        } else {
+            alert(res.msg || '操作失败');
+        }
+    });
+}
+
+function rejectRating(id) {
+    if (!confirm('确定拒绝此评价？')) return;
+    $.post('/admin/rating/reject', {id: id}, function(res) {
+        if (res.code === 1) {
+            location.reload();
+        } else {
+            alert(res.msg || '操作失败');
+        }
+    });
+}
+
+function deleteRating(id) {
+    if (!confirm('确定删除此评价？删除后不可恢复！')) return;
+    $.post('/admin/rating/delete', {id: id}, function(res) {
+        if (res.code === 1) {
+            window.location.href = '/admin/rating/index';
+        } else {
+            alert(res.msg || '删除失败');
+        }
+    });
+}
+</script>
+{/block}

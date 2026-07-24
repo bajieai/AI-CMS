@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site_title|default='文艺清新博客'}</title>
+    <meta name="description" content="{$site_description|default='一个记录文字与思考的个人博客'}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="icon" href="/assets/placeholder/favicon.ico">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="container header__inner">
+            <a href="/" class="header__logo">
+                <span class="header__logo-icon">🌿</span>
+                <span class="header__logo-text">{$site_name|default='文艺清新'}</span>
+            </a>
+            <nav class="header__nav" id="nav">
+                <ul class="header__nav-list">
+                    <li class="header__nav-item"><a href="/" class="header__nav-link {if condition="$current_page == 'index'"}active{/if}">首页</a></li>
+                    <li class="header__nav-item"><a href="/list" class="header__nav-link {if condition="$current_page == 'list'"}active{/if}">文章</a></li>
+                    <li class="header__nav-item"><a href="/about" class="header__nav-link {if condition="$current_page == 'about'"}active{/if}">关于</a></li>
+                </ul>
+            </nav>
+            <button class="header__menu-btn" id="menuBtn" aria-label="菜单">
+                <span class="header__menu-line"></span>
+                <span class="header__menu-line"></span>
+                <span class="header__menu-line"></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main">
+        {block name="content"}默认内容{/block}
+    </main>
+
+    <footer class="footer">
+        <div class="container footer__inner">
+            <p class="footer__text">© {$year|date='Y'} {$site_name|default='文艺清新博客'}. All rights reserved.</p>
+            <p class="footer__text">Powered by AI-CMS</p>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+﻿{extend name="/layout" /}
+{block name="title"}{$plugin.name} 配置 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/plugin/index">插件管理</a></li>
+            <li class="breadcrumb-item active">{$plugin.name} 配置</li>
+        </ol>
+    </nav>
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-gear"></i> {$plugin.name} <span class="text-muted">v{$plugin.version}</span>
+        </div>
+        <div class="card-body">
+            <form id="configForm" method="post" action="/admin/plugin/config?code={$plugin.code}">
+                {volist name="schema" id="item" key="key"}
+                <div class="mb-3 row">
+                    <label class="col-sm-2 col-form-label">{$item.label??$key}</label>
+                    <div class="col-sm-10">
+                        {switch $item.type}
+                        {case textarea}
+                        <textarea class="form-control" name="config[{$key}]" rows="3">{$plugin.config[$key]??$item.default??''}</textarea>
+                        {/case}
+                        {case select}
+                        <select class="form-select" name="config[{$key}]">
+                            {volist name="item.options" id="opt" key="optKey"}
+                            <option value="{$optKey}" {if ($plugin.config[$key]??$item.default??'') == $optKey}selected{/if}>{$opt}</option>
+                            {/volist}
+                        </select>
+                        {/case}
+                        {default /}
+                        <input type="text" class="form-control" name="config[{$key}]" value="{$plugin.config[$key]??$item.default??''}">
+                        {/switch}
+                        {if $item.description}
+                        <div class="form-text text-muted">{$item.description}</div>
+                        {/if}
+                    </div>
+                </div>
+                {/volist}
+                {if empty($schema)}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-slash-circle" style="font-size:2rem;"></i>
+                    <p class="mt-2">此插件暂无配置项</p>
+                </div>
+                {/if}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">保存配置</button>
+                    <a href="/admin/plugin/index" class="btn btn-outline-secondary">返回列表</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+{/block}
+{block name="js"}
+<script>
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post($(this).attr('action'), $(this).serialize(), function(res) {
+        alert(res.msg);
+        if (res.code === 0) {
+            location.reload();
+        }
+    });
+});
+</script>
+{/block}

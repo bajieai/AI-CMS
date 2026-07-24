@@ -1,0 +1,135 @@
+﻿{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_template/index">AI中心</a></li>
+<li class="breadcrumb-item"><a href="/admin/ai_template/index">AI内容模板</a></li>
+<li class="breadcrumb-item active">{if condition="$id > 0"}编辑模板{else /}新建模板{/if}</li>
+{/block}
+{block name="css"}
+<style>.nav-tabs-custom .nav-link{color:var(--text-secondary);font-weight:500;font-size:13px;padding:10px 16px;border-bottom:2px solid transparent;background:none;}
+.nav-tabs-custom .nav-link:hover{color:var(--primary);}.nav-tabs-custom .nav-link.active{color:var(--primary);font-weight:600;border-color:var(--primary);}
+.field-row{animation:fadeInUp .2s ease-out;}@keyframes fadeInUp{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}</style>
+{/block}
+{block name="content"}
+<h5 class="mb-3"><i class="bi bi-gear me-2"></i>{if condition="$id > 0"}编辑模板{else /}新建模板{/if}</h5>
+<form id="templateForm" method="post" action="/admin/ai_template/save" autocomplete="off">
+<input type="hidden" name="id" value="{$id??0}">
+<ul class="nav nav-tabs-custom border-bottom mb-3">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-basic"><i class="bi bi-info-circle me-1"></i>基本信息</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-rules"><i class="bi bi-code-slash me-1"></i>生成规则</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-image"><i class="bi bi-image me-1"></i>配图发布</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-mapping"><i class="bi bi-arrow-left-right me-1"></i>字段映射<span class="badge bg-warning text-dark ms-1 mapping-mode-hint" style="display:none;font-size:10px;">参考示例模式下不适用</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-example"><i class="bi bi-bookmark-star me-1"></i>参考示例</a></li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-basic">
+        <div class="card"><div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-8"><label class="form-label">模板名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" required maxlength="100" value="{$template.name??''}" placeholder="例如：科技资讯文章模板"></div>
+                <div class="col-md-4"><label class="form-label">状态</label>
+                    <select name="status" class="form-select"><option value="1"{if condition="($template.status ?? 1)==1"} selected{/if}>启用</option><option value="0"{if condition="isset($template)&&$template.status==0"} selected{/if}>禁用</option></select></div>
+                <div class="col-12"><label class="form-label">描述</label>
+                    <textarea name="description" class="form-control" rows="2" maxlength="500" placeholder="简要说明此模板的用途...">{$template.description??''}</textarea></div>
+                <!-- V2.9.9: 自然语言描述（AI高层意图） -->
+                <div class="col-12">
+                    <label class="form-label"><i class="bi bi-stars me-1 text-primary"></i>自然语言描述 <span class="badge bg-info text-dark ms-1" style="font-size:10px">V2.9.9</span></label>
+                    <div class="input-group">
+                        <textarea name="nl_description" class="form-control" rows="2" maxlength="2000" placeholder="用自然语言描述模板用途，例如：帮我生成面向B端 SaaS 企业的产品介绍文章模板...">{$template.nl_description??''}</textarea>
+                        <button type="button" class="btn btn-outline-primary" onclick="generateFieldsFromNL()"><i class="bi bi-magic me-1"></i>AI生成字段</button>
+                    </div>
+                    <div class="form-text">AI会根据这段自然语言描述自动理解模板意图</div>
+                </div>
+                <!-- V2.9.9: 模板来源 -->
+                <div class="col-md-4">
+                    <label class="form-label">模板来源</label>
+                    <select name="source" class="form-select">
+                        <option value="custom"{if condition="($template.source ?? 'custom') == 'custom'"} selected{/if}>手动创建</option>
+                        <option value="ai"{if condition="isset($template) && $template.source == 'ai'"} selected{/if}>AI生成</option>
+                        <option value="ai_edit"{if condition="isset($template) && $template.source == 'ai_edit'"} selected{/if}>AI生成+人工编辑</option>
+                    </select>
+                </div>
+                <hr class="my-2">
+                <div class="col-md-6"><label class="form-label">生成模式</label>
+                    <div class="row g-2"><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="generate_mode" value="nlp" id="modeNlp"{if condition="($template.generate_mode ??'nlp')=='nlp'||empty($template)"} checked{/if}><label class="form-check-label" for="modeNlp">NLP 自然语言</label></div></div>
+                        <div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="generate_mode" value="example" id="modeExample"{if condition="isset($template)&&$template.generate_mode=='example'"} checked{/if}><label class="form-check-label" for="modeExample">参考示例</label></div></div></div></div>
+                <div class="col-md-3"><label class="form-label">默认分类</label><select name="cate_id" class="form-select form-select-sm">
+                    <option value="0">-- 不指定 --</option>{volist name="cate_list" id="cate"}<option value="{$cate.id}"{if condition="($template.cate_id ??0)==$cate.id"} selected{/if}>{$cate.name}</option>{/volist}</select></div>
+                <div class="col-md-3"><label class="form-label">AI模型</label><select name="model_id" class="form-select form-select-sm">
+                    <option value="0">-- 默认 --</option>{volist name="model_list" id="model"}<option value="{$model.id}"{if condition="($template.model_id ??0)==$model.id"} selected{/if}>{$model.name} ({$model.provider})</option>{/volist}</select></div>
+                <div class="col-md-4"><label class="form-label">写作风格</label><select name="style" class="form-select">{volist name="style_list" id="st"}<option value="{$st.key}"{if condition="($template.style ??'default')==$st.key"} selected{/if}>{$st.name} - {$st.desc}</option>{/volist}</select></div>
+                <div class="col-md-4"><label class="form-label">默认批量数量</label><input type="number" name="default_batch" class="form-control" min="1" max="100" value="{$template.default_batch??10}"></div>
+                <div class="col-md-4"><label class="form-label">排序权重</label><input type="number" name="sort" class="form-control" value="{$template.sort??0}"></div>
+            </div></div></div>
+    </div>
+    <div class="tab-pane fade" id="tab-rules">
+        <div class="card"><div class="card-body">
+            <div class="mb-3"><label class="form-label">标题生成规则</label><textarea name="title_rule" class="form-control" rows="3" placeholder="例如：标题15-25字，包含核心关键词...">{$template.title_rule??''}</textarea><div class="form-text">用自然语言描述你希望AI生成的标题规则</div></div>
+            <div class="mb-3"><label class="form-label">内容生成规则</label><textarea name="content_rule" class="form-control" rows="5" placeholder="例如：正文1500-2000字，分3-4个段落...">{$template.content_rule??''}</textarea><div class="form-text">用自然语言描述文章结构、字数、风格等要求</div></div>
+            <div class="mb-3"><label class="form-label">关键词提示（逗号分隔）</label><input type="text" name="keyword_hint" class="form-control" maxlength="500" value="{$template.keyword_hint??''}" placeholder="例如：人工智能,科技,未来趋势"></div>
+            <div class="mb-2 d-flex justify-content-between align-items-center"><label class="form-label mb-0 fw-bold"><i class="bi bi-list-ul me-1"></i>自定义字段配置</label><button type="button" class="btn btn-sm btn-outline-primary" onclick="addField()"><i class="bi bi-plus-lg me-1"></i>添加字段</button></div>
+            <div id="fieldsContainer">{php}$fields=isset($template)?$template->fields_array:[];{/php}{if condition="!empty($fields)"}{volist name="fields" id="f"}<div class="field-row row g-2 mb-2 align-items-center">
+                <div class="col-md-3"><input type="text" class="form-control form-control-sm field-name" placeholder="字段名" value="{$f.name??''}"></div>
+                <div class="col-md-3"><select class="form-select form-select-sm field-type"><option value="text"{if condition="$f.type=='text'"} selected{/if}>文本</option><option value="number"{if condition="$f.type=='number'"} selected{/if}>数字</option><option value="select"{if condition="$f.type=='select'"} selected{/if}>选择</option><option value="date"{if condition="$f.type=='date'"} selected{/if}>日期</option></select></div>
+                <div class="col-md-5"><input type="text" class="form-control form-control-sm field-rule" placeholder="生成规则" value="{$f.rule??''}"></div>
+                <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest('.field-row').remove()"><i class="bi bi-x-lg"></i></button></div></div>{/volist}{else /}<div class="text-center py-3 text-secondary small" id="fieldsEmptyHint"><i class="bi bi-info-circle me-1"></i>暂无自定义字段，点击上方按钮添加</div>{/if}</div>
+        </div></div></div>
+    </div>
+    <div class="tab-pane fade" id="tab-image">
+        {php}$imgCfg=isset($template)?$template->image_config_array:['thumb'=>'0','images'=>'0','count'=>0,'source'=>'0'];{/php}
+        <div class="card"><div class="card-body">
+            <h6 class="fw-bold mb-3"><i class="bi bi-image me-2"></i>封面图策略</h6>
+            <div class="row g-2 mb-4"><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[thumb]" value="0" id="thumb0"{if condition="$imgCfg['thumb']=='0'"} checked{/if}><label class="form-check-label" for="thumb0">不上传</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[thumb]" value="1" id="thumb1"{if condition="$imgCfg['thumb']=='1'"} checked{/if}><label class="form-check-label" for="thumb1">AI生成图片</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[thumb]" value="2" id="thumb2"{if condition="$imgCfg['thumb']=='2'"} checked{/if}><label class="form-check-label" for="thumb2">图库中选择</label></div></div></div>
+            <h6 class="fw-bold mb-3"><i class="bi bi-images me-2"></i>正文配图策略</h6>
+            <div class="row g-2 mb-3"><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[images]" value="0" id="img0"{if condition="$imgCfg['images']=='0'"} checked{/if}><label class="form-check-label" for="img0">不配图</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[images]" value="1" id="img1"{if condition="$imgCfg['images']=='1'"} checked{/if}><label class="form-check-label" for="img1">AI自动配图</label></div></div><div class="col-auto"><div class="form-check"><input class="form-check-input" type="radio" name="image_config[images]" value="2" id="img2"{if condition="$imgCfg['images']=='2'"} checked{/if}><label class="form-check-label" for="img2">随机匹配图库</label></div></div></div>
+            <div class="row g-3"><div class="col-md-4"><label class="form-label">配图数量</label><input type="number" name="image_config[count]" class="form-control" min="0" max="20" value="{$imgCfg['count']}"></div>
+                <div class="col-md-4"><label class="form-label">图片来源</label><select name="image_config[source]" class="form-select"><option value="0"{if condition="$imgCfg['source']=='0'"} selected{/if}>外链引用</option><option value="1"{if condition="$imgCfg['source']=='1'"} selected{/if}>下载到本地</option></select></div></div>
+            <hr class="my-4"><h6 class="fw-bold mb-3"><i class="bi bi-send me-2"></i>默认发布信息</h6>
+            <div class="row g-3"><div class="col-md-6"><label class="form-label">默认作者</label><input type="text" name="publisher" class="form-control" maxlength="50" value="{$template.publisher??''}"></div>
+                <div class="col-md-6"><label class="form-label">默认联系方式</label><input type="text" name="contact" class="form-control" maxlength="100" value="{$template.contact??''}"></div></div>
+        </div></div></div>
+    </div>
+    <div class="tab-pane fade" id="tab-mapping"><div class="card"><div class="card-body">
+        <div class="alert alert-info small"><i class="bi bi-lightbulb me-1"></i><strong>字段映射</strong>：让AI按结构化格式输出，并自动映射到CMS字段。</div>
+        <div class="mb-2 d-flex justify-content-between align-items-center"><label class="form-label mb-0 fw-bold"><i class="bi bi-arrow-left-right me-1"></i>字段映射规则</label>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMapping()"><i class="bi bi-plus-lg me-1"></i>添加映射</button></div>
+        <div id="mappingContainer" class="mb-4">{php}$mappingData=isset($template)?$template->field_mapping_array:['mappings'=>[],'variables'=>[],'image_config_override'=>[]];{/php}{if condition="!empty($mappingData['mappings'])"}{volist name="mappingData['mappings']" id="m"}<div class="mapping-row row g-2 mb-2 align-items-center"><div class="col-md-3"><input type="text" class="form-control form-control-sm map-ai-field" placeholder="AI输出字段名" value="{$m.ai_output_field??''}"></div><div class="col-md-3"><select class="form-select form-select-sm map-cms-field"><option value="title" {if condition="$m.cms_field=='title'"}selected{/if}>title</option><option value="content" {if condition="$m.cms_field=='content'"}selected{/if}>content</option><option value="seo_title" {if condition="$m.cms_field=='seo_title'"}selected{/if}>seo_title</option><option value="seo_keywords" {if condition="$m.cms_field=='seo_keywords'"}selected{/if}>seo_keywords</option><option value="seo_description" {if condition="$m.cms_field=='seo_description'"}selected{/if}>seo_description</option><option value="summary" {if condition="$m.cms_field=='summary'"}selected{/if}>summary</option><option value="tags" {if condition="$m.cms_field=='tags'"}selected{/if}>tags</option><option value="source" {if condition="$m.cms_field=='source'"}selected{/if}>source</option><option value="author" {if condition="$m.cms_field=='author'"}selected{/if}>author</option></select></div><div class="col-md-3"><select class="form-select form-select-sm map-transform"><option value="none" {if condition="($m.transform_rule ?? 'none')=='none'"}selected{/if}>不转换</option><option value="strip_html" {if condition="($m.transform_rule ?? '')=='strip_html'"}selected{/if}>去除HTML</option><option value="truncate_100" {if condition="($m.transform_rule ?? '')=='truncate_100'"}selected{/if}>截取100字</option><option value="extract_summary" {if condition="($m.transform_rule ?? '')=='extract_summary'"}selected{/if}>提取摘要</option></select></div><div class="col-md-2"><input type="text" class="form-control form-control-sm map-default" placeholder="默认值" value="{$m.default_value??''}"></div><div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest('.mapping-row').remove()"><i class="bi bi-x-lg"></i></button></div></div>{/volist}{else /}<div class="text-center py-3 text-secondary small" id="mappingEmptyHint"><i class="bi bi-info-circle me-1"></i>暂无字段映射，点击上方按钮添加</div>{/if}</div>
+        <hr class="my-3"><div class="mb-2 d-flex justify-content-between align-items-center"><label class="form-label mb-0 fw-bold"><i class="bi bi-code me-1"></i>模板变量</label>
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="addVariable()"><i class="bi bi-plus-lg me-1"></i>添加变量</button></div>
+        <div id="variableContainer" class="mb-3">{if condition="!empty($mappingData['variables'])"}<div class="text-center py-2 text-secondary small">（模板变量已配置）</div>{else /}<div class="text-center py-2 text-secondary small" id="variableEmptyHint">暂无变量</div>{/if}</div>
+        <div class="form-text small">变量可在规则中使用 <code>{变量名}</code></div>
+        <hr class="my-3"><h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2"></i>质量检测配置</h6>
+        <div class="row g-3"><div class="col-md-3"><label class="form-label">最低质量分数</label><input type="number" name="quality_config[min_score]" class="form-control form-control-sm" min="0" max="100" value="{$template.quality_config_array.min_score??70}"></div>
+            <div class="col-md-3"><label class="form-label">最大重试次数</label><input type="number" name="quality_config[max_retry]" class="form-control form-control-sm" min="0" max="5" value="{$template.quality_config_array.max_retry??2}"></div>
+            <div class="col-md-3"><label class="form-label">质量不达标时</label><select name="quality_config[action_on_low_quality]" class="form-select form-select-sm"><option value="notify"{if condition="($template.quality_config_array.action_on_low_quality??'notify')=='notify'"}selected{/if}>仅通知</option><option value="auto_retry"{if condition="($template.quality_config_array.action_on_low_quality??'')=='auto_retry'"}selected{/if}>自动重试</option><option value="reject"{if condition="($template.quality_config_array.action_on_low_quality??'')=='reject'"}selected{/if}>拒绝并标记</option></select></div>
+            <div class="col-md-3"><label class="form-label">检测项目</label><div class="form-check"><input class="form-check-input" type="checkbox" name="quality_config[check_items][]" value="spelling" id="chkSpelling2"{if condition="in_array('spelling',$template.quality_config_array.check_items??['spelling'])"}checked{/if}><label class="form-check-label small" for="chkSpelling2">拼写</label></div><div class="form-check"><input class="form-check-input" type="checkbox" name="quality_config[check_items][]" value="readability" id="chkReadability2"{if condition="in_array('readability',$template.quality_config_array.check_items??['readability'])"}checked{/if}><label class="form-check-label small" for="chkReadability2">可读性</label></div><div class="form-check"><input class="form-check-input" type="checkbox" name="quality_config[check_items][]" value="seo" id="chkSeo2"{if condition="in_array('seo',$template.quality_config_array.check_items??['seo'])"}checked{/if}><label class="form-check-label small" for="chkSeo2">SEO</label></div></div>
+        </div>
+    </div></div></div>
+    <div class="tab-pane fade" id="tab-example">
+        <div class="card"><div class="card-body">
+            <div class="alert alert-info small"><i class="bi bi-lightbulb me-1"></i>选择「参考示例」模式时，请在此粘贴一篇您希望AI模仿其风格的示例文章。</div>
+            <div class="mb-3"><label class="form-label">示例标题</label><input type="text" name="example_title" class="form-control" maxlength="255" value="{$template.example_title??''}" placeholder="示例文章的标题（可选）"></div>
+            <div class="mb-3"><label class="form-label">示例正文 <span class="text-secondary">(用于风格学习)</span></label><textarea name="example_content" class="form-control" rows="14" placeholder="粘贴一篇您希望模仿其风格的示例文章正文内容...">{$template.example_content??''}</textarea><div class="form-text">建议提供完整示例以便AI准确学习写作风格</div></div>
+        </div></div></div>
+</div>
+<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+    <a href="/admin/ai_template/index" class="btn btn-secondary">取消</a>
+    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>保存模板</button>
+</div>
+</form>
+{/block}
+
+{block name="js"}
+<script>
+function addField(){$('#fieldsEmptyHint').remove();var h='<div class="field-row row g-2 mb-2 align-items-center"><div class="col-md-3"><input type="text" class="form-control form-control-sm field-name" placeholder="字段名"></div><div class="col-md-3"><select class="form-select form-select-sm field-type"><option value="text">文本</option><option value="number">数字</option><option value="select">选择</option><option value="date">日期</option></select></div><div class="col-md-5"><input type="text" class="form-control form-control-sm field-rule" placeholder="生成规则"></div><div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.field-row\').remove()"><i class="bi bi-x-lg"></i></button></div></div>';$('#fieldsContainer').append(h);}
+function addMapping(){$('#mappingEmptyHint').remove();var h='<div class="mapping-row row g-2 mb-2 align-items-center"><div class="col-md-3"><input type="text" class="form-control form-control-sm map-ai-field" placeholder="AI输出字段名"></div><div class="col-md-3"><select class="form-select form-select-sm map-cms-field"><option value="title">title</option><option value="content">content</option><option value="seo_title">seo_title</option><option value="seo_keywords">seo_keywords</option><option value="seo_description">seo_description</option><option value="summary">summary</option><option value="tags">tags</option><option value="source">source</option><option value="author">author</option></select></div><div class="col-md-3"><select class="form-select form-select-sm map-transform"><option value="none">不转换</option><option value="strip_html">去除HTML</option><option value="truncate_100">截取前100字</option><option value="truncate_200">截取前200字</option><option value="to_seo_keywords">转SEO关键词(JSON)</option><option value="extract_summary">提取摘要</option></select></div><div class="col-md-2"><input type="text" class="form-control form-control-sm map-default" placeholder="默认值"></div><div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.mapping-row\').remove()"><i class="bi bi-x-lg"></i></button></div></div>';$('#mappingContainer').append(h);}
+function addVariable(){$('#variableEmptyHint').remove();var h='<div class="variable-row row g-2 mb-2 align-items-center"><div class="col-md-4"><input type="text" class="form-control form-control-sm var-name" placeholder="变量名"></div><div class="col-md-6"><input type="text" class="form-control form-control-sm var-default" placeholder="默认值"></div><div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.variable-row\').remove()"><i class="bi bi-x-lg"></i></button></div></div>';$('#variableContainer').append(h);}
+$('input[name="generate_mode"]').on('change',function(){
+    var mode=$(this).val();
+    if(mode==='example'){$('.mapping-mode-hint').show();var el=$('a[href="#tab-example"]')[0];if(el&&typeof bootstrap!=='undefined'){new bootstrap.Tab(el).show();}else if(el){$(el).tab('show');}}
+    else{$('.mapping-mode-hint').hide();var el=$('a[href="#tab-rules"]')[0];if(el&&typeof bootstrap!=='undefined'){new bootstrap.Tab(el).show();}else if(el){$(el).tab('show');}}
+});
+if($('input[name="generate_mode"]:checked').val()==='example'){$('.mapping-mode-hint').show();}
+$('#templateForm').on('submit',function(e){e.preventDefault();var f=[];$('.field-row').each(function(){var n=$(this).find('.field-name').val();if(n)f.push({name:n,type:$(this).find('.field-type').val(),rule:$(this).find('.field-rule').val()});});var m=[];$('.mapping-row').each(function(){var a=$(this).find('.map-ai-field').val(),c=$(this).find('.map-cms-field').val();if(a&&c)m.push({ai_output_field:a,cms_field:c,transform_rule:$(this).find('.map-transform').val(),default_value:$(this).find('.map-default').val()});});var v=[];$('.variable-row').each(function(){var n=$(this).find('.var-name').val();if(n)v.push({name:n,default:$(this).find('.var-default').val()});});var fm={mappings:m,variables:v,image_config_override:{}};var fd=$(this).serializeArray();fd.push({name:'fields_json',value:JSON.stringify(f)});fd.push({name:'field_mapping_json',value:JSON.stringify(fm)});fd.push({name:'quality_config_json',value:JSON.stringify(collectQualityConfig())});ajaxPost($(this).attr('action'),fd,function(r){setTimeout(function(){location.href='/admin/ai_template/index';},800);});});
+function collectQualityConfig(){var c=[];$('input[name="quality_config[check_items][]"]:checked').each(function(){c.push($(this).val());});return{min_score:$('input[name="quality_config[min_score]"]').val()||70,max_retry:$('input[name="quality_config[max_retry]"]').val()||2,action_on_low_quality:$('select[name="quality_config[action_on_low_quality]"]').val()||'notify',check_items:c.length?c:['spelling','readability','seo']};}
+</script>
+{/block}

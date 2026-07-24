@@ -1,0 +1,38 @@
+{extend name="layout" /}
+
+{block name="title"}签到积分记录{/block}
+
+{block name="content"}
+
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;">
+    <div class="uc-section-header">
+        <span class="uc-section-title"><i class="bi bi-clock-history"></i>签到积分明细</span>
+        <a href="/signin" class="uc-action-link"><i class="bi bi-calendar-check"></i>去签到</a>
+    </div>
+    <ul class="uc-points-list">
+        {volist name="list" id="vo"}
+        <li class="uc-points-item">
+            <div class="uc-points-item-left">
+                <span class="uc-points-icon signin"><i class="bi bi-calendar-check"></i></span>
+                <div class="uc-points-info">
+                    <div class="uc-points-type">{$vo.note|default='签到'}</div>
+                    <div class="uc-points-note">{$vo.create_time|date='Y-m-d H:i'}</div>
+                </div>
+            </div>
+            <div class="uc-points-item-right">
+                <div class="uc-points-change positive">+{$vo.points}</div>
+            </div>
+        </li>
+        {/volist}
+    </ul>
+    {empty name="list"}
+    <div class="uc-empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>暂无签到记录</p>
+        <a href="/signin">去签到赚取积分</a>
+    </div>
+    {/empty}
+</div>
+
+{$list|raw}
+{/block}

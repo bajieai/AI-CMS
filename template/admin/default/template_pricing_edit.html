@@ -1,0 +1,44 @@
+{extend name="layout" /}
+{block name="title"}模板定价设置{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/template_pricing/index">模板定价</a></li><li class="breadcrumb-item active">定价设置</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-body">
+    <form method="post">
+        <input type="hidden" name="template_id" value="{$template.id}">
+        <h5 class="mb-3">{$template.name}</h5>
+        <div class="mb-3"><label class="form-label">计费模式</label>
+            <select class="form-select" name="billing_type" id="billingType">
+                <option value="one_time" {if $pricing && $pricing.billing_type=='one_time'}selected{/if}>一次性买断</option>
+                <option value="recurring" {if $pricing && $pricing.billing_type=='recurring'}selected{/if}>订阅制</option>
+                <option value="free" {if $pricing && $pricing.billing_type=='free'}selected{/if}>免费</option>
+                <option value="trial" {if $pricing && $pricing.billing_type=='trial'}selected{/if}>试用</option>
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3"><label class="form-label">售价(元)</label><input type="number" step="0.01" class="form-control" name="price" value="{$pricing ? $pricing.price : 0}"></div>
+            <div class="col-md-4 mb-3"><label class="form-label">原价(元)</label><input type="number" step="0.01" class="form-control" name="original_price" value="{$pricing ? $pricing.original_price : 0}"></div>
+            <div class="col-md-4 mb-3"><label class="form-label">排序</label><input type="number" class="form-control" name="sort" value="{$pricing ? $pricing.sort : 0}"></div>
+        </div>
+        <div class="mb-3" id="recurringField" style="display:none"><label class="form-label">订阅周期</label>
+            <select class="form-select" name="recurring_period"><option value="monthly">月付</option><option value="yearly">年付</option></select>
+        </div>
+        <div class="mb-3" id="trialField" style="display:none"><label class="form-label">试用天数</label>
+            <input type="number" class="form-control" name="trial_days" value="{$pricing ? $pricing.trial_days : 7}">
+        </div>
+        <div class="mb-3"><label class="form-label">状态</label>
+            <select class="form-select" name="is_active">
+                <option value="1" {if !$pricing || $pricing.is_active==1}selected{/if}>启用</option>
+                <option value="0" {if $pricing && $pricing.is_active==0}selected{/if}>禁用</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存</button>
+        <a href="/admin/template_pricing/index" class="btn btn-secondary">返回</a>
+    </form>
+</div></div>
+{/block}
+{block name="js"}
+<script>
+function toggleFields(){var v=document.getElementById('billingType').value;document.getElementById('recurringField').style.display=v==='recurring'?'':'none';document.getElementById('trialField').style.display=v==='trial'?'':'none';}
+document.getElementById('billingType').addEventListener('change',toggleFields);toggleFields();
+</script>
+{/block}

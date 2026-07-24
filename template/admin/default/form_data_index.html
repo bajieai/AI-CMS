@@ -1,0 +1,84 @@
+{extend name="layout" /}
+
+{block name="title"}表单数据{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/form/index">系统设置</a></li>
+<li class="breadcrumb-item"><a href="/admin/form/index">表单管理</a></li>
+<li class="breadcrumb-item active">提交数据</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-table me-2" style="color:var(--primary)"></i>{$form.name} - 提交数据</h5>
+    <div>
+        <button class="btn btn-outline-success" id="btnExport"><i class="bi bi-download me-1"></i>导出Excel</button>
+        <button class="btn btn-outline-danger" id="btnCleanRead"><i class="bi bi-check-all me-1"></i>全部标为已读</button>
+        <a href="/admin/form/index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+    </div>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="50">ID</th>
+                    <th width="60">状态</th>
+                    {volist name="form.fields" id="field"}
+                    <th>{$field.label}</th>
+                    {/volist}
+                    <th width="120">IP</th>
+                    <th width="140">提交时间</th>
+                    <th width="80">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr class="{if $vo.is_read==0}table-warning{/if}">
+                    <td>{$vo.id}</td>
+                    <td>{if $vo.is_read==0}<span class="badge bg-warning text-dark">新</span>{else/}<span class="badge bg-light text-dark">已读</span>{/if}</td>
+                    {php}$fields_data = $vo['fields_data'] ?? [];{/php}
+                    {volist name="form.fields" id="field"}
+                    <td class="text-truncate" style="max-width:200px;font-size:.84rem">{$fields_data[$field['name']] ?? '-'}</td>
+                    {/volist}
+                    <td style="font-size:.78rem">{$vo.ip}</td>
+                    <td style="font-size:.82rem">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <a href="/admin/form/dataDetail/id/{$vo.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="{$vo.id}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="10" class="text-center text-muted py-4">暂无提交数据</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnExport').click(function(){ window.location='/admin/form/dataExport/form_id/{$form.id}'; });
+
+    $('#btnCleanRead').click(function(){
+        $.post('/admin/form/dataReadAll',{form_id:{$form.id}},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+
+    $('.btn-delete').click(function(){
+        if(!confirm('确定删除？')) return;
+        $.post('/admin/form/dataDelete',{id:$(this).data('id')},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+});
+</script>
+{/block}

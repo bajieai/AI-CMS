@@ -1,0 +1,32 @@
+{extend name="layout" /}
+{block name="title"}缓存管理{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">性能优化</li>
+<li class="breadcrumb-item active">缓存管理</li>
+{/block}
+{block name="content"}
+<div class="row">
+    <div class="col-md-3"><div class="card text-center border-primary"><div class="card-body"><h4 class="text-primary">{$hit_rate ?? 0}%</h4><small>缓存命中率</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center border-success"><div class="card-body"><h4 class="text-success">{$total_hit ?? 0}</h4><small>命中次数</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center border-danger"><div class="card-body"><h4 class="text-danger">{$total_miss ?? 0}</h4><small>未命中次数</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center border-info"><div class="card-body"><h4 class="text-info">{$date}</h4><small>统计日期</small></div></div></div>
+</div>
+<div class="card mt-3">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-lightning me-2"></i>缓存操作</h5></div>
+    <div class="card-body">
+        <button class="btn btn-warning" onclick="clearCache('all')"><i class="bi bi-trash me-1"></i>清除全部缓存</button>
+        <button class="btn btn-info" onclick="clearCache('i8j_content')"><i class="bi bi-file-text me-1"></i>清除内容缓存</button>
+        <button class="btn btn-info" onclick="clearCache('i8j_cate')"><i class="bi bi-folder me-1"></i>清除分类缓存</button>
+        <button class="btn btn-info" onclick="clearCache('i8j_config')"><i class="bi bi-gear me-1"></i>清除配置缓存</button>
+        <hr>
+        <button class="btn btn-success" onclick="prewarm('all')"><i class="bi bi-fire me-1"></i>预热全部</button>
+        <button class="btn btn-outline-success" onclick="prewarm('config')"><i class="bi bi-gear me-1"></i>预热配置</button>
+        <button class="btn btn-outline-success" onclick="prewarm('menu')"><i class="bi bi-list me-1"></i>预热菜单</button>
+        <button class="btn btn-outline-success" onclick="prewarm('category')"><i class="bi bi-folder me-1"></i>预热分类</button>
+    </div>
+</div>
+<script>
+function clearCache(tag){if(!confirm('确认清除缓存?'))return;fetch('/admin/cache_manage/clear',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'tag='+tag}).then(r=>r.json()).then(res=>{alert(res.msg);location.reload();})}
+function prewarm(module){fetch('/admin/cache_manage/prewarm',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'module='+module}).then(r=>r.json()).then(res=>{alert(res.msg);});}
+</script>
+{/block}

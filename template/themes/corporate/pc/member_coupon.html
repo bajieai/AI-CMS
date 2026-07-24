@@ -1,0 +1,74 @@
+{extend name="layout" /}
+
+{block name="title"}我的优惠券{/block}
+
+{block name="content"}
+
+<!-- 优惠券概览 -->
+<div class="uc-coupon-overview" style="background:linear-gradient(135deg,var(--primary,#3b82f6) 0%,#6366f1 50%,#8b5cf6 100%);">
+    <div class="uc-coupon-stats">
+        <div class="uc-coupon-stat">
+            <div class="uc-coupon-stat-value">{$usable_count|default=0}</div>
+            <div class="uc-coupon-stat-label">可用</div>
+        </div>
+        <div class="uc-coupon-stat">
+            <div class="uc-coupon-stat-value">{$used_count|default=0}</div>
+            <div class="uc-coupon-stat-label">已使用</div>
+        </div>
+        <div class="uc-coupon-stat" style="border-left:none;">
+            <div class="uc-coupon-stat-value">{$expired_count|default=0}</div>
+            <div class="uc-coupon-stat-label">已过期</div>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选Tab -->
+<div class="uc-tab-bar" id="couponTab">
+    <a class="uc-tab-item active" href="#" onclick="filterCoupons(-1,this);return false;">全部</a>
+    <a class="uc-tab-item" href="#" onclick="filterCoupons(0,this);return false;">可用</a>
+    <a class="uc-tab-item" href="#" onclick="filterCoupons(1,this);return false;">已使用</a>
+    <a class="uc-tab-item" href="#" onclick="filterCoupons(2,this);return false;">已过期</a>
+</div>
+
+<!-- 优惠券列表 -->
+<div id="couponList">
+    {volist name="coupons" id="vo"}
+    <div class="uc-coupon-card {if $vo.status != 0}uc-coupon-disabled{/if}" data-status="{$vo.status}">
+        <div class="uc-coupon-divider"></div>
+        <div class="uc-coupon-left type-{if $vo.coupon_type == 'reduce'}reduce{elseif $vo.coupon_type == 'discount' /}discount{else /}shipping{/if}">
+            <div class="uc-coupon-amount">
+                {if $vo.coupon_type == 'reduce'}<span style="font-size:16px;margin-right:1px;">&yen;</span>{$vo.reduce_amount}
+                {elseif $vo.coupon_type == 'discount'}<span style="font-size:16px;"></span>{$vo.reduce_amount}<span style="font-size:14px;font-weight:500;opacity:.85;">折</span>
+                {else /}<i class="bi bi-truck" style="font-size:20px;"></i>
+                {/if}
+            </div>
+            <div class="uc-coupon-condition">{if $vo.condition_amount > 0}满{$vo.condition_amount}可用{else /}无门槛{/if}</div>
+        </div>
+        <div class="uc-coupon-right">
+            <div class="uc-coupon-name">{$vo.coupon_name}</div>
+            <div class="uc-coupon-validity"><i class="bi bi-clock me-1"></i>{if $vo.expire_at > 0}有效期至 {$vo.expire_at|date='Y-m-d'}{else /}长期有效{/if}</div>
+            {switch $vo.status}
+            {case 0}<span class="uc-coupon-status-tag uc-coupon-status-usable"><i class="bi bi-check-circle me-1"></i>可使用</span>{/case}
+            {case 1}<span class="uc-coupon-status-tag uc-coupon-status-used"><i class="bi bi-check-lg me-1"></i>已使用</span>{/case}
+            {case 2}<span class="uc-coupon-status-tag uc-coupon-status-expired"><i class="bi bi-x-circle me-1"></i>已过期</span>{/case}
+            {case 3}<span class="uc-coupon-status-tag uc-coupon-status-voided"><i class="bi bi-slash-circle me-1"></i>已作废</span>{/case}
+            {case 4}<span class="uc-coupon-status-tag uc-coupon-status-refunded"><i class="bi bi-arrow-counterclockwise me-1"></i>已退还</span>{/case}
+            {/switch}
+        </div>
+    </div>
+    {/volist}
+    {empty name="coupons"}
+    <div class="uc-empty-state"><i class="bi bi-ticket-perforated"></i><p>暂无优惠券</p></div>
+    {/empty}
+</div>
+
+{/block}
+
+<script>
+function filterCoupons(status, el) {
+    $('#couponTab .uc-tab-item').removeClass('active');
+    $(el).addClass('active');
+    if(status===-1){$('.uc-coupon-card').show();}
+    else{$('.uc-coupon-card').each(function(){$(this).toggle($(this).data('status')===status);});}
+}
+</script>

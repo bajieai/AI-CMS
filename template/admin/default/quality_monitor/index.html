@@ -1,0 +1,31 @@
+{extend name="/layout" /}
+{block name="title"}质量监控 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-clipboard-check"></i> 内容质量监控</h5></div>
+<div class="card-body">
+{if empty($overview)}
+<div class="text-center text-muted py-4">暂无质量数据，请确保已启用内容质量检测功能</div>
+{else}
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>总内容数</h6><h3>{$overview.total_count??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>已评分</h6><h3>{$overview.scored_count??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>平均分</h6><h3>{$overview.avg_score??'--'}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>待优化</h6><h3 class="text-warning">{$overview.need_improve??0}</h3></div></div></div>
+</div>
+{if !empty($overview.dimensions)}
+<div class="card"><div class="card-header"><h6 class="mb-0">各维度评分</h6></div>
+<table class="table table-sm mb-0">
+    <thead><tr><th>维度</th><th width="100">平均分</th><th width="100">状态</th></tr></thead>
+    <tbody>
+    {volist name="overview.dimensions" id="dim"}
+    <tr><td>{$dim.name??'--'}</td><td>{$dim.score??'--'}</td>
+        <td>{if $dim.score??0 >= 80}<span class="badge bg-success">优秀</span>
+            {elseif $dim.score??0 >= 60}<span class="badge bg-warning">良好</span>
+            {else}<span class="badge bg-danger">需改进</span>{/if}</td></tr>
+    {/volist}
+    </tbody>
+</table></div>
+{/if}
+{/if}
+</div></div>
+{/block}

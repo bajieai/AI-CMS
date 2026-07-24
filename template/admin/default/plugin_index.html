@@ -1,0 +1,93 @@
+﻿{extend name="/layout" /}
+{block name="title"}插件管理 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">插件管理</h4>
+        <div>
+            {if $updateCount > 0}
+            <a href="/admin/plugin_market/index" class="btn btn-warning me-2">
+                <i class="bi bi-arrow-up-circle"></i> {$updateCount} 个插件可更新
+            </a>
+            {/if}
+            <a href="/admin/plugin_market/index" class="btn btn-outline-primary">
+                <i class="bi bi-shop"></i> 插件市场
+            </a>
+        </div>
+    </div>
+    <div class="row" id="pluginList">
+        {volist name="plugins" id="vo"}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="card-title"><i class="bi bi-plug"></i> {$vo.name}</h6>
+                        {if $vo.has_update}
+                        <span class="badge bg-warning">v{$vo.remote_version} 可更新</span>
+                        {/if}
+                    </div>
+                    <p class="text-muted small mb-1">{$vo.code} v{$vo.version}</p>
+                    <p class="small">{$vo.description??'暂无描述'}</p>
+                    {if $vo.author}<p class="small text-muted">作者: {$vo.author}</p>{/if}
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    {if $vo.is_installed}
+                        {if $vo.is_enabled}
+                        <span class="badge bg-success">已启用</span>
+                        <div>
+                            <button class="btn btn-outline-warning btn-sm" onclick="togglePlugin('{$vo.code}','disable')">禁用</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="uninstallPlugin('{$vo.code}')">卸载</button>
+                        </div>
+                        {else/}
+                        <span class="badge bg-secondary">已安装/未启用</span>
+                        <div>
+                            <button class="btn btn-outline-success btn-sm" onclick="togglePlugin('{$vo.code}','enable')">启用</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="uninstallPlugin('{$vo.code}')">卸载</button>
+                        </div>
+                        {/if}
+                    {else/}
+                    <span class="badge bg-info">未安装</span>
+                    <button class="btn btn-outline-primary btn-sm" onclick="installPlugin('{$vo.code}')">安装</button>
+                    {/if}
+                </div>
+            </div>
+        </div>
+        {/volist}
+        {if empty($plugins)}
+        <div class="col-12">
+            <div class="ui-empty-state">
+                <div class="ui-empty-icon"><i class="bi bi-plug"></i></div>
+                <div class="ui-empty-title">暂无插件</div>
+                <div class="ui-empty-desc">请将插件放入 plugin/ 目录，或前往插件商店安装</div>
+                <div class="ui-empty-action"><a href="/admin/plugin_market/index" class="btn btn-primary btn-sm"><i class="bi bi-shop me-1"></i>插件商店</a></div>
+            </div>
+        </div>
+        {/if}
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function installPlugin(code) {
+    $.post('/admin/plugin/install', {code:code}, function(res) {
+        showToast(res.msg, res.code === 0 ? 'success' : 'danger');
+        if (res.code === 0) setTimeout(function() { location.reload(); }, 800);
+    });
+}
+function uninstallPlugin(code) {
+    showConfirm('卸载插件', '确定要卸载此插件？', function() {
+        $.post('/admin/plugin/uninstall', {code:code}, function(res) {
+            showToast(res.msg, res.code === 0 ? 'success' : 'danger');
+            if (res.code === 0) setTimeout(function() { location.reload(); }, 800);
+        });
+    });
+}
+function togglePlugin(code, action) {
+    $.post('/admin/plugin/' + action, {code:code}, function(res) {
+        showToast(res.msg, res.code === 0 ? 'success' : 'danger');
+        if (res.code === 0) setTimeout(function() { location.reload(); }, 800);
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,78 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
+{block name="keywords"}{$info.seo_keywords|default=''}{/block}
+{block name="description"}{$info.seo_description|default=$info.title|msubstr=0,120}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="/news">资讯</a></li>
+                <li class="breadcrumb-item active">{$info.title}</li>
+            </ol>
+        </nav>
+        
+        <article class="article-magazine">
+            <header class="article-header mb-4">
+                <h1 class="display-6 mb-3">{$info.title}</h1>
+                <div class="article-meta d-flex align-items-center gap-3 text-muted">
+                    {if condition="$info.user"}<span><i class="bi bi-person"></i> {$info.user.nickname|default='匿名'}</span>{/if}
+                    {if condition="$info.create_time"}<span><i class="bi bi-calendar3"></i> {:date('Y-m-d', $info.create_time)}</span>{/if}
+                    <span><i class="bi bi-eye"></i> {$info.views|default=0} 阅读</span>
+                    {if condition="$model_fields && $model_fields|count > 0"}
+                    {volist name="model_fields" id="mf"}
+                    {if condition="$mf.field_def.name == 'source' && $mf.value"}
+                    <span><i class="bi bi-link-45deg"></i> 来源: {$mf.formatted|raw}</span>
+                    {/if}
+                    {/volist}
+                    {/if}
+                </div>
+            </header>
+            
+            {if condition="$info.cover"}
+            <div class="article-cover mb-4 text-center">
+                <img src="{$info.cover}" class="img-fluid rounded" alt="{$info.title}" style="max-height:400px">
+            </div>
+            {/if}
+            
+            {if condition="$info.excerpt"}
+            <div class="article-excerpt mb-4 p-3 bg-light rounded border-start border-4 border-primary">
+                <p class="mb-0 text-muted">{$info.excerpt}</p>
+            </div>
+            {/if}
+            
+            <div class="article-body content-body" style="font-size:1.1rem;line-height:1.8">
+                {$info.content|raw}
+            </div>
+            
+            {if condition="$info.tags && $info.tags|count > 0"}
+            <div class="article-tags mt-4">
+                {volist name="info.tags" id="tag"}
+                <a href="/search?keyword={$tag.name}" class="badge bg-light text-dark text-decoration-none me-1">{$tag.name}</a>
+                {/volist}
+            </div>
+            {/if}
+        </article>
+        
+        {if condition="$related_contents && $related_contents|count > 0"}
+        <div class="mt-5">
+            <h5 class="border-bottom pb-2 mb-3">相关文章</h5>
+            <div class="row">
+                {volist name="related_contents" id="rel"}
+                <div class="col-md-4 mb-3"><div class="card h-100">
+                    {if condition="$rel.cover"}<img src="{$rel.cover}" class="card-img-top" alt="{$rel.title}" style="height:160px;object-fit:cover">{/if}
+                    <div class="card-body">
+                        <h6 class="card-title"><a href="{$rel.url}" class="text-decoration-none">{$rel.title}</a></h6>
+                        <p class="card-text text-muted small">{$rel.excerpt|default=$rel.title|msubstr=0,80}</p>
+                    </div>
+                </div></div>
+                {/volist}
+            </div>
+        </div>
+        {/if}
+    </div>
+</section>
+{/block}

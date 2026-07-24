@@ -1,0 +1,40 @@
+{extend name="layout" /}
+{block name="title"}我的发布 - {/block}
+
+{block name="css"}
+<link rel="stylesheet" href="/static/css/member_responsive.css?v=2.9.19">
+{/block}
+
+{block name="content"}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3">{include file="member/ucenter_sidebar" /}</div>
+        <div class="col-md-9">
+            <h5 class="mb-3">📝 我的发布</h5>
+            <div class="btn-group btn-group-sm mb-3">
+                <a href="/member/publish" class="btn btn-outline-primary {if $statusFilter===''}active{/if}">全部</a>
+                <a href="/member/publish?status=2" class="btn btn-outline-success {if $statusFilter==='2'}active{/if}">已发布</a>
+                <a href="/member/publish?status=0" class="btn btn-outline-warning {if $statusFilter==='0'}active{/if}">草稿</a>
+            </div>
+            {if $list->isEmpty()}
+            <div class="text-center text-muted py-5">暂无发布内容</div>
+            {else}
+            <div class="list-group">
+                {volist name="list" id="vo"}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="/info/{$vo.id}.html" class="text-decoration-none">{$vo.title}</a>
+                        <br><small class="text-muted">{$vo.update_time|date='Y-m-d H:i'} · <span class="badge bg-{if $vo.status==2}success{elseif $vo.status==0}warning{else}secondary{/if}">{if $vo.status==2}已发布{elseif $vo.status==0}草稿{else}其他{/if}</span></small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-primary me-1"><i class="bi bi-eye"></i> {$vo.views ?? 0}</span>
+                        <span class="badge bg-success"><i class="bi bi-share"></i> {:\app\common\model\ShareClick::where('content_id', $vo.id)->count()}</span>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}

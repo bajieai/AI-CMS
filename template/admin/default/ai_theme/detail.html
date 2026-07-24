@@ -1,0 +1,284 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_theme/index">AI中心</a></li>
+<li class="breadcrumb-item active">审核详情</li>
+{/block}
+{block name="content"}
+<div class="row">
+    <!-- 左侧：基本信息 -->
+    <div class="col-lg-3">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">基本信息</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>ID:</strong> {$record.id}</p>
+                <p class="mb-1"><strong>主题名:</strong> <code>{$record.theme_name}</code></p>
+                <p class="mb-1"><strong>版本:</strong> v{$record.version??0}</p>
+                <p class="mb-1"><strong>状态:</strong> <span class="badge bg-{$record.status_style}">{$record.status_text}</span></p>
+                <p class="mb-1"><strong>Token:</strong> {$record.token_cost}</p>
+                <p class="mb-1"><strong>重试:</strong> {$record.retry_count}</p>
+                <p class="mb-1"><strong>创建:</strong> {$record.created_at}</p>
+                <hr>
+                <p class="mb-1"><strong>描述:</strong></p>
+                <p class="text-muted small">{$record.description}</p>
+            </div>
+        </div>
+
+        <!-- 质量评分 -->
+        {if condition="$record.quality_score > 0"}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">质量评分</h6>
+                <span class="badge bg-{$record.quality_score >= 80 ? 'success' : ($record.quality_score >= 60 ? 'warning' : 'danger')}">{$record.quality_score}分</span>
+            </div>
+            <div class="card-body">
+                {php}$qd = $record['quality_detail'] ?? [];{/php}
+                {if condition="!empty($qd)"}
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>结构完整性</span>
+                        <span class="text-muted">{$qd.structure??0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>CSS变量引用</span>
+                        <span class="text-muted">{$qd.css_variable??0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>硬编码检测</span>
+                        <span class="text-muted">{$qd.hardcoded??0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>页面完整性</span>
+                        <span class="text-muted">{$qd.pages??0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>代码简洁度</span>
+                        <span class="text-muted">{$qd.cleanliness??0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>相似度检测</span>
+                        <span class="text-muted">{$qd.similarity??0}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>总分</span>
+                        <span>{$qd.total??0}</span>
+                    </div>
+                    {if condition="!empty($qd.warnings)"}
+                    <div class="mt-2">
+                        {volist name="qd.warnings" id="w"}
+                        <div class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>{$w}</div>
+                        {/volist}
+                    </div>
+                    {/if}
+                </div>
+                {/if}
+            </div>
+        </div>
+        {/if}
+
+        <!-- 校验结果 -->
+        {if condition="!empty($validate_result)"}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">校验结果</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    {if condition="$validate_result.passed"}
+                    <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>通过</span>
+                    {else}
+                    <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>未通过</span>
+                    {/if}
+                </p>
+                <p class="text-muted small mb-0">{$validate_result.summary}</p>
+                {if condition="!empty($validate_result.errors)"}
+                <ul class="list-unstyled small mt-2 mb-0">
+                    {volist name="validate_result.errors" id="err"}
+                    <li class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>[{$err.rule_id}] {$err.message}</li>
+                    {/volist}
+                </ul>
+                {/if}
+            </div>
+        </div>
+        {/if}
+
+        <!-- 操作按钮 -->
+        <div class="d-grid gap-2">
+            {if condition="$record.status == 1 || $record.status == 2"}
+            <a href="/admin/ai_theme/tweak?id={$record.id}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-sliders me-1"></i>CSS变量配置
+            </a>
+            <button class="btn btn-success btn-sm" onclick="previewTheme({$record.id})">
+                <i class="bi bi-eye me-1"></i>预览主题
+            </button>
+            {/if}
+            {if condition="$record.status == 2"}
+            <button class="btn btn-primary btn-sm" onclick="publishTheme({$record.id})">
+                <i class="bi bi-check-lg me-1"></i>发布主题
+            </button>
+            {/if}
+            {if condition="$record.status == 1 || $record.status == 2"}
+            <button class="btn btn-danger btn-sm" onclick="rejectTheme({$record.id})">
+                <i class="bi bi-x-lg me-1"></i>拒绝
+            </button>
+            {/if}
+            {if condition="$record.status == -1 || $record.status == -2 || $record.status == 4"}
+            <button class="btn btn-warning btn-sm" onclick="retryTheme({$record.id})">
+                <i class="bi bi-arrow-clockwise me-1"></i>重新生成
+            </button>
+            {/if}
+        </div>
+    </div>
+
+    <!-- 右侧：文件树 + 代码浏览 + AI助手 -->
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">文件结构</h6>
+                {if condition="!empty($view_file)"}
+                <span class="text-muted small">{$view_file}</span>
+                {/if}
+            </div>
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    <!-- 文件树 -->
+                    <div class="col-md-3 border-end" style="max-height:600px; overflow-y:auto;">
+                        <div class="p-2">
+                            {php}
+                            function renderTree($tree, $prefix = '', $canModify = false) {
+                                foreach ($tree as $name => $node) {
+                                    $isDir = isset($node['type']) && $node['type'] === 'dir';
+                                    $path = $prefix ? $prefix . '/' . $name : $name;
+                                    if ($isDir) {
+                                        echo '<div class="mb-1">';
+                                        echo '<span class="text-muted small"><i class="bi bi-folder-fill me-1"></i>' . htmlspecialchars($name) . '</span>';
+                                        echo '<div class="ms-3">';
+                                        renderTree($node['children'] ?? [], $path, $canModify);
+                                        echo '</div></div>';
+                                    } else {
+                                        $isActive = request()->param('file') === $path;
+                                        echo '<div class="mb-1 d-flex align-items-center justify-content-between">';
+                                        echo '<a href="?id=' . request()->param('id') . '&file=' . urlencode($path) . '" class="small text-decoration-none' . ($isActive ? ' fw-bold text-primary' : ' text-dark') . '">';
+                                        echo '<i class="bi bi-file-earmark-code me-1"></i>' . htmlspecialchars($name) . '</a>';
+                                        if ($canModify && in_array(pathinfo($path, PATHINFO_EXTENSION), ['html', 'css', 'js'])) {
+                                            echo '<button class="btn btn-link btn-sm p-0 ms-1 text-muted ai-modify-file" data-file="' . htmlspecialchars($path) . '" title="AI修改"><i class="bi bi-magic"></i></button>';
+                                        }
+                                        echo '</div>';
+                                    }
+                                }
+                            }
+                            $canModify = in_array($record['status'], [1, 2, 3, 4]);
+                            renderTree($files_tree, '', $canModify);
+                            {/php}
+                        </div>
+                    </div>
+                    <!-- 代码浏览 -->
+                    <div class="col-md-9" style="max-height:600px; overflow-y:auto;">
+                        {if condition="!empty($view_file)"}
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
+                            <span class="small text-muted">{$view_file}</span>
+                            {if condition="$canModify"}
+                            <button class="btn btn-sm btn-outline-primary ai-modify-file" data-file="{$view_file}">
+                                <i class="bi bi-magic me-1"></i>AI修改
+                            </button>
+                            {/if}
+                        </div>
+                        <pre class="m-0 p-3 bg-light small" style="min-height:560px;"><code>{$file_content|raw}</code></pre>
+                        {else}
+                        <div class="d-flex align-items-center justify-content-center text-muted" style="min-height:400px;">
+                            <div class="text-center">
+                                <i class="bi bi-folder2-open fs-1 mb-2 d-block"></i>
+                                点击左侧文件查看代码
+                            </div>
+                        </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI助手面板（仅可修改状态显示） -->
+        {if condition="$canModify"}
+        {include file="ai_theme/include/ai_assistant" /}
+        {/if}
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+function previewTheme(id) {
+    $.get('/admin/ai_theme/preview_url', {id: id}, function(res) {
+        if (res.code === 0) {
+            window.open(res.data.preview_url, '_blank');
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function publishTheme(id) {
+    if (!confirm('确认发布此主题？发布后可在前台使用。')) return;
+    $.post('/admin/ai_theme/publish', {id: id, set_active: 0}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function rejectTheme(id) {
+    if (!confirm('确认拒绝此主题？')) return;
+    $.post('/admin/ai_theme/reject', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+function retryTheme(id) {
+    if (!confirm('确认重新生成？')) return;
+    $.post('/admin/ai_theme/retry', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            setTimeout(() => location.reload(), 800);
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+// AI助手初始化
+{if condition="$canModify"}
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.AiAssistant) {
+        AiAssistant.init({ recordId: {$record.id} });
+    }
+
+    // 文件树中的AI修改按钮
+    document.querySelectorAll('.ai-modify-file').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var filePath = this.dataset.file;
+            if (window.AiAssistant) {
+                AiAssistant.regenerateFile(filePath);
+            }
+        });
+    });
+
+    // 刷新文件树事件
+    document.addEventListener('ai-theme-refresh', function() {
+        setTimeout(function() {
+            location.reload();
+        }, 500);
+    });
+});
+{/if}
+</script>
+<script src="/assets/js/ai-assistant.js"></script>
+{/block}

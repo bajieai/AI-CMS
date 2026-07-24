@@ -1,0 +1,31 @@
+{extend name="/layout" /}
+{block name="title"}短信日志 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-chat-dots"></i> 短信发送日志（共 {$total} 条）</h5></div>
+<div class="card-body">
+{if empty($list)}
+<div class="text-center text-muted py-4">暂无短信发送记录</div>
+{else}
+<div class="table-responsive">
+<table class="table table-hover table-sm">
+    <thead><tr><th width="60">ID</th><th width="130">手机号</th><th>内容</th><th width="100">状态</th><th width="100">适配器</th><th width="160">发送时间</th></tr></thead>
+    <tbody>
+    {volist name="list" id="vo"}
+    <tr><td>{$vo.id}</td><td>{$vo.phone??'--'}</td>
+        <td><small>{$vo.content??'--'}</small></td>
+        <td>{if $vo.status??0==1}<span class="badge bg-success">成功</span>{else}<span class="badge bg-danger">失败</span>{/if}</td>
+        <td>{$vo.adapter??'--'}</td><td>{:date('Y-m-d H:i:s', $vo.create_time??0)}</td></tr>
+    {/volist}
+    </tbody>
+</table></div>
+<div class="d-flex justify-content-between mt-3">
+    <span class="text-muted small">共 {$total} 条，第 {$page} 页</span>
+    <ul class="pagination pagination-sm mb-0">
+        {for start="1" end="ceil($total/20)"}
+        <li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}">{$i}</a></li>
+        {/for}
+    </ul>
+</div>
+{/if}
+</div></div>
+{/block}

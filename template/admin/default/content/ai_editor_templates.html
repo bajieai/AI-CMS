@@ -1,0 +1,70 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">AI编辑器模板库</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-collection me-2"></i>模板列表</span>
+            <a href="/admin/ai_editor_template/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>新建模板</a>
+        </div>
+        <div class="card-body">
+            <form class="d-flex gap-2 mb-3" method="get">
+                <input type="text" name="keyword" class="form-control" style="width:200px" placeholder="搜索模板..." value="{$params.keyword??''}">
+                <select name="category" class="form-select" style="width:150px">
+                    <option value="">全部分类</option>
+                    {volist name="categories.categories" id="cat"}
+                    <option value="{$cat}" {if ($params.category??'')==$cat}selected{/if}>{$cat}</option>
+                    {/volist}
+                </select>
+                <select name="industry" class="form-select" style="width:150px">
+                    <option value="">全部行业</option>
+                    {volist name="categories.industries" id="ind"}
+                    <option value="{$ind}" {if ($params.industry??'')==$ind}selected{/if}>{$ind}</option>
+                    {/volist}
+                </select>
+                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light"><tr><th>ID</th><th>名称</th><th>描述</th><th>分类</th><th>行业</th><th>类型</th><th>使用次数</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td>{$item.id}</td>
+                            <td>{$item.name}</td>
+                            <td style="max-width:250px">{$item.description}</td>
+                            <td><span class="badge bg-info">{$item.category}</span></td>
+                            <td>{$item.industry ?: '-'}</td>
+                            <td>{if $item.is_system}<span class="badge bg-primary">系统</span>{else/}<span class="badge bg-success">自定义</span>{/if}</td>
+                            <td>{$item.use_count}</td>
+                            <td>
+                                <a href="/admin/ai_editor_template/edit/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                {if !$item.is_system}
+                                <button class="btn btn-sm btn-outline-danger" onclick="delTpl({$item.id})"><i class="bi bi-trash"></i></button>
+                                {/if}
+                            </td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <span class="text-muted">共 {$total} 条</span>
+                <nav><ul class="pagination pagination-sm">
+                    {for start="1" end="$total_page+1"}
+                    <li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}&keyword={$params.keyword??''}&category={$params.category??''}&industry={$params.industry??''}">{$i}</a></li>
+                    {/for}
+                </ul></nav>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function delTpl(id) {
+    if (!confirm('确认删除此模板？')) return;
+    $.post('/admin/ai_editor_template/delete/' + id, function(res) {
+        if (res.code === 0) { location.reload(); } else { alert(res.msg); }
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,36 @@
+<!-- V2.9.22 F-1: 产品型列表项（移动端 corporate） -->
+{php}$ext = (isset($vo['ext']['data']) && is_array($vo['ext']['data'])) ? $vo['ext']['data'] : [];{/php}
+<div class="card mb-3 product-card border-0 shadow-sm">
+    {if condition="$vo.cover"}
+    <div class="overflow-hidden" style="border-radius:8px 8px 0 0;">
+        <img data-src="{$vo.cover}" class="card-img-top lazyload" alt="{$vo.title}" onerror="this.style.display='none'" style="max-height:200px;object-fit:cover;transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+    </div>
+    {/if}
+    <div class="card-body">
+        <h5 class="card-title fs-6" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <a href="{$vo.url}" class="text-decoration-none text-dark">{$vo.title}</a>
+            {include file="shared/paid_badge" /}
+        </h5>
+        <p class="card-text text-muted small">{$vo.excerpt|msubstr=0,80}</p>
+        {if condition="!empty($ext['price']) || !empty($ext['stock'])"}
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            {if condition="!empty($ext['price'])"}
+            <span class="text-danger fw-bold fs-5">¥{$ext['price']}</span>
+            {/if}
+            {if condition="!empty($ext['original_price'])"}
+            <del class="text-muted small">¥{$ext['original_price']}</del>
+            {/if}
+            {if condition="isset($ext['stock'])"}
+            {if condition="$ext['stock'] > 0"}
+            <span class="badge bg-success">有货</span>
+            {else/}
+            <span class="badge bg-secondary">缺货</span>
+            {/if}
+            {/if}
+        </div>
+        {/if}
+    </div>
+    <div class="card-footer bg-transparent border-0 pt-0">
+        <a href="{$vo.url}" class="btn btn-sm btn-primary w-100">查看详情</a>
+    </div>
+</div>

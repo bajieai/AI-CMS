@@ -1,0 +1,61 @@
+{extend name="layout" /}
+{block name="title"}A/B测试结果 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-graph-up"></i> 实验结果分析</h5>
+        <button onclick="applyWinner()" class="btn btn-success btn-sm"><i class="bi bi-trophy"></i> 应用优胜方案</button>
+    </div>
+    <div class="card-body">
+        <input type="hidden" id="test_id" value="{$test_id}">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">方案A (对照组)</div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr><th>样本量</th><td>{$result.variant_a.samples|default=0}</td></tr>
+                            <tr><th>转化数</th><td>{$result.variant_a.conversions|default=0}</td></tr>
+                            <tr><th>转化率</th><td><strong>{$result.variant_a.conversion_rate|default=0}%</strong></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">方案B (实验组)</div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr><th>样本量</th><td>{$result.variant_b.samples|default=0}</td></tr>
+                            <tr><th>转化数</th><td>{$result.variant_b.conversions|default=0}</td></tr>
+                            <tr><th>转化率</th><td><strong>{$result.variant_b.conversion_rate|default=0}%</strong></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card bg-light mb-3">
+            <div class="card-body">
+                <h6>统计显著性分析</h6>
+                <table class="table table-sm">
+                    <tr><th>Z检验值</th><td>{$result.z_score|default=0}</td></tr>
+                    <tr><th>P值</th><td>{$result.p_value|default=0}</td></tr>
+                    <tr><th>置信度</th><td><strong>{$result.confidence|default=0}%</strong></td></tr>
+                    <tr><th>提升幅度</th><td><strong class="text-success">{$result.lift|default=0}%</strong></td></tr>
+                    <tr><th>结论</th><td>{$result.conclusion|default='数据不足，无法得出结论'}</td></tr>
+                </table>
+            </div>
+        </div>
+        <div id="chart-trend" style="height: 300px;"></div>
+    </div>
+</div>
+<script src="/assets/js/echarts.min.js"></script>
+<script>
+function applyWinner() {
+    if(!confirm('确定应用优胜方案？此操作不可撤销。')) return;
+    $.post('{:url("/admin/ab_test/applyWinner")}', {test_id: $('#test_id').val()}, function(res){
+        if(res.code === 0) { alert('优胜方案已应用'); location.reload(); } else alert(res.msg);
+    });
+}
+</script>
+{/block}

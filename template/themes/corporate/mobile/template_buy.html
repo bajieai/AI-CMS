@@ -1,0 +1,25 @@
+{extend name="layout" /}
+{block name="title"}模板购买{/block}
+{block name="content"}
+<div class="m-content">
+    <h4 style="font-size:17px;font-weight:700;margin-bottom:12px;"><i class="bi bi-bag me-2"></i>模板购买</h4>
+    {if condition="$info"}
+    <div class="m-card">
+        <div class="m-card-body">
+            <h5>{$info.name}</h5>
+            <p class="text-muted small">{$info.description|default=''|msubstr=0,80}</p>
+            <div class="mb-2">
+                <span class="badge bg-light text-dark">v{$info.version|default='1.0'}</span>
+                <span class="badge bg-light text-dark"><i class="bi bi-download"></i> {$info.install_count|default=0}</span>
+            </div>
+            <form method="post" action="/template_store/buy/{$info.id}">
+                <input type="hidden" name="price_tier" value="personal">
+                <button type="submit" class="btn btn-primary w-100">购买 (￥99)</button>
+            </form>
+        </div>
+    </div>
+    {else /}
+    <div class="text-center text-muted py-5">模板不存在</div>
+    {/if}
+</div>
+{/block}

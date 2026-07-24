@@ -1,0 +1,94 @@
+{extend name="layout" /}
+
+{block name="title"}配置编辑 - H5移动端{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">H5移动端</li>
+<li class="breadcrumb-item"><a href="/admin/h5_config/index">H5配置</a></li>
+<li class="breadcrumb-item active">配置编辑</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-code-square me-1"></i>H5 配置编辑</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-1"></i>
+            以 JSON 格式编辑 H5 移动端配置。修改后需清除缓存才能生效。
+        </div>
+
+        <form id="h5ConfigForm">
+            <div class="mb-3">
+                <label class="form-label">配置类型</label>
+                <select name="config_type" id="configType" class="form-select" onchange="loadConfig()">
+                    <option value="general" {if ($type|default='general') eq 'general'}selected{/if}>通用配置</option>
+                    <option value="theme" {if $type eq 'theme'}selected{/if}>主题配置</option>
+                    <option value="feature" {if $type eq 'feature'}selected{/if}>功能配置</option>
+                    <option value="performance" {if $type eq 'performance'}selected{/if}>性能配置</option>
+                    <option value="pwa" {if $type eq 'pwa'}selected{/if}>PWA配置</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">配置内容（JSON）</label>
+                <textarea name="config_value" id="configJson" class="form-control font-monospace" rows="20" style="font-size:13px;">{$config_json|default='{}'}</textarea>
+                <div class="form-text">
+                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                    请确保 JSON 格式正确，保存前会自动校验
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" onclick="saveConfig()">
+                    <i class="bi bi-check-lg me-1"></i>保存配置
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="formatJson()">
+                    <i class="bi bi-code me-1"></i>格式化JSON
+                </button>
+                <a href="/admin/h5_config/index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>返回
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function loadConfig() {
+    var type = $('#configType').val();
+    $.get('/admin/h5_config/edit', {type: type}, function(res) {
+        if (res.code === 0) {
+            $('#configJson').val(JSON.stringify(res.data, null, 2));
+        }
+    });
+}
+
+function formatJson() {
+    try {
+        var json = JSON.parse($('#configJson').val());
+        $('#configJson').val(JSON.stringify(json, null, 2));
+    } catch(e) {
+        alert('JSON 格式错误: ' + e.message);
+    }
+}
+
+function saveConfig() {
+    var jsonStr = $('#configJson').val();
+    try {
+        JSON.parse(jsonStr);
+    } catch(e) {
+        alert('JSON 格式错误: ' + e.message);
+        return;
+    }
+    $.post('/admin/h5_config/edit', {
+        config_type: $('#configType').val(),
+        config_value: jsonStr
+    }, function(res) {
+        if (res.code === 0) { alert('保存成功'); }
+        else { alert(res.msg || '保存失败'); }
+    });
+}
+</script>
+{/block}

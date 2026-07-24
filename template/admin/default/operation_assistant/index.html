@@ -1,0 +1,37 @@
+{extend name="layout" /}
+{block name="title"}AI运营助手{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">AI运营助手</li>{/block}
+{block name="content"}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3"><div class="card-header"><i class="bi bi-lightbulb me-1"></i>运营建议</div><div class="card-body">
+            {volist name="suggestions" id="sug"}
+            <div class="alert alert-info py-2"><strong>{$sug.title}</strong><p class="mb-0 small">{$sug.content}</p></div>
+            {/volist}
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3"><div class="card-header"><i class="bi bi-exclamation-triangle me-1"></i>智能提醒</div><div class="card-body">
+            {volist name="smartAlerts" id="alert"}
+            <div class="alert alert-{$alert.level|default='warning'} py-2"><strong>{$alert.title}</strong><p class="mb-0 small">{$alert.content}</p></div>
+            {/volist}
+        </div></div>
+    </div>
+</div>
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-file-earmark-text me-1"></i>运营报告</div>
+    <div class="card-body">
+        <button class="btn btn-outline-primary me-2" id="dailyReport">日报</button>
+        <button class="btn btn-outline-primary me-2" id="weeklyReport">周报</button>
+        <button class="btn btn-outline-primary" id="monthlyReport">月报</button>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-book me-1"></i>运营知识库</div>
+    <div class="card-body">
+        {volist name="knowledgeBase" id="kb"}
+        <div class="mb-2 p-2 border rounded"><strong>{$kb.title}</strong><p class="mb-0 small text-muted">{$kb.description}</p></div>
+        {/volist}
+    </div>
+</div>
+{/block}

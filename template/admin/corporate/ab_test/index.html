@@ -1,0 +1,49 @@
+{extend name="layout" /}
+{block name="title"}A/B测试 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-split"></i> A/B测试引擎</h5>
+        <a href="{:url('/admin/ab_test/create')}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> 创建实验</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>ID</th><th>实验名称</th><th>类型</th><th>状态</th><th>流量分配</th><th>开始时间</th><th>结束时间</th><th>样本量</th><th>操作</th></tr></thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.name}</td>
+                        <td><span class="badge bg-secondary">{$vo.test_type}</span></td>
+                        <td>{if condition="$vo.status eq 'running'"}<span class="badge bg-success">运行中</span>{elseif condition="$vo.status eq 'paused'"/}<span class="badge bg-warning">已暂停</span>{elseif condition="$vo.status eq 'completed'"/}<span class="badge bg-info">已完成</span>{else/}<span class="badge bg-secondary">草稿</span>{/if}</td>
+                        <td>A:{$vo.traffic_a|default=50}% / B:{$vo.traffic_b|default=50}%</td>
+                        <td>{$vo.start_time|default='-'}</td>
+                        <td>{$vo.end_time|default='-'}</td>
+                        <td>{$vo.sample_size|default=0}</td>
+                        <td>
+                            <a href="{:url('/admin/ab_test/results', ['id'=>$vo.id])}" class="btn btn-outline-info btn-sm"><i class="bi bi-graph-up"></i></a>
+                            {if condition="$vo.status eq 'running'"}<button onclick="pauseTest({$vo.id})" class="btn btn-outline-warning btn-sm"><i class="bi bi-pause"></i></button>{elseif condition="$vo.status eq 'paused'"/}<button onclick="startTest({$vo.id})" class="btn btn-outline-success btn-sm"><i class="bi bi-play"></i></button>{/if}
+                            <button onclick="stopTest({$vo.id})" class="btn btn-outline-danger btn-sm"><i class="bi bi-stop"></i></button>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-muted">共 {$total|default=0} 条记录</span>
+            <nav><ul class="pagination pagination-sm">
+                <li class="page-item {if condition="$page lte 1"}disabled{/if}"><a class="page-link" href="?page={:$page-1}">上一页</a></li>
+                <li class="page-item active"><a class="page-link" href="#">{$page}</a></li>
+                <li class="page-item"><a class="page-link" href="?page={:$page+1}">下一页</a></li>
+            </ul></nav>
+        </div>
+    </div>
+</div>
+<script>
+function startTest(id) { $.post('{:url("/admin/ab_test/start")}', {id: id}, function(res){ if(res.code===0) location.reload(); else alert(res.msg); }); }
+function pauseTest(id) { $.post('{:url("/admin/ab_test/pause")}', {id: id}, function(res){ if(res.code===0) location.reload(); else alert(res.msg); }); }
+function stopTest(id) { if(!confirm('确定停止？')) return; $.post('{:url("/admin/ab_test/stop")}', {id: id}, function(res){ if(res.code===0) location.reload(); else alert(res.msg); }); }
+</script>
+{/block}

@@ -1,0 +1,23 @@
+<!-- V2.9.21 D-4: 案例型列表项 (corporate) -->
+<div class="col-md-4 col-sm-6">
+    <div class="card h-100 case-card border-0 shadow-sm">
+        {if condition="$vo.cover"}
+        <div class="case-img-wrap overflow-hidden" style="position:relative;border-radius:8px 8px 0 0;">
+            <img data-src="{$vo.cover}" class="card-img-top lazyload" alt="{$vo.title}" onerror="this.style.display='none'" style="transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+            <div class="case-overlay" style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.7));padding:25px 15px 10px;">
+                <span class="text-white small"><i class="bi bi-eye me-1"></i>{$vo.views|default=0}</span>
+            </div>
+        </div>
+        {/if}
+        <div class="card-body">
+            <h5 class="card-title fs-6" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <a href="{$vo.url}" class="text-decoration-none text-dark">{$vo.title}</a>
+                {include file="shared/paid_badge" /}
+            </h5>
+            <p class="card-text text-muted small">{$vo.excerpt|msubstr=0,80}</p>
+        </div>
+        <div class="card-footer bg-transparent border-0 pt-0">
+            <a href="{$vo.url}" class="btn btn-sm btn-outline-primary w-100">查看案例</a>
+        </div>
+    </div>
+</div>

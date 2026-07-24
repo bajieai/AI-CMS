@@ -1,0 +1,154 @@
+<?php
+
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
+// +----------------------------------------------------------------------
+// | 官网: http://www.i8j.cn
+// +----------------------------------------------------------------------
+// | Author: 八界AI Team <admin@i8j.cn>
+// +----------------------------------------------------------------------
+declare(strict_types=1);
+
+namespace app\common\service;
+
+use think\facade\Db;
+
+/**
+ * 签到服务
+ */
+class SigninService
+{
+    /**
+     * 执行签到
+     */
+    public static function signin(int $memberId): array
+    {
+        $today = date('Y-m-d');
+        // 绕过Model字段缓存，直接使用查询构造器
+        $member = Db::name('member')->where('id', $memberId)->find();
+        if (!$member) throw new \Exception('会员不存在');
+
+        // 检查今天是否已签到
+        $exists = Db::name('signin_log')->where('member_id', $memberId)
+            ->where('signin_date', $today)
+            ->find();
+        if ($exists) throw new \Exception('今日已签到');
+
+        // 计算连续签到天数
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+        $lastSignin = Db::name('signin_log')->where('member_id', $memberId)
+            ->order('signin_date', 'desc')
+            ->find();
+
+        $consecutiveDays = 1;
+        if ($lastSignin && $lastSignin['signin_date'] == $yesterday) {
+            $consecutiveDays = ((int) ($member['signin_count'] ?? 0)) + 1;
+        }
+
+        // 计算积分
+        $basePoints = PointsService::getConfig('signin', 5);
+        $bonusPoints = 0;
+
+        if ($consecutiveDays >= 7) {
+            $bonusPoints = PointsService::getConfig('signin_7days', 30);
+        } elseif ($consecutiveDays >= 3) {
+            $bonusPoints = PointsService::getConfig('signin_3days', 10);
+        }
+
+        $totalPoints = $basePoints + $bonusPoints;
+
+        // V2.9.2 M20: 签到积分倍率（会员等级权益）
+        $member = Db::name('member')->where('id', $memberId)->find();
+        if ($member && !empty($member['level_id'])) {
+            $level = Db::name('member_level')->where('id', $member['level_id'])->find();
+            if ($level && !empty($level['points_rate']) && $level['points_rate'] > 0) {
+                $totalPoints = (int) round($totalPoints * (float) $level['points_rate']);
+            }
+        }
+
+        Db::startTrans();
+        try {
+            // 签到记录（绕过模型严格字段检查）
+            Db::name('signin_log')->insert([
+                'member_id'        => $memberId,
+                'signin_date'      => $today,
+                'points'           => $totalPoints,
+                'consecutive_days' => $consecutiveDays,
+                'create_time'      => time(),
+            ]);
+
+            // 更新会员积分和签到信息（V2.9.5 修复：使用inc()替代Db::raw，消除SQL注入风险）
+            Db::name('member')->where('id', $memberId)
+                ->inc('points', $totalPoints)
+                ->inc('total_points', $totalPoints)
+                ->update([
+                    'signin_count'     => $consecutiveDays,
+                    'last_signin_date' => $today,
+                ]);
+
+            // 积分日志（绕过模型严格字段检查）
+            Db::name('points_log')->insert([
+                'member_id'  => $memberId,
+                'points'     => $totalPoints,
+                'type'       => 'signin',
+                'source_id'  => 0,
+                'note'       => "签到第{$consecutiveDays}天",
+                'create_time'=> time(),
+            ]);
+
+            // 检查等级升降
+            MemberLevelService::checkUpgrade($memberId);
+
+            Db::commit();
+
+            // V2.9 邀请奖励：首次签到触发邀请人奖励
+            InviteRewardService::onMemberEvent($memberId, 'signin');
+
+            return [
+                'points'           => $totalPoints,
+                'base_points'      => $basePoints,
+                'bonus_points'     => $bonusPoints,
+                'consecutive_days' => $consecutiveDays,
+            ];
+        } catch (\Exception $e) {
+            Db::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * 获取签到日历数据（当月）
+     */
+    public static function getCalendar(int $memberId, string $month = ''): array
+    {
+        $month = $month ?: date('Y-m');
+        $startDate = $month . '-01';
+        $endDate = date('Y-m-t', strtotime($startDate));
+
+        $records = Db::name('signin_log')->where('member_id', $memberId)
+            ->whereBetween('signin_date', [$startDate, $endDate])
+            ->select();
+        $logs = [];
+        foreach ($records as $r) {
+            $logs[$r['signin_date']] = ['consecutive_days' => (int) ($r['consecutive_days'] ?? 0)];
+        }
+
+        $days = [];
+        $current = strtotime($startDate);
+        $end = strtotime($endDate);
+        while ($current <= $end) {
+            $date = date('Y-m-d', $current);
+            $days[] = [
+                'date'             => $date,
+                'is_signed'        => isset($logs[$date]),
+                'consecutive_days' => $logs[$date]['consecutive_days'] ?? 0,
+            ];
+            $current = strtotime('+1 day', $current);
+        }
+
+        return $days;
+    }
+}

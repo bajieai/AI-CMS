@@ -1,0 +1,43 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="{$type_url}">图片图集</a></li>
+                <li class="breadcrumb-item active">{$info.title|msubstr=0,20}</li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-3">{$info.title}</h1>
+                <div class="text-muted small mb-3">
+                    <span><i class="bi bi-clock me-1"></i>{:date('Y-m-d', $info.create_time)}</span>
+                    <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views|default=0}</span>
+                    {if condition="isset($info.ext.data.photographer) && $info.ext.data.photographer"}<span class="ms-3"><i class="bi bi-camera me-1"></i>{$info.ext.data.photographer}</span>{/if}
+                </div>
+                {if condition="$info.cover"}
+                <div class="main-image mb-3">
+                    <img src="{$info.cover}" class="img-fluid rounded" alt="{$info.title}" id="mainImage">
+                </div>
+                {/if}
+                {if condition="isset($info.ext.data.gallery) && $info.ext.data.gallery"}
+                <div class="gallery-thumbnails d-flex flex-wrap gap-2 mb-3">
+                    {foreach name="info.ext.data.gallery" item="img" key="k"}
+                    <img src="{$img}" class="rounded" style="width:80px;height:80px;object-fit:cover;cursor:pointer" onclick="document.getElementById('mainImage').src='{$img}'" alt="缩略图{$k+1}" loading="lazy">
+                    {/foreach}
+                </div>
+                {/if}
+                <div class="article-content">{$safe_content|raw}</div>
+                {if condition="isset($info.ext.data.image_description) && $info.ext.data.image_description"}
+                <blockquote class="blockquote text-muted small mt-3"><p>{$info.ext.data.image_description}</p></blockquote>
+                {/if}
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

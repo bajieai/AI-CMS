@@ -1,0 +1,141 @@
+{extend name="layout" /}
+
+{block name="title"}{$site_name} - 首页{/block}
+
+{block name="content"}
+<!-- Hero全宽渐变区 -->
+<section class="hero-showcase">
+    <div class="container text-center">
+        <h1>AI 驱动的企业信息管理</h1>
+        <p class="hero-desc">高效管理产品、案例、新闻等多类型内容，AI智能写作助力企业数字化升级</p>
+        <div class="hero-actions">
+            <a href="/product" class="btn btn-primary btn-lg">了解更多 <i class="bi bi-arrow-right"></i></a>
+            <a href="/case" class="btn btn-outline-light btn-lg">成功案例</a>
+        </div>
+    </div>
+</section>
+
+<!-- 轮播图（如有） -->
+{i8j:bannerlist limit="5" status="1"}
+{if condition="$i == 0"}
+<div id="homeBanner" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {/if}
+        <button type="button" data-bs-target="#homeBanner" data-bs-slide-to="{$i}" {if condition="$i == 0"}class="active"{/if} aria-label="{$field.title}"></button>
+        {if condition="$i == count($__LIST__) - 1"}
+    </div>
+    <div class="carousel-inner">
+        {/if}
+        <div class="carousel-item {if condition='$i == 0'}active{/if}">
+            <a href="{$field.link|default='javascript:;'}" class="d-block banner-slide" style="background-image:url('{$field.image}')">
+                <div class="carousel-caption">
+                    <h5>{$field.title}</h5>
+                </div>
+            </a>
+        </div>
+        {if condition="$i == count($__LIST__) - 1"}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#homeBanner" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+    <button class="carousel-control-next" type="button" data-bs-target="#homeBanner" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+</div>
+{/if}
+{/i8j:bannerlist}
+
+<!-- 特色服务（三列卡片） -->
+<section class="section-alt">
+    <div class="container">
+        <h2 class="section-title text-center">核心服务</h2>
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-robot"></i></div>
+                    <h5>AI智能写作</h5>
+                    <p class="text-muted small">基于大语言模型的内容生成，快速产出高质量文章</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-palette"></i></div>
+                    <h5>主题自动生成</h5>
+                    <p class="text-muted small">AI一键生成完整主题模板，支持多行业定制</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                    <h5>SEO优化</h5>
+                    <p class="text-muted small">内置SEO工具，自动生成Sitemap和结构化数据</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 产品展示 -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title"><i class="bi bi-box-seam me-2"></i>产品中心</h2>
+        <div class="row g-3 mt-2">
+            {i8j:infolist type="product" limit="6"}
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="product-card">
+                    {if condition="$field.cover"}
+                    <img data-src="{$field.cover}" class="lazyload" alt="{$field.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                    {else/}
+                    <div class="placeholder-img"><i class="bi bi-image"></i></div>
+                    {/if}
+                    <h6><a href="{$field.url}">{$field.title}</a></h6>
+                    <small class="text-muted">{$field.create_time|date='Y-m-d'}</small>
+                </div>
+            </div>
+            {/i8j:infolist}
+        </div>
+        <div class="text-end mt-3">
+            <a href="/product" class="btn btn-outline-primary btn-sm">查看全部 <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- 案例展示 -->
+<section class="section-alt">
+    <div class="container">
+        <h2 class="section-title"><i class="bi bi-trophy me-2"></i>成功案例</h2>
+        <div class="row g-3 mt-2">
+            {i8j:infolist type="case" limit="4"}
+            <div class="col-md-6 col-lg-3">
+                <div class="case-card">
+                    {if condition="$field.cover"}
+                    <img data-src="{$field.cover}" class="lazyload" alt="{$field.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                    {/if}
+                    <div class="case-body">
+                        <h6><a href="{$field.url}">{$field.title}</a></h6>
+                        <p class="small text-muted">{$field.excerpt|msubstr=0,60}</p>
+                    </div>
+                </div>
+            </div>
+            {/i8j:infolist}
+        </div>
+    </div>
+</section>
+
+<!-- 新闻动态 -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title"><i class="bi bi-newspaper me-2"></i>新闻动态</h2>
+        <div class="row g-3 mt-2">
+            {i8j:infolist type="news" limit="8"}
+            <div class="col-md-6 col-lg-3">
+                <div class="news-card">
+                    <small class="text-muted">{$field.create_time|date='Y-m-d'}</small>
+                    <h6><a href="{$field.url}">{$field.title}</a></h6>
+                    <p class="small text-muted">{$field.excerpt|msubstr=0,80}</p>
+                </div>
+            </div>
+            {/i8j:infolist}
+        </div>
+        <div class="text-end mt-3">
+            <a href="/news" class="btn btn-outline-primary btn-sm">查看全部 <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+{/block}

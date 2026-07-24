@@ -1,0 +1,77 @@
+{extend name="layout" /}
+
+{block name="title"}我的优惠券{/block}
+
+{block name="content"}
+<div class="m-content">
+
+<!-- 优惠券概览 -->
+<div class="m-card" style="padding:22px 18px;background:linear-gradient(135deg,#f97316,#ec4899,#a855f7);border-radius:14px;color:#fff;text-align:center;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,.1);border-radius:50%;"></div>
+    <div style="display:flex;justify-content:center;gap:0;position:relative;z-index:1;">
+        <div style="flex:1;padding:8px 12px;border-right:1px solid rgba(255,255,255,.28);">
+            <div style="font-size:24px;font-weight:800;line-height:1.2;">{$usable_count|default=0}</div>
+            <div style="font-size:11.5px;opacity:.78;margin-top:2px;">可用券</div>
+        </div>
+        <div style="flex:1;padding:8px 12px;border-right:1px solid rgba(255,255,255,.28);">
+            <div style="font-size:24px;font-weight:800;line-height:1.2;">{$used_count|default=0}</div>
+            <div style="font-size:11.5px;opacity:.78;margin-top:2px;">已使用</div>
+        </div>
+        <div style="flex:1;padding:8px 12px;">
+            <div style="font-size:24px;font-weight:800;line-height:1.2;">{$expired_count|default=0}</div>
+            <div style="font-size:11.5px;opacity:.78;margin-top:2px;">已过期</div>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选Tab -->
+<div class="m-card" style="padding:10px 14px;margin-top:12px;display:flex;gap:4px;background:#f8fafc;border-radius:10px;">
+    <button class="uc-tab-item active" onclick="filterM(-1,this)" style="flex:1;padding:8px 0;font-size:13px;">全部</button>
+    <button class="uc-tab-item" onclick="filterM(0,this)" style="flex:1;padding:8px 0;font-size:13px;">可用</button>
+    <button class="uc-tab-item" onclick="filterM(1,this)" style="flex:1;padding:8px 0;font-size:13px;">已用</button>
+    <button class="uc-tab-item" onclick="filterM(2,this)" style="flex:1;padding:8px 0;font-size:13px;">过期</button>
+</div>
+
+<!-- 优惠券列表 -->
+<div id="couponList" style="margin-top:10px;">
+    {volist name="coupons" id="vo"}
+    <div class="m-card coupon-m-card" data-status="{$vo.status}" style="{if $vo.status != 0}opacity:.55;{/if}display:flex;align-items:stretch;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:0 !important;">
+        <!-- 左侧金额 -->
+        <div style="min-width:88px;padding:14px 8px;text-align:center;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+            background:{if $vo.coupon_type == 'reduce'}linear-gradient(145deg,#3b82f6,#2563eb){elseif $vo.coupon_type == 'discount' /}linear-gradient(145deg,#f59e0b,#d97706){else /}linear-gradient(145deg,#10b981,#059669){/if};">
+            <div style="font-size:20px;font-weight:800;">
+                {if $vo.coupon_type == 'reduce'}&yen;{$vo.reduce_amount}{elseif $vo.coupon_type == 'discount' /}{$vo.reduce_amount}折{else /}<i class="bi bi-truck" style="font-size:17px;"></i>{/if}
+            </div>
+            <div style="font-size:10px;opacity:.8;margin-top:2px;">
+                {if $vo.condition_amount > 0}满{$vo.condition_amount}可用{else /}无门槛{/if}
+            </div>
+        </div>
+        <!-- 右侧信息 -->
+        <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;justify-content:center;">
+            <div style="font-size:14px;font-weight:600;color:#1e293b;line-height:1.35;">{$vo.coupon_name}</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:4px;"><i class="bi bi-clock me-1"></i>{if $vo.expire_at > 0}{$vo.expire_at|date='m-d'}到期{else /}长期有效{/if}</div>
+            <div style="margin-top:6px;">
+                {switch $vo.status}
+                {case 0}<span class="badge rounded-pill" style="background:#dcfce7;color:#15803d;font-size:10.5px;padding:3px 9px;">可用</span>{/case}
+                {case 1}<span class="badge rounded-pill bg-secondary" style="font-size:10.5px;">已用</span>{/case}
+                {case 2}<span class="badge rounded-pill" style="background:#fee2e2;color:#991b1b;font-size:10.5px;">过期</span>{/case}
+                {/switch}
+            </div>
+        </div>
+    </div>
+    {/volist}
+    {empty name="coupons"}
+    <div class="m-empty"><i class="bi bi-ticket-perforated"></i><p>暂无优惠券</p></div>
+    {/empty}
+</div>
+
+</div>
+{/block}
+
+<script>
+function filterM(status,el){
+    $('.uc-tab-item').not(el).removeClass('active');$(el).addClass('active');
+    if(status===-1){$('.coupon-m-card').show();}
+    else{$('.coupon-m-card').each(function(){var s=$(this).data('status');$(this).toggle(s===status);});}
+}
+</script>

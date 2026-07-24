@@ -1,0 +1,59 @@
+<!-- pages/invite/invite.wxml - V2.9 邀请好友页面 -->
+<view class="container">
+  <!-- 邀请统计 -->
+  <view class="invite-header">
+    <view class="invite-stat">
+      <text class="stat-num">{{inviteCount}}</text>
+      <text class="stat-label">成功邀请</text>
+    </view>
+    <view class="invite-stat">
+      <text class="stat-num">{{invitePoints}}</text>
+      <text class="stat-label">获得积分</text>
+    </view>
+  </view>
+
+  <!-- 邀请链接 -->
+  <view class="invite-link-card">
+    <text class="link-title">您的专属邀请链接</text>
+    <view class="link-box">
+      <text class="link-text">{{inviteLink}}</text>
+      <button class="copy-btn" size="mini" bindtap="copyLink">复制</button>
+    </view>
+    <button class="share-btn" open-type="share">分享给好友</button>
+  </view>
+
+  <!-- V2.9: 三阶段奖励进度 -->
+  <view class="reward-stages">
+    <text class="section-title">邀请奖励进度</text>
+    <view class="stage-track">
+      <view wx:for="{{rewardStages}}" wx:key="stage" class="stage-item {{item.achieved ? 'achieved' : ''}}">
+        <view class="stage-icon">{{item.icon}}</view>
+        <view class="stage-info">
+          <text class="stage-label">{{item.label}}</text>
+          <text class="stage-desc">{{item.desc}}</text>
+        </view>
+        <view class="stage-reward">
+          <text class="stage-count">{{item.count}}人</text>
+          <text wx:if="{{item.points > 0}}" class="stage-points">+{{item.points}}</text>
+        </view>
+        <view wx:if="{{item.achieved}}" class="stage-badge done">已达成</view>
+        <view wx:elif="{{$index === 0 || rewardStages[$index-1].achieved}}" class="stage-badge active">进行中</view>
+        <view wx:else class="stage-badge locked">未解锁</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 邀请记录 -->
+  <view class="records" wx:if="{{records.length > 0}}">
+    <text class="section-title">邀请记录</text>
+    <view wx:for="{{records}}" wx:key="id" class="record-item">
+      <view class="record-info">
+        <text class="record-name">{{item.invitee_nickname || '用户'}}</text>
+        <text class="record-time">{{item.create_time_fmt}}</text>
+      </view>
+      <text class="record-points">+{{item.reward_points}}积分</text>
+    </view>
+  </view>
+
+  <view wx:if="{{records.length === 0}}" class="empty">暂无邀请记录</view>
+</view>

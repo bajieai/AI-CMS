@@ -1,0 +1,20 @@
+{extend name="layout" /}
+{block name="title"}站点地图{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">SEO优化</li><li class="breadcrumb-item active">站点地图</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><i class="bi bi-map me-1"></i>Sitemap管理</div><div class="card-body">
+<p>状态: {if condition="$sitemap_exists"}<span class="badge bg-success">已生成</span>{else /}<span class="badge bg-secondary">未生成</span>{/if}</p>
+<button class="btn btn-primary btn-sm" onclick="genSitemap()"><i class="bi bi-arrow-clockwise me-1"></i>重新生成</button>
+<hr><h6>搜索引擎提交</h6>
+<button class="btn btn-outline-primary btn-sm me-1" onclick="submitSitemap('baidu')">百度</button>
+<button class="btn btn-outline-primary btn-sm me-1" onclick="submitSitemap('google')">Google</button>
+<button class="btn btn-outline-primary btn-sm me-1" onclick="submitSitemap('bing')">Bing</button>
+<button class="btn btn-outline-primary btn-sm" onclick="submitSitemap('sogou')">搜狗</button>
+<button class="btn btn-outline-primary btn-sm" onclick="submitSitemap('360')">360</button>
+<div id="submitResult" class="mt-2"></div>
+</div></div>
+<script>
+function genSitemap(){$.post('/admin/seo_manage/generateSitemap',r=>showToast(r.msg,r.success?'success':'danger'));}
+function submitSitemap(e){$.post('/admin/seo_manage/submitSitemap',{engine:e},r=>{$('#submitResult').html('<span class="text-success">'+r.msg+'</span>');});}
+</script>
+{/block}

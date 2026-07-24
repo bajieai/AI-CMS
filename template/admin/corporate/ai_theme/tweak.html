@@ -1,0 +1,190 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_theme/index">AI中心</a></li>
+<li class="breadcrumb-item"><a href="/admin/ai_theme/detail?id={$record.id}">审核详情</a></li>
+<li class="breadcrumb-item active">CSS变量配置</li>
+{/block}
+{block name="content"}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>CSS变量配置</h6>
+            </div>
+            <div class="card-body">
+                <form id="tweakForm">
+                    <input type="hidden" name="theme_name" value="{$record.theme_name}">
+
+                    <!-- V2.9.11: 25变量分组展示 -->
+                    {php}
+                    $groups = [
+                        '核心品牌色' => ['--primary','--primary-light','--primary-dark','--secondary','--accent'],
+                        '背景色'     => ['--bg','--bg-secondary','--bg-section'],
+                        '文字色'     => ['--text','--text-secondary','--text-inverse'],
+                        '边框与效果' => ['--border','--radius','--radius-lg','--radius-sm','--shadow','--shadow-hover','--shadow-lg'],
+                        '字体'       => ['--font-heading','--font-body'],
+                        '动画'       => ['--transition','--transition-slow'],
+                        '布局'       => ['--max-width','--sidebar-pos','--header-style'],
+                    ];
+                    {/php}
+                    {foreach $groups as $groupName => $groupVars}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">{$groupName}</label>
+                        {foreach $groupVars as $varName}
+                        {if condition="isset($current_vars[$varName])"}
+                        {php}$val = $current_vars[$varName];{/php}
+                        <div class="mb-2 ps-2">
+                            <label class="form-label small mb-1" style="font-size:11px;color:#666;">{$varName}</label>
+                            <div class="input-group input-group-sm">
+                                {if condition="strpos($val, '#') === 0"}
+                                <input type="color" class="form-control form-control-color" value="{$val}" data-target="var_{:md5($varName)}" style="width:36px;padding:2px;">
+                                {/if}
+                                <input type="text" name="vars[{$varName}]" id="var_{:md5($varName)}" class="form-control" value="{$val}">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetVar('{$varName}', '{$default_vars[$varName] ?? $val}')">重置</button>
+                            </div>
+                        </div>
+                        {/if}
+                        {/foreach}
+                    </div>
+                    {/foreach}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-save me-1"></i>保存配置
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetAll()">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>全部重置
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-eye me-2"></i>实时预览</h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="openPreview()">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>新窗口预览
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <iframe id="previewFrame" src="about:blank" style="width:100%; height:600px; border:none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+let previewUrl = '';
+
+// 颜色选择器联动
+$(document).on('input', '.form-control-color', function() {
+    const target = $(this).data('target');
+    $('#' + target).val($(this).val()).trigger('input');
+});
+
+// 实时预览更新
+$(document).on('input', '#tweakForm input[type="text"]', function() {
+    updatePreview();
+});
+
+function updatePreview() {
+    const vars = {};
+    $('#tweakForm input[type="text"]').each(function() {
+        const name = $(this).attr('name');
+        const match = name.match(/vars\[(.+?)\]/);
+        if (match) {
+            vars[match[1]] = $(this).val();
+        }
+    });
+
+    const css = ':root {\n' + Object.entries(vars).map(([k, v]) => '  ' + k + ': ' + v + ';').join('\n') + '\n}';
+
+    const frame = document.getElementById('previewFrame');
+    if (!previewUrl) {
+        // 首次加载：获取预览URL
+        $.get('/admin/ai_theme/preview_url', {id: {$record.id}}, function(res) {
+            if (res.code === 0) {
+                previewUrl = res.data.preview_url;
+                loadPreview(frame, previewUrl, css);
+            }
+        });
+    } else {
+        // 更新iframe中的CSS变量
+        try {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            let styleEl = doc.getElementById('i8j-tweak-preview');
+            if (!styleEl) {
+                styleEl = doc.createElement('style');
+                styleEl.id = 'i8j-tweak-preview';
+                doc.head.appendChild(styleEl);
+            }
+            styleEl.textContent = css;
+        } catch (e) {
+            // 跨域时重新加载
+            loadPreview(frame, previewUrl, css);
+        }
+    }
+}
+
+function loadPreview(frame, url, css) {
+    // 通过代理页面注入CSS（简化方案：直接加载预览URL，CSS通过postMessage注入）
+    frame.src = url;
+    frame.onload = function() {
+        try {
+            frame.contentWindow.postMessage({type: 'i8j-tweak', css: css}, '*');
+        } catch (e) {}
+    };
+}
+
+function resetVar(key, defaultVal) {
+    $('input[name="vars[' + key + ']"]').val(defaultVal);
+    updatePreview();
+}
+
+function resetAll() {
+    if (!confirm('确认重置所有变量为默认值？')) return;
+    $.post('/admin/ai_theme/reset_tweak', {theme_name: '{$record.theme_name}'}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            location.reload();
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+$('#tweakForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/admin/ai_theme/save_tweak', $(this).serialize(), function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            updatePreview();
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+});
+
+function openPreview() {
+    if (!previewUrl) {
+        $.get('/admin/ai_theme/preview_url', {id: {$record.id}}, function(res) {
+            if (res.code === 0) {
+                window.open(res.data.preview_url, '_blank');
+            }
+        });
+    } else {
+        window.open(previewUrl, '_blank');
+    }
+}
+
+// 页面加载后初始化预览
+$(function() {
+    setTimeout(updatePreview, 500);
+});
+</script>
+{/block}

@@ -1,0 +1,44 @@
+{extend name="layout" /}
+{block name="title"}API文档 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-code-slash"></i> API文档中心</h5>
+        <div>
+            <a href="{:url('/admin/api_doc/test')}" class="btn btn-outline-primary btn-sm"><i class="bi bi-play-circle"></i> 在线测试</a>
+            <a href="{:url('/admin/api_doc/swagger')}" target="_blank" class="btn btn-outline-success btn-sm"><i class="bi bi-filetype-json"></i> Swagger UI</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <a href="#overview" class="list-group-item list-group-item-action active">概览</a>
+                    <a href="#auth" class="list-group-item list-group-item-action">认证授权</a>
+                    <a href="#content" class="list-group-item list-group-item-action">内容管理</a>
+                    <a href="#member" class="list-group-item list-group-item-action">会员系统</a>
+                    <a href="#template" class="list-group-item list-group-item-action">模板管理</a>
+                    <a href="#plugin" class="list-group-item list-group-item-action">插件系统</a>
+                    <a href="#ai" class="list-group-item list-group-item-action">AI接口</a>
+                    <a href="#seo" class="list-group-item list-group-item-action">SEO优化</a>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <pre class="bg-light p-3 rounded"><code>{$spec|default='{}'}</code></pre>
+            </div>
+        </div>
+        <hr>
+        <h6><i class="bi bi-clock-history"></i> API变更日志</h6>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>版本</th><th>日期</th><th>变更说明</th></tr></thead>
+                <tbody>
+                    {volist name="changelog" id="vo"}
+                    <tr><td>v{$vo.version}</td><td>{$vo.date}</td><td>{$vo.description}</td></tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,150 @@
+{extend name="layout" /}
+
+{block name="title"}Cookie同意管理 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">隐私合规</li>
+<li class="breadcrumb-item active">Cookie同意管理</li>
+{/block}
+
+{block name="content"}
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">总同意数</div>
+                        <div class="fs-4 fw-bold text-primary">{$cookie_stats.total ?? 0}</div>
+                    </div>
+                    <i class="bi bi-check2-circle fs-2 text-primary opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">必要Cookie同意率</div>
+                        <div class="fs-4 fw-bold text-success">{$cookie_stats.necessary_rate ?? 100}%</div>
+                    </div>
+                    <i class="bi bi-shield-check fs-2 text-success opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">分析Cookie同意率</div>
+                        <div class="fs-4 fw-bold text-info">{$cookie_stats.analytics_rate ?? 0}%</div>
+                    </div>
+                    <i class="bi bi-graph-up fs-2 text-info opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">营销Cookie同意率</div>
+                        <div class="fs-4 fw-bold text-warning">{$cookie_stats.marketing_rate ?? 0}%</div>
+                    </div>
+                    <i class="bi bi-megaphone fs-2 text-warning opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 同意历史列表 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history me-1"></i>同意历史</span>
+        <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm" id="searchUser" placeholder="搜索用户ID..." style="width:160px;">
+            <button class="btn btn-outline-primary btn-sm" onclick="searchConsent()"><i class="bi bi-search"></i> 搜索</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>用户ID</th>
+                    <th>IP地址</th>
+                    <th>必要</th>
+                    <th>分析</th>
+                    <th>营销</th>
+                    <th>同意时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.user_id}</td>
+                    <td class="small text-muted">{$vo.ip_address ?? '—'}</td>
+                    <td>
+                        {if condition="$vo.necessary == 1"}
+                        <span class="badge bg-success"><i class="bi bi-check-lg"></i></span>
+                        {else /}
+                        <span class="badge bg-secondary"><i class="bi bi-x-lg"></i></span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.analytics == 1"}
+                        <span class="badge bg-success"><i class="bi bi-check-lg"></i></span>
+                        {else /}
+                        <span class="badge bg-secondary"><i class="bi bi-x-lg"></i></span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.marketing == 1"}
+                        <span class="badge bg-success"><i class="bi bi-check-lg"></i></span>
+                        {else /}
+                        <span class="badge bg-secondary"><i class="bi bi-x-lg"></i></span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.created_at}</td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7" class="text-center text-muted py-4">暂无同意记录</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function searchConsent() {
+    var uid = $('#searchUser').val();
+    var url = '/admin/privacy/consent_history';
+    if (uid) {
+        url += '?user_id=' + uid;
+    }
+    window.location.href = url;
+}
+$('#searchUser').on('keypress', function(e) {
+    if (e.which === 13) { searchConsent(); }
+});
+</script>
+{/block}

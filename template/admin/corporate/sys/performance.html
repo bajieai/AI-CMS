@@ -1,0 +1,11 @@
+{extend name="layout" /}
+{block name="title"}性能诊断 - AI-CMS{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">系统管理</li><li class="breadcrumb-item active">性能诊断</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><i class="bi bi-speedometer2 me-1"></i>性能诊断报告</div><div class="card-body">
+<div class="alert alert-{if $report.overall eq 'critical'}danger{elseif $report.overall eq 'warning'}warning{else/}success{/if}">整体状态：<strong>{$report.overall|strtoupper}</strong> — {$report.time}</div>
+<div class="row g-3 mb-3"><div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><div class="text-muted">CPU</div><h4 class="text-{if $report.server.cpu.usage > 80}danger{elseif $report.server.cpu.usage > 60}warning{else/}success{/if}">{$report.server.cpu.usage|default=0}%</h4></div></div></div><div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><div class="text-muted">内存</div><h4 class="text-{if $report.server.memory.usage_percent > 80}danger{elseif $report.server.memory.usage_percent > 60}warning{else/}success{/if}">{$report.server.memory.usage_percent|default=0}%</h4></div></div></div><div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><div class="text-muted">数据库连接</div><h4>{$report.database.connections|default=0}</h4></div></divdiv></div><div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><div class="text-muted">队列积压</div><h4 class="text-{if $report.queue.pending > 100}danger{elseif $report.queue.pending > 20}warning{else/}success{/if}">{$report.queue.pending|default=0}</h4></div></div></div></div>
+{if !empty($report.issues)}<h6>发现问题</h6><ul>{volist name="report.issues" id="issue"}<li class="text-{if $issue.level eq 'critical'}danger{else/}warning{/if}">[{$issue.type}] {$issue.message}</li>{/volist}</ul>{/if}
+{if !empty($report.suggestions)}<h6>优化建议</h6><ul>{volist name="report.suggestions" id="s"}<li>{$s}</li>{/volist}</ul>{/if}
+</div></div>
+{/block}

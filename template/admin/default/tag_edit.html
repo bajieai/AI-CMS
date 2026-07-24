@@ -1,0 +1,46 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑标签{else/}添加标签{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/tag/index">标签管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑标签{else/}添加标签{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑标签{else/}添加标签{/if}
+    </div>
+    <div class="card-body">
+        <form id="tagForm" method="post" action="{if condition="$info"}/admin/tag/edit/{$info.id}{else/}/admin/tag/add{/if}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">标签名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="请输入标签名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}" placeholder="数字越小越靠前">
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        <a href="/admin/tag/index" class="btn btn-outline-secondary">取消返回</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#tagForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+</script>
+{/block}

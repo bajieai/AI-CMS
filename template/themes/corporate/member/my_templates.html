@@ -1,0 +1,37 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container py-4">
+    <h4 class="mb-3"><i class="bi bi-grid-3x3-gap me-1"></i>我的模板</h4>
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#purchased">已购买 ({$purchased|count})</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#favorited">已收藏 ({$favorited|count})</a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="purchased">
+            <div class="row">
+                {volist name="purchased" id="vo"}
+                <div class="col-md-4 mb-3"><div class="card h-100"><div class="card-body">
+                    <h6>{$vo.name}</h6><p class="text-muted small">{$vo.description|default=''}</p>
+                    <button class="btn btn-sm btn-primary" onclick="installTemplate({$vo.id})"><i class="bi bi-download"></i> 安装</button>
+                </div></div></div>
+                {/volist}
+                {if condition="empty($purchased)"}<div class="text-center text-muted py-4">暂无已购买模板</div>{/if}
+            </div>
+        </div>
+        <div class="tab-pane fade" id="favorited">
+            <div class="row">
+                {volist name="favorited" id="vo"}
+                <div class="col-md-4 mb-3"><div class="card h-100"><div class="card-body">
+                    <h6>{$vo.name}</h6><p class="text-muted small">{$vo.description|default=''}</p>
+                    <a href="/template_store/detail/{$vo.id}" class="btn btn-sm btn-outline-primary">查看详情</a>
+                </div></div></div>
+                {/volist}
+                {if condition="empty($favorited)"}<div class="text-center text-muted py-4">暂无收藏模板</div>{/if}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function installTemplate(storeId) { if (!confirm('确认安装此模板?')) return; $.post('/member/template/install/'+storeId, {}, function(res) { if (res.code === 0) { alert('安装成功'); } else { alert(res.msg); } }); }
+</script>
+{/block}

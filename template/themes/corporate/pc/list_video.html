@@ -1,0 +1,43 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name}{else /}视频{/if} - {$site_name}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">视频</li>
+            </ol>
+        </nav>
+        <div class="row g-3">
+            {volist name="list" id="vo"}
+            {php}$ext = (isset($vo['ext']['data']) && is_array($vo['ext']['data'])) ? $vo['ext']['data'] : [];{/php}
+            <div class="col-md-4 col-sm-6">
+                <a href="{$vo.url}" class="text-decoration-none">
+                    <div class="card video-card h-100">
+                        <div class="position-relative">
+                            {if condition="$vo.cover"}
+                            <img src="{$vo.cover}" class="card-img-top" style="height:180px;object-fit:cover" alt="{$vo.title}" loading="lazy">
+                            {else /}
+                            <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:180px"><i class="bi bi-play-btn text-white" style="font-size:3rem"></i></div>
+                            {/if}
+                            <div class="position-absolute top-50 start-50 translate-middle"><i class="bi bi-play-circle-fill text-white" style="font-size:2.5rem;opacity:0.8"></i></div>
+                            {if condition="isset($ext['duration']) && $ext['duration']"}<span class="badge bg-dark position-absolute bottom-0 end-0 m-2">{$ext['duration']}</span>{/if}
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title text-truncate">{$vo.title}</h6>
+                            <p class="text-muted small mb-0"><i class="bi bi-play me-1"></i>{$vo.play_count|default=0} 次播放</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+        {if condition="$list->hasPages()"}
+        <div class="pagination justify-content-center mt-4">{$list->render()|raw}</div>
+        {/if}
+    </div>
+</section>
+{/block}

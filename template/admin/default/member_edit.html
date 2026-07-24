@@ -1,0 +1,219 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$member"}编辑会员{else /}添加会员{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">互动管理</li>
+<li class="breadcrumb-item"><a href="/admin/member/index">前台会员</a></li>
+<li class="breadcrumb-item active">{if condition="$member"}编辑会员{else /}添加会员{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">{if condition="$member"}编辑会员：{$member.username}{else /}添加会员{/if}</div>
+    <div class="card-body">
+        <form id="memberForm" method="post" action="{if condition='$member'}/admin/member/edit?id={$member.id}{else /}/admin/member/add{/if}">
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">用户名 <span class="text-danger">*</span></label>
+                <div class="col-sm-6">
+                    <input type="text" name="username" class="form-control" value="{$member.username??''}" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">邮箱 <span class="text-danger">*</span></label>
+                <div class="col-sm-6">
+                    <input type="email" name="email" class="form-control" value="{$member.email??''}" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">密码 {if condition="!$member"}<span class="text-danger">*</span>{else /}<small class="text-muted">(留空不修改)</small>{/if}</label>
+                <div class="col-sm-6">
+                    <input type="password" name="password" class="form-control" {if condition="!$member"}required{/if} autocomplete="new-password">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">昵称</label>
+                <div class="col-sm-6">
+                    <input type="text" name="nickname" class="form-control" value="{$member.nickname??''}">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">头像</label>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;border:2px solid #e2e8f0;flex-shrink:0;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
+                            <img id="avatarPreview" src="{$member.avatar??'/assets/img/default-avatar.png'}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/img/default-avatar.png'">
+                        </div>
+                        <div>
+                            <input type="text" name="avatar" id="avatarInput" class="form-control mb-2" value="{$member.avatar??''}" placeholder="图片URL" style="min-width:280px;">
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('avatarUploadInput').click()"><i class="bi bi-upload"></i> 上传</button>
+                                <input type="file" id="avatarUploadInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="openMediaBrowser()"><i class="bi bi-images"></i> 媒体库</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">会员等级</label>
+                <div class="col-sm-6">
+                    <select name="level_id" class="form-select">
+                        <option value="0">无等级</option>
+                        {volist name="levels" id="lv"}
+                        <option value="{$lv.id}" {if condition="$member && $member.level_id == $lv.id"}selected{/if}>{$lv.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label text-end">状态</label>
+                <div class="col-sm-6">
+                    <select name="status" class="form-select">
+                        <option value="1" {if condition="$member && $member.status == 1"}selected{/if}>正常</option>
+                        <option value="0" {if condition="$member && $member.status == 0"}selected{/if}>禁用</option>
+                        <option value="2" {if condition="$member && $member.status == 2"}selected{/if}>待审核</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 offset-sm-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                    <a href="/admin/member/index" class="btn btn-outline-secondary ms-2">返回</a>
+                </div>
+            </div>
+        </form>
+
+        <!-- V2.9.5 等级变更记录 -->
+        {if $member}
+        <hr class="my-4">
+        <h6 class="mb-3"><i class="bi bi-clock-history me-1"></i>等级变更记录</h6>
+        {empty name="timeline"}
+        <p class="text-muted small">暂无等级变更记录</p>
+        {else/}
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>操作</th>
+                        <th>原等级</th>
+                        <th>新等级</th>
+                        <th>触发条件</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="timeline" id="tl"}
+                    <tr>
+                        <td>{$tl.date}</td>
+                        <td>
+                            <span class="badge {if $tl.is_upgrade}bg-success{else}bg-danger{/if}">{$tl.action_text}</span>
+                        </td>
+                        <td>{$tl.from_level.name}</td>
+                        <td>{$tl.to_level.name}</td>
+                        <td>{$tl.trigger_condition}</td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        {/empty}
+        {/if}
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+// 头像预览
+$('#avatarInput').on('input', function(){
+    var src = $(this).val().trim();
+    $('#avatarPreview').attr('src', src || '/assets/img/default-avatar.png');
+});
+
+// 头像上传
+function uploadAvatar(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var formData = new FormData();
+    formData.append('file', file);
+    $.ajax({
+        url: '/api/upload/image',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.url) {
+                $('#avatarInput').val(res.data.url);
+                $('#avatarPreview').attr('src', res.data.url);
+                showToast('头像上传成功', 'success');
+            } else {
+                showToast(res.msg || '上传失败', 'danger');
+            }
+        },
+        error: function() {
+            showToast('网络错误', 'danger');
+        }
+    });
+    input.value = '';
+}
+
+// 媒体库选择
+function openMediaBrowser() {
+    $('#mediaBrowserIframe').attr('src', '/admin/media/select');
+    $('#mediaBrowserModal').modal('show');
+}
+window.addEventListener('message', function(e) {
+    var data = e.data || {};
+    if (data.mceAction === 'insertContent' && data.content) {
+        var match = data.content.match(/src=["']([^"']+)["']/);
+        if (match && match[1]) {
+            $('#avatarInput').val(match[1]);
+            $('#avatarPreview').attr('src', match[1]);
+            $('#mediaBrowserModal').modal('hide');
+            showToast('已选择图片', 'success');
+        }
+    }
+});
+
+$('#memberForm').on('submit', function(e) {
+    e.preventDefault();
+    var $form = $(this);
+    var csrfToken = $('input[name="__token__"]').val();
+    var ajaxOpts = {
+        url: $form.attr('action'),
+        type: 'POST',
+        data: $form.serialize(),
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0) {
+                showToast(res.msg, 'success');
+                setTimeout(function() { location.href = '/admin/member/index'; }, 800);
+            } else {
+                showToast(res.msg || '保存失败', 'danger');
+            }
+        },
+        error: function() {
+            showToast('网络错误，请重试', 'danger');
+        }
+    };
+    if (csrfToken) { ajaxOpts.headers = { 'X-CSRF-TOKEN': csrfToken }; }
+    $.ajax(ajaxOpts);
+});
+</script>
+<!-- 媒体库浏览弹窗 -->
+<div class="modal fade" id="mediaBrowserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-images me-1"></i>选择图片</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="mediaBrowserIframe" src="" style="width:100%;height:480px;border:none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

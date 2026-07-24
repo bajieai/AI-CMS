@@ -1,0 +1,45 @@
+{extend name="layout" /}
+{block name="title"}SSE实时推送监控{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">SSE监控</li>{/block}
+{block name="content"}
+<div class="row mb-4">
+    <div class="col-md-3"><div class="card text-white bg-success"><div class="card-body"><div class="text-white-50 small">在线客户端</div><div class="h3 mb-0">{$data.online_clients}</div></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-primary"><div class="card-body"><div class="text-white-50 small">总客户端</div><div class="h3 mb-0">{$data.total_clients}</div></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-warning"><div class="card-body"><div class="text-white-50 small">待投递消息</div><div class="h3 mb-0">{$data.pending_messages}</div></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-info"><div class="card-body"><div class="text-white-50 small">总消息数</div><div class="h3 mb-0">{$data.total_messages}</div></div></div></div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4"><div class="card-header"><i class="bi bi-diagram-3 me-1"></i>通道消息统计<button class="btn btn-sm btn-outline-secondary float-end" onclick="refreshDashboard()"><i class="bi bi-arrow-clockwise"></i></button></div>
+            <div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>通道</th><th>总数</th><th>待投递</th><th>已投递</th></tr></thead><tbody>
+                {volist name="data.channel_stats" id="ch" key="k"}<tr><td><code>{$k}</code></td><td>{$ch.total}</td><td class="text-warning">{$ch.pending}</td><td class="text-success">{$ch.delivered}</td></tr>{/volist}
+            </tbody></table></div>
+        </div>
+        <div class="card"><div class="card-header"><i class="bi bi-hdd-network me-1"></i>IP连接统计</div>
+            <div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>IP地址</th><th>连接数</th></tr></thead><tbody>
+                {volist name="data.ip_stats" id="ip"}<tr><td>{$ip.ip_address}</td><td><span class="badge bg-primary">{$ip.count}</span></td></tr>{/volist}
+                {empty name="data.ip_stats"}<tr><td colspan="2" class="text-center text-muted py-2">无在线连接</td></tr>{/empty}
+            </tbody></table></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4"><div class="card-header d-flex justify-content-between"><span><i class="bi bi-people me-1"></i>最近客户端</span><button class="btn btn-sm btn-outline-danger" onclick="doCleanup()"><i class="bi bi-trash"></i> 清理过期</button></div>
+            <div class="card-body p-0" style="max-height:300px;overflow-y:auto"><table class="table table-sm mb-0"><thead><tr><th>客户端</th><th>用户</th><th>IP</th><th>状态</th><th>活跃</th></tr></thead><tbody>
+                {volist name="data.recent_clients" id="c"}<tr><td class="small text-truncate" style="max-width:100px">{$c.client_id}</td><td>{$c.user_id>0?$c.user_id:'游客'}</td><td class="small">{$c.ip_address}</td><td>{if $c.status==1}<span class="badge bg-success">在线</span>{else}<span class="badge bg-secondary">离线</span>{/if}</td><td class="small">{:date('H:i:s',$c.last_active)}</td></tr>{/volist}
+            </tbody></table></div>
+        </div>
+        <div class="card"><div class="card-header"><i class="bi bi-envelope me-1"></i>最近消息</div>
+            <div class="card-body p-0" style="max-height:300px;overflow-y:auto"><table class="table table-sm mb-0"><thead><tr><th>ID</th><th>通道</th><th>事件</th><th>时间</th></tr></thead><tbody>
+                {volist name="data.recent_messages" id="m"}<tr><td>{$m.id}</td><td><code>{$m.channel}</code></td><td>{$m.event_type}</td><td class="small">{:date('H:i:s',$m.create_time)}</td></tr>{/volist}
+            </tbody></table></div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function refreshDashboard() { $.post('/admin/sse_monitor/refresh', function(res){ if(res.code===0) location.reload(); }); }
+function doCleanup() { if(!confirm('确定清理过期连接和消息？')) return; $.post('/admin/sse_monitor/cleanup', function(res){ alert('清理消息:'+res.data.cleaned_messages+' 客户端:'+res.data.cleaned_clients); location.reload(); }); }
+setInterval(function(){ location.reload(); }, 15000);
+</script>
+{/block}

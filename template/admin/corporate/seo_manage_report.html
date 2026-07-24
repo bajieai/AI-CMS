@@ -1,0 +1,12 @@
+{extend name="layout" /}
+{block name="title"}SEO报告{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">SEO优化</li><li class="breadcrumb-item active">SEO报告</li>{/block}
+{block name="content"}
+<div class="card mb-3"><div class="card-header d-flex justify-content-between"><span><i class="bi bi-clipboard-data me-1"></i>SEO健康评分</span><div><a href="/admin/seo_manage/exportReport?format=csv" class="btn btn-outline-primary btn-sm">导出CSV</a></div></div><div class="card-body">
+<div class="text-center mb-3"><h1 class="display-4 text-{if condition='$score.overall >= 80'}success{elseif condition='$score.overall >= 60'}warning{else /}danger{/if}">{$score.overall}</h1><p class="text-muted">综合SEO健康评分</p></div>
+<table class="table table-sm"><thead><tr><th>维度</th><th>评分</th><th>状态</th><th>问题</th></tr></thead><tbody>
+{volist name="score.dimensions" id="d" key="dim"}<tr><td>{$dim}</td><td>{$d.score}</td><td><span class="badge bg-{if condition="$d.status eq 'pass'"}success{elseif condition="$d.status eq 'warning'"}warning{else /}danger{/if}">{$d.status}</span></td><td class="small">{volist name="d.issues" id="issue"}{$issue}; {/volist}</td></tr>{/volist}
+</tbody></table>
+</div></div>
+<div class="card"><div class="card-header"><i class="bi bi-lightbulb me-1"></i>优化建议</div><div class="card-body">{volist name="suggestions" id="s"}<p class="small"><span class="badge bg-{if condition="$s.priority eq 'urgent'"}danger{elseif condition="$s.priority eq 'important'"}warning{else /}info{/if} me-1">{$s.priority}</span><strong>{$s.dimension}</strong>: {$s.issue}</p>{/volist}</div></div>
+{/block}

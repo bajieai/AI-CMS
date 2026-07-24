@@ -1,0 +1,57 @@
+/* detail.wxss - 内容详情页 */
+.pay-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+}
+.pay-price {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #e64340;
+}
+.pay-btn {
+  background: #07c160;
+  color: #fff;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  padding: 12rpx 32rpx;
+}
+.rating-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 999;
+}
+.rating-modal-mask {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+}
+.rating-modal-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.rating-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.rating-modal-close {
+  font-size: 36rpx;
+  color: #999;
+  padding: 8rpx;
+}
+.rating-modal-body {
+  padding: 24rpx 32rpx;
+}
+.submit-rating-btn {
+  width: 100%;
+  font-size: 30rpx;
+}

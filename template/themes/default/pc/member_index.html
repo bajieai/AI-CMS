@@ -1,0 +1,59 @@
+{extend name="layout" /}
+
+{block name="title"}个人首页{/block}
+
+{block name="content"}
+<div class="ucenter-main-title">欢迎回来，{$member.nickname|default='用户'}</div>
+
+<div class="ucenter-dashboard">
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.points}</div>
+        <div class="ucenter-stat-label">我的积分</div>
+    </div>
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.favorite}</div>
+        <div class="ucenter-stat-label">我的收藏</div>
+    </div>
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.comment}</div>
+        <div class="ucenter-stat-label">我的评论</div>
+    </div>
+    <div class="ucenter-stat-card">
+        <div class="ucenter-stat-value">{$stats.notification}</div>
+        <div class="ucenter-stat-label">未读通知</div>
+    </div>
+</div>
+
+<div class="ucenter-quick-grid">
+    <a href="/member/profile" class="ucenter-quick-item"><i class="bi bi-person"></i>个人资料</a>
+    <a href="/member/publish" class="ucenter-quick-item"><i class="bi bi-file-text"></i>我的发布</a>
+    <a href="/member/stats" class="ucenter-quick-item"><i class="bi bi-bar-chart"></i>内容统计</a>
+    <a href="/member/favorite" class="ucenter-quick-item"><i class="bi bi-heart"></i>我的收藏</a>
+    <a href="/member/notification" class="ucenter-quick-item"><i class="bi bi-bell"></i>消息通知</a>
+    <a href="/member/points" class="ucenter-quick-item"><i class="bi bi-coin"></i>积分明细</a>
+    <a href="/member/level" class="ucenter-quick-item"><i class="bi bi-award"></i>会员等级</a>
+    <a href="/member/invite" class="ucenter-quick-item"><i class="bi bi-people"></i>我的邀请</a>
+</div>
+
+{if condition="count($recent_notifications) > 0"}
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;">
+    <div class="uc-section-header">
+        <span class="uc-section-title"><i class="bi bi-bell" style="color:#f59e0b;"></i>最近通知</span>
+        <a href="/member/notification" class="uc-action-link" style="font-size:12px;padding:5px 14px;background:#e2e8f0;color:#475569 !important;">查看全部</a>
+    </div>
+    <div style="padding:0 20px;">
+        {volist name="recent_notifications" id="item"}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #f5f7fa;">
+            <span style="font-size:13px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:72%;">{$item.title}</span>
+            <span style="font-size:11.5px;color:#94a3b8;flex-shrink:0;">{:date('m-d H:i', $item.create_time)}</span>
+        </div>
+        {/volist}
+    </div>
+</div>
+{else /}
+<div class="ucenter-empty">
+    <i class="bi bi-inbox"></i>
+    <p>暂无新通知</p>
+</div>
+{/if}
+{/block}

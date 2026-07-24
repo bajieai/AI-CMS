@@ -1,0 +1,29 @@
+{extend name="layout" /}
+{block name="title"}会员权益中心{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">会员权益中心</li>{/block}
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-star me-1"></i>等级权益对比</div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead><tr><th>权益</th>{volist name="comparison" id="cmp"}<th>{$cmp.name}</th>{/volist}</tr></thead>
+            <tbody>
+                <tr><td>每日生成次数</td>{volist name="comparison" id="cmp"}<td>{$cmp.daily_generate}</td>{/volist}</tr>
+                <tr><td>每日下载次数</td>{volist name="comparison" id="cmp"}<td>{$cmp.daily_download}</td>{/volist}</tr>
+                <tr><td>购买折扣</td>{volist name="comparison" id="cmp"}<td>{$cmp.discount}折</td>{/volist}</tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-gift me-1"></i>积分兑换权益</div>
+    <div class="card-body">
+        {volist name="pointsBenefits" id="pb"}
+        <div class="d-flex justify-content-between align-items-center mb-2 p-3 border rounded">
+            <div><strong>{$pb.name}</strong><p class="small text-muted mb-0">{$pb.description}</p></div>
+            <span class="badge bg-primary">{$pb.points}积分</span>
+        </div>
+        {/volist}
+    </div>
+</div>
+{/block}

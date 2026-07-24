@@ -1,0 +1,69 @@
+{extend name="layout" /}
+
+{block name="title"}积分记录{/block}
+
+{block name="content"}
+
+<!-- 积分概览 -->
+<div class="uc-points-overview">
+    <div class="uc-points-stats">
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value">{$member.points|default=0}</div>
+            <div class="uc-points-label">当前积分</div>
+        </div>
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value">{$member.total_points|default=0}</div>
+            <div class="uc-points-label">累计获得</div>
+        </div>
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value">{$consecutive_days|default=0}</div>
+            <div class="uc-points-label">连续签到</div>
+        </div>
+    </div>
+</div>
+
+<!-- 积分记录列表 -->
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;">
+    <div class="uc-section-header">
+        <span class="uc-section-title"><i class="bi bi-clock-history"></i>积分记录</span>
+        <a href="/signin" class="uc-action-link"><i class="bi bi-calendar-check"></i>去签到</a>
+    </div>
+    <ul class="uc-points-list">
+        {volist name="list" id="vo"}
+        <li class="uc-points-item">
+            <div class="uc-points-item-left">
+                <span class="uc-points-icon {switch $vo.type}{case /signin/}signin{/case}{case /comment/}comment{/case}{case /content_liked/}liked{/case}{case /content_favorited/}favorited{/case}{case /purchase/}purchase{/case}{case /register/}register{/case}{case /admin_adjust/}admin{/case}{default/}default{/switch}">
+                    {switch $vo.type}
+                    {case /signin/}<i class="bi bi-calendar-check"></i>{/case}
+                    {case /comment/}<i class="bi bi-chat-dots"></i>{/case}
+                    {case /content_liked/}<i class="bi bi-heart"></i>{/case}
+                    {case /content_favorited/}<i class="bi bi-bookmark"></i>{/case}
+                    {case /purchase/}<i class="bi bi-credit-card"></i>{/case}
+                    {case /register/}<i class="bi bi-person-plus"></i>{/case}
+                    {case /admin_adjust/}<i class="bi bi-gear"></i>{/case}
+                    {default /}<i class="bi bi-circle"></i>
+                    {/switch}
+                </span>
+                <div class="uc-points-info">
+                    <div class="uc-points-type">{switch $vo.type}{case /signin/}签到{/case}{case /comment/}评论{/case}{case /content_liked/}被点赞{/case}{case /content_favorited/}被收藏{/case}{case /purchase/}购买内容{/case}{case /register/}注册奖励{/case}{case /admin_adjust/}管理员调整{/case}{default /}{$vo.type}{/switch}</div>
+                    {if condition="$vo.note"}<div class="uc-points-note">{$vo.note}</div>{/if}
+                </div>
+            </div>
+            <div class="uc-points-item-right">
+                <div class="uc-points-change {if $vo.points > 0}positive{else /}negative{/if}">{if $vo.points > 0}+{/if}{$vo.points}</div>
+                <div class="uc-points-time">{$vo.create_time|date='m-d H:i'}</div>
+            </div>
+        </li>
+        {/volist}
+    </ul>
+    {empty name="list"}
+    <div class="uc-empty-state">
+        <i class="bi bi-receipt"></i>
+        <p>暂无积分记录</p>
+        <a href="/signin">去签到赚取积分</a>
+    </div>
+    {/empty}
+</div>
+
+{$list|raw}
+{/block}

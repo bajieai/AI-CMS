@@ -1,0 +1,8 @@
+{extend name="layout" /}
+{block name="title"}日志管理 - AI-CMS{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">系统管理</li><li class="breadcrumb-item active">日志管理</li>{/block}
+{block name="content"}
+<div class="row g-3 mb-3"><div class="col-md-3"><div class="card text-center"><div class="card-body"><h3>{$stats.total|default=0}</h3><p class="text-muted mb-0">总日志数</p></div></div></div><div class="col-md-3"><div class="card text-center"><div class="card-body"><h3 class="text-primary">{$stats.today|default=0}</h3><p class="text-muted mb-0">今日日志</p></div></div></div></div>
+<div class="card"><div class="card-header"><form class="row g-2" method="get"><div class="col-auto"><input type="text" name="keyword" class="form-control form-control-sm" placeholder="搜索关键词" value="{$keyword|default=''}"></div><div class="col-auto"><button class="btn btn-outline-primary btn-sm"><i class="bi bi-search"></i></button></div></form></div>
+<div class="table-responsive"><table class="table table-hover table-sm"><thead class="table-light"><tr><th>ID</th><th>用户</th><th>模块</th><th>操作类型</th><th>操作</th><th>IP</th><th>时间</th></tr></thead><tbody>{volist name="list" id="vo" empty="<tr><td colspan='7' class='text-center text-muted py-4'>暂无日志</td></tr>"}<tr><td>{$vo.id}</td><td>{$vo.user_id}</td><td>{$vo.module|default='-'}</td><td><span class="badge bg-secondary">{$vo.action_type|default='-'}</span></td><td>{$vo.action}</td><td>{$vo.ip}</td><td>{$vo.create_time}</td></tr>{/volist}</tbody></table></div></div>
+{/block}

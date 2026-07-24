@@ -1,0 +1,42 @@
+{extend name="/layout" /}
+{block name="title"}队列管理 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header d-flex justify-content-between"><h5 class="mb-0"><i class="bi bi-stack"></i> 队列管理</h5><a href="{:url('/admin/queue/failed')}" class="btn btn-outline-danger btn-sm"><i class="bi bi-exclamation-triangle"></i> 失败队列</a></div>
+<div class="card-body">
+<div class="row g-3 mb-3">
+    <div class="col"><div class="card bg-light"><div class="card-body text-center"><h6>待处理</h6><h3 class="text-secondary">{$stats.pending??0}</h3></div></div></div>
+    <div class="col"><div class="card bg-light"><div class="card-body text-center"><h6>执行中</h6><h3 class="text-primary">{$stats.running??0}</h3></div></div></div>
+    <div class="col"><div class="card bg-light"><div class="card-body text-center"><h6>已完成</h6><h3 class="text-success">{$stats.completed??0}</h3></div></div></div>
+    <div class="col"><div class="card bg-light"><div class="card-body text-center"><h6>失败</h6><h3 class="text-danger">{$stats.failed??0}</h3></div></div></div>
+    <div class="col"><div class="card bg-light"><div class="card-body text-center"><h6>总计</h6><h3>{$stats.total??0}</h3></div></div></div>
+</div>
+<div class="card"><div class="card-header"><h6 class="mb-0">各队列统计</h6></div>
+<table class="table table-sm mb-0">
+    <thead><tr><th>队列名称</th><th width="100">待处理</th><th width="100">执行中</th><th width="100">已完成</th><th width="100">失败</th></tr></thead>
+    <tbody>
+    {if !empty($stats.by_queue)}
+    {volist name="stats.by_queue" id="q" key="qname"}
+    <tr><td>{$qname}</td><td>{$q.pending??0}</td><td>{$q.running??0}</td><td>{$q.completed??0}</td><td>{$q.failed??0}</td></tr>
+    {/volist}
+    {else}
+    <tr><td colspan="5" class="text-center text-muted">暂无队列数据</td></tr>
+    {/if}
+    </tbody>
+</table></div>
+<div class="card mt-3"><div class="card-header"><h6 class="mb-0">Worker 状态</h6></div>
+<table class="table table-sm mb-0">
+    <thead><tr><th>Worker ID</th><th width="100">状态</th><th width="100">当前队列</th><th width="160">启动时间</th></tr></thead>
+    <tbody>
+    {if !empty($workers)}
+    {volist name="workers" id="w"}
+    <tr><td>{$w.id??'--'}</td>
+        <td><span class="badge bg-{if $w.status??''=='running'}success{elseif $w.status??''=='idle'}secondary{else}warning{/if}">{$w.status??'--'}</span></td>
+        <td>{$w.queue??'--'}</td><td>{:date('Y-m-d H:i:s', $w.started_at??0)}</td></tr>
+    {/volist}
+    {else}
+    <tr><td colspan="4" class="text-center text-muted">暂无活跃 Worker</td></tr>
+    {/if}
+    </tbody>
+</table></div>
+</div></div>
+{/block}

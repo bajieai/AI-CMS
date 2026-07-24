@@ -1,0 +1,63 @@
+{extend name="layout" /}
+
+{block name="title"}我的积分{/block}
+
+{block name="content"}
+
+<!-- 积分概览 -->
+<div class="uc-points-overview">
+    <div class="uc-points-stats">
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value">{if condition="$points"}{$points}{else}0{/if}</div>
+            <div class="uc-points-label">当前可用积分</div>
+        </div>
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value">+{if condition="$totalEarned"}{$totalEarned}{else}0{/if}</div>
+            <div class="uc-points-label">累计获得</div>
+        </div>
+        <div class="uc-points-stat-item">
+            <div class="uc-points-value" style="font-size:20px;"><i class="bi bi-trophy-fill"></i></div>
+            <div class="uc-points-label">等级权益</div>
+        </div>
+    </div>
+</div>
+
+<!-- 积分记录 -->
+<div style="background:#fff;border-radius:12px;box-shadow:var(--shadow-card, 0 1px 3px rgba(0,0,0,.08));overflow:hidden;">
+    <div class="uc-section-header">
+        <span class="uc-section-title"><i class="bi bi-list-ul"></i>积分记录</span>
+        <a href="/signin" class="uc-action-link"><i class="bi bi-calendar-check"></i>去签到</a>
+    </div>
+    <ul class="uc-points-list">
+        {volist name="list" id="vo"}
+        <li class="uc-points-item">
+            <div class="uc-points-item-left">
+                <span class="uc-points-icon {if condition="$vo.change > 0"}positive{else /}negative{/if}" style="{if condition="$vo.change > 0"}background:#dcfce7;color:#16a34a;{else/}background:#fee2e2;color:#991b1b;/if}">
+                    <i class="bi {if condition="$vo.change > 0"}bi-arrow-up-circle{else/}bi-arrow-down-circle{/if}"></i>
+                </span>
+                <div class="uc-points-info">
+                    <div class="uc-points-type">{$vo.remark|default='系统操作'}</div>
+                    <div class="uc-points-note">{$vo.create_time}</div>
+                </div>
+            </div>
+            <div class="uc-points-item-right">
+                <div class="uc-points-change {if condition="$vo.change > 0"}positive{else /}negative{/if}">{if condition="$vo.change >= 0"}+{/if}{$vo.balance}</div>
+                <span class="badge rounded-pill uc-badge-pending" style="font-size:.72rem;">{if condition="$vo.change > 0"}+{else}-{/if}{$vo.change|abs}</span>
+            </div>
+        </li>
+        {/volist}
+    </ul>
+    {empty name="list"}
+    <div class="uc-empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>暂无积分记录</p>
+        <a href="/signin">去签到赚取积分</a>
+    </div>
+    {/empty}
+</div>
+
+{if condition="($list->hasPages() ?? false)"}
+<div style="margin-top:16px;text-align:center;"><nav>{$list->render()|raw}</nav></div>
+{/if}
+
+{/block}

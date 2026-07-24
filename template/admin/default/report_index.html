@@ -1,0 +1,109 @@
+{extend name="layout" /}
+{block name="title"}数据报告{/block}
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-graph-up-arrow me-2"></i>AI数据分析报告</h4>
+        <div>
+            <button class="btn btn-primary btn-sm" id="btnGenerateReport">
+                <i class="bi bi-plus-lg me-1"></i>新建报表
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>类型</th>
+                        <th>报表名称</th>
+                        <th>数据源</th>
+                        <th>图表类型</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>
+                            <span class="badge {:in_array($vo['report_type'],['content','template'])?'bg-info':(in_array($vo['report_type'],['user','distribute'])?'bg-primary':'bg-success')}">
+                                {$types[$vo['report_type']] ?? $vo['report_type'] ?? '未知'}
+                            </span>
+                        </td>
+                        <td><a href="/admin/report/detail/{$vo.id}">{$vo.report_name}</a></td>
+                        <td>{$vo.data_source??'--'}</td>
+                        <td>{$vo.chart_type??'--'}</td>
+                        <td>{if $vo.create_time > 0}{:date('Y-m-d H:i', (int)$vo['create_time'])}{else}--{/if}</td>
+                        <td>
+                            <a href="/admin/report/detail/{$vo.id}" class="btn btn-sm btn-outline-primary">查看</a>
+                            {if $vo.is_system==0}
+                            <a href="/admin/report/delete/{$vo.id}" class="btn btn-sm btn-outline-danger" onclick="return confirm('确认删除?')">删除</a>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr><td colspan="7" class="text-center text-muted py-4">暂无报表数据，点击"新建报表"开始生成</td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer text-muted small">
+            共 {:count($list)} 条报表
+        </div>
+    </div>
+</div>
+
+<!-- 生成模态框 -->
+<div id="generateModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1050;">
+    <div style="max-width:500px;margin:10% auto;background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+        <div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+            <h5 style="margin:0;">生成AI分析报告</h5>
+            <button type="button" id="btnCloseModal" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+        </div>
+        <div style="padding:20px;">
+            <form id="generateForm" action="{:url('generate')}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">报告类型</label>
+                    <select name="type" class="form-select">
+                        <option value="daily">日报</option>
+                        <option value="weekly">周报</option>
+                        <option value="monthly">月报</option>
+                        <option value="manual">手动</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">开始日期</label>
+                    <input type="date" name="start_time" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">结束日期</label>
+                    <input type="date" name="end_time" class="form-control">
+                </div>
+            </form>
+        </div>
+        <div style="padding:12px 20px;border-top:1px solid #eee;text-align:right;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnCancelModal">取消</button>
+            <button type="submit" class="btn btn-primary btn-sm" form="generateForm">开始生成</button>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function(){
+    $('#btnGenerateReport').off('click').on('click', function(){ 
+        $('#generateModal').css('display', 'block'); 
+    });
+    $('#btnCloseModal, #btnCancelModal').off('click').on('click', function(){ 
+        $('#generateModal').css('display', 'none'); 
+    });
+    $('#generateModal').off('click').on('click', function(e){ 
+        if (e.target === this) $(this).css('display', 'none'); 
+    });
+});
+</script>
+{/block}

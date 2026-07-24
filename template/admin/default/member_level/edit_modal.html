@@ -1,0 +1,135 @@
+<form id="levelForm" onsubmit="return false;">
+    <input type="hidden" name="id" value="{$info.id??0}">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">等级名称</label>
+            <input type="text" class="form-control" name="name" value="{$info.name??''}" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">图标类名</label>
+            <div class="input-group">
+                <input type="text" class="form-control" name="icon" value="{$info.icon??'bi bi-award'}" placeholder="如 bi bi-award" id="iconInput">
+                <button type="button" class="btn btn-outline-secondary btn-pick-icon"><i class="bi bi-grid"></i> 选择</button>
+            </div>
+            <div class="form-text">当前预览：<i id="iconPreview" class="{$info.icon??'bi bi-award'}"></i></div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">最低积分</label>
+            <input type="number" class="form-control" name="min_points" value="{$info.min_points??0}" min="0" required>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">最高积分</label>
+            <input type="number" class="form-control" name="max_points" value="{$info.max_points??9999999}" min="0" required>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">折扣(%)</label>
+            <input type="number" class="form-control" name="discount" value="{$info.discount??100}" min="1" max="100" required>
+            <div class="form-text">100=无折扣，80=八折</div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">排序</label>
+            <input type="number" class="form-control" name="sort" value="{$info.sort??0}">
+        </div>
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" name="is_vip" value="1" id="swVipM" {if condition="($info.is_vip ?? 0)==1"}checked{/if}>
+                <label class="form-check-label" for="swVipM">VIP等级 <i class="bi bi-gem text-warning"></i></label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" name="allow_download" value="1" id="swDownloadM" {if condition="($info.allow_download ?? 0)==1"}checked{/if}>
+                <label class="form-check-label" for="swDownloadM">允许下载附件</label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" name="allow_comment_no_review" value="1" id="swCommentM" {if condition="($info.allow_comment_no_review ?? 0)==1"}checked{/if}>
+                <label class="form-check-label" for="swCommentM">评论免审核</label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" name="is_default" value="1" id="swDefaultM" {if condition="($info.is_default ?? 0)==1"}checked{/if}>
+                <label class="form-check-label" for="swDefaultM">设为默认等级</label>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mt-2">
+        <div class="col-md-4">
+            <label class="form-label">每日AI配额</label>
+            <input type="number" class="form-control" name="daily_ai_quota" value="{$info.daily_ai_quota??0}" min="0">
+            <div class="form-text">0=不限制，正数=每日可调用AI次数上限</div>
+        </div>
+        <div class="col-md-8">
+            <label class="form-label">专属内容ID列表</label>
+            <input type="text" class="form-control" name="exclusive_content_ids" value="{if condition="$info.exclusive_content_ids ?? false"}{:implode(',', json_decode($info.exclusive_content_ids, true) ?: [])}{/if}" placeholder="如：12,34,56">
+            <div class="form-text">该等级会员专属的content_id列表，逗号分隔</div>
+        </div>
+    </div>
+    <div class="mt-4 text-end">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="submit" class="btn btn-primary ms-2" id="btnSaveM">保存</button>
+    </div>
+</form>
+
+<script>
+// 图标列表
+var iconNames = ['bi-award','bi-trophy','bi-star','bi-star-fill','bi-gem','bi-lightning','bi-fire','bi-heart','bi-heart-fill','bi-shield','bi-shield-fill','bi-check-circle','bi-person','bi-person-fill','bi-people','bi-robot','bi-cpu','bi-rocket','bi-moon','bi-sun','bi-stars','bi-gift','bi-cash','bi-coin','bi-credit-card','bi-key','bi-lock','bi-unlock','bi-flag','bi-bookmark','bi-bookmark-fill','bi-gear','bi-wrench','bi-tools','bi-eye','bi-download','bi-upload','bi-link','bi-share','bi-send','bi-envelope','bi-chat','bi-camera','bi-image','bi-images','bi-film','bi-bar-chart','bi-pie-chart','bi-graph-up','bi-calendar','bi-clock','bi-bell','bi-cart','bi-bag','bi-shop','bi-house','bi-building','bi-globe','bi-map','bi-geo-alt','bi-compass'];
+
+$(function(){
+    // 图标选择：动态创建独立模态框到body（避免嵌套模态框问题）
+    $('.btn-pick-icon').click(function(){
+        var pickerId = 'iconPickerModal_' + Date.now();
+        var html = '<div class="modal fade" id="' + pickerId + '" tabindex="-1" aria-hidden="true">' +
+            '<div class="modal-dialog modal-dialog-centered modal-lg">' +
+            '<div class="modal-content"><div class="modal-header"><h5 class="modal-title">选择图标</h5>' +
+            '<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>' +
+            '<div class="modal-body"><div class="row g-2">';
+        for (var i = 0; i < iconNames.length; i++) {
+            html += '<div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="' + iconNames[i] + '" style="cursor:pointer">' +
+                '<i class="' + iconNames[i] + ' fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">' + iconNames[i] + '</div></div></div>';
+        }
+        html += '</div></div></div></div></div>';
+        $('#' + pickerId).remove();
+        $('body').append(html);
+        var pickerModal = new bootstrap.Modal(document.getElementById(pickerId));
+        pickerModal.show();
+        $('#' + pickerId + ' .icon-item').click(function(){
+            var icon = $(this).data('icon');
+            $('#iconInput').val(icon);
+            $('#iconPreview').attr('class', icon);
+            pickerModal.hide();
+            // 模态框关闭后清理DOM
+            $('#' + pickerId).on('hidden.bs.modal', function(){ $(this).remove(); });
+        });
+        // 关闭后清理
+        $('#' + pickerId).on('hidden.bs.modal', function(){ $(this).remove(); });
+    });
+    $('#iconInput').on('input', function(){
+        $('#iconPreview').attr('class', $(this).val());
+    });
+    $('#btnSaveM').click(function(){
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> 保存中...');
+        var data = {};
+        $('#levelForm').serializeArray().forEach(function(item){
+            if(item.name === 'id' || item.name === 'min_points' || item.name === 'max_points' || item.name === 'discount' || item.name === 'sort'){
+                data[item.name] = parseInt(item.value);
+            }else if(item.name === 'allow_download' || item.name === 'allow_comment_no_review' || item.name === 'is_default' || item.name === 'is_vip'){
+                data[item.name] = $('#levelForm [name='+item.name+']').is(':checked') ? 1 : 0;
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        ajaxPost('/admin/member_level/save', data, function(d){
+            $btn.prop('disabled', false).html('保存');
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0){
+                bootstrap.Modal.getInstance(document.getElementById('levelEditModal')).hide();
+                setTimeout(function(){ location.reload(); }, 500);
+            }
+        });
+    });
+});
+</script>

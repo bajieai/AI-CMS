@@ -1,0 +1,261 @@
+{extend name="layout" /}
+{block name="title"}AI翻译管理{/block}
+
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-translate me-2"></i>AI翻译管理</h4>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#batchTranslateModal">
+                <i class="bi bi-lightning-charge me-1"></i>批量翻译
+            </button>
+        </div>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="keyword" class="form-control" placeholder="搜索标题..." value="{$keyword}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> 搜索</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 翻译列表 -->
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="50"><input type="checkbox" class="form-check-input check-all"></th>
+                        <th>ID</th>
+                        <th>标题</th>
+                        <th>分类</th>
+                        <th>翻译状态</th>
+                        <th>已翻译语言</th>
+                        <th width="200">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr>
+                        <td><input type="checkbox" class="form-check-input check-item" value="{$item.id}"></td>
+                        <td>{$item.id}</td>
+                        <td>
+                            <a href="{$item.url}" target="_blank" class="text-decoration-none">{$item.title}</a>
+                        </td>
+                        <td>{$item.cate.name??'-'}</td>
+                        <td>
+                            {if $item.translation_count > 0}
+                                <span class="badge bg-success">已翻译 {$item.translation_count} 种</span>
+                            {else}
+                                <span class="badge bg-secondary">未翻译</span>
+                            {/if}
+                        </td>
+                        <td>
+                            {volist name="item.translations" id="t"}
+                                <span class="badge bg-info me-1">{$t.lang}</span>
+                            {/volist}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-translate" data-id="{$item.id}" data-title="{$item.title}">
+                                <i class="bi bi-translate"></i> 翻译
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete-trans" data-id="{$item.id}">
+                                <i class="bi bi-trash"></i> 清除翻译
+                            </button>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span>共 {$list->total()} 条</span>
+            {$list|raw}
+        </div>
+    </div>
+</div>
+
+<!-- 单条翻译模态框 -->
+<div class="modal fade" id="translateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">AI翻译</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="translateContentId">
+                <p class="text-muted mb-3">标题：<span id="translateContentTitle" class="fw-bold"></span></p>
+                <div class="mb-3">
+                    <label class="form-label">目标语言</label>
+                    <div class="row">
+                        {volist name="languages" id="lang"}
+                        <div class="col-4 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input target-lang" type="checkbox" value="{$lang.code}" id="lang_{$lang.code}">
+                                <label class="form-check-label" for="lang_{$lang.code}">{$lang.name}</label>
+                            </div>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnDoTranslate">
+                    <span class="spinner-border spinner-border-sm d-none" id="transSpin"></span>
+                    开始翻译
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量翻译模态框 -->
+<div class="modal fade" id="batchTranslateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">批量AI翻译</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">将翻译选中的 <span id="batchCount" class="fw-bold text-primary">0</span> 条内容</p>
+                <div class="mb-3">
+                    <label class="form-label">目标语言</label>
+                    <div class="row">
+                        {volist name="languages" id="lang"}
+                        <div class="col-4 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input batch-target-lang" type="checkbox" value="{$lang.code}" id="batch_lang_{$lang.code}">
+                                <label class="form-check-label" for="batch_lang_{$lang.code}">{$lang.name}</label>
+                            </div>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnDoBatchTranslate">
+                    <span class="spinner-border spinner-border-sm d-none" id="batchTransSpin"></span>
+                    开始批量翻译
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+$(function() {
+    // 全选
+    $('.check-all').on('change', function() {
+        $('.check-item').prop('checked', $(this).prop('checked'));
+        updateBatchCount();
+    });
+    $('.check-item').on('change', updateBatchCount);
+
+    function updateBatchCount() {
+        var count = $('.check-item:checked').length;
+        $('#batchCount').text(count);
+    }
+
+    // 单条翻译弹窗
+    $('.btn-translate').on('click', function() {
+        var id = $(this).data('id');
+        var title = $(this).data('title');
+        $('#translateContentId').val(id);
+        $('#translateContentTitle').text(title);
+        $('.target-lang').prop('checked', false);
+        $('#translateModal').modal('show');
+    });
+
+    // 执行单条翻译
+    $('#btnDoTranslate').on('click', function() {
+        var id = $('#translateContentId').val();
+        var langs = [];
+        $('.target-lang:checked').each(function() {
+            langs.push($(this).val());
+        });
+        if (langs.length === 0) {
+            alert('请选择至少一个目标语言');
+            return;
+        }
+
+        var $btn = $(this);
+        $('#transSpin').removeClass('d-none');
+        $btn.prop('disabled', true);
+
+        $.post('/admin/ai_translation/translate', {
+            content_id: id,
+            target_langs: langs
+        }, function(res) {
+            $('#transSpin').addClass('d-none');
+            $btn.prop('disabled', false);
+            if (res.code === 0) {
+                alert('翻译完成');
+                location.reload();
+            } else {
+                alert(res.msg);
+            }
+        }, 'json');
+    });
+
+    // 批量翻译
+    $('#btnDoBatchTranslate').on('click', function() {
+        var ids = [];
+        $('.check-item:checked').each(function() {
+            ids.push($(this).val());
+        });
+        if (ids.length === 0) {
+            alert('请先选择要翻译的内容');
+            return;
+        }
+
+        var langs = [];
+        $('.batch-target-lang:checked').each(function() {
+            langs.push($(this).val());
+        });
+        if (langs.length === 0) {
+            alert('请选择至少一个目标语言');
+            return;
+        }
+
+        var $btn = $(this);
+        $('#batchTransSpin').removeClass('d-none');
+        $btn.prop('disabled', true);
+
+        $.post('/admin/ai_translation/batchTranslate', {
+            content_ids: ids,
+            target_langs: langs
+        }, function(res) {
+            $('#batchTransSpin').addClass('d-none');
+            $btn.prop('disabled', false);
+            alert(res.msg);
+            if (res.code === 0) {
+                location.reload();
+            }
+        }, 'json');
+    });
+
+    // 删除翻译
+    $('.btn-delete-trans').on('click', function() {
+        if (!confirm('确定清除该内容的所有翻译吗？')) return;
+        var id = $(this).data('id');
+        $.post('/admin/ai_translation/deleteTranslation', {content_id: id}, function(res) {
+            alert(res.msg);
+            if (res.code === 0) location.reload();
+        }, 'json');
+    });
+});
+</script>
+{/block}

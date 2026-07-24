@@ -1,0 +1,52 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if $id>0}编辑推荐位{else/}新建推荐位{/if}</h4>
+    <div class="mb-3"><a href="/admin/template_recommend_position/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a></div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post" id="posForm">
+                <div class="row mb-3">
+                    <div class="col-md-6"><label class="form-label">推荐位名称</label><input type="text" name="name" class="form-control" value="{$position.name??''}" required></div>
+                    <div class="col-md-3"><label class="form-label">标识(code)</label><input type="text" name="code" class="form-control" value="{$position.code??''}" required></div>
+                    <div class="col-md-3"><label class="form-label">类型</label><select name="type" class="form-select">
+                        <option value="1" {if ($position.type??1)==1}selected{/if}>人工推荐</option>
+                        <option value="2" {if ($position.type??1)==2}selected{/if}>规则推荐</option>
+                        <option value="3" {if ($position.type??1)==3}selected{/if}>AI推荐</option>
+                    </select></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3"><label class="form-label">最大展示数</label><input type="number" name="max_count" class="form-control" value="{$position.max_count??10}"></div>
+                    <div class="col-md-3"><label class="form-label">排序</label><input type="number" name="sort" class="form-control" value="{$position.sort??99}"></div>
+                    <div class="col-md-3"><label class="form-label">状态</label><select name="status" class="form-select"><option value="1" {if ($position.status??1)==1}selected{/if}>启用</option><option value="0">禁用</option></select></div>
+                </div>
+                <div class="mb-3"><label class="form-label">规则配置(JSON)</label><textarea name="config" class="form-control" rows="3" placeholder='{"field":"install_count","desc":true}'>{:isset($position['config']) ? json_encode($position['config']) : '[]'}</textarea></div>
+                <div class="mb-3">
+                    <label class="form-label">选择模板（人工推荐类型）</label>
+                    <div class="border rounded p-3" style="max-height:300px;overflow-y:auto">
+                        {volist name="templates" id="tpl"}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input pos-template" value="{$tpl.id}" id="ptpl_{$tpl.id}" {if $position && isset($position['items']) && in_array($tpl.id, array_column($position['items']??[], 'template_id'))}checked{/if}>
+                            <label class="form-check-label" for="ptpl_{$tpl.id}">{$tpl.name}</label>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+                <input type="hidden" name="template_ids" id="template_ids">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>保存</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+$('#posForm').on('submit', function(e) {
+    e.preventDefault();
+    var ids = [];
+    $('.pos-template:checked').each(function() { ids.push(parseInt($(this).val())); });
+    $('#template_ids').val(JSON.stringify(ids));
+    $.post(location.pathname, $(this).serialize(), function(res) {
+        if (res.code === 0) { location.href = '/admin/template_recommend_position/index'; } else { alert(res.msg); }
+    });
+});
+</script>
+{/block}

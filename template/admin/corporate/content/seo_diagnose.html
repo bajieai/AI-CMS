@@ -1,0 +1,57 @@
+{extend name="layout" /}
+
+{block name="title"}SEO诊断报告{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">内容管理</li>
+<li class="breadcrumb-item"><a href="/admin/content/index">内容列表</a></li>
+<li class="breadcrumb-item active">SEO诊断</li>
+{/block}
+
+{block name="content"}
+<div class="container">
+    {if condition="$result.success"}
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-clipboard-check me-1"></i>SEO诊断报告</span>
+            <span class="badge {if condition="$result.score >= 80"}bg-success{elseif condition="$result.score >= 60"}bg-warning text-dark{else /}bg-danger{/if} fs-5">{$result.score}分</span>
+        </div>
+        <div class="card-body">
+            <h6>统计信息</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-md-3"><div class="border rounded p-2 text-center"><div class="text-muted small">标题长度</div><div class="fw-bold">{$result.stats.title_length}</div></div></div>
+                <div class="col-md-3"><div class="border rounded p-2 text-center"><div class="text-muted small">描述长度</div><div class="fw-bold">{$result.stats.desc_length}</div></div></div>
+                <div class="col-md-3"><div class="border rounded p-2 text-center"><div class="text-muted small">关键词数</div><div class="fw-bold">{$result.stats.keyword_count}</div></div></div>
+                <div class="col-md-3"><div class="border rounded p-2 text-center"><div class="text-muted small">内容长度</div><div class="fw-bold">{$result.stats.content_length}</div></div></div>
+            </div>
+
+            {if condition="!empty($result.issues)"}
+            <h6>发现问题（{count($result.issues)}个）</h6>
+            <div class="list-group mb-3">
+                {volist name="result.issues" id="issue"}
+                <div class="list-group-item d-flex align-items-center">
+                    {if condition="$issue.severity == 'high'"}<span class="badge bg-danger me-2">严重</span>{elseif condition="$issue.severity == 'medium'"}<span class="badge bg-warning text-dark me-2">一般</span>{else /}<span class="badge bg-secondary me-2">轻微</span>{/if}
+                    <span>{$issue.message}</span>
+                </div>
+                {/volist}
+            </div>
+            {else /}
+            <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>未发现明显SEO问题</div>
+            {/if}
+
+            {if condition="!empty($result.suggestions)"}
+            <h6>优化建议</h6>
+            <ul class="list-group list-group-flush">
+                {volist name="result.suggestions" id="sg"}
+                <li class="list-group-item"><i class="bi bi-lightbulb text-warning me-1"></i>{$sg}</li>
+                {/volist}
+            </ul>
+            {/if}
+        </div>
+    </div>
+    {else /}
+    <div class="alert alert-danger">诊断失败：{$result.message}</div>
+    {/if}
+    <a href="/admin/content/index" class="btn btn-outline-secondary">返回列表</a>
+</div>
+{/block}

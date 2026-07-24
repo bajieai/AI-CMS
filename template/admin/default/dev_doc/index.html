@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}开发者文档{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">开发者文档</li>{/block}
+{block name="content"}
+<div class="row">
+  <div class="col-md-8">
+    <div class="card"><div class="card-header"><h5>代码模板生成</h5></div><div class="card-body">
+      <form action="/admin/dev_doc/generateTemplate" method="post">
+        <div class="mb-3"><label>模板类型</label><select name="type" class="form-select">{foreach $template_types as $t => $label}<option value="{$t}">{$label}</option>{/foreach}</select></div>
+        <div class="mb-3"><label>插件名称</label><input type="text" name="plugin_name" class="form-control" placeholder="插件名"></div>
+        <div class="mb-3"><label>类名</label><input type="text" name="class_name" class="form-control" placeholder="类名"></div>
+        <button type="submit" class="btn btn-primary">生成模板</button>
+      </form>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card"><div class="card-header"><h5>开发工具</h5></div><div class="card-body">
+      <a href="#" onclick="openSandbox()" class="btn btn-success mb-2 w-100">创建调试沙箱</a>
+      <a href="#" onclick="runChecklist()" class="btn btn-info mb-2 w-100">开发状态检查</a>
+      <a href="#" onclick="runTests()" class="btn btn-warning mb-2 w-100">运行测试</a>
+    </div></div>
+  </div>
+</div>
+{/block}

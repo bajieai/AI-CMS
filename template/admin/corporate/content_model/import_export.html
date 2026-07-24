@@ -1,0 +1,210 @@
+{extend name="layout" /}
+
+{block name="title"}导入导出{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/content_model/index">内容模型</a></li>
+<li class="breadcrumb-item active">导入导出</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <!-- 导出区域 -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-box-arrow-up me-1"></i>数据导出</div>
+            <div class="card-body">
+                <form id="exportForm">
+                    <div class="mb-3">
+                        <label class="form-label">选择模型 <span class="text-danger">*</span></label>
+                        <select name="model_id" class="form-select" id="exportModelId">
+                            <option value="">请选择模型</option>
+                            {volist name="models" id="m"}
+                            <option value="{$m.id}">{$m.model_name} ({$m.model_identifier})</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">导出格式</label>
+                        <select name="format" class="form-select">
+                            <option value="csv">CSV</option>
+                            <option value="xlsx">Excel (XLSX)</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">筛选条件</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <select name="category_id" class="form-select form-select-sm">
+                                    <option value="0">全部分类</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="-1">全部状态</option>
+                                    <option value="1">已发布</option>
+                                    <option value="0">草稿</option>
+                                    <option value="2">待审核</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="date_start" class="form-control form-control-sm" placeholder="开始日期" onfocus="this.type='date'">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="date_end" class="form-control form-control-sm" placeholder="结束日期" onfocus="this.type='date'">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="include_fields" value="1" id="incFields" checked>
+                            <label class="form-check-label" for="incFields">包含自定义字段</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="include_relations" value="1" id="incRel">
+                            <label class="form-check-label" for="incRel">包含关联数据</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-download me-1"></i>导出数据</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入区域 -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-box-arrow-in-down me-1"></i>数据导入</div>
+            <div class="card-body">
+                <form id="importForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">选择模型 <span class="text-danger">*</span></label>
+                        <select name="model_id" class="form-select" id="importModelId">
+                            <option value="">请选择模型</option>
+                            {volist name="models" id="m"}
+                            <option value="{$m.id}">{$m.model_name} ({$m.model_identifier})</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">上传文件 <span class="text-danger">*</span></label>
+                        <input type="file" name="file" class="form-control" accept=".csv,.xlsx,.json" required>
+                        <div class="form-text">支持 CSV / XLSX / JSON 格式，文件大小不超过 10MB</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">重复数据处理</label>
+                        <select name="duplicate_handler" class="form-select">
+                            <option value="skip">跳过</option>
+                            <option value="overwrite">覆盖</option>
+                            <option value="rename">重命名</option>
+                            <option value="update">仅更新已有数据</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="auto_category" value="1" id="autoCat">
+                            <label class="form-check-label" for="autoCat">自动创建不存在的分类</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="dry_run" value="1" id="dryRun">
+                            <label class="form-check-label" for="dryRun">试运行（仅验证不实际导入）</label>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-upload me-1"></i>开始导入</button>
+                        <button type="button" class="btn btn-outline-info" onclick="downloadTemplate()"><i class="bi bi-file-earmark-spreadsheet me-1"></i>下载模板</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 导入结果 -->
+<div class="card mt-3 d-none" id="resultCard">
+    <div class="card-header"><i class="bi bi-info-circle me-1"></i>导入结果</div>
+    <div class="card-body" id="resultBody"></div>
+</div>
+
+<!-- 导出进度 -->
+<div class="card mt-3 d-none" id="exportCard">
+    <div class="card-header"><i class="bi bi-hourglass-split me-1"></i>导出进度</div>
+    <div class="card-body">
+        <div class="progress mb-2">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" id="exportProgress" style="width:0%"></div>
+        </div>
+        <p class="small text-muted" id="exportStatus">准备中...</p>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#exportForm').on('submit', function(e) {
+    e.preventDefault();
+    var modelId = $('#exportModelId').val();
+    if (!modelId) { alert('请选择模型'); return; }
+    $('#exportCard').removeClass('d-none');
+    $('#exportProgress').css('width', '30%');
+    $('#exportStatus').text('正在生成导出文件...');
+    $.post('/admin/content_model/export', $(this).serialize(), function(res) {
+        if (res.code === 0) {
+            $('#exportProgress').css('width', '100%');
+            $('#exportStatus').text('导出成功！');
+            window.location.href = res.data.url;
+            setTimeout(function() { $('#exportCard').addClass('d-none'); }, 3000);
+        } else {
+            $('#exportProgress').css('width', '0%');
+            $('#exportStatus').text('导出失败：' + res.msg);
+        }
+    }).fail(function() {
+        $('#exportProgress').css('width', '0%');
+        $('#exportStatus').text('请求失败，请重试');
+    });
+});
+
+$('#importForm').on('submit', function(e) {
+    e.preventDefault();
+    var modelId = $('#importModelId').val();
+    if (!modelId) { alert('请选择模型'); return; }
+    var formData = new FormData(this);
+    $.ajax({
+        url: '/admin/content_model/import',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            if (res.code === 0) {
+                var d = res.data;
+                var html = '<div class="row text-center">' +
+                    '<div class="col-md-3"><div class="border rounded p-3"><h4 class="text-primary">' + (d.total || 0) + '</h4><small class="text-muted">总记录数</small></div></div>' +
+                    '<div class="col-md-3"><div class="border rounded p-3"><h4 class="text-success">' + (d.success || 0) + '</h4><small class="text-muted">成功导入</small></div></div>' +
+                    '<div class="col-md-3"><div class="border rounded p-3"><h4 class="text-warning">' + (d.skipped || 0) + '</h4><small class="text-muted">跳过</small></div></div>' +
+                    '<div class="col-md-3"><div class="border rounded p-3"><h4 class="text-danger">' + (d.failed || 0) + '</h4><small class="text-muted">失败</small></div></div>' +
+                    '</div>';
+                if (d.errors && d.errors.length > 0) {
+                    html += '<hr><h6>错误详情</h6><ul class="list-group list-group-flush small">';
+                    d.errors.forEach(function(err) {
+                        html += '<li class="list-group-item text-danger">行' + err.row + ': ' + err.message + '</li>';
+                    });
+                    html += '</ul>';
+                }
+                $('#resultBody').html(html);
+                $('#resultCard').removeClass('d-none');
+            } else {
+                alert(res.msg);
+            }
+        }
+    });
+});
+
+function downloadTemplate() {
+    var modelId = $('#importModelId').val();
+    if (!modelId) { alert('请先选择模型'); return; }
+    window.location.href = '/admin/content_model/downloadTemplate?model_id=' + modelId;
+}
+</script>
+{/block}

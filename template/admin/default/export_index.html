@@ -1,0 +1,31 @@
+{extend name="layout" /}
+
+{block name="title"}数据导出{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">SEO与数据</li>
+<li class="breadcrumb-item active">数据导出</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">内容导出</div>
+            <div class="card-body">
+                <form method="post" action="/admin/export/index">
+                    <input type="hidden" name="type" value="content">
+                    <div class="mb-3">
+                        <label class="form-label">导出格式</label>
+                        <select name="format" class="form-select">
+                            <option value="xlsx">Excel (.xlsx)</option>
+                            <option value="csv">CSV (.csv)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-download me-1"></i>导出</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

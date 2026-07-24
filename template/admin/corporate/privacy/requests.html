@@ -1,0 +1,141 @@
+{extend name="layout" /}
+
+{block name="title"}数据主体权利请求 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">隐私合规</li>
+<li class="breadcrumb-item active">权利请求</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-person-lines-fill me-1"></i>数据主体权利请求列表</span>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="filterType" style="width:150px;">
+                <option value="">全部类型</option>
+                <option value="access">访问权</option>
+                <option value="rectify">更正权</option>
+                <option value="erase">删除权</option>
+                <option value="restrict">限制处理权</option>
+                <option value="portability">可携带权</option>
+                <option value="object">反对权</option>
+            </select>
+            <select class="form-select form-select-sm" id="filterStatus" style="width:130px;">
+                <option value="">全部状态</option>
+                <option value="pending">待处理</option>
+                <option value="processing">处理中</option>
+                <option value="completed">已完成</option>
+                <option value="rejected">已拒绝</option>
+            </select>
+            <button class="btn btn-outline-primary btn-sm" onclick="filterRequests()"><i class="bi bi-funnel"></i> 筛选</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>用户</th>
+                    <th>请求类型</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        {if condition="$vo.user"}
+                            {$vo.user.nickname ?? $vo.user.username}
+                        {else /}
+                            <span class="text-muted">用户#{$vo.user_id}</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.request_type == 'access'"}
+                        <span class="badge bg-info">访问权</span>
+                        {elseif condition="$vo.request_type == 'rectify'" /}
+                        <span class="badge bg-primary">更正权</span>
+                        {elseif condition="$vo.request_type == 'erase'" /}
+                        <span class="badge bg-danger">删除权</span>
+                        {elseif condition="$vo.request_type == 'restrict'" /}
+                        <span class="badge bg-warning text-dark">限制处理权</span>
+                        {elseif condition="$vo.request_type == 'portability'" /}
+                        <span class="badge bg-success">可携带权</span>
+                        {elseif condition="$vo.request_type == 'object'" /}
+                        <span class="badge bg-secondary">反对权</span>
+                        {else /}
+                        <span class="badge bg-light text-dark">{$vo.request_type}</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.status == 'pending'"}
+                        <span class="badge bg-warning text-dark">待处理</span>
+                        {elseif condition="$vo.status == 'processing'" /}
+                        <span class="badge bg-info">处理中</span>
+                        {elseif condition="$vo.status == 'completed'" /}
+                        <span class="badge bg-success">已完成</span>
+                        {elseif condition="$vo.status == 'rejected'" /}
+                        <span class="badge bg-danger">已拒绝</span>
+                        {else /}
+                        <span class="badge bg-secondary">{$vo.status}</span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.created_at}</td>
+                    <td class="text-end">
+                        <a href="/admin/privacy/request_detail?id={$vo.id}" class="btn btn-outline-primary btn-sm me-1">
+                            <i class="bi bi-eye"></i> 详情
+                        </a>
+                        {if condition="$vo.status == 'pending' || $vo.status == 'processing'"}
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="processRequest({$vo.id}, 'approve')">
+                            <i class="bi bi-check-lg"></i> 处理
+                        </button>
+                        {/if}
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="6" class="text-center text-muted py-4">暂无权利请求</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function filterRequests() {
+    var type = $('#filterType').val();
+    var status = $('#filterStatus').val();
+    var params = [];
+    if (type) params.push('type=' + type);
+    if (status) params.push('status=' + status);
+    window.location.href = '/admin/privacy/request_list' + (params.length ? '?' + params.join('&') : '');
+}
+
+function processRequest(id, action) {
+    var note = prompt('请输入处理备注（可选）：', '');
+    if (note === null) return;
+    $.post('/admin/privacy/request_process', {id: id, action: action, note: note}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('处理成功');
+            location.reload();
+        } else {
+            alert(res.msg || '处理失败');
+        }
+    });
+}
+</script>
+{/block}

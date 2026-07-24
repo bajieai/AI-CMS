@@ -1,0 +1,48 @@
+{extend name="layout" /}
+{block name="title"}语言包管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">多语言</li><li class="breadcrumb-item active">语言包管理</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-translate me-1"></i>语言包列表</span>
+        <button class="btn btn-success btn-sm" onclick="location='/admin/lang_pack_manage/entries?lang_code=zh-cn'"><i class="bi bi-pencil me-1"></i>编辑条目</button>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>语言代码</th><th>总条目</th><th>已翻译</th><th>未翻译</th><th>完成率</th><th>操作</th></tr></thead>
+            <tbody>
+                {volist name="packs" id="pack"}
+                <tr>
+                    <td><span class="badge bg-primary">{$pack.lang_code}</span></td>
+                    <td>{$pack.total}</td>
+                    <td>{$pack.translated}</td>
+                    <td>{$pack.untranslated}</td>
+                    <td>
+                        <div class="progress" style="height:20px;">
+                            <div class="progress-bar" style="width:{$pack.completion_rate}%">{$pack.completion_rate}%</div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="/admin/lang_pack_manage/entries?lang_code={$pack.lang_code}" class="btn btn-sm btn-outline-primary">条目</a>
+                        <button class="btn btn-sm btn-outline-success" onclick="batchTranslate('{$pack.lang_code}')">AI批量翻译</button>
+                        <a href="/admin/lang_pack_manage/versions?lang_code={$pack.lang_code}" class="btn btn-sm btn-outline-secondary">版本</a>
+                        <a href="/admin/lang_pack_manage/export?lang_code={$pack.lang_code}" class="btn btn-sm btn-outline-info">导出</a>
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function batchTranslate(lang) {
+    if (!confirm('确定要AI批量翻译' + lang + '的未翻译条目吗？将先创建快照。')) return;
+    $.post('/admin/lang_pack_manage/batchTranslate', {lang_code: lang, module: 'frontend'}, r => {
+        showToast(r.msg, r.success ? 'success' : 'danger');
+        if (r.success) setTimeout(() => location.reload(), 2000);
+    });
+}
+</script>
+{/block}

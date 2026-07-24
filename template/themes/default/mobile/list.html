@@ -1,0 +1,82 @@
+{extend name="layout" /}
+
+{block name="title"}
+{if condition="$current_cate"}
+    {$current_cate.seo_title ?: $current_cate.name} - {$site_name}
+{else /}
+    {if condition="$type == 1"}产品中心{elseif condition="$type == 2"/}成功案例{elseif condition="$type == 3"/}新闻动态{elseif condition="$type == 4"/}资料下载{elseif condition="$type == 5"/}人才招聘{else /}单页{/if} - {$site_name}
+{/if}
+{/block}
+
+{block name="content"}
+<!-- V2.9.24 H-5: 骨架屏CSS -->
+<link href="/static/mobile/css/skeleton.css?v=2.9.24" rel="stylesheet">
+<nav aria-label="breadcrumb" class="m-breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">首页</a></li>
+        <li class="breadcrumb-item active">
+            {if condition="$type == 1"}产品中心{elseif condition="$type == 2"/}成功案例{elseif condition="$type == 3"/}新闻动态{elseif condition="$type == 4"/}资料下载{elseif condition="$type == 5"/}人才招聘{/if}
+        </li>
+    </ol>
+</nav>
+
+<!-- 分类树（移动端手风琴） -->
+{$cate_tree_html|raw}
+
+<!-- 内容列表 -->
+<div class="m-card-list" id="mCardList">
+{volist name="list" id="vo"}
+{switch vo.type}
+    {case 1}{include file="_partials/list_item_product" /}{/case}
+    {case 2}{include file="_partials/list_item_case" /}{/case}
+    {case 3}{include file="_partials/list_item_news" /}{/case}
+    {case 4}{include file="_partials/list_item_download" /}{/case}
+    {case 5}{include file="_partials/list_item_job" /}{/case}
+    {case 6}{include file="_partials/list_item_page" /}{/case}
+    {default /}{include file="_partials/list_item_page" /}{/default}
+{/switch}
+{/volist}
+</div>
+
+{empty name="list"}
+<div class="m-empty"><i class="bi bi-inbox"></i><p>暂无相关内容</p></div>
+{/empty}
+
+{if condition="($list->hasPages() ?? false)"}
+<div class="m-pagination">{$list->render()|raw}</div>
+{/if}
+{/block}
+
+{block name="js"}
+<script>
+// V2.9.2 M22b: 无限滚动（移动端列表页）
+if (window.MobileEnhance && document.querySelector('.m-pagination')) {
+    MobileEnhance.initInfiniteScroll({
+        container: '.m-card-list',
+        nextSelector: '.m-pagination a[rel="next"]',
+        itemSelector: '.m-card'
+    });
+    // 隐藏传统分页，使用无限滚动替代
+    document.querySelector('.m-pagination').style.display = 'none';
+}
+<!-- V2.9.23 E-3: 下拉刷新 -->
+<script src="/static/mobile/js/pull_to_refresh.js"></script>
+<script src="/static/mobile/js/skeleton.js"></script>
+<script>
+if (document.querySelector('.m-card-list') && 'ontouchstart' in window) {
+    new PullToRefresh({
+        container: '#mCardList',
+        onRefresh: function() {
+            return new Promise(function(resolve, reject) {
+                // V2.9.24 H-5: 显示骨架屏
+                Skeleton.showList('#mCardList', 5);
+                setTimeout(function() {
+                    window.location.reload();
+                    resolve();
+                }, 300);
+            });
+        }
+    });
+}
+</script>
+{/block}

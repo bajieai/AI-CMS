@@ -1,0 +1,82 @@
+{extend name="layout" /}
+
+{block name="title"}编辑数据大屏 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">数据中心</li>
+<li class="breadcrumb-item"><a href="/admin/data_dashboard/index">数据大屏</a></li>
+<li class="breadcrumb-item active">编辑</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-layout-text-window me-1"></i>数据大屏配置</h5>
+    </div>
+    <div class="card-body">
+        <form id="dashboardForm">
+            <input type="hidden" name="id" value="{$vo.id|default=0}">
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">大屏名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{$dashboard.name|default=''}" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">布局模板</label>
+                    <select name="layout_template" class="form-select">
+                        <option value="default" {if ($dashboard.layout_template|default='default') eq 'default'}selected{/if}>默认布局</option>
+                        <option value="grid" {if $dashboard.layout_template eq 'grid'}selected{/if}>网格布局</option>
+                        <option value="sidebar" {if $dashboard.layout_template eq 'sidebar'}selected{/if}>侧边栏布局</option>
+                        <option value="custom" {if $dashboard.layout_template eq 'custom'}selected{/if}>自定义</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">描述</label>
+                <textarea name="description" class="form-control" rows="2">{$dashboard.description|default=''}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">刷新间隔（秒）</label>
+                    <input type="number" name="refresh_interval" class="form-control" value="{$dashboard.refresh_interval|default=60}" min="5">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" {if ($dashboard.is_active|default=1) eq 1}checked{/if}>
+                        <label class="form-check-label" for="isActive">启用</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_public" value="1" id="isPublic" {if ($dashboard.is_public|default=0) eq 1}checked{/if}>
+                        <label class="form-check-label" for="isPublic">公开访问</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">布局配置（JSON）</label>
+                <textarea name="layout" id="layoutJson" class="form-control font-monospace" rows="15" style="font-size:13px;">{$dashboard.layout_json|default='{"modules":[]}'}</textarea>
+                <div class="form-text">模块配置JSON，包含模块位置、大小、数据源等</div>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="saveDashboard()">
+                <i class="bi bi-check-lg me-1"></i>保存
+            </button>
+            <a href="/admin/data_dashboard/index" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+        </form>
+    </div>
+</div>
+
+<script>
+function saveDashboard() {
+    var data = $('#dashboardForm').serialize();
+    $.post('/admin/data_dashboard/save', data, function(res) {
+        if (res.code === 0) { alert('保存成功'); }
+        else { alert(res.msg || '保存失败'); }
+    });
+}
+</script>
+{/block}

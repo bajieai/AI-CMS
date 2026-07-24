@@ -1,0 +1,60 @@
+{extend name="layout" /}
+{block name="title"}版本历史 — {$lang_code}{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">多语言</li><li class="breadcrumb-item"><a href="/admin/lang_pack_manage/index">语言包管理</a></li><li class="breadcrumb-item active">版本历史</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-clock-history me-1"></i>版本快照历史 ({$lang_code} / {$module})</span>
+        <button class="btn btn-primary btn-sm" onclick="createSnapshot()"><i class="bi bi-camera me-1"></i>创建快照</button>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>版本</th><th>条目数</th><th>已翻译</th><th>完成率</th><th>原因</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody>
+                {volist name="history" id="snap"}
+                <tr>
+                    <td>v{$snap.version}</td><td>{$snap.entry_count}</td><td>{$snap.translated_count}</td>
+                    <td>{$snap.completion_rate}%</td><td><span class="badge bg-secondary">{$snap.create_reason}</span></td>
+                    <td>{$snap.create_time}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-warning" onclick="rollback({$snap.version})">回滚</button>
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+        <hr>
+        <h6>版本对比 (P0-2修复)</h6>
+        <div class="row g-2">
+            <div class="col-auto"><select id="v1" class="form-select form-select-sm">{volist name="history" id="snap"}<option value="{$snap.version}">v{$snap.version}</option>{/volist}</select></div>
+            <div class="col-auto">vs</div>
+            <div class="col-auto"><select id="v2" class="form-select form-select-sm">{volist name="history" id="snap"}<option value="{$snap.version}">v{$snap.version}</option>{/volist}</select></div>
+            <div class="col-auto"><button class="btn btn-info btn-sm" onclick="compareVersions()">对比</button></div>
+        </div>
+        <div id="compareResult" class="mt-2"></div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function createSnapshot() {
+    $.post('/admin/lang_pack_manage/createSnapshot', {lang_code:'{$lang_code}', module:'{$module}'}, r => {
+        showToast(r.msg, r.success?'success':'danger'); if(r.success) location.reload();
+    });
+}
+function rollback(version) {
+    if(!confirm('确定回滚到v'+version+'吗？当前状态将自动创建快照。')) return;
+    $.post('/admin/lang_pack_manage/rollbackVersion', {lang_code:'{$lang_code}', module:'{$module}', version:version}, r => {
+        showToast(r.msg, r.success?'success':'danger');
+    });
+}
+function compareVersions() {
+    $.get('/admin/lang_pack_manage/compareVersions', {lang_code:'{$lang_code}', module:'{$module}', v1:$('#v1').val(), v2:$('#v2').val()}, r => {
+        if(r.success) {
+            var d = r.data;
+            $('#compareResult').html('<div class="alert alert-info">v'+d.v1+' → v'+d.v2+': 新增'+d.summary.added_count+'条, 修改'+d.summary.modified_count+'条, 删除'+d.summary.deleted_count+'条</div>');
+        }
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,54 @@
+{extend name="layout" /}
+
+{block name="title"}编辑媒体信息{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/media/index">媒体资源库</a></li>
+<li class="breadcrumb-item active">编辑媒体信息</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">编辑媒体信息</div>
+    <div class="card-body">
+        <form method="post" action="/admin/media/edit/{$media.id}">
+            <div class="mb-3">
+                <label class="form-label">文件预览</label>
+                <div>
+                    {if condition="$media.filetype == 'image'"}
+                    <img src="{$media.filepath}" class="img-thumbnail" style="max-height:200px">
+                    {elseif condition="$media.filetype == 'video'"}
+                    <video src="{$media.filepath}" controls style="max-height:200px;max-width:100%"></video>
+                    {else /}
+                    <div class="p-3 bg-light rounded text-center" style="max-width:200px">
+                        <i class="bi bi-file-earmark-fill fs-1 text-secondary"></i>
+                        <div class="mt-2 small">{$media.filename}</div>
+                    </div>
+                    {/if}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">文件名</label>
+                <input type="text" class="form-control" value="{$media.filename}" disabled>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">文件路径</label>
+                <input type="text" class="form-control" value="{$media.filepath}" disabled>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">文件大小</label>
+                <input type="text" class="form-control" value="{$media.filesize|format_bytes}" disabled>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ALT 文本 / 描述</label>
+                <input type="text" name="alt_text" class="form-control" value="{$media.alt_text}" placeholder="用于SEO和图片描述">
+                <div class="form-text">ALT文本有助于搜索引擎理解和无障碍访问</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/admin/media/index" class="btn btn-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}

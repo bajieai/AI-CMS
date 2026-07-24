@@ -1,0 +1,136 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-box-seam me-2"></i>插件包管理</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">插件包列表</span>
+            <div class="d-flex gap-2">
+                <a href="/admin/plugin_store/categories" class="btn btn-sm btn-outline-secondary"><i class="bi bi-tags me-1"></i>分类管理</a>
+                <a href="/admin/plugin_store/logs" class="btn btn-sm btn-outline-info"><i class="bi bi-clock-history me-1"></i>安装日志</a>
+                <a href="/admin/plugin_store/add" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>新增插件包</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <form class="row g-3 mb-3" method="get">
+                <div class="col-md-3">
+                    <input type="text" name="keyword" class="form-control" placeholder="搜索插件名称/标识" value="{$params.keyword}">
+                </div>
+                <div class="col-md-2">
+                    <select name="category_id" class="form-select">
+                        <option value="">全部分类</option>
+                        {volist name="categories" id="c"}
+                        <option value="{$c.id}" {if $params.category_id == $c.id}selected{/if}>{$c.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">全部状态</option>
+                        <option value="1" {if $params.status === '1'}selected{/if}>上架</option>
+                        <option value="0" {if $params.status === '0'}selected{/if}>下架</option>
+                        <option value="2" {if $params.status === '2'}selected{/if}>审核中</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search me-1"></i>搜索</button>
+                    <a href="/admin/plugin_store/index" class="btn btn-outline-secondary">重置</a>
+                </div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>插件</th>
+                            <th>版本</th>
+                            <th>分类</th>
+                            <th>价格</th>
+                            <th>下载/安装</th>
+                            <th>评分</th>
+                            <th>状态</th>
+                            <th>排序</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td>{$item.id}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {if $item.icon}<img src="{$item.icon}" class="me-2" style="width:32px;height:32px;border-radius:4px;">{/if}
+                                    <div>
+                                        <div class="fw-semibold">{$item.name}</div>
+                                        <div class="small text-muted">{$item.code}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{$item.version}</td>
+                            <td>{if $item.category}{$item.category.name}{else}—{/if}</td>
+                            <td>{if $item.is_free}<span class="badge bg-success">免费</span>{else}<span class="text-danger">¥{$item.price}</span>{/if}</td>
+                            <td>{$item.download_count} / {$item.install_count}</td>
+                            <td>{$item.rating_avg} <small class="text-muted">({$item.rating_count})</small></td>
+                            <td>
+                                {if $item.status == 1}<span class="badge bg-success">上架</span>
+                                {elseif $item.status == 0}<span class="badge bg-secondary">下架</span>
+                                {else}<span class="badge bg-warning">审核中</span>{/if}
+                            </td>
+                            <td>{$item.sort}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/admin/plugin_store/edit/{$item.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                                    <a href="/admin/plugin_store/versions/{$item.id}" class="btn btn-outline-info" title="版本"><i class="bi bi-collection"></i></a>
+                                    <a href="/admin/plugin_store/dependencies/{$item.id}" class="btn btn-outline-secondary" title="依赖"><i class="bi bi-diagram-3"></i></a>
+                                    <button class="btn btn-outline-warning" onclick="toggleStatus({$item.id})" title="切换状态"><i class="bi bi-toggle-{if $item.status == 1}on{else}off{/if}"></i></button>
+                                    <button class="btn btn-outline-danger" onclick="deletePackage({$item.id})" title="删除"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            {if $total > 0}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="text-muted">共 {$total} 条</span>
+                <nav>{$list|raw}</nav>
+            </div>
+            {else}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1"></i>
+                <p>暂无插件包</p>
+            </div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function toggleStatus(id) {
+    layer.confirm('确定切换状态？', function() {
+        fetch('/admin/plugin_store/toggleStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + id
+        }).then(r => r.json()).then(res => {
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(() => location.reload(), 800);
+        });
+    });
+}
+function deletePackage(id) {
+    layer.confirm('确定删除？删除后不可恢复！', function() {
+        fetch('/admin/plugin_store/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + id
+        }).then(r => r.json()).then(res => {
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(() => location.reload(), 800);
+        });
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,168 @@
+{extend name="layout" /}
+
+{block name="title"}任务统计看板{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">任务增强</li>
+<li class="breadcrumb-item active">统计看板</li>
+{/block}
+
+{block name="content"}
+<!-- 概览卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card text-white" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><div>
+                    <div style="font-size:.78rem;opacity:.85">总任务数</div>
+                    <div style="font-size:1.6rem;font-weight:700">{$overview.total ?? 0}</div>
+                </div><i class="bi bi-list-task" style="font-size:2rem;opacity:.3"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-white" style="background:linear-gradient(135deg,#43e97b,#38f9d7)">
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><div>
+                    <div style="font-size:.78rem;opacity:.85">完成率</div>
+                    <div style="font-size:1.6rem;font-weight:700">{$overview.completion_rate ?? 0}%</div>
+                </div><i class="bi bi-check-circle" style="font-size:2rem;opacity:.3"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-white" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><div>
+                    <div style="font-size:.78rem;opacity:.85">按时率</div>
+                    <div style="font-size:1.6rem;font-weight:700">{$overview.on_time_rate ?? 0}%</div>
+                </div><i class="bi bi-clock-history" style="font-size:2rem;opacity:.3"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-white" style="background:linear-gradient(135deg,#f093fb,#f5576c)">
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><div>
+                    <div style="font-size:.78rem;opacity:.85">超期数</div>
+                    <div style="font-size:1.6rem;font-weight:700">{$overview.overdue_count ?? 0}</div>
+                </div><i class="bi bi-exclamation-triangle" style="font-size:2rem;opacity:.3"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- 趋势图 -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-1"></i>任务趋势</span>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary active" data-days="7" onclick="loadTrend(7,this)">7天</button>
+                    <button class="btn btn-outline-primary" data-days="30" onclick="loadTrend(30,this)">30天</button>
+                </div>
+            </div>
+            <div class="card-body p-3"><div id="trendChart" style="height:320px"></div></div>
+        </div>
+    </div>
+    <!-- 效率分析 -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-speedometer2 me-1"></i>效率分析</div>
+            <div class="card-body">
+                <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span class="small">平均完成时间</span><span class="fw-bold">{$overview.avg_complete_hours ?? 0}h</span></div><div class="progress" style="height:8px"><div class="progress-bar bg-primary" style="width:{$overview.avg_complete_bar ?? 0}%"></div></div></div>
+                <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span class="small">平均审核时间</span><span class="fw-bold">{$overview.avg_review_hours ?? 0}h</span></div><div class="progress" style="height:8px"><div class="progress-bar bg-info" style="width:{$overview.avg_review_bar ?? 0}%"></div></div></div>
+                <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span class="small">首次通过率</span><span class="fw-bold">{$overview.first_pass_rate ?? 0}%</span></div><div class="progress" style="height:8px"><div class="progress-bar bg-success" style="width:{$overview.first_pass_rate ?? 0}%"></div></div></div>
+                <div class="mb-0"><div class="d-flex justify-content-between mb-1"><span class="small">返工率</span><span class="fw-bold">{$overview.rework_rate ?? 0}%</span></div><div class="progress" style="height:8px"><div class="progress-bar bg-danger" style="width:{$overview.rework_rate ?? 0}%"></div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- 瓶颈分析 -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-cone-striped me-1"></i>瓶颈分析</div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light"><tr><th>阶段</th><th width="100">平均耗时</th><th width="80">堆积数</th><th width="120">瓶颈指数</th></tr></thead>
+                    <tbody>
+                        {volist name="overview.bottlenecks" id="bn"}
+                        <tr>
+                            <td>{$bn.stage_name}</td>
+                            <td>{$bn.avg_hours}h</td>
+                            <td><span class="badge {if condition="$bn.pending > 5"}bg-danger{elseif condition="$bn.pending > 2"}bg-warning text-dark{else/}bg-success{/if}">{$bn.pending}</span></td>
+                            <td>
+                                <div class="progress" style="height:16px">
+                                    <div class="progress-bar {if condition="$bn.index > 70"}bg-danger{elseif condition="$bn.index > 40"}bg-warning{else/}bg-success{/if}" style="width:{$bn.index}%">{$bn.index}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {empty name="overview.bottlenecks"}<tr><td colspan="4" class="text-center text-muted py-3">暂无数据</td></tr>{/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- 人员负载 -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-people me-1"></i>人员负载</div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light"><tr><th>成员</th><th width="80">进行中</th><th width="80">已完成</th><th width="80">超期</th><th width="120">负载率</th></tr></thead>
+                    <tbody>
+                        {volist name="overview.member_load" id="ml"}
+                        <tr>
+                            <td>{$ml.name}</td>
+                            <td>{$ml.in_progress}</td>
+                            <td>{$ml.completed}</td>
+                            <td>{if condition="$ml.overdue > 0"}<span class="badge bg-danger">{$ml.overdue}</span>{else/}<span class="text-muted">0</span>{/if}</td>
+                            <td>
+                                <div class="progress" style="height:16px">
+                                    <div class="progress-bar {if condition="$ml.load_rate > 80"}bg-danger{elseif condition="$ml.load_rate > 50"}bg-warning{else/}bg-success{/if}" style="width:{$ml.load_rate}%">{$ml.load_rate}%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {empty name="overview.member_load"}<tr><td colspan="5" class="text-center text-muted py-3">暂无数据</td></tr>{/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function() { loadTrend(7, null); });
+
+function loadTrend(days, btn) {
+    if (btn) { $('.btn-group .btn[data-days]').removeClass('active'); $(btn).addClass('active'); }
+    var chart = echarts.init(document.getElementById('trendChart'));
+    chart.showLoading();
+    $.get('/admin/task_enhance/trendData?days=' + days, function(res) {
+        chart.hideLoading();
+        if (res.code !== 0) return;
+        var r = res.data;
+        chart.setOption({
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['新建', '完成', '超期'], top: 0 },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { type: 'category', data: r.dates, boundaryGap: false },
+            yAxis: { type: 'value', minInterval: 1 },
+            series: [
+                { name: '新建', type: 'line', data: r.created, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: '#667eea' }, areaStyle: { opacity: .1 } },
+                { name: '完成', type: 'line', data: r.completed, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: '#43e97b' }, areaStyle: { opacity: .1 } },
+                { name: '超期', type: 'line', data: r.overdue, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: '#f5576c' } }
+            ]
+        }, true);
+    });
+    $(window).off('resize.trend').on('resize.trend', function() { chart.resize(); });
+}
+</script>
+{/block}

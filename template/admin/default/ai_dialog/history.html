@@ -1,0 +1,85 @@
+{extend name="layout" /}
+
+{block name="title"}对话历史搜索 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">AI能力</li>
+<li class="breadcrumb-item"><a href="{:url('/admin/ai_dialog/index')}">对话管理</a></li>
+<li class="breadcrumb-item active">历史搜索</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-search me-1"></i>对话历史搜索
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" action="{:url('/admin/ai_dialog/history')}">
+            <div class="col-md-4">
+                <input type="text" name="keyword" value="{$keyword|default=''}" class="form-control" placeholder="搜索消息内容或会话标题...">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="user_id" value="{$user_id|default=''}" class="form-control" placeholder="用户ID">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="start_date" value="{$start_date|default=''}" class="form-control" placeholder="开始日期">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="end_date" value="{$end_date|default=''}" class="form-control" placeholder="结束日期">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>搜索</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>会话标题</th>
+                    <th>角色</th>
+                    <th>消息内容</th>
+                    <th>Tokens</th>
+                    <th>时间</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        <a href="{:url('/admin/ai_dialog/detail', ['id'=>$vo.dialog_id])}">{$vo.dialog_title}</a>
+                    </td>
+                    <td>
+                        <span class="badge {if condition="$vo.role eq 'user'"}bg-primary{elseif condition="$vo.role eq 'assistant'" /}bg-success{else /}bg-secondary{/if}">
+                            {if condition="$vo.role eq 'user'"}用户{elseif condition="$vo.role eq 'assistant'" /}AI{else /}系统{/if}
+                        </span>
+                    </td>
+                    <td class="text-truncate" style="max-width:400px;" title="{$vo.content}">{$vo.content}</td>
+                    <td>{$vo.tokens ?? 0}</td>
+                    <td class="small text-muted">{$vo.created_at}</td>
+                    <td class="text-end">
+                        <a href="{:url('/admin/ai_dialog/detail', ['id'=>$vo.dialog_id])}" class="btn btn-outline-primary btn-sm" title="查看对话">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7" class="text-center text-muted py-4">请输入搜索条件查询历史消息</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条记录</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}

@@ -1,0 +1,34 @@
+{extend name="/layout" /}
+{block name="title"}邮件日志 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">📧 邮件发送日志</h4>
+    <div class="row mb-4">
+        <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5 class="card-title" id="statTotal">-</h5><p class="card-text text-muted">今日发送</p></div></div></div>
+        <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5 class="card-title text-success" id="statSent">-</h5><p class="card-text text-muted">今日成功</p></div></div></div>
+        <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5 class="card-title text-danger" id="statFailed">-</h5><p class="card-text text-muted">今日失败</p></div></div></div>
+        <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5 class="card-title" id="statRate">-</h5><p class="card-text text-muted">成功率</p></div></div></div>
+    </div>
+    <div class="card mb-4"><div class="card-header">近30天发送趋势</div><div class="card-body"><canvas id="trendChart" height="80"></canvas></div></div>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <select id="filterStatus" class="form-select form-select-sm" onchange="loadList()">
+                <option value="">全部状态</option><option value="1">已发送</option><option value="2">失败</option><option value="0">待发送</option>
+            </select>
+        </div>
+        <div class="col-md-3"><input type="date" id="dateFrom" class="form-control form-control-sm" onchange="loadList()"></div>
+        <div class="col-md-3"><input type="date" id="dateTo" class="form-control form-control-sm" onchange="loadList()"></div>
+    </div>
+    <div class="card"><div class="card-body p-0"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>ID</th><th>收件人</th><th>主题</th><th>状态</th><th>错误信息</th><th>发送时间</th></tr></thead><tbody id="mlBody"><tr><td colspan="6" class="text-center py-4">加载中...</td></tr></tbody></table></div></div>
+</div>
+{/block}
+{block name="js"}
+<script src="/static/js/Chart.min.js"></script>
+<script>
+var trendChart=null;
+function loadOverview(){$.get('/admin/mail_log/overview',function(r){var d=r.data||{};$('#statTotal').text(d.total||0);$('#statSent').text(d.sent||0);$('#statFailed').text(d.failed||0);$('#statRate').text((d.rate||0)+'%')})}
+function loadTrend(){$.get('/admin/mail_log/stats',function(r){var d=r.data||{},days=d.days||[],success=d.success||[],fail=d.fail||[];if(trendChart)trendChart.destroy();var ctx=document.getElementById('trendChart').getContext('2d');trendChart=new Chart(ctx,{type:'line',data:{labels:days,datasets:[{label:'成功',data:success,borderColor:'#198754',backgroundColor:'rgba(25,135,84,0.1)',tension:0.3,fill:true},{label:'失败',data:fail,borderColor:'#dc3545',backgroundColor:'rgba(220,53,69,0.1)',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{precision:0}}}}})})}
+function loadList(){var s=$('#filterStatus').val(),df=$('#dateFrom').val(),dt=$('#dateTo').val();$.get('/admin/mail_log/list',{status:s,date_from:df,date_to:dt},function(r){var h='',d=r.data||[];if(!d.length)h='<tr><td colspan="6" class="text-center py-4">暂无</td></tr>';else d.forEach(function(i){h+='<tr><td>'+i.id+'</td><td>'+i.email+'</td><td>'+i.subject+'</td><td><span class="badge '+(i.status==1?'bg-success':i.status==2?'bg-danger':'bg-warning')+'">'+(i.status==1?'已发送':i.status==2?'失败':'待发送')+'</span></td><td><small class="text-muted">'+(i.error_msg||'-')+'</small></td><td>'+i.sent_at+'</td></tr>'});$('#mlBody').html(h)})}
+loadOverview();loadTrend();loadList();
+</script>
+{/block}

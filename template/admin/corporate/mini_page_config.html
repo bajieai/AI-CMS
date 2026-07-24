@@ -1,0 +1,99 @@
+{extend name="layout" /}
+{block name="title"}页面配置管理{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">小程序/移动端</li>
+<li class="breadcrumb-item active">页面配置</li>
+{/block}
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-layout-text-window me-1"></i>移动端页面可视化配置</div>
+    <div class="card-body">
+        <div class="row g-2 mb-3">
+            <div class="col-auto">
+                <select id="filterPageType" class="form-select form-select-sm">
+                    <option value="">全部类型</option>
+                    <option value="home">首页</option>
+                    <option value="list">列表页</option>
+                    <option value="detail">详情页</option>
+                    <option value="search">搜索页</option>
+                    <option value="user">用户中心</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select id="filterPlatform" class="form-select form-select-sm">
+                    <option value="all">全平台</option>
+                    <option value="mini">小程序</option>
+                    <option value="h5">H5</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm" onclick="loadConfigs()"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#newConfigModal"><i class="bi bi-plus-lg me-1"></i>新建配置</button>
+            </div>
+        </div>
+        <table class="table table-hover table-sm">
+            <thead><tr><th>ID</th><th>页面类型</th><th>名称</th><th>平台</th><th>版本</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead>
+            <tbody id="configList">
+                {volist name="configs.data" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td><span class="badge bg-info">{$vo.page_type}</span></td>
+                    <td>{$vo.page_name}</td>
+                    <td>{$vo.platform}</td>
+                    <td>v{$vo.version}</td>
+                    <td>{if condition="$vo.is_published"}<span class="badge bg-success">已发布</span>{else /}<span class="badge bg-secondary">草稿</span>{/if}</td>
+                    <td>{$vo.update_time}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="publishConfig({$vo.id})">发布</button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="rollbackConfig({$vo.id})">回滚</button>
+                        <a class="btn btn-sm btn-outline-secondary" href="/admin/mini_manage/exportPageConfig?id={$vo.id}">导出</a>
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+        <h6 class="mt-3">预设布局模板</h6>
+        <div class="row g-2">
+            {volist name="layouts" id="layout" key="key"}
+            <div class="col-md-4">
+                <div class="card border-light">
+                    <div class="card-body p-2">
+                        <strong>{$layout.name}</strong>
+                        <p class="small text-muted mb-1">{$key} — {:count($layout.components)}个组件</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="useLayout('{$key}')">使用</button>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="newConfigModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">新建页面配置</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-2"><label class="form-label">页面类型</label><select id="newPageType" class="form-select"><option value="home">首页</option><option value="list">列表页</option><option value="detail">详情页</option><option value="search">搜索页</option><option value="user">用户中心</option><option value="about">关于我们</option><option value="contact">联系我们</option></select></div>
+                <div class="mb-2"><label class="form-label">页面名称</label><input type="text" id="newPageName" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">平台</label><select id="newPlatform" class="form-select"><option value="all">全平台</option><option value="mini">小程序</option><option value="h5">H5</option></select></div>
+                <div class="mb-2"><label class="form-label">布局JSON</label><textarea id="newLayout" class="form-control" rows="5" placeholder='[{"type":"carousel","props":{"autoplay":true}}]'></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveNewConfig()">保存</button></div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function loadConfigs() { location.reload(); }
+function publishConfig(id) { $.post('/admin/mini_manage/publishPageConfig', {id:id}, r => { showToast(r.msg, r.success?'success':'danger'); setTimeout(()=>location.reload(),1000); }); }
+function rollbackConfig(id) { $.post('/admin/mini_manage/rollbackPageConfig', {id:id}, r => { showToast(r.msg, r.success?'success':'danger'); }); }
+function useLayout(key) { $('#newPageType').val('home'); $('#newLayout').val(JSON.stringify(window.layouts[key].components, null, 2)); new bootstrap.Modal('#newConfigModal').show(); }
+function saveNewConfig() {
+    $.post('/admin/mini_manage/savePageConfig', {
+        page_type: $('#newPageType').val(), page_name: $('#newPageName').val(),
+        platform: $('#newPlatform').val(), page_layout: $('#newLayout').val()
+    }, r => { showToast(r.msg, r.success?'success':'danger'); if(r.success) setTimeout(()=>location.reload(),1000); });
+}
+</script>
+{/block}

@@ -1,0 +1,35 @@
+{/* V2.9.20 A-3: 案例模型详情差异化片段 (default PC) */}
+{php}$ext = $info['ext']['data'] ?? [];{/php}
+<div class="model-case-card card mb-4 border-info border-opacity-25">
+    <div class="card-header bg-info bg-opacity-10 d-flex align-items-center">
+        <i class="bi bi-briefcase me-2 text-info"></i>
+        <span class="fw-bold">案例信息</span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            {if condition="!empty($ext['client_name'])"}
+            <div class="col-md-4 col-sm-6">
+                <div class="text-muted small mb-1"><i class="bi bi-building me-1"></i>客户名称</div>
+                <div class="fw-bold">{$ext['client_name']|htmlentities}</div>
+            </div>
+            {/if}
+            {if condition="!empty($ext['project_period'])"}
+            <div class="col-md-4 col-sm-6">
+                <div class="text-muted small mb-1"><i class="bi bi-calendar-range me-1"></i>项目周期</div>
+                <div class="fw-bold">{$ext['project_period']|htmlentities}</div>
+            </div>
+            {/if}
+            {if condition="!empty($ext['industry'])"}
+            <div class="col-md-4 col-sm-6">
+                <div class="text-muted small mb-1"><i class="bi bi-diagram-3 me-1"></i>所属行业</div>
+                <div class="fw-bold"><span class="badge bg-secondary">{$ext['industry']|htmlentities}</span></div>
+            </div>
+            {/if}
+        </div>
+        {if condition="empty($ext['client_name']) && empty($ext['project_period']) && empty($ext['industry'])"}
+        <div class="text-muted small text-center py-2">
+            <i class="bi bi-info-circle me-1"></i>此案例暂无详细信息
+        </div>
+        {/if}
+    </div>
+</div>

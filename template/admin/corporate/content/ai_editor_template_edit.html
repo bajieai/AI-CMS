@@ -1,0 +1,35 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if $id>0}编辑AI模板{else/}新建AI模板{/if}</h4>
+    <div class="mb-3"><a href="/admin/ai_editor_template/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a></div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post" id="tplForm">
+                <div class="row mb-3">
+                    <div class="col-md-6"><label class="form-label">模板名称</label><input type="text" name="name" class="form-control" value="{$template.name??''}" required></div>
+                    <div class="col-md-3"><label class="form-label">分类</label><input type="text" name="category" class="form-control" value="{$template.category??''}" placeholder="如: marketing"></div>
+                    <div class="col-md-3"><label class="form-label">行业</label><input type="text" name="industry" class="form-control" value="{$template.industry??''}" placeholder="如: ecommerce"></div>
+                </div>
+                <div class="mb-3"><label class="form-label">模板描述</label><textarea name="description" class="form-control" rows="2">{$template.description??''}</textarea></div>
+                <div class="mb-3"><label class="form-label">Prompt模板 <small class="text-muted">（使用 {var_name} 作为变量占位符）</small></label><textarea name="prompt" class="form-control" rows="6" required>{$template.prompt??''}</textarea></div>
+                <div class="mb-3"><label class="form-label">标签 <small class="text-muted">（逗号分隔）</small></label><input type="text" name="tags" class="form-control" value="{$template.tags??''}"></div>
+                <div class="mb-3"><label class="form-label">示例输出</label><textarea name="example_output" class="form-control" rows="3">{$template.example_output??''}</textarea></div>
+                <div class="row mb-3">
+                    <div class="col-md-3"><label class="form-label">排序</label><input type="number" name="sort" class="form-control" value="{$template.sort??99}"></div>
+                    <div class="col-md-3"><label class="form-label">状态</label><select name="status" class="form-select"><option value="1" {if ($template.status??1)==1}selected{/if}>启用</option><option value="0">禁用</option></select></div>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>保存</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+$('#tplForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post(location.pathname, $(this).serialize(), function(res) {
+        if (res.code === 0) { location.href = '/admin/ai_editor_template/index'; } else { alert(res.msg); }
+    });
+});
+</script>
+{/block}

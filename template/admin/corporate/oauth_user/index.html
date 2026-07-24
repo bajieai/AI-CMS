@@ -1,0 +1,58 @@
+{extend name="layout" /}
+{block name="title"}第三方登录 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-box-arrow-in-right"></i> 第三方登录管理</h5>
+        <a href="{:url('/admin/oauth_user/stats')}" class="btn btn-outline-info btn-sm"><i class="bi bi-bar-chart"></i> 统计分析</a>
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get">
+            <div class="col-md-3"><input type="text" name="keyword" value="{:input('keyword','')}" class="form-control form-control-sm" placeholder="搜索用户名/昵称"></div>
+            <div class="col-md-2"><select name="provider" class="form-control form-control-sm">
+                <option value="">全部平台</option>
+                <option value="wechat" {if condition="input('provider','') eq 'wechat'"}selected{/if}>微信</option>
+                <option value="qq" {if condition="input('provider','') eq 'qq'"}selected{/if}>QQ</option>
+                <option value="github" {if condition="input('provider','') eq 'github'"}selected{/if}>GitHub</option>
+                <option value="weibo" {if condition="input('provider','') eq 'weibo'"}selected{/if}>微博</option>
+            </select></div>
+            <div class="col-md-1"><button type="submit" class="btn btn-outline-primary btn-sm">搜索</button></div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>ID</th><th>用户</th><th>平台</th><th>OpenID</th><th>昵称</th><th>绑定时间</th><th>最近登录</th><th>操作</th></tr></thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.member_id}</td>
+                        <td><span class="badge bg-info">{$vo.provider}</span></td>
+                        <td>{$vo.openid|mb_substr=0,16}</td>
+                        <td>{$vo.nickname|default='-'}</td>
+                        <td>{$vo.create_time}</td>
+                        <td>{$vo.last_login_time|default='-'}</td>
+                        <td><button onclick="unbind({$vo.id})" class="btn btn-outline-danger btn-sm"><i class="bi bi-link-45deg"></i> 解绑</button></td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-muted">共 {$total|default=0} 条记录</span>
+            <nav><ul class="pagination pagination-sm">
+                <li class="page-item {if condition="$page lte 1"}disabled{/if}"><a class="page-link" href="?page={:$page-1}">上一页</a></li>
+                <li class="page-item active"><a class="page-link" href="#">{$page}</a></li>
+                <li class="page-item"><a class="page-link" href="?page={:$page+1}">下一页</a></li>
+            </ul></nav>
+        </div>
+    </div>
+</div>
+<script>
+function unbind(id) {
+    if(!confirm('确定解绑此第三方账号？')) return;
+    $.post('{:url("/admin/oauth_user/unbind")}', {id: id}, function(res){
+        if(res.code === 0) location.reload(); else alert(res.msg);
+    });
+}
+</script>
+{/block}

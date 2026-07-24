@@ -1,0 +1,19 @@
+<view class="container" style="padding-top:120rpx;">
+  <view class="card" style="text-align:center;">
+    <view class="title" style="margin-bottom:40rpx;">会员登录</view>
+    <input
+      placeholder="用户名/手机号"
+      value="{{username}}"
+      bindinput="onInputUsername"
+      style="border:1rpx solid #ddd;border-radius:8rpx;padding:16rpx;margin-bottom:20rpx;"
+    />
+    <input
+      placeholder="密码"
+      password
+      value="{{password}}"
+      bindinput="onInputPassword"
+      style="border:1rpx solid #ddd;border-radius:8rpx;padding:16rpx;margin-bottom:40rpx;"
+    />
+    <button class="btn-primary" bindtap="onLogin" style="width:100%;">登录</button>
+  </view>
+</view>

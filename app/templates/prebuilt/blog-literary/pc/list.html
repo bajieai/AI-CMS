@@ -1,0 +1,72 @@
+﻿{extend name="pc/layout" /}
+
+{block name="content"}
+<section class="page-header">
+    <div class="container">
+        <h1 class="page-header__title">文章列表</h1>
+        <p class="page-header__desc">探索更多精彩内容</p>
+    </div>
+</section>
+
+<section class="post-list-page">
+    <div class="container">
+        <div class="post-list-page__layout">
+            <div class="post-list-page__main">
+                {volist name="posts" id="post" empty="暂无文章"}
+                <article class="post-item post-item--list">
+                    <a href="/detail/{$post.id}" class="post-item__link">
+                        <div class="post-item__image">
+                            <img src="{$post.thumb|default='/assets/placeholder/post3.jpg'}" alt="{$post.title}" class="post-item__img">
+                        </div>
+                        <div class="post-item__body">
+                            <h2 class="post-item__title">{$post.title}</h2>
+                            <p class="post-item__excerpt">{$post.description|mb_substr=0,200}</p>
+                            <div class="post-item__meta">
+                                <span class="post-item__date">{$post.create_time|date='Y-m-d'}</span>
+                                <span class="post-item__category">{$post.category_name|default='未分类'}</span>
+                                <span class="post-item__views">阅读 {$post.views|default=0}</span>
+                            </div>
+                        </div>
+                    </a>
+                </article>
+                {/volist}
+
+                <div class="pagination">
+                    {if condition="$page > 1"}
+                    <a href="/list?page={$page-1}" class="pagination__prev">上一页</a>
+                    {/if}
+                    <span class="pagination__current">第 {$page} 页</span>
+                    {if condition="$page < $total_pages"}
+                    <a href="/list?page={$page+1}" class="pagination__next">下一页</a>
+                    {/if}
+                </div>
+            </div>
+
+            <aside class="post-list-page__sidebar">
+                <div class="sidebar-card">
+                    <h3 class="sidebar-card__title">分类</h3>
+                    <ul class="sidebar-card__list">
+                        {volist name="categories" id="category"}
+                        <li class="sidebar-card__item">
+                            <a href="/list?category={$category.id}" class="sidebar-card__link">{$category.name}</a>
+                            <span class="sidebar-card__count">({$category.count})</span>
+                        </li>
+                        {/volist}
+                    </ul>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3 class="sidebar-card__title">热门文章</h3>
+                    <ul class="sidebar-card__list">
+                        {volist name="hot_posts" id="post"}
+                        <li class="sidebar-card__item">
+                            <a href="/detail/{$post.id}" class="sidebar-card__link">{$post.title}</a>
+                        </li>
+                        {/volist}
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{/block}

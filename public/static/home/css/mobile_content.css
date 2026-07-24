@@ -1,0 +1,17 @@
+/* MO-2: 移动端内容自适应 — V2.9.28 */
+@media (max-width: 768px) {
+    .article-content { font-size: 16px; line-height: 1.8; word-break: break-word; }
+    .article-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0; }
+    .article-content table { display: block; overflow-x: auto; white-space: nowrap; max-width: 100%; }
+    .article-content pre { overflow-x: auto; font-size: 13px; }
+    .article-content h1 { font-size: 1.5rem; }
+    .article-content h2 { font-size: 1.3rem; }
+    .article-content h3 { font-size: 1.15rem; }
+    .article-content blockquote { margin: 12px 0; padding: 8px 16px; border-left: 4px solid #0d6efd; background: #f8f9fa; }
+    .content-list .card { margin-bottom: 12px; border: none; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .content-list .card-img-top { height: 180px; object-fit: cover; }
+    .content-list .card-title { font-size: 15px; line-height: 1.4; }
+    .content-list .card-text { font-size: 13px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pagination { justify-content: center; }
+    .pagination .page-link { padding: 6px 10px; font-size: 13px; }
+}

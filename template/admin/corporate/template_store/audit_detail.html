@@ -1,0 +1,89 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">审核详情</h4>
+    <div class="mb-3"><a href="/admin/template_audit_workflow/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a></div>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-info-circle me-2"></i>模板信息</div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr><th width="100">模板ID</th><td>{$template.id}</td><th width="100">名称</th><td>{$template.name}</td></tr>
+                        <tr><th>审核状态</th><td>
+                            {if $template.review_status=='pending_first'}<span class="badge bg-info">待初审</span>
+                            {elseif $template.review_status=='pending_final'}<span class="badge bg-primary">待终审</span>
+                            {elseif $template.review_status=='approved'}<span class="badge bg-success">已通过</span>
+                            {elseif $template.review_status=='rejected'}<span class="badge bg-danger">已驳回</span>
+                            {/if}
+                        </td><th>审核层级</th><td>
+                            {if $config.audit_level==1}单级审核
+                            {elseif $config.audit_level==2}两级审核
+                            {elseif $config.audit_level==3}三级审核
+                            {/if}
+                        </td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-clock-history me-2"></i>审核历史</div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>时间</th><th>操作人</th><th>动作</th><th>状态变化</th><th>备注</th></tr></thead>
+                        <tbody>
+                            {volist name="history" id="h"}
+                            <tr>
+                                <td>{$h.created_at}</td>
+                                <td>{$h.auditor_name}</td>
+                                <td>{$h.action}</td>
+                                <td>{$h.prev_status} → {$h.new_status}</td>
+                                <td>{$h.reason ?: $h.comment}</td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-gear me-2"></i>审核操作</div>
+                <div class="card-body">
+                    {if $template.review_status=='pending_first'}
+                    <button class="btn btn-success w-100 mb-2" onclick="firstPass()"><i class="bi bi-check-lg me-1"></i>初审通过</button>
+                    {/if}
+                    {if $template.review_status=='pending_final'}
+                    <button class="btn btn-success w-100 mb-2" onclick="finalPass()"><i class="bi bi-check-lg me-1"></i>终审通过</button>
+                    {/if}
+                    {if in_array($template.review_status, ['pending_first','pending_final'])}
+                    <hr>
+                    <div class="mb-2"><label class="form-label">选择驳回原因</label>
+                        <select id="reason_id" class="form-select form-select-sm">
+                            <option value="0">自定义原因</option>
+                            {volist name="rejectReasons" id="r"}
+                            <option value="{$r.id}">[{$r.category}] {$r.reason}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-2"><textarea id="reject_reason" class="form-control form-control-sm" rows="3" placeholder="驳回原因..."></textarea></div>
+                    <button class="btn btn-danger w-100" onclick="reject()"><i class="bi bi-x-lg me-1"></i>驳回</button>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function firstPass() { $.post('/admin/template_audit_workflow/firstPass/{$template.id}', {comment:''}, function(r){if(r.code===0){alert(r.msg);location.reload();}else{alert(r.msg);}}); }
+function finalPass() { $.post('/admin/template_audit_workflow/finalPass/{$template.id}', {comment:''}, function(r){if(r.code===0){alert(r.msg);location.reload();}else{alert(r.msg);}}); }
+function reject() {
+    var rid = $('#reason_id').val();
+    var reason = $('#reject_reason').val();
+    if (rid > 0 && !reason) { reason = $('#reason_id option:selected').text(); }
+    if (!reason) { alert('请填写或选择驳回原因'); return; }
+    $.post('/admin/template_audit_workflow/reject/{$template.id}', {reason:reason, reason_id:rid}, function(r){
+        if(r.code===0){alert(r.msg);location.reload();}else{alert(r.msg);}
+    });
+}
+</script>
+{/block}

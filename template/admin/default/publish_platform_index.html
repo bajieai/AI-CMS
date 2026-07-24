@@ -1,0 +1,38 @@
+﻿{extend name="/layout" /}
+{block name="title"}发布平台 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">发布平台</h4>
+        <a href="/admin/publish_platform/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> 添加平台</a>
+    </div>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>标识</th><th>名称</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td><code>{$vo.name}</code></td>
+                <td>{$vo.display_name}</td>
+                <td>{if $vo.is_enabled==1}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                <td>
+                    <a href="/admin/publish_platform/edit/{$vo.id}" class="btn btn-sm btn-outline-info">编辑</a>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteItem({$vo.id})">删除</button>
+                </td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+{/block}
+{block name="js"}
+<script>
+function deleteItem(id) { if(!confirm('确定删除？')) return; $.post('/admin/publish_platform/delete', {id:id}, function(res) { alert(res.msg); location.reload(); }); }
+</script>
+{/block}

@@ -1,0 +1,51 @@
+{extend name="layout" /}
+{block name="title"}通知模板 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-file-text"></i> 通知模板管理</h5>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tplModal"><i class="bi bi-plus-circle"></i> 新增模板</button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>ID</th><th>场景</th><th>渠道</th><th>标题</th><th>内容预览</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                    {volist name="templates" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td><span class="badge bg-info">{$vo.scene}</span></td>
+                        <td><span class="badge bg-secondary">{$vo.channel}</span></td>
+                        <td>{$vo.title}</td>
+                        <td>{$vo.content|mb_substr=0,40,'UTF-8'}</td>
+                        <td>{if condition="$vo.status eq 1"}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-danger">禁用</span>{/if}</td>
+                        <td><button onclick="deleteTpl({$vo.id})" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        {$templates->render()|default=''}
+    </div>
+</div>
+<div class="modal fade" id="tplModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">通知模板</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="tpl-form">
+                    <div class="mb-3"><label class="form-label">场景</label><select name="scene" class="form-select"><option value="register">注册</option><option value="payment">支付</option><option value="audit">审核</option><option value="system">系统</option><option value="security">安全</option><option value="operation">运营</option></select></div>
+                    <div class="mb-3"><label class="form-label">渠道</label><select name="channel" class="form-select"><option value="sms">短信</option><option value="email">邮件</option><option value="in_app">站内信</option><option value="wechat">微信模板</option></select></div>
+                    <div class="mb-3"><label class="form-label">标题</label><input type="text" name="title" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">内容</label><textarea name="content" class="form-control" rows="5" required></textarea><small class="text-muted">支持变量: {nickname}, {site_name}, {content_title} 等</small></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" onclick="saveTpl()">保存</button></div>
+        </div>
+    </div>
+</div>
+<script>
+function deleteTpl(id) { if(!confirm('确定删除？')) return; $.post('{:url("/admin/notify_center/deleteTemplate")}', {id: id}, function(res){ if(res.code===0) location.reload(); else alert(res.msg); }); }
+function saveTpl() { $.post('{:url("/admin/notify_center/saveTemplate")}', $('#tpl-form').serialize(), function(res){ if(res.code===0) location.reload(); else alert(res.msg); }); }
+</script>
+{/block}

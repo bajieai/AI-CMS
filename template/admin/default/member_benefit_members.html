@@ -1,0 +1,128 @@
+{extend name="layout" /}
+{block name="title"}会员等级管理{/block}
+
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-people me-2"></i>会员等级管理</h4>
+        <div>
+            <a href="/admin/member_level/index" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left"></i> 等级列表
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <select name="level_id" class="form-select">
+                        <option value="">全部等级</option>
+                        {volist name="levels" id="lv"}
+                        <option value="{$lv.id}" {if $level_id == $lv.id}selected{/if}>{$lv.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="keyword" class="form-control" placeholder="搜索昵称/用户名/手机..." value="{$keyword}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> 搜索</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card" style="overflow:visible;">
+        <div class="card-body p-0" style="overflow:visible;">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>会员</th>
+                        <th>当前等级</th>
+                        <th>总积分</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr>
+                        <td>{$item.id}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="{if empty($item.avatar)}/assets/img/default-avatar.png{else/}{$item.avatar}{/if}" class="rounded-circle me-2" width="32" height="32" onerror="this.src='/assets/img/default-avatar.png'">
+                                <div>
+                                    <div class="fw-bold">{$item.nickname??$item.username}</div>
+                                    <div class="small text-muted">{$item.phone??'-'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{$item.level.name??'-'}</span>
+                        </td>
+                        <td>{$item.total_points??0}</td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport">
+                                    <i class="bi bi-arrow-repeat"></i> 更换等级
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    {volist name="levels" id="lv"}
+                                    {if $lv.id != $item.level_id}
+                                    <li>
+                                        <a class="dropdown-item btn-change-level" href="javascript:;"
+                                           data-member="{$item.id}" data-level="{$lv.id}" data-name="{$lv.name}"
+                                           data-direction="{if $lv.sort > $item.level.sort}upgrade{else}downgrade{/if}">
+                                            {if $lv.sort > $item.level.sort}
+                                            <i class="bi bi-arrow-up-circle text-success me-1"></i>升级为 {$lv.name}
+                                            {else}
+                                            <i class="bi bi-arrow-down-circle text-warning me-1"></i>降级为 {$lv.name}
+                                            {/if}
+                                        </a>
+                                    </li>
+                                    {/if}
+                                    {/volist}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span>共 {$list->total()} 人</span>
+            {$list|raw}
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function() {
+    $('.btn-change-level').on('click', function() {
+        var memberId = $(this).data('member');
+        var levelId = $(this).data('level');
+        var levelName = $(this).data('name');
+        var direction = $(this).data('direction');
+        var actionText = direction === 'upgrade' ? '升级' : '降级';
+
+        if (!confirm('确定将该会员' + actionText + '为「' + levelName + '」吗？' + actionText + '后将发送通知。')) {
+            return;
+        }
+
+        $.post('/admin/member_benefit/downgrade', {
+            member_id: memberId,
+            target_level_id: levelId
+        }, function(res) {
+            alert(res.msg);
+            if (res.code === 0) {
+                location.reload();
+            }
+        }, 'json');
+    });
+});
+</script>
+{/block}

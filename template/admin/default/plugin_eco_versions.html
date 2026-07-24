@@ -1,0 +1,14 @@
+{extend name="layout" /}
+{block name="title"}版本管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">插件生态</li><li class="breadcrumb-item active">版本管理</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><i class="bi bi-code-branch me-1"></i>版本管理 (插件ID: {$plugin_id})</div><div class="card-body">
+<table class="table table-sm"><thead><tr><th>版本</th><th>标签</th><th>说明</th><th>下载量</th><th>状态</th><th>操作</th></tr></thead><tbody>
+{volist name="versions" id="v"}<tr><td>v{$v.version}</td><td><span class="badge bg-secondary">{$v.version_tag}</span></td><td>{$v.version_desc}</td><td>{$v.download_count}</td><td><span class="badge bg-{if condition="$v.publish_status eq 'released'"}success{elseif condition="$v.publish_status eq 'grayscale'"}warning{else /}secondary{/if}">{$v.publish_status}</span></td><td>{if condition="$v.publish_status eq 'draft'"}<button class="btn btn-sm btn-outline-warning" onclick="grayscale({$v.id})">灰度</button>{/if}{if condition="$v.publish_status eq 'grayscale'"}<button class="btn btn-sm btn-outline-success" onclick="fullPublish({$v.id})">全量</button>{/if}{if condition="$v.publish_status eq 'released'"}<button class="btn btn-sm btn-outline-danger" onclick="rollback({$v.id})">回滚</button>{/if}</td></tr>{/volist}
+</tbody></table></div></div>
+<script>
+function grayscale(id){var r=prompt('灰度比例(0-1):','0.1');if(r===null)return;$.post('/admin/plugin_eco/grayscalePublish',{version_id:id,ratio:r},res=>showToast(res.success?'灰度发布成功':'失败',res.success?'success':'danger'));}
+function fullPublish(id){$.post('/admin/plugin_eco/fullPublish',{version_id:id},res=>showToast(res.success?'全量发布成功':'失败',res.success?'success':'danger'));}
+function rollback(id){if(!confirm('确定回滚?'))return;$.post('/admin/plugin_eco/rollbackVersion',{version_id:id},res=>showToast(res.success?'回滚成功':'失败',res.success?'success':'danger'));}
+</script>
+{/block}

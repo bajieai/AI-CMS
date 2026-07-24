@@ -1,0 +1,37 @@
+{extend name="layout" /}
+{block name="title"}插件审核{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">插件生态</li><li class="breadcrumb-item active">插件审核</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-shield-check me-1"></i>审核队列 — {$status}</div>
+    <div class="card-body">
+        <div class="btn-group mb-2">
+            <a href="/admin/plugin_eco/audit?status=pending" class="btn btn-sm {if condition="$status eq 'pending'"}btn-primary{else /}btn-outline-primary{/if}">待审核</a>
+            <a href="/admin/plugin_eco/audit?status=passed" class="btn btn-sm {if condition="$status eq 'passed'"}btn-primary{else /}btn-outline-primary{/if}">已通过</a>
+            <a href="/admin/plugin_eco/audit?status=rejected" class="btn btn-sm {if condition="$status eq 'rejected'"}btn-primary{else /}btn-outline-primary{/if}">已拒绝</a>
+            <a href="/admin/plugin_eco/audit?status=online" class="btn btn-sm {if condition="$status eq 'online'"}btn-primary{else /}btn-outline-primary{/if}">已上线</a>
+        </div>
+        <table class="table table-sm table-hover">
+            <thead><tr><th>ID</th><th>名称</th><th>开发者</th><th>版本</th><th>自动评分</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+                {volist name="plugins.data" id="p"}
+                <tr>
+                    <td>{$p.id}</td><td>{$p.name}</td><td>{$p.developer_name}</td><td>{$p.version}</td>
+                    <td>{if condition="$p.auto_audit_score"}<span class="badge bg-{if condition='$p.auto_audit_score >= 80'}success{elseif condition='$p.auto_audit_score >= 60'}warning{else /}danger{/if}">{$p.auto_audit_score}</span>{/if}</td>
+                    <td><span class="badge bg-secondary">{$p.audit_status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" onclick="autoAudit({$p.id})">自动审核</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="doAudit({$p.id},'pass')">通过</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="doAudit({$p.id},'reject')">拒绝</button>
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+function autoAudit(id){$.post('/admin/plugin_eco/autoAudit',{plugin_id:id},r=>{showToast('评分:'+r.data.score+', 状态:'+r.data.status,'info');});}
+function doAudit(id,result){var c=prompt('审核意见:');if(c===null)return;$.post('/admin/plugin_eco/doAudit',{plugin_id:id,result:result,comment:c},r=>{showToast(r.msg,r.success?'success':'danger');if(r.success)setTimeout(()=>location.reload(),1000);});}
+</script>
+{/block}

@@ -1,0 +1,87 @@
+{extend name="layout" /}
+
+{block name="title"}模板导出{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">模板管理</li>
+<li class="breadcrumb-item active">模板导出</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-box-arrow-up me-1"></i>模板导出</div>
+    <div class="card-body">
+        <form id="exportForm" method="post" action="/admin/template/export">
+            <div class="mb-3">
+                <label class="form-label">选择模板 <span class="text-danger">*</span></label>
+                <div class="border rounded p-3" style="max-height:300px; overflow-y:auto;">
+                    {volist name="templates" id="tpl"}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="template_ids[]" value="{$tpl.id}" id="tpl_{$tpl.id}">
+                        <label class="form-check-label" for="tpl_{$tpl.id}">
+                            {$tpl.name}
+                            {if condition="$tpl.version"}<code class="small ms-1">v{$tpl.version}</code>{/if}
+                        </label>
+                    </div>
+                    {/volist}
+                    {empty name="templates"}
+                    <div class="text-center text-muted py-3">暂无可导出的模板</div>
+                    {/empty}
+                </div>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-link btn-sm p-0" onclick="selectAll()">全选</button>
+                    <span class="mx-1">|</span>
+                    <button type="button" class="btn btn-link btn-sm p-0" onclick="deselectAll()">取消全选</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">导出格式</label>
+                <div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="format" value="zip" id="format_zip" checked>
+                        <label class="form-check-label" for="format_zip"><i class="bi bi-file-zip me-1"></i>ZIP</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="format" value="tar" id="format_tar">
+                        <label class="form-check-label" for="format_tar"><i class="bi bi-file-earmark me-1"></i>TAR</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="include_assets" value="1" id="include_assets" checked>
+                    <label class="form-check-label" for="include_assets">包含资源文件（CSS/JS/图片等）</label>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-download me-1"></i>导出</button>
+                <a href="/admin/template/index" class="btn btn-outline-secondary">取消返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function selectAll() {
+    $('input[name="template_ids[]"]').prop('checked', true);
+}
+function deselectAll() {
+    $('input[name="template_ids[]"]').prop('checked', false);
+}
+$('#exportForm').on('submit', function(e) {
+    e.preventDefault();
+    var checked = $('input[name="template_ids[]"]:checked').length;
+    if (checked === 0) {
+        showToast('请至少选择一个模板', 'warning');
+        return;
+    }
+    showToast('正在导出，请稍候...', 'info');
+    this.submit();
+});
+</script>
+{/block}

@@ -1,0 +1,473 @@
+<?php
+
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
+// +----------------------------------------------------------------------
+// | 官网: http://www.i8j.cn
+// +----------------------------------------------------------------------
+// | Author: 八界AI Team <admin@i8j.cn>
+// +----------------------------------------------------------------------
+declare(strict_types=1);
+
+namespace app\common\service;
+
+use app\common\model\Plugin as PluginModel;
+use app\common\model\PluginRating;
+use think\facade\Config;
+use think\facade\Log;
+
+/**
+ * 插件市场服务 - V2.9.2 M25
+ * 远程仓库浏览 + 一键安装 + 本地上传ZIP安装 + 更新检测
+ */
+class PluginMarketService
+{
+    /**
+     * 获取远程市场插件列表
+     */
+    public function getMarketList(array $filters = []): array
+    {
+        $marketUrl = Config::get('plugin.market_url', '');
+        if (empty($marketUrl)) {
+            return ['success' => false, 'msg' => '插件市场未配置', 'data' => []];
+        }
+
+        try {
+            $client = new \GuzzleHttp\Client(['timeout' => 15]);
+            $response = $client->get($marketUrl . '/plugins', [
+                'query' => [
+                    'page'     => $filters['page'] ?? 1,
+                    'limit'    => $filters['limit'] ?? 20,
+                    'keyword'  => $filters['keyword'] ?? '',
+                    'category' => $filters['category'] ?? '',
+                    'cms_version' => config('app.version', '2.9.2'),
+                ],
+            ]);
+
+            $body = json_decode((string) $response->getBody(), true);
+            if (!is_array($body)) {
+                return ['success' => false, 'msg' => '市场返回格式错误', 'data' => []];
+            }
+
+            $plugins = $body['data'] ?? [];
+
+            // 叠加本地安装状态
+            $localPlugins = PluginModel::column('version', 'code');
+            foreach ($plugins as &$plugin) {
+                $code = $plugin['code'] ?? '';
+                if (isset($localPlugins[$code])) {
+                    $plugin['local_version'] = $localPlugins[$code];
+                    $plugin['is_installed'] = 1;
+                    $plugin['has_update'] = version_compare($plugin['version'] ?? '1.0.0', $localPlugins[$code], '>');
+                } else {
+                    $plugin['local_version'] = '';
+                    $plugin['is_installed'] = 0;
+                    $plugin['has_update'] = false;
+                }
+                // V2.9.4: 叠加本地评分数据
+                $ratingInfo = PluginRating::getAverageRating($code);
+                $plugin['avg_rating'] = $ratingInfo['avg_rating'];
+                $plugin['rating_count'] = $ratingInfo['total_count'];
+            }
+
+            return [
+                'success' => true,
+                'msg'     => '获取成功',
+                'data'    => $plugins,
+                'total'   => $body['total'] ?? count($plugins),
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('[PluginMarket] 获取市场列表失败: ' . $e->getMessage());
+            return ['success' => false, 'msg' => '连接市场失败: ' . $e->getMessage(), 'data' => []];
+        }
+    }
+
+    /**
+     * 从市场下载并安装插件
+     */
+    public function installFromMarket(string $code, string $downloadUrl): array
+    {
+        $tempZip = runtime_path() . 'temp/plugin_' . $code . '_' . time() . '.zip';
+        $extractDir = root_path() . 'plugin/' . $code;
+
+        try {
+            // 1. 下载ZIP
+            $client = new \GuzzleHttp\Client(['timeout' => 60]);
+            $response = $client->get($downloadUrl, ['sink' => $tempZip]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \Exception('下载失败，HTTP状态码: ' . $response->getStatusCode());
+            }
+
+            // 2. 解压
+            $this->extractZip($tempZip, $extractDir);
+
+            // 3. 校验 plugin.json
+            $jsonFile = $extractDir . '/plugin.json';
+            if (!file_exists($jsonFile)) {
+                throw new \Exception('插件包中缺少 plugin.json');
+            }
+
+            $info = json_decode(file_get_contents($jsonFile), true);
+            if (!$info || ($info['code'] ?? '') !== $code) {
+                throw new \Exception('插件标识不一致');
+            }
+
+            // 4. 调用本地安装
+            PluginService::install($code);
+
+            // 5. 清理临时文件
+            @unlink($tempZip);
+
+            return ['success' => true, 'msg' => '插件安装成功'];
+        } catch (\Throwable $e) {
+            // 清理失败残留
+            @unlink($tempZip);
+            if (is_dir($extractDir)) {
+                $this->removeDir($extractDir);
+            }
+            return ['success' => false, 'msg' => '安装失败: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * 本地上传ZIP安装
+     */
+    public function uploadAndInstall(string $zipPath, string $originalName = ''): array
+    {
+        $tempZip = runtime_path() . 'temp/upload_' . time() . '_' . basename($originalName);
+
+        try {
+            if (!file_exists($zipPath)) {
+                throw new \Exception('上传文件不存在');
+            }
+
+            // 移动临时文件
+            if (!copy($zipPath, $tempZip)) {
+                throw new \Exception('文件处理失败');
+            }
+
+            // 先解压到临时目录读取plugin.json
+            $tempExtractDir = runtime_path() . 'temp/plugin_extract_' . time();
+            $this->extractZip($tempZip, $tempExtractDir);
+
+            // 读取plugin.json获取code
+            $jsonFile = $tempExtractDir . '/plugin.json';
+            if (!file_exists($jsonFile)) {
+                // 可能在子目录中
+                $subDirs = glob($tempExtractDir . '/*', GLOB_ONLYDIR);
+                foreach ($subDirs as $subDir) {
+                    $candidate = $subDir . '/plugin.json';
+                    if (file_exists($candidate)) {
+                        $jsonFile = $candidate;
+                        $tempExtractDir = $subDir;
+                        break;
+                    }
+                }
+            }
+
+            if (!file_exists($jsonFile)) {
+                throw new \Exception('ZIP包中未找到 plugin.json');
+            }
+
+            $info = json_decode(file_get_contents($jsonFile), true);
+            if (!$info || empty($info['code'])) {
+                throw new \Exception('plugin.json 格式错误或缺少 code 字段');
+            }
+
+            $code = $info['code'];
+            $targetDir = root_path() . 'plugin/' . $code;
+
+            // 如果目标目录已存在，先删除旧版本
+            if (is_dir($targetDir)) {
+                $this->removeDir($targetDir);
+            }
+
+            // 移动到正式目录
+            if (!rename($tempExtractDir, $targetDir)) {
+                throw new \Exception('无法移动插件到安装目录');
+            }
+
+            // 安装
+            PluginService::install($code);
+
+            // 清理
+            @unlink($tempZip);
+            @rmdir(dirname($tempExtractDir));
+
+            return ['success' => true, 'msg' => '插件 "' . ($info['name'] ?? $code) . '" 安装成功'];
+        } catch (\Throwable $e) {
+            @unlink($tempZip);
+            return ['success' => false, 'msg' => '安装失败: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * 检查更新
+     */
+    public function checkUpdates(): array
+    {
+        $marketUrl = Config::get('plugin.market_url', '');
+        if (empty($marketUrl)) {
+            return [];
+        }
+
+        $localPlugins = PluginModel::select();
+        if ($localPlugins->isEmpty()) {
+            return [];
+        }
+
+        $codes = $localPlugins->column('code');
+
+        try {
+            $client = new \GuzzleHttp\Client(['timeout' => 15]);
+            $response = $client->post($marketUrl . '/check-updates', [
+                'json' => ['codes' => $codes, 'cms_version' => config('app.version', '2.9.2')],
+            ]);
+
+            $body = json_decode((string) $response->getBody(), true);
+            $updates = $body['data'] ?? [];
+
+            $result = [];
+            foreach ($localPlugins as $plugin) {
+                $remote = $updates[$plugin->code] ?? null;
+                if ($remote && version_compare($remote['version'], $plugin->version, '>')) {
+                    $result[] = [
+                        'code'          => $plugin->code,
+                        'name'          => $plugin->name,
+                        'local_version' => $plugin->version,
+                        'remote_version'=> $remote['version'],
+                        'download_url'  => $remote['download_url'] ?? '',
+                    ];
+                }
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::warning('[PluginMarket] 检查更新失败: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * V2.9.3 M25: 获取市场插件详情
+     */
+    public function getMarketDetail(string $code): array
+    {
+        $marketUrl = Config::get('plugin.market_url', '');
+        if (empty($marketUrl)) {
+            return ['success' => false, 'msg' => '插件市场未配置'];
+        }
+
+        try {
+            $client = new \GuzzleHttp\Client(['timeout' => 15]);
+            $response = $client->get($marketUrl . '/plugins/' . $code, [
+                'query' => ['cms_version' => config('app.version', '2.9.3')],
+            ]);
+
+            $body = json_decode((string) $response->getBody(), true);
+            if (!is_array($body) || empty($body['data'])) {
+                return ['success' => false, 'msg' => '插件不存在或市场返回格式错误'];
+            }
+
+            $plugin = $body['data'];
+
+            // 叠加本地安装状态
+            $localPlugin = PluginModel::where('code', $code)->find();
+            if ($localPlugin) {
+                $plugin['local_version'] = $localPlugin->version;
+                $plugin['is_installed'] = 1;
+                $plugin['has_update'] = version_compare($plugin['version'] ?? '1.0.0', $localPlugin->version, '>');
+            } else {
+                $plugin['local_version'] = '';
+                $plugin['is_installed'] = 0;
+                $plugin['has_update'] = false;
+            }
+
+            // V2.9.4: 叠加本地评分数据
+            $ratingInfo = PluginRating::getAverageRating($code);
+            $plugin['avg_rating'] = $ratingInfo['avg_rating'];
+            $plugin['rating_count'] = $ratingInfo['total_count'];
+
+            // V2.9.4: 获取评分列表
+            $plugin['ratings'] = PluginRating::getRatings($code, 1, 10);
+
+            return ['success' => true, 'data' => $plugin];
+        } catch (\Throwable $e) {
+            Log::warning('[PluginMarket] 获取插件详情失败: ' . $e->getMessage());
+            return ['success' => false, 'msg' => '获取插件详情失败: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * 获取市场分类列表
+     */
+    public function getCategories(): array
+    {
+        $marketUrl = Config::get('plugin.market_url', '');
+        if (empty($marketUrl)) {
+            return [];
+        }
+
+        try {
+            $client = new \GuzzleHttp\Client(['timeout' => 10]);
+            $response = $client->get($marketUrl . '/categories');
+            $body = json_decode((string) $response->getBody(), true);
+            return $body['data'] ?? [];
+            } catch (\Throwable) {
+                return [];
+            }
+    }
+
+    /**
+     * 解压ZIP文件
+     */
+    protected function extractZip(string $zipPath, string $extractTo): void
+    {
+        if (!class_exists('ZipArchive')) {
+            throw new \Exception('服务器未启用 ZipArchive 扩展，无法解压插件');
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath) !== true) {
+            throw new \Exception('无法打开ZIP文件');
+        }
+
+        if (!is_dir($extractTo)) {
+            mkdir($extractTo, 0755, true);
+        }
+
+        $zip->extractTo($extractTo);
+        $zip->close();
+    }
+
+    /**
+     * 递归删除目录
+     */
+    protected function removeDir(string $dir): void
+    {
+        if (!is_dir($dir)) return;
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                rmdir($file->getRealPath());
+            } else {
+                unlink($file->getRealPath());
+            }
+        }
+        rmdir($dir);
+    }
+
+    // ==================== V2.9.9: 插件钩子/事件系统预留 ====================
+
+    /** @var array 已注册的事件监听器 [eventName => [callable, ...]] */
+    protected static array $hooks = [];
+
+    /**
+     * 注册插件钩子监听器
+     *
+     * @param string $event 事件名称，如 'content.afterCreate', 'user.afterLogin'
+     * @param callable $listener 监听器回调
+     * @param int $priority 优先级，数字越大越先执行
+     */
+    public static function on(string $event, callable $listener, int $priority = 10): void
+    {
+        if (!isset(self::$hooks[$event])) {
+            self::$hooks[$event] = [];
+        }
+        self::$hooks[$event][] = ['listener' => $listener, 'priority' => $priority];
+        // 按优先级排序
+        usort(self::$hooks[$event], fn($a, $b) => $b['priority'] <=> $a['priority']);
+    }
+
+    /**
+     * 触发插件钩子事件
+     *
+     * @param string $event 事件名称
+     * @param mixed $data 事件数据（引用传递，监听器可修改）
+     * @return mixed 可能被监听器修改后的数据
+     */
+    public static function fire(string $event, mixed $data = null): mixed
+    {
+        if (empty(self::$hooks[$event])) {
+            return $data;
+        }
+
+        foreach (self::$hooks[$event] as $hook) {
+            try {
+                $result = call_user_func($hook['listener'], $data);
+                // 如果监听器返回非null，更新数据
+                if ($result !== null) {
+                    $data = $result;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[PluginHook] 事件 ' . $event . ' 监听器执行失败: ' . $e->getMessage());
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * 获取已注册的所有钩子事件
+     */
+    public static function getRegisteredHooks(): array
+    {
+        return array_map(fn($listeners) => count($listeners), self::$hooks);
+    }
+
+    /**
+     * 预置插件包列表（V2.9.9内置5个常用插件包元数据）
+     */
+    public static function getPresetPackages(): array
+    {
+        return [
+            [
+                'code' => 'seo_enhancer',
+                'name' => 'SEO增强包',
+                'description' => '自动TDK优化、Schema.org结构化数据注入、死链监控',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'seo',
+            ],
+            [
+                'code' => 'social_share',
+                'name' => '社交分享增强',
+                'description' => '多平台分享按钮、分享统计、OG卡片优化',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'social',
+            ],
+            [
+                'code' => 'member_exclusive',
+                'name' => '会员专享内容',
+                'description' => '等级权限控制、付费内容加密、会员专属标记',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'member',
+            ],
+            [
+                'code' => 'data_exporter',
+                'name' => '数据导出增强',
+                'description' => 'Excel/CSV/PDF多格式导出、定时报表、数据可视化',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'tool',
+            ],
+            [
+                'code' => 'custom_fields',
+                'name' => '自定义字段扩展',
+                'description' => '可视化字段设计器、字段联动规则、条件显示逻辑',
+                'version' => '1.0.0',
+                'author' => 'AI-CMS官方',
+                'category' => 'content',
+            ],
+        ];
+    }
+}

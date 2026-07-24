@@ -1,0 +1,114 @@
+{extend name="layout" /}
+
+{block name="title"}内容质量诊断报告{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">内容管理</li>
+<li class="breadcrumb-item active">质量诊断报告</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clipboard2-pulse me-1"></i>内容质量诊断报告</span>
+        <form method="get" action="/admin/content_diagnosis/report" class="d-flex align-items-center gap-2">
+            <select name="content_id" class="form-select form-select-sm" style="min-width:200px;">
+                <option value="">选择内容</option>
+                {volist name="contents" id="c"}
+                <option value="{$c.id}" {if condition="$Request.get.content_id == $c.id"}selected{/if}>{$c.title}</option>
+                {/volist}
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search me-1"></i>诊断</button>
+        </form>
+    </div>
+</div>
+
+{if condition="$report"}
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-search fs-2 text-primary"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">SEO评分</h6>
+                <h3 class="card-title {if condition="$report.seo_score >= 80"}text-success{elseif condition="$report.seo_score >= 60"/}text-warning{else /}text-danger{/if}">{$report.seo_score}</h3>
+                <small class="text-muted">满分100</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-eye fs-2 text-info"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">可读性</h6>
+                <h3 class="card-title {if condition="$report.readability_score >= 80"}text-success{elseif condition="$report.readability_score >= 60"/}text-warning{else /}text-danger{/if}">{$report.readability_score}</h3>
+                <small class="text-muted">{$report.readability_level}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-shield-check fs-2 text-success"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">原创度</h6>
+                <h3 class="card-title {if condition="$report.originality_score >= 80"}text-success{elseif condition="$report.originality_score >= 60"/}text-warning{else /}text-danger{/if}">{$report.originality_score}%</h3>
+                <small class="text-muted">查重率 {$report.plagiarism_rate}%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-tag fs-2 text-warning"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">关键词密度</h6>
+                <h3 class="card-title {if condition="$report.keyword_density >= 2 && $report.keyword_density <= 5"}text-success{elseif condition="$report.keyword_density < 2"/}text-info{else /}text-danger{/if}">{$report.keyword_density}%</h3>
+                <small class="text-muted">建议2%-5%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><i class="bi bi-list-ul me-1"></i>诊断详情</div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>检查项</th>
+                    <th>结果</th>
+                    <th>评分</th>
+                    <th>建议</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="report.items" id="item"}
+                <tr>
+                    <td>{$item.name}</td>
+                    <td>
+                        {if condition="$item.status == 'pass'"}<span class="badge bg-success">通过</span>
+                        {elseif condition="$item.status == 'warn'"/}<span class="badge bg-warning">警告</span>
+                        {else /}<span class="badge bg-danger">不通过</span>
+                        {/if}
+                    </td>
+                    <td>{$item.score}</td>
+                    <td class="small text-muted">{$item.suggestion}</td>
+                </tr>
+                {/volist}
+                {empty name="report.items"}
+                <tr><td colspan="4" class="text-center text-muted py-3">暂无详细诊断数据</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+{else /}
+<div class="card">
+    <div class="card-body">
+        <div class="ui-empty-state">
+            <div class="ui-empty-icon"><i class="bi bi-clipboard2-pulse"></i></div>
+            <div class="ui-empty-title">请选择内容进行诊断</div>
+            <div class="ui-empty-desc">选择一篇内容后点击"诊断"按钮生成质量报告</div>
+        </div>
+    </div>
+</div>
+{/if}
+{/block}

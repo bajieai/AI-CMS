@@ -1,0 +1,18 @@
+{extend name="layout" /}
+{block name="title"}多语言SEO{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">多语言SEO</li>{/block}
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-search me-1"></i>多语言SEO配置</div>
+    <div class="card-body">
+        <div class="mb-3"><label class="form-label">选择语言站点</label><select class="form-select" id="lang_site_id"><option value="0">默认站点</option></select></div>
+        <button class="btn btn-primary" id="genSitemap"><i class="bi bi-file-earmark-code"></i> 生成Sitemap</button>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-tag me-1"></i>hreflang标签</div>
+    <div class="card-body">
+        <pre class="bg-light p-3 rounded"><code>{$hreflang|json_encode}</code></pre>
+    </div>
+</div>
+{/block}

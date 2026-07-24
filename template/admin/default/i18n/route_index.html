@@ -1,0 +1,11 @@
+{extend name="layout" /}
+{block name="title"}多语言路由{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/i18n">国际化</a></li><li class="breadcrumb-item active">路由策略</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5>URL策略配置</h5></div><div class="card-body">
+  <form action="/admin/i18n_content/updateRouteStrategy" method="post">
+    <div class="mb-3"><label>当前策略</label><select name="strategy" class="form-select"><option value="subdirectory" {$strategy=='subdirectory'?'selected':''}>子目录 /{lang}/path</option><option value="subdomain" {$strategy=='subdomain'?'selected':''}>子域名 {lang}.domain</option><option value="parameter" {$strategy=='parameter'?'selected':''}>参数 ?lang={lang}</option></select></div>
+    <button type="submit" class="btn btn-primary">保存策略</button>
+  </form>
+</div></div>
+{/block}

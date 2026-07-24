@@ -1,0 +1,6 @@
+<div class="i8j-loading-spinner text-center py-4">
+    <div class="spinner-border {if condition="isset($size) && $size == 'sm'"}spinner-border-sm{else /}{/if}" style="width:{if condition="isset($size) && $size == 'sm'"}1.25rem{else /}2rem{/if};height:{if condition="isset($size) && $size == 'sm'"}1.25rem{else /}2rem{/if};border-width:.2em;color:#6366f1;" role="status">
+        <span class="visually-hidden">加载中...</span>
+    </div>
+    {if condition="isset($text)"}<p class="text-secondary small mt-2 mb-0">{$text}</p>{/if}
+</div>

@@ -1,0 +1,26 @@
+{extend name="layout" /}
+{block name="title"}订阅管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">订阅管理</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>VIP用户数</h6><h4 class="text-primary">{$stats.vip_count|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>本月新增</h6><h4 class="text-success">{$stats.new_this_month|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>月收入</h6><h4 class="text-info">{$stats.monthly_revenue|default='0.00'}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>续费率</h6><h4 class="text-warning">{$stats.renewal_rate|default='0'}%</h4></div></div></div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-clock-history me-1"></i>即将到期 (7天内)</div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead><tr><th>会员ID</th><th>套餐</th><th>到期时间</th><th>自动续费</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="expiringSoon" id="sub"}
+            <tr><td>{$sub.member_id}</td><td>{$sub.vip_plan}</td><td>{$sub.vip_expire_time|date='Y-m-d'}</td>
+                <td>{if $sub.auto_renew==1}<span class="badge bg-success">是</span>{else}<span class="badge bg-secondary">否</span>{/if}</td>
+                <td><button class="btn btn-sm btn-outline-danger cancel-sub" data-id="{$sub.id}">取消</button></td></tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

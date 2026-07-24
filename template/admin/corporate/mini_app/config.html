@@ -1,0 +1,71 @@
+{extend name="/layout" /}
+{block name="title"}小程序配置 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4"><i class="bi bi-phone"></i> 小程序配置</h4>
+    <form id="configForm">
+        {volist name="configGroups" id="group" key="groupName"}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    {if $groupName == 'basic'}基础配置
+                    {elseif $groupName == 'theme'}主题配置
+                    {elseif $groupName == 'function'}功能开关
+                    {elseif $groupName == 'page'}页面配置
+                    {else /}{$groupName}
+                    {/if}
+                </h6>
+            </div>
+            <div class="card-body">
+                {volist name="group" id="item"}
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">{$item.config_description ?: $item.config_key}</label>
+                    <div class="col-sm-9">
+                        {if $item.config_key == 'secret' || $item.config_key == 'appid'}
+                        <input type="password" class="form-control" name="{$item.config_key}" value="{$item.config_value}" placeholder="{$item.config_description}">
+                        {elseif $item.config_key == 'enable_comment' || $item.config_key == 'enable_favorite' || $item.config_key == 'enable_like'}
+                        <select class="form-select" name="{$item.config_key}">
+                            <option value="1" {if $item.config_value == '1'}selected{/if}>启用</option>
+                            <option value="0" {if $item.config_value == '0'}selected{/if}>禁用</option>
+                        </select>
+                        {elseif $item.config_key == 'theme_color'}
+                        <div class="input-group">
+                            <input type="color" class="form-control form-control-color" name="{$item.config_key}" value="{$item.config_value}" style="max-width:60px;">
+                            <input type="text" class="form-control" id="color_text" value="{$item.config_value}" readonly>
+                        </div>
+                        {elseif $item.config_key == 'api_rate_limit'}
+                        <input type="number" class="form-control" name="{$item.config_key}" value="{$item.config_value}" placeholder="{$item.config_description}">
+                        {else /}
+                        <input type="text" class="form-control" name="{$item.config_key}" value="{$item.config_value}" placeholder="{$item.config_description}">
+                        {/if}
+                    </div>
+                </div>
+                {/volist}
+            </div>
+        </div>
+        {/volist}
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存配置</button>
+        </div>
+    </form>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/mini_app/save_config', data, function(res) {
+        if (res.code === 0) {
+            alert('保存成功');
+        } else {
+            alert(res.msg || '保存失败');
+        }
+    });
+});
+$('input[type="color"]').on('input', function() {
+    $('#color_text').val($(this).val());
+});
+</script>
+{/block}

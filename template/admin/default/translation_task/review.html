@@ -1,0 +1,182 @@
+{extend name="layout" /}
+{block name="title"}翻译审核{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/translation_task/index">翻译任务</a></li>
+<li class="breadcrumb-item active">翻译审核</li>
+{/block}
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5><i class="bi bi-clipboard-check me-2"></i>翻译审核</h5>
+        <a href="/admin/translation_task/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <span class="me-3">任务 #<strong id="taskId">{$task.id ?? ''}</strong></span>
+                <span class="badge bg-success me-1">{$task.target_lang|strtoupper ?? ''}</span>
+                <span class="badge bg-{if condition='($task.priority ?? \'\') == \'urgent\''}danger{elseif condition='($task.priority ?? \'\') == \'high\''}warning text-dark{else/}secondary{/if}">
+                    {if condition="($task.priority ?? '') == 'urgent'"}紧急{elseif condition="($task.priority ?? '') == 'high'"}高{else/}普通{/if}
+                </span>
+            </div>
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-info" title="AI辅助" onclick="aiAssist()"><i class="bi bi-robot me-1"></i>AI辅助</button>
+                <button type="button" class="btn btn-outline-primary" title="翻译记忆" onclick="showMemory()"><i class="bi bi-bookmarks me-1"></i>翻译记忆</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <i class="bi bi-file-text me-1"></i>原文
+                    <span class="badge bg-secondary ms-2">{$task.source_lang|strtoupper ?? 'ZH-CN'}</span>
+                </div>
+                <div class="card-body" style="min-height:400px;">
+                    <div id="sourceText" class="lh-lg" style="white-space:pre-wrap;word-break:break-word;">
+{$task.source_text ?? $task.source_content ?? '暂无原文内容'}
+                    </div>
+                </div>
+                <div class="card-footer bg-light small text-muted">
+                    <span><i class="bi bi-textarea-t me-1"></i>字符数：{$task.source_text|strlen ?? 0}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <i class="bi bi-translate me-1"></i>译文
+                    <span class="badge bg-success ms-2">{$task.target_lang|strtoupper ?? 'EN'}</span>
+                </div>
+                <div class="card-body" style="min-height:400px;">
+                    <div id="translatedText" class="lh-lg" style="white-space:pre-wrap;word-break:break-word;">
+{$task.translated_text ?? $task.translation ?? '暂无译文内容'}
+                    </div>
+                </div>
+                <div class="card-footer bg-light small text-muted">
+                    <span><i class="bi bi-textarea-t me-1"></i>字符数：{$task.translated_text|strlen ?? 0}</span>
+                    {if condition="isset($task.translation_method)"}
+                    <span class="ms-2"><i class="bi bi-{if condition='$task.translation_method==\'ai\''}robot{else/}person{/if} me-1"></i>
+                    {if condition="$task.translation_method == 'ai'"}AI翻译{else/}人工翻译{/if}</span>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <i class="bi bi-chat-dots me-1"></i>审核意见
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">审核备注</label>
+                <textarea class="form-control" id="reviewComment" rows="3" placeholder="输入审核意见或修改建议..."></textarea>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-danger" onclick="rejectTask({$task.id ?? 0})">
+                    <i class="bi bi-x-circle me-1"></i>驳回（需填写原因）
+                </button>
+                <button type="button" class="btn btn-success" onclick="approveTask({$task.id ?? 0})">
+                    <i class="bi bi-check-circle me-1"></i>审核通过
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {if condition="isset($task.review_history) && $task.review_history"}
+    <div class="card mt-3">
+        <div class="card-header">
+            <i class="bi bi-clock-history me-1"></i>审核历史
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr><th width="60">序号</th><th>操作</th><th>审核人</th><th>意见</th><th width="150">时间</th></tr>
+                </thead>
+                <tbody>
+                    {volist name="task.review_history" id="h" key="i"}
+                    <tr>
+                        <td>{$i}</td>
+                        <td>
+                            {if condition="$h.action == 'approve'"}<span class="badge bg-success">通过</span>{else/}<span class="badge bg-danger">驳回</span>{/if}
+                        </td>
+                        <td>{$h.reviewer_name ?? 'admin'}</td>
+                        <td class="small">{$h.comment}</td>
+                        <td class="small text-muted">{$h.created_at|date='Y-m-d H:i'}</td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {/if}
+</div>
+
+<div class="modal fade" id="memoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-bookmarks me-1"></i>翻译记忆库</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-bookmarks" style="font-size:2.5rem;"></i>
+                    <p class="mt-2">翻译记忆库功能加载中...</p>
+                    <p class="small">系统将根据原文自动匹配历史翻译记录</p>
+                </div>
+                <div id="memoryList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function approveTask(id) {
+    if(!confirm('确定审核通过此翻译？')) return;
+    var comment = $('#reviewComment').val();
+    $.post('/admin/translation_task/approve', {id: id, comment: comment}, function(res){
+        if(res.code === 0){
+            showToast(res.msg || '审核通过', 'success');
+            setTimeout(function(){ location.href = '/admin/translation_task/index'; }, 1000);
+        } else {
+            showToast(res.msg || '操作失败', 'danger');
+        }
+    });
+}
+
+function rejectTask(id) {
+    var comment = $('#reviewComment').val();
+    if(!comment.trim()){
+        showToast('请填写驳回原因', 'warning');
+        $('#reviewComment').focus();
+        return;
+    }
+    if(!confirm('确定驳回此翻译？')) return;
+    $.post('/admin/translation_task/reject', {id: id, comment: comment}, function(res){
+        if(res.code === 0){
+            showToast(res.msg || '已驳回', 'success');
+            setTimeout(function(){ location.href = '/admin/translation_task/index'; }, 1000);
+        } else {
+            showToast(res.msg || '操作失败', 'danger');
+        }
+    });
+}
+
+function aiAssist() {
+    showToast('AI辅助分析中...', 'info');
+    // 可扩展：调用AI分析翻译质量
+}
+
+var memoryModal;
+function showMemory() {
+    memoryModal = new bootstrap.Modal(document.getElementById('memoryModal'));
+    memoryModal.show();
+}
+</script>
+{/block}

@@ -1,0 +1,131 @@
+{extend name="layout" /}
+
+{block name="title"}模板审核报告{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">模板管理</li>
+<li class="breadcrumb-item active">审核报告</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-hourglass-split fs-2 text-warning"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">待审核</h6>
+                <h3 class="card-title text-warning">{$stats.pending ?? 0}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-check-circle fs-2 text-success"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">已通过</h6>
+                <h3 class="card-title text-success">{$stats.approved ?? 0}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-x-circle fs-2 text-danger"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">已驳回</h6>
+                <h3 class="card-title text-danger">{$stats.rejected ?? 0}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-check me-1"></i>审核记录</span>
+        <form method="get" action="/admin/template_audit/report" class="d-flex gap-2">
+            <select name="status" class="form-select form-select-sm">
+                <option value="">全部状态</option>
+                <option value="pending" {if condition="$Request.get.status == 'pending'"}selected{/if}>待审核</option>
+                <option value="approved" {if condition="$Request.get.status == 'approved'"}selected{/if}>已通过</option>
+                <option value="rejected" {if condition="$Request.get.status == 'rejected'"}selected{/if}>已驳回</option>
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>模板名</th>
+                    <th>作者</th>
+                    <th>评分</th>
+                    <th>审核状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name}</td>
+                    <td>{$vo.author}</td>
+                    <td>
+                        {if condition="$vo.rating !== null"}
+                        <span class="text-warning"><i class="bi bi-star-fill"></i> {$vo.rating}</span>
+                        {else /}
+                        <span class="text-muted">—</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.status == 'pending'"}<span class="badge bg-warning">待审核</span>
+                        {elseif condition="$vo.status == 'approved'"/}<span class="badge bg-success">已通过</span>
+                        {elseif condition="$vo.status == 'rejected'"/}<span class="badge bg-danger">已驳回</span>
+                        {else /}<span class="badge bg-secondary">{$vo.status}</span>
+                        {/if}
+                    </td>
+                    <td>
+                        <a href="/admin/template_audit/detail?id={$vo.id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="查看详情"><i class="bi bi-eye"></i></a>
+                        {if condition="$vo.status == 'pending'"}
+                        <button type="button" class="btn btn-sm btn-outline-success py-0 px-1" onclick="auditTemplate({$vo.id}, 'approve')" title="通过"><i class="bi bi-check-lg"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="auditTemplate({$vo.id}, 'reject')" title="驳回"><i class="bi bi-x-lg"></i></button>
+                        {/if}
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="6">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-list-check"></i></div>
+                        <div class="ui-empty-title">暂无审核记录</div>
+                        <div class="ui-empty-desc">当前没有模板审核记录</div>
+                    </div>
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function auditTemplate(id, action) {
+    var title = action === 'approve' ? '审核通过' : '审核驳回';
+    var msg = action === 'approve' ? '确定审核通过该模板？' : '确定驳回该模板？';
+    showConfirm(title, msg, function() {
+        $.post('/admin/template_audit/doAudit', {id: id, action: action}, function(res) {
+            if (res.code === 0) { showToast('操作成功', 'success'); setTimeout(function(){location.reload();}, 1500); }
+            else { showToast(res.msg || '操作失败', 'danger'); }
+        }, 'json');
+    });
+}
+</script>
+{/block}

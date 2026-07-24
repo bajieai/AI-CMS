@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site.title|default='企业官网'}</title>
+    <meta name="keywords" content="{$site.keywords|default=''}">
+    <meta name="description" content="{$site.description|default=''}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="icon" href="/assets/placeholder/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-inner">
+                <a href="/" class="logo">
+                    <img src="/assets/placeholder/logo.png" alt="{$site.title|default='企业官网'}">
+                </a>
+                <nav class="nav" id="nav">
+                    <ul class="nav-list">
+                        <li class="nav-item {if condition="$current == 'index'"}active{/if}">
+                            <a href="/">首页</a>
+                        </li>
+                        <li class="nav-item {if condition="$current == 'about'"}active{/if}">
+                            <a href="/about.html">关于我们</a>
+                        </li>
+                        <li class="nav-item {if condition="$current == 'product'"}active{/if}">
+                            <a href="/product.html">产品中心</a>
+                        </li>
+                        <li class="nav-item {if condition="$current == 'news'"}active{/if}">
+                            <a href="/news.html">新闻动态</a>
+                        </li>
+                        <li class="nav-item {if condition="$current == 'contact'"}active{/if}">
+                            <a href="/contact.html">联系我们</a>
+                        </li>
+                    </ul>
+                </nav>
+                <button class="menu-toggle" id="menuToggle" aria-label="切换导航菜单">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        {__CONTENT__}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3 class="footer-title">关于我们</h3>
+                    <p class="footer-text">专注于为企业提供数字化转型解决方案，助力企业实现智能化升级。</p>
+                </div>
+                <div class="footer-col">
+                    <h3 class="footer-title">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="/product.html">产品中心</a></li>
+                        <li><a href="/news.html">新闻动态</a></li>
+                        <li><a href="/contact.html">联系我们</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3 class="footer-title">联系我们</h3>
+                    <ul class="footer-contact">
+                        <li>电话：400-888-8888</li>
+                        <li>邮箱：info@example.com</li>
+                        <li>地址：北京市朝阳区科技园区</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 {$site.title|default='企业官网'} All Rights Reserved. <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">京ICP备XXXXXXXX号</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

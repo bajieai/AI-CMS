@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>下载详情 - 八界AI-CMS</title>
+</head>
+<body>
+    <h1>{{ content.title }}</h1>
+    <p>文件大小：{{ content.file_size }}</p>
+    <p>下载次数：{{ content.download_count }}</p>
+    <div>{{ content.content|raw }}</div>
+    <a href="{{ content.file_url }}" class="btn btn-primary">立即下载</a>
+    {% if relations %}
+    <h3>相关下载</h3>
+    <ul>{% for r in relations %}<li><a href="{{ r.url }}">{{ r.title }}</a></li>{% endfor %}</ul>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,113 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑分类{else/}添加分类{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/cate/index">分类管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑分类{else/}添加分类{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑分类{else/}添加分类{/if}
+    </div>
+    <div class="card-body">
+        <form id="cateForm" method="post" action="{if condition="$info"}/admin/cate/edit/{$info.id}{else/}/admin/cate/add{/if}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">分类名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="请输入分类名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">分类类型</label>
+                        <select name="type" class="form-select">
+                            <option value="1" {if condition="($info.type ?? 1) == 1"}selected{/if}>产品</option>
+                            <option value="2" {if condition="($info.type ?? 1) == 2"}selected{/if}>案例</option>
+                            <option value="3" {if condition="($info.type ?? 1) == 3"}selected{/if}>新闻</option>
+                            <option value="4" {if condition="($info.type ?? 1) == 4"}selected{/if}>下载</option>
+                            <option value="5" {if condition="($info.type ?? 1) == 5"}selected{/if}>招聘</option>
+                            <option value="6" {if condition="($info.type ?? 1) == 6"}selected{/if}>单页</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">上级分类</label>
+                        <select name="parent_id" class="form-select">
+                            <option value="0">顶级分类</option>
+                            {volist name="cates" id="cate"}
+                            <option value="{$cate.id}" {if condition="($info.parent_id ?? 0) == $cate.id"}selected{/if}>
+                                {if condition="$cate.level > 0"}{:str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $cate['level'])}└ {/if}{$cate.name}
+                            </option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}" placeholder="数字越小越靠前">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                            <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-header py-2"><i class="bi bi-globe me-1"></i>SEO 设置</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">SEO标题</label>
+                                <input type="text" name="seo_title" class="form-control" value="{$info.seo_title ?? ''}" placeholder="留空则使用分类名称">
+                                <small class="text-muted">用于&lt;title&gt;标签，建议不超过60字符</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SEO关键词</label>
+                                <input type="text" name="seo_keywords" class="form-control" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用逗号分隔">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SEO描述</label>
+                                <textarea name="seo_description" class="form-control" rows="3" placeholder="建议100-200字">{$info.seo_description ?? ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- V2.9.4: 默认写作风格 -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-transparent border-0 py-2"><i class="bi bi-pen me-1"></i>AI写作设置</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">默认写作风格</label>
+                                <select name="default_style" class="form-select">
+                                    <option value="default" {if ($info.default_style ?? 'default') == 'default'}selected{/if}>默认（专业内容创作）</option>
+                                    <option value="formal" {if ($info.default_style ?? '') == 'formal'}selected{/if}>正式（新闻/公告）</option>
+                                    <option value="relaxed" {if ($info.default_style ?? '') == 'relaxed'}selected{/if}>轻松（博客风格）</option>
+                                    <option value="professional" {if ($info.default_style ?? '') == 'professional'}selected{/if}>专业（技术/产品）</option>
+                                    <option value="warm" {if ($info.default_style ?? '') == 'warm'}selected{/if}>亲切（指导/客服）</option>
+                                </select>
+                                <small class="text-muted">AI写作时自动应用此栏目的默认风格，用户可手动覆盖</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/cate/index" class="btn btn-outline-secondary">取消返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#cateForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+</script>
+{/block}

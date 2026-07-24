@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}数据库优化{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">性能优化</li>
+<li class="breadcrumb-item active">数据库优化</li>
+{/block}
+{block name="content"}
+<div class="row">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-info">{$today_avg_query_count}</h4><small>平均查询次数</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-warning">{$today_avg_query_time}ms</h4><small>平均查询耗时</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-danger">{$today_max_query_count}</h4><small>最大查询次数</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-secondary">{$today_slow_count}</h4><small>慢请求数</small></div></div></div>
+</div>
+<div class="card mt-3">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>慢查询TOP10</h5></div>
+    <div class="card-body">
+        <button class="btn btn-primary btn-sm mb-2" onclick="loadSlow()"><i class="bi bi-search me-1"></i>加载慢查询</button>
+        <div id="slowList"></div>
+    </div>
+</div>
+<script>
+function loadSlow(){fetch('/admin/db_optimize/slow_queries').then(r=>r.json()).then(res=>{if(res.code===0){let h='<table class=\"table table-sm\"><thead><tr><th>URL</th><th>响应时间</th><th>查询次数</th><th>查询耗时</th><th>时间</th></tr></thead><tbody>';res.data.forEach(function(r){h+='<tr><td>'+r.url+'</td><td>'+r.response_time+'ms</td><td>'+r.db_query_count+'</td><td>'+r.db_query_time+'ms</td><td>'+r.created_at+'</td></tr>'});h+='</tbody></table>';document.getElementById('slowList').innerHTML=h;}})}
+</script>
+{/block}

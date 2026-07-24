@@ -1,0 +1,29 @@
+{extend name="layout" /}
+{block name="title"}积分管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">积分管理</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>积分发行量</h6><h4 class="text-primary">{$stats.total_issued|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>积分流通量</h6><h4 class="text-success">{$stats.in_circulation|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>积分消耗量</h6><h4 class="text-warning">{$stats.total_consumed|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>今日新增</h6><h4 class="text-info">{$stats.today_added|default=0}</h4></div></div></div>
+</div>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list me-1"></i>积分流水</span>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#adjustModal">手动调整</button>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead><tr><th>ID</th><th>会员ID</th><th>类型</th><th>积分</th><th>来源</th><th>时间</th></tr></thead>
+            <tbody>
+            {volist name="logs" id="log"}
+            <tr><td>{$log.id}</td><td>{$log.member_id}</td><td>{$log.type}</td>
+                <td>{if $log.points>0}<span class="text-success">+{$log.points}</span>{else}<span class="text-danger">{$log.points}</span>{/if}</td>
+                <td>{$log.source|default='-'}</td><td>{$log.create_time|date='Y-m-d H:i'}</td></tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,190 @@
+{extend name="layout" /}
+
+{block name="title"}{if $action=='add'}新增优惠券{else}编辑优惠券{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/dashboard/index">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/coupon/index">优惠券管理</a></li>
+<li class="breadcrumb-item active">{if $action=='add'}新增优惠券{else}编辑优惠券{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-{if $action=='add'}plus-circle{else}pencil{/if} me-2"></i>
+                    {if $action=='add'}新增优惠券{else}编辑优惠券{/if}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="couponForm">
+                    <input type="hidden" name="id" value="{$template.id??0}">
+
+                    <!-- 优惠券名称 -->
+                    <div class="mb-3">
+                        <label class="form-label">优惠券名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="coupon_name" value="{$template.coupon_name??''}" required
+                               placeholder="如：满100减20">
+                    </div>
+
+                    <!-- 优惠券类型 -->
+                    <div class="mb-3">
+                        <label class="form-label">优惠券类型 <span class="text-danger">*</span></label>
+                        <select class="form-select" name="coupon_type" id="couponType" onchange="toggleCouponFields()">
+                            <option value="reduce" {if $template.coupon_type=='reduce'}selected{/if}>满减券</option>
+                            <option value="discount" {if $template.coupon_type=='discount'}selected{/if}>折扣券</option>
+                            <option value="free_shipping" {if $template.coupon_type=='free_shipping'}selected{/if}>免邮券</option>
+                        </select>
+                    </div>
+
+                    <!-- 门槛金额 -->
+                    <div class="mb-3" id="conditionAmountDiv">
+                        <label class="form-label">门槛金额（元）</label>
+                        <input type="number" class="form-control" name="condition_amount" 
+                               value="{$template.condition_amount??0}" min="0" step="0.01"
+                               placeholder="0表示无门槛">
+                        <div class="form-text">订单满此金额才可使用，0表示无门槛</div>
+                    </div>
+
+                    <!-- 减免金额/折扣率 -->
+                    <div class="mb-3" id="reduceAmountDiv">
+                        <label class="form-label" id="reduceAmountLabel">减免金额（元）</label>
+                        <input type="number" class="form-control" name="reduce_amount" 
+                               value="{$template.reduce_amount??0}" min="0" step="0.01">
+                    </div>
+
+                    <!-- 库存 -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">发行总量</label>
+                            <input type="number" class="form-control" name="total_stock" 
+                                   value="{$template.total_stock??0}" min="0"
+                                   placeholder="0表示不限量">
+                            <div class="form-text">0 = 不限量</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">每人限领</label>
+                            <input type="number" class="form-control" name="per_user_limit" 
+                                   value="{$template.per_user_limit??1}" min="1">
+                        </div>
+                    </div>
+
+                    <!-- 有效期 -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">有效期开始</label>
+                            <input type="datetime-local" class="form-control" name="start_time" 
+                                   value="{if $template.start_time>0}{php}echo date('Y-m-d\TH:i', $template['start_time']);{/php}{/if}">
+                            <div class="form-text">留空表示立即生效</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">有效期结束</label>
+                            <input type="datetime-local" class="form-control" name="end_time" 
+                                   value="{if $template.end_time>0}{php}echo date('Y-m-d\TH:i', $template['end_time']);{/php}{/if}">
+                            <div class="form-text">留空表示长期有效</div>
+                        </div>
+                    </div>
+
+                    <!-- 适用范围 -->
+                    <div class="mb-3">
+                        <label class="form-label">适用范围</label>
+                        <select class="form-select" name="scope_type">
+                            <option value="all" {if $template.scope_type=='all'}selected{/if}>全部商品</option>
+                            <option value="category" {if $template.scope_type=='category'}selected{/if}>指定分类</option>
+                            <option value="content" {if $template.scope_type=='content'}selected{/if}>指定商品</option>
+                        </select>
+                    </div>
+
+                    <!-- 状态 -->
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select class="form-select" name="status">
+                            <option value="0" {if $template.status==0}selected{/if}>草稿</option>
+                            <option value="1" {if $template.status==1}selected{/if}>启用</option>
+                            <option value="2" {if $template.status==2}selected{/if}>停用</option>
+                        </select>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="text-center pt-3">
+                        <button type="button" class="btn btn-primary px-5" onclick="saveCoupon()">
+                            <i class="bi bi-check-lg me-1"></i>保存
+                        </button>
+                        <a href="/admin/coupon/index" class="btn btn-outline-secondary px-5 ms-2">返回</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+function toggleCouponFields() {
+    var type = document.getElementById('couponType').value;
+    var conditionDiv = document.getElementById('conditionAmountDiv');
+    var reduceDiv = document.getElementById('reduceAmountDiv');
+    var reduceLabel = document.getElementById('reduceAmountLabel');
+    
+    if (type === 'free_shipping') {
+        conditionDiv.style.display = 'none';
+        reduceDiv.style.display = 'none';
+    } else if (type === 'discount') {
+        conditionDiv.style.display = 'block';
+        reduceDiv.style.display = 'block';
+        reduceLabel.textContent = '折扣率（0.1-1.0，0.9=9折）';
+        document.querySelector('input[name="reduce_amount"]').step = '0.01';
+    } else {
+        conditionDiv.style.display = 'block';
+        reduceDiv.style.display = 'block';
+        reduceLabel.textContent = '减免金额（元）';
+        document.querySelector('input[name="reduce_amount"]').step = '0.01';
+    }
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    toggleCouponFields();
+});
+
+function saveCoupon() {
+    var form = document.getElementById('couponForm');
+    var formData = new FormData(form);
+    var data = {};
+    formData.forEach(function(value, key) {
+        data[key] = value;
+    });
+    
+    var url = data.id > 0 ? '/admin/coupon/edit/' + data.id : '/admin/coupon/add';
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            if (typeof showToast === 'function') {
+                showToast(res.msg, 'success');
+            } else {
+                alert(res.msg);
+            }
+            setTimeout(function() { window.location.href = '/admin/coupon/index'; }, 1000);
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(res.msg, 'error');
+            } else {
+                alert(res.msg);
+            }
+        }
+    })
+    .catch(err => {
+        alert('保存失败：' + err);
+    });
+}
+</script>
+{/block}

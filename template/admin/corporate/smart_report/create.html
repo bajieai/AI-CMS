@@ -1,0 +1,208 @@
+{extend name="layout" /}
+{block name="title"}创建报表{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/smart_report/index">智能报表</a></li>
+<li class="breadcrumb-item active">创建报表</li>
+{/block}
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5><i class="bi bi-plus-square me-2"></i>创建智能报表</h5>
+        <a href="/admin/smart_report/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="reportForm" onsubmit="return false;">
+                <input type="hidden" name="ai_analysis" value="1">
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-1"></i>基本信息</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">报表名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" placeholder="如：每日内容统计日报" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">报表类型 <span class="text-danger">*</span></label>
+                        <select class="form-select" name="report_type" required>
+                            {volist name="typeMap" id="label" key="key"}
+                            <option value="{$key}">{$label}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">状态</label>
+                        <select class="form-select" name="status">
+                            <option value="active">启用</option>
+                            <option value="paused">暂停</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-database me-1"></i>数据源配置</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">数据源 <span class="text-danger">*</span></label>
+                        <select class="form-select" name="data_source" required>
+                            <option value="content">内容数据</option>
+                            <option value="member">会员数据</option>
+                            <option value="order">订单数据</option>
+                            <option value="traffic">流量数据</option>
+                            <option value="ai">AI使用数据</option>
+                            <option value="seo">SEO数据</option>
+                            <option value="payment">支付数据</option>
+                            <option value="plugin">插件数据</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">维度</label>
+                        <input type="text" class="form-control" name="dimensions" placeholder="如：date,category,author">
+                        <div class="form-text">多个维度用逗号分隔</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">指标</label>
+                        <input type="text" class="form-control" name="metrics" placeholder="如：views,clicks,orders">
+                        <div class="form-text">多个指标用逗号分隔</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">时间范围</label>
+                        <select class="form-select" name="time_range">
+                            <option value="today">今天</option>
+                            <option value="yesterday">昨天</option>
+                            <option value="week">本周</option>
+                            <option value="last_week">上周</option>
+                            <option value="month">本月</option>
+                            <option value="last_month">上月</option>
+                            <option value="quarter">本季度</option>
+                            <option value="year">本年</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">开始日期</label>
+                        <input type="date" class="form-control" name="start_date">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">结束日期</label>
+                        <input type="date" class="form-control" name="end_date">
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-bar-chart me-1"></i>图表配置</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">图表类型</label>
+                        <select class="form-select" name="chart_type">
+                            <option value="line">折线图</option>
+                            <option value="bar">柱状图</option>
+                            <option value="pie">饼图</option>
+                            <option value="area">面积图</option>
+                            <option value="scatter">散点图</option>
+                            <option value="table">数据表格</option>
+                            <option value="mixed">混合图表</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">图表主题</label>
+                        <select class="form-select" name="chart_theme">
+                            <option value="default">默认</option>
+                            <option value="dark">深色</option>
+                            <option value="light">浅色</option>
+                            <option value="macarons">马卡龙</option>
+                            <option value="vintage">复古</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">排序方式</label>
+                        <select class="form-select" name="sort_order">
+                            <option value="desc">降序</option>
+                            <option value="asc">升序</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-clock-history me-1"></i>定时配置</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Cron 表达式</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="schedule_cron" id="cronInput" placeholder="如：0 8 * * *">
+                            <button class="btn btn-outline-secondary" type="button" onclick="fillCronPreset()">快速设置</button>
+                        </div>
+                        <div class="form-text">格式：分 时 日 月 周（如 0 8 * * * 每天8点执行）</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">收件人（逗号分隔邮箱）</label>
+                        <input type="text" class="form-control" name="recipients" placeholder="如：admin@i8j.cn,manager@i8j.cn">
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-robot me-1"></i>AI分析配置</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="ai_analysis_enabled" value="1" id="swAiAnalysis" checked onchange="$('#aiConfig').toggle(this.checked)">
+                            <label class="form-check-label" for="swAiAnalysis">启用AI分析</label>
+                        </div>
+                    </div>
+                    <div id="aiConfig">
+                        <div class="col-md-12">
+                            <label class="form-label">分析维度（多选）</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ai_dimensions[]" value="summary" checked><label class="form-check-label">数据摘要</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ai_dimensions[]" value="anomaly" checked><label class="form-check-label">异常检测</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ai_dimensions[]" value="trend"><label class="form-check-label">趋势分析</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ai_dimensions[]" value="recommendation"><label class="form-check-label">优化建议</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ai_dimensions[]" value="forecast"><label class="form-check-label">预测预警</label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary" id="btnSave"><i class="bi bi-check-lg me-1"></i>创建报表</button>
+                    <a href="/admin/smart_report/index" class="btn btn-outline-secondary ms-2">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$('#reportForm').on('submit', function(){
+    var data = {};
+    $(this).serializeArray().forEach(function(item){ data[item.name] = item.value; });
+    // checkbox数组
+    data.ai_dimensions = $('input[name="ai_dimensions[]"]:checked').map(function(){return $(this).val();}).get();
+    $('#btnSave').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>提交中...');
+    $.post('/admin/smart_report/create', data, function(res){
+        if(res.code === 0){
+            showToast('创建成功', 'success');
+            setTimeout(function(){ location.href = '/admin/smart_report/index'; }, 1000);
+        } else {
+            showToast(res.msg || '创建失败', 'danger');
+            $('#btnSave').prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i>创建报表');
+        }
+    }).fail(function(){
+        showToast('请求失败', 'danger');
+        $('#btnSave').prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i>创建报表');
+    });
+});
+
+function fillCronPreset() {
+    var presets = {
+        '每天8点': '0 8 * * *',
+        '每周一8点': '0 8 * * 1',
+        '每月1号8点': '0 8 1 * *',
+        '每小时': '0 * * * *',
+        '每天0点': '0 0 * * *',
+    };
+    var html = '<div class="dropdown-menu show" style="position:absolute;z-index:9999;">';
+    for(var k in presets){
+        html += '<a class="dropdown-item" href="javascript:;" onclick="$(\'#cronInput\').val(\''+presets[k]+'\');$(this).closest(\'.dropdown-menu\').remove();">'+k+' <code>'+presets[k]+'</code></a>';
+    }
+    html += '</div>';
+    $('#cronInput').after(html);
+}
+</script>
+{/block}

@@ -1,0 +1,15 @@
+/*! AI-CMS V2.9.26 Sprint Q Mobile Optimization */
+@media(max-width:768px){.navbar-brand{font-size:1.1rem}}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+@media(max-width:576px){.card-grid{grid-template-columns:1fr}}
+.template-card{transition:transform .2s}
+@media(max-width:992px){.admin-sidebar{position:fixed;z-index:1050;transform:translateX(-100%);transition:transform .3s}.admin-sidebar.show{transform:translateX(0)}.admin-content{margin-left:0}}
+.ai-editor-toolbar{flex-wrap:wrap;gap:.25rem}
+.ai-panel{transition:all .3s}
+.share-buttons{display:flex;gap:.5rem;flex-wrap:wrap}
+.share-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;cursor:pointer;border:none}
+.share-wechat{background:#07c160}.share-weibo{background:#e6162d}.share-qq{background:#12b7f5}.share-twitter{background:#1da1f2}.share-facebook{background:#1877f2}.share-copy{background:#6c757d}
+img[data-src]{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton{background:#e9ecef;border-radius:.25rem;animation:skeleton-pulse 1.5s ease-in-out infinite}
+@keyframes skeleton-pulse{0%,100%{opacity:1}50%{opacity:.5}}

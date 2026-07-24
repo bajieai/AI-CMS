@@ -1,0 +1,32 @@
+{extend name="layout" /}
+{block name="title"}插件沙箱{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">插件市场</li><li class="breadcrumb-item active">沙箱检测</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>插件安全检测</h5></div>
+    <div class="card-body">
+        <table class="table table-sm">
+            <thead><tr><th>插件</th><th>状态</th><th>危险</th><th>警告</th><th>操作</th></tr></thead>
+            <tbody>
+                {foreach $plugins as $p}
+                <tr>
+                    <td>{$p.name} <code>({$p.identifier})</code></td>
+                    <td>
+                        {if $p.status eq 'safe'}<span class="badge bg-success">安全</span>
+                        {elseif $p.status eq 'warning'}<span class="badge bg-warning">警告</span>
+                        {else}<span class="badge bg-danger">危险</span>{/if}
+                    </td>
+                    <td>{$p.danger}</td>
+                    <td>{$p.warning}</td>
+                    <td><button class="btn btn-sm btn-outline-primary" onclick="rescan('{$p.identifier}')">重新扫描</button></td>
+                </tr>
+                {/foreach}
+                {if empty($plugins)}<tr><td colspan="5" class="text-center text-muted">暂无插件</td></tr>{/if}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+function rescan(identifier){fetch('/admin/plugin_sandbox/scan',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'identifier='+identifier}).then(r=>r.json()).then(res=>{if(res.code===0){var d=res.data;alert(d.message+' (危险:'+d.danger_count+', 警告:'+d.warning_count+')');location.reload();}});}
+</script>
+{/block}

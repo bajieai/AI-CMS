@@ -1,0 +1,1143 @@
+/**
+ * AI-CMS V2.9.10 前台用户中心通用样式
+ * 适用: default / corporate 双皮肤 × PC / Mobile 双端
+ */
+
+/* ==================== PC 端用户中心布局 ==================== */
+.ucenter-wrapper {
+    display: flex;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 16px;
+    min-height: calc(100vh - 200px);
+}
+
+.ucenter-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    padding: 20px 0;
+    align-self: flex-start;
+    position: sticky;
+    top: 24px;
+}
+
+.ucenter-user-brief {
+    text-align: center;
+    padding: 0 16px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 12px;
+}
+
+.ucenter-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    margin-bottom: 8px;
+}
+
+.ucenter-nickname {
+    font-weight: 600;
+    font-size: 15px;
+    color: #1e293b;
+    word-break: break-all;
+}
+
+.ucenter-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px;
+}
+
+.ucenter-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all .15s;
+    margin-bottom: 2px;
+}
+
+.ucenter-nav-item:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.ucenter-nav-item.active {
+    background: var(--primary, #3b82f6);
+    color: #fff;
+}
+
+.ucenter-nav-sep {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 6px 12px;
+}
+
+.ucenter-nav-item i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.ucenter-main {
+    flex: 1;
+    min-width: 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    padding: 24px;
+}
+
+.ucenter-main-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* ==================== Mobile 端用户中心 ==================== */
+@media (max-width: 767px) {
+    .ucenter-wrapper {
+        flex-direction: column;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+    }
+
+    .ucenter-sidebar {
+        width: 100%;
+        position: static;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .ucenter-user-brief {
+        display: none;
+    }
+
+    .ucenter-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 8px 12px;
+        gap: 6px;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+    }
+
+    .ucenter-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ucenter-nav-item {
+        flex-shrink: 0;
+        padding: 8px 14px;
+        white-space: nowrap;
+        margin-bottom: 0;
+        border-radius: 20px;
+        background: #f1f5f9;
+        font-size: 13px;
+    }
+
+    .ucenter-nav-item.active {
+        background: var(--primary, #3b82f6);
+    }
+
+    .ucenter-main {
+        border-radius: 0;
+        box-shadow: none;
+        padding: 16px;
+    }
+}
+
+/* ==================== 用户中心首页卡片 ==================== */
+.ucenter-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.ucenter-stat-card {
+    background: linear-gradient(135deg, #f8fafc, #eef2f7);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.ucenter-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary, #3b82f6);
+}
+
+.ucenter-stat-label {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* ==================== 通用表格/列表样式 ==================== */
+.ucenter-table thead th {
+    background: #f8fafc;
+    font-weight: 600;
+    font-size: 13px;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.ucenter-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: #94a3b8;
+}
+
+.ucenter-empty i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+/* ==================== 快捷入口网格 ==================== */
+.ucenter-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.ucenter-quick-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 8px;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #475569;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all .15s;
+}
+
+.ucenter-quick-item:hover {
+    background: #eef2f7;
+    color: #334155;
+}
+
+.ucenter-quick-item i {
+    font-size: 24px;
+    color: var(--primary, #3b82f6);
+}
+
+@media (max-width: 767px) {
+    .ucenter-quick-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .ucenter-dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ==================== 积分商城模块专用样式 ==================== */
+
+/* 积分概览卡片统一样式 */
+.uc-points-overview {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+    border-radius: 14px;
+    padding: 28px 24px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.uc-points-overview::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,.08);
+    border-radius: 50%;
+}
+
+.uc-points-overview::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,.05);
+    border-radius: 50%;
+}
+
+.uc-points-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.uc-points-stat-item {
+    padding: 0 12px;
+}
+
+.uc-points-stat-item + .uc-points-stat-item {
+    border-left: 1px solid rgba(255,255,255,.25);
+}
+
+.uc-points-value {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.uc-points-label {
+    font-size: 12.5px;
+    opacity: .8;
+    margin-top: 4px;
+}
+
+/* 积分记录列表 */
+.uc-points-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.uc-points-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px dashed #f1f5f9;
+    transition: background .15s;
+}
+
+.uc-points-item:last-child {
+    border-bottom: none;
+}
+
+.uc-points-item:hover {
+    background: #fafbfc;
+}
+
+.uc-points-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+.uc-points-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.uc-points-icon.signin { background: #dcfce7; color: #16a34a; }
+.uc-points-icon.comment { background: #dbeafe; color: #2563eb; }
+.uc-points-icon.liked { background: #fee2e2; color: #dc2626; }
+.uc-points-icon.favorited { background: #fef3c7; color: #d97706; }
+.uc-points-icon.purchase { background: #f3e8ff; color: #9333ea; }
+.uc-points-icon.register { background: #e0e7ff; color: #4f46e5; }
+.uc-points-icon.admin { background: #f1f5f9; color: #475569; }
+.uc-points-icon.default { background: #f1f5f9; color: #94a3b8; }
+
+.uc-points-info {
+    min-width: 0;
+}
+
+.uc-points-type {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.uc-points-note {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.uc-points-item-right {
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.uc-points-change {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.uc-points-change.positive { color: #10b981; }
+.uc-points-change.negative { color: #ef4444; }
+
+.uc-points-time {
+    font-size: 11.5px;
+    color: #cbd5e1;
+    margin-top: 2px;
+}
+
+/* 签到卡片 */
+.uc-signin-card {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 14px;
+    padding: 28px 24px;
+    color: #fff;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.uc-signin-card::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,.1);
+    border-radius: 50%;
+}
+
+.uc-signin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 32px;
+    background: rgba(255,255,255,.95);
+    color: #059669;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 4px 14px rgba(0,0,0,.15);
+}
+
+.uc-signin-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.2);
+}
+
+.uc-signin-btn:disabled {
+    opacity: .85;
+    cursor: not-allowed;
+}
+
+/* 签到日历 */
+.uc-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.uc-calendar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.uc-calendar-weekdays {
+    display: flex;
+    padding: 12px 16px 0;
+    gap: 0;
+}
+
+.uc-calendar-weekday {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+    padding-bottom: 8px;
+}
+
+.uc-calendar-days {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 4px 8px;
+    gap: 4px;
+}
+
+.uc-calendar-day {
+    width: calc((100% - 24px) / 7);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    transition: all .15s;
+}
+
+.uc-calendar-day.signed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-weight: 700;
+}
+
+.uc-calendar-day.today {
+    border: 2px solid #10b981;
+    font-weight: 700;
+    color: #059669;
+}
+
+.uc-calendar-day.signed.today {
+    border-color: transparent;
+}
+
+/* 奖励规则 */
+.uc-reward-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 16px 20px;
+}
+
+.uc-reward-item {
+    text-align: center;
+    padding: 16px 12px;
+    border-radius: 12px;
+    transition: transform .15s;
+}
+
+.uc-reward-item:hover {
+    transform: translateY(-2px);
+}
+
+.uc-reward-value {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.uc-reward-label {
+    font-size: 12px;
+    opacity: .75;
+}
+
+/* 兑换商品网格 */
+.uc-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.uc-product-card {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #f1f5f9;
+    transition: all .2s;
+}
+
+.uc-product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+    border-color: #e2e8f0;
+}
+
+.uc-product-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.uc-product-img i {
+    font-size: 42px;
+    color: #cbd5e1;
+}
+
+.uc-product-body {
+    padding: 14px;
+}
+
+.uc-product-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.uc-product-desc {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+    min-height: 36px;
+}
+
+.uc-product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.uc-product-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.uc-product-btn {
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+}
+
+.uc-product-btn-primary {
+    background: var(--primary, #3b82f6);
+    color: #fff;
+}
+
+.uc-product-btn-primary:hover {
+    background: #2563eb;
+    transform: scale(1.02);
+}
+
+.uc-product-btn-disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* 兑换记录列表项 */
+.uc-exchange-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f8fafc;
+    transition: background .15s;
+}
+
+.uc-exchange-item:last-child {
+    border-bottom: none;
+}
+
+.uc-exchange-item:hover {
+    background: #fafbfc;
+}
+
+.uc-exchange-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.uc-exchange-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.uc-exchange-meta {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.uc-exchange-right {
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.uc-exchange-cost {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.uc-exchange-qty {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* 状态标签 */
+.uc-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+.uc-badge-pending { background: #fef3c7; color: #92400e; }
+.uc-badge-approved { background: #dbeafe; color: #1d4ed8; }
+.uc-badge-shipped { background: #dcfce7; color: #15803d; }
+.uc-badge-cancelled { background: #f1f5f9; color: #64748b; }
+
+/* 页面标题栏 */
+.uc-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.uc-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.uc-section-title i { color: var(--primary, #3b82f6); }
+
+.uc-action-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all .15s;
+    background: var(--primary, #3b82f6);
+    color: #fff !important;
+}
+
+.uc-action-link:hover {
+    opacity: .9;
+    transform: translateY(-1px);
+}
+
+/* 空状态 */
+.uc-empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: #94a3b8;
+}
+
+.uc-empty-state i {
+    font-size: 52px;
+    display: block;
+    margin-bottom: 12px;
+    opacity: .5;
+}
+
+.uc-empty-state p {
+    font-size: 14px;
+    margin: 0 0 12px;
+}
+
+.uc-empty-state a {
+    display: inline-block;
+    padding: 8px 20px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 50px;
+    font-size: 13px;
+    color: #64748b;
+    text-decoration: none;
+    transition: all .15s;
+}
+
+.uc-empty-state a:hover {
+    border-color: var(--primary, #3b82f6);
+    color: var(--primary, #3b82f6);
+}
+
+/* Mobile 适配积分模块 */
+@media (max-width: 767px) {
+    .uc-points-overview {
+        padding: 20px 16px;
+        border-radius: 0;
+        margin: 0 -16px 16px;
+    }
+
+    .uc-points-stats {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .uc-points-stat-item {
+        flex: 1;
+        min-width: 80px;
+        padding: 8px;
+        border-left: none !important;
+        background: rgba(255,255,255,.1);
+        border-radius: 10px;
+    }
+
+    .uc-points-value {
+        font-size: 22px;
+    }
+
+    .uc-points-label {
+        font-size: 11px;
+    }
+
+    .uc-points-item {
+        padding: 12px;
+    }
+
+    .uc-points-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+
+    .uc-points-type { font-size: 13px; }
+    .uc-points-change { font-size: 14px; }
+
+    .uc-signin-card {
+        border-radius: 0;
+        margin: 0 -16px 16px;
+        padding: 24px 16px;
+    }
+
+    .uc-reward-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .uc-reward-value { font-size: 18px; }
+
+    .uc-product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .uc-product-img { height: 110px; }
+    .uc-product-img i { font-size: 32px; }
+    .uc-product-body { padding: 10px; }
+    .uc-product-title { font-size: 13px; }
+
+    .uc-exchange-item {
+        flex-direction: column;
+        padding: 14px 12px;
+        gap: 10px;
+    }
+
+    .uc-exchange-right {
+        text-align: left;
+        margin-left: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .uc-calendar-days {
+        gap: 2px;
+    }
+
+    .uc-calendar-day {
+        border-radius: 8px;
+        font-size: 12px;
+    }
+}
+
+/* ==================== 优惠券模块专用样式 ==================== */
+
+/* 优惠券统计概览 */
+.uc-coupon-overview {
+    background: linear-gradient(135deg, #f97316 0%,#ec4899 50%,#a855f7 100%);
+    border-radius: 14px;
+    padding: 24px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.uc-coupon-overview::before {
+    content: '';
+    position: absolute;
+    top: -25px; right: -25px;
+    width: 100px; height: 100px;
+    background: rgba(255,255,255,.1);
+    border-radius: 50%;
+}
+
+.uc-coupon-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.uc-coupon-stat {
+    padding: 0 12px;
+}
+
+.uc-coupon-stat + .uc-coupon-stat {
+    border-left: 1px solid rgba(255,255,255,.28);
+}
+
+.uc-coupon-stat-value {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.uc-coupon-stat-label {
+    font-size: 12.5px;
+    opacity: .8;
+    margin-top: 3px;
+}
+
+/* 筛选Tab */
+.uc-tab-bar {
+    display: flex;
+    gap: 4px;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 16px;
+}
+
+.uc-tab-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+}
+
+.uc-tab-item:hover { color: #334155; }
+.uc-tab-item.active {
+    background: #fff;
+    color: var(--primary, #3b82f6);
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    font-weight: 600;
+}
+
+/* 优惠券卡片 */
+.uc-coupon-card {
+    display: flex;
+    align-items: stretch;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    transition: all .2s;
+    border: 1px solid #f1f5f9;
+}
+
+.uc-coupon-card:hover:not(.uc-coupon-disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+
+.uc-coupon-disabled {
+    opacity: .55;
+    filter: grayscale(.15);
+}
+
+/* 左侧金额区 */
+.uc-coupon-left {
+    min-width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 14px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.uc-coupon-left.type-reduce {
+    background: linear-gradient(145deg, #3b82f6, #2563eb);
+}
+.uc-coupon-left.type-discount {
+    background: linear-gradient(145deg, #f59e0b, #d97706);
+}
+.uc-coupon-left.type-shipping {
+    background: linear-gradient(145deg, #10b981, #059669);
+}
+
+.uc-coupon-amount {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.uc-coupon-condition {
+    font-size: 11px;
+    opacity: .82;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+/* 右侧信息区 */
+.uc-coupon-right {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.uc-coupon-name {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.35;
+}
+
+.uc-coupon-validity {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.uc-coupon-status-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 11px;
+    border-radius: 50px;
+    font-size: 11.5px;
+    font-weight: 600;
+    margin-top: 8px;
+    align-self: flex-start;
+    letter-spacing: .02em;
+}
+
+.uc-coupon-status-usable { background: #dcfce7; color: #15803d; }
+.uc-coupon-status-used { background: #f1f5f9; color: #64748b; }
+.uc-coupon-status-expired { background: #fee2e2; color: #b91c1c; }
+.uc-coupon-status-voided { background: #e2e8f0; color: #475569; }
+.uc-coupon-status-refunded { background: #dbeafe; color: #1d4ed8; }
+
+/* 虚线分割（锯齿） */
+.uc-coupon-divider {
+    position: relative;
+    width: 0;
+    overflow: visible;
+}
+.uc-coupon-divider::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -7px;
+    width: 14px;
+    height: 14px;
+    background: #fafbfc;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 3px #f1f5f9;
+}
+.uc-coupon-divider::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: -7px;
+    width: 14px;
+    height: 14px;
+    background: #fafbfc;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 3px #f1f5f9;
+}
+
+/* Mobile 适配优惠券 */
+@media (max-width: 767px) {
+    .uc-coupon-overview {
+        border-radius: 0;
+        margin: 0 -16px 16px;
+        padding: 20px 16px;
+    }
+
+    .uc-coupon-stats { flex-wrap: wrap; gap: 10px; }
+    .uc-coupon-stat {
+        flex: 1; min-width: 80px; padding: 8px;
+        border-left: none !important;
+        background: rgba(255,255,255,.12);
+        border-radius: 10px;
+    }
+    .uc-coupon-stat-value { font-size: 22px; }
+    .uc-coupon-stat-label { font-size: 11px; }
+
+    .uc-coupon-left { min-width: 90px; padding: 14px 10px; }
+    .uc-coupon-amount { font-size: 20px; }
+    .uc-coupon-right { padding: 10px 12px; }
+    .uc-coupon-name { font-size: 13.5px; }
+    .uc-coupon-card { border-radius: 12px; }
+}

@@ -1,0 +1,157 @@
+{extend name="layout" /}
+{block name="title"}批量结果 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_batch/index">AI批量生产</a></li>
+<li class="breadcrumb-item active">任务结果</li>
+{/block}
+
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>批量任务结果</h4>
+        <div>
+            <button class="btn btn-outline-success btn-sm" id="btnExport"><i class="bi bi-download"></i> 导出结果</button>
+            <a href="/admin/ai_batch/index" class="btn btn-outline-secondary btn-sm ms-2"><i class="bi bi-arrow-left"></i> 返回列表</a>
+        </div>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold">任务进度</span>
+                <span class="text-muted small">{$progress.completed ?? 0} / {$progress.total ?? 0}</span>
+            </div>
+            <div class="progress" style="height:25px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="progressBar" style="width:{$progress.percent ?? 0}%;">{$progress.percent ?? 0}%</div>
+            </div>
+            <div class="row mt-3 text-center">
+                <div class="col-3">
+                    <div class="h5 text-success mb-0">{$progress.success ?? 0}</div>
+                    <small class="text-muted">成功</small>
+                </div>
+                <div class="col-3">
+                    <div class="h5 text-danger mb-0">{$progress.failed ?? 0}</div>
+                    <small class="text-muted">失败</small>
+                </div>
+                <div class="col-3">
+                    <div class="h5 text-warning mb-0">{$progress.retry ?? 0}</div>
+                    <small class="text-muted">重试</small>
+                </div>
+                <div class="col-3">
+                    <div class="h5 text-info mb-0">&yen;{:number_format($progress.ai_cost ?? 0, 4)}</div>
+                    <small class="text-muted">AI成本</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果表格 -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="bi bi-list-check me-2"></i>生成结果</h6>
+            {if condition="($progress.status ?? '') == 'running'"}
+            <span class="badge bg-primary"><i class="bi bi-arrow-clockwise"></i> 执行中... <span id="autoRefresh" class="ms-1">5</span>s</span>
+            {/if}
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>内容ID</th>
+                            <th>标题</th>
+                            <th>质量评分</th>
+                            <th>状态</th>
+                            <th>翻译数</th>
+                            <th>AI调用</th>
+                            <th>耗时</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {volist name="list" id="vo"}
+                        <tr>
+                            <td>{$i}</td>
+                            <td>{$vo.content_id ?? '-'}</td>
+                            <td class="text-truncate" style="max-width:250px;">{$vo.title ?? '(生成中...)'}</td>
+                            <td>
+                                {if $vo.quality_score !== null}
+                                    {if $vo.quality_score >= 0.8}<span class="badge bg-success">{$vo.quality_score}</span>
+                                    {elseif $vo.quality_score >= 0.6}<span class="badge bg-warning">{$vo.quality_score}</span>
+                                    {else/}<span class="badge bg-danger">{$vo.quality_score}</span>{/if}
+                                {else/}<span class="text-muted">-</span>{/if}
+                            </td>
+                            <td>
+                                {if $vo.status=='success'}<span class="badge bg-success">成功</span>
+                                {elseif $vo.status=='failed'}<span class="badge bg-danger">失败</span>
+                                {elseif $vo.status=='pending'}<span class="badge bg-secondary">等待中</span>
+                                {elseif $vo.status=='running'}<span class="badge bg-primary">生成中</span>
+                                {elseif $vo.status=='retry'}<span class="badge bg-warning">重试中</span>
+                                {else/}<span class="badge bg-light text-dark">{$vo.status}</span>{/if}
+                            </td>
+                            <td>{$vo.translate_count ?? 0}</td>
+                            <td>{$vo.ai_call_count ?? 0} 次</td>
+                            <td>{$vo.duration ?? '-'}s</td>
+                            <td>
+                                {if $vo.content_id}
+                                <a href="/admin/content/edit?id={$vo.content_id}" class="btn btn-sm btn-outline-info" target="_blank"><i class="bi bi-pencil"></i></a>
+                                {/if}
+                                {if $vo.status=='failed'}
+                                <button class="btn btn-sm btn-outline-warning" onclick="retryItem({$vo.id})"><i class="bi bi-arrow-clockwise"></i></button>
+                                {/if}
+                            </td>
+                        </tr>
+                    {/volist}
+                    </tbody>
+                </table>
+            </div>
+            {if condition="empty($list)"}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-hourglass fs-1"></i>
+                <p class="mt-2">等待生成结果...</p>
+            </div>
+            {/if}
+            {$list|raw}
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var taskId = "{$taskId ?? 0}";
+var autoRefreshTimer = null;
+var countdownTimer = null;
+
+{if condition="($progress.status ?? '') == 'running'"}
+function startAutoRefresh() {
+    var seconds = 5;
+    $('#autoRefresh').text(seconds);
+    countdownTimer = setInterval(function(){
+        seconds--;
+        $('#autoRefresh').text(seconds);
+        if(seconds <= 0){
+            clearInterval(countdownTimer);
+            location.reload();
+        }
+    }, 1000);
+}
+$(function(){ startAutoRefresh(); });
+{/if}
+
+$('#btnExport').click(function(){
+    window.location.href = '/admin/ai_batch/export?task_id=' + taskId;
+});
+
+function retryItem(id) {
+    if(!confirm('确定重新生成此条内容？')) return;
+    ajaxPost('/admin/ai_batch/retryItem', {id: id}, function(d){
+        $.toast(d.msg, d.code===0?'success':'danger');
+        if(d.code===0) setTimeout(function(){location.reload()},800);
+    });
+}
+</script>
+{/block}

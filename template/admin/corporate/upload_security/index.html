@@ -1,0 +1,53 @@
+{extend name="layout" /}
+
+{block name="title"}上传安全{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">安全中心</li>
+<li class="breadcrumb-item active">上传安全</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>文件上传安全</h5></div>
+    <div class="card-body">
+        <div class="row text-center mb-4">
+            <div class="col-md-3">
+                <div class="card border-success">
+                    <div class="card-body">
+                        <h3 class="text-success">{$stats.clean ?? 0}</h3>
+                        <small class="text-muted">安全文件</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <h3 class="text-warning">{$stats.pending ?? 0}</h3>
+                        <small class="text-muted">待扫描</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-danger">
+                    <div class="card-body">
+                        <h3 class="text-danger">{$stats.malicious ?? 0}</h3>
+                        <small class="text-muted">恶意文件</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-secondary">
+                    <div class="card-body">
+                        <h3 class="text-secondary">{$stats.quarantined ?? 0}</h3>
+                        <small class="text-muted">已隔离</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-1"></i>文件上传安全增强包括：图片二次渲染（清除EXIF）、SVG安全过滤、SHA256哈希校验、病毒扫描（可选ClamAV）、隔离机制。
+        </div>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,158 @@
+{extend name="layout" /}
+
+{block name="title"}模板统计详情{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">模板管理</li>
+<li class="breadcrumb-item active">统计详情</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-graph-up me-1"></i>模板统计详情</span>
+        <form method="get" action="/admin/template_stats/detail" class="d-flex gap-2">
+            <select name="template_id" class="form-select form-select-sm" required>
+                <option value="">选择模板</option>
+                {volist name="templates" id="tpl"}
+                <option value="{$tpl.id}" {if condition="$Request.get.template_id == $tpl.id"}selected{/if}>{$tpl.name}</option>
+                {/volist}
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+</div>
+
+{if condition="$stats"}
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-download fs-2 text-primary"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">总安装数</h6>
+                <h3 class="card-title">{$stats.install_count}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-people fs-2 text-info"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">活跃使用</h6>
+                <h3 class="card-title">{$stats.active_count}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-star fs-2 text-warning"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">平均评分</h6>
+                <h3 class="card-title">{$stats.avg_rating ?? '—'}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="mb-2"><i class="bi bi-eye fs-2 text-success"></i></div>
+                <h6 class="card-subtitle mb-1 text-muted">总浏览量</h6>
+                <h3 class="card-title">{$stats.view_count}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-graph-up me-1"></i>安装趋势（近30天）</div>
+            <div class="card-body">
+                <div id="installTrendChart" style="height:280px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-pie-chart me-1"></i>使用分布</div>
+            <div class="card-body">
+                <div id="usageDistChart" style="height:280px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-star-half me-1"></i>评分分布</div>
+            <div class="card-body">
+                <div id="ratingDistChart" style="height:280px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-layers me-1"></i>版本分布</div>
+            <div class="card-body">
+                <div id="versionDistChart" style="height:280px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{else /}
+<div class="card">
+    <div class="card-body">
+        <div class="ui-empty-state">
+            <div class="ui-empty-icon"><i class="bi bi-graph-up"></i></div>
+            <div class="ui-empty-title">请选择模板查看统计</div>
+            <div class="ui-empty-desc">选择一个模板后查看详细统计数据</div>
+        </div>
+    </div>
+</div>
+{/if}
+{/block}
+
+{block name="js"}
+<script>
+{if condition="$stats"}
+var installTrendData = {$stats.install_trend_json|raw};
+var usageDistData = {$stats.usage_dist_json|raw};
+var ratingDistData = {$stats.rating_dist_json|raw};
+var versionDistData = {$stats.version_dist_json|raw};
+
+$(function() {
+    // 安装趋势折线图
+    var chart1 = echarts.init(document.getElementById('installTrendChart'));
+    chart1.setOption({
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: installTrendData.dates },
+        yAxis: { type: 'value' },
+        series: [{ name: '安装数', type: 'line', smooth: true, data: installTrendData.values, areaStyle: { opacity: 0.1 } }]
+    });
+
+    // 使用分布饼图
+    var chart2 = echarts.init(document.getElementById('usageDistChart'));
+    chart2.setOption({
+        tooltip: { trigger: 'item' },
+        legend: { bottom: 0 },
+        series: [{ type: 'pie', radius: ['40%', '70%'], data: usageDistData }]
+    });
+
+    // 评分分布柱状图
+    var chart3 = echarts.init(document.getElementById('ratingDistChart'));
+    chart3.setOption({
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: ['1星', '2星', '3星', '4星', '5星'] },
+        yAxis: { type: 'value' },
+        series: [{ type: 'bar', data: ratingDistData, itemStyle: { color: '#ffc107' } }]
+    });
+
+    // 版本分布饼图
+    var chart4 = echarts.init(document.getElementById('versionDistChart'));
+    chart4.setOption({
+        tooltip: { trigger: 'item' },
+        legend: { bottom: 0 },
+        series: [{ type: 'pie', radius: '60%', data: versionDistData }]
+    });
+});
+{/if}
+</script>
+{/block}

@@ -1,0 +1,116 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$model"}编辑模型{else/}新增模型{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/content_model/index">内容模型</a></li>
+<li class="breadcrumb-item active">{if condition="$model"}编辑模型{else/}新增模型{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-{if condition='$model'}pencil{else/}plus-circle{/if} me-1"></i>{if condition="$model"}编辑模型{else/}新增模型{/if}</div>
+    <div class="card-body">
+        <form id="modelForm">
+            <input type="hidden" name="id" value="{$model.id ?? 0}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">模型名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="model_name" class="form-control" value="{$model.model_name ?? ''}" required placeholder="如：标准产品">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">模型标识 <span class="text-danger">*</span></label>
+                        <input type="text" name="model_identifier" class="form-control" value="{$model.model_identifier ?? ''}" required placeholder="如：product" {$model ? 'readonly' : ''}>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">模型描述</label>
+                        <textarea name="model_description" class="form-control" rows="2" placeholder="模型用途说明">{$model.model_description ?? ''}</textarea>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">模型图标</label>
+                        <input type="text" name="model_icon" class="form-control" value="{$model.model_icon ?? 'bi bi-file-text'}" placeholder="Bootstrap Icons">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">URL规则</label>
+                        <input type="text" name="url_rule" class="form-control" value="{$model.url_rule ?? ''}" placeholder="如：/product/{id}">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">分组</label>
+                        <select name="group_id" class="form-select">
+                            <option value="0">未分组</option>
+                            {volist name="groups" id="g"}
+                            <option value="{$g.id}" {if condition="($model.group_id ?? 0) == $g.id"}selected{/if}>{$g.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort_order" class="form-control" value="{$model.sort_order ?? 0}">
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+            <h6 class="mb-3"><i class="bi bi-toggles me-1"></i>功能开关</h6>
+            <div class="row">
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_category" value="1" id="enCat" {if condition="($model.model_config.enable_category ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enCat">启用分类</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_tag" value="1" id="enTag" {if condition="($model.model_config.enable_tag ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enTag">启用标签</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_thumb" value="1" id="enThumb" {if condition="($model.model_config.enable_thumb ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enThumb">启用缩略图</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_summary" value="1" id="enSum" {if condition="($model.model_config.enable_summary ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enSum">启用摘要</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_seo" value="1" id="enSeo" {if condition="($model.model_config.enable_seo ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enSeo">启用SEO</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_comment" value="1" id="enCom" {if condition="($model.model_config.enable_comment ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enCom">启用评论</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_like" value="1" id="enLike" {if condition="($model.model_config.enable_like ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enLike">启用点赞</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_favorite" value="1" id="enFav" {if condition="($model.model_config.enable_favorite ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enFav">启用收藏</label></div></div>
+                <div class="col-md-3 mb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="enable_audit" value="1" id="enAudit" {if condition="($model.model_config.enable_audit ?? 0) == 1"}checked{/if}><label class="form-check-label" for="enAudit">启用审核</label></div></div>
+            </div>
+
+            <hr>
+            <h6 class="mb-3"><i class="bi bi-file-earmark-code me-1"></i>模板配置</h6>
+            <div class="row">
+                <div class="col-md-4"><div class="mb-3"><label class="form-label">列表模板</label><input type="text" name="template_config[list_template]" class="form-control" value="{$model.template_config.list_template ?? 'list.html'}"></div></div>
+                <div class="col-md-4"><div class="mb-3"><label class="form-label">详情模板</label><input type="text" name="template_config[detail_template]" class="form-control" value="{$model.template_config.detail_template ?? 'detail.html'}"></div></div>
+                <div class="col-md-2"><div class="mb-3"><label class="form-label">每页条数</label><input type="number" name="template_config[page_size]" class="form-control" value="{$model.template_config.page_size ?? 15}"></div></div>
+                <div class="col-md-2"><div class="mb-3"><label class="form-label">排序字段</label><input type="text" name="template_config[sort_by]" class="form-control" value="{$model.template_config.sort_by ?? 'sort_order'}"></div></div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/content_model/index" class="btn btn-outline-secondary">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#modelForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    var id = $('input[name=id]').val();
+    var url = id > 0 ? '/admin/content_model/update/' + id : '/admin/content_model/save';
+    $.post(url, data, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.href = '/admin/content_model/index';
+    });
+});
+</script>
+{/block}

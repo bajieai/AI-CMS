@@ -1,0 +1,30 @@
+{extend name="layout" /}
+{block name="title"}运营任务系统{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">运营任务系统</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>总任务</h6><h4 class="text-primary">{$stats.total|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>已完成</h6><h4 class="text-success">{$stats.completed|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>完成率</h6><h4 class="text-info">{$stats.completion_rate|default='0'}%</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>准时率</h6><h4 class="text-warning">{$stats.on_time_rate|default='0'}%</h4></div></div></div>
+</div>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clipboard me-1"></i>任务列表</span>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#taskModal"><i class="bi bi-plus-lg"></i> 新建任务</button>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead><tr><th>ID</th><th>标题</th><th>类型</th><th>状态</th><th>负责人</th><th>截止时间</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="t"}
+            <tr><td>{$t.id}</td><td>{$t.title}</td><td>{$t.type}</td>
+                <td><span class="badge bg-{$t.status_color|default='secondary'}">{$t.status}</span></td>
+                <td>{$t.assignee|default='未分配'}</td><td>{$t.deadline|date='Y-m-d H:i'}</td>
+                <td><button class="btn btn-sm btn-outline-primary assign-btn" data-id="{$t.id}">分配</button></td></tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,105 @@
+﻿{extend name="/layout" /}
+{block name="title"}存储配置 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">存储配置</h4>
+    <div class="card">
+        <div class="card-body">
+            <form id="configForm">
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">默认存储驱动</label>
+                    <div class="col-sm-9">
+                        <select class="form-select" name="driver">
+                            <option value="local" {if $config.driver=='local'}selected{/if}>本地存储</option>
+                            <option value="oss" {if $config.driver=='oss'}selected{/if}>阿里云OSS</option>
+                            <option value="cos" {if $config.driver=='cos'}selected{/if}>腾讯云COS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-cloud"></i> 阿里云OSS配置</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">AccessKey ID</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="oss_access_key_id" value="{$config.oss_access_key_id??''}" placeholder="AccessKey ID">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">AccessKey Secret</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" name="oss_access_key_secret" value="{$config.oss_access_key_secret??''}" placeholder="AccessKey Secret">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Bucket名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="oss_bucket" value="{$config.oss_bucket??''}" placeholder="Bucket名称">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Endpoint</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="oss_endpoint" value="{$config.oss_endpoint??''}" placeholder="oss-cn-hangzhou.aliyuncs.com">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">CDN域名</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="oss_cdn_domain" value="{$config.oss_cdn_domain??''}" placeholder="https://cdn.example.com">
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-cloud-haze"></i> 腾讯云COS配置</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">SecretId</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="cos_secret_id" value="{$config.cos_secret_id??''}" placeholder="SecretId">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">SecretKey</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" name="cos_secret_key" value="{$config.cos_secret_key??''}" placeholder="SecretKey">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Bucket名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="cos_bucket" value="{$config.cos_bucket??''}" placeholder="Bucket名称">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Region地域</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="cos_region" value="{$config.cos_region??''}" placeholder="ap-guangzhou">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">CDN域名</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="cos_cdn_domain" value="{$config.cos_cdn_domain??''}" placeholder="https://cdn.example.com">
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存配置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+{/block}
+{block name="js"}
+<script>
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/storage/saveConfig', data, function(res) {
+        alert(res.msg);
+    });
+});
+</script>
+{/block}

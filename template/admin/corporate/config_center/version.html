@@ -1,0 +1,151 @@
+{extend name="layout" /}
+{block name="title"}配置版本历史 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-clock-history me-1"></i>配置版本历史</h5>
+        <a href="javascript:history.back()" class="btn btn-sm btn-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+    </div>
+    <div class="card-body">
+        <!-- 配置名 -->
+        <div class="mb-3">
+            <span class="text-muted">配置项：</span>
+            <code id="configName">{$name ?? ''}</code>
+        </div>
+
+        <!-- 版本时间线 -->
+        <div class="timeline">
+            {volist name="list" id="vo"}
+            <div class="timeline-item">
+                <div class="timeline-badge {if $i eq 1}bg-success{else/}bg-secondary{/if}">
+                    <i class="bi bi-{if $i eq 1}check-circle{else/}clock{/if}"></i>
+                </div>
+                <div class="timeline-content card mb-2">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge {if $i eq 1}bg-success{else/}bg-light text-dark{/if} me-2">
+                                    {if $i eq 1}当前版本{else/}历史版本{/if}
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="bi bi-person me-1"></i>操作人 #{$vo.operator_id}
+                                </span>
+                                <span class="text-muted small ms-2">
+                                    <i class="bi bi-clock me-1"></i>{:date('Y-m-d H:i:s', $vo.create_time)}
+                                </span>
+                                {if $vo.ip_address}
+                                <span class="text-muted small ms-2">
+                                    <i class="bi bi-geo-alt me-1"></i>{$vo.ip_address}
+                                </span>
+                                {/if}
+                                {if $vo.env}
+                                <span class="badge bg-info ms-2">{$vo.env}</span>
+                                {/if}
+                            </div>
+                            {if $i neq 1}
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="rollbackVersion({$vo.id})">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>回滚到此版本
+                            </button>
+                            {/if}
+                        </div>
+                        <hr class="my-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="text-muted small fw-bold">旧值</label>
+                                <pre class="small bg-light p-2 rounded config-value-box">{$vo.old_value}</pre>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small fw-bold">新值</label>
+                                <pre class="small bg-light p-2 rounded config-value-box {if $i eq 1}border-success{/if}">{$vo.new_value}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+
+        {if condition="empty($list)"}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">暂无版本历史记录</p>
+        </div>
+        {/if}
+
+        <!-- 分页 -->
+        {if condition="$total > 20"}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {if $page lte 1}disabled{/if}">
+                    <a class="page-link" href="?name={$name ?? ''}&page={$page-1}">&laquo;</a>
+                </li>
+                {for start="1" end="ceil($total/20)+1"}
+                <li class="page-item {if $i eq $page}active{/if}">
+                    <a class="page-link" href="?name={$name ?? ''}&page={$i}">{$i}</a>
+                </li>
+                {/for}
+                <li class="page-item {if $page gte ceil($total/20)}disabled{/if}">
+                    <a class="page-link" href="?name={$name ?? ''}&page={$page+1}">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+        {/if}
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 40px;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 1rem;
+}
+.timeline-badge {
+    position: absolute;
+    left: -33px;
+    top: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.9rem;
+}
+.config-value-box {
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+}
+</style>
+
+<script>
+function rollbackVersion(versionId) {
+    if (!confirm('确定要回滚到此版本吗？此操作将覆盖当前配置值。')) return;
+    $.post('/admin/config_center/rollback', {version_id: versionId}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess('已回滚');
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            alertError(res.msg || '回滚失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+</script>
+{/block}

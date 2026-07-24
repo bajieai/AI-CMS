@@ -1,0 +1,90 @@
+{extend name="/layout" /}
+{block name="title"}AI批量生产 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-collection"></i> AI批量生产</h5>
+        <a href="{:url('/admin/ai_batch/create')}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> 创建批量任务</a>
+    </div>
+    <div class="card-body">
+        {if condition="$list->count() == 0"}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox" style="font-size:2rem;"></i>
+            <p class="mt-2">暂无批量任务，点击右上角"创建批量任务"开始</p>
+        </div>
+        {else/}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="60">ID</th>
+                        <th>任务标题</th>
+                        <th width="120">关键词</th>
+                        <th width="80">总数</th>
+                        <th width="80">已完成</th>
+                        <th width="100">状态</th>
+                        <th width="160">创建时间</th>
+                        <th width="120">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.title}</td>
+                        <td><span class="badge bg-light text-dark">{$vo.total}个</span></td>
+                        <td>{$vo.total}</td>
+                        <td>{$vo.completed}</td>
+                        <td>
+                            {if $vo.status == 0}
+                            <span class="badge bg-secondary">等待中</span>
+                            {elseif $vo.status == 1}
+                            <span class="badge bg-primary">进行中</span>
+                            {elseif $vo.status == 2}
+                            <span class="badge bg-success">已完成</span>
+                            {elseif $vo.status == 3}
+                            <span class="badge bg-danger">已取消</span>
+                            {elseif $vo.status == -1}
+                            <span class="badge bg-warning">失败</span>
+                            {/if}
+                        </td>
+                        <td>{:date('Y-m-d H:i', $vo.create_time)}</td>
+                        <td>
+                            <a href="{:url('/admin/ai_batch/detail', ['id' => $vo.id])}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> 详情
+                            </a>
+                            {if $vo.status < 2}
+                            <button class="btn btn-outline-danger btn-sm btn-cancel" data-id="{$vo.id}">
+                                <i class="bi bi-x-circle"></i> 取消
+                            </button>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+            {$list->render()|raw}
+        </div>
+        {/if}
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$('.btn-cancel').on('click', function() {
+    if (!confirm('确定取消此任务？')) return;
+    var id = $(this).data('id');
+    var $btn = $(this);
+    $.post('/admin/ai_batch/cancel', {id: id}, function(res) {
+        if (res.code === 0) {
+            alert(res.msg);
+            location.reload();
+        } else {
+            alert(res.msg);
+        }
+    });
+});
+</script>
+{/block}

@@ -1,0 +1,87 @@
+{extend name="layout" /}
+{block name="title"}创建用户分群 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-plus-circle"></i> 创建用户分群</h5></div>
+    <div class="card-body">
+        <form method="post" action="{:url('/admin/user_segment/create')}" id="segmentForm">
+            <div class="mb-3"><label class="form-label">分群名称</label><input type="text" name="name" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">分群描述</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+            <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label">规则类型</label><select name="rule_type" class="form-select">
+                    <option value="attribute">属性规则</option>
+                    <option value="behavior">行为规则</option>
+                    <option value="content">内容规则</option>
+                    <option value="time">时间规则</option>
+                    <option value="composite">复合规则</option>
+                </select></div>
+                <div class="col-md-6 mb-3"><label class="form-label">计算方式</label><select name="compute_mode" class="form-select">
+                    <option value="realtime">实时计算</option>
+                    <option value="scheduled">定时计算</option>
+                    <option value="incremental">增量计算</option>
+                </select></div>
+            </div>
+            <hr>
+            <h6>筛选规则 <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="btnAddRule"><i class="bi bi-plus-lg"></i> 添加规则</button></h6>
+            <div id="rulesContainer" class="mb-2"></div>
+            <input type="hidden" name="rules" value="[]">
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 创建分群</button>
+                <a href="{:url('/admin/user_segment/index')}" class="btn btn-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$(function(){
+    var $form = $('#segmentForm');
+    var $rulesContainer = $('#rulesContainer');
+
+    function addRule(field, op, val) {
+        var html = '<div class="row g-2 mb-2 rule-row align-items-center">';
+        html += '<div class="col-md-3"><input type="text" class="form-control form-control-sm rule-field" placeholder="字段名 (如 age)" value="'+(field||'')+'"></div>';
+        html += '<div class="col-md-3"><select class="form-select form-select-sm rule-op"><option value="=">等于</option><option value="!=">不等于</option><option value=">">大于</option><option value="<">小于</option><option value=">=">大于等于</option><option value="<=">小于等于</option><option value="contains">包含</option><option value="in">在列表中</option></select></div>';
+        html += '<div class="col-md-4"><input type="text" class="form-control form-control-sm rule-val" placeholder="值 (如 25)" value="'+(val||'')+'"></div>';
+        html += '<div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm rule-remove"><i class="bi bi-trash"></i> 删除</button></div>';
+        html += '</div>';
+        var $row = $(html);
+        if (op) $row.find('.rule-op').val(op);
+        $rulesContainer.append($row);
+        syncRules();
+    }
+
+    function syncRules() {
+        var rules = [];
+        $rulesContainer.find('.rule-row').each(function(){
+            var $r = $(this);
+            var field = $.trim($r.find('.rule-field').val());
+            var op = $r.find('.rule-op').val();
+            var val = $.trim($r.find('.rule-val').val());
+            if (field) rules.push({ field: field, operator: op, value: val });
+        });
+        $form.find('[name="rules"]').val(JSON.stringify(rules));
+    }
+
+    $rulesContainer.on('input', '.rule-field,.rule-val', syncRules);
+    $rulesContainer.on('change', '.rule-op', syncRules);
+    $rulesContainer.on('click', '.rule-remove', function(){
+        $(this).closest('.rule-row').remove();
+        syncRules();
+    });
+
+    $('#btnAddRule').click(function(){ addRule('', '=', ''); });
+
+    $form.on('submit', function(e) {
+        e.preventDefault();
+        syncRules();
+        $.post($form.attr('action'), $form.serialize(), function(res) {
+            alert(res.msg);
+            if (res.code === 0) location.href = '{:url("/admin/user_segment/index")}';
+        });
+    });
+});
+</script>
+{/block}

@@ -1,0 +1,309 @@
+{extend name="layout" /}
+{block name="title"}智能报表{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">数据中心</li>
+<li class="breadcrumb-item active">智能报表</li>
+{/block}
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5><i class="bi bi-bar-chart-line-fill me-2"></i>智能报表</h5>
+        <div class="d-flex gap-2">
+            <a href="/admin/smart_report/templates" class="btn btn-outline-info btn-sm"><i class="bi bi-collection me-1"></i>模板库</a>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createModal"><i class="bi bi-plus-lg me-1"></i>新建报表</button>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <form method="get" action="/admin/smart_report/index" class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label small mb-0">报表类型</label>
+                    <select name="report_type" class="form-select form-select-sm">
+                        <option value="">全部类型</option>
+                        {volist name="typeMap" id="label" key="key"}
+                        <option value="{$key}" {if condition="($filters.report_type ?? '') == $key"}selected{/if}>{$label}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small mb-0">状态</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">全部状态</option>
+                        <option value="active" {if condition="($filters.status ?? '') == 'active'"}selected{/if}>启用</option>
+                        <option value="paused" {if condition="($filters.status ?? '') == 'paused'"}selected{/if}>暂停</option>
+                        <option value="archived" {if condition="($filters.status ?? '') == 'archived'"}selected{/if}>归档</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 筛选</button>
+                    <a href="/admin/smart_report/index" class="btn btn-outline-secondary btn-sm">重置</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>报表列表 <small class="text-muted">共 {$total} 个</small></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th width="60">ID</th>
+                        <th>名称</th>
+                        <th width="100">类型</th>
+                        <th width="80">状态</th>
+                        <th width="150">创建时间</th>
+                        <th width="220">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.name}</td>
+                        <td>
+                            <span class="badge bg-{if condition='$vo.report_type==\'daily\''}info{elseif condition='$vo.report_type==\'weekly\''}primary{elseif condition='$vo.report_type==\'monthly\''}success{else/}secondary{/if}">
+                                {$typeMap[$vo.report_type] ?? '未知'}
+                            </span>
+                        </td>
+                        <td>
+                            {if condition="$vo.status == 'active'"}
+                            <span class="badge bg-success">启用</span>
+                            {elseif condition="$vo.status == 'paused'"}
+                            <span class="badge bg-warning text-dark">暂停</span>
+                            {else/}
+                            <span class="badge bg-secondary">归档</span>
+                            {/if}
+                        </td>
+                        <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="/admin/smart_report/preview?id={$vo.id}" class="btn btn-outline-primary" title="预览"><i class="bi bi-eye"></i></a>
+                                <button type="button" class="btn btn-outline-secondary" title="编辑" onclick="editReport({$vo.id})"><i class="bi bi-pencil"></i></button>
+                                <button type="button" class="btn btn-outline-info" title="AI分析" onclick="aiAnalysis({$vo.id})"><i class="bi bi-robot"></i></button>
+                                <button type="button" class="btn btn-outline-danger" title="删除" onclick="deleteReport({$vo.id})"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr><td colspan="6">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size:2.5rem;"></i>
+                            <p class="mt-2">暂无报表数据，点击右上角按钮创建</p>
+                        </div>
+                    </td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">共 {$total} 条</small>
+                {$page|raw}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-lg me-1"></i>新建报表</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">报表名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">报表类型 <span class="text-danger">*</span></label>
+                            <select class="form-select" name="report_type" required>
+                                {volist name="typeMap" id="label" key="key"}
+                                <option value="{$key}">{$label}</option>
+                                {/volist}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">数据源</label>
+                            <select class="form-select" name="data_source">
+                                <option value="content">内容数据</option>
+                                <option value="member">会员数据</option>
+                                <option value="order">订单数据</option>
+                                <option value="traffic">流量数据</option>
+                                <option value="ai">AI使用数据</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">图表类型</label>
+                            <select class="form-select" name="chart_type">
+                                <option value="line">折线图</option>
+                                <option value="bar">柱状图</option>
+                                <option value="pie">饼图</option>
+                                <option value="area">面积图</option>
+                                <option value="table">数据表格</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">维度</label>
+                            <input type="text" class="form-control" name="dimensions" placeholder="如: date,category">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">指标</label>
+                            <input type="text" class="form-control" name="metrics" placeholder="如: views,clicks">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">定时配置(Cron)</label>
+                            <input type="text" class="form-control" name="schedule_cron" placeholder="如: 0 8 * * * (每天8点)">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-4">
+                                <input class="form-check-input" type="checkbox" name="ai_analysis" value="1" id="swAi" checked>
+                                <label class="form-check-label" for="swAi">启用AI分析</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreate()"><i class="bi bi-check-lg me-1"></i>创建</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil me-1"></i>编辑报表</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" name="id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">报表名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">报表类型</label>
+                            <select class="form-select" name="report_type">
+                                {volist name="typeMap" id="label" key="key"}
+                                <option value="{$key}">{$label}</option>
+                                {/volist}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">状态</label>
+                            <select class="form-select" name="status">
+                                <option value="active">启用</option>
+                                <option value="paused">暂停</option>
+                                <option value="archived">归档</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">图表类型</label>
+                            <select class="form-select" name="chart_type">
+                                <option value="line">折线图</option>
+                                <option value="bar">柱状图</option>
+                                <option value="pie">饼图</option>
+                                <option value="area">面积图</option>
+                                <option value="table">数据表格</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitEdit()"><i class="bi bi-check-lg me-1"></i>保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+var createModal, editModal;
+$(function(){
+    createModal = new bootstrap.Modal(document.getElementById('createModal'));
+    editModal = new bootstrap.Modal(document.getElementById('editModal'));
+});
+
+function submitCreate() {
+    var data = $('#createForm').serializeArray().reduce(function(o, item){ o[item.name] = item.value; return o; }, {});
+    $.post('/admin/smart_report/create', data, function(res){
+        if(res.code === 0){
+            showToast('创建成功', 'success');
+            createModal.hide();
+            setTimeout(function(){ location.reload(); }, 800);
+        } else {
+            showToast(res.msg || '创建失败', 'danger');
+        }
+    }).fail(function(){ showToast('请求失败', 'danger'); });
+}
+
+function editReport(id) {
+    $.get('/admin/smart_report/detail', {id: id}, function(res){
+        if(res.code === 0){
+            var d = res.data;
+            $('#editForm [name="id"]').val(d.id);
+            $('#editForm [name="name"]').val(d.name);
+            $('#editForm [name="report_type"]').val(d.report_type);
+            $('#editForm [name="status"]').val(d.status);
+            $('#editForm [name="chart_type"]').val((d.chart_config && d.chart_config.type) || 'line');
+            editModal.show();
+        } else {
+            showToast(res.msg || '获取失败', 'danger');
+        }
+    });
+}
+
+function submitEdit() {
+    var data = $('#editForm').serializeArray().reduce(function(o, item){ o[item.name] = item.value; return o; }, {});
+    $.post('/admin/smart_report/update', data, function(res){
+        if(res.code === 0){
+            showToast('更新成功', 'success');
+            editModal.hide();
+            setTimeout(function(){ location.reload(); }, 800);
+        } else {
+            showToast(res.msg || '更新失败', 'danger');
+        }
+    });
+}
+
+function aiAnalysis(id) {
+    if(!confirm('确定对该报表进行AI分析？')) return;
+    $.post('/admin/smart_report/aiAnalysis', {id: id}, function(res){
+        if(res.code === 0){
+            showToast('AI分析完成', 'success');
+            window.open('/admin/smart_report/preview?id=' + id, '_blank');
+        } else {
+            showToast(res.msg || 'AI分析失败', 'danger');
+        }
+    });
+}
+
+function deleteReport(id) {
+    if(!confirm('确认删除此报表？此操作不可恢复。')) return;
+    $.post('/admin/smart_report/delete', {id: id}, function(res){
+        if(res.code === 0){
+            showToast('删除成功', 'success');
+            setTimeout(function(){ location.reload(); }, 800);
+        } else {
+            showToast(res.msg || '删除失败', 'danger');
+        }
+    });
+}
+</script>
+{/block}

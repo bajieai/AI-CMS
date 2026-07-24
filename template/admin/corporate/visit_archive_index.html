@@ -1,0 +1,73 @@
+{extend name="layout" /}
+
+{block name="title"}访问日志归档{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/visit_archive/index">系统设置</a></li>
+<li class="breadcrumb-item active">访问归档</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-archive me-2" style="color:var(--primary)"></i>访问日志归档</h5>
+    <button class="btn btn-primary" id="btnArchive"><i class="bi bi-box-arrow-down me-1"></i>执行归档</button>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="60">ID</th>
+                    <th>归档周期</th>
+                    <th width="100">PV</th>
+                    <th width="100">UV</th>
+                    <th>热门内容</th>
+                    <th width="140">归档时间</th>
+                    <th width="80">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td><span class="badge bg-light text-dark border">{$vo.period}</span></td>
+                    <td style="font-weight:600;color:var(--primary)">{$vo.pv}</td>
+                    <td style="font-weight:600;color:#f5576c">{$vo.uv}</td>
+                    <td>
+                        {php}$stats = json_decode($vo['content_stats'], true) ?? [];{/php}
+                        {volist name="stats" id="s" offset="0" length="3"}
+                        <div style="font-size:.78rem">{$s.title} ({$s.views})</div>
+                        {/volist}
+                    </td>
+                    <td style="font-size:.82rem">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <a href="/admin/visit_archive/detail/id/{$vo.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7" class="text-center text-muted py-4">暂无归档数据，点击上方按钮执行归档</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnArchive').click(function(){
+        var btn=$(this);
+        btn.prop('disabled',true).html('<span class="spinner-border spinner-border-sm me-1"></span>归档中...');
+        $.post('/admin/visit_archive/runArchive',{},function(d){
+            btn.prop('disabled',false).html('<i class="bi bi-box-arrow-down me-1"></i>执行归档');
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>window.doPjax('/admin/visit_archive/index'),800);
+        });
+    });
+});
+</script>
+{/block}

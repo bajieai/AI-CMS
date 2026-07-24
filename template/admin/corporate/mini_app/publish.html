@@ -1,0 +1,88 @@
+{extend name="/layout" /}
+{block name="title"}小程序发布管理 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4"><i class="bi bi-cloud-upload"></i> 小程序发布管理</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header"><h6 class="mb-0">发布信息</h6></div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td class="text-muted" style="width:120px;">AppID</td>
+                            <td>{$publishInfo.appid ?: '未配置'}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">小程序名称</td>
+                            <td>{$publishInfo.mini_name ?: '未配置'}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">当前版本</td>
+                            <td><span class="badge bg-info">{$publishInfo.version}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">发布状态</td>
+                            <td>
+                                {if $publishInfo.status == 'published'}
+                                <span class="badge bg-success">已发布</span>
+                                {elseif $publishInfo.status == 'pending'}
+                                <span class="badge bg-warning">待发布</span>
+                                {else /}
+                                <span class="badge bg-secondary">{$publishInfo.status}</span>
+                                {/if}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">最后上传</td>
+                            <td>{$publishInfo.last_upload ?: '从未上传'}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><h6 class="mb-0">操作</h6></div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="uploadBtn"><i class="bi bi-cloud-arrow-up"></i> 上传代码到微信</button>
+                        <button class="btn btn-outline-secondary" onclick="location.href='/admin/mini_app/stats'"><i class="bi bi-bar-chart"></i> 查看统计</button>
+                        <button class="btn btn-outline-secondary" onclick="location.href='/admin/mini_app/config'"><i class="bi bi-gear"></i> 修改配置</button>
+                        <button class="btn btn-outline-secondary" onclick="location.href='/admin/mini_app/pages'"><i class="bi bi-layout-text-window-reverse"></i> 页面管理</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header"><h6 class="mb-0">发布说明</h6></div>
+                <div class="card-body">
+                    <ol class="small text-muted">
+                        <li>配置好AppID和AppSecret</li>
+                        <li>设计页面组件布局</li>
+                        <li>点击"上传代码到微信"按钮</li>
+                        <li>在微信小程序管理后台提交审核</li>
+                        <li>审核通过后发布上线</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#uploadBtn').on('click', function() {
+    if (!confirm('确定上传代码到微信？')) return;
+    var btn = $(this);
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> 上传中...');
+    $.post('/admin/mini_app/upload_code', function(res) {
+        btn.prop('disabled', false).html('<i class="bi bi-cloud-arrow-up"></i> 上传代码到微信');
+        alert(res.msg);
+        if (res.code === 0) {
+            location.reload();
+        }
+    });
+});
+</script>
+{/block}

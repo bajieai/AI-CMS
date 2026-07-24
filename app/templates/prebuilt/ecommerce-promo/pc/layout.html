@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site.title|default='购物促销'}</title>
+    <meta name="keywords" content="{$site.keywords|default=''}">
+    <meta name="description" content="{$site.description|default=''}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <!-- 顶部促销栏 -->
+    <div class="top-bar">
+        <div class="container">
+            <span class="top-bar-text">🔥 限时特惠，全场低至5折！</span>
+            <span class="top-bar-countdown" id="countdown">距离结束：23:59:59</span>
+        </div>
+    </div>
+
+    <!-- 头部 -->
+    <header class="header">
+        <div class="container">
+            <div class="header-logo">
+                <a href="/">
+                    <img src="/assets/placeholder/logo.png" alt="{$site.title|default='购物促销'}">
+                </a>
+            </div>
+            <nav class="header-nav">
+                <ul>
+                    <li><a href="/" class="active">首页</a></li>
+                    <li><a href="/list.html">全部商品</a></li>
+                    <li><a href="/list.html?category=1">新品上市</a></li>
+                    <li><a href="/list.html?category=2">热销爆款</a></li>
+                    <li><a href="/list.html?category=3">限时秒杀</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="/cart.html" class="cart-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59L5.25 14H19v-2H7.42l.94-2H17l3-6H5.21L4.27 2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="currentColor"/>
+                    </svg>
+                    <span class="cart-count">0</span>
+                </a>
+                <button class="menu-toggle" id="menuToggle" aria-label="菜单">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 移动端菜单 -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="/">首页</a></li>
+            <li><a href="/list.html">全部商品</a></li>
+            <li><a href="/list.html?category=1">新品上市</a></li>
+            <li><a href="/list.html?category=2">热销爆款</a></li>
+            <li><a href="/list.html?category=3">限时秒杀</a></li>
+        </ul>
+    </div>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        {__CONTENT__}
+    </main>
+
+    <!-- 底部 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>购物指南</h4>
+                    <ul>
+                        <li><a href="#">购物流程</a></li>
+                        <li><a href="#">支付方式</a></li>
+                        <li><a href="#">配送说明</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>售后服务</h4>
+                    <ul>
+                        <li><a href="#">退换货政策</a></li>
+                        <li><a href="#">退款说明</a></li>
+                        <li><a href="#">联系客服</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>关于我们</h4>
+                    <ul>
+                        <li><a href="#">公司介绍</a></li>
+                        <li><a href="#">加入我们</a></li>
+                        <li><a href="#">联系我们</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>关注我们</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link">微信</a>
+                        <a href="#" class="social-link">微博</a>
+                        <a href="#" class="social-link">抖音</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 {$site.title|default='购物促销'} 版权所有 | <a href="#">ICP备XXXXXX号</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

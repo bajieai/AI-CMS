@@ -1,0 +1,42 @@
+{extend name="layout" /}
+
+{block name="title"}已购内容{/block}
+
+{block name="content"}
+
+<div class="uc-section-header">
+    <span class="uc-section-title"><i class="bi bi-bag-check" style="color:#10b981;"></i>已购内容</span>
+    <span style="font-size:12px;color:#94a3b8;">共 {$total|default=0} 篇</span>
+</div>
+
+<div style="padding:0 20px;">
+    {volist name="list" id="vo"}
+    <a href="/content/detail/id/{$vo.content_id}" style="display:flex;justify-content:space-between;align-items:flex-start;padding:15px 0;border-bottom:1px solid #f5f7fa;text-decoration:none;transition:background .12s;" onmouseover="this.style.background='rgba(241,245,249,.3)'" onmouseout="this.style.background='transparent'">
+        <div style="flex:1;min-width:0;margin-right:16px;">
+            <div style="font-size:14px;font-weight:600;color:#1e293b;margin-bottom:4px;line-height:1.35;">{$vo.content.title|default='内容已删除'}</div>
+            <div style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:8px;">
+                {if $vo.content && $vo.content.cate}
+                <span class="uc-badge uc-badge-approved" style="font-size:10.5px;">{$vo.content.cate.name}</span>
+                {/if}
+                <span><i class="bi bi-clock me-1"></i>{$vo.create_time|date='Y-m-d H:i'}</span>
+            </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+            <div style="font-weight:700;font-size:15px;color:{if $vo.pay_type == 'points'}#f59e0b{else /}#10b981{/if};">
+                {if $vo.pay_type == 'points'}<i class="bi bi-star me-1"></i>{$vo.price|default=0} 积分{else /}&yen;{$vo.price|default='0.00'}{/if}
+            </div>
+            <div style="margin-top:2px;"><span class="uc-badge uc-badge-shipped" style="font-size:10.5px;">已支付</span></div>
+        </div>
+    </a>
+    {/volist}
+
+    {empty name="list"}
+    <div class="uc-empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>暂无已购内容</p>
+    </div>
+    {/empty}
+</div>
+
+
+{/block}

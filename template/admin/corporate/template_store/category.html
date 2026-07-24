@@ -1,0 +1,35 @@
+{extend name="/layout" /}
+{block name="title"}模板分类管理 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-folder"></i> 模板分类管理</h5></div>
+<div class="card-body">
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>总分类数</h6><h3>{$stats.total??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>总模板数</h6><h3>{$stats.templates??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>已发布</h6><h3 class="text-success">{$stats.published??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>待审核</h6><h3 class="text-warning">{$stats.pending??0}</h3></div></div></div>
+</div>
+{if empty($tree)}
+<div class="text-center text-muted py-4">暂无分类数据</div>
+{else}
+<div class="card"><div class="card-header"><h6 class="mb-0">分类树</h6></div>
+<table class="table table-sm mb-0">
+    <thead><tr><th>分类名称</th><th width="80">排序</th><th width="100">模板数</th><th width="100">状态</th></tr></thead>
+    <tbody>
+    {volist name="tree" id="cat"}
+    <tr><td>{:str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', ($cat.level??0))}{$cat.name??'--'}</td>
+        <td>{$cat.sort??0}</td><td>{$cat.template_count??0}</td>
+        <td>{if $cat.status??0==1}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td></tr>
+    {if !empty($cat.children)}
+    {volist name="cat.children" id="child"}
+    <tr><td>{:str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', ($child.level??0))}{$child.name??'--'}</td>
+        <td>{$child.sort??0}</td><td>{$child.template_count??0}</td>
+        <td>{if $child.status??0==1}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td></tr>
+    {/volist}
+    {/if}
+    {/volist}
+    </tbody>
+</table></div>
+{/if}
+</div></div>
+{/block}

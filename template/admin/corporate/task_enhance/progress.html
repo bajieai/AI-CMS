@@ -1,0 +1,105 @@
+{extend name="layout" /}
+{block name="title"}进度跟踪{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">进度跟踪</li>{/block}
+{block name="content"}
+<div class="content-wrapper">
+    <div class="card corporate-card mb-3">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>甘特图</h5></div>
+        <div class="card-body">
+            <div id="ganttChart" style="overflow-x:auto;min-height:200px;">
+                <table class="table table-sm table-bordered">
+                    <thead><tr><th style="min-width:150px;">任务</th><th>时间线</th><th>进度</th><th>状态</th></tr></thead>
+                    <tbody id="ganttBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {if condition="$task_id|default=0 gt 0"}
+    <div class="card corporate-card mb-3">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>进度信息</h5></div>
+        <div class="card-body">
+            {if condition="$progressInfo"}
+            <div class="row">
+                <div class="col-md-3"><strong>标题:</strong> {$progressInfo.title}</div>
+                <div class="col-md-3"><strong>状态:</strong> <span class="badge bg-info">{$progressInfo.status}</span></div>
+                <div class="col-md-3"><strong>截止:</strong> {$progressInfo.deadline|default='-'}</div>
+                <div class="col-md-3"><strong>完成:</strong> {$progressInfo.complete_time|default='-'}</div>
+            </div>
+            <div class="progress mt-3" style="height:25px;">
+                <div class="progress-bar bg-{$progressInfo.color}" role="progressbar" style="width:{$progressInfo.progress}%;">{$progressInfo.progress}%</div>
+            </div>
+            {/if}
+            <form id="progressForm" class="row g-3 mt-2">
+                <input type="hidden" name="task_id" value="{$task_id}">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">进度(0-100)</label>
+                    <input type="number" class="form-control" name="progress" min="0" max="100" value="{$progressInfo.progress|default=0}" required>
+                </div>
+                <div class="col-md-7">
+                    <label class="form-label fw-bold">备注</label>
+                    <input type="text" class="form-control" name="note" placeholder="进度备注">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card corporate-card mb-3">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-flag me-2"></i>里程碑</h5></div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <thead><tr><th>ID</th><th>名称</th><th>截止日期</th><th>状态</th></tr></thead>
+                <tbody>
+                {volist name="milestones" id="m"}
+                <tr>
+                    <td>{$m.id}</td>
+                    <td>{$m.name}</td>
+                    <td>{$m.due_date|default='-'}</td>
+                    <td>{if condition="$m.completed"}<span class="badge bg-success">已完成</span>{else}<span class="badge bg-warning">待完成</span>{/if}</td>
+                </tr>
+                {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card corporate-card">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>进度历史</h5></div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <thead><tr><th>时间</th><th>进度</th><th>备注</th></tr></thead>
+                <tbody>
+                {volist name="progressHistory" id="h"}
+                <tr><td>{$h.create_time}</td><td>{$h.progress}%</td><td>{$h.note}</td></tr>
+                {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+{block name="script"}
+<script>
+var ganttData = {$ganttData|raw};
+$(function(){
+    var html = '';
+    ganttData.forEach(function(t){
+        var progressBar = '<div class="progress" style="height:20px;min-width:200px;"><div class="progress-bar bg-'+t.color+'" style="width:'+t.progress+'%;">'+t.progress+'%</div></div>';
+        html += '<tr><td>'+t.title+'</td><td>'+t.start+' ~ '+t.end+'</td><td>'+progressBar+'</td><td><span class="badge bg-secondary">'+t.status+'</span></td></tr>';
+    });
+    $('#ganttBody').html(html || '<tr><td colspan="4" class="text-center text-muted">暂无数据</td></tr>');
+
+    $('#progressForm').on('submit', function(e){
+        e.preventDefault();
+        $.post('/admin/task_enhance/update_progress/{$task_id}', $(this).serialize(), function(res){
+            layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+            if(!res.code) setTimeout(function(){location.reload();}, 1000);
+        }, 'json');
+    });
+});
+</script>
+{/block}

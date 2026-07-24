@@ -1,0 +1,168 @@
+{extend name="layout" /}
+{block name="title"}灰度计划详情 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-info-circle me-1"></i>灰度计划详情</h5>
+        <a href="/admin/grayscale/index" class="btn btn-sm btn-secondary"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+    </div>
+    <div class="card-body">
+        {if condition="empty($plan)"}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-exclamation-circle fs-1"></i>
+            <p class="mt-2">灰度计划不存在</p>
+        </div>
+        {else/}
+        <!-- 状态卡片 -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">当前状态</div>
+                        {switch name="plan.status"}
+                            {case value="0"}<span class="badge bg-secondary fs-6">草稿</span>{/case}
+                            {case value="1"}<span class="badge bg-success fs-6">运行中</span>{/case}
+                            {case value="2"}<span class="badge bg-warning text-dark fs-6">已暂停</span>{/case}
+                            {case value="3"}<span class="badge bg-danger fs-6">已回滚</span>{/case}
+                            {case value="4"}<span class="badge bg-primary fs-6">已完成</span>{/case}
+                        {/switch}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">灰度请求数</div>
+                        <div class="fs-5 fw-bold">{$plan.metrics.total_requests ?? 0}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">灰度覆盖率</div>
+                        <div class="fs-5 fw-bold text-success">{$plan.metrics.grayscale_rate ?? 0}%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">错误率</div>
+                        <div class="fs-5 fw-bold {if ($plan.metrics.error_rate ?? 0) > 5}text-danger{else/}text-success{/if}">{$plan.metrics.error_rate ?? 0}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 回滚信息 -->
+        {if $plan.status eq 3 && $plan.rollback_reason}
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <strong>已回滚</strong> - {$plan.rollback_reason}
+            {if $plan.rollback_time}<span class="ms-2 text-muted small">{$plan.rollback_time}</span>{/if}
+        </div>
+        {/if}
+
+        <!-- 编辑表单 -->
+        <form id="grayscaleEditForm">
+            <input type="hidden" name="id" value="{$plan.id}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">计划名称</label>
+                        <input type="text" name="name" class="form-control" value="{$plan.name}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">功能标识</label>
+                        <input type="text" name="feature_key" class="form-control" value="{$plan.feature_key}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">描述</label>
+                <textarea name="description" class="form-control" rows="2">{$plan.description}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">策略类型</label>
+                        <select name="strategy" class="form-select">
+                            <option value="percentage" {if $plan.strategy eq 'percentage'}selected{/if}>百分比灰度</option>
+                            <option value="user_group" {if $plan.strategy eq 'user_group'}selected{/if}>用户分群</option>
+                            <option value="ip_list" {if $plan.strategy eq 'ip_list'}selected{/if}>IP列表</option>
+                            <option value="time_window" {if $plan.strategy eq 'time_window'}selected{/if}>时间窗口</option>
+                            <option value="whitelist" {if $plan.strategy eq 'whitelist'}selected{/if}>白名单</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">目标URL</label>
+                        <input type="text" name="target_url" class="form-control" value="{$plan.target_url}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">回退URL</label>
+                <input type="text" name="fallback_url" class="form-control" value="{$plan.fallback_url}">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">开始时间</label>
+                        <input type="text" name="start_time" class="form-control" value="{$plan.start_time}" placeholder="{$plan.start_time}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">结束时间</label>
+                        <input type="text" name="end_time" class="form-control" value="{$plan.end_time}" placeholder="{$plan.end_time}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 配置JSON预览 -->
+            {if $plan.config}
+            <div class="mb-3">
+                <label class="form-label">策略配置</label>
+                <pre class="bg-light p-2 rounded small">{:json_encode($plan.config, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)}</pre>
+            </div>
+            {/if}
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" onclick="saveGrayscale()">
+                    <i class="bi bi-check-lg me-1"></i>保存修改
+                </button>
+                <a href="/admin/grayscale/history?id={$plan.id}" class="btn btn-outline-info">
+                    <i class="bi bi-graph-up me-1"></i>监控指标
+                </a>
+                <a href="/admin/grayscale/index" class="btn btn-secondary">返回列表</a>
+            </div>
+        </form>
+        {/if}
+    </div>
+</div>
+
+<script>
+function saveGrayscale() {
+    var id = $('input[name="id"]').val();
+    var formData = $('#grayscaleEditForm').serialize();
+    $.post('/admin/grayscale/edit?id=' + id, formData, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess('更新成功');
+        } else {
+            alertError(res.msg || '更新失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+</script>
+{/block}

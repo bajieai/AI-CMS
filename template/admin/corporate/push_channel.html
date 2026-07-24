@@ -1,0 +1,300 @@
+{extend name="/layout" /}
+{block name="title"}内容推送 - 推送通道管理{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">📡 推送通道管理</h4>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#channelModal" onclick="openAdd()">
+            <i class="bi bi-plus-lg"></i> 添加通道
+        </button>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>推送通道列表</span>
+            <small class="text-muted">内容发布时自动推送到已启用的自动通道</small>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:60px">ID</th>
+                        <th>通道名称</th>
+                        <th style="width:100px">类型</th>
+                        <th style="width:80px">触发方式</th>
+                        <th style="width:80px">状态</th>
+                        <th style="width:140px">最后推送</th>
+                        <th style="width:200px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="channelTbody">
+                    <tr><td colspan="7" class="text-center text-muted py-4">加载中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 添加/编辑弹窗 -->
+    <div class="modal fade" id="channelModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="channelModalTitle">添加推送通道</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="channelForm">
+                        <input type="hidden" name="id" id="chId">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">通道名称 <span class="text-danger">*</span></label>
+                                <input type="text" name="name" id="chName" class="form-control" placeholder="如：外部官网同步" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">通道类型</label>
+                                <select name="type" id="chType" class="form-select">
+                                    <option value="webhook">Webhook</option>
+                                    <option value="wechat_push">微信推送 (Server酱)</option>
+                                    <option value="broadcast">站内广播</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Webhook 配置区 -->
+                        <div id="webhookConfig">
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">Webhook URL <span class="text-danger">*</span></label>
+                                    <input type="text" name="config[url]" id="chUrl" class="form-control" placeholder="https://api.example.com/cms-push">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">请求方法</label>
+                                    <select name="config[method]" id="chMethod" class="form-select">
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">数据格式</label>
+                                <select name="config[format]" id="chFormat" class="form-select" style="width:200px">
+                                    <option value="json">JSON</option>
+                                    <option value="xml">XML</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">自定义 Header（可选，每行一个，格式 Key: Value）</label>
+                                <textarea name="config[headers_text]" id="chHeaders" class="form-control" rows="3" placeholder="Authorization: Bearer xxx
+X-Source: aicms"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">超时时间（秒）</label>
+                                <input type="number" name="config[timeout]" id="chTimeout" class="form-control" style="width:120px" value="30" min="5" max="120">
+                            </div>
+                        </div>
+
+                        <!-- 微信推送配置区 -->
+                        <div id="wechatConfig" style="display:none">
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">推送 Token <span class="text-danger">*</span></label>
+                                    <input type="text" name="config[token]" id="chToken" class="form-control" placeholder="Server酱 SendKey 或 PushPlus Token">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">服务商</label>
+                                    <select name="config[service]" id="chService" class="form-select">
+                                        <option value="server_chan">Server酱</option>
+                                        <option value="pushplus">PushPlus</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <small class="text-muted">免费方案：<a href="https://sct.ftqq.com/" target="_blank">Server酱</a> 每日~100条 / <a href="https://www.pushplus.plus/" target="_blank">PushPlus</a> 每日~200条</small>
+                        </div>
+
+                        <!-- 站内广播配置区 -->
+                        <div id="broadcastConfig" style="display:none">
+                            <p class="text-muted">站内广播将推送内容到所有已注册用户的通知中心</p>
+                        </div>
+
+                        <div class="row mb-3 mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">触发方式</label>
+                                <select name="trigger_mode" id="chTrigger" class="form-select">
+                                    <option value="1">自动（发布时触发）</option>
+                                    <option value="0">手动</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">状态</label>
+                                <select name="status" id="chStatus" class="form-select">
+                                    <option value="1">启用</option>
+                                    <option value="0">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveChannel()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var channelList = [];
+var editId = 0;
+
+// 加载列表
+function loadList() {
+    $.get('/admin/push/channel/list', function(res) {
+        channelList = res.data.data || res.data || [];
+        renderTable();
+    });
+}
+
+function renderTable() {
+    var html = '';
+    if (channelList.length === 0) {
+        html = '<tr><td colspan="7" class="text-center text-muted py-4">暂无推送通道，点击上方按钮添加</td></tr>';
+    } else {
+        channelList.forEach(function(ch) {
+            html += '<tr>';
+            html += '<td>' + ch.id + '</td>';
+            html += '<td>' + ch.name + '</td>';
+            html += '<td><span class="badge bg-info">' + (ch.type === 'webhook' ? 'Webhook' : ch.type === 'wechat_push' ? '微信推送' : '站内广播') + '</span></td>';
+            html += '<td><span class="badge ' + (ch.trigger_mode == 1 ? 'bg-success' : 'bg-secondary') + '">' + (ch.trigger_mode == 1 ? '自动' : '手动') + '</span></td>';
+            html += '<td><span class="badge ' + (ch.status == 1 ? 'bg-success' : 'bg-danger') + '">' + (ch.status == 1 ? '启用' : '禁用') + '</span></td>';
+            html += '<td><small class="text-muted">' + (ch.last_push_at || '-') + '</small></td>';
+            html += '<td>';
+            html += '<button class="btn btn-sm btn-outline-info me-1" onclick="openEdit(' + ch.id + ')">编辑</button>';
+            html += '<button class="btn btn-sm btn-outline-warning me-1" onclick="testChannel(' + ch.id + ')">测试</button>';
+            html += '<button class="btn btn-sm btn-outline-danger" onclick="deleteChannel(' + ch.id + ')">删除</button>';
+            html += '</td>';
+            html += '</tr>';
+        });
+    }
+    $('#channelTbody').html(html);
+}
+
+// 打开添加
+function openAdd() {
+    editId = 0;
+    $('#channelModalTitle').text('添加推送通道');
+    $('#channelForm')[0].reset();
+    $('#chId').val('');
+    $('#chType').val('webhook').trigger('change');
+    $('#chMethod').val('POST');
+    $('#chFormat').val('json');
+    $('#chTimeout').val(30);
+    $('#chTrigger').val(1);
+    $('#chStatus').val(1);
+}
+
+// 打开编辑
+function openEdit(id) {
+    var ch = channelList.find(function(c) { return c.id == id; });
+    if (!ch) return;
+    editId = id;
+    $('#channelModalTitle').text('编辑推送通道');
+    $('#chId').val(ch.id);
+    $('#chName').val(ch.name);
+    $('#chType').val(ch.type).trigger('change');
+    $('#chTrigger').val(ch.trigger_mode);
+    $('#chStatus').val(ch.status);
+
+    var cfg = typeof ch.config === 'string' ? JSON.parse(ch.config) : ch.config;
+    if (ch.type === 'webhook') {
+        $('#chUrl').val(cfg.url || '');
+        $('#chMethod').val(cfg.method || 'POST');
+        $('#chFormat').val(cfg.format || 'json');
+        $('#chTimeout').val(cfg.timeout || 30);
+        var headersText = '';
+        if (cfg.headers) {
+            $.each(cfg.headers, function(k, v) { headersText += k + ': ' + v + '\n'; });
+        }
+        $('#chHeaders').val(headersText.trim());
+    } else if (ch.type === 'wechat_push') {
+        $('#chToken').val(cfg.token || '');
+        $('#chService').val(cfg.service || 'server_chan');
+    }
+    $('#channelModal').modal('show');
+}
+
+// 类型切换
+$('#chType').on('change', function() {
+    var type = $(this).val();
+    $('#webhookConfig').toggle(type === 'webhook');
+    $('#wechatConfig').toggle(type === 'wechat_push');
+    $('#broadcastConfig').toggle(type === 'broadcast');
+});
+
+// 保存
+function saveChannel() {
+    var data = $('#channelForm').serializeJSON();
+    // 构建 config JSON
+    if (data.type === 'webhook') {
+        data.config = {
+            url: data['config[url]'] || '',
+            method: data['config[method]'] || 'POST',
+            format: data['config[format]'] || 'json',
+            timeout: parseInt(data['config[timeout]']) || 30
+        };
+        var headersText = data['config[headers_text]'] || '';
+        if (headersText.trim()) {
+            data.config.headers = {};
+            headersText.trim().split('\n').forEach(function(line) {
+                var idx = line.indexOf(':');
+                if (idx > 0) data.config.headers[line.substring(0, idx).trim()] = line.substring(idx + 1).trim();
+            });
+        }
+    } else if (data.type === 'wechat_push') {
+        data.config = {
+            token: data['config[token]'] || '',
+            service: data['config[service]'] || 'server_chan'
+        };
+    } else {
+        data.config = {};
+    }
+
+    var url = editId ? '/admin/push/channel/edit/' + editId : '/admin/push/channel/add';
+    $.post(url, data, function(res) {
+        if (res.code === 0) {
+            alert(res.msg);
+        } else {
+            alert(res.msg);
+        }
+        $('#channelModal').modal('hide');
+        loadList();
+    });
+}
+
+// 测试
+function testChannel(id) {
+    if (!confirm('将使用测试数据验证通道配置，确定继续？')) return;
+    $.post('/admin/push/channel/test/' + id, function(res) {
+        if (res.code === 0) {
+            alert('✅ 测试成功！响应码: ' + (res.data.response_code || 'N/A'));
+        } else {
+            alert('❌ 测试失败: ' + (res.msg || ''));
+        }
+    });
+}
+
+// 删除
+function deleteChannel(id) {
+    if (!confirm('确定删除此推送通道？')) return;
+    $.post('/admin/push/channel/delete/' + id, function(res) {
+        alert(res.msg);
+        loadList();
+    });
+}
+
+// 初始化
+loadList();
+</script>
+{/block}

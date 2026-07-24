@@ -1,0 +1,37 @@
+{extend name="layout" /}
+{block name="title"}第三方登录统计 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-bar-chart"></i> 第三方登录统计分析</h5></div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">总绑定数</h6><h3>{$stats.total|default=0}</h3></div></div></div>
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">微信</h6><h3>{$stats.wechat|default=0}</h3></div></div></div>
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">QQ</h6><h3>{$stats.qq|default=0}</h3></div></div></div>
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">GitHub</h6><h3>{$stats.github|default=0}</h3></div></div></div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">微博</h6><h3>{$stats.weibo|default=0}</h3></div></div></div>
+            <div class="col-md-6"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">今日新增绑定</h6><h3>{$stats.today_new|default=0}</h3></div></div></div>
+        </div>
+        <div id="chart-container" style="height: 300px;"></div>
+    </div>
+</div>
+<script src="/assets/js/echarts.min.js"></script>
+<script>
+var chart = echarts.init(document.getElementById('chart-container'));
+chart.setOption({
+    tooltip: { trigger: 'item' },
+    legend: { top: '5%', left: 'center' },
+    series: [{
+        type: 'pie', radius: ['40%', '70%'],
+        data: [
+            {value: {$stats.wechat|default=0}, name: '微信'},
+            {value: {$stats.qq|default=0}, name: 'QQ'},
+            {value: {$stats.github|default=0}, name: 'GitHub'},
+            {value: {$stats.weibo|default=0}, name: '微博'}
+        ]
+    }]
+});
+</script>
+{/block}

@@ -1,0 +1,25 @@
+{extend name="/layout" /}
+{block name="title"}发布记录 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">发布记录</h4>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>内容ID</th><th>平台</th><th>状态</th><th>平台文章ID</th><th>发布时间</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.content_id}</td>
+                <td>{$vo.platform_id}</td>
+                <td>{if $vo.status==1}<span class="badge bg-success">已发布</span>{elseif $vo.status==0}<span class="badge bg-warning">待发布</span>{else/}<span class="badge bg-danger">失败</span>{/if}</td>
+                <td><small>{$vo.platform_content_id??'-'}</small></td>
+                <td>{$vo.create_time|date='Y-m-d H:i'}</td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+{/block}

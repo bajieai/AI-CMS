@@ -1,0 +1,39 @@
+{extend name="layout" /}
+
+{block name="title"}用户中心 - {$site_name}{/block}
+
+{block name="content"}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-person-circle me-1"></i>用户中心</div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-person-circle" style="font-size:4rem;color:var(--primary)"></i>
+                            <h5 class="mt-2">{$info.nickname ?: $info.username}</h5>
+                            <span class="badge bg-primary">{$info.role_id == 1 ? '超级管理员' : ($info.role_id == 2 ? '管理员' : '编辑')}</span>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>用户名</span><span class="text-muted">{$info.username}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>邮箱</span><span class="text-muted">{$info.email ?: '未设置'}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>注册时间</span><span class="text-muted">{$info.create_time|date='Y-m-d'}</span>
+                            </li>
+                        </ul>
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="/admin/user/profile" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>编辑资料</a>
+                            <a href="/admin/logout" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-right me-1"></i>退出登录</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

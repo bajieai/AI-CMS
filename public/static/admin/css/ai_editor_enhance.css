@@ -1,0 +1,26 @@
+/* AI编辑器增强样式 — V2.9.28 A-1 */
+.ai-float-btn { position: absolute; z-index: 9999; }
+.ai-float-trigger {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;
+    cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-size: 16px; transition: transform 0.2s;
+}
+.ai-float-trigger:hover { transform: scale(1.1); }
+.ai-float-menu {
+    display: none; position: absolute; bottom: 40px; left: 0;
+    background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    padding: 4px; min-width: 120px; border: 1px solid #e0e0e0;
+}
+.ai-float-btn:hover .ai-float-menu { display: block; }
+.ai-float-item {
+    display: block; width: 100%; padding: 6px 12px; border: none;
+    background: transparent; text-align: left; font-size: 13px;
+    color: #333; cursor: pointer; border-radius: 4px;
+}
+.ai-float-item:hover { background: #f5f5f5; color: #667eea; }
+.ai-loading-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.8); z-index: 10000;
+    display: none; align-items: center; justify-content: center; flex-direction: column;
+}

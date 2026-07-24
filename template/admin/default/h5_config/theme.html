@@ -1,0 +1,101 @@
+{extend name="layout" /}
+
+{block name="title"}主题配置 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">H5移动端</li>
+<li class="breadcrumb-item"><a href="/admin/h5_config/index">H5配置</a></li>
+<li class="breadcrumb-item active">主题配置</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-palette me-1"></i>H5 移动端主题配置</h5>
+    </div>
+    <div class="card-body">
+        <form id="themeForm">
+            <div class="mb-3">
+                <label class="form-label">主色调 <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <input type="color" name="primary_color" id="primaryColor" class="form-control form-control-color" value="{$config.primary_color|default='#1989fa'}">
+                    <input type="text" id="primaryColorText" class="form-control" value="{$config.primary_color|default='#1989fa'}" oninput="document.getElementById('primaryColor').value = this.value">
+                </div>
+                <div class="form-text">用于按钮、导航栏、链接等主要交互元素</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">暗黑模式</label>
+                    <select name="dark_mode" class="form-select">
+                        <option value="auto" {if ($config.dark_mode|default='auto') eq 'auto'}selected{/if}>跟随系统</option>
+                        <option value="light" {if $config.dark_mode eq 'light'}selected{/if}>始终浅色</option>
+                        <option value="dark" {if $config.dark_mode eq 'dark'}selected{/if}>始终深色</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">字号</label>
+                    <select name="font_size" class="form-select">
+                        <option value="small" {if ($config.font_size|default='medium') eq 'small'}selected{/if}>小号</option>
+                        <option value="medium" {if ($config.font_size|default='medium') eq 'medium'}selected{/if}>默认</option>
+                        <option value="large" {if $config.font_size eq 'large'}selected{/if}>大号</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">圆角大小</label>
+                    <select name="radius" class="form-select">
+                        <option value="0" {if ($config.radius|default='8') eq '0'}selected{/if}>直角</option>
+                        <option value="4" {if $config.radius eq '4'}selected{/if}>小圆角 4px</option>
+                        <option value="8" {if ($config.radius|default='8') eq '8'}selected{/if}>中圆角 8px</option>
+                        <option value="16" {if $config.radius eq '16'}selected{/if}>大圆角 16px</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">导航栏样式</label>
+                    <select name="nav_style" class="form-select">
+                        <option value="top" {if ($config.nav_style|default='top') eq 'top'}selected{/if}>顶部导航</option>
+                        <option value="bottom" {if $config.nav_style eq 'bottom'}selected{/if}>底部标签栏</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 预览区域 -->
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="mb-3">主题预览</h6>
+                    <div class="p-3 rounded" style="background:#fff; border:2px solid var(--preview-color, #1989fa)">
+                        <button class="btn btn-sm text-white mb-2" style="background:var(--preview-color, #1989fa)">主按钮</button>
+                        <br>
+                        <a href="javascript:void(0)" style="color:var(--preview-color, #1989fa)">链接文字</a>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary mt-3" onclick="saveTheme()">
+                <i class="bi bi-check-lg me-1"></i>保存主题
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+$('#primaryColor').on('input', function() {
+    document.documentElement.style.setProperty('--preview-color', this.value);
+    $('#primaryColorText').val(this.value);
+});
+$('#primaryColorText').on('input', function() {
+    document.documentElement.style.setProperty('--preview-color', this.value);
+});
+
+function saveTheme() {
+    var data = $('#themeForm').serialize();
+    $.post('/admin/h5_config/theme', data, function(res) {
+        if (res.code === 0) { alert('保存成功'); }
+        else { alert(res.msg || '保存失败'); }
+    });
+}
+</script>
+{/block}

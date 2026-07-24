@@ -1,0 +1,223 @@
+{extend name="layout" /}
+
+{block name="title"}备份恢复管理 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统管理</li>
+<li class="breadcrumb-item active">备份恢复</li>
+{/block}
+
+{block name="content"}
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">备份总数</div>
+                        <div class="fs-4 fw-bold">{$stats.total_count ?? 0}</div>
+                    </div>
+                    <i class="bi bi-database fs-2 text-primary opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">备份总大小</div>
+                        <div class="fs-4 fw-bold">{$stats.total_size ?? '0 MB'}</div>
+                    </div>
+                    <i class="bi bi-hdd fs-2 text-info opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">最近备份</div>
+                        <div class="fs-6 fw-bold">{$stats.last_backup ?? '从未'}</div>
+                    </div>
+                    <i class="bi bi-clock-history fs-2 text-success opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">定时备份</div>
+                        <div class="fs-6 fw-bold {if condition="$stats.schedule_enabled ?? 0"}text-success{else /}text-muted{/if}">{if condition="$stats.schedule_enabled ?? 0"}已启用{else /}未启用{/if}</div>
+                    </div>
+                    <i class="bi bi-calendar-check fs-2 text-warning opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 备份列表 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-archive me-1"></i>备份列表</span>
+        <div>
+            <a href="{:url('/admin/backup_restore/schedule')}" class="btn btn-outline-info btn-sm me-1">
+                <i class="bi bi-clock"></i> 定时备份
+            </a>
+            <button type="button" class="btn btn-primary btn-sm" onclick="createBackup()">
+                <i class="bi bi-plus-lg me-1"></i>创建备份
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" action="{:url('/admin/backup_restore/index')}">
+            <div class="col-md-3">
+                <select name="type" class="form-control form-control-sm">
+                    <option value="">全部类型</option>
+                    <option value="full" {if condition="$type|default='' eq 'full'"}selected{/if}>全量备份</option>
+                    <option value="incremental" {if condition="$type|default='' eq 'incremental'"}selected{/if}>增量备份</option>
+                    <option value="database" {if condition="$type|default='' eq 'database'"}selected{/if}>仅数据库</option>
+                    <option value="files" {if condition="$type|default='' eq 'files'"}selected{/if}>仅文件</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-control form-control-sm">
+                    <option value="">全部状态</option>
+                    <option value="success" {if condition="$status|default='' eq 'success'"}selected{/if}>成功</option>
+                    <option value="failed" {if condition="$status|default='' eq 'failed'"}selected{/if}>失败</option>
+                    <option value="in_progress" {if condition="$status|default='' eq 'in_progress'"}selected{/if}>进行中</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary btn-sm">筛选</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>备份名称</th>
+                    <th>类型</th>
+                    <th>大小</th>
+                    <th>状态</th>
+                    <th>加密</th>
+                    <th>创建时间</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name}</td>
+                    <td>
+                        {if condition="$vo.type eq 'full'"}
+                        <span class="badge bg-primary">全量</span>
+                        {elseif condition="$vo.type eq 'incremental'" /}
+                        <span class="badge bg-info">增量</span>
+                        {elseif condition="$vo.type eq 'database'" /}
+                        <span class="badge bg-success">数据库</span>
+                        {else /}
+                        <span class="badge bg-secondary">文件</span>
+                        {/if}
+                    </td>
+                    <td>{$vo.size}</td>
+                    <td>
+                        {if condition="$vo.status eq 'success'"}
+                        <span class="badge bg-success">成功</span>
+                        {elseif condition="$vo.status eq 'failed'" /}
+                        <span class="badge bg-danger">失败</span>
+                        {elseif condition="$vo.status eq 'in_progress'" /}
+                        <span class="badge bg-warning text-dark">进行中</span>
+                        {else /}
+                        <span class="badge bg-secondary">{$vo.status}</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.is_encrypted eq 1"}
+                        <i class="bi bi-lock-fill text-success" title="已加密"></i>
+                        {else /}
+                        <i class="bi bi-unlock text-muted" title="未加密"></i>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.created_at}</td>
+                    <td class="text-end">
+                        {if condition="$vo.status eq 'success'"}
+                        <button type="button" class="btn btn-outline-success btn-sm me-1" onclick="restoreBackup({$vo.id})" title="恢复">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                        <a href="{:url('/admin/backup_restore/download', ['id'=>$vo.id])}" class="btn btn-outline-primary btn-sm me-1" title="下载">
+                            <i class="bi bi-download"></i>
+                        </a>
+                        {/if}
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteBackup({$vo.id})" title="删除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无备份记录</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function createBackup() {
+    if (!confirm('确定立即创建一个全量备份？')) return;
+    $.post('{:url("/admin/backup_restore/create")}', {type: 'full'}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('备份任务已创建，请稍后刷新查看');
+            location.reload();
+        } else {
+            alert(res.msg || '创建失败');
+        }
+    });
+}
+function restoreBackup(id) {
+    if (!confirm('确定恢复此备份？当前数据将被覆盖，此操作不可逆！')) return;
+    if (!confirm('再次确认：恢复操作将覆盖现有数据，确定继续？')) return;
+    $.post('{:url("/admin/backup_restore/restore")}', {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('恢复成功');
+            location.reload();
+        } else {
+            alert(res.msg || '恢复失败');
+        }
+    });
+}
+function deleteBackup(id) {
+    if (!confirm('确定删除此备份记录及文件？')) return;
+    $.post('{:url("/admin/backup_restore/delete")}', {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('删除成功');
+            location.reload();
+        } else {
+            alert(res.msg || '删除失败');
+        }
+    });
+}
+</script>
+{/block}

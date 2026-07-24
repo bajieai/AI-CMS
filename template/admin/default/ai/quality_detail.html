@@ -1,0 +1,18 @@
+{extend name="layout" /}
+{block name="title"}AI质量检查详情{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/ai_quality/index">质量检查</a></li><li class="breadcrumb-item active">详情</li>{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-header"><h5>质量检查详情 #{$detail.id}</h5></div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6"><table class="table"><tr><th>内容ID</th><td>{$detail.content_id}</td></tr><tr><th>类型</th><td>{$detail.content_type}</td></tr><tr><th>评分</th><td>{$detail.quality_score}/100</td></tr><tr><th>AI生成</th><td>{$detail.ai_generated ? '是' : '否'}</td></tr></table></div>
+      <div class="col-md-6">
+        <h6>维度评分</h6>
+        <div id="dimension-scores">{if isset($detail.dimension_scores)}{foreach $detail.dimension_scores as $dim => $score}<div class="d-flex justify-content-between"><span>{$dim}</span><span>{$score}</span></div>{/foreach}{/if}</div>
+        <h6 class="mt-3">改进建议</h6><p>{$detail.suggestions ?? '无'}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{/block}

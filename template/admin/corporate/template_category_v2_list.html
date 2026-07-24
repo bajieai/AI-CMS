@@ -1,0 +1,24 @@
+{extend name="/layout" /}
+{block name="title"}模板分类V2 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-folder2-open"></i> 模板分类V2</h5></div>
+<div class="card-body">
+{if empty($list)}
+<div class="text-center text-muted py-4">暂无分类数据</div>
+{else}
+<div class="table-responsive">
+<table class="table table-hover table-sm">
+    <thead><tr><th width="60">ID</th><th>分类名称</th><th width="100">模板数</th><th width="80">排序</th><th width="100">状态</th><th width="160">创建时间</th></tr></thead>
+    <tbody>
+    {volist name="list" id="vo"}
+    <tr><td>{$vo.id}</td><td>{$vo.name??'--'}</td>
+        <td><span class="badge bg-info">{$vo.template_count??0}</span></td>
+        <td>{$vo.sort??0}</td>
+        <td>{if $vo.status??0==1}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+        <td>{:date('Y-m-d H:i', $vo.create_time??0)}</td></tr>
+    {/volist}
+    </tbody>
+</table></div>
+{/if}
+</div></div>
+{/block}

@@ -1,0 +1,82 @@
+{extend name="layout" /}
+
+{block name="title"}Webhook端点编辑{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/webhook/index">Webhook管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑端点{else/}添加端点{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑Webhook端点{else/}添加Webhook端点{/if}
+    </div>
+    <div class="card-body">
+        <form id="webhookForm" method="post" action="{if condition="$info"}/admin/webhook/edit/{$info.id}{else/}/admin/webhook/add{/if}">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="请输入Webhook名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">URL <span class="text-danger">*</span></label>
+                        <input type="url" name="url" class="form-control" value="{$info.url ?? ''}" required placeholder="https://example.com/webhook">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">事件类型 <span class="text-danger">*</span></label>
+                        <div class="border rounded p-3">
+                            {volist name="eventTypes" id="evt"}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="events[]" value="{$evt.value}" id="evt_{$evt.value}" {if condition="isset($info.events_arr) && in_array($evt.value, $info.events_arr)"}checked{/if}>
+                                <label class="form-check-label" for="evt_{$evt.value}">
+                                    <code>{$evt.value}</code> <small class="text-muted">{$evt.label}</small>
+                                </label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Secret</label>
+                        <input type="text" name="secret" class="form-control" value="{$info.secret ?? ''}" placeholder="用于签名验证（可选）">
+                        <small class="text-muted">用于验证请求来源的密钥</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">状态</label>
+                                <select name="status" class="form-select">
+                                    <option value="1" {if condition="!isset($info.status) || $info.status == 1"}selected{/if}>启用</option>
+                                    <option value="0" {if condition="isset($info.status) && $info.status == 0"}selected{/if}>禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">重试次数</label>
+                                <input type="number" name="retry_count" class="form-control" value="{$info.retry_count ?? 3}" min="0" max="10" placeholder="失败后重试次数">
+                                <small class="text-muted">范围 0-10，默认3次</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        <a href="/admin/webhook/index" class="btn btn-outline-secondary">取消返回</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#webhookForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+</script>
+{/block}

@@ -1,0 +1,71 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑用户{else/}添加用户{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/user/index">用户管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑用户{else/}添加用户{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑用户{else/}添加用户{/if}
+    </div>
+    <div class="card-body">
+        <form id="userForm" method="post" action="{if condition="$info"}/admin/user/edit/{$info.id}{else/}/admin/user/add{/if}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">用户名 <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" value="{$info.username ?? ''}" required placeholder="请输入用户名" {if condition="$info"}readonly{/if}>
+                        {if condition="$info"}<small class="text-muted">用户名不可修改</small>{/if}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{if condition="$info"}新密码{else/}密码 <span class="text-danger">*</span>{/if}</label>
+                        <input type="password" name="{if condition='$info'}new_password{else/}password{/if}" class="form-control"
+                            {if condition="!$info"}required{/if} placeholder="{if condition="$info"}留空则不修改{else/}请输入密码{/if}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">昵称</label>
+                        <input type="text" name="nickname" class="form-control" value="{$info.nickname ?? ''}" placeholder="显示名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" name="email" class="form-control" value="{$info.email ?? ''}" placeholder="请输入邮箱">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">角色</label>
+                        <select name="role_id" class="form-select">
+                            <option value="1" {if condition="($info.role_id ?? 3) == 1"}selected{/if}>超级管理员</option>
+                            <option value="2" {if condition="($info.role_id ?? 3) == 2"}selected{/if}>管理员</option>
+                            <option value="3" {if condition="($info.role_id ?? 3) == 3"}selected{/if}>编辑</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                            <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                        </select>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        <a href="/admin/user/index" class="btn btn-outline-secondary">取消返回</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#userForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+</script>
+{/block}

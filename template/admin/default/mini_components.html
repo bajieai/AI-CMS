@@ -1,0 +1,40 @@
+{extend name="layout" /}
+{block name="title"}组件库{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">小程序/移动端</li><li class="breadcrumb-item active">组件库</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-block me-1"></i>移动端模板组件库 ({:count($components)}个组件)</div>
+    <div class="card-body">
+        <ul class="nav nav-pills mb-3" id="compTabs">
+            <li class="nav-item"><a class="nav-link active" data-cat="all">全部</a></li>
+            {volist name="categories" id="cat"}<li class="nav-item"><a class="nav-link" data-cat="{$cat.key}">{$cat.name}</a></li>{/volist}
+        </ul>
+        <div class="row g-2" id="compGrid">
+            {volist name="components" id="comp"}
+            <div class="col-md-3 col-sm-6 comp-item" data-cat="{$comp.category}">
+                <div class="card border-light h-100">
+                    <div class="card-body p-2 text-center">
+                        <div class="comp-preview mb-2" style="height:60px;background:#f8f9fa;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-square text-muted"></i>
+                        </div>
+                        <strong class="small">{$comp.name}</strong>
+                        <p class="text-muted xsmall mb-1">{$comp.type}</p>
+                        <span class="badge bg-secondary xsmall">{$comp.category}</span>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+        <hr>
+        <h6>预设模板</h6>
+        <div class="row g-2">
+            {volist name="templates" id="tpl" key="key"}
+            <div class="col-md-3">
+                <div class="card border-light"><div class="card-body p-2"><strong class="small">{$tpl.name}</strong><br><span class="text-muted xsmall">{$key}</span></div></div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+</div>
+<script>$('#compTabs a').click(function(e){e.preventDefault();var c=$(this).data('cat');$('.comp-item').show();if(c!=='all'){$('.comp-item').not('[data-cat="'+c+'"]').hide();}$('#compTabs a').removeClass('active');$(this).addClass('active');});</script>
+{/block}

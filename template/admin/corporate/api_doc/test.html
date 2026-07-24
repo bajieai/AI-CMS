@@ -1,0 +1,40 @@
+{extend name="layout" /}
+{block name="title"}API在线测试 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-play-circle"></i> API在线测试</h5></div>
+    <div class="card-body">
+        <form id="api-test-form">
+            <div class="row mb-3">
+                <div class="col-md-2"><select name="method" class="form-select" id="api-method">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                </select></div>
+                <div class="col-md-8"><input type="text" name="url" class="form-control" id="api-url" placeholder="/api/v1/content/list" value="/api/v1/content/list"></div>
+                <div class="col-md-2"><button type="button" class="btn btn-primary w-100" onclick="testApi()"><i class="bi bi-send"></i> 发送</button></div>
+            </div>
+            <div class="mb-3"><label class="form-label">API Key</label><input type="text" name="api_key" class="form-control" placeholder="输入API Key"></div>
+            <div class="mb-3"><label class="form-label">请求参数 (JSON)</label><textarea name="params" class="form-control" rows="6" id="api-params" placeholder='{"page": 1, "limit": 10}'>{}</textarea></div>
+        </form>
+        <hr>
+        <h6><i class="bi bi-arrow-return-right"></i> 响应结果</h6>
+        <pre id="api-response" class="bg-dark text-light p-3 rounded" style="min-height: 200px;">点击"发送"按钮测试API...</pre>
+    </div>
+</div>
+<script>
+function testApi() {
+    var method = $('#api-method').val();
+    var url = $('#api-url').val();
+    var params = $('#api-params').val();
+    var apiKey = $('input[name="api_key"]').val();
+    $.ajax({
+        url: url, type: method, data: params, contentType: 'application/json',
+        beforeSend: function(xhr) { if(apiKey) xhr.setRequestHeader('X-API-Key', apiKey); },
+        success: function(res) { $('#api-response').text(JSON.stringify(res, null, 2)); },
+        error: function(xhr) { $('#api-response').text('Error: ' + xhr.status + ' ' + xhr.statusText + '\n\n' + xhr.responseText); }
+    });
+}
+</script>
+{/block}

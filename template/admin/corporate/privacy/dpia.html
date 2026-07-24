@@ -1,0 +1,134 @@
+{extend name="layout" /}
+
+{block name="title"}数据保护影响评估(DPIA) - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">隐私合规</li>
+<li class="breadcrumb-item active">DPIA评估</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3">
+    <!-- 左侧：评估清单 -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clipboard-check me-1"></i>评估清单</span>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dpiaModal">
+                    <i class="bi bi-plus-lg me-1"></i>新建评估
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>评估名称</th>
+                            <th>风险等级</th>
+                            <th>状态</th>
+                            <th>评估日期</th>
+                            <th class="text-end">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.name}</td>
+                            <td>
+                                {if condition="$vo.risk_level == 'high'"}
+                                <span class="badge bg-danger">高风险</span>
+                                {elseif condition="$vo.risk_level == 'medium'" /}
+                                <span class="badge bg-warning">中风险</span>
+                                {else /}
+                                <span class="badge bg-success">低风险</span>
+                                {/if}
+                            </td>
+                            <td>
+                                {if condition="$vo.status == 'completed'"}
+                                <span class="badge bg-success">已完成</span>
+                                {elseif condition="$vo.status == 'in_progress'" /}
+                                <span class="badge bg-info">进行中</span>
+                                {else /}
+                                <span class="badge bg-secondary">草稿</span>
+                                {/if}
+                            </td>
+                            <td class="small text-muted">{$vo.assessed_at ?? '—'}</td>
+                            <td class="text-end">
+                                <a href="/admin/privacy/dpia_view?id={$vo.id}" class="btn btn-outline-primary btn-sm me-1">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmDelete('/admin/privacy/dpia_delete/{$vo.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {empty name="list"}
+                        <tr><td colspan="6" class="text-center text-muted py-4">暂无评估记录</td></tr>
+                        {/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：评估表单 -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-file-earmark-text me-1"></i>评估表单
+            </div>
+            <div class="card-body">
+                <form id="dpiaForm">
+                    <div class="mb-3">
+                        <label class="form-label">评估名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" required placeholder="例：用户数据收集影响评估">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">数据处理活动描述</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="描述数据处理的目的、范围和方式"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">风险等级</label>
+                        <select class="form-select" name="risk_level">
+                            <option value="low">低风险</option>
+                            <option value="medium">中风险</option>
+                            <option value="high">高风险</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">缓解措施</label>
+                        <textarea class="form-control" name="mitigation" rows="3" placeholder="描述为降低风险所采取的措施"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">评估人</label>
+                        <input type="text" class="form-control" name="assessor" placeholder="评估负责人">
+                    </div>
+                    <div class="text-end">
+                        <button type="reset" class="btn btn-outline-secondary btn-sm me-1">重置</button>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg me-1"></i>保存评估</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#dpiaForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/privacy/dpia_save', data, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('保存成功');
+            location.reload();
+        } else {
+            alert(res.msg || '保存失败');
+        }
+    });
+});
+</script>
+{/block}

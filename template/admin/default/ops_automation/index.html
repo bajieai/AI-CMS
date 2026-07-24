@@ -1,0 +1,33 @@
+{extend name="/layout" /}
+{block name="title"}运营自动化 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-gear-wide-connected"></i> 运营自动化（共 {$total} 条）</h5></div>
+<div class="card-body">
+{if empty($list)}
+<div class="text-center text-muted py-4">暂无自动化流程</div>
+{else}
+<div class="table-responsive">
+<table class="table table-hover table-sm">
+    <thead><tr><th width="60">ID</th><th>流程名称</th><th width="150">触发条件</th><th width="150">执行动作</th><th width="80">执行次数</th><th width="100">状态</th><th width="160">创建时间</th></tr></thead>
+    <tbody>
+    {volist name="list" id="vo"}
+    <tr><td>{$vo.id}</td><td>{$vo.name??'--'}</td>
+        <td><small class="text-muted">{$vo.trigger_type??'--'}: {$vo.trigger_value??'--'}</small></td>
+        <td><small>{$vo.action_type??'--'}: {$vo.action_value??'--'}</small></td>
+        <td>{$vo.run_count??0}</td>
+        <td>{if $vo.status??0==1}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+        <td>{:date('Y-m-d H:i', $vo.create_time??0)}</td></tr>
+    {/volist}
+    </tbody>
+</table></div>
+<div class="d-flex justify-content-between mt-3">
+    <span class="text-muted small">共 {$total} 条，第 {$page}/{:ceil($total/20)} 页</span>
+    <ul class="pagination pagination-sm mb-0">
+        {for start="1" end="ceil($total/20)"}
+        <li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}">{$i}</a></li>
+        {/for}
+    </ul>
+</div>
+{/if}
+</div></div>
+{/block}

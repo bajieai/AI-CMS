@@ -1,0 +1,138 @@
+{extend name="layout" /}
+
+{block name="title"}安全配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">安全中心</li>
+<li class="breadcrumb-item active">安全配置</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>安全策略配置</h5>
+            </div>
+            <div class="card-body">
+                <form id="securityConfigForm" method="post" action="/admin/security/save">
+                    <!-- 安全级别 -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">安全级别</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="level" id="level_relaxed" value="relaxed" {if $config.level eq 'relaxed'}checked{/if}>
+                            <label class="btn btn-outline-success" for="level_relaxed">宽松</label>
+                            <input type="radio" class="btn-check" name="level" id="level_standard" value="standard" {if $config.level eq 'standard'}checked{/if}>
+                            <label class="btn btn-outline-primary" for="level_standard">标准</label>
+                            <input type="radio" class="btn-check" name="level" id="level_strict" value="strict" {if $config.level eq 'strict'}checked{/if}>
+                            <label class="btn btn-outline-danger" for="level_strict">严格</label>
+                        </div>
+                        <small class="text-muted">宽松=仅记录日志，标准=阻断攻击，严格=最强防护</small>
+                    </div>
+
+                    <hr>
+
+                    <!-- XSS防护 -->
+                    <h6 class="text-primary"><i class="bi bi-bug me-1"></i>XSS防护</h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="xss_input_enabled" id="xss_input_enabled" {if !empty($config.xss_input.enabled)}checked{/if}>
+                        <label class="form-check-label" for="xss_input_enabled">启用XSS输入过滤</label>
+                    </div>
+
+                    <!-- SQL注入防护 -->
+                    <h6 class="text-primary mt-3"><i class="bi bi-database-exclamation me-1"></i>SQL注入防护</h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="sql_injection_enabled" id="sql_injection_enabled" {if !empty($config.sql_injection.enabled)}checked{/if}>
+                        <label class="form-check-label" for="sql_injection_enabled">启用SQL注入检测</label>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">检测模式</label>
+                        <select class="form-select" name="sql_injection_mode">
+                            <option value="block" {if ($config.sql_injection.mode ?? '') eq 'block'}selected{/if}>阻断（拦截请求）</option>
+                            <option value="log" {if ($config.sql_injection.mode ?? '') eq 'log'}selected{/if}>仅记录（不拦截）</option>
+                        </select>
+                    </div>
+
+                    <!-- CSRF防护 -->
+                    <h6 class="text-primary mt-3"><i class="bi bi-lock me-1"></i>CSRF防护</h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="csrf_bind_ip" id="csrf_bind_ip" {if !empty($config.csrf.bind_ip)}checked{/if}>
+                        <label class="form-check-label" for="csrf_bind_ip">Token绑定IP</label>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Token有效期（秒）</label>
+                        <input type="number" class="form-control" name="csrf_token_ttl" value="{$config.csrf.token_ttl ?? 1800}" min="300" max="86400">
+                    </div>
+
+                    <!-- 密码策略 -->
+                    <h6 class="text-primary mt-3"><i class="bi bi-key me-1"></i>密码策略</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">最小密码长度</label>
+                            <input type="number" class="form-control" name="password_min_length" value="{$config.password.min_length ?? 8}" min="6" max="32">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">最大登录失败次数</label>
+                            <input type="number" class="form-control" name="password_max_login_attempts" value="{$config.password.max_login_attempts ?? 5}" min="3" max="20">
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mb-1">
+                        <input class="form-check-input" type="checkbox" name="password_require_case" id="password_require_case" {if !empty($config.password.require_case)}checked{/if}>
+                        <label class="form-check-label" for="password_require_case">必须包含大小写字母</label>
+                    </div>
+                    <div class="form-check form-switch mb-1">
+                        <input class="form-check-input" type="checkbox" name="password_require_number" id="password_require_number" {if !empty($config.password.require_number)}checked{/if}>
+                        <label class="form-check-label" for="password_require_number">必须包含数字</label>
+                    </div>
+                    <div class="form-check form-switch mb-1">
+                        <input class="form-check-input" type="checkbox" name="password_require_special" id="password_require_special" {if !empty($config.password.require_special)}checked{/if}>
+                        <label class="form-check-label" for="password_require_special">必须包含特殊字符</label>
+                    </div>
+
+                    <!-- 告警配置 -->
+                    <h6 class="text-primary mt-3"><i class="bi bi-bell me-1"></i>安全告警</h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="alert_enabled" id="alert_enabled" {if !empty($config.log.alert.enabled)}checked{/if}>
+                        <label class="form-check-label" for="alert_enabled">启用严重事件告警</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">最小告警级别</label>
+                        <select class="form-select" name="alert_min_severity">
+                            <option value="2" {if ($config.log.alert.min_severity ?? 3) eq 2}selected{/if}>中（级别>=2）</option>
+                            <option value="3" {if ($config.log.alert.min_severity ?? 3) eq 3}selected{/if}>高（级别>=3）</option>
+                            <option value="4" {if ($config.log.alert.min_severity ?? 3) eq 4}selected{/if}>严重（级别=4）</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>今日安全概览</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">总事件数</span>
+                    <span class="badge bg-secondary">{$stats.today ?? 0}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">总记录数</span>
+                    <span class="badge bg-info">{$stats.total ?? 0}</span>
+                </div>
+                <hr>
+                <h6 class="small text-muted">按事件类型</h6>
+                {foreach $stats.by_type as $item}
+                <div class="d-flex justify-content-between mb-1">
+                    <span><span class="badge bg-danger">{$item.event_type}</span></span>
+                    <span>{$item.count}</span>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

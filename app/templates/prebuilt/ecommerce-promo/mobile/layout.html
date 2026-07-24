@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{$site.title|default='购物促销'}</title>
+    <meta name="keywords" content="{$site.keywords|default=''}">
+    <meta name="description" content="{$site.description|default=''}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <!-- 移动端顶部 -->
+    <div class="mobile-top-bar">
+        <span>🔥 限时特惠，全场低至5折！</span>
+    </div>
+
+    <!-- 移动端头部 -->
+    <header class="mobile-header">
+        <div class="container">
+            <button class="menu-btn" id="mobileMenuBtn" aria-label="菜单">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="mobile-logo">
+                <a href="/">
+                    <img src="/assets/placeholder/logo.png" alt="{$site.title|default='购物促销'}">
+                </a>
+            </div>
+            <a href="/cart.html" class="mobile-cart">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59L5.25 14H19v-2H7.42l.94-2H17l3-6H5.21L4.27 2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="currentColor"/>
+                </svg>
+                <span class="cart-count">0</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- 移动端菜单 -->
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <span>菜单</span>
+            <button class="close-btn" id="sidebarClose">&times;</button>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="/">首页</a></li>
+            <li><a href="/list.html">全部商品</a></li>
+            <li><a href="/list.html?category=1">新品上市</a></li>
+            <li><a href="/list.html?category=2">热销爆款</a></li>
+            <li><a href="/list.html?category=3">限时秒杀</a></li>
+        </ul>
+    </div>
+
+    <!-- 主内容 -->
+    <main class="mobile-main">
+        {__CONTENT__}
+    </main>
+
+    <!-- 移动端底部导航 -->
+    <nav class="mobile-bottom-nav">
+        <a href="/" class="nav-item active">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            <span>首页</span>
+        </a>
+        <a href="/list.html" class="nav-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M4 4h16v16H4V4z" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            <span>分类</span>
+        </a>
+        <a href="/cart.html" class="nav-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59L5.25 14H19v-2H7.42l.94-2H17l3-6H5.21L4.27 2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="currentColor"/>
+            </svg>
+            <span>购物车</span>
+        </a>
+        <a href="/user.html" class="nav-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            <span>我的</span>
+        </a>
+    </nav>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | V2.9.31 Sprint UX2: 移动端模板基础文件(corporate)
+// +----------------------------------------------------------------------
+
+{extend name="layout" /}
+
+{block name="title"}{:config('site.name')}{/block}
+
+{block name="content"}
+<div class="mobile-home">
+    <!-- 搜索栏 -->
+    <div class="p-3 bg-light">
+        <form action="/search" method="get" class="d-flex">
+            <input type="text" name="keyword" class="form-control form-control-sm" placeholder="搜索内容...">
+            <button type="submit" class="btn btn-primary btn-sm ms-2"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    <!-- 内容列表 -->
+    <div class="list-group list-group-flush">
+        {volist name="list" id="vo"}
+        <a href="/{$vo.type}/{$vo.id}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1 text-truncate" style="max-width:70%;">{$vo.title}</h6>
+                <small class="text-muted">{:date('m-d', $vo.create_time)}</small>
+            </div>
+            <p class="mb-1 small text-muted text-truncate">{$vo.description}</p>
+        </a>
+        {/volist}
+        {empty name="list"}
+        <div class="list-group-item text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">暂无内容</p>
+        </div>
+        {/empty}
+    </div>
+</div>
+{/block}
+
+{block name="css"}
+<style>
+.mobile-home .list-group-item { padding: 1rem; }
+.mobile-home h6 { font-size: 0.95rem; }
+</style>
+{/block}

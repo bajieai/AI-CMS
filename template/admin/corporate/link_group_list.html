@@ -1,0 +1,78 @@
+{extend name="layout" /}
+
+{block name="title"}友链分组{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">运营管理</li>
+<li class="breadcrumb-item active">友链分组</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>分组列表</span>
+        <a href="/admin/link_group/add" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>添加分组
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>排序</th>
+                    <th>状态</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name}</td>
+                    <td>{$vo.sort}</td>
+                    <td>
+                        {if condition="$vo.status == 1"}
+                        <span class="badge bg-success">启用</span>
+                        {else /}
+                        <span class="badge bg-secondary">禁用</span>
+                        {/if}
+                    </td>
+                    <td class="text-end">
+                        <a href="/admin/link_group/edit/{$vo.id}" class="btn btn-outline-primary btn-sm me-1">
+                            <i class="bi bi-pencil"></i> 编辑
+                        </a>
+                        <button type="button" class="btn btn-outline-warning btn-sm me-1" onclick="toggleStatus({$vo.id})">
+                            <i class="bi bi-toggle-on"></i> {if condition="$vo.status == 1"}禁用{else/}启用{/if}
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmDelete('/admin/link_group/delete/{$vo.id}')">
+                            <i class="bi bi-trash"></i> 删除
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="5" class="text-center text-muted py-4">暂无分组，<a href="/admin/link_group/add">去添加</a></td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function toggleStatus(id) {
+    ajaxPost('/admin/link_group/toggleStatus/' + id, {});
+}
+</script>
+{/block}

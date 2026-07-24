@@ -1,0 +1,43 @@
+{extend name="layout" /}
+{block name="title"}CSS/JS白名单管理{/block}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-shield-check me-2"></i>CSS/JS白名单管理</h4>
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a class="nav-link active" href="#css" data-bs-toggle="tab">CSS白名单 ({$whitelist.css|count})</a></li>
+        <li class="nav-item"><a class="nav-link" href="#js" data-bs-toggle="tab">JS白名单 ({$whitelist.js|count})</a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="css">
+            <div class="card"><div class="card-body">
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>类型</th><th>名称</th><th>安全级别</th><th>说明</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {volist name="whitelist.css" id="item"}
+                        <tr><td><span class="badge bg-info">{$item.category}</span></td><td>{$item.item_name}</td><td><span class="badge bg-success">{$item.security_level}</span></td><td>{$item.description}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteItem({$item.id})"><i class="bi bi-trash"></i></button></td></tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div></div>
+        </div>
+        <div class="tab-pane fade" id="js">
+            <div class="card"><div class="card-body">
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>类型</th><th>名称</th><th>安全级别</th><th>说明</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {volist name="whitelist.js" id="item"}
+                        <tr><td><span class="badge bg-info">{$item.category}</span></td><td>{$item.item_name}</td><td><span class="badge bg-success">{$item.security_level}</span></td><td>{$item.description}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteItem({$item.id})"><i class="bi bi-trash"></i></button></td></tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div></div>
+        </div>
+    </div>
+</div>
+<script>
+function deleteItem(id) {
+    if (!confirm('确认删除？')) return;
+    $.post('/admin/custom_whitelist/delete/' + id, function(res) { if (res.code === 0) location.reload(); });
+}
+</script>
+{/block}

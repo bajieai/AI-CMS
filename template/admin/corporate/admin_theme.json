@@ -1,0 +1,1 @@
+{"name": "企业商务后台", "description": "深色侧边栏 + 现代UI的专业管理面板", "author": "八界", "version": "1.0.0", "layout_modes": ["sidebar", "topnav"], "default_layout": "sidebar", "colors": {"sidebar_bg": "#1e1e2d", "sidebar_text": "#a2a3b7", "primary": "#3699ff"}}

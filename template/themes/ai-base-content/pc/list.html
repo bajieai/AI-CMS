@@ -1,0 +1,63 @@
+{extend name="layout" /}
+
+{block name="title"}
+{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name} - {$site_name}
+{else/}列表 - {$site_name}{/if}
+{/block}
+
+{block name="keywords"}{if condition="$current_cate && $current_cate.seo_keywords"}{$current_cate.seo_keywords}{else}{$site_keywords}{/if}{/block}
+{block name="description"}{if condition="$current_cate && $current_cate.seo_description"}{$current_cate.seo_description}{else}{$site_description}{/if}{/block}
+
+{block name="content"}
+<section class="section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">{if condition="$current_cate"}{$current_cate.name}{else/}列表{/if}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-8">
+                {volist name="list" id="vo"}
+                <article class="content-list-item">
+                    {if condition="$vo.cover"}
+                    <a href="{$vo.url}" class="item-thumb"><img data-src="{$vo.cover}" class="lazyload" alt="{$vo.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></a>
+                    {/if}
+                    <div class="item-body">
+                        <h5><a href="{$vo.url}">{$vo.title}</a></h5>
+                        <p class="text-muted small">{$vo.excerpt|msubstr=0,120}</p>
+                        <div class="item-meta">
+                            <span><i class="bi bi-calendar3"></i> {$vo.create_time|date='Y-m-d'}</span>
+                            <span><i class="bi bi-eye"></i> {$vo.views} 阅读</span>
+                        </div>
+                    </div>
+                </article>
+                {/volist}
+
+                {empty name="list"}
+                {include file="shared/empty_state" /}
+                {/empty}
+
+                {if condition="($list->hasPages() ?? false)"}
+                <div class="mt-3 d-flex justify-content-center">{$list->render()|raw}</div>
+                {/if}
+            </div>
+
+            <aside class="col-lg-4">
+                <div class="widget">
+                    <h6 class="widget-title"><i class="bi bi-folder2 me-1"></i>分类</h6>
+                    <div class="list-group list-group-flush">{$cate_tree_html|raw}</div>
+                </div>
+                <div class="widget">
+                    <h6 class="widget-title"><i class="bi bi-fire me-1"></i>热门推荐</h6>
+                    {i8j:infolist limit="5" order="views desc"}
+                    <div class="widget-item"><a href="{$field.url}" class="small">{$field.title}</a></div>
+                    {/i8j:infolist}
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{/block}

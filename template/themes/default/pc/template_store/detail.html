@@ -1,0 +1,106 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | V2.9.31 Sprint T3: 前台模板商店详情页
+// +----------------------------------------------------------------------
+
+{extend name="layout" /}
+
+{block name="title"}{$store.name} - 模板商店 - {:config('site.name')}{/block}
+
+{block name="content"}
+<div class="container py-4">
+    <div class="row">
+        <!-- 左侧：模板信息 -->
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="mb-1">{$store.name}</h4>
+                            <p class="text-muted mb-2">{$store.description}</p>
+                            <div class="mb-2">
+                                <span class="badge bg-secondary">{$store.category.name ?? ''}</span>
+                                {if condition="$store.is_featured == 1"}<span class="badge bg-primary ms-1">推荐</span>{/if}
+                            </div>
+                            <div class="small text-muted">
+                                <span class="me-3"><i class="bi bi-star-fill text-warning"></i> {$store.rating_avg} ({$store.rating_count}评价)</span>
+                                <span class="me-3"><i class="bi bi-download"></i> {$install_stats.total}次安装</span>
+                                <span>版本 {$store.version}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {if condition="$price_info.discount_amount > 0"}
+                            <div class="text-muted text-decoration-line-through">¥{$price_info.original_price}</div>
+                            <div class="text-danger fs-3 fw-bold">¥{$price_info.final_price}</div>
+                            <span class="badge bg-danger">省¥{$price_info.discount_amount}</span>
+                            {else /}
+                            <div class="text-danger fs-3 fw-bold">{if condition="$store.price > 0"}¥{$store.price}{else /}免费{/if}</div>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 截图展示 -->
+            {if condition="$store.screenshots"}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-2">
+                        {php}$screens = is_string($store.screenshots) ? json_decode($store.screenshots, true) : $store.screenshots;{/php}
+                        {volist name="screens" id="img"}
+                        <div class="col-6 col-md-4">
+                            <img src="{$img}" class="img-fluid rounded" alt="" onerror="this.style.display='none'">
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+            </div>
+            {/if}
+
+            <!-- 评论 -->
+            <div class="card">
+                <div class="card-header"><i class="bi bi-chat-left-text me-1"></i>用户评价</div>
+                <div class="card-body">
+                    {volist name="reviews" id="rv"}
+                    <div class="border-bottom pb-2 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-medium">{$rv.member.nickname ?? '匿名用户'}</span>
+                            <span class="text-warning">{for start="1" end="$rv.rating+1"}<i class="bi bi-star-fill small"></i>{/for}</span>
+                        </div>
+                        <p class="mb-1 small">{$rv.comment}</p>
+                        <div class="text-muted small">{:date('Y-m-d', $rv.create_time)}</div>
+                    </div>
+                    {/volist}
+                    {empty name="reviews"}
+                    <div class="text-center text-muted py-3">暂无评价</div>
+                    {/empty}
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：相关模板 -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-grid-3x3-gap me-1"></i>相关模板</div>
+                <div class="list-group list-group-flush">
+                    {volist name="related" id="vo"}
+                    <a href="/template_store/detail/{$vo.slug}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="rounded me-2" style="width:48px;height:36px;object-fit:cover;" alt="" onerror="this.style.display='none'">
+                        <div class="flex-fill">
+                            <div class="text-truncate">{$vo.name}</div>
+                            <div class="small text-muted">{if condition="$vo.price > 0"}¥{$vo.price}{else /}免费{/if}</div>
+                        </div>
+                    </a>
+                    {/volist}
+                    {empty name="related"}
+                    <div class="list-group-item text-muted text-center py-3">暂无相关模板</div>
+                    {/empty}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,35 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">版本对比</h4>
+    <div class="mb-3"><a href="/admin/template_audit_workflow/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a></div>
+    {if $diff.success}
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white"><i class="bi bi-file-earmark me-2"></i>当前版本</div>
+                <div class="card-body">
+                    <p><strong>版本号：</strong>{$diff.current.version ?? '-'}</p>
+                    <p><strong>更新时间：</strong>{$diff.current.created_at ?? '-'}</p>
+                    <p><strong>更新说明：</strong></p>
+                    <pre class="bg-light p-3">{$diff.current.changelog ?? '-'}</pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white"><i class="bi bi-file-earmark me-2"></i>上一版本</div>
+                <div class="card-body">
+                    <p><strong>版本号：</strong>{$diff.previous.version ?? '-'}</p>
+                    <p><strong>更新时间：</strong>{$diff.previous.created_at ?? '-'}</p>
+                    <p><strong>更新说明：</strong></p>
+                    <pre class="bg-light p-3">{$diff.previous.changelog ?? '-'}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    {else/}
+    <div class="alert alert-info">{$diff.message}</div>
+    {/if}
+</div>
+{/block}

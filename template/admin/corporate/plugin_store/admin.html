@@ -1,0 +1,201 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-gear me-2"></i>插件商店后台</h4>
+
+    <!-- 概览卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">插件总数</div>
+                            <div class="fs-3 fw-bold">{$overview.plugin_count|default=0}</div>
+                        </div>
+                        <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">开发者数</div>
+                            <div class="fs-3 fw-bold">{$overview.developer_count|default=0}</div>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">订单总数</div>
+                            <div class="fs-3 fw-bold">{$overview.order_count|default=0}</div>
+                        </div>
+                        <i class="bi bi-receipt fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">交易总额</div>
+                            <div class="fs-3 fw-bold">¥{$overview.total_revenue|default=0}</div>
+                        </div>
+                        <i class="bi bi-currency-yen fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 订单统计 + 待处理 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-bar-chart me-2"></i>订单统计</div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>已支付</td><td class="fw-bold text-success">{$order_stats.paid|default=0}</td>
+                            <td>待支付</td><td class="fw-bold text-warning">{$order_stats.pending|default=0}</td>
+                        </tr>
+                        <tr>
+                            <td>已退款</td><td class="fw-bold text-info">{$order_stats.refunded|default=0}</td>
+                            <td>总收入</td><td class="fw-bold text-danger">¥{$order_stats.revenue|default=0}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-exclamation-triangle me-2"></i>待处理</div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>待审核插件</span>
+                        <span class="badge bg-warning fs-6">{$overview.pending_audit|default=0}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>待结算分成</span>
+                        <span class="badge bg-info fs-6">¥{$overview.pending_payout|default=0}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计趋势 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-graph-up me-2"></i>趋势统计</span>
+            <select class="form-select form-select-sm" style="width:auto;" onchange="changeDays(this.value)">
+                <option value="7" {if $days == 7}selected{/if}>近7天</option>
+                <option value="30" {if $days == 30}selected{/if}>近30天</option>
+                <option value="90" {if $days == 90}selected{/if}>近90天</option>
+            </select>
+        </div>
+        <div class="card-body">
+            {if condition="!empty($stats.top_plugins)"}
+            <h6>热门插件 Top 10</h6>
+            <table class="table table-sm table-striped">
+                <thead><tr><th>#</th><th>插件名</th><th>下载量</th><th>安装量</th><th>评分</th></tr></thead>
+                <tbody>
+                    {volist name="stats.top_plugins" id="p" key="k"}
+                    <tr>
+                        <td>{$k}</td>
+                        <td>{$p.name} <small class="text-muted">({$p.code})</small></td>
+                        <td>{$p.download_count|default=0}</td>
+                        <td>{$p.install_count|default=0}</td>
+                        <td><span class="text-warning">{$p.rating|default=0}</span> <small>({$p.rating_count|default=0})</small></td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+            {else /}
+            <div class="text-center text-muted py-3">暂无趋势数据</div>
+            {/if}
+        </div>
+    </div>
+
+    <!-- 管理操作 -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-shield-check me-2"></i>审核操作</div>
+                <div class="card-body">
+                    <p class="text-muted small">对插件进行上架/下架操作</p>
+                    <div class="input-group mb-2">
+                        <input type="number" id="audit_id" class="form-control" placeholder="插件ID">
+                        <select id="audit_action" class="form-select" style="max-width:120px;">
+                            <option value="approve">上架</option>
+                            <option value="reject">下架</option>
+                            <option value="pending">审核中</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="auditPlugin()">执行</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-star me-2"></i>精选设置</div>
+                <div class="card-body">
+                    <p class="text-muted small">设置或取消插件精选状态</p>
+                    <div class="input-group mb-2">
+                        <input type="number" id="featured_id" class="form-control" placeholder="插件ID">
+                        <select id="featured_val" class="form-select" style="max-width:120px;">
+                            <option value="1">设为精选</option>
+                            <option value="0">取消精选</option>
+                        </select>
+                        <button class="btn btn-warning" onclick="setFeatured()">执行</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function changeDays(days) {
+    location.href = '/admin/plugin_store_admin/stats?days=' + days;
+}
+function auditPlugin() {
+    var id = document.getElementById('audit_id').value;
+    var action = document.getElementById('audit_action').value;
+    if (!id) { layer.msg('请输入插件ID'); return; }
+    fetch('/admin/plugin_store_admin/auditPlugin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + id + '&action=' + action
+    }).then(r => r.json()).then(res => {
+        layer.msg(res.msg);
+        if (res.code === 0) setTimeout(() => location.reload(), 1000);
+    });
+}
+function setFeatured() {
+    var id = document.getElementById('featured_id').value;
+    var val = document.getElementById('featured_val').value;
+    if (!id) { layer.msg('请输入插件ID'); return; }
+    fetch('/admin/plugin_store_admin/setFeatured', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + id + '&featured=' + val
+    }).then(r => r.json()).then(res => {
+        layer.msg(res.msg);
+        if (res.code === 0) setTimeout(() => location.reload(), 1000);
+    });
+}
+</script>
+{/block}

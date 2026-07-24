@@ -1,0 +1,474 @@
+{extend name="layout" /}
+
+{block name="title"}表单设计器{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/content_model/index">内容模型</a></li>
+<li class="breadcrumb-item active">表单设计器</li>
+{/block}
+
+{block name="css"}
+<style>
+.designer-field { cursor: grab; transition: all .15s; }
+.designer-field:active { cursor: grabbing; opacity: 0.7; }
+.designer-field.dragging { opacity: 0.5; transform: scale(0.95); }
+.design-canvas { min-height: 400px; background: #f8f9fa; border: 2px dashed #dee2e6; position: relative; }
+.design-canvas.drag-over { border-color: #0d6efd; background: #e7f1ff; }
+.design-container { border: 2px solid #dee2e6; border-radius: 6px; margin-bottom: 12px; background: #fff; transition: border-color .2s; }
+.design-container.selected { border-color: #0d6efd; box-shadow: 0 0 0 2px rgba(13,110,253,.15); }
+.design-container-header { background: #f1f3f5; padding: 8px 12px; font-weight: 600; font-size: 0.875rem; cursor: move; }
+.design-container-body { padding: 10px; min-height: 50px; }
+.canvas-item { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; margin: 2px 3px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; transition: all .15s; }
+.canvas-item.field-item { background: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; }
+.canvas-item.field-item.selected { background: #084298; color: #fff; border-color: #084298; }
+.canvas-item.field-item:hover { background: #9ec5fe; }
+.canvas-item .bi-x { cursor: pointer; font-size: 0.75rem; }
+.canvas-item .bi-x:hover { color: #dc3545; }
+.drop-hint { color: #adb5bd; font-size: 0.75rem; }
+.prop-label { font-weight: 600; font-size: 0.8rem; color: #495057; }
+.prop-group { margin-bottom: 12px; }
+.prop-group label { display: block; margin-bottom: 2px; }
+.preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); z-index: 1050; display: none; }
+.preview-modal { position: fixed; top: 5%; left: 10%; width: 80%; height: 90%; background: #fff; border-radius: 8px; z-index: 1051; display: none; overflow: auto; }
+.preview-modal-header { padding: 12px 16px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
+.preview-modal-body { padding: 24px; }
+</style>
+{/block}
+
+{block name="content"}
+<input type="hidden" id="modelId" value="{$model.id}">
+<div class="row">
+    <!-- 左侧：字段列表 -->
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-list-ul me-1"></i>字段列表</div>
+            <div class="card-body p-2">
+                <div id="fieldPalette" class="d-grid gap-1">
+                    {volist name="fields" id="f"}
+                    <div class="btn btn-outline-secondary btn-sm text-start designer-field" data-field-name="{$f.field_name}" data-field-label="{$f.field_label}" data-field-type="{$f.field_type}" data-field-id="{$f.id}">
+                        <i class="bi bi-grip-vertical me-1"></i>{$f.field_label} <small class="text-muted">({$f.field_type})</small>
+                    </div>
+                    {/volist}
+                </div>
+                <hr class="my-2">
+                <h6 class="small text-muted mb-1"><i class="bi bi-layout-sidebar me-1"></i>布局容器</h6>
+                <div id="containerPalette" class="d-grid gap-1">
+                    {volist name="containers" id="c"}
+                    <div class="btn btn-outline-primary btn-sm text-start designer-container-btn" data-type="{$c.type}" data-label="{$c.label}">
+                        <i class="{$c.icon} me-1"></i>{$c.label}
+                    </div>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 中间：设计区域 -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-layout-text-window me-1"></i>设计区域 — {$model.model_name}</span>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="undoDesign()" title="撤销"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    <button class="btn btn-outline-secondary" onclick="redoDesign()" title="重做"><i class="bi bi-arrow-clockwise"></i></button>
+                    <button class="btn btn-outline-info" onclick="previewDesign()" title="预览"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-primary" onclick="saveDesign()"><i class="bi bi-save me-1"></i>保存设计</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="designCanvas" class="design-canvas p-3">
+                    <p class="text-center text-muted mt-5" id="canvasEmpty"><i class="bi bi-hand-index me-1"></i>从左侧点选或拖拽字段到此处，也可先添加布局容器</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：属性配置面板 -->
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-sliders me-1"></i>属性配置</div>
+            <div class="card-body" id="propertyPanel">
+                <p class="text-muted small"><i class="bi bi-info-circle me-1"></i>点击设计区域中的元素来配置属性</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预览模态框 (纯CSS+JS, 不用Bootstrap Modal) -->
+<div class="preview-overlay" id="previewOverlay" onclick="closePreview()"></div>
+<div class="preview-modal" id="previewModal">
+    <div class="preview-modal-header">
+        <span class="fw-bold"><i class="bi bi-eye me-1"></i>表单预览</span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="closePreview()"><i class="bi bi-x-lg"></i> 关闭</button>
+    </div>
+    <div class="preview-modal-body" id="previewBody"></div>
+</div>
+{/block}
+
+{block name="js"}
+<script src="/assets/js/sortable.min.js"></script>
+<script>
+var MODEL_ID = parseInt($('#modelId').val());
+var LAYOUT = {:json_encode($layout, JSON_UNESCAPED_UNICODE)};
+if (!LAYOUT || !LAYOUT.containers) LAYOUT = {containers: []};
+var undoStack = [];
+var undoIndex = -1;
+var selectedElement = null;
+
+function saveHistory() {
+    undoStack = undoStack.slice(0, undoIndex + 1);
+    undoStack.push(JSON.parse(JSON.stringify(LAYOUT)));
+    undoIndex = undoStack.length - 1;
+    if (undoStack.length > 50) { undoStack.shift(); undoIndex--; }
+}
+
+function selectElement(type, idx1, idx2) {
+    selectedElement = {type: type};
+    if (type === 'container') selectedElement.index = idx1;
+    else { selectedElement.containerIndex = idx1; selectedElement.childIndex = idx2; }
+    renderCanvas();
+    renderPropertyPanel();
+}
+
+function renderCanvas() {
+    var $canvas = $('#designCanvas');
+    var emptyMsg = '<p class="text-center text-muted mt-5" id="canvasEmpty"><i class="bi bi-hand-index me-1"></i>从左侧点选或拖拽字段到此处，也可先添加布局容器</p>';
+    $canvas.empty();
+    if (!LAYOUT.containers || LAYOUT.containers.length === 0) {
+        $canvas.html(emptyMsg);
+        initCanvasSortable();
+        return;
+    }
+    LAYOUT.containers.forEach(function(container, i) {
+        var isSelected = selectedElement && selectedElement.type === 'container' && selectedElement.index === i;
+        var $c = $('<div class="design-container' + (isSelected ? ' selected' : '') + '" data-index="' + i + '"></div>');
+        var headerHtml = '<div class="design-container-header d-flex justify-content-between align-items-center">';
+        headerHtml += '<span class="flex-grow-1" onclick="selectElement(\'container\',' + i + ')"><i class="bi bi-arrows-move me-1"></i>' + (container.label || container.type) + '</span>';
+        headerHtml += '<div class="btn-group btn-group-sm"><button class="btn btn-sm btn-outline-danger py-0" onclick="removeContainer(' + i + ')"><i class="bi bi-trash"></i></button></div></div>';
+        $c.append(headerHtml);
+        var $body = $('<div class="design-container-body" data-index="' + i + '"></div>');
+        if (container.children && container.children.length > 0) {
+            container.children.forEach(function(child, ci) {
+                var isFieldSelected = selectedElement && selectedElement.type === 'field' && selectedElement.containerIndex === i && selectedElement.childIndex === ci;
+                var itemHtml = '<span class="canvas-item field-item' + (isFieldSelected ? ' selected' : '') + '" data-parent="' + i + '" data-child="' + ci + '" onclick="selectElement(\'field\',' + i + ',' + ci + ')">';
+                itemHtml += '<i class="bi bi-grip-vertical" style="cursor:grab"></i> ' + child.field_label;
+                itemHtml += ' <small class="opacity-75">' + (child.field_type || child.field_name) + '</small>';
+                itemHtml += ' <i class="bi bi-x" onclick="event.stopPropagation();removeChild(' + i + ',' + ci + ')"></i>';
+                itemHtml += '</span>';
+                $body.append(itemHtml);
+            });
+        } else {
+            $body.append('<span class="drop-hint">拖拽字段到此处</span>');
+        }
+        $c.append($body);
+        $canvas.append($c);
+    });
+    initCanvasSortable();
+}
+
+function renderPropertyPanel() {
+    var $panel = $('#propertyPanel');
+    $panel.empty();
+    if (!selectedElement) {
+        $panel.html('<p class="text-muted small"><i class="bi bi-info-circle me-1"></i>点击设计区域中的元素来配置属性</p>');
+        return;
+    }
+    if (selectedElement.type === 'container') {
+        var container = LAYOUT.containers[selectedElement.index];
+        if (!container) { selectedElement = null; renderPropertyPanel(); return; }
+        var html = '<div class="prop-group"><span class="prop-label"><i class="bi bi-layout-sidebar me-1"></i>容器属性</span></div>';
+        html += '<div class="prop-group"><label class="small">容器类型</label><input type="text" class="form-control form-control-sm" value="' + (container.type || '') + '" readonly></div>';
+        html += '<div class="prop-group"><label class="small">容器名称</label><input type="text" class="form-control form-control-sm" id="propContainerLabel" value="' + (container.label || '') + '" onchange="updateContainerProp(\'label\', this.value)"></div>';
+        html += '<div class="prop-group"><label class="small">CSS类名</label><input type="text" class="form-control form-control-sm" id="propContainerClass" value="' + (container.css_class || '') + '" onchange="updateContainerProp(\'css_class\', this.value)"></div>';
+        html += '<div class="prop-group"><label class="small">字段数量</label><input type="text" class="form-control form-control-sm" value="' + ((container.children || []).length) + '" readonly></div>';
+        html += '<hr><div class="prop-group"><button class="btn btn-sm btn-outline-danger w-100" onclick="removeContainer(' + selectedElement.index + ')"><i class="bi bi-trash me-1"></i>删除容器</button></div>';
+        $panel.html(html);
+    } else if (selectedElement.type === 'field') {
+        var container = LAYOUT.containers[selectedElement.containerIndex];
+        var child = container ? container.children[selectedElement.childIndex] : null;
+        if (!child) { selectedElement = null; renderPropertyPanel(); return; }
+        var html = '<div class="prop-group"><span class="prop-label"><i class="bi bi-input-cursor-text me-1"></i>字段属性</span></div>';
+        html += '<div class="prop-group"><label class="small">字段名</label><input type="text" class="form-control form-control-sm" value="' + (child.field_name || '') + '" readonly></div>';
+        html += '<div class="prop-group"><label class="small">字段标签</label><input type="text" class="form-control form-control-sm" id="propFieldLabel" value="' + (child.field_label || '') + '" onchange="updateFieldProp(\'field_label\', this.value)"></div>';
+        html += '<div class="prop-group"><label class="small">字段类型</label><input type="text" class="form-control form-control-sm" value="' + (child.field_type || '') + '" readonly></div>';
+        html += '<div class="prop-group"><label class="small">是否必填</label><select class="form-select form-select-sm" onchange="updateFieldProp(\'required\', this.value)">';
+        html += '<option value="0"' + (child.required ? '' : ' selected') + '>否</option>';
+        html += '<option value="1"' + (child.required ? ' selected' : '') + '>是</option>';
+        html += '</select></div>';
+        html += '<div class="prop-group"><label class="small">占位文本</label><input type="text" class="form-control form-control-sm" id="propPlaceholder" value="' + (child.placeholder || '') + '" onchange="updateFieldProp(\'placeholder\', this.value)"></div>';
+        html += '<div class="prop-group"><label class="small">宽度</label><select class="form-select form-select-sm" onchange="updateFieldProp(\'width\', this.value)">';
+        html += '<option value="">默认</option><option value="50%"' + (child.width === '50%' ? ' selected' : '') + '>50%</option>';
+        html += '<option value="100%"' + (child.width === '100%' ? ' selected' : '') + '>100%</option></select></div>';
+        html += '<hr><div class="prop-group"><button class="btn btn-sm btn-outline-danger w-100" onclick="removeChild(' + selectedElement.containerIndex + ',' + selectedElement.childIndex + ')"><i class="bi bi-trash me-1"></i>删除字段</button></div>';
+        $panel.html(html);
+    }
+}
+
+function updateContainerProp(key, value) {
+    if (!selectedElement || selectedElement.type !== 'container') return;
+    LAYOUT.containers[selectedElement.index][key] = value;
+    saveHistory();
+}
+
+function updateFieldProp(key, value) {
+    if (!selectedElement || selectedElement.type !== 'field') return;
+    var cIdx = selectedElement.containerIndex;
+    var fIdx = selectedElement.childIndex;
+    if (LAYOUT.containers[cIdx] && LAYOUT.containers[cIdx].children[fIdx]) {
+        LAYOUT.containers[cIdx].children[fIdx][key] = value;
+        saveHistory();
+    }
+}
+
+var fieldSortable = null;
+var canvasSortable = null;
+
+function initFieldSortable() {
+    var el = document.getElementById('fieldPalette');
+    if (!el) return;
+    fieldSortable = Sortable.create(el, {
+        group: { name: 'canvas', pull: 'clone', put: false },
+        sort: false,
+        animation: 150,
+        onEnd: function(evt) {
+            if (evt.from === el && evt.to !== el) {
+                var fieldName = $(evt.clone).data('field-name');
+                var fieldLabel = $(evt.clone).data('field-label');
+                var fieldType = $(evt.clone).data('field-type');
+                $(evt.clone).remove();
+                if ($(evt.to).attr('id') === 'designCanvas') {
+                    LAYOUT.containers.push({type: 'group', label: '默认分组', children: [{field_name: fieldName, field_label: fieldLabel, field_type: fieldType}]});
+                    saveHistory();
+                    renderCanvas();
+                } else if ($(evt.to).hasClass('design-container-body')) {
+                    var containerIndex = parseInt($(evt.to).data('index'));
+                    if (!isNaN(containerIndex) && LAYOUT.containers[containerIndex]) {
+                        if (!LAYOUT.containers[containerIndex].children) LAYOUT.containers[containerIndex].children = [];
+                        LAYOUT.containers[containerIndex].children.push({field_name: fieldName, field_label: fieldLabel, field_type: fieldType});
+                        saveHistory();
+                        renderCanvas();
+                    }
+                }
+            }
+        }
+    });
+}
+
+function initCanvasSortable() {
+    var canvasEl = document.getElementById('designCanvas');
+    if (canvasSortable) canvasSortable.destroy();
+    canvasSortable = Sortable.create(canvasEl, {
+        group: { name: 'canvas', put: true },
+        animation: 150
+    });
+    $('.design-container-body').each(function() {
+        Sortable.create(this, {
+            group: { name: 'canvas', pull: true, put: true },
+            animation: 150,
+            onEnd: function(evt) {
+                if (evt.from !== evt.to) {
+                    var fromIdx = parseInt($(evt.from).data('index'));
+                    var toIdx = parseInt($(evt.to).data('index'));
+                    var fieldName = $(evt.item).data('field-name');
+                    $(evt.item).remove();
+                    if (!isNaN(fromIdx) && !isNaN(toIdx) && LAYOUT.containers[fromIdx] && LAYOUT.containers[toIdx]) {
+                        var fromChildren = LAYOUT.containers[fromIdx].children || [];
+                        var fieldIdx = -1;
+                        for (var i = 0; i < fromChildren.length; i++) {
+                            if (fromChildren[i].field_name === fieldName) { fieldIdx = i; break; }
+                        }
+                        if (fieldIdx >= 0) {
+                            var field = fromChildren.splice(fieldIdx, 1)[0];
+                            LAYOUT.containers[toIdx].children = LAYOUT.containers[toIdx].children || [];
+                            LAYOUT.containers[toIdx].children.push(field);
+                            saveHistory();
+                            renderCanvas();
+                        }
+                    }
+                } else {
+                    var containerIdx = parseInt($(evt.from).data('index'));
+                    var oldChildIdx = evt.oldIndex;
+                    var newChildIdx = evt.newIndex;
+                    if (!isNaN(containerIdx) && LAYOUT.containers[containerIdx] && LAYOUT.containers[containerIdx].children) {
+                        var children = LAYOUT.containers[containerIdx].children;
+                        var moved = children.splice(oldChildIdx, 1)[0];
+                        children.splice(newChildIdx, 0, moved);
+                        saveHistory();
+                        renderCanvas();
+                    }
+                }
+            }
+        });
+    });
+    Sortable.create(canvasEl, {
+        group: { name: 'containerOrder', put: false },
+        animation: 150,
+        handle: '.design-container-header',
+        draggable: '.design-container',
+        onEnd: function(evt) {
+            var oldIdx = evt.oldIndex;
+            var newIdx = evt.newIndex;
+            if (oldIdx !== newIdx && !isNaN(oldIdx) && !isNaN(newIdx)) {
+                var moved = LAYOUT.containers.splice(oldIdx, 1)[0];
+                LAYOUT.containers.splice(newIdx, 0, moved);
+                saveHistory();
+                renderCanvas();
+            }
+        }
+    });
+}
+
+$('.designer-container-btn').on('click', function() {
+    var type = $(this).data('type');
+    var label = $(this).data('label');
+    if (!LAYOUT.containers) LAYOUT.containers = [];
+    LAYOUT.containers.push({type: type, label: label, children: []});
+    saveHistory();
+    renderCanvas();
+});
+
+$('.designer-field').on('click', function() {
+    var fieldName = $(this).data('field-name');
+    var fieldLabel = $(this).data('field-label');
+    var fieldType = $(this).data('field-type');
+    if (LAYOUT.containers.length > 0) {
+        var lastContainer = LAYOUT.containers[LAYOUT.containers.length - 1];
+        if (!lastContainer.children) lastContainer.children = [];
+        var exists = lastContainer.children.some(function(c) { return c.field_name === fieldName; });
+        if (!exists) {
+            lastContainer.children.push({field_name: fieldName, field_label: fieldLabel, field_type: fieldType});
+            saveHistory();
+            renderCanvas();
+        } else {
+            for (var i = 0; i < LAYOUT.containers.length; i++) {
+                var c = LAYOUT.containers[i];
+                if (!c.children) c.children = [];
+                var already = c.children.some(function(ch) { return ch.field_name === fieldName; });
+                if (!already) {
+                    c.children.push({field_name: fieldName, field_label: fieldLabel, field_type: fieldType});
+                    saveHistory();
+                    renderCanvas();
+                    return;
+                }
+            }
+            LAYOUT.containers.push({type: 'group', label: '分组', children: [{field_name: fieldName, field_label: fieldLabel, field_type: fieldType}]});
+            saveHistory();
+            renderCanvas();
+        }
+    } else {
+        LAYOUT.containers.push({type: 'group', label: '默认分组', children: [{field_name: fieldName, field_label: fieldLabel, field_type: fieldType}]});
+        saveHistory();
+        renderCanvas();
+    }
+});
+
+function removeContainer(index) {
+    LAYOUT.containers.splice(index, 1);
+    selectedElement = null;
+    saveHistory();
+    renderCanvas();
+    renderPropertyPanel();
+}
+
+function removeChild(parentIndex, childIndex) {
+    if (LAYOUT.containers[parentIndex] && LAYOUT.containers[parentIndex].children) {
+        LAYOUT.containers[parentIndex].children.splice(childIndex, 1);
+        selectedElement = null;
+        saveHistory();
+        renderCanvas();
+        renderPropertyPanel();
+    }
+}
+
+function saveDesign() {
+    $.post('/admin/content_model/designer/save', {
+        model_id: MODEL_ID,
+        layout: JSON.stringify(LAYOUT)
+    }, function(res) {
+        if (res.code === 0) {
+            showToast('设计已保存', 'success');
+        } else {
+            showToast(res.msg || '保存失败', 'danger');
+        }
+    }).fail(function() {
+        showToast('保存请求失败', 'danger');
+    });
+}
+
+function previewDesign() {
+    var html = '<h4>' + '{$model.model_name}' + ' 表单预览</h4><hr>';
+    if (!LAYOUT.containers || LAYOUT.containers.length === 0) {
+        html += '<p class="text-muted">暂无设计内容，请先添加字段和布局容器</p>';
+    } else {
+        LAYOUT.containers.forEach(function(container) {
+            html += '<div class="mb-3 p-3 border rounded">';
+            html += '<h6 class="mb-2">' + (container.label || container.type) + '</h6>';
+            if (container.children && container.children.length > 0) {
+                container.children.forEach(function(child) {
+                    html += '<div class="mb-2">';
+                    html += '<label class="form-label">' + child.field_label + (child.required ? ' <span class="text-danger">*</span>' : '') + '</label>';
+                    switch (child.field_type) {
+                        case 'text': html += '<input type="text" class="form-control" placeholder="' + (child.placeholder || '') + '">'; break;
+                        case 'textarea': html += '<textarea class="form-control" rows="3" placeholder="' + (child.placeholder || '') + '"></textarea>'; break;
+                        case 'editor': html += '<div class="form-control" style="height:200px">富文本编辑器区域</div>'; break;
+                        case 'image': html += '<div class="border rounded p-3 text-center text-muted"><i class="bi bi-image"></i> 图片上传区域</div>'; break;
+                        case 'select': html += '<select class="form-select"><option>请选择</option></select>'; break;
+                        case 'radio': html += '<div class="form-check"><input class="form-check-input" type="radio"><label class="form-check-label">选项</label></div>'; break;
+                        case 'datetime': html += '<input type="datetime-local" class="form-control">'; break;
+                        case 'tag': html += '<input type="text" class="form-control" placeholder="输入标签，逗号分隔">'; break;
+                        default: html += '<input type="text" class="form-control" placeholder="' + (child.placeholder || child.field_type) + '">';
+                    }
+                    html += '</div>';
+                });
+            } else {
+                html += '<p class="text-muted small">空容器</p>';
+            }
+            html += '</div>';
+        });
+    }
+    $('#previewBody').html(html);
+    $('#previewOverlay').show();
+    $('#previewModal').show();
+}
+
+function closePreview() {
+    $('#previewOverlay').hide();
+    $('#previewModal').hide();
+}
+
+function undoDesign() {
+    if (undoIndex > 0) {
+        undoIndex--;
+        LAYOUT = JSON.parse(JSON.stringify(undoStack[undoIndex]));
+        selectedElement = null;
+        renderCanvas();
+        renderPropertyPanel();
+    }
+}
+
+function redoDesign() {
+    if (undoIndex < undoStack.length - 1) {
+        undoIndex++;
+        LAYOUT = JSON.parse(JSON.stringify(undoStack[undoIndex]));
+        selectedElement = null;
+        renderCanvas();
+        renderPropertyPanel();
+    }
+}
+
+function showToast(msg, type) {
+    var toastHtml = '<div class="position-fixed top-3 end-3 p-3" style="z-index:9999">';
+    toastHtml += '<div class="toast show align-items-center text-bg-' + type + ' border-0" role="alert">';
+    toastHtml += '<div class="d-flex"><div class="toast-body">' + msg + '</div>';
+    toastHtml += '<button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="$(this).closest(\'.position-fixed\').remove()"></button>';
+    toastHtml += '</div></div></div>';
+    $('body').append(toastHtml);
+    setTimeout(function() { $(toastHtml).remove(); }, 3000);
+}
+
+initFieldSortable();
+saveHistory();
+renderCanvas();
+</script>
+{/block}

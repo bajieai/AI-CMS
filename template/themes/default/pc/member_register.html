@@ -1,0 +1,88 @@
+{extend name="layout" /}
+
+{block name="title"}会员注册{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-4">会员注册</h4>
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">昵称</label>
+                            <input type="text" name="nickname" class="form-control">
+                        </div>
+                        <!-- V2.9.9 注册验证码 -->
+                        <div class="mb-3" id="captchaArea">
+                            <label class="form-label">验证码</label>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div id="captchaText" class="fw-bold text-center" style="flex:1;background:#f0fdf4;border-radius:6px;min-height:60px;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #ddd;">加载中...</div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="captchaRefresh" title="换一张"><i class="bi bi-arrow-clockwise"></i></button>
+                            </div>
+                            <input type="hidden" name="captcha_key" id="captchaKey">
+                            <input type="text" name="captcha_answer" class="form-control" placeholder="输入计算结果" required autocomplete="off">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">注册</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/member/login" class="text-decoration-none small">已有账号？立即登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function() {
+    var $captchaText = $('#captchaText');
+    var $captchaKey = $('#captchaKey');
+
+    function loadCaptcha() {
+        $.get('/member/captcha', function(res) {
+            if (res.success && res.data) {
+                if (res.data.mode === 'image' && res.data.image) {
+                    $captchaText.html('<img src="' + res.data.image + '" style="max-width:100%;height:auto;display:block;margin:0 auto;" alt="验证码">');
+                } else {
+                    $captchaText.text(res.data.text || '验证码');
+                }
+                $captchaKey.val(res.data.key);
+            }
+        });
+    }
+    $captchaText.add('#captchaRefresh').on('click', loadCaptcha);
+    loadCaptcha();
+
+    $('#registerForm').on('submit', function(e) {
+        e.preventDefault();
+        $.post('/member/register', $(this).serialize(), function(res) {
+            if (res.success) {
+                alert('注册成功，请登录');
+                location.href = '/member/login';
+            } else {
+                alert(res.msg);
+                loadCaptcha();
+            }
+        });
+    });
+});
+</script>
+{/block}

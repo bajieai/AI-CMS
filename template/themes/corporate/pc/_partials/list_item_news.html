@@ -1,0 +1,26 @@
+<!-- V2.9.21 D-4: 新闻型列表项 (corporate) -->
+<div class="col-12">
+    <div class="card news-card mb-3 border-0 shadow-sm">
+        <div class="row g-0">
+            {if condition="$vo.cover"}
+            <div class="col-md-3">
+                <img data-src="{$vo.cover}" class="img-fluid rounded-start lazyload" alt="{$vo.title}" onerror="this.style.display='none'" style="height:100%;object-fit:cover;min-height:130px;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+            </div>
+            {/if}
+            <div class="col-md-{$vo.cover ? '9' : '12'}">
+                <div class="card-body py-3">
+                    <h5 class="card-title mb-2 fs-6" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <a href="{$vo.url}" class="text-decoration-none text-dark">{$vo.title}</a>
+                        {include file="shared/paid_badge" /}
+                    </h5>
+                    <p class="card-text text-muted small mb-2">{$vo.excerpt|msubstr=0,140}</p>
+                    <div class="d-flex gap-3 text-muted small">
+                        <span><i class="bi bi-calendar3 me-1"></i>{$vo.create_time|date='Y-m-d'}</span>
+                        <span><i class="bi bi-eye me-1"></i>{$vo.views|default=0}</span>
+                        <span><i class="bi bi-chat me-1"></i>{$vo.comment_count|default=0}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,66 @@
+{extend name="/layout" /}
+{block name="title"}数据看板 - AI-CMS{/block}
+{block name="content"}
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card bg-primary text-white"><div class="card-body"><h6>今日访客</h6><h3 class="mb-0">{$data.today_visitors??0}</h3><small class="opacity-75">昨日 {$data.yesterday_visitors??0}</small></div></div></div>
+    <div class="col-md-3"><div class="card bg-success text-white"><div class="card-body"><h6>内容总数</h6><h3 class="mb-0">{$data.total_content??0}</h3><small class="opacity-75">已发布 {$data.published_content??0}</small></div></div></div>
+    <div class="col-md-3"><div class="card bg-info text-white"><div class="card-body"><h6>注册用户</h6><h3 class="mb-0">{$data.total_users??0}</h3><small class="opacity-75">今日 {$data.today_users??0}</small></div></div></div>
+    <div class="col-md-3"><div class="card bg-warning text-white"><div class="card-body"><h6>AI调用</h6><h3 class="mb-0">{$data.ai_calls_today??0}</h3><small class="opacity-75">总计 {$data.ai_calls_total??0}</small></div></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card"><div class="card-header"><h6 class="mb-0">最近7天访客趋势</h6></div>
+            <div class="card-body">
+                {if !empty($data.visitor_trend)}
+                <table class="table table-sm"><thead><tr><th>日期</th><th>访客</th><th>浏览量</th></tr></thead><tbody>
+                {volist name="data.visitor_trend" id="v"}
+                <tr><td>{$v.date??'--'}</td><td>{$v.visitors??0}</td><td>{$v.pageviews??0}</td></tr>
+                {/volist}
+                </tbody></table>
+                {else/}
+                <div class="text-center text-muted py-3">暂无趋势数据</div>
+                {/if}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card"><div class="card-header"><h6 class="mb-0">热门内容 Top 10</h6></div>
+            <div class="card-body">
+                {if !empty($data.hot_content)}
+                <table class="table table-sm"><thead><tr><th width="40">#</th><th>标题</th><th width="80">浏览</th></tr></thead><tbody>
+                {volist name="data.hot_content" id="c"}
+                <tr><td>{$i}</td><td><small>{$c.title??'--'}</small></td><td>{$c.views??0}</td></tr>
+                {/volist}
+                </tbody></table>
+                {else/}
+                <div class="text-center text-muted py-3">暂无热门内容</div>
+                {/if}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-3 mt-1">
+    <div class="col-md-6">
+        <div class="card"><div class="card-header"><h6 class="mb-0">收入统计</h6></div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col"><h5 class="text-success">¥{$data.income_today??'0.00'}</h5><small class="text-muted">今日</small></div>
+                    <div class="col"><h5>¥{$data.income_month??'0.00'}</h5><small class="text-muted">本月</small></div>
+                    <div class="col"><h5>¥{$data.income_total??'0.00'}</h5><small class="text-muted">总计</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card"><div class="card-header"><h6 class="mb-0">系统性能</h6></div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col"><h5>{$data.avg_response_time??'--'}ms</h5><small class="text-muted">平均响应</small></div>
+                    <div class="col"><h5>{$data.cache_hit_rate??'--'}%</h5><small class="text-muted">缓存命中</small></div>
+                    <div class="col"><h5>{$data.uptime??'--'}</h5><small class="text-muted">运行时间</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

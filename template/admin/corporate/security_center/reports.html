@@ -1,0 +1,130 @@
+{extend name="layout" /}
+
+{block name="title"}安全报告 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">安全中心</li>
+<li class="breadcrumb-item active">安全报告</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-file-earmark-bar-graph me-1"></i>安全报告</span>
+        <div class="btn-group btn-group-sm">
+            <a href="/admin/security_center/report?type=daily" class="btn btn-outline-primary {if condition="($report.type ?? 'daily') == 'daily'"}active{/if}">日报</a>
+            <a href="/admin/security_center/report?type=weekly" class="btn btn-outline-primary {if condition="($report.type ?? '') == 'weekly'"}active{/if}">周报</a>
+            <a href="/admin/security_center/report?type=monthly" class="btn btn-outline-primary {if condition="($report.type ?? '') == 'monthly'"}active{/if}">月报</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- 统计卡片 -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3 text-center">
+                    <div class="fs-4 fw-bold text-primary">{$report.total_events ?? 0}</div>
+                    <div class="text-muted small">总事件数</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3 text-center">
+                    <div class="fs-4 fw-bold text-danger">{$report.critical_events ?? 0}</div>
+                    <div class="text-muted small">严重事件</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3 text-center">
+                    <div class="fs-4 fw-bold text-warning">{$report.warning_events ?? 0}</div>
+                    <div class="text-muted small">警告事件</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3 text-center">
+                    <div class="fs-4 fw-bold text-success">{$report.resolved_events ?? 0}</div>
+                    <div class="text-muted small">已解决</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-graph-up me-1"></i>事件趋势
+            </div>
+            <div class="card-body">
+                <div id="chartEvents" style="height:300px;"></div>
+            </div>
+        </div>
+
+        <!-- 详细数据表格 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-table me-1"></i>详细数据
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>日期</th>
+                            <th>总事件</th>
+                            <th>严重</th>
+                            <th>警告</th>
+                            <th>信息</th>
+                            <th>已解决</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="report.details" id="vo"}
+                        <tr>
+                            <td>{$vo.date}</td>
+                            <td>{$vo.total}</td>
+                            <td><span class="text-danger">{$vo.critical}</span></td>
+                            <td><span class="text-warning">{$vo.warning}</span></td>
+                            <td><span class="text-info">{$vo.info}</span></td>
+                            <td><span class="text-success">{$vo.resolved}</span></td>
+                        </tr>
+                        {/volist}
+                        {empty name="report.details"}
+                        <tr><td colspan="6" class="text-center text-muted py-4">暂无数据</td></tr>
+                        {/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function() {
+    var chartDom = document.getElementById('chartEvents');
+    if (!chartDom) return;
+    var chart = echarts.init(chartDom);
+    var reportData = {$report.chart_data_json|raw ?? '[]'};
+    var dates = [];
+    var totals = [];
+    var criticals = [];
+    var warnings = [];
+    for (var i = 0; i < reportData.length; i++) {
+        dates.push(reportData[i].date);
+        totals.push(reportData[i].total);
+        criticals.push(reportData[i].critical);
+        warnings.push(reportData[i].warning);
+    }
+    chart.setOption({
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['总事件', '严重', '警告'] },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: dates },
+        yAxis: { type: 'value' },
+        series: [
+            { name: '总事件', type: 'line', smooth: true, data: totals, itemStyle: { color: '#0d6efd' } },
+            { name: '严重', type: 'line', smooth: true, data: criticals, itemStyle: { color: '#dc3545' } },
+            { name: '警告', type: 'line', smooth: true, data: warnings, itemStyle: { color: '#ffc107' } }
+        ]
+    });
+    $(window).on('resize', function() { chart.resize(); });
+});
+</script>
+{/block}

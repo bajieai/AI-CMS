@@ -1,0 +1,116 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑广告{else/}添加广告{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ad/index">广告管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑广告{else/}添加广告{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑广告{else/}添加广告{/if}
+    </div>
+    <div class="card-body">
+        <form id="adForm" method="post" action="{if condition="$info"}/admin/ad/edit/{$info.id}{else/}/admin/ad/add{/if}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">广告位 <span class="text-danger">*</span></label>
+                        <select name="position_id" class="form-select" required>
+                            <option value="">请选择广告位</option>
+                            {volist name="positions" id="pos"}
+                            <option value="{$pos.id}" {if condition="($info.position_id ?? 0) == $pos.id"}selected{/if}>{$pos.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">广告标题 <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" value="{$info.title ?? ''}" required placeholder="请输入广告标题" maxlength="100">
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">图片</label>
+                <div class="input-group">
+                    <input type="text" name="image" id="adImage" class="form-control" value="{$info.image ?? ''}" placeholder="可选，输入图片URL或上传">
+                    <button type="button" class="btn btn-outline-secondary" onclick="selectImage()"><i class="bi bi-image"></i> 选择图片</button>
+                </div>
+                <div class="mt-2" id="imagePreview">
+                    {if condition="($info.image ?? '')"}
+                    <img src="{$info.image}" class="img-thumbnail" style="max-height:80px">
+                    {/if}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">链接地址</label>
+                <input type="url" name="link" class="form-control" value="{$info.link ?? ''}" placeholder="如：https://example.com">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">内容（代码/富文本）</label>
+                <textarea name="content" class="form-control" rows="4" placeholder="可选，支持HTML代码">{$info.content ?? ''}</textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}" placeholder="数字越小越靠前">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                            <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">开始时间</label>
+                        <input type="datetime-local" name="start_time" class="form-control" value="{if condition="($info.start_time ?? '')"}{:date('Y-m-d\TH:i', $info.start_time)}{/if}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">结束时间</label>
+                        <input type="datetime-local" name="end_time" class="form-control" value="{if condition="($info.end_time ?? '')"}{:date('Y-m-d\TH:i', $info.end_time)}{/if}">
+                    </div>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/ad/index" class="btn btn-outline-secondary">取消返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#adForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+
+function selectImage() {
+    window.open('/admin/media/select?filetype=image', 'mediaSelect', 'width=900,height=600');
+}
+
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.mceAction === 'insertContent' && e.data.content) {
+        var url = e.data.content.match(/src="([^"]+)"/);
+        if (url && url[1]) {
+            $('#adImage').val(url[1]);
+            $('#imagePreview').html('<img src="' + url[1] + '" class="img-thumbnail" style="max-height:80px">');
+        }
+    }
+});
+</script>
+{/block}

@@ -1,0 +1,133 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">订单详情</h4>
+    <div class="mb-3">
+        <a href="/admin/template_order_admin/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-receipt me-2"></i>订单信息</div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr><th width="120">订单号</th><td>{$order.order_no}</td><th width="120">订单状态</th><td>
+                            {if $order.status==0}<span class="badge bg-warning">待支付</span>
+                            {elseif $order.status==1}<span class="badge bg-success">已支付</span>
+                            {elseif $order.status==2}<span class="badge bg-danger">已退款</span>
+                            {elseif $order.status==3}<span class="badge bg-secondary">已取消</span>
+                            {/if}
+                        </td></tr>
+                        <tr><th>模板名称</th><td>{$order.template.name ?? '-'}</td><th>购买用户</th><td>ID: {$order.member_id}</td></tr>
+                        <tr><th>订单金额</th><td>¥{$order.amount}</td><th>优惠金额</th><td>¥{$order.discount_amount ?? 0}</td></tr>
+                        <tr><th>实付金额</th><td><span class="text-danger fw-bold">¥{$order.pay_amount ?? $order.amount}</span></td><th>支付方式</th><td>{$order.pay_method ?? '-'}</td></tr>
+                        <tr><th>支付时间</th><td>{if $order.pay_time}{:date('Y-m-d H:i:s', $order.pay_time)}{else/}-{/if}</td><th>下单时间</th><td>{:date('Y-m-d H:i:s', $order.create_time)}</td></tr>
+                        {if $order.refund_time}
+                        <tr><th>退款时间</th><td>{:date('Y-m-d H:i:s', $order.refund_time)}</td><th>退款原因</th><td>{$order.refund_reason}</td></tr>
+                        {/if}
+                    </table>
+                </div>
+            </div>
+
+            {if !empty($refundList)}
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-arrow-return-left me-2"></i>退款记录</div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>ID</th><th>退款金额</th><th>原因</th><th>状态</th><th>处理时间</th><th>操作</th></tr></thead>
+                        <tbody>
+                            {volist name="refundList" id="r"}
+                            <tr>
+                                <td>{$r.id}</td>
+                                <td>¥{$r.amount}</td>
+                                <td>{$r.reason}</td>
+                                <td>
+                                    {if $r.status==0}<span class="badge bg-warning">待审核</span>
+                                    {elseif $r.status==1}<span class="badge bg-success">已通过</span>
+                                    {elseif $r.status==2}<span class="badge bg-danger">已拒绝</span>
+                                    {/if}
+                                </td>
+                                <td>{if $r.process_time}{:date('Y-m-d H:i:s', $r.process_time)}{else/}-{/if}</td>
+                                <td>
+                                    {if $r.status==0}
+                                    <a href="/admin/template_order_admin/refundHandle/{$r.id}" class="btn btn-sm btn-outline-primary">处理</a>
+                                    {/if}
+                                </td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {/if}
+
+            {if !empty($invoiceList)}
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-file-earmark-text me-2"></i>发票记录</div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>ID</th><th>抬头</th><th>税号</th><th>金额</th><th>状态</th><th>发票号</th></tr></thead>
+                        <tbody>
+                            {volist name="invoiceList" id="inv"}
+                            <tr>
+                                <td>{$inv.id}</td>
+                                <td>{$inv.title}</td>
+                                <td>{$inv.tax_no}</td>
+                                <td>¥{$inv.amount}</td>
+                                <td>
+                                    {if $inv.status==0}<span class="badge bg-warning">待开具</span>
+                                    {elseif $inv.status==1}<span class="badge bg-success">已开具</span>
+                                    {elseif $inv.status==2}<span class="badge bg-danger">已拒绝</span>
+                                    {/if}
+                                </td>
+                                <td>{$inv.invoice_no ?: '-'}</td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {/if}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-gear me-2"></i>操作</div>
+                <div class="card-body">
+                    {if $order.status==1}
+                    <button class="btn btn-outline-danger w-100 mb-2" onclick="refundModal()"><i class="bi bi-arrow-return-left me-1"></i>发起退款</button>
+                    {/if}
+                    <a href="/admin/template_order_admin/invoiceList" class="btn btn-outline-info w-100"><i class="bi bi-file-earmark-text me-1"></i>发票管理</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{if $order.status==1}
+<div class="modal fade" id="refundModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="refundForm" method="post" action="/admin/template_order_admin/refund/{$order.id}">
+                <div class="modal-header"><h5 class="modal-title">发起退款</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">退款原因</label><textarea name="reason" class="form-control" rows="3" required></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="submit" class="btn btn-danger">确认退款</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{/if}
+
+<script>
+function refundModal() { new bootstrap.Modal(document.getElementById('refundModal')).show(); }
+$('#refundForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post($(this).attr('action'), $(this).serialize(), function(res) {
+        if (res.code === 0) { location.reload(); } else { alert(res.msg); }
+    });
+});
+</script>
+{/block}

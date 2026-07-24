@@ -1,0 +1,61 @@
+{extend name="layout" /}
+{block name="title"}会员等级管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">会员等级管理</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+{volist name="levels" id="lv"}
+    <div class="col-md-2">
+        <div class="card text-center {if $lv.level_order<=1}border-secondary{elseif $lv.level_order==2}border-bronze{elseif $lv.level_order==3}border-secondary{elseif $lv.level_order==4}border-warning{elseif $lv.level_order==5}border-info{/if}">
+            <div class="card-body">
+                <h6>{$lv.name}</h6>
+                <p class="small text-muted">{$lv.min_points}-{$lv.max_points}积分</p>
+            </div>
+        </div>
+    </div>
+{/volist}
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-table me-1"></i>等级权益对比</div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead><tr><th>等级</th><th>折扣</th><th>免审核</th><th>允许下载</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="comparison" id="cmp"}
+            <tr><td>{$cmp.name}</td><td>{$cmp.discount}%</td>
+                <td>{if $cmp.allow_comment_no_review==1}<span class="text-success">是</span>{else/}<span class="text-muted">否</span>{/if}</td>
+                <td>{if $cmp.allow_download==1}<span class="text-success">是</span>{else/}<span class="text-muted">否</span>{/if}</td>
+                <td><button class="btn btn-sm btn-outline-primary edit-level" data-id="{$cmp.id}">编辑</button></td></tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('.edit-level').click(function(){
+        var id = $(this).data('id');
+        var modalId = 'levelEditModal';
+        var html = '<div class="modal fade" id="' + modalId + '" tabindex="-1">' +
+            '<div class="modal-dialog modal-lg modal-dialog-centered">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header"><h5 class="modal-title">编辑等级</h5>' +
+            '<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>' +
+            '<div class="modal-body" id="' + modalId + 'Body" style="min-height:200px">' +
+            '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div></div>' +
+            '</div></div></div>';
+        $('#' + modalId).remove();
+        $('body').append(html);
+        var modal = new bootstrap.Modal(document.getElementById(modalId));
+        modal.show();
+        $.get('/admin/member_level/edit/' + id + '?modal=1', function(res){
+            $('#' + modalId + 'Body').html(res);
+        }).fail(function(){
+            $('#' + modalId + 'Body').html('<div class="alert alert-danger">加载失败</div>');
+        });
+    });
+});
+</script>
+{/block}

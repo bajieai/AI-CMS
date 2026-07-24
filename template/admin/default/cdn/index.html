@@ -1,0 +1,36 @@
+{extend name="layout" /}
+{block name="title"}CDN配置{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">性能优化</li>
+<li class="breadcrumb-item active">CDN配置</li>
+{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-cloud-arrow-up me-2"></i>CDN配置</h5></div>
+    <div class="card-body">
+        <form method="post" action="/admin/cdn/save">
+            <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" name="enabled" id="cdn_enabled" {if !empty($config.enabled)}checked{/if}><label class="form-check-label" for="cdn_enabled">启用CDN</label></div>
+            <div class="mb-3"><label class="form-label">CDN域名</label><input type="text" class="form-control" name="domain" value="{$config.domain ?? ''}" placeholder="cdn.example.com"></div>
+            <div class="mb-3"><label class="form-label">静态资源版本号</label><input type="text" class="form-control" name="static_version" value="{$config.static_version ?? ''}"></div>
+            <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" name="webp_enabled" id="webp_enabled" {if !empty($config.webp_enabled)}checked{/if}><label class="form-check-label" for="webp_enabled">WebP图片转换</label></div>
+            <button type="submit" class="btn btn-primary">保存</button>
+        </form>
+    </div>
+</div>
+<div class="card mt-3">
+    <div class="card-header"><h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>CDN命中率</h6></div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3"><h4 class="text-success">{$stats.hit_rate}%</h4><small>命中率</small></div>
+            <div class="col-md-3"><h4 class="text-info">{$stats.requests}</h4><small>请求数</small></div>
+            <div class="col-md-3"><h4 class="text-warning">{round($stats.bandwidth/1024/1024,2)}MB</h4><small>带宽</small></div>
+            <div class="col-md-3"><h4 class="text-secondary">{round($stats.cache_size/1024/1024,2)}MB</h4><small>缓存大小</small></div>
+        </div>
+        <hr>
+        <button class="btn btn-danger btn-sm" onclick="purgeCdn()"><i class="bi bi-trash me-1"></i>清除CDN缓存</button>
+    </div>
+</div>
+<script>
+function purgeCdn(){if(!confirm('确认清除全部CDN缓存?'))return;fetch('/admin/cdn/purge',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'urls='}).then(r=>r.json()).then(res=>{alert(res.msg);})}
+</script>
+{/block}

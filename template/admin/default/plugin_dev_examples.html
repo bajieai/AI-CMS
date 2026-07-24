@@ -1,0 +1,104 @@
+{extend name="layout" /}
+
+{block name="title"}插件代码示例{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">插件管理</li>
+<li class="breadcrumb-item active">代码示例</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-code-slash me-1"></i>插件代码示例</span>
+        <a href="/admin/plugin_dev/addExample" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>新增示例</a>
+    </div>
+    <div class="card-body">
+        <form method="get" action="/admin/plugin_dev/examples" class="row g-3 mb-3">
+            <div class="col-auto">
+                <input type="text" name="keyword" class="form-control form-control-sm" placeholder="名称" value="{$Request.get.keyword??''}">
+            </div>
+            <div class="col-auto">
+                <select name="language" class="form-select form-select-sm">
+                    <option value="">全部语言</option>
+                    {volist name="languages" id="lang"}
+                    <option value="{$lang}" {if condition="$Request.get.language == $lang"}selected{/if}>{$lang}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">全部分类</option>
+                    {volist name="categories" id="cat"}
+                    <option value="{$cat}" {if condition="$Request.get.category == $cat"}selected{/if}>{$cat}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search me-1"></i>搜索</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>语言</th>
+                    <th>分类</th>
+                    <th>下载次数</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name}</td>
+                    <td><span class="badge bg-secondary"><i class="bi bi-code me-1"></i>{$vo.language}</span></td>
+                    <td>{$vo.category}</td>
+                    <td><i class="bi bi-download me-1"></i>{$vo.download_count}</td>
+                    <td>
+                        <a href="/admin/plugin_dev/viewExample?id={$vo.id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="查看"><i class="bi bi-eye"></i></a>
+                        <a href="/admin/plugin_dev/editExample?id={$vo.id}" class="btn btn-sm btn-outline-secondary py-0 px-1" title="编辑"><i class="bi bi-pencil"></i></a>
+                        <a href="/admin/plugin_dev/downloadExample?id={$vo.id}" class="btn btn-sm btn-outline-success py-0 px-1" title="下载"><i class="bi bi-download"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="deleteExample({$vo.id})" title="删除"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="6">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-code-slash"></i></div>
+                        <div class="ui-empty-title">暂无代码示例</div>
+                        <div class="ui-empty-desc">点击"新增示例"添加插件代码示例</div>
+                    </div>
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function deleteExample(id) {
+    showConfirm('删除示例', '确定删除该代码示例？此操作不可恢复！', function() {
+        $.post('/admin/plugin_dev/deleteExample', {id: id}, function(res) {
+            if (res.code === 0) { location.reload(); }
+            else { showToast(res.msg || '删除失败', 'danger'); }
+        }, 'json');
+    });
+}
+</script>
+{/block}

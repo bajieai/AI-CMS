@@ -1,0 +1,157 @@
+{extend name="layout" /}
+
+{block name="title"}数据备份{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">数据备份</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <span class="text-muted small">创建新备份：</span>
+            <button type="button" class="btn btn-primary btn-sm" onclick="createBackup('all', true)"><i class="bi bi-database-fill me-1"></i>完整备份(gzip)</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="createBackup('all', false)"><i class="bi bi-database-fill me-1"></i>完整备份</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="createBackup('structure', false)"><i class="bi bi-table me-1"></i>仅结构</button>
+            <button type="button" class="btn btn-outline-info btn-sm" onclick="createBackup('files', false)"><i class="bi bi-folder-fill me-1"></i>文件备份</button>
+            <button type="button" class="btn btn-outline-success btn-sm" onclick="createBackup('full', true)"><i class="bi bi-archive-fill me-1"></i>全量备份(DB+文件)</button>
+            <button type="button" class="btn btn-outline-warning btn-sm" onclick="cleanupBackup()"><i class="bi bi-trash3 me-1"></i>清理旧备份</button>
+        </div>
+        <div class="form-check form-check-inline mt-2">
+            <small class="text-muted">恢复备份前系统会自动创建当前数据库快照，确保可回滚。</small>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>备份文件列表</span>
+        <span class="text-muted small">备份存放目录：runtime/backup/</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>文件名</th>
+                    <th width="80">类型</th>
+                    <th width="100">大小</th>
+                    <th width="160">创建时间</th>
+                    <th width="200">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>
+                        {if $vo.type == 'files'}
+                            <i class="bi bi-file-zip text-warning me-1"></i>
+                        {else}
+                            <i class="bi bi-file-earmark-sql text-primary me-1"></i>
+                        {/if}
+                        {$vo.filename}
+                    </td>
+                    <td>
+                        {if $vo.type == 'files'}
+                            <span class="badge bg-warning text-dark">文件</span>
+                        {elseif $vo.type == 'db+files'}
+                            <span class="badge bg-success">全量</span>
+                        {else}
+                            <span class="badge bg-info">数据库</span>
+                        {/if}
+                    </td>
+                    <td>{$vo.size_text}</td>
+                    <td class="text-muted small">{$vo.create_time_text}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/admin/backup/download?filename={$vo.filename|urlencode}" class="btn btn-outline-primary" title="下载"><i class="bi bi-download"></i></a>
+                            {if $vo.type != 'files'}
+                            <button type="button" class="btn btn-outline-warning" onclick="restoreBackup('{$vo.filename}')" title="恢复"><i class="bi bi-arrow-counterclockwise"></i></button>
+                            {/if}
+                            <button type="button" class="btn btn-outline-danger" onclick="deleteBackup('{$vo.filename}')" title="删除"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="5">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                        <div class="ui-empty-title">暂无备份</div>
+                        <div class="ui-empty-desc">系统尚未创建任何备份，建议定期进行数据备份</div>
+                        <div class="ui-empty-action"><button type="button" class="btn btn-primary btn-sm" onclick="createBackup('all', true)"><i class="bi bi-plus-lg me-1"></i>创建备份</button></div>
+                    </div>
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function createBackup(type, gzip) {
+    var typeText = {
+        'all': '完整数据库备份',
+        'structure': '仅结构备份',
+        'data': '仅数据备份',
+        'files': '文件备份',
+        'full': '全量备份（数据库+文件）'
+    };
+    var extra = gzip ? '（gzip压缩）' : '';
+    showConfirm('创建备份', '确定要创建 <strong>' + typeText[type] + extra + '</strong> 吗？', function() {
+        ajaxPost('/admin/backup/create', { type: type, gzip: gzip ? 1 : 0 }, function(res) {
+            showToast(res.msg, 'success');
+            setTimeout(function() { location.reload(); }, 800);
+        });
+    });
+}
+
+function restoreBackup(filename) {
+    showConfirm('恢复备份', '⚠️ <strong>危险操作！</strong><br>恢复备份将覆盖当前数据库！<br>系统会在恢复前自动创建当前快照。<br><br>确定要恢复 <strong>' + escapeHtml(filename) + '</strong> 吗？', function() {
+        ajaxPost('/admin/backup/restore', { filename: filename, confirmed: true }, function(res) {
+            showToast(res.msg, 'success');
+        });
+    });
+}
+
+function deleteBackup(filename) {
+    showConfirm('删除备份', '确定要删除 <strong>' + escapeHtml(filename) + '</strong> 吗？', function() {
+        ajaxPost('/admin/backup/delete', { filename: filename }, function(res) {
+            showToast(res.msg, 'success');
+            setTimeout(function() { location.reload(); }, 800);
+        });
+    });
+}
+
+function cleanupBackup() {
+    showPrompt('清理旧备份', '请输入要保留的最近备份数量（默认10个）：', '10', function(value) {
+        var keep = parseInt(value) || 10;
+        ajaxPost('/admin/backup/cleanup', { keep: keep }, function(res) {
+            showToast(res.msg, 'success');
+            setTimeout(function() { location.reload(); }, 800);
+        });
+    });
+}
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 简单的prompt封装（如果没有showPrompt）
+function showPrompt(title, message, defaultValue, callback) {
+    if (typeof window.showPrompt === 'function' && window.showPrompt !== showPrompt) {
+        window.showPrompt(title, message, defaultValue, callback);
+        return;
+    }
+    var val = prompt(message, defaultValue);
+    if (val !== null) {
+        callback(val);
+    }
+}
+</script>
+{/block}

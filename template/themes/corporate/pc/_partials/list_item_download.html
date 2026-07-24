@@ -1,0 +1,26 @@
+<!-- V2.9.22 F-2: 下载型列表项 (corporate) — 展示字段对齐PRD(文件大小+版本号) -->
+{php}$ext = (isset($vo['ext']['data']) && is_array($vo['ext']['data'])) ? $vo['ext']['data'] : [];{/php}
+<div class="col-md-4 col-sm-6">
+    <div class="card h-100 download-card border-0 shadow-sm">
+        <div class="card-body text-center">
+            <div class="download-icon mb-3">
+                <i class="bi bi-file-earmark-arrow-down fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fs-6 mb-2" style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+                <a href="{$vo.url}" class="text-decoration-none text-dark">{$vo.title}</a>
+                {include file="shared/paid_badge" /}
+            </h5>
+            <p class="card-text text-muted small mb-3">{$vo.excerpt|msubstr=0,60}</p>
+            <div class="text-muted small mb-3 d-flex gap-2 flex-wrap justify-content-center align-items-center">
+                {if condition="!empty($ext['file_size'])"}
+                <span><i class="bi bi-hdd me-1"></i>{$ext['file_size']}</span>
+                {/if}
+                {if condition="!empty($ext['version'])"}
+                <span class="badge bg-primary">v{$ext['version']}</span>
+                {/if}
+                <span><i class="bi bi-calendar3 me-1"></i>{$vo.create_time|date='Y-m-d'}</span>
+            </div>
+            <a href="{$vo.url}" class="btn btn-sm btn-primary w-100"><i class="bi bi-download me-1"></i>立即下载</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>视频详情 - 八界AI-CMS</title>
+</head>
+<body>
+    <h1>{{ content.title }}</h1>
+    <p>时长：{{ content.duration }}</p>
+    <p>播放次数：{{ content.play_count }}</p>
+    <div>{{ content.content|raw }}</div>
+    {% if content.video_url %}
+    <video src="{{ content.video_url }}" controls style="width:100%;max-width:800px;"></video>
+    {% endif %}
+    {% if relations %}
+    <h3>相关视频</h3>
+    <ul>{% for r in relations %}<li><a href="{{ r.url }}">{{ r.title }}</a></li>{% endfor %}</ul>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,95 @@
+/**
+ * V2.9.8 本地化字体定义
+ * 
+ * 说明：
+ * - 本文件定义了模板定制面板使用的 5 组非系统中文字体的 @font-face
+ * - 字体文件位于 /assets/fonts/ 目录下（需自行下载，详见 README）
+ * - 系统默认字体预设不依赖本文件
+ * - font-display: swap 确保字体加载期间不阻塞文本渲染
+ * 
+ * 字体来源建议：
+ * - Google Fonts Helper (https://gwfh.mranftl.com/fonts) 下载预子集化 woff2
+ * - 或从对应字体官方 GitHub 仓库下载并自行子集化
+ */
+
+/* ─── 思源黑体 Noto Sans SC ─── */
+@font-face {
+    font-family: 'Noto Sans SC';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/assets/fonts/noto-sans-sc-400.woff2') format('woff2');
+    unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+0020-007F;
+}
+@font-face {
+    font-family: 'Noto Sans SC';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/assets/fonts/noto-sans-sc-700.woff2') format('woff2');
+    unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+0020-007F;
+}
+
+/* ─── 思源宋体 Noto Serif SC ─── */
+@font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/assets/fonts/noto-serif-sc-400.woff2') format('woff2');
+    unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+0020-007F;
+}
+@font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/assets/fonts/noto-serif-sc-700.woff2') format('woff2');
+    unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+0020-007F;
+}
+
+/* ─── 霞鹜文楷 LXGW WenKai ─── */
+@font-face {
+    font-family: 'LXGW WenKai';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/assets/fonts/lxgw-wenkai-400.woff2') format('woff2');
+    unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+0020-007F;
+}
+@font-face {
+    font-family: 'LXGW WenKai';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/assets/fonts/lxgw-wenkai-700.woff2') format('woff2');
+    unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+0020-007F;
+}
+
+/* ─── 马善政毛笔 Ma Shan Zheng ─── */
+@font-face {
+    font-family: 'Ma Shan Zheng';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/assets/fonts/ma-shan-zheng-400.woff2') format('woff2');
+    unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+0020-007F;
+}
+
+/* ─── Inter (拉丁字母，与思源搭配) ─── */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/assets/fonts/inter-latin-400.woff2') format('woff2');
+    unicode-range: U+0020-007F, U+00A0-00FF;
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/assets/fonts/inter-latin-700.woff2') format('woff2');
+    unicode-range: U+0020-007F, U+00A0-00FF;
+}

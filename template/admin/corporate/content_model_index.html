@@ -1,0 +1,80 @@
+{extend name="layout" /}
+
+{block name="title"}内容模型管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item active">内容模型</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-layers me-1"></i>内容模型</span>
+        <a href="/admin/content_model/add" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>新增模型</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:50px">ID</th>
+                        <th>图标</th>
+                        <th>名称</th>
+                        <th>类型</th>
+                        <th>字段数</th>
+                        <th>排序</th>
+                        <th>状态</th>
+                        <th style="width:180px">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr>
+                        <td>{$item.id}</td>
+                        <td><i class="bi bi-{$item.icon??'file-text'}"></i></td>
+                        <td>{$item.name}</td>
+                        <td><span class="badge bg-light text-dark">{$typeMap[$item.type] ?? '未知'}</span></td>
+                        <td>{$item.field_count}</td>
+                        <td>{$item.sort}</td>
+                        <td>
+                            <span class="badge {$item.status ? 'bg-success' : 'bg-secondary'}" style="cursor:pointer" onclick="toggleStatus({$item.id}, this)">
+                                {$item.status ? '启用' : '禁用'}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/admin/content_model/edit/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteModel({$item.id}, '{$item.name}')"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无内容模型</td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function toggleStatus(id, el) {
+    $.post('/admin/content_model/toggleStatus/' + id, function(res) {
+        if (res.code === 0) {
+            $(el).toggleClass('bg-success bg-secondary').text(res.data.status ? '启用' : '禁用');
+        } else {
+            alert(res.msg);
+        }
+    });
+}
+function deleteModel(id, name) {
+    if (!confirm('确定删除模型「' + name + '」？\n注意：模型下存在内容时无法删除。')) return;
+    $.post('/admin/content_model/delete/' + id, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+</script>
+{/block}

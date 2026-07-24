@@ -1,0 +1,169 @@
+{extend name="layout" /}
+{block name="title"}创建批量任务 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_batch/index">AI批量生产</a></li>
+<li class="breadcrumb-item active">创建任务</li>
+{/block}
+
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-plus-square me-2"></i>创建批量任务</h4>
+        <a href="/admin/ai_batch/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回列表</a>
+    </div>
+
+    <form id="batchForm" onsubmit="return false;">
+        <div class="row g-3">
+            <!-- 左侧主表单 -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-file-text me-2"></i>内容模板</h6></div>
+                    <div class="card-body">
+                        <label class="form-label fw-bold">Prompt 模板 <span class="text-danger">*</span></label>
+                        <textarea class="form-control font-monospace" name="template" rows="8" style="font-size:0.85rem;" placeholder="请输入AI内容生成模板，使用 {{变量名}} 引用变量&#10;例如：请为一款{{product_name}}撰写产品介绍，目标受众是{{audience}}，字数约{{word_count}}字" required></textarea>
+                        <div class="form-text">支持使用双花括号 <code>{{变量名}}</code> 引用变量，批量生成时自动替换</div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-sliders me-2"></i>变量配置</h6></div>
+                    <div class="card-body">
+                        <label class="form-label fw-bold">变量定义 (JSON)</label>
+                        <textarea class="form-control font-monospace" name="variables" rows="6" style="font-size:0.85rem;" placeholder='[{"name":"product_name","values":["产品A","产品B","产品C"]},{"name":"audience","values":["年轻人","中年白领"]}]'></textarea>
+                        <div class="form-text">定义模板中的变量及其取值列表，系统会自动进行笛卡尔积组合</div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="btnCsvImport"><i class="bi bi-filetype-csv"></i> 从CSV导入变量</button>
+                        <input type="file" id="csvFile" accept=".csv" class="d-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧参数 -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-gear me-2"></i>任务参数</h6></div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">生成数量</label>
+                            <input type="number" class="form-control" name="count" value="10" min="1" max="500">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">生成间隔 (秒)</label>
+                            <input type="number" class="form-control" name="interval" value="2" min="0" max="60">
+                            <div class="form-text">每次AI调用之间的等待时间，避免触发频率限制</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">质量阈值</label>
+                            <input type="number" class="form-control" name="quality_threshold" value="0.6" min="0" max="1" step="0.1">
+                            <div class="form-text">低于此分数的内容将自动重新生成</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">发布策略</label>
+                            <select class="form-select" name="publish_strategy">
+                                <option value="manual">手动发布</option>
+                                <option value="auto">自动发布</option>
+                                <option value="draft">存为草稿</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">内容分类</label>
+                            <select class="form-select" name="category_id">
+                                <option value="0">-- 选择分类 --</option>
+                                {volist name="categories" id="cat"}
+                                <option value="{$cat.id}">{$cat.name}</option>
+                                {/volist}
+                            </select>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="dedup" value="1" id="swDedup" checked>
+                            <label class="form-check-label" for="swDedup">内容去重检测</label>
+                            <div class="form-text">生成后自动检测重复内容</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="btnSubmit"><i class="bi bi-check-lg"></i> 创建并启动</button>
+                            <button type="button" class="btn btn-outline-secondary" id="btnPreview"><i class="bi bi-eye"></i> 预览组合</button>
+                            <a href="/admin/ai_batch/index" class="btn btn-outline-danger">取消</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- 预览模态框 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">变量组合预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent" class="font-monospace small"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnCsvImport').click(function(){ $('#csvFile').click(); });
+    $('#csvFile').change(function(){
+        var fd = new FormData();
+        fd.append('file', this.files[0]);
+        $.ajax({url:'/admin/ai_batch/importCsv', type:'POST', data:fd, processData:false, contentType:false,
+            success:function(d){
+                if(d.code===0){
+                    $('textarea[name=variables]').val(JSON.stringify(d.data.variables, null, 2));
+                    $.toast('CSV导入成功，共'+d.data.count+'条', 'success');
+                }else{
+                    $.toast(d.msg, 'danger');
+                }
+            }
+        });
+    });
+
+    $('#btnPreview').click(function(){
+        try{
+            var vars = JSON.parse($('textarea[name=variables]').val() || '[]');
+            var count = 1;
+            vars.forEach(function(v){ if(v.values) count *= v.values.length; });
+            $('#previewContent').html('<p>共 <b>'+count+'</b> 种组合</p><pre>'+JSON.stringify(vars, null, 2)+'</pre>');
+            new bootstrap.Modal('#previewModal').show();
+        }catch(e){
+            $.toast('变量JSON格式错误', 'danger');
+        }
+    });
+
+    $('#btnSubmit').click(function(){
+        var data = {};
+        $('#batchForm').serializeArray().forEach(function(item){
+            if(item.name === 'count' || item.name === 'interval' || item.name === 'category_id'){
+                data[item.name] = parseInt(item.value);
+            }else if(item.name === 'quality_threshold'){
+                data[item.name] = parseFloat(item.value);
+            }else if(item.name === 'dedup'){
+                data[item.name] = 1;
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        if(!$('#swDedup').is(':checked')) data.dedup = 0;
+        ajaxPost('/admin/ai_batch/create', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0 && d.data.task_id) {
+                setTimeout(function(){location.href='/admin/ai_batch/results?task_id='+d.data.task_id},800);
+            }
+        });
+    });
+});
+</script>
+{/block}

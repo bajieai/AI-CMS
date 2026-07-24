@@ -1,0 +1,147 @@
+{extend name="layout" /}
+
+{block name="title"}AI生成统计{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">数据统计</li>
+<li class="breadcrumb-item active">AI生成统计</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-1"></i>生成总量趋势</span>
+                <select class="form-select form-select-sm" style="width:auto;" id="trendDays" onchange="loadTrend()">
+                    <option value="7">近7天</option>
+                    <option value="30">近30天</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div id="trendChart" style="height:300px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white">
+                <i class="bi bi-pie-chart me-1"></i>供应商消耗占比
+            </div>
+            <div class="card-body">
+                <div id="providerChart" style="height:300px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white">
+                <i class="bi bi-list-task me-1"></i>任务类型分布
+            </div>
+            <div class="card-body">
+                <div id="taskChart" style="height:280px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white">
+                <i class="bi bi-shield-check me-1"></i>内容质量分布
+            </div>
+            <div class="card-body">
+                <div id="qualityChart" style="height:280px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var trendChart = echarts.init(document.getElementById('trendChart'));
+var providerChart = echarts.init(document.getElementById('providerChart'));
+var taskChart = echarts.init(document.getElementById('taskChart'));
+var qualityChart = echarts.init(document.getElementById('qualityChart'));
+
+function loadTrend() {
+    var days = $('#trendDays').val();
+    $.get('/admin/aiStat/getGenerateTrend?days=' + days, function(d) {
+        if(d.code !== 0) return;
+        var dates = [], counts = [], success = [];
+        $.each(d.data, function(i, v) {
+            dates.push(v.date);
+            counts.push(v.count);
+            success.push(v.success);
+        });
+        trendChart.setOption({
+            tooltip: {trigger: 'axis'},
+            legend: {data: ['总调用', '成功'], top: 0},
+            grid: {left: '3%', right: '4%', bottom: '3%', containLabel: true},
+            xAxis: {type: 'category', data: dates},
+            yAxis: {type: 'value'},
+            series: [
+                {name: '总调用', type: 'bar', data: counts, itemStyle: {color: '#667eea'}, barWidth: '40%'},
+                {name: '成功', type: 'line', data: success, itemStyle: {color: '#43e97b'}, lineStyle: {width: 2}}
+            ]
+        });
+    });
+}
+
+function loadProviderStats() {
+    $.get('/admin/aiStat/getProviderStats', function(d) {
+        if(d.code !== 0) return;
+        var pieData = $.map(d.data, function(v) {
+            return {name: v.provider || '未知', value: v.count};
+        });
+        providerChart.setOption({
+            tooltip: {trigger: 'item', formatter: '{b}: {c} ({d}%)'},
+            series: [{type: 'pie', radius: ['40%', '70%'], label: {show: true, formatter: '{b}\n{d}%'}, data: pieData}]
+        });
+    });
+}
+
+function loadTaskTypeStats() {
+    $.get('/admin/aiStat/getTaskTypeStats', function(d) {
+        if(d.code !== 0) return;
+        var pieData = $.map(d.data, function(v) {
+            return {name: v.task_type || '其他', value: v.count};
+        });
+        taskChart.setOption({
+            tooltip: {trigger: 'item', formatter: '{b}: {c} ({d}%)'},
+            series: [{type: 'pie', radius: ['40%', '70%'], label: {show: true, formatter: '{b}\n{d}%'}, data: pieData}]
+        });
+    });
+}
+
+function loadQualityDistribution() {
+    $.get('/admin/aiStat/getQualityDistribution', function(d) {
+        if(d.code !== 0) return;
+        var colors = ['#43e97b', '#4facfe', '#f093fb', '#f5576c'];
+        var pieData = $.map(d.data, function(v, i) {
+            return {name: v.name, value: v.value, itemStyle: {color: colors[i % colors.length]}};
+        });
+        qualityChart.setOption({
+            tooltip: {trigger: 'item', formatter: '{b}: {c} ({d}%)'},
+            series: [{type: 'pie', radius: ['40%', '70%'], label: {show: true, formatter: '{b}\n{d}%'}, data: pieData}]
+        });
+    });
+}
+
+$(function() {
+    loadTrend();
+    loadProviderStats();
+    loadTaskTypeStats();
+    loadQualityDistribution();
+});
+
+$(window).resize(function() {
+    trendChart.resize();
+    providerChart.resize();
+    taskChart.resize();
+    qualityChart.resize();
+});
+</script>
+{/block}

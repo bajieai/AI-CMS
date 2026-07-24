@@ -1,0 +1,54 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-collection me-2"></i>版本管理 - {$package.name}</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">版本列表</span>
+            <a href="/admin/plugin_store/versionAdd/{$package.id}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>新增版本</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr><th>ID</th><th>版本号</th><th>文件路径</th><th>当前版本</th><th>更新说明</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                        {volist name="versions" id="v"}
+                        <tr>
+                            <td>{$v.id}</td>
+                            <td>{$v.version}</td>
+                            <td class="small text-muted">{$v.file_path}</td>
+                            <td>{if $v.is_current}<span class="badge bg-success">是</span>{else}<span class="badge bg-secondary">否</span>{/if}</td>
+                            <td class="small">{$v.changelog}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteVersion({$v.id})" {if $v.is_current}disabled{/if}><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            {if empty($versions)}
+            <div class="text-center py-5 text-muted"><i class="bi bi-inbox fs-1"></i><p>暂无版本</p></div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function deleteVersion(id) {
+    layer.confirm('确定删除该版本？', function() {
+        fetch('/admin/plugin_store/versionDelete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + id
+        }).then(r => r.json()).then(res => {
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(() => location.reload(), 800);
+        });
+    });
+}
+</script>
+{/block}

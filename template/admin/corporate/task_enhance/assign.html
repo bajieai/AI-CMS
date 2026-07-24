@@ -1,0 +1,111 @@
+{extend name="layout" /}
+{block name="title"}任务分配管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">任务分配管理</li>{/block}
+{block name="content"}
+<div class="content-wrapper">
+    <div class="card corporate-card">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-people me-2"></i>任务分配</h5></div>
+        <div class="card-body">
+            <form id="assignForm" class="row g-3">
+                <input type="hidden" name="task_id" value="{$task_id|default=0}">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">主负责人ID</label>
+                    <input type="number" class="form-control" name="assignee_id" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">审核人ID</label>
+                    <input type="number" class="form-control" name="reviewer_id" value="0">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">协作者ID（逗号分隔）</label>
+                    <input type="text" class="form-control" name="collaborators" placeholder="例: 101,102,103">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">通知人ID（逗号分隔）</label>
+                    <input type="text" class="form-control" name="notifiers" placeholder="例: 201,202">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 分配</button>
+                    <button type="button" class="btn btn-info" id="autoAssignBtn"><i class="bi bi-magic"></i> 自动分配</button>
+                    <button type="button" class="btn btn-warning" id="reassignBtn"><i class="bi bi-arrow-repeat"></i> 转派</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card corporate-card mt-3">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>批量分配</h5></div>
+        <div class="card-body">
+            <form id="batchForm" class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">任务ID列表（逗号分隔）</label>
+                    <input type="text" class="form-control" name="task_ids" placeholder="例: 1,2,3,4">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">负责人ID</label>
+                    <input type="number" class="form-control" name="assignee_id" required>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success"><i class="bi bi-list-check"></i> 批量分配</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {if condition="$task_id|default=0 gt 0"}
+    <div class="card corporate-card mt-3">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-list-ol me-2"></i>分配历史</h5></div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <thead><tr><th>ID</th><th>动作</th><th>从</th><th>到</th><th>原因</th><th>时间</th></tr></thead>
+                <tbody>
+                {volist name="history" id="h"}
+                <tr>
+                    <td>{$h.id}</td>
+                    <td><span class="badge bg-info">{$h.action}</span></td>
+                    <td>{$h.from_user_id}</td>
+                    <td>{$h.to_user_id}</td>
+                    <td>{$h.reason}</td>
+                    <td>{$h.create_time}</td>
+                </tr>
+                {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+{block name="script"}
+<script>
+$(function(){
+    $('#assignForm').on('submit', function(e){
+        e.preventDefault();
+        $.post('/admin/task_enhance/assign', $(this).serialize(), function(res){
+            layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+        }, 'json');
+    });
+    $('#batchForm').on('submit', function(e){
+        e.preventDefault();
+        $.post('/admin/task_enhance/batch_assign', $(this).serialize(), function(res){
+            layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+        }, 'json');
+    });
+    $('#autoAssignBtn').on('click', function(){
+        var taskId = $('input[name=task_id]').val();
+        $.post('/admin/task_enhance/auto_assign', {task_id: taskId, strategy: 'balanced'}, function(res){
+            layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+        }, 'json');
+    });
+    $('#reassignBtn').on('click', function(){
+        var taskId = $('input[name=task_id]').val();
+        var newId = prompt('请输入新负责人ID:');
+        if(newId){
+            $.post('/admin/task_enhance/reassign', {task_id: taskId, new_assignee_id: newId}, function(res){
+                layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+            }, 'json');
+        }
+    });
+});
+</script>
+{/block}
