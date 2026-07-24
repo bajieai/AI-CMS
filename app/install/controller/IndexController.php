@@ -216,7 +216,7 @@ class IndexController
         $checks[] = ['name' => 'bcmath扩展（精确计算）', 'status' => extension_loaded('bcmath'), 'current' => extension_loaded('bcmath') ? '已安装' : '未安装'];
         $checks[] = ['name' => 'ZIP扩展（插件/模板安装）', 'status' => extension_loaded('zip'), 'current' => extension_loaded('zip') ? '已安装' : '未安装'];
         $checks[] = ['name' => 'fileinfo扩展（文件检测）', 'status' => extension_loaded('fileinfo'), 'current' => extension_loaded('fileinfo') ? '已安装' : '未安装'];
-        $checks[] = ['name' => 'OPcache扩展（性能优化，建议）', 'status' => extension_loaded('opcache'), 'current' => extension_loaded('opcache') ? '已开启' : '未开启（可选）'];
+        $checks[] = ['name' => 'OPcache扩展（性能优化，强烈建议）', 'status' => extension_loaded('opcache'), 'current' => extension_loaded('opcache') ? '已开启' : '未开启（建议安装）'];
 
         $dirs = ['runtime' => root_path() . 'runtime', 'public/uploads' => public_path() . 'uploads'];
         foreach ($dirs as $name => $path) {
