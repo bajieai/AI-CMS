@@ -128,16 +128,26 @@ composer install --optimize-autoloader
 
 **Apache**：项目已内置 `.htaccess`（ThinkPHP 标准规则），无需额外配置。确保 Apache 开启了 `mod_rewrite` 模块。
 
-**Nginx**：在网站配置中添加以下 ThinkPHP 标准规则：
+**Nginx**：项目已内置 `public/nginx.htaccess` 伪静态规则（小皮面板自动加载）。手动配置时在 `location /` 块中添加：
+
 ```nginx
 location / {
+    rewrite ^/admin/?$ /admin.php last;
+    rewrite ^/admin/(.*)$ /admin.php/$1 last;
+    rewrite ^/install/(.*)$ /install.php/$1 last;
+    rewrite ^/api/(.*)$ /api.php/$1 last;
     if (!-e $request_filename) {
         rewrite ^(.*)$ /index.php/$1 last;
     }
 }
 ```
 
-> **宝塔面板用户**：网站设置 → 伪静态 → 选择 `thinkphp` 即可。
+> 宝塔面板用户：网站设置 → 伪静态 → 选择 `thinkphp` 即可。
+> 小皮面板用户：项目 `public/nginx.htaccess` 已包含完整规则，小皮面板会自动加载。
+
+**Apache**：项目已内置 `public/.htaccess`，包含 admin/index 多入口路由规则，无需额外配置。
+
+> ThinkPHP 标准伪静态规则仅路由前台页面到 index.php，不支持后台 `/admin` 路径。
 
 ### Docker 安装（可选）
 

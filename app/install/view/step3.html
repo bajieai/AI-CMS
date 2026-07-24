@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安装 AI-CMS V2.9.40 - 管理员设置</title>
+    <title>安装 AI-CMS V2.9.41 - 管理员设置</title>
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
     <style>
@@ -23,7 +23,7 @@
     <div class="install-card">
         <div class="install-header">
             <i class="bi bi-robot fs-2"></i>
-            <h3 class="mt-2">AI-CMS V2.9.40 安装向导</h3>
+            <h3 class="mt-2">AI-CMS V2.9.41 安装向导</h3>
         </div>
         <div class="install-body" id="mainBody">
             <div class="step-indicator">
@@ -127,51 +127,133 @@
         });
     });
 
-    // 执行安装（创建数据库表等）
+    // 执行安装 - 分阶段模式，显示实时进度
     function doInstall() {
         var $body = $('#mainBody');
-        $body.html(
-            '<div class="text-center py-5">' +
-                '<div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem"></div>' +
-                '<h5>正在安装，请稍候...</h5>' +
-                '<p class="text-muted">正在创建数据库表和初始数据</p>' +
-            '</div>'
-        );
+        var phases = [
+            { phase: 1, label: '创建数据库', icon: 'bi-database' },
+            { phase: 2, label: '创建数据库表和初始数据', icon: 'bi-table', hasProgress: true },
+            { phase: 3, label: '配置管理员和系统信息', icon: 'bi-person-check' },
+            { phase: 4, label: '写入配置文件', icon: 'bi-file-earmark-check' }
+        ];
 
-        $.ajax({
-            url: '/install.php/index/step4',
-            type: 'POST',
-            dataType: 'json',
-            timeout: 120000,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(res) {
-                if (res.code === 0) {
+        // 渲染进度面板
+        var progressHtml = '<div class="install-progress py-4">';
+        progressHtml += '<h5 class="mb-4"><i class="bi bi-gear-wide-connected me-2"></i>正在安装，请稍候...</h5>';
+        progressHtml += '<div class="progress-stages mb-4">';
+        for (var i = 0; i < phases.length; i++) {
+            progressHtml += '<div class="progress-stage" id="stage_' + phases[i].phase + '">';
+            progressHtml += '<i class="bi ' + phases[i].icon + ' me-1"></i>';
+            progressHtml += '<span>' + phases[i].label + '</span>';
+            progressHtml += '<span class="stage-status ms-2" id="status_' + phases[i].phase + '">';
+            progressHtml += '<span class="spinner-border spinner-border-sm text-muted"></span>';
+            progressHtml += '</span>';
+            progressHtml += '</div>';
+        }
+        progressHtml += '</div>';
+        progressHtml += '<div class="progress mb-3" id="progressBar" style="height:8px">';
+        progressHtml += '<div class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>';
+        progressHtml += '</div>';
+        progressHtml += '<p class="text-muted small" id="progressText">准备开始...</p>';
+        progressHtml += '</div>';
+
+        $body.html(progressHtml);
+
+        var currentPhase = 0;
+        var sqlOffset = 0;
+        var overallPercent = 0;
+
+        function runNextPhase() {
+            if (currentPhase >= phases.length) {
+                // 所有阶段完成
+                $('#progressBar .progress-bar').css('width', '100%').removeClass('progress-bar-animated progress-bar-striped').addClass('bg-success');
+                $('#progressText').text('安装完成！正在跳转...');
+                setTimeout(function() {
                     location.href = '/install.php/index/step5';
-                } else {
-                    $body.html(
-                        '<div class="alert alert-danger text-center py-4">' +
-                            '<h5><i class="bi bi-exclamation-triangle me-2"></i>安装失败</h5>' +
-                            '<p class="mb-3">' + (res.msg || '未知错误') + '</p>' +
-                            '<button onclick="location.reload()" class="btn btn-outline-danger">返回重试</button>' +
-                        '</div>'
-                    );
-                }
-            },
-            error: function(xhr, status, error) {
-                var msg = '安装请求失败';
-                if (status === 'timeout') msg = '安装超时，数据库可能连接失败';
-                else if (xhr.status === 500) msg = '服务器错误（500）';
-                $body.html(
-                    '<div class="alert alert-danger text-center py-4">' +
-                        '<h5><i class="bi bi-exclamation-triangle me-2"></i>安装失败</h5>' +
-                        '<p class="mb-3">' + msg + '</p>' +
-                        '<button onclick="location.reload()" class="btn btn-outline-danger">返回重试</button>' +
-                    '</div>'
-                );
+                }, 800);
+                return;
             }
-        });
+
+            var phaseInfo = phases[currentPhase];
+            var isPhase2Batch = (phaseInfo.phase === 2 && sqlOffset > 0);
+
+            // 标记当前阶段为进行中
+            $('#status_' + phaseInfo.phase).html('<span class="spinner-border spinner-border-sm text-primary"></span>');
+            $('#progressText').text(phaseInfo.label + '...');
+
+            var ajaxData = { phase: phaseInfo.phase };
+            if (isPhase2Batch) {
+                ajaxData.offset = sqlOffset;
+            }
+
+            $.ajax({
+                url: '/install.php/index/step4',
+                type: 'POST',
+                data: ajaxData,
+                dataType: 'json',
+                timeout: 300000,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(res) {
+                    if (res.code !== 0) {
+                        showError(res.msg || '安装失败');
+                        return;
+                    }
+
+                    // 标记当前阶段为完成
+                    $('#status_' + phaseInfo.phase).html('<i class="bi bi-check-circle-fill text-success"></i>');
+
+                    // 更新进度条
+                    if (res.percent !== undefined) {
+                        // phase 2 有SQL进度百分比
+                        // 整体进度：phase1=25%, phase2(0-100%)=25%-75%, phase3=85%, phase4=100%
+                        if (phaseInfo.phase === 2) {
+                            overallPercent = 25 + Math.round(res.percent * 0.5);
+                        }
+                        $('#progressBar .progress-bar').css('width', overallPercent + '%');
+                        $('#progressText').text(phaseInfo.label + ' ' + res.percent + '% (' + res.executed + '/' + res.total + '条)');
+                    } else {
+                        // 其他阶段直接跳到对应进度
+                        var phaseProgress = { 1: 25, 3: 85, 4: 100 };
+                        overallPercent = phaseProgress[phaseInfo.phase] || overallPercent;
+                        $('#progressBar .progress-bar').css('width', overallPercent + '%');
+                    }
+
+                    // phase 2 可能需要多批次
+                    if (phaseInfo.phase === 2 && res.has_more) {
+                        sqlOffset = res.next_offset;
+                        // 不推进到下一个phase，继续请求本批次
+                        runNextPhase();
+                        return;
+                    }
+
+                    // 推进到下一个phase
+                    currentPhase++;
+                    sqlOffset = 0;
+                    runNextPhase();
+                },
+                error: function(xhr, status, error) {
+                    var msg = '安装请求失败';
+                    if (status === 'timeout') msg = '安装超时，请稍后重试';
+                    else if (xhr.status === 500) msg = '服务器内部错误';
+                    else msg = '网络错误: ' + error;
+                    showError(msg);
+                }
+            });
+        }
+
+        function showError(msg) {
+            $('#progressBar .progress-bar').removeClass('progress-bar-animated progress-bar-striped').addClass('bg-danger');
+            $('#progressText').html(
+                '<div class="alert alert-danger mt-3">' +
+                '<i class="bi bi-exclamation-triangle me-2"></i><strong>安装失败</strong><br>' +
+                msg +
+                '<br><button onclick="location.reload()" class="btn btn-outline-danger btn-sm mt-2">返回重试</button>' +
+                '</div>'
+            );
+        }
+
+        // 启动安装流程
+        runNextPhase();
     }
     </script>
 </body>

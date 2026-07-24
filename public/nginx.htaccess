@@ -1,21 +1,7 @@
-# AI-CMS Nginx 伪静态规则
-# ThinkPHP 8.1 多应用模式 URL 重写
-# 注意：admin.php 入口已通过 name('admin') 绑定 admin 应用
-# 所以 /admin/login 需要转发为 admin.php/login（不含 admin 前缀）
-
-# 如果请求的文件或目录存在，直接返回
+rewrite ^/admin/?$ /admin.php last;
+rewrite ^/admin/(.*)$ /admin.php/$1 last;
+rewrite ^/install/(.*)$ /install.php/$1 last;
+rewrite ^/api/(.*)$ /api.php/$1 last;
 if (!-e $request_filename) {
-    # 后台入口 admin.php
-    rewrite ^/admin\.php(.*)$ /admin.php$1 last;
-    # /admin 或 /admin/xxx 转发到 admin.php（去掉 admin 前缀）
-    rewrite ^/admin/?$ /admin.php last;
-    rewrite ^/admin/(.*)$ /admin.php/$1 last;
-    # 安装入口
-    rewrite ^/install\.php(.*)$ /install.php$1 last;
-    rewrite ^/install/(.*)$ /install.php/$1 last;
-    # API入口
-    rewrite ^/api\.php(.*)$ /api.php$1 last;
-    rewrite ^/api/(.*)$ /api.php/$1 last;
-    # 前台所有其他请求转发到 index.php
-    rewrite ^(.*)$ /index.php$1 last;
+    rewrite ^(.*)$ /index.php/$1 last;
 }
