@@ -90,33 +90,58 @@
 
 ### 环境要求
 
-- PHP 8.2+
-- MySQL 8.0+
-- Redis 6.0+
-- Docker & Docker Compose (推荐)
+- PHP 8.2+（需启用扩展：pdo_mysql、mbstring、openssl、json、fileinfo、redis）
+- MySQL 8.0+（utf8mb4）
+- Redis 6.0+（可选，不安装则使用文件缓存）
+- Web 服务器：Nginx / Apache（推荐 Nginx）
 
-### 安装步骤
+### 方式一：傻瓜式安装（推荐）
+
+适用于宝塔面板、小皮面板等已配置好服务器环境的用户：
+
+1. **下载完整安装包** — 从 [Gitee Releases](https://gitee.com/bajieai/ai-cms/releases) 下载 `AI-CMS-V2.9.41-full.zip`（含所有依赖，无需 Composer）
+2. **创建网站** — 在宝塔/小皮面板中创建网站，将域名解析到服务器
+3. **上传解压** — 将 ZIP 包上传到网站根目录并解压
+4. **设置运行目录** — 网站运行目录设为 `public`
+5. **添加伪静态** — 根据Web服务器类型配置伪静态规则（见下方）
+6. **访问安装向导** — 浏览器访问 `http://你的域名/install.php`，按向导完成安装
+
+> **提示**：完整安装包已包含 vendor 依赖，无需执行 `composer install`
+
+### 方式二：Git 源码安装（开发者）
+
+适用于熟悉 Git 和 Composer 的开发者：
 
 ```bash
 # 1. 克隆仓库
 git clone https://gitee.com/bajieai/ai-cms.git
 cd ai-cms
 
-# 2. 启动Docker环境
+# 2. 安装依赖
+composer install --optimize-autoloader
+
+# 3. 访问安装向导
+# 浏览器访问 http://你的域名/install.php
+```
+
+### 伪静态配置
+
+**Nginx**：
+```nginx
+location / {
+    if (!-e $request_filename) {
+        rewrite ^(.*)$ /index.php?s=/$1 last;
+    }
+}
+```
+
+**Apache**（已内置 .htaccess，无需额外配置）
+
+### Docker 安装（可选）
+
+```bash
 docker-compose up -d
-
-# 3. 安装依赖
-composer install
-
-# 4. 配置数据库
-# 复制 .env.example 为 .env 并修改数据库配置
-
-# 5. 导入数据库
-docker exec -i aicms_mysql mysql -u root -p < database/install.sql
-
-# 6. 访问系统
-# 前台: http://localhost
-# 后台: http://localhost/admin
+# 访问 http://localhost/install.php
 ```
 
 ## 默认账户

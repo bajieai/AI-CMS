@@ -1,8 +1,6 @@
 <?php
-// [ACT] AI-CMS V2.0 主入口（前台home应用）
+// [ACT] AI-CMS V2.9.41 主入口（前台home应用）
 namespace think;
-
-require __DIR__ . '/../vendor/autoload.php';
 
 // ===== 编码根治：全局强制UTF-8（防止Windows环境PHP默认GBK导致乱码）=====
 mb_internal_encoding('UTF-8');
@@ -15,6 +13,14 @@ if (!file_exists(__DIR__ . '/../install.lock')) {
     header('Location: /install.php');
     exit;
 }
+
+// 检查vendor目录是否存在
+if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    header('Location: /install.php');
+    exit;
+}
+
+require __DIR__ . '/../vendor/autoload.php';
 
 $http = (new App())->http;
 
