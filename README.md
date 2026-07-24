@@ -126,16 +126,18 @@ composer install --optimize-autoloader
 
 ### 伪静态配置
 
-**Nginx**：
+**Apache**：项目已内置 `.htaccess`（ThinkPHP 标准规则），无需额外配置。确保 Apache 开启了 `mod_rewrite` 模块。
+
+**Nginx**：在网站配置中添加以下 ThinkPHP 标准规则：
 ```nginx
 location / {
     if (!-e $request_filename) {
-        rewrite ^(.*)$ /index.php?s=/$1 last;
+        rewrite ^(.*)$ /index.php/$1 last;
     }
 }
 ```
 
-**Apache**（已内置 .htaccess，无需额外配置）
+> **宝塔面板用户**：网站设置 → 伪静态 → 选择 `thinkphp` 即可。
 
 ### Docker 安装（可选）
 
