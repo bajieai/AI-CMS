@@ -1,0 +1,20 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">开发者管理</h5></div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-3"><div class="card bg-primary text-white"><div class="card-body py-2"><small>总数</small><br><span class="h4">{$stats.total ?? 0}</span></div></div></div>
+            <div class="col-md-3"><div class="card bg-warning text-white"><div class="card-body py-2"><small>待审核</small><br><span class="h4">{$stats.pending ?? 0}</span></div></div></div>
+            <div class="col-md-3"><div class="card bg-success text-white"><div class="card-body py-2"><small>已认证</small><br><span class="h4">{$stats.approved ?? 0}</span></div></div></div>
+            <div class="col-md-3"><div class="card bg-secondary text-white"><div class="card-body py-2"><small>已禁用</small><br><span class="h4">{$stats.disabled ?? 0}</span></div></div></div>
+        </div>
+        <form method="get" class="mb-3"><div class="input-group" style="max-width:400px;"><input type="text" name="keyword" class="form-control" placeholder="姓名/邮箱/手机号" value="{$keyword ?? ''}"><button class="btn btn-primary" type="submit">搜索</button></div></form>
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>姓名</th><th>邮箱</th><th>等级</th><th>状态</th><th>模板数</th><th>收益</th><th>操作</th></tr></thead>
+            <tbody>{volist name="list" id="vo"}<tr><td>{$vo.id}</td><td>{$vo.real_name}</td><td>{$vo.contact_email}</td><td>{if $vo.level==1}初级{elseif $vo.level==2}认证{else}专业{/if}</td><td>{if $vo.status==0}<span class="badge bg-warning">待审</span>{elseif $vo.status==1}<span class="badge bg-success">通过</span>{else}<span class="badge bg-danger">禁用</span>{/if}</td><td>{$vo.total_templates}</td><td>￥{$vo.total_revenue}</td><td><a href="/admin/developer/detail?id={$vo.id}" class="btn btn-sm btn-outline-primary">详情</a></td></tr>{/volist}</tbody>
+        </table>
+        {$list|raw}
+    </div>
+</div>
+{/block}

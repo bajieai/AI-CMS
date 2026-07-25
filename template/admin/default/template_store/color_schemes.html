@@ -1,0 +1,48 @@
+{extend name="layout" /}
+
+{block name="title"}配色方案{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">平台扩展</li>
+<li class="breadcrumb-item"><a href="/admin/template_store/index">模板商店管理</a></li>
+<li class="breadcrumb-item active">配色方案</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3">
+    {foreach $schemes as $key => $scheme}
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{$scheme.name}</h5>
+                <p class="card-text text-muted small">{$scheme.description}</p>
+                <div class="d-flex gap-2 mb-2">
+                    <div class="rounded" style="width:32px;height:32px;background:{$scheme.colors.primary_color};" title="主色"></div>
+                    <div class="rounded" style="width:32px;height:32px;background:{$scheme.colors.accent_color};" title="强调色"></div>
+                    <div class="rounded border" style="width:32px;height:32px;background:{$scheme.colors.bg_color};" title="背景色"></div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <button class="btn btn-primary btn-sm" onclick="applyScheme('{$key}')"><i class="bi bi-check-lg me-1"></i>应用此配色</button>
+            </div>
+        </div>
+    </div>
+    {/foreach}
+</div>
+
+<script>
+function applyScheme(key) {
+    if (!confirm('确定要应用此配色方案吗？当前配色配置将被覆盖。')) return;
+    fetch('/admin/template_store/apply_color_scheme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'theme_slug=default&scheme_key=' + encodeURIComponent(key)
+    })
+    .then(r => r.json())
+    .then(d => {
+        alert(d.msg || '操作成功');
+    })
+    .catch(e => alert('操作失败'));
+}
+</script>
+{/block}

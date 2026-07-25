@@ -1,0 +1,39 @@
+{extend name="layout" /}
+{block name="title"}短信服务 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-chat-dots"></i> 短信服务</h5>
+        <div>
+            <a href="{:url('/admin/sms/templates')}" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-text"></i> 模板管理</a>
+            <a href="{:url('/admin/sms/logs')}" class="btn btn-outline-info btn-sm"><i class="bi bi-clock-history"></i> 发送日志</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">今日发送</h6><h3>0</h3></div></div></div>
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">本月发送</h6><h3>0</h3></div></div></div>
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">成功率</h6><h3>100%</h3></div></div></div>
+            <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6 class="text-muted">当前服务商</h6><h3>阿里云</h3></div></div></div>
+        </div>
+        <h6><i class="bi bi-send"></i> 发送测试短信</h6>
+        <form class="row g-2 mb-3" onsubmit="return sendTestSms(event)">
+            <div class="col-md-3"><input type="text" id="sms_phone" class="form-control form-control-sm" placeholder="手机号码"></div>
+            <div class="col-md-4"><input type="text" id="sms_content" class="form-control form-control-sm" placeholder="短信内容"></div>
+            <div class="col-md-2"><button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send"></i> 发送</button></div>
+        </form>
+    </div>
+</div>
+<script>
+function sendTestSms(e) {
+    e.preventDefault();
+    var phone = $('#sms_phone').val();
+    var content = $('#sms_content').val();
+    if(!phone || !content) { alert('请填写手机号和内容'); return false; }
+    $.post('{:url("/admin/sms/send")}', {phone: phone, content: content}, function(res){
+        if(res.code === 0) alert('短信发送成功'); else alert(res.msg);
+    });
+    return false;
+}
+</script>
+{/block}

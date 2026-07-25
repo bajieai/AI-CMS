@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - AI-CMS</title>
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- V2.6 登录页样式（从内联提取到外部CSS文件） -->
+    <link href="{$skin_admin}css/login.css?v=2.6" rel="stylesheet">
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            {if $site_logo}
+            <img src="{$site_logo}" alt="Logo" height="48" style="margin-bottom:8px;">
+            {else}
+            <i class="bi bi-robot"></i>
+            {/if}
+            <h4>{$brand_name ?? 'AI-CMS'}</h4>
+            <p>{$site_description ?? 'AI驱动的企业信息管理系统'}</p>
+        </div>
+        <div class="login-body">
+            <form id="loginForm" method="post" action="/admin/login">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" name="username" placeholder="用户名" required autofocus>
+                    <label for="username"><i class="bi bi-person me-1"></i>用户名</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="密码" required>
+                    <label for="password"><i class="bi bi-lock me-1"></i>密码</label>
+                </div>
+                {if $admin_captcha_enabled ?? 0}
+                <div class="form-floating position-relative">
+                    <input type="text" class="form-control" id="captcha" name="captcha" placeholder="验证码" required style="padding-right:120px;">
+                    <label for="captcha"><i class="bi bi-shield-check me-1"></i>验证码</label>
+                    <input type="hidden" name="captcha_key" id="captchaKey">
+                    <div id="captchaBox" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:100px;height:40px;background:#f0fdf4;border:1px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;">
+                        <span class="text-muted small">加载中...</span>
+                    </div>
+                </div>
+                {/if}
+                <button type="submit" class="btn btn-primary btn-login" id="btnLogin">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>登 录
+                </button>
+            </form>
+        </div>
+        <div class="login-footer">
+            AI-CMS V2.0 &copy; 2025
+        </div>
+    </div>
+
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script>
+        {if $admin_captcha_enabled ?? 0}
+        // 加载验证码
+        function loadCaptcha() {
+            $.get('/admin/login/captcha', function(res) {
+                if (res.success && res.data) {
+                    var $box = $('#captchaBox');
+                    $box.empty();
+                    if (res.data.mode === 'image' && res.data.image) {
+                        $box.html('<img src="' + res.data.image + '" style="max-width:100%;height:auto;display:block;margin:0 auto;" alt="验证码">');
+                    } else {
+                        $box.html('<span class="fw-bold" style="font-size:1rem;">' + (res.data.text || '验证码') + '</span>');
+                    }
+                    $('#captchaKey').val(res.data.key);
+                }
+            });
+        }
+        loadCaptcha();
+        // 点击刷新验证码
+        $('#captchaBox').on('click', function() { loadCaptcha(); });
+        {/if}
+
+        $('#loginForm').on('submit', function(e) {
+            e.preventDefault();
+            var $btn = $('#btnLogin');
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>登录中...');
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function(res) {
+                    if (res.code === 0) {
+                        $btn.html('<i class="bi bi-check-lg me-1"></i>登录成功');
+                        setTimeout(function() {
+                            location.href = res.data.redirect || '/admin';
+                        }, 500);
+                    } else {
+                        alert(res.msg || '登录失败');
+                        {if $admin_captcha_enabled ?? 0}
+                        loadCaptcha(); // 登录失败刷新验证码
+                        $('#captcha').val('');
+                        {/if}
+                        $btn.prop('disabled', false).html('<i class="bi bi-box-arrow-in-right me-1"></i>登 录');
+                    }
+                },
+                error: function() {
+                    alert('网络错误，请重试');
+                    {if $admin_captcha_enabled ?? 0}
+                    loadCaptcha();
+                    {/if}
+                    $btn.prop('disabled', false).html('<i class="bi bi-box-arrow-in-right me-1"></i>登 录');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

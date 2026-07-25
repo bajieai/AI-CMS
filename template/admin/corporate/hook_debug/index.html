@@ -1,0 +1,164 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-bug me-2"></i>Hook 调试面板</h4>
+
+    <div class="row">
+        <!-- 左侧：事件注册表 -->
+        <div class="col-md-5">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">事件注册表</span>
+                    <span class="badge bg-primary">共 {php echo count($events, COUNT_RECURSIVE) - count($events); {/php} 个事件</span>
+                </div>
+                <div class="card-body" style="max-height:600px;overflow-y:auto;">
+                    {foreach $events as $module => $eventList}
+                    <div class="mb-3">
+                        <h6 class="text-uppercase text-muted small">{$module}</h6>
+                        {foreach $eventList as $ev}
+                        <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom">
+                            <code class="small">{$ev}</code>
+                            <span class="badge bg-{if isset($registered[$ev])}success{else}secondary{/if}">
+                                {if isset($registered[$ev])}{$registered[$ev]} 监听{else}无{/if}
+                            </span>
+                        </div>
+                        {/foreach}
+                    </div>
+                    {/foreach}
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：操作面板 + 日志 -->
+        <div class="col-md-7">
+            <!-- 操作面板 -->
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">操作面板</div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-outline-success btn-sm" onclick="toggleDebug(1)"><i class="bi bi-play-fill"></i> 开启调试</button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="toggleDebug(0)"><i class="bi bi-pause-fill"></i> 关闭调试</button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="clearLogs()"><i class="bi bi-trash"></i> 清空日志</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="refreshLogs()"><i class="bi bi-arrow-clockwise"></i> 刷新</button>
+                    </div>
+                    <hr>
+                    <h6>模拟触发事件</h6>
+                    <div class="row g-2">
+                        <div class="col-md-7">
+                            <select id="testEvent" class="form-select form-select-sm">
+                                {foreach $events as $module => $eventList}
+                                {foreach $eventList as $ev}
+                                <option value="{$ev}">{$ev}</option>
+                                {/foreach}
+                                {/foreach}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <button class="btn btn-primary btn-sm w-100" onclick="testFire()"><i class="bi bi-lightning"></i> 触发</button>
+                        </div>
+                    </div>
+                    <div id="testResult" class="mt-2"></div>
+                </div>
+            </div>
+
+            <!-- 调试日志 -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">调试日志（最近50条）</span>
+                    <span class="badge bg-info" id="logCount">0</span>
+                </div>
+                <div class="card-body" style="max-height:400px;overflow-y:auto;">
+                    <table class="table table-sm table-hover" id="logTable">
+                        <thead class="table-light">
+                            <tr><th>时间</th><th>事件</th><th>状态</th><th>耗时</th><th>监听数</th></tr>
+                        </thead>
+                        <tbody id="logBody">
+                            {volist name="logs" id="log"}
+                            <tr>
+                                <td class="small">{$log.timestamp}</td>
+                                <td><code class="small">{$log.event}</code></td>
+                                <td>
+                                    {if $log.status == 'completed'}<span class="badge bg-success">完成</span>
+                                    {elseif $log.status == 'blocked'}<span class="badge bg-danger">阻塞</span>
+                                    {else}<span class="badge bg-secondary">{$log.status}</span>{/if}
+                                </td>
+                                <td class="small">{$log.elapsed_ms}ms</td>
+                                <td>{$log.listener_count}</td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                    {if empty($logs)}
+                    <div class="text-center text-muted py-3"><i class="bi bi-inbox"></i> 暂无日志（请先开启调试模式）</div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function toggleDebug(enabled) {
+    fetch('/admin/hook_debug/toggleDebug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'enabled=' + enabled
+    }).then(r => r.json()).then(res => {
+        layer.msg(res.msg);
+    });
+}
+function clearLogs() {
+    layer.confirm('确定清空所有日志？', function() {
+        fetch('/admin/hook_debug/clearLogs', { method: 'POST' })
+            .then(r => r.json()).then(res => {
+                layer.msg(res.msg);
+                if (res.code === 0) document.getElementById('logBody').innerHTML = '';
+            });
+    });
+}
+function refreshLogs() {
+    fetch('/admin/hook_debug/logs?limit=50')
+        .then(r => r.json()).then(res => {
+            if (res.code !== 0) return;
+            const body = document.getElementById('logBody');
+            body.innerHTML = '';
+            res.data.forEach(function(log) {
+                const statusBadge = log.status === 'completed' ? '<span class="badge bg-success">完成</span>'
+                    : log.status === 'blocked' ? '<span class="badge bg-danger">阻塞</span>'
+                    : '<span class="badge bg-secondary">' + log.status + '</span>';
+                body.innerHTML += '<tr><td class="small">' + log.timestamp + '</td>'
+                    + '<td><code class="small">' + log.event + '</code></td>'
+                    + '<td>' + statusBadge + '</td>'
+                    + '<td class="small">' + log.elapsed_ms + 'ms</td>'
+                    + '<td>' + log.listener_count + '</td></tr>';
+            });
+            document.getElementById('logCount').textContent = res.data.length;
+        });
+}
+function testFire() {
+    const event = document.getElementById('testEvent').value;
+    fetch('/admin/hook_debug/testFire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'event=' + encodeURIComponent(event) + '&data[]='
+    }).then(r => r.json()).then(res => {
+        const el = document.getElementById('testResult');
+        if (res.code === 0) {
+            const d = res.data;
+            el.innerHTML = '<div class="alert alert-info py-2 small">事件: <code>' + d.event + '</code> | '
+                + '状态: ' + (d.stopped ? '<span class="text-danger">已阻塞</span>' : '<span class="text-success">已完成</span>')
+                + ' | 耗时: ' + d.elapsed_ms + 'ms | 监听器: ' + d.listener_count
+                + (d.message ? ' | 消息: ' + d.message : '')
+                + '</div>';
+        } else {
+            el.innerHTML = '<div class="alert alert-danger py-2 small">' + res.msg + '</div>';
+        }
+    });
+}
+// 自动刷新日志（5秒）
+setInterval(function() {
+    refreshLogs();
+}, 5000);
+</script>
+{/block}

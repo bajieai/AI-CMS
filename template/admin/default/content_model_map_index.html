@@ -1,0 +1,94 @@
+{extend name="layout" /}
+
+{block name="title"}模型模板映射{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item active">模型模板映射</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-diagram-3 me-1"></i>内容模型-模板映射</span>
+        <div>
+            <select class="form-select form-select-sm d-inline-block" style="width:auto" onchange="filterModel(this.value)">
+                <option value="0">全部模型</option>
+                {volist name="models" id="m"}
+                <option value="{$m.id}" {if $model_id==$m.id}selected{/if}>{$m.name}</option>
+                {/volist}
+            </select>
+            <a href="/admin/content_model_map/edit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> 新增映射</a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>模型</th><th>模板</th><th>标签匹配</th>
+                        <th>优先级</th><th>默认</th><th>状态</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr>
+                        <td>{$item.id}</td>
+                        <td>{$item.contentModel ? $item.contentModel.name : '-'}</td>
+                        <td>{$item.template ? $item.template.name : '-'}</td>
+                        <td><code>{$item.tag_match|json_encode=''}</code></td>
+                        <td>{$item.priority}</td>
+                        <td>
+                            {if $item.is_default}
+                            <span class="badge bg-success">默认</span>
+                            {else}
+                            <a href="javascript:void(0)" onclick="setDefault({$item.id})" class="text-muted">设为默认</a>
+                            {/if}
+                        </td>
+                        <td>
+                            <span class="badge {$item.status ? 'bg-success' : 'bg-secondary'}" style="cursor:pointer" onclick="toggleStatus({$item.id}, this)">
+                                {$item.status ? '启用' : '禁用'}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/admin/content_model_map/edit/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMap({$item.id})"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="list"}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无映射数据</td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">{$list|raw=''}</div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function filterModel(modelId) {
+    location.href = '/admin/content_model_map/index' + (modelId > 0 ? '?model_id=' + modelId : '');
+}
+function setDefault(id) {
+    $.post('/admin/content_model_map/setDefault/id/' + id, function(res) {
+        alert(res.msg); if (res.code === 0) location.reload();
+    });
+}
+function toggleStatus(id, el) {
+    $.post('/admin/content_model_map/toggleStatus/id/' + id, function(res) {
+        if (res.code === 0) {
+            $(el).toggleClass('bg-success bg-secondary').text(res.data.status ? '启用' : '禁用');
+        }
+    });
+}
+function deleteMap(id) {
+    if (!confirm('确定删除此映射？')) return;
+    $.post('/admin/content_model_map/delete/id/' + id, function(res) {
+        alert(res.msg); if (res.code === 0) location.reload();
+    });
+}
+</script>
+{/block}

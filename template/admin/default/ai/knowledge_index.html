@@ -1,0 +1,20 @@
+{extend name="layout" /}
+{block name="title"}AI知识库{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/ai">AI管理</a></li><li class="breadcrumb-item active">知识库</li>{/block}
+{block name="content"}
+<div class="row">
+  <div class="col-md-9">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between"><h5>知识库列表</h5><a href="/admin/ai_knowledge/create" class="btn btn-primary">新建知识库</a></div>
+      <div class="card-body">
+        <table class="table table-hover"><thead><tr><th>ID</th><th>名称</th><th>类型</th><th>文档数</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody>{volist name="list" id="item"}<tr><td>{$item.id}</td><td>{$item.name}</td><td>{$item.type}</td><td>{$item.doc_count}</td><td>{$item.status}</td><td><a href="/admin/ai_knowledge/detail/{$item.id}" class="btn btn-sm btn-info">详情</a><button class="btn btn-sm btn-danger" onclick="deleteKB({$item.id})">删除</button></td></tr>{/volist}</tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-header"><h5>统计</h5></div><div class="card-body"><p>知识库: {$stats.total_kb ?? 0}</p><p>文档: {$stats.total_docs ?? 0}</p><p>分块: {$stats.total_chunks ?? 0}</p></div></div>
+    <div class="card mt-3"><div class="card-header"><h5>RAG检索测试</h5></div><div class="card-body"><input type="text" id="search-query" class="form-control mb-2" placeholder="输入查询文本"><button class="btn btn-success" onclick="testSearch()">检索</button><div id="search-results"></div></div></div>
+  </div>
+</div>
+{/block}

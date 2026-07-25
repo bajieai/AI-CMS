@@ -1,0 +1,25 @@
+{extend name="layout" /}
+{block name="title"}API开放平台{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">插件生态</li><li class="breadcrumb-item active">API开放平台</li>{/block}
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-key me-1"></i>API密钥管理</div>
+    <div class="card-body">
+        <button class="btn btn-primary btn-sm" onclick="createKey()"><i class="bi bi-plus-lg me-1"></i>创建密钥</button>
+        <p class="text-muted small mt-2">认证方式: HMAC-SHA256签名 | 频率限制: {$config.rate_limit}次/{$config.rate_limit_period}秒</p>
+        <div class="alert alert-info small mt-2"><i class="bi bi-info-circle"></i> P1-1修复: 计费功能本版本暂不实现，已在api_open_config预留billing配置结构({$config.billing.metering})</div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-list-ul me-1"></i>开放API列表</div>
+    <div class="card-body">
+        {volist name="api_list" id="module"}
+        <h6 class="text-primary">{$module.module}</h6>
+        <p class="small text-muted">{volist name="module.endpoints" id="ep"}<span class="badge bg-light text-dark me-1">{$ep}</span>{/volist}</p>
+        {/volist}
+    </div>
+</div>
+<script>
+function createKey(){var n=prompt('密钥名称:');if(!n)return;$.post('/admin/plugin_eco/createApiKey',{name:n},r=>{if(r.success)alert('API Key: '+r.data.api_key+'\nAPI Secret: '+r.data.api_secret+'\n请妥善保存!');});}
+</script>
+{/block}

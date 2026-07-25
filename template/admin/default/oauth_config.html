@@ -1,0 +1,72 @@
+﻿{extend name="/layout" /}
+{block name="title"}OAuth配置 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">OAuth配置</h4>
+    <div class="card">
+        <div class="card-body">
+            <form id="configForm">
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-github"></i> Gitee配置</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Client ID</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="gitee_client_id" value="{$config.gitee_client_id??''}" placeholder="Gitee Client ID">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Client Secret</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" name="gitee_client_secret" value="{$config.gitee_client_secret??''}" placeholder="Gitee Client Secret">
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-wechat"></i> 微信开放平台配置</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">AppID</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="wechat_open_appid" value="{$config.wechat_open_appid??''}" placeholder="微信开放平台AppID">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">AppSecret</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" name="wechat_open_secret" value="{$config.wechat_open_secret??''}" placeholder="微信开放平台AppSecret">
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-tencent-qq"></i> QQ互联配置</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">AppID</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="qq_appid" value="{$config.qq_appid??''}" placeholder="QQ AppID">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">AppKey</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" name="qq_appkey" value="{$config.qq_appkey??''}" placeholder="QQ AppKey">
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存配置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+{/block}
+{block name="js"}
+<script>
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/oauth_config/save', data, function(res) {
+        alert(res.msg);
+    });
+});
+</script>
+{/block}

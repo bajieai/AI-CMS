@@ -1,0 +1,18 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-pencil me-1"></i>编辑插件</h5></div>
+    <div class="card-body">
+        <form method="post" action="/admin/plugin_store/edit/{$info.id}">
+            <div class="mb-3"><label class="form-label">插件名称</label><input type="text" name="name" class="form-control" value="{$info.name}" required></div>
+            <div class="mb-3"><label class="form-label">插件标识(code)</label><input type="text" class="form-control" value="{$info.code}" disabled></div>
+            <div class="mb-3"><label class="form-label">版本</label><input type="text" name="version" class="form-control" value="{$info.version}"></div>
+            <div class="mb-3"><label class="form-label">作者</label><input type="text" name="author" class="form-control" value="{$info.author}"></div>
+            <div class="mb-3"><label class="form-label">描述</label><textarea name="description" class="form-control" rows="3">{$info.description}</textarea></div>
+            <div class="mb-3"><label class="form-check-label"><input type="checkbox" name="is_enabled" value="1" {if $info.is_enabled}checked{/if} class="form-check-input"> 启用</label></div>
+            <button type="submit" class="btn btn-primary">保存</button>
+            <a href="/admin/plugin_store/index" class="btn btn-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{/block}

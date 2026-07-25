@@ -1,0 +1,113 @@
+{extend name="layout" /}
+{block name="title"}创建智能体 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_agent/index">AI智能体</a></li>
+<li class="breadcrumb-item active">创建</li>
+{/block}
+
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>创建智能体</h4>
+        <a href="/admin/ai_agent/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回列表</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form id="agentForm" onsubmit="return false;">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">智能体名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" placeholder="如：内容审核助手" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">交互风格</label>
+                        <select class="form-select" name="style">
+                            <option value="professional">专业严谨</option>
+                            <option value="friendly">友好亲和</option>
+                            <option value="concise">简洁高效</option>
+                            <option value="creative">创意发散</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">角色设定 <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="role" rows="4" placeholder="描述智能体的角色、专业领域、行为准则等&#10;例如：你是一位资深的内容编辑，擅长文章质量评估和SEO优化建议。" required></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold">能力配置</label>
+                        <div class="row g-2">
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_write" id="cap_write" checked><label class="form-check-label" for="cap_write">AI写作</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_image" id="cap_image"><label class="form-check-label" for="cap_image">AI配图</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_translate" id="cap_translate"><label class="form-check-label" for="cap_translate">AI翻译</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_qa" id="cap_qa"><label class="form-check-label" for="cap_qa">智能问答</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_seo" id="cap_seo"><label class="form-check-label" for="cap_seo">SEO优化</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_recommend" id="cap_rec"><label class="form-check-label" for="cap_rec">内容推荐</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_summary" id="cap_sum"><label class="form-check-label" for="cap_sum">内容摘要</label></div></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">触发方式</label>
+                        <select class="form-select" name="trigger">
+                            <option value="manual">手动触发</option>
+                            <option value="event">事件触发</option>
+                            <option value="schedule">定时触发</option>
+                            <option value="webhook">Webhook触发</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">最大自主操作数</label>
+                        <input type="number" class="form-control" name="max_autonomous_actions" value="10" min="1" max="100">
+                        <div class="form-text">单次运行中智能体可执行的最大操作步骤</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">触发配置 (JSON)</label>
+                        <input type="text" class="form-control font-monospace" name="trigger_config" placeholder='{"event":"content.published"}'>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">行为规则</label>
+                        <textarea class="form-control" name="rules" rows="5" placeholder="定义智能体的行为规则和约束条件&#10;1. 每次操作前确认目标&#10;2. 不得修改已发布内容&#10;3. 生成内容需通过质量检测"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">权限配置</label>
+                        <textarea class="form-control" name="permissions" rows="5" placeholder="定义智能体可访问的资源和操作权限&#10;例如：&#10;content: read, write&#10;media: read&#10;seo: read, write"></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="btnSave"><i class="bi bi-check-lg"></i> 创建智能体</button>
+                    <a href="/admin/ai_agent/index" class="btn btn-outline-secondary">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnSave').click(function(){
+        var data = {};
+        $('#agentForm').serializeArray().forEach(function(item){
+            if(item.name === 'max_autonomous_actions'){
+                data[item.name] = parseInt(item.value);
+            }else if(item.name === 'capabilities[]'){
+                if(!data.capabilities) data.capabilities = [];
+                data.capabilities.push(item.value);
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        if(!data.capabilities) data.capabilities = [];
+        ajaxPost('/admin/ai_agent/create', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/ai_agent/index'},800);
+        });
+    });
+});
+</script>
+{/block}

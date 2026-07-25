@@ -1,0 +1,39 @@
+{extend name="layout" /}
+{block name="title"}创建A/B测试 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-plus-circle"></i> 创建A/B测试实验</h5></div>
+    <div class="card-body">
+        <form method="post" action="{:url('/admin/ab_test/create')}">
+            <div class="mb-3"><label class="form-label">实验名称</label><input type="text" name="name" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">实验描述</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+            <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label">测试类型</label><select name="test_type" class="form-select">
+                    <option value="page">页面测试</option>
+                    <option value="template">模板测试</option>
+                    <option value="content">内容测试</option>
+                    <option value="layout">布局测试</option>
+                </select></div>
+                <div class="col-md-6 mb-3"><label class="form-label">流量分配(%)</label><input type="number" name="traffic_a" class="form-control" value="50" min="1" max="99"><small class="text-muted">A组流量百分比，B组自动为剩余部分</small></div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label">开始时间</label><input type="datetime-local" name="start_time" class="form-control"></div>
+                <div class="col-md-6 mb-3"><label class="form-label">结束时间</label><input type="datetime-local" name="end_time" class="form-control"></div>
+            </div>
+            <hr>
+            <h6>方案A (对照组)</h6>
+            <div class="mb-3"><label class="form-label">方案A描述</label><input type="text" name="variant_a_desc" class="form-control" placeholder="当前版本/对照组"></div>
+            <h6>方案B (实验组)</h6>
+            <div class="mb-3"><label class="form-label">方案B描述</label><input type="text" name="variant_b_desc" class="form-control" placeholder="新版本/实验组"></div>
+            <div class="mb-3"><label class="form-label">优化目标</label><select name="metric" class="form-select">
+                <option value="click_rate">点击率</option>
+                <option value="conversion_rate">转化率</option>
+                <option value="bounce_rate">跳出率</option>
+                <option value="avg_duration">平均停留时长</option>
+            </select></div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 创建实验</button>
+            <a href="{:url('/admin/ab_test/index')}" class="btn btn-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{/block}

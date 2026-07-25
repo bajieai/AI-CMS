@@ -1,0 +1,134 @@
+{extend name="layout" /}
+
+{block name="title"}关系管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/content_model/index">内容模型</a></li>
+<li class="breadcrumb-item active">关系管理</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-diagram-3 me-1"></i>创建关系</div>
+    <div class="card-body">
+        <form id="relationForm" class="row g-2 align-items-end">
+            <input type="hidden" name="source_model_id" value="{$model_id}">
+            <div class="col-md-3">
+                <label class="form-label">关系名称 <span class="text-danger">*</span></label>
+                <input type="text" name="relation_name" class="form-control" placeholder="如：相关产品" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">关系标签</label>
+                <input type="text" name="relation_label" class="form-control" placeholder="显示名称">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">关系类型</label>
+                <select name="relation_type" class="form-select">
+                    {volist name="types" id="t"}
+                    <option value="{$t.type}">{$t.label}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">目标模型</label>
+                <input type="number" name="target_model_id" class="form-control" placeholder="目标模型ID">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>创建关系</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list me-1"></i>关系列表</span>
+        <div>
+            <button class="btn btn-sm btn-outline-info" onclick="openSearchModal()"><i class="bi bi-search me-1"></i>搜索内容</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="openBatchModal()"><i class="bi bi-collection me-1"></i>批量关联</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>关系名称</th>
+                        <th>标签</th>
+                        <th>类型</th>
+                        <th>源模型</th>
+                        <th>目标模型</th>
+                        <th style="width:100px">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="relations" id="r"}
+                    <tr>
+                        <td>{$r.id}</td>
+                        <td>{$r.relation_name}</td>
+                        <td>{$r.relation_label}</td>
+                        <td><span class="badge bg-light text-dark">{$r.relation_type}</span></td>
+                        <td>{$r.source_model_id}</td>
+                        <td>{$r.target_model_id}</td>
+                        <td><button class="btn btn-sm btn-outline-danger" onclick="deleteRelation({$r.id})"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                    {/volist}
+                    {if condition="$relations|count eq 0"}
+                    <tr><td colspan="7" class="text-center text-muted py-4">暂无关系</td></tr>
+                    {/if}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var MODEL_ID = {$model_id};
+
+$('#relationForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/admin/content_relation/save', $(this).serialize(), function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+});
+
+function deleteRelation(id) {
+    if (!confirm('确定删除该关系？')) return;
+    $.post('/admin/content_relation/delete/' + id, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+
+function openSearchModal() {
+    var kw = prompt('输入关键词搜索内容:');
+    if (!kw) return;
+    $.get('/admin/content_relation/search', {keyword: kw, model_id: MODEL_ID}, function(res) {
+        if (res.code === 0 && res.data.length > 0) {
+            var msg = res.data.map(function(x) { return x.id + ': ' + x.title; }).join('\n');
+            alert('搜索结果:\n' + msg);
+        } else {
+            alert('未找到内容');
+        }
+    });
+}
+
+function openBatchModal() {
+    var ids = prompt('输入目标内容ID（逗号分隔）:');
+    if (!ids) return;
+    var targetIds = ids.split(',').map(function(x) { return parseInt(x.trim()); });
+    $.post('/admin/content_relation/batchAdd', {
+        relation_name: 'related',
+        source_content_id: MODEL_ID,
+        target_ids: JSON.stringify(targetIds)
+    }, function(res) {
+        alert(res.msg);
+    });
+}
+</script>
+{/block}

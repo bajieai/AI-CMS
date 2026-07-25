@@ -1,0 +1,13 @@
+{extend name="layout" /}
+{block name="title"}结构化数据{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">SEO优化</li><li class="breadcrumb-item active">结构化数据</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><i class="bi bi-code-slash me-1"></i>Schema类型管理</div><div class="card-body">
+<p>支持的结构化数据类型: {volist name="types" id="t"}<span class="badge bg-info me-1">{$t}</span>{/volist}</p>
+<div class="row g-2 mt-2"><div class="col-md-4"><div class="card border-light"><div class="card-body p-2"><strong>覆盖率</strong><br><span class="text-muted small">已标记页面: {$coverage.with_schema}/{$coverage.total_pages} ({$coverage.coverage_rate}%)</span></div></div></div></div>
+<hr><h6>JSON-LD测试</h6><div class="input-group"><input type="text" id="testUrl" class="form-control" placeholder="输入URL测试结构化数据"><button class="btn btn-primary" onclick="testSchema()">测试</button></div><div id="testResult" class="mt-2"></div>
+</div></div>
+<script>
+function testSchema(){$.get('/admin/seo_manage/schemaTest',{url:$('#testUrl').val()},r=>{$('#testResult').html(r.valid?'<span class="text-success">✓ 验证通过</span> <a href="'+r.google_test_url+'" target="_blank">Google测试</a>':'<span class="text-danger">✗ '+r.errors.join(',')+'</span>');});}
+</script>
+{/block}

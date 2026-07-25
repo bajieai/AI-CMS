@@ -1,0 +1,107 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-diagram-3 me-2"></i>依赖管理 - {$package.name}</h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">依赖列表</span>
+            <button class="btn btn-sm btn-primary" onclick="showAddDep()"><i class="bi bi-plus-lg me-1"></i>新增依赖</button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr><th>ID</th><th>依赖插件</th><th>最小版本</th><th>最大版本</th><th>必需</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                        {volist name="dependencies" id="d"}
+                        <tr>
+                            <td>{$d.id}</td>
+                            <td>{$d.dependsOn.name ?? '未知'} <small class="text-muted">({$d.dependsOn.code ?? ''})</small></td>
+                            <td>{$d.min_version}</td>
+                            <td>{$d.max_version}</td>
+                            <td>{if $d.is_required}<span class="badge bg-danger">是</span>{else}<span class="badge bg-secondary">否</span>{/if}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteDep({$d.id})"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            {if empty($dependencies)}
+            <div class="text-center py-5 text-muted"><i class="bi bi-inbox fs-1"></i><p>暂无依赖</p></div>
+            {/if}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addDepModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">新增依赖</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="depForm">
+                    <input type="hidden" name="plugin_id" value="{$package.id}">
+                    <div class="mb-3">
+                        <label class="form-label">依赖插件 <span class="text-danger">*</span></label>
+                        <select name="depends_on_plugin_id" class="form-select" required>
+                            <option value="">请选择</option>
+                            {foreach $allPlugins as $pid => $pname}
+                            <option value="{$pid}">{$pname}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">最小版本 <span class="text-danger">*</span></label>
+                        <input type="text" name="min_version" class="form-control" placeholder="如: 1.0.0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">最大版本</label>
+                        <input type="text" name="max_version" class="form-control" placeholder="* 表示不限制" value="*">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_required" value="1" checked>
+                            <label class="form-check-label">必需依赖</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveDep()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function showAddDep() {
+    new bootstrap.Modal(document.getElementById('addDepModal')).show();
+}
+function saveDep() {
+    const formData = new FormData(document.getElementById('depForm'));
+    fetch('/admin/plugin_store/dependencyAdd', {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    }).then(r => r.json()).then(res => {
+        layer.msg(res.msg);
+        if (res.code === 0) setTimeout(() => location.reload(), 800);
+    });
+}
+function deleteDep(id) {
+    layer.confirm('确定删除该依赖？', function() {
+        fetch('/admin/plugin_store/dependencyDelete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + id
+        }).then(r => r.json()).then(res => {
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(() => location.reload(), 800);
+        });
+    });
+}
+</script>
+{/block}

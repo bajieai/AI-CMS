@@ -1,0 +1,17 @@
+{extend name="layout" /}
+{block name="title"}付费内容管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">付费内容管理</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>付费内容总数</h6><h4 class="text-primary">{$stats.total_paid|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>总收入</h6><h4 class="text-success">{$stats.total_revenue|default='0.00'}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>总订单数</h6><h4 class="text-info">{$stats.total_orders|default=0}</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h6>转化率</h6><h4 class="text-warning">{$stats.conversion_rate|default='0'}%</h4></div></div></div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-currency-yen me-1"></i>付费内容列表</div>
+    <div class="card-body">
+        <p class="text-muted">在内容编辑页面设置付费信息。支持付费阅读(积分/微信/支付宝)和付费下载。</p>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,164 @@
+{extend name="layout" /}
+
+{block name="title"}积分规则配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/points_rule/index">用户管理</a></li>
+<li class="breadcrumb-item active">积分规则</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-star me-2" style="color:var(--primary)"></i>积分规则配置</h5>
+    <button class="btn btn-primary" id="btnSave"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="card-body">
+        <!-- 多列瀑布流布局：内容从上到下依次填充左列，满后流入右列 -->
+        <div class="points-masonry">
+            <!-- 区块1：签到积分 -->
+            <div class="points-card">
+                <h6 class="mb-3"><i class="bi bi-calendar-check me-1 text-success"></i>签到积分</h6>
+                <div class="mb-3">
+                    <label class="form-label">每日签到积分</label>
+                    <input type="number" class="form-control" name="points_signin" value="{$rules.points_signin??5}" min="0">
+                    <div class="form-text">每日签到获得的基础积分</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">连续3天额外积分</label>
+                    <input type="number" class="form-control" name="points_signin_3days" value="{$rules.points_signin_3days??10}" min="0">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">连续7天额外积分</label>
+                    <input type="number" class="form-control" name="points_signin_7days" value="{$rules.points_signin_7days??30}" min="0">
+                </div>
+            </div>
+
+            <!-- 区块2：注册/登录 -->
+            <div class="points-card">
+                <h6 class="mb-3"><i class="bi bi-person-plus me-1 text-primary"></i>注册/登录</h6>
+                <div class="mb-3">
+                    <label class="form-label">注册奖励积分</label>
+                    <input type="number" class="form-control" name="points_register" value="{$rules.points_register??50}" min="0">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">每日首次登录积分</label>
+                    <input type="number" class="form-control" name="points_daily_login" value="{$rules.points_daily_login??1}" min="0">
+                </div>
+            </div>
+
+            <!-- 区块3：互动积分 -->
+            <div class="points-card">
+                <h6 class="mb-3"><i class="bi bi-chat-dots me-1 text-info"></i>互动积分</h6>
+                <div class="mb-3">
+                    <label class="form-label">发表评论积分</label>
+                    <input type="number" class="form-control" name="points_comment" value="{$rules.points_comment??2}" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">评论被点赞积分</label>
+                    <input type="number" class="form-control" name="points_comment_liked" value="{$rules.points_comment_liked??1}" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">内容被点赞积分</label>
+                    <input type="number" class="form-control" name="points_content_liked" value="{$rules.points_content_liked??3}" min="0">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">内容被收藏积分</label>
+                    <input type="number" class="form-control" name="points_content_favorited" value="{$rules.points_content_favorited??5}" min="0">
+                </div>
+            </div>
+
+            <!-- 区块4：邀请积分 -->
+            <div class="points-card">
+                <h6 class="mb-3"><i class="bi bi-people me-1" style="color:#6f42c1"></i>邀请积分</h6>
+                <div class="mb-3">
+                    <label class="form-label">邀请注册奖励积分</label>
+                    <input type="number" class="form-control" name="points_invite_register" value="{$rules.points_invite_register??50}" min="0">
+                    <div class="form-text">邀请人获得的注册奖励</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">被邀请人签到奖励邀请人积分</label>
+                    <input type="number" class="form-control" name="points_invite_signin" value="{$rules.points_invite_signin??20}" min="0">
+                    <div class="form-text">被邀请人首次签到时，邀请人获得的积分</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">被邀请人付费奖励邀请人积分</label>
+                    <input type="number" class="form-control" name="points_invite_pay" value="{$rules.points_invite_pay??50}" min="0">
+                    <div class="form-text">被邀请人首次付费时，邀请人获得的积分</div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">被邀请人注册奖励积分</label>
+                    <input type="number" class="form-control" name="points_invitee_register" value="{$rules.points_invitee_register??20}" min="0">
+                    <div class="form-text">被邀请人自己注册获得的积分</div>
+                </div>
+            </div>
+
+            <!-- 区块5：每日上限 -->
+            <div class="points-card">
+                <h6 class="mb-3"><i class="bi bi-shield-check me-1 text-warning"></i>每日上限</h6>
+                <div class="mb-3">
+                    <label class="form-label">评论被点赞每日上限</label>
+                    <input type="number" class="form-control" name="points_comment_liked_daily_limit" value="{$rules.points_comment_liked_daily_limit??10}" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">内容被点赞每日上限</label>
+                    <input type="number" class="form-control" name="points_content_liked_daily_limit" value="{$rules.points_content_liked_daily_limit??20}" min="0">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">内容被收藏每日上限</label>
+                    <input type="number" class="form-control" name="points_content_favorited_daily_limit" value="{$rules.points_content_favorited_daily_limit??10}" min="0">
+                </div>
+            </div>
+
+            <!-- 区块6：消费返积分 -->
+            <div class="points-card">
+                <h6 class="mb-3"><i class="bi bi-cash-coin me-1" style="color:#fd7e14"></i>消费返积分</h6>
+                <div class="mb-3">
+                    <label class="form-label">消费返积分比例</label>
+                    <input type="number" step="0.01" class="form-control" name="points_consume_ratio" value="{$rules.points_consume_ratio??0}" min="0" max="1" style="max-width:200px;">
+                    <div class="form-text">0=不返积分，0.1=消费金额的10%返积分</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 瀑布流多列布局 */
+.points-masonry {
+    column-count: 2;
+    column-gap: 1.5rem;
+}
+.points-card {
+    break-inside: avoid;
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    margin-bottom: 1.5rem;
+    background-color: var(--bs-body-bg);
+}
+/* 小屏自动变单列 */
+@media (max-width: 991.98px) {
+    .points-masonry {
+        column-count: 1;
+    }
+}
+</style>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnSave').click(function(){
+        var data = {};
+        $('input[name^="points_"]').each(function(){
+            data[$(this).attr('name')] = $(this).val();
+        });
+        $.post('/admin/points_rule/save', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+        });
+    });
+});
+</script>
+{/block}

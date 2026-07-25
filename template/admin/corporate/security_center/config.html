@@ -1,0 +1,135 @@
+{extend name="layout" /}
+
+{block name="title"}安全配置 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">安全中心</li>
+<li class="breadcrumb-item active">安全配置</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-gear me-1"></i>安全配置
+    </div>
+    <div class="card-body">
+        <form id="securityConfigForm">
+            <!-- 密码策略 -->
+            <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-key me-1"></i>密码策略</h6>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">最小密码长度</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control" name="password_min_length" value="{$config.password_min_length ?? 8}" min="6" max="32">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">密码复杂度</label>
+                <div class="col-sm-9">
+                    <div class="form-check mb-1">
+                        <input class="form-check-input" type="checkbox" name="password_require_uppercase" value="1" id="ckUppercase" {if condition="($config.password_require_uppercase ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="ckUppercase">必须包含大写字母</label>
+                    </div>
+                    <div class="form-check mb-1">
+                        <input class="form-check-input" type="checkbox" name="password_require_lowercase" value="1" id="ckLowercase" {if condition="($config.password_require_lowercase ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="ckLowercase">必须包含小写字母</label>
+                    </div>
+                    <div class="form-check mb-1">
+                        <input class="form-check-input" type="checkbox" name="password_require_number" value="1" id="ckNumber" {if condition="($config.password_require_number ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="ckNumber">必须包含数字</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="password_require_symbol" value="1" id="ckSymbol" {if condition="($config.password_require_symbol ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="ckSymbol">必须包含特殊字符</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">密码过期天数</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control" name="password_expire_days" value="{$config.password_expire_days ?? 90}" min="0" max="365">
+                    <div class="form-text">设为 0 表示永不过期</div>
+                </div>
+            </div>
+
+            <!-- 登录限制 -->
+            <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-box-arrow-in-right me-1"></i>登录限制</h6>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">最大登录失败次数</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control" name="login_max_failures" value="{$config.login_max_failures ?? 5}" min="3" max="20">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">锁定时长（分钟）</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control" name="login_lock_minutes" value="{$config.login_lock_minutes ?? 30}" min="5" max="1440">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">验证码触发次数</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control" name="login_captcha_threshold" value="{$config.login_captcha_threshold ?? 3}" min="1" max="10">
+                    <div class="form-text">登录失败多少次后要求验证码</div>
+                </div>
+            </div>
+
+            <!-- IP白名单 -->
+            <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-shield-lock me-1"></i>IP白名单</h6>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">启用IP白名单</label>
+                <div class="col-sm-9">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="ip_whitelist_enabled" value="1" id="swIpWhitelist" {if condition="($config.ip_whitelist_enabled ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="swIpWhitelist">开启后仅允许白名单内IP访问后台</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">白名单IP列表</label>
+                <div class="col-sm-9">
+                    <textarea class="form-control" name="ip_whitelist" rows="4" placeholder="每行一个IP地址，如：&#10;192.168.1.1&#10;10.0.0.0/24">{$config.ip_whitelist ?? ''}</textarea>
+                </div>
+            </div>
+
+            <!-- 审计日志 -->
+            <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-journal-text me-1"></i>审计日志</h6>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">启用审计日志</label>
+                <div class="col-sm-9">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="audit_log_enabled" value="1" id="swAuditLog" {if condition="($config.audit_log_enabled ?? 1) == 1"}checked{/if}>
+                        <label class="form-check-label" for="swAuditLog">记录后台所有操作日志</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">日志保留天数</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control" name="audit_log_retention_days" value="{$config.audit_log_retention_days ?? 90}" min="7" max="365">
+                </div>
+            </div>
+
+            <div class="text-end mt-4">
+                <button type="reset" class="btn btn-outline-secondary me-1">重置</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#securityConfigForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/security_center/config', data, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('配置已更新');
+        } else {
+            alert(res.msg || '配置更新失败');
+        }
+    });
+});
+</script>
+{/block}

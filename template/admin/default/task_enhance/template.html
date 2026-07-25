@@ -1,0 +1,135 @@
+{extend name="layout" /}
+
+{block name="title"}任务模板管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">任务增强</li>
+<li class="breadcrumb-item active">任务模板</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-collection me-1"></i>任务模板列表</span>
+        <button type="button" class="btn btn-primary btn-sm" onclick="createTemplate()">
+            <i class="bi bi-plus-lg me-1"></i>创建模板
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="60">ID</th>
+                    <th>模板名称</th>
+                    <th width="120">分类</th>
+                    <th width="100">使用次数</th>
+                    <th width="120">创建时间</th>
+                    <th width="80">状态</th>
+                    <th width="160">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="templates" id="tpl"}
+                <tr>
+                    <td>{$tpl.id}</td>
+                    <td>
+                        <a href="/admin/task_enhance/templateEdit/{$tpl.id}">{$tpl.name}</a>
+                        {if condition="$tpl.description"}<div class="small text-muted">{$tpl.description}</div>{/if}
+                    </td>
+                    <td><span class="badge bg-secondary">{$tpl.category_name ?? '通用'}</span></td>
+                    <td><span class="badge bg-info">{$tpl.use_count ?? 0}</span></td>
+                    <td class="small text-muted">{$tpl.create_time|date='Y-m-d'}</td>
+                    <td>{if condition="$tpl.status == 1"}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/admin/task_enhance/templateEdit/{$tpl.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="btn btn-outline-success" title="基于模板创建任务" onclick="createFromTemplate({$tpl.id})"><i class="bi bi-file-earmark-plus"></i></button>
+                            <button type="button" class="btn btn-outline-info" title="复制" onclick="copyTemplate({$tpl.id})"><i class="bi bi-copy"></i></button>
+                            <button type="button" class="btn btn-outline-danger" title="删除" onclick="deleteTemplate({$tpl.id})"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="templates"}
+                <tr><td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox display-6 d-block mb-2"></i>暂无模板，点击右上角创建
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($templates) && method_exists($templates, 'hasPages') && $templates->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$templates->total()} 条</small>
+            {$templates->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+
+<!-- 基于模板创建任务弹窗 -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>基于模板创建任务</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <input type="hidden" id="createFromTplId" value="0">
+            <div class="mb-3"><label class="form-label">任务标题</label><input type="text" id="createTaskTitle" class="form-control" placeholder="输入任务标题"></div>
+            <div class="mb-3"><label class="form-label">负责人</label><select id="createAssignee" class="form-select"><option value="">请选择</option>{volist name="members" id="m"}<option value="{$m.id}">{$m.nickname}</option>{/volist}</select></div>
+            <div class="mb-3"><label class="form-label">截止日期</label><input type="date" id="createDeadline" class="form-control"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary btn-sm" onclick="confirmCreate()"><i class="bi bi-check-lg me-1"></i>创建</button></div>
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var createModal = null;
+$(function() { createModal = new bootstrap.Modal(document.getElementById('createModal')); });
+
+function createTemplate() {
+    window.location.href = '/admin/task_enhance/templateEdit';
+}
+
+function createFromTemplate(id) {
+    $('#createFromTplId').val(id);
+    $('#createTaskTitle').val('');
+    $('#createAssignee').val('');
+    $('#createDeadline').val('');
+    createModal.show();
+}
+
+function confirmCreate() {
+    var title = $('#createTaskTitle').val().trim();
+    if (!title) { showToast('请输入任务标题', 'warning'); return; }
+    $.post('/admin/task_enhance/createFromTemplate', {
+        template_id: $('#createFromTplId').val(),
+        title: title,
+        assignee_id: $('#createAssignee').val(),
+        deadline: $('#createDeadline').val()
+    }, function(res) {
+        if (res.success) {
+            showToast('任务创建成功', 'success');
+            createModal.hide();
+            setTimeout(function() { location.href = '/admin/task_enhance/assign'; }, 1000);
+        } else {
+            showToast(res.msg || '创建失败', 'danger');
+        }
+    });
+}
+
+function copyTemplate(id) {
+    showConfirm('复制模板', '确定复制此模板？将创建一个副本。', function() {
+        $.post('/admin/task_enhance/copyTemplate', {id: id}, function(res) {
+            if (res.success) { showToast('复制成功', 'success'); setTimeout(function() { location.reload(); }, 1000); }
+            else { showToast(res.msg || '复制失败', 'danger'); }
+        });
+    });
+}
+
+function deleteTemplate(id) {
+    confirmDelete('/admin/task_enhance/deleteTemplate', {id: id});
+}
+</script>
+{/block}

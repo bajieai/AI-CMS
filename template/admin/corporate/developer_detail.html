@@ -1,0 +1,127 @@
+{extend name="layout" /}
+
+{block name="title"}开发者详情{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/plugin_eco_developer/index">开发者管理</a></li>
+<li class="breadcrumb-item active">开发者详情</li>
+{/block}
+
+{block name="content"}
+{if condition="$developer"}
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-person-badge me-1"></i>基本信息</div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:100px;">开发者ID</td><td>{$developer.id}</td></tr>
+                    <tr><td class="text-muted">用户名</td><td>{$developer.username}</td></tr>
+                    <tr><td class="text-muted">邮箱</td><td>{$developer.email}</td></tr>
+                    <tr><td class="text-muted">手机号</td><td>{$developer.phone ?? '—'}</td></tr>
+                    <tr><td class="text-muted">注册时间</td><td class="small">{$developer.create_time|date='Y-m-d H:i'}</td></tr>
+                    <tr><td class="text-muted">审核状态</td>
+                        <td>
+                            {if condition="$developer.status == 1"}<span class="badge bg-success">已通过</span>
+                            {elseif condition="$developer.status == 0"/}<span class="badge bg-warning">待审核</span>
+                            {elseif condition="$developer.status == 2"/}<span class="badge bg-danger">已拒绝</span>
+                            {else /}<span class="badge bg-secondary">{$developer.status}</span>
+                            {/if}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-cash-stack me-1"></i>收入统计</div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:100px;">总收入</td><td><strong class="text-success">￥{$developer.total_income ?? '0.00'}</strong></td></tr>
+                    <tr><td class="text-muted">本月收入</td><td><strong>￥{$developer.month_income ?? '0.00'}</strong></td></tr>
+                    <tr><td class="text-muted">可提现</td><td><strong class="text-primary">￥{$developer.balance ?? '0.00'}</strong></td></tr>
+                    <tr><td class="text-muted">已提现</td><td>￥{$developer.withdrawn ?? '0.00'}</td></tr>
+                    <tr><td class="text-muted">待结算</td><td>￥{$developer.pending ?? '0.00'}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-shield-check me-1"></i>审核状态</div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:100px;">开发者认证</td>
+                        <td>
+                            {if condition="$developer.verified == 1"}<span class="badge bg-success">已认证</span>
+                            {else /}<span class="badge bg-secondary">未认证</span>
+                            {/if}
+                        </td>
+                    </tr>
+                    <tr><td class="text-muted">提交应用</td><td>{$developer.app_count ?? 0} 个</td></tr>
+                    <tr><td class="text-muted">上架应用</td><td>{$developer.published_count ?? 0} 个</td></tr>
+                    <tr><td class="text-muted">评分</td><td>{$developer.avg_rating ?? '—'}</td></tr>
+                    <tr><td class="text-muted">最后活跃</td><td class="small">{$developer.last_active|date='Y-m-d H:i'}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><i class="bi bi-grid me-1"></i>应用列表</div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>应用名称</th>
+                    <th>类型</th>
+                    <th>版本</th>
+                    <th>下载量</th>
+                    <th>评分</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="apps" id="app"}
+                <tr>
+                    <td>{$app.id}</td>
+                    <td>{$app.name}</td>
+                    <td>{$app.type}</td>
+                    <td><code class="small">v{$app.version}</code></td>
+                    <td>{$app.download_count}</td>
+                    <td>{$app.rating ?? '—'}</td>
+                    <td>
+                        {if condition="$app.status == 1"}<span class="badge bg-success">已上架</span>
+                        {elseif condition="$app.status == 0"/}<span class="badge bg-warning">待审核</span>
+                        {elseif condition="$app.status == 2"/}<span class="badge bg-danger">已下架</span>
+                        {else /}<span class="badge bg-secondary">{$app.status}</span>
+                        {/if}
+                    </td>
+                    <td>
+                        <a href="/admin/plugin_market/detail?id={$app.id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="查看"><i class="bi bi-eye"></i></a>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="apps"}
+                <tr><td colspan="8" class="text-center text-muted py-3">该开发者暂无应用</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+{else /}
+<div class="card">
+    <div class="card-body">
+        <div class="ui-empty-state">
+            <div class="ui-empty-icon"><i class="bi bi-person-badge"></i></div>
+            <div class="ui-empty-title">开发者不存在</div>
+            <div class="ui-empty-desc">未找到对应的开发者信息</div>
+        </div>
+    </div>
+</div>
+{/if}
+{/block}

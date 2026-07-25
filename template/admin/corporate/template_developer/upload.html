@@ -1,0 +1,68 @@
+{extend name="layout" /}
+
+{block name="title"}上传模板{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/template_store/market">模板商店</a></li>
+<li class="breadcrumb-item active">上传模板</li>
+{/block}
+
+{block name="content"}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-cloud-upload me-2"></i>上传模板
+                <span class="badge bg-warning text-dark ms-2">V2.9.13</span>
+            </div>
+            <div class="card-body">
+                <form id="uploadForm" method="post" action="/admin/template_store/uploadTheme" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">模板名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" required placeholder="请输入模板名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">模板描述</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="简要描述模板的特点和适用场景"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">模板版本</label>
+                        <input type="text" name="version" class="form-control" value="1.0.0" placeholder="如: 1.0.0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ZIP文件 <span class="text-danger">*</span></label>
+                        <input type="file" name="file" class="form-control" accept=".zip" required>
+                        <div class="form-text">请上传包含theme.json的模板ZIP包，大小不超过50MB</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">截图预览</label>
+                        <input type="file" name="screenshots[]" class="form-control" accept="image/*" multiple>
+                        <div class="form-text">可上传多张截图用于展示（选填）</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>提交审核
+                        </button>
+                        <a href="/admin/template_store/market" class="btn btn-outline-secondary">返回</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 上传规范 -->
+        <div class="card mt-3 border-info">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-info-circle me-2"></i>模板上传规范
+            </div>
+            <div class="card-body">
+                <ol class="mb-0">
+                    <li>ZIP根目录必须包含 <code>theme.json</code> 配置文件</li>
+                    <li>模板文件路径不得包含 <code>../</code> 等目录穿越字符</li>
+                    <li>单文件大小不超过50MB</li>
+                    <li>上传后将进入审核流程，审核通过后上架</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

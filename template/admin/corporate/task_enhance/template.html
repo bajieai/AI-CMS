@@ -1,0 +1,116 @@
+{extend name="layout" /}
+{block name="title"}任务模板管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">任务模板管理</li>{/block}
+{block name="content"}
+<div class="content-wrapper">
+    <div class="row mb-3">
+        <div class="col-md-3"><div class="card corporate-card text-center"><div class="card-body"><h6>模板总数</h6><h4 class="text-primary">{$stats.total|default=0}</h4></div></div></div>
+        <div class="col-md-3"><div class="card corporate-card text-center"><div class="card-body"><h6>启用模板</h6><h4 class="text-success">{$stats.enabled|default=0}</h4></div></div></div>
+        <div class="col-md-3"><div class="card corporate-card text-center"><div class="card-body"><h6>总使用次数</h6><h4 class="text-info">{$stats.total_usage|default=0}</h4></div></div></div>
+        <div class="col-md-3"><div class="card corporate-card text-center"><div class="card-body"><h6>分类数</h6><h4 class="text-warning">{$stats.by_category|count}</h4></div></div></div>
+    </div>
+
+    <div class="card corporate-card mb-3">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-plus-lg me-2"></i>新建模板</h5></div>
+        <div class="card-body">
+            <form id="tplForm" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">模板名称</label>
+                    <input type="text" class="form-control" name="name" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">分类</label>
+                    <input type="text" class="form-control" name="category" placeholder="如: general, content, dev">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">描述</label>
+                    <input type="text" class="form-control" name="description">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">创建</button>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-bold">任务数据 (JSON)</label>
+                    <textarea class="form-control" name="task_data" rows="3" placeholder='{"title":"示例任务","type":"general","priority":2}'></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">里程碑 (JSON)</label>
+                    <textarea class="form-control" name="milestones" rows="2" placeholder='[{"name":"阶段一","due_date":"2026-08-01"}]'></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">变量定义 (JSON)</label>
+                    <textarea class="form-control" name="variables" rows="2" placeholder='[{"key":"project","label":"项目名"}]'></textarea>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card corporate-card">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-list me-2"></i>模板列表</h5></div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead><tr><th>ID</th><th>名称</th><th>分类</th><th>使用次数</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+                <tbody>
+                {volist name="list" id="t"}
+                <tr>
+                    <td>{$t.id}</td>
+                    <td>{$t.name}</td>
+                    <td><span class="badge bg-secondary">{$t.category|default='-'}</span></td>
+                    <td>{$t.usage_count|default=0}</td>
+                    <td>{if condition="$t.status eq 1"}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                    <td>{$t.create_time}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary use-tpl" data-id="{$t.id}"><i class="bi bi-box-arrow-in-down"></i> 使用</button>
+                        <button class="btn btn-sm btn-outline-danger del-tpl" data-id="{$t.id}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {if condition="$stats.top_used"}
+    <div class="card corporate-card mt-3">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-trophy me-2"></i>使用次数 Top 5</h5></div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead><tr><th>模板</th><th>分类</th><th>使用次数</th></tr></thead>
+                <tbody>
+                {volist name="stats.top_used" id="t"}
+                <tr><td>{$t.name}</td><td>{$t.category|default='-'}</td><td>{$t.usage_count}</td></tr>
+                {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+{block name="script"}
+<script>
+$(function(){
+    $('#tplForm').on('submit', function(e){
+        e.preventDefault();
+        $.post('/admin/task_enhance/template/create', $(this).serialize(), function(res){
+            layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+            if(!res.code) setTimeout(function(){location.reload();}, 1000);
+        }, 'json');
+    });
+    $('.use-tpl').on('click', function(){
+        var id = $(this).data('id');
+        $.post('/admin/task_enhance/create_from_template', {template_id: id, variables: {}}, function(res){
+            layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+        }, 'json');
+    });
+    $('.del-tpl').on('click', function(){
+        var id = $(this).data('id');
+        if(!confirm('确认删除此模板?')) return;
+        $.post('/admin/task_enhance/template/delete/'+id, {}, function(res){
+            layer.msg(res.msg || '操作完成', {icon: res.code ? 2 : 1});
+            if(!res.code) setTimeout(function(){location.reload();}, 1000);
+        }, 'json');
+    });
+});
+</script>
+{/block}

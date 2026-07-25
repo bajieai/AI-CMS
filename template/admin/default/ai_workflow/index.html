@@ -1,0 +1,66 @@
+{extend name="layout" /}
+{block name="title"}AI工作流 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-diagram-3"></i> AI工作流列表</h5>
+        <a href="{:url('/admin/ai_workflow/create')}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> 创建工作流</a>
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" action="{:url('/admin/ai_workflow/index')}">
+            <div class="col-md-3"><input type="text" name="keyword" value="{$keyword|default=''}" class="form-control form-control-sm" placeholder="搜索工作流名称"></div>
+            <div class="col-md-2"><select name="workflow_type" class="form-control form-control-sm">
+                <option value="">全部类型</option>
+                <option value="content_gen" {if condition="$workflow_type|default='' eq 'content_gen'"}selected{/if}>内容生成</option>
+                <option value="translation" {if condition="$workflow_type|default='' eq 'translation'"}selected{/if}>翻译</option>
+                <option value="quality" {if condition="$workflow_type|default='' eq 'quality'"}selected{/if}>质量检测</option>
+                <option value="recommend" {if condition="$workflow_type|default='' eq 'recommend'"}selected{/if}>推荐</option>
+                <option value="custom" {if condition="$workflow_type|default='' eq 'custom'"}selected{/if}>自定义</option>
+            </select></div>
+            <div class="col-md-1"><button type="submit" class="btn btn-outline-primary btn-sm">搜索</button></div>
+            <div class="col-md-2 ms-auto"><a href="{:url('/admin/ai_workflow/templates')}" class="btn btn-outline-info btn-sm w-100"><i class="bi bi-file-earmark-code"></i> 模板库</a></div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>ID</th><th>名称</th><th>类型</th><th>触发方式</th><th>状态</th><th>执行次数</th><th>成功率</th><th>操作</th></tr></thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.name}</td>
+                        <td><span class="badge bg-secondary">{$vo.workflow_type}</span></td>
+                        <td>{$vo.trigger_type}</td>
+                        <td>{if condition="$vo.is_active eq 1"}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-danger">禁用</span>{/if}</td>
+                        <td>{$vo.exec_count}</td>
+                        <td>{$vo.success_count}/{$vo.exec_count} ({$vo.success_count > 0 ? round($vo.success_count/$vo.exec_count*100,1) : 0}%)</td>
+                        <td>
+                            <a href="{:url('/admin/ai_workflow/edit', ['id'=>$vo.id])}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                            <a href="javascript:void(0)" onclick="executeWorkflow({$vo.id})" class="btn btn-outline-success btn-sm"><i class="bi bi-play-circle"></i></a>
+                            <a href="{:url('/admin/ai_workflow/logs', ['workflow_id'=>$vo.id])}" class="btn btn-outline-info btn-sm"><i class="bi bi-clock-history"></i></a>
+                            <a href="javascript:void(0)" onclick="deleteWorkflow({$vo.id})" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        {$pagination|default=''}
+    </div>
+</div>
+<script>
+function executeWorkflow(id) {
+    if(!confirm('确定执行此工作流？')) return;
+    $.post('{:url("/admin/ai_workflow/execute")}', {workflow_id: id}, function(res){
+        if(res.code === 0) { alert('工作流已启动，执行ID: ' + res.data.exec_id); location.reload(); }
+        else alert(res.msg);
+    });
+}
+function deleteWorkflow(id) {
+    if(!confirm('确定删除此工作流？')) return;
+    $.post('{:url("/admin/ai_workflow/delete")}', {id: id}, function(res){
+        if(res.code === 0) location.reload();
+        else alert(res.msg);
+    });
+}
+</script>
+{/block}

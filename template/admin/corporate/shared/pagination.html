@@ -1,0 +1,44 @@
+<!-- 共享分页组件 -->
+{php}
+$queryParams = $_GET;
+unset($queryParams['s']); // ThinkPHP 路由参数
+$baseQuery = http_build_query($queryParams);
+$totalPages = (int) ceil($total / $limit);
+{/php}
+<nav aria-label="Page navigation" class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span class="small text-muted">共 {$total} 条记录，第 {$page}/{$totalPages} 页</span>
+    <ul class="pagination pagination-sm mb-0">
+        {if condition="$page > 1"}
+        <li class="page-item">
+            <a class="page-link" href="?{if $baseQuery}{$baseQuery|raw}&{/if}page={$page-1}">« 上一页</a>
+        </li>
+        {else/}
+        <li class="page-item disabled"><span class="page-link">« 上一页</span></li>
+        {/if}
+
+        {php}
+        $start = max(1, $page - 2);
+        $end = min($totalPages, $page + 2);
+        if ($start > 1): echo '<li class="page-item"><a class="page-link" href="?'.($baseQuery ? $baseQuery.'&' : '').'page=1">1</a></li>';
+            if ($start > 2): echo '<li class="page-item disabled"><span class="page-link">…</span></li>'; endif;
+        endif;
+        for ($i = $start; $i <= $end; $i++):
+            if ($i == $page): echo '<li class="page-item active"><span class="page-link">'.$i.'</span></li>';
+            else: echo '<li class="page-item"><a class="page-link" href="?'.($baseQuery ? $baseQuery.'&' : '').'page='.$i.'">'.$i.'</a></li>';
+            endif;
+        endfor;
+        if ($end < $totalPages):
+            if ($end < $totalPages - 1): echo '<li class="page-item disabled"><span class="page-link">…</span></li>'; endif;
+            echo '<li class="page-item"><a class="page-link" href="?'.($baseQuery ? $baseQuery.'&' : '').'page='.$totalPages.'">'.$totalPages.'</a></li>';
+        endif;
+        {/php}
+
+        {if condition="$page < $totalPages"}
+        <li class="page-item">
+            <a class="page-link" href="?{if $baseQuery}{$baseQuery|raw}&{/if}page={$page+1}">下一页 »</a>
+        </li>
+        {else/}
+        <li class="page-item disabled"><span class="page-link">下一页 »</span></li>
+        {/if}
+    </ul>
+</nav>

@@ -1,0 +1,8 @@
+/* V2.9.29 C-4 文章模型样式 */
+.article-card { transition: box-shadow .2s; }
+.article-card:hover { box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+.article-list .article-card img { max-height: 160px; }
+.article-tags .badge { font-size: 0.8em; }
+.article-content { line-height: 1.8; font-size: 16px; }
+.article-content img { max-width: 100%; height: auto; }
+.article-meta { border-bottom: 1px solid #eee; padding-bottom: 10px; }

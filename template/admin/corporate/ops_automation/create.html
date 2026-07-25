@@ -1,0 +1,135 @@
+{extend name="layout" /}
+{block name="title"}创建自动化规则 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-plus-circle"></i> 创建运营自动化规则</h5></div>
+    <div class="card-body">
+        <form method="post" action="{:url('/admin/ops_automation/create')}" id="opsForm">
+            <div class="mb-3"><label class="form-label">规则名称</label><input type="text" name="name" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">规则描述</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+            <hr>
+            <h6>When (触发事件)</h6>
+            <div class="mb-3"><select name="trigger_event" class="form-select">
+                <option value="content_published">内容发布</option>
+                <option value="member_register">会员注册</option>
+                <option value="member_login">会员登录</option>
+                <option value="order_paid">订单支付</option>
+                <option value="comment_posted">评论提交</option>
+                <option value="scheduled">定时触发</option>
+            </select></div>
+            <hr>
+            <h6>If (条件) <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="btnAddCondition"><i class="bi bi-plus-lg"></i> 添加条件</button></h6>
+            <div id="conditionsContainer" class="mb-2"></div>
+            <input type="hidden" name="conditions" value="[]">
+
+            <hr>
+            <h6>Then (动作)</h6>
+            <div class="mb-3"><label class="form-label">动作类型</label><select name="action_type" class="form-select">
+                <option value="content">内容操作</option>
+                <option value="notification">发送通知</option>
+                <option value="ai">AI处理</option>
+                <option value="operation">运营操作</option>
+                <option value="api">API调用</option>
+            </select></div>
+            <div class="mb-3"><label class="form-label">动作配置</label></div>
+            <div class="border rounded p-3 bg-light mb-3">
+                <div class="row g-2" id="actionFields">
+                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="参数名" data-key="true"></div>
+                    <div class="col-md-7"><input type="text" class="form-control form-control-sm" placeholder="参数值"></div>
+                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger btn-sm action-remove" disabled><i class="bi bi-trash"></i></button></div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="btnAddAction"><i class="bi bi-plus-lg"></i> 添加参数</button>
+            <input type="hidden" name="action_config" value="{}">
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 创建规则</button>
+                <a href="{:url('/admin/ops_automation/index')}" class="btn btn-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$(function(){
+    var $form = $('#opsForm');
+    var $condContainer = $('#conditionsContainer');
+
+    function addCondition(field, op, val) {
+        var html = '<div class="row g-2 mb-2 cond-row align-items-center">';
+        html += '<div class="col-md-3"><input type="text" class="form-control form-control-sm cond-field" placeholder="字段名" value="'+(field||'')+'"></div>';
+        html += '<div class="col-md-3"><select class="form-select form-select-sm cond-op"><option value="=">等于</option><option value="!=">不等于</option><option value=">">大于</option><option value="<">小于</option><option value=">=">大于等于</option><option value="<=">小于等于</option><option value="in">包含</option></select></div>';
+        html += '<div class="col-md-4"><input type="text" class="form-control form-control-sm cond-val" placeholder="值" value="'+(val||'')+'"></div>';
+        html += '<div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm cond-remove"><i class="bi bi-trash"></i> 删除</button></div>';
+        html += '</div>';
+        var $row = $(html);
+        if (op) $row.find('.cond-op').val(op);
+        $condContainer.append($row);
+        syncConditions();
+    }
+
+    function syncConditions() {
+        var conds = [];
+        $condContainer.find('.cond-row').each(function(){
+            var $r = $(this);
+            var field = $.trim($r.find('.cond-field').val());
+            var op = $r.find('.cond-op').val();
+            var val = $.trim($r.find('.cond-val').val());
+            if (field) conds.push({ field: field, operator: op, value: val });
+        });
+        $form.find('[name="conditions"]').val(JSON.stringify(conds));
+    }
+
+    $condContainer.on('input', '.cond-field,.cond-val', syncConditions);
+    $condContainer.on('change', '.cond-op', syncConditions);
+    $condContainer.on('click', '.cond-remove', function(){
+        $(this).closest('.cond-row').remove();
+        syncConditions();
+    });
+
+    $('#btnAddCondition').click(function(){ addCondition('', '=', ''); });
+
+    function syncAction() {
+        var obj = {};
+        $('#actionFields .row').each(function(){
+            var $r = $(this);
+            var key = $.trim($r.find('[data-key]').val());
+            var val = $.trim($r.find('input:not([data-key])').val());
+            if (key) obj[key] = val;
+        });
+        $form.find('[name="action_config"]').val(JSON.stringify(obj));
+    }
+
+    function addActionRow(key, val) {
+        var html = '<div class="row g-2 mb-2">';
+        html += '<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="参数名" data-key="true" value="'+(key||'')+'"></div>';
+        html += '<div class="col-md-7"><input type="text" class="form-control form-control-sm" placeholder="参数值" value="'+(val||'')+'"></div>';
+        html += '<div class="col-md-1"><button type="button" class="btn btn-outline-danger btn-sm action-remove"><i class="bi bi-trash"></i></button></div>';
+        html += '</div>';
+        $('#actionFields').append($(html));
+        syncAction();
+    }
+
+    $('#actionFields').on('input', 'input', syncAction);
+    $('#actionFields').on('click', '.action-remove', function(){
+        if ($('#actionFields .row').length > 1) {
+            $(this).closest('.row').remove();
+            syncAction();
+        }
+    });
+
+    $('#btnAddAction').click(function(){ addActionRow('', ''); });
+
+    $form.on('submit', function(e) {
+        e.preventDefault();
+        syncConditions();
+        syncAction();
+        $.post($form.attr('action'), $form.serialize(), function(res) {
+            alert(res.msg);
+            if (res.code === 0) location.href = '{:url("/admin/ops_automation/index")}';
+        });
+    });
+});
+</script>
+{/block}

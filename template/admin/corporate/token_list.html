@@ -1,0 +1,151 @@
+{extend name="layout" /}
+
+{block name="title"}API令牌管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统管理</li>
+<li class="breadcrumb-item active">API令牌</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>API令牌列表</span>
+        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createModal"><i class="bi bi-plus-lg me-1"></i>生成令牌</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>认证类型</th>
+                    <th>权限范围</th>
+                    <th>速率限制</th>
+                    <th>过期时间</th>
+                    <th>状态</th>
+                    <th width="100">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name}</td>
+                    <td>{$vo.auth_type_text}</td>
+                    <td class="small text-muted">{$vo.scopes}</td>
+                    <td>{$vo.rate_limit}/h</td>
+                    <td class="small text-muted">{if condition="$vo.expire_time"}{$vo.expire_time|date='Y-m-d H:i'}{else /}永不过期{/if}</td>
+                    <td>
+                        {if condition="$vo.status == 1"}
+                        <span class="badge bg-success">启用</span>
+                        {else /}
+                        <span class="badge bg-secondary">禁用</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.status == 1"}
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="revokeToken({$vo.id})">吊销</button>
+                        {/if}
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无令牌</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">生成API令牌</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <div class="mb-3">
+                        <label class="form-label">令牌名称</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">认证类型</label>
+                        <select name="auth_type" class="form-select">
+                            <option value="bearer">Bearer（简单Token）</option>
+                            <option value="hmac">HMAC（签名验证）</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">权限范围</label>
+                        <input type="text" name="scopes" class="form-control" value="*" placeholder="* 或 content.read,content.write">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">速率限制（次/小时）</label>
+                        <input type="number" name="rate_limit" class="form-control" value="60">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">过期天数（0=永不过期）</label>
+                        <input type="number" name="expire_days" class="form-control" value="0">
+                    </div>
+                </form>
+                <div id="resultBox" class="alert alert-success d-none">
+                    <div class="mb-1"><strong>Token:</strong> <code id="resultToken"></code></div>
+                    <div id="resultSecretBox" class="d-none"><strong>Secret:</strong> <code id="resultSecret"></code></div>
+                    <div class="text-muted small mt-1">请立即复制保存，关闭后无法再次查看完整Token</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="createToken()">生成</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function createToken() {
+    var data = $('#createForm').serialize();
+    $.post('/admin/token/create', data, function(res) {
+        if (res.success) {
+            $('#resultToken').text(res.token);
+            if (res.secret) {
+                $('#resultSecret').text(res.secret);
+                $('#resultSecretBox').removeClass('d-none');
+            }
+            $('#resultBox').removeClass('d-none');
+            $('#createForm').addClass('d-none');
+        } else {
+            alert(res.msg || '生成失败');
+        }
+    });
+}
+
+function revokeToken(id) {
+    if (!confirm('确定吊销此令牌？')) return;
+    $.post('/admin/token/revoke', {id: id}, function(res) {
+        if (res.success) {
+            location.reload();
+        } else {
+            alert(res.msg);
+        }
+    });
+}
+
+$('#createModal').on('hidden.bs.modal', function() {
+    location.reload();
+});
+</script>
+{/block}

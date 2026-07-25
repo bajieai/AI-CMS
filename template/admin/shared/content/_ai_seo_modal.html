@@ -1,0 +1,21 @@
+<!-- V2.9.14: AI SEO对比弹窗（shared子模板，双皮肤共用） -->
+<div class="modal fade" id="ai-seo-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-search me-2"></i>AI SEO优化对比</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="ai-seo-status" class="text-muted small mb-3"></div>
+                <div id="ai-seo-diff"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" onclick="AiSeo.applyAll()">
+                    <i class="bi bi-check-all me-1"></i>全部应用
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

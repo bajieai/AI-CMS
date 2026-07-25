@@ -1,0 +1,36 @@
+<!-- V2.9.18 D-2: 分享工具栏组件 -->
+<div class="share-toolbar" id="shareToolbar">
+    <div class="share-toolbar-inner">
+        <button class="share-btn wechat" onclick="shareTo('wechat')" title="分享到微信">
+            <i class="bi bi-wechat"></i>
+        </button>
+        <button class="share-btn weibo" onclick="shareTo('weibo')" title="分享到微博">
+            <i class="bi bi-sina-weibo"></i>
+        </button>
+        <button class="share-btn qq" onclick="shareTo('qq')" title="分享到QQ">
+            <i class="bi bi-tencent-qq"></i>
+        </button>
+        <button class="share-btn twitter" onclick="shareTo('twitter')" title="分享到Twitter">
+            <i class="bi bi-twitter-x"></i>
+        </button>
+        <button class="share-btn copy" onclick="copyShareLink()" title="复制链接">
+            <i class="bi bi-link-45deg"></i>
+        </button>
+    </div>
+</div>
+
+<!-- 微信二维码弹窗 -->
+<div class="modal fade" id="wechatQrModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content text-center p-3">
+            <h6>扫码分享到微信</h6>
+            <div id="wechatQrCode" class="my-3"></div>
+            <small class="text-muted">打开微信"扫一扫"分享给朋友</small>
+        </div>
+    </div>
+</div>
+
+{block name="js"}
+<script src="/static/js/share_toolbar.js?v=2.9.18"></script>
+<link rel="stylesheet" href="/static/css/share_toolbar.css?v=2.9.18">
+{/block}

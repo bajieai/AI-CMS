@@ -1,0 +1,24 @@
+<!-- V2.9.18 U-3: 通知铃铛组件 -->
+<div class="notify-bell" id="notifyBell">
+    <a href="javascript:;" class="bell-icon position-relative" id="bellBtn">
+        <i class="bi bi-bell"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifyBadge" style="display:none;font-size:10px">0</span>
+    </a>
+    <div class="notify-dropdown" id="notifyDropdown" style="display:none">
+        <div class="notify-dropdown-header">
+            <strong>消息通知</strong>
+            <a href="javascript:;" class="float-end small" onclick="markAllRead()">全部已读</a>
+        </div>
+        <ul class="notify-list list-unstyled mb-0" id="notifyList">
+            <li class="text-center text-muted py-3">加载中...</li>
+        </ul>
+        <div class="notify-dropdown-footer text-center">
+            <a href="/member/notification">查看全部消息</a>
+        </div>
+    </div>
+</div>
+
+{block name="js"}
+<link rel="stylesheet" href="/static/css/notify_bell.css?v=2.9.18">
+<script src="/static/js/notify_bell.js?v=2.9.18"></script>
+{/block}

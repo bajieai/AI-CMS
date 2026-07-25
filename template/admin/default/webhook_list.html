@@ -1,0 +1,100 @@
+{extend name="layout" /}
+
+{block name="title"}Webhook端点列表{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统管理</li>
+<li class="breadcrumb-item active">Webhook端点</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-broadcast me-1"></i>Webhook端点列表</span>
+        <a href="/admin/webhook/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>添加端点</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>URL</th>
+                    <th>事件</th>
+                    <th>状态</th>
+                    <th>最近调用</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name}</td>
+                    <td><code class="small text-truncate d-inline-block" style="max-width:200px;" title="{$vo.url}">{$vo.url}</code></td>
+                    <td>
+                        {if condition="$vo.events_arr"}
+                        {volist name="vo.events_arr" id="evt"}
+                        <span class="badge bg-info me-1">{$evt}</span>
+                        {/volist}
+                        {else /}
+                        <span class="text-muted">—</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.status == 1"}<span class="badge bg-success">启用</span>
+                        {else /}<span class="badge bg-secondary">禁用</span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{if condition="$vo.last_called_at"}{$vo.last_called_at|date='Y-m-d H:i'}{else /}—{/if}</td>
+                    <td>
+                        <a href="/admin/webhook/edit?id={$vo.id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="编辑"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-success py-0 px-1" onclick="testWebhook({$vo.id})" title="测试推送"><i class="bi bi-send"></i></button>
+                        <a href="/admin/webhook/logs?webhook_id={$vo.id}" class="btn btn-sm btn-outline-info py-0 px-1" title="日志"><i class="bi bi-list-ul"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="deleteWebhook({$vo.id})" title="删除"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-broadcast"></i></div>
+                        <div class="ui-empty-title">暂无Webhook端点</div>
+                        <div class="ui-empty-desc">点击"添加端点"创建Webhook端点</div>
+                    </div>
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function testWebhook(id) {
+    showConfirm('测试推送', '确定发送一条测试消息到该Webhook？', function() {
+        $.post('/admin/webhook/test', {id: id}, function(res) {
+            if (res.code === 0) { showToast('测试推送已发送', 'success'); setTimeout(function(){location.reload();}, 1500); }
+            else { showToast(res.msg || '测试失败', 'danger'); }
+        }, 'json');
+    });
+}
+function deleteWebhook(id) {
+    showConfirm('删除端点', '确定删除该Webhook端点？', function() {
+        $.post('/admin/webhook/delete', {id: id}, function(res) {
+            if (res.code === 0) { location.reload(); }
+            else { showToast(res.msg || '删除失败', 'danger'); }
+        }, 'json');
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,4 @@
+/* V2.9.29 C-4 下载模型样式 */
+.download-card { transition: box-shadow .2s; }
+.download-card:hover { box-shadow: 0 .375rem .75rem rgba(0,0,0,.1); }
+.download-icon { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 8px; }

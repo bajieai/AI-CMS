@@ -1,0 +1,45 @@
+{extend name="layout" /}
+{block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
+{block name="keywords"}{$info.seo_keywords|default=''}{/block}
+{block name="description"}{$info.seo_description|default=$info.title|msubstr=0,120}{/block}
+{block name="content"}
+<section class="py-4"><div class="container">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">首页</a></li>
+        <li class="breadcrumb-item"><a href="/case">案例</a></li>
+        <li class="breadcrumb-item active">{$info.title}</li>
+    </ol></nav>
+    <h1 class="h3 mb-3">{$info.title}</h1>
+    {if condition="$model_fields && $model_fields|count > 0"}
+    <div class="d-flex flex-wrap gap-3 mb-4 text-muted">
+        {volist name="model_fields" id="mf"}
+        {if condition="$mf.value !== '' && $mf.value !== null"}
+        <span><strong>{$mf.field_def.label}:</strong> {$mf.formatted|raw}</span>
+        {/if}
+        {/volist}
+    </div>
+    {/if}
+    {if condition="$info.cover"}
+    <div class="mb-4 text-center"><img src="{$info.cover}" class="img-fluid rounded shadow-sm" alt="{$info.title}" style="max-height:400px"></div>
+    {/if}
+    {if condition="$info.content"}
+    <div class="content-body" style="font-size:1.05rem;line-height:1.8">{$info.content|raw}</div>
+    {/if}
+    <div class="mt-4"><h5 class="border-bottom pb-2 mb-3"><i class="bi bi-clock-history"></i> 项目历程</h5>
+        <ul class="list-unstyled">
+            <li class="d-flex gap-3 mb-3"><div class="text-primary"><i class="bi bi-flag-fill"></i></div><div><strong>项目启动</strong><p class="text-muted small mb-0">{if condition="$info.create_time"}{:date('Y-m-d', $info.create_time)}{/if}</p></div></li>
+            <li class="d-flex gap-3 mb-3"><div class="text-success"><i class="bi bi-check-circle-fill"></i></div><div><strong>项目完成</strong><p class="text-muted small mb-0">{if condition="$info.update_time"}{:date('Y-m-d', $info.update_time)}{/if}</p></div></li>
+        </ul>
+    </div>
+    {if condition="$related_contents && $related_contents|count > 0"}
+    <div class="mt-5"><h5 class="border-bottom pb-2 mb-3">相关案例</h5><div class="row">
+        {volist name="related_contents" id="rel"}
+        <div class="col-md-4 mb-3"><div class="card h-100">
+            {if condition="$rel.cover"}<img src="{$rel.cover}" class="card-img-top" alt="{$rel.title}" style="height:150px;object-fit:cover">{/if}
+            <div class="card-body"><h6 class="card-title"><a href="{$rel.url}">{$rel.title}</a></h6></div>
+        </div></div>
+        {/volist}
+    </div></div>
+    {/if}
+</div></section>
+{/block}

@@ -1,0 +1,8 @@
+/* V2.9.29 C-4 图片模型样式 */
+.image-card { transition: transform .2s, box-shadow .2s; overflow: hidden; }
+.image-card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+.image-card .card-img-top { transition: transform .3s; }
+.image-card:hover .card-img-top { transform: scale(1.05); }
+.gallery-thumbnails img { border: 2px solid #eee; transition: border-color .2s; }
+.gallery-thumbnails img:hover { border-color: #0d6efd; }
+.main-image img { max-height: 600px; object-fit: contain; }

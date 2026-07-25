@@ -1,0 +1,59 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-download me-2"></i>数据导出</h4>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="exportForm" method="get" action="/admin/revenue/doExport">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">报表类型</label>
+                        <select name="type" class="form-select" id="exportType">
+                            <option value="install_trend">安装趋势</option>
+                            <option value="usage_stats">使用统计</option>
+                            <option value="revenue">营收统计</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">开始日期</label>
+                        <input type="date" name="start" class="form-control" value="{php echo date('Y-m-d', strtotime('-30 days')); {/php}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">结束日期</label>
+                        <input type="date" name="end" class="form-control" value="{php echo date('Y-m-d'); {/php}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">格式</label>
+                        <select name="format" class="form-select" id="exportFormat">
+                            <option value="csv">CSV</option>
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-download me-1"></i>导出</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header fw-semibold">导出说明</div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead class="table-light"><tr><th>格式</th><th>说明</th><th>依赖</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="badge bg-success">CSV</span></td><td>通用格式，所有平台兼容</td><td>无（始终可用）</td></tr>
+                    <tr><td><span class="badge bg-primary">Excel</span></td><td>.xlsx 格式，支持公式和格式</td><td>phpspreadsheet（未安装时降级CSV）</td></tr>
+                    <tr><td><span class="badge bg-danger">PDF</span></td><td>适合打印和归档</td><td>dompdf（未安装时降级CSV）</td></tr>
+                </tbody>
+            </table>
+            <div class="alert alert-info small">
+                <i class="bi bi-info-circle me-1"></i>如需支持 Excel/PDF 导出，请安装依赖：<code>composer require phpoffice/phpspreadsheet dompdf/dompdf</code>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

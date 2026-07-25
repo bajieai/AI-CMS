@@ -1,0 +1,60 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">模板商店分类管理 <small class="text-muted">（V2.9.26 多级分类）</small></h4>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-folder2-open me-2"></i>分类树</span>
+            <a href="/admin/template_store_ops/categoryEdit" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>添加分类
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:60px">ID</th>
+                            <th>分类名称</th>
+                            <th>标识</th>
+                            <th>层级</th>
+                            <th>图标</th>
+                            <th style="width:80px">排序</th>
+                            <th style="width:80px">启用</th>
+                            <th style="width:80px">前台可见</th>
+                            <th style="width:80px">SEO</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {$treeHtml|raw}
+                        {if empty($tree)}
+                        <tr><td colspan="10" class="text-center text-muted py-4">暂无分类数据</td></tr>
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+$('.btn-delete').click(function(){
+    const id = $(this).data('id');
+    if (!confirm('确定删除该分类？子分类将变为顶级分类。')) return;
+    fetch('/admin/template_store_ops/categoryDelete/' + id, {method: 'POST'})
+        .then(r => r.json()).then(res => { location.reload(); });
+});
+$('.btn-toggle-visible').click(function(){
+    const id = $(this).data('id');
+    fetch('/admin/template_store_ops/categoryToggleVisible/' + id, {method: 'POST'})
+        .then(r => r.json()).then(res => { location.reload(); });
+});
+$('.btn-toggle-enabled').click(function(){
+    const id = $(this).data('id');
+    fetch('/admin/template_store_ops/categoryToggleEnabled/' + id, {method: 'POST'})
+        .then(r => r.json()).then(res => { location.reload(); });
+});
+</script>
+{/block}

@@ -1,0 +1,22 @@
+{extend name="layout" /}
+{block name="title"}定时分发{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">定时分发</li>{/block}
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-clock me-1"></i>待执行分发任务</div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>内容ID</th><th>平台</th><th>定时时间</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="pendingList" id="task"}
+            <tr><td>{$task.id}</td><td>{$task.content_id}</td><td>{$task.platforms}</td>
+                <td>{$task.schedule_time|date='Y-m-d H:i'}</td>
+                <td><span class="badge bg-warning">等待中</span></td>
+                <td><button class="btn btn-sm btn-outline-primary execute-btn" data-id="{$task.id}">执行</button>
+                    <button class="btn btn-sm btn-outline-danger cancel-btn" data-id="{$task.id}">取消</button></td></tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

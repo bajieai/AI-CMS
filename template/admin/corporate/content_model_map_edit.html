@@ -1,0 +1,86 @@
+{extend name="layout" /}
+{block name="title"}{if condition="$item"}编辑{else/}新增{/if}内容模型映射 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-{if condition="$item"}pencil-square{else/}plus-circle{/if}"></i> {if condition="$item"}编辑{else/}新增{/if}内容模型映射</h5></div>
+    <div class="card-body">
+        <form method="post" action="{:url('/admin/content_model_map/edit')}" id="mapForm">
+            <input type="hidden" name="id" value="{$item.id??''}">
+            <div class="mb-3"><label class="form-label">模型名称</label><input type="text" name="name" class="form-control" value="{$item.name??''}" required></div>
+            <div class="mb-3"><label class="form-label">内容类型</label><select name="content_type" class="form-select">
+                <option value="">-- 选择类型 --</option>
+                <option value="article" {if isset($item) && $item.content_type=='article'}selected{/if}>文章</option>
+                <option value="product" {if isset($item) && $item.content_type=='product'}selected{/if}>产品</option>
+                <option value="case" {if isset($item) && $item.content_type=='case'}selected{/if}>案例</option>
+                <option value="download" {if isset($item) && $item.content_type=='download'}selected{/if}>下载</option>
+                <option value="video" {if isset($item) && $item.content_type=='video'}selected{/if}>视频</option>
+            </select></div>
+            <hr>
+            <h6>模板映射</h6>
+            <div class="mb-3">
+                <label class="form-label">列表模板 <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="btnAddMap"><i class="bi bi-plus-lg"></i> 添加映射</button></label>
+            </div>
+            <div id="mappingContainer" class="mb-2"></div>
+            <input type="hidden" name="template_mapping" value="<?php echo isset($item['template_mapping']) ? htmlentities((string) $item['template_mapping']) : '&#123;&#125;'; ?>">
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存</button>
+                <a href="{:url('/admin/content_model_map/index')}" class="btn btn-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$(function(){
+    var $form = $('#mapForm');
+    var $mappingContainer = $('#mappingContainer');
+
+    function addMappingRow(key, val) {
+        var row = '<div class="row g-2 mb-2">';
+        row += '<div class="col-md-4"><select class="form-select form-select-sm map-key"><option value="">-- 模板类型 --</option><option value="list">列表页</option><option value="detail">详情页</option><option value="category">分类页</option><option value="search">搜索页</option><option value="rss">RSS</option><option value="amp">AMP</option></select></div>';
+        row += '<div class="col-md-7"><input type="text" class="form-control form-control-sm map-val" placeholder="模板文件名 (如 article/list.html)" value="'+(val||'')+'"></div>';
+        row += '<div class="col-md-1"><button type="button" class="btn btn-outline-danger btn-sm map-remove"><i class="bi bi-trash"></i></button></div>';
+        row += '</div>';
+        var $row = $(row);
+        if (key) $row.find('.map-key').val(key);
+        $mappingContainer.append($row);
+        syncMapping();
+    }
+
+    function syncMapping() {
+        var obj = {};
+        $mappingContainer.find('.row').each(function(){
+            var $r = $(this);
+            var key = $r.find('.map-key').val();
+            var val = $.trim($r.find('.map-val').val());
+            if (key && val) obj[key] = val;
+        });
+        $form.find('[name="template_mapping"]').val(JSON.stringify(obj));
+    }
+
+    $mappingContainer.on('input change', 'input,select', syncMapping);
+    $mappingContainer.on('click', '.map-remove', function(){
+        $(this).closest('.row').remove();
+        syncMapping();
+    });
+
+    $('#btnAddMap').click(function(){ addMappingRow('', ''); });
+
+    try {
+        var mapping = JSON.parse($form.find('[name="template_mapping"]').val() || '{}');
+        $.each(mapping, function(k, v){ addMappingRow(k, v); });
+    } catch(e) {}
+
+    $form.on('submit', function(e) {
+        e.preventDefault();
+        syncMapping();
+        $.post($form.attr('action'), $form.serialize(), function(res) {
+            alert(res.msg);
+            if (res.code === 0) location.href = '{:url("/admin/content_model_map/index")}';
+        });
+    });
+});
+</script>
+{/block}

@@ -1,0 +1,92 @@
+﻿{extend name="/layout" /}
+{block name="title"}验证码配置 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4"><i class="bi bi-shield-check"></i> 验证码配置</h4>
+    <div class="card">
+        <div class="card-body">
+            <form id="captchaForm">
+                <h6 class="border-bottom pb-2 mb-3">基础设置</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">启用验证码</label>
+                    <div class="col-sm-9">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="captcha_enabled" value="1" id="swCaptchaEnabled" {if $config.captcha_enabled==1}checked{/if}>
+                            <label class="form-check-label" for="swCaptchaEnabled">开启后以下选中的场景将要求输入验证码</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">验证码类型</label>
+                    <div class="col-sm-9">
+                        <select class="form-select" name="captcha_type">
+                            <option value="math" {if $config.captcha_type=='math'}selected{/if}>算术验证码</option>
+                            <option value="turnstile" {if $config.captcha_type=='turnstile'}selected{/if}>腾讯云验证码（预留）</option>
+                        </select>
+                        <div class="form-text">算术验证码为系统内置，无需额外配置</div>
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3 mt-4">应用场景</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">登录页面</label>
+                    <div class="col-sm-9">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="captcha_login" value="1" {if $config.captcha_login==1}checked{/if}>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">会员注册</label>
+                    <div class="col-sm-9">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="captcha_register" value="1" {if $config.captcha_register==1}checked{/if}>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">评论提交</label>
+                    <div class="col-sm-9">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="captcha_comment" value="1" {if $config.captcha_comment==1}checked{/if}>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">自定义表单</label>
+                    <div class="col-sm-9">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="captcha_form" value="1" {if $config.captcha_form==1}checked{/if}>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="border-bottom pb-2 mb-3 mt-4">安全策略</h6>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">失败触发阈值</label>
+                    <div class="col-sm-9">
+                        <input type="number" class="form-control" name="captcha_fail_limit" value="{$config.captcha_fail_limit??3}" min="1" max="10">
+                        <div class="form-text">连续操作失败多少次后强制要求验证码（预留功能）</div>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存配置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#captchaForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/captcha/config', data, function(res) {
+        alert(res.msg);
+    });
+});
+</script>
+{/block}

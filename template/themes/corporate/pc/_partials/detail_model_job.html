@@ -1,0 +1,38 @@
+{/* V2.9.20 A-3: 招聘模型详情差异化片段 (corporate PC) */}
+{php}$ext = $info['ext']['data'] ?? [];{/php}
+<div class="model-job-card card mb-4 shadow-sm">
+    <div class="card-body">
+        <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">职位详情</h6>
+        <div class="row g-4">
+            {if condition="!empty($ext['salary_range'])"}
+            <div class="col-md-4 col-sm-6">
+                <div class="border-start border-3 border-warning ps-3">
+                    <div class="text-muted small">薪资范围</div>
+                    <div class="fw-bold text-success fs-4">{$ext['salary_range']|htmlentities}</div>
+                </div>
+            </div>
+            {/if}
+            {if condition="!empty($ext['location'])"}
+            <div class="col-md-4 col-sm-6">
+                <div class="border-start border-3 border-warning ps-3">
+                    <div class="text-muted small">工作地点</div>
+                    <div class="fw-bold">{$ext['location']|htmlentities}</div>
+                </div>
+            </div>
+            {/if}
+            {if condition="!empty($ext['education'])"}
+            <div class="col-md-4 col-sm-6">
+                <div class="border-start border-3 border-warning ps-3">
+                    <div class="text-muted small">学历要求</div>
+                    <div class="fw-bold"><span class="badge bg-secondary">{$ext['education']|htmlentities}</span></div>
+                </div>
+            </div>
+            {/if}
+        </div>
+        {if condition="empty($ext['salary_range']) && empty($ext['location']) && empty($ext['education'])"}
+        <div class="text-muted small text-center py-3 border-top mt-3">
+            <i class="bi bi-info-circle me-1"></i>此职位暂无详细信息，请查看正文或联系招聘方
+        </div>
+        {/if}
+    </div>
+</div>

@@ -1,0 +1,14 @@
+{extend name="layout" /}
+{block name="title"}新建知识库{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/ai_knowledge/index">知识库</a></li><li class="breadcrumb-item active">新建</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5>新建知识库</h5></div><div class="card-body">
+  <form action="/admin/ai_knowledge/create" method="post">
+    <div class="mb-3"><label>名称</label><input type="text" name="name" class="form-control" required></div>
+    <div class="mb-3"><label>描述</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+    <div class="mb-3"><label>类型</label><select name="type" class="form-select"><option value="general">通用</option><option value="faq">FAQ</option><option value="product">产品</option><option value="api">API</option></select></div>
+    <div class="mb-3"><label>嵌入模型</label><select name="embedding_model" class="form-select"><option value="tfidf">TF-IDF</option></select></div>
+    <button type="submit" class="btn btn-primary">创建</button>
+  </form>
+</div></div>
+{/block}

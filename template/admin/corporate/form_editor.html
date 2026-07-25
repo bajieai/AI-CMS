@@ -1,0 +1,191 @@
+{extend name="layout" /}
+
+{block name="title"}表单可视化编辑器{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/form/index">运营管理</a></li>
+<li class="breadcrumb-item"><a href="/admin/form/index">表单管理</a></li>
+<li class="breadcrumb-item active">可视化编辑</li>
+{/block}
+
+{block name="css"}
+<link href="/assets/css/form-editor.css?v=2.7" rel="stylesheet">
+{/block}
+
+{block name="content"}
+<div class="card mb-3" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label mb-1">表单名称</label>
+                <input type="text" class="form-control form-control-sm" id="formName" value="{$form.name??''}" placeholder="如：联系我们">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-1">唯一标识</label>
+                <input type="text" class="form-control form-control-sm" id="formCode" value="{$form.code??''}" placeholder="如 contact_us">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">提交按钮</label>
+                <input type="text" class="form-control form-control-sm" id="formSubmitText" value="{$form.submit_text??'提交'}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">成功提示</label>
+                <input type="text" class="form-control form-control-sm" id="formSuccessMsg" value="{$form.success_msg??'提交成功'}">
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-primary btn-sm" id="btnSaveForm">
+                    <i class="bi bi-check-lg me-1"></i>保存表单
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-2 d-flex align-items-center gap-2">
+    <span class="text-secondary small"><i class="bi bi-lightning me-1"></i>快速应用预设模板：</span>
+    <div class="template-presets">
+        <span class="preset-chip" onclick="FormEditor.loadPreset('contact')"><i class="bi bi-envelope me-1"></i>联系我们</span>
+        <span class="preset-chip" onclick="FormEditor.loadPreset('signup')"><i class="bi bi-person-plus me-1"></i>在线报名</span>
+        <span class="preset-chip" onclick="FormEditor.loadPreset('survey')"><i class="bi bi-clipboard-check me-1"></i>问卷调查</span>
+        <span class="preset-chip" onclick="FormEditor.loadPreset('feedback')"><i class="bi bi-chat-square-text me-1"></i>意见反馈</span>
+    </div>
+</div>
+
+<div class="form-editor-wrap">
+    <div class="form-editor-sidebar">
+        <div class="sidebar-header"><i class="bi bi-plus-square me-1"></i>字段工具箱</div>
+        <div class="field-palette" id="fieldPalette"></div>
+    </div>
+    <div class="form-editor-canvas">
+        <div class="canvas-header">
+            <span class="fw-bold small"><i class="bi bi-grid-3x3 me-1"></i>画布预览</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="previewForm()">
+                <i class="bi bi-eye me-1"></i>预览
+            </button>
+        </div>
+        <div class="canvas-body" id="canvasBody">
+            <div class="canvas-placeholder" id="canvasPlaceholder">
+                <i class="bi bi-ui-radios display-4 text-muted opacity-25"></i>
+                <p class="mt-2">从左侧拖拽字段到此处</p>
+            </div>
+        </div>
+    </div>
+    <div class="form-editor-props">
+        <div class="props-header"><i class="bi bi-sliders me-1"></i>属性配置</div>
+        <div class="props-body" id="propsBody">
+            <div class="props-empty">
+                <i class="bi bi-arrow-left-circle display-6 text-muted opacity-25"></i>
+                <p class="mt-2">在画布中选择一个字段<br>以编辑其属性</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-eye me-1"></i>表单预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script src="/assets/js/form-editor.js?v=2.7"></script>
+<script>
+$(function() {
+    var existingFields = {$form.fields|raw??'[]'};
+    FormEditor.init(existingFields);
+
+    $('#btnSaveForm').on('click', function() {
+        var name = $.trim($('#formName').val());
+        var code = $.trim($('#formCode').val());
+        if (!name) return showToast('请输入表单名称', 'danger');
+        if (!code) return showToast('请输入表单标识', 'danger');
+
+        var payload = {
+            id: {$form.id??0},
+            name: name,
+            code: code,
+            submit_text: $('#formSubmitText').val() || '提交',
+            success_msg: $('#formSuccessMsg').val() || '提交成功',
+            fields: FormEditor.getFields(),
+            success_action: 'message',
+            redirect_url: '',
+            anti_spam: 0,
+            is_enabled: 1,
+            sort: 0,
+        };
+
+        ajaxPost('/admin/form/save', payload, function(res) {
+            if (res.code === 0 && res.data && res.data.id) {
+                showToast('保存成功', 'success');
+            }
+        });
+    });
+});
+
+function previewForm() {
+    var fields = FormEditor.getFields();
+    var html = '<form onsubmit="return false;">';
+    for (var i = 0; i < fields.length; i++) {
+        var f = fields[i];
+        var req = f.required ? ' <span class="text-danger">*</span>' : '';
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">' + escapeHtml(f.label || '') + req + '</label>';
+        if (f.type === 'textarea') {
+            html += '<textarea class="form-control" rows="3" placeholder="' + escapeHtml(f.placeholder || '') + '"></textarea>';
+        } else if (f.type === 'select') {
+            html += '<select class="form-select">';
+            var opts = (f.options || '').split(/\r?\n/).filter(function(s){return s.trim();});
+            html += '<option value="">请选择</option>';
+            for (var j = 0; j < opts.length; j++) html += '<option>' + escapeHtml(opts[j]) + '</option>';
+            html += '</select>';
+        } else if (f.type === 'radio') {
+            var ropts = (f.options || '').split(/\r?\n/).filter(function(s){return s.trim();});
+            html += '<div>';
+            for (var r = 0; r < ropts.length; r++) {
+                html += '<div class="form-check form-check-inline">' +
+                    '<input class="form-check-input" type="radio" name="preview_' + i + '">' +
+                    '<label class="form-check-label">' + escapeHtml(ropts[r]) + '</label></div>';
+            }
+            html += '</div>';
+        } else if (f.type === 'checkbox') {
+            var copts = (f.options || '').split(/\r?\n/).filter(function(s){return s.trim();});
+            html += '<div>';
+            for (var c = 0; c < copts.length; c++) {
+                html += '<div class="form-check form-check-inline">' +
+                    '<input class="form-check-input" type="checkbox">' +
+                    '<label class="form-check-label">' + escapeHtml(copts[c]) + '</label></div>';
+            }
+            html += '</div>';
+        } else if (f.type === 'rating') {
+            html += '<div class="text-warning fs-5">';
+            for (var s = 0; s < 5; s++) html += '<i class="bi bi-star"></i> ';
+            html += '</div>';
+        } else {
+            html += '<input type="' + f.type + '" class="form-control" placeholder="' + escapeHtml(f.placeholder || '') + '">';
+        }
+        if (f.help_text) html += '<div class="form-text">' + escapeHtml(f.help_text) + '</div>';
+        html += '</div>';
+    }
+    html += '<button type="submit" class="btn btn-primary">' + escapeHtml($('#formSubmitText').val() || '提交') + '</button>';
+    html += '</form>';
+    $('#previewModalBody').html(html);
+    var modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+}
+
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+{/block}

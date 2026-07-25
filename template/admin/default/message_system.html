@@ -1,0 +1,38 @@
+﻿{extend name="/layout" /}
+{block name="title"}系统通知 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">系统通知</h4>
+        <a href="/admin/message/sendSystem" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> 发送通知</a>
+    </div>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>标题</th><th>类型</th><th>发送时间</th><th>过期时间</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.title}</td>
+                <td>{$vo.type}</td>
+                <td>{$vo.send_time|date='Y-m-d H:i'}</td>
+                <td>{if $vo.expire_time>0}{$vo.expire_time|date='Y-m-d H:i'}{else/}永不过期{/if}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteItem({$vo.id})">删除</button>
+                </td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+{/block}
+{block name="js"}
+<script>
+function deleteItem(id) { if(!confirm('确定删除？')) return; $.post('/admin/message/deleteSystem', {id:id}, function(res) { alert(res.msg); location.reload(); }); }
+</script>
+{/block}

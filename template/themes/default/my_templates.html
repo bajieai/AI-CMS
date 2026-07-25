@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的模板 - 八界AI-CMS</title>
+</head>
+<body>
+    <h1>我的模板</h1>
+    {% if templates %}
+    <table>
+        <tr><th>模板</th><th>授权类型</th><th>到期时间</th><th>操作</th></tr>
+        {% for item in templates %}
+        <tr>
+            <td>{{ item.template.name }}</td>
+            <td>{{ item.license.license_type }}</td>
+            <td>{{ item.license.expires_at ? date('Y-m-d', item.license.expires_at) : '永久' }}</td>
+            <td><a href="/template/preview/{{ item.template.code }}">预览</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>暂无已购模板</p>
+    {% endif %}
+</body>
+</html>

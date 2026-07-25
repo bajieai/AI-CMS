@@ -1,0 +1,89 @@
+{extend name="layout" /}
+
+{block name="title"}模板安装日志{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">平台扩展</li>
+<li class="breadcrumb-item"><a href="/admin/template_store/index">模板商店管理</a></li>
+<li class="breadcrumb-item active">安装日志</li>
+{/block}
+
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-list-ul me-1"></i>最近安装记录</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>模板</th>
+                                <th>用户</th>
+                                <th>动作</th>
+                                <th>IP</th>
+                                <th>结果</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="logs" id="vo"}
+                            <tr>
+                                <td>{$vo.id}</td>
+                                <td>{$vo.store.name ?? '-'}</td>
+                                <td>{$vo.member.nickname ?? $vo.member_id}</td>
+                                <td>{$vo.action}</td>
+                                <td class="small">{$vo.ip}</td>
+                                <td>
+                                    {if condition="$vo.result == 1"}<span class="badge bg-success">成功</span>{else/}<span class="badge bg-danger" title="{$vo.error_msg}">失败</span>{/if}
+                                </td>
+                                <td class="small">{:date('m-d H:i', $vo.create_time)}</td>
+                            </tr>
+                            {/volist}
+                            {empty name="logs"}
+                            <tr><td colspan="7" class="text-center text-muted py-4">暂无安装日志</td></tr>
+                            {/empty}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-graph-up me-1"></i>近7天安装趋势</div>
+            <div class="card-body">
+                <canvas id="installTrendChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/js/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('installTrendChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {json_encode(array_column($trend, 'date'))},
+        datasets: [{
+            label: '安装次数',
+            data: {json_encode(array_column($trend, 'count'))},
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+    }
+});
+</script>
+{/block}

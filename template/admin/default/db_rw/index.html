@@ -1,0 +1,23 @@
+{extend name="/layout" /}
+{block name="title"}数据库读写分离 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-database-gear"></i> 数据库读写分离</h5></div>
+<div class="card-body">
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="card bg-light"><div class="card-body text-center"><h6>主库状态</h6><h3><span class="badge bg-{if $status.master??''=='connected'}success{else}danger{/if} fs-6">{$status.master??'--'}</span></h3></div></div></div>
+    <div class="col-md-4"><div class="card bg-light"><div class="card-body text-center"><h6>从库状态</h6><h3><span class="badge bg-{if $status.slave??''=='connected'}success{else}danger{/if} fs-6">{$status.slave??'--'}</span></h3></div></div></div>
+    <div class="col-md-4"><div class="card bg-light"><div class="card-body text-center"><h6>主从延迟</h6><h3>{$delay.value??'--'}{$delay.unit??''}</h3></div></div></div>
+</div>
+{if !empty($stats)}
+<div class="card"><div class="card-header"><h6 class="mb-0">查询统计</h6></div>
+<table class="table table-sm mb-0"><tbody>
+    <tr><td width="180">总查询数</td><td>{$stats.total_queries??0}</td></tr>
+    <tr><td>读操作 (从库)</td><td>{$stats.read_queries??0} ({$stats.read_ratio??'0'}%)</td></tr>
+    <tr><td>写操作 (主库)</td><td>{$stats.write_queries??0} ({$stats.write_ratio??'0'}%)</td></tr>
+    <tr><td>慢查询</td><td>{$stats.slow_queries??0}</td></tr>
+</tbody></table></div>
+{else/}
+<div class="text-center text-muted py-3">暂无查询统计数据</div>
+{/if}
+</div></div>
+{/block}

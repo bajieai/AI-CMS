@@ -1,0 +1,212 @@
+{extend name="layout" /}
+
+{block name="title"}模板设计器{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">AI中心</li>
+<li class="breadcrumb-item active">模板设计器</li>
+{/block}
+
+{block name="css"}
+<style>
+.color-preview { width:32px;height:32px;border-radius:6px;border:2px solid #e2e8f0;cursor:pointer;display:inline-block;vertical-align:middle; }
+.color-row { display:flex;align-items:center;gap:12px;margin-bottom:12px; }
+.color-row label { min-width:140px;font-weight:500;font-size:.875rem;margin:0; }
+.color-row input[type="color"] { width:40px;height:32px;border:none;padding:0;cursor:pointer; }
+.color-row input[type="text"] { width:100px;font-size:.8rem; }
+.theme-card-preview { border:2px solid #e2e8f0;border-radius:12px;overflow:hidden;max-width:360px;margin:0 auto; }
+</style>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-palette me-1"></i>主题配色方案</span>
+                <div>
+                    <select class="form-select form-select-sm d-inline-block" style="width:auto;" id="themeSelect">
+                        <option value="default" {if $theme=='default'}selected{/if}>默认主题</option>
+                        <option value="corporate" {if $theme=='corporate'}selected{/if}>企业商务</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="loadThemeVars()"><i class="bi bi-arrow-clockwise me-1"></i>加载</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="colorEditor">
+                    {foreach $themeConfig as $key=>$value}
+                    <div class="color-row">
+                        <label>{$key}</label>
+                        <input type="color" value="{$value}" data-var="{$key}" onchange="updateVar(this)">
+                        <input type="text" class="form-control form-control-sm" value="{$value}" data-var="{$key}" onchange="syncColor(this)">
+                    </div>
+                    {/foreach}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="bi bi-robot me-1"></i>AI配色推荐</div>
+            <div class="card-body">
+                <div class="row g-2 align-items-end mb-3">
+                    <div class="col-auto">
+                        <label class="form-label small mb-1">选择主色调</label>
+                        <input type="color" id="aiBaseColor" value="#3b82f6" style="width:48px;height:36px;border:none;padding:0;cursor:pointer;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small mb-1">行业类型</label>
+                        <select class="form-select form-select-sm" id="aiIndustry" style="width:auto;min-width:120px;">
+                            <option value="">不限</option>
+                            <option value="科技">科技</option>
+                            <option value="电商">电商</option>
+                            <option value="教育">教育</option>
+                            <option value="医疗">医疗</option>
+                            <option value="金融">金融</option>
+                            <option value="政务">政务</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small mb-1">风格偏好</label>
+                        <select class="form-select form-select-sm" id="aiStyle" style="width:auto;min-width:120px;">
+                            <option value="">不限</option>
+                            <option value="现代">现代</option>
+                            <option value="简约">简约</option>
+                            <option value="活泼">活泼</option>
+                            <option value="商务">商务</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-sm btn-primary" onclick="aiSuggest()"><i class="bi bi-magic me-1"></i>AI生成配色</button>
+                    </div>
+                </div>
+                <div id="aiScheme" class="d-none">
+                    <div class="alert alert-success small mb-2"><i class="bi bi-lightbulb me-1"></i>AI推荐配色方案：</div>
+                    <div id="aiSchemeColors" class="d-flex flex-wrap gap-2"></div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="applyAiScheme()"><i class="bi bi-check-lg me-1"></i>应用此方案</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-eye me-1"></i>实时预览</div>
+            <div class="card-body p-0">
+                <div class="theme-card-preview" id="themePreview" style="min-height:400px;">
+                    <div style="padding:12px;background:var(--bg-secondary,#f8fafc);border-bottom:1px solid var(--border,#e2e8f0);">
+                        <div style="font-size:1.1rem;font-weight:700;color:var(--primary,#3b82f6);">网站标题</div>
+                        <div style="font-size:.8rem;color:var(--text-secondary,#64748b);">副标题描述</div>
+                    </div>
+                    <div style="padding:16px;background:var(--bg,#fff);">
+                        <div style="font-size:1rem;font-weight:600;color:var(--text,#1e293b);margin-bottom:8px;">文章标题示例</div>
+                        <div style="font-size:.85rem;color:var(--text-secondary,#64748b);line-height:1.6;">这是文章内容的预览文字，展示主题配色效果...</div>
+                        <div style="margin-top:12px;">
+                            <span style="display:inline-block;padding:4px 14px;border-radius:var(--radius,8px);background:var(--primary,#3b82f6);color:#fff;font-size:.8rem;">阅读更多</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <button class="btn btn-primary w-100" onclick="saveConfig()"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var currentVars = {};
+
+function updateVar(el) {
+    var name = $(el).data('var');
+    var val = $(el).val();
+    currentVars[name] = val;
+    $(el).siblings('input[type="text"]').val(val);
+    applyPreview();
+}
+
+function syncColor(el) {
+    var name = $(el).data('var');
+    var val = $(el).val();
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        currentVars[name] = val;
+        $(el).siblings('input[type="color"]').val(val);
+        applyPreview();
+    }
+}
+
+function applyPreview() {
+    var preview = document.getElementById('themePreview');
+    Object.keys(currentVars).forEach(function(k) {
+        preview.style.setProperty(k, currentVars[k]);
+    });
+}
+
+function loadThemeVars() {
+    var theme = $('#themeSelect').val();
+    location.href = '/admin/template_design/index?theme=' + theme;
+}
+
+function aiSuggest() {
+    var baseColor = $('#aiBaseColor').val();
+    var industry = $('#aiIndustry').val();
+    var style = $('#aiStyle').val();
+    $.post('/admin/template_design/aiSuggest', { base_color: baseColor, industry: industry, style: style }, function(res) {
+        if (res.code === 0 || res.code === 1) {
+            var data = res.data || res;
+            var container = $('#aiSchemeColors').empty();
+            var scheme = {};
+            Object.keys(data).forEach(function(k) {
+                if (k === 'error') return;
+                var val = data[k];
+                if (/^#[0-9a-fA-F]{3,6}$/.test(val)) {
+                    scheme['--' + k] = val;
+                    container.append('<div class="text-center"><div style="width:40px;height:40px;border-radius:8px;background:' + val + ';border:1px solid #e2e8f0;"></div><small>' + k + '</small></div>');
+                }
+            });
+            window._aiScheme = scheme;
+            $('#aiScheme').removeClass('d-none');
+        } else {
+            showToast(res.msg || '生成失败', 'danger');
+        }
+    }, 'json').fail(function() { showToast('AI配色请求失败', 'danger'); });
+}
+
+function applyAiScheme() {
+    if (!window._aiScheme) return;
+    Object.keys(window._aiScheme).forEach(function(k) {
+        currentVars[k] = window._aiScheme[k];
+    });
+    applyPreview();
+    $('#colorEditor .color-row').each(function() {
+        var name = $(this).find('input[type="color"]').data('var');
+        if (currentVars[name]) {
+            $(this).find('input[type="color"]').val(currentVars[name]);
+            $(this).find('input[type="text"]').val(currentVars[name]);
+        }
+    });
+    showToast('AI配色已应用', 'success');
+}
+
+function saveConfig() {
+    var theme = $('#themeSelect').val();
+    $.post('/admin/template_design/save', { theme: theme, variables: JSON.stringify(currentVars) }, function(res) {
+        if (res.code === 0 || res.code === 1) {
+            showToast('配置保存成功', 'success');
+        } else {
+            showToast(res.msg || '保存失败', 'danger');
+        }
+    }, 'json').fail(function() { showToast('保存请求失败', 'danger'); });
+}
+
+$(function() {
+    $('#colorEditor .color-row').each(function() {
+        var name = $(this).find('input[type="color"]').data('var');
+        var val = $(this).find('input[type="color"]').val();
+        if (name && val) currentVars[name] = val;
+    });
+    applyPreview();
+});
+</script>
+{/block}

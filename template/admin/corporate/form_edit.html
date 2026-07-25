@@ -1,0 +1,104 @@
+﻿{extend name="layout" /}
+
+{block name="title"}{if condition="$form"}编辑表单{else/}创建表单{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="{:url('/admin/form/index')}">自定义表单</a></li>
+<li class="breadcrumb-item active">{if condition="$form"}编辑{else/}创建{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-{if condition="$form"}pencil-square{else/}plus-circle{/if}"></i> {if condition="$form"}编辑表单{else/}创建表单{/if}</h5></div>
+    <div class="card-body">
+        <form method="post" action="{:url('/admin/form/edit')}" id="formEdit">
+            <input type="hidden" name="id" value="{$form.id??''}">
+            <div class="mb-3"><label class="form-label">表单名称</label><input type="text" name="name" class="form-control" value="{$form.name??''}" required></div>
+            <div class="mb-3"><label class="form-label">描述</label><textarea name="description" class="form-control" rows="2">{$form.description??''}</textarea></div>
+            <hr>
+            <h6>字段配置 <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="btnAddField"><i class="bi bi-plus-lg"></i> 添加字段</button></h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered" id="fieldsTable">
+                    <thead class="table-secondary">
+                        <tr><th>字段名</th><th>标签</th><th>类型</th><th>必填</th><th>选项(逗号分隔)</th><th></th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <input type="hidden" name="fields" value="{$form.fields??'[]'}">
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存</button>
+                <a href="{:url('/admin/form/index')}" class="btn btn-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$(function(){
+    var $form = $('#formEdit');
+    var $tbody = $('#fieldsTable tbody');
+
+    function addField(name, label, type, required, options) {
+        var row = '<tr>';
+        row += '<td><input type="text" class="form-control form-control-sm field-name" placeholder="name" value="'+(name||'')+'"></td>';
+        row += '<td><input type="text" class="form-control form-control-sm field-label" placeholder="姓名" value="'+(label||'')+'"></td>';
+        row += '<td><select class="form-select form-select-sm field-type"><option value="text">文本</option><option value="textarea">多行文本</option><option value="number">数字</option><option value="email">邮箱</option><option value="select">下拉</option><option value="checkbox">多选</option><option value="radio">单选</option><option value="date">日期</option><option value="file">文件</option></select></td>';
+        row += '<td><select class="form-select form-select-sm field-required"><option value="0">否</option><option value="1">是</option></select></td>';
+        row += '<td><input type="text" class="form-control form-control-sm field-options" placeholder="选项1,选项2" value="'+(options||'')+'"></td>';
+        row += '<td><button type="button" class="btn btn-outline-danger btn-sm field-remove"><i class="bi bi-trash"></i></button></td>';
+        row += '</tr>';
+        var $row = $(row);
+        if (type) $row.find('.field-type').val(type);
+        if (required == '1') $row.find('.field-required').val('1');
+        $tbody.append($row);
+        syncFields();
+    }
+
+    function syncFields() {
+        var fields = [];
+        $tbody.find('tr').each(function(){
+            var $r = $(this);
+            var name = $.trim($r.find('.field-name').val());
+            var label = $.trim($r.find('.field-label').val());
+            var type = $r.find('.field-type').val();
+            var req = $r.find('.field-required').val();
+            var opts = $.trim($r.find('.field-options').val());
+            if (name) {
+                var f = { name: name, label: label, type: type, required: req == '1' };
+                if (opts && (type == 'select' || type == 'checkbox' || type == 'radio')) f.options = opts.split(',').map(function(s){return $.trim(s)});
+                fields.push(f);
+            }
+        });
+        $form.find('[name="fields"]').val(JSON.stringify(fields));
+    }
+
+    $tbody.on('input change', 'input,select', syncFields);
+    $tbody.on('click', '.field-remove', function(){
+        $(this).closest('tr').remove();
+        syncFields();
+    });
+
+    $('#btnAddField').click(function(){ addField('', '', 'text', '0', ''); });
+
+    try {
+        var existing = JSON.parse($form.find('[name="fields"]').val() || '[]');
+        $.each(existing, function(i, f){
+            var opts = (f.options||[]).join(',');
+            addField(f.name, f.label, f.type, f.required ? '1' : '0', opts);
+        });
+    } catch(e) {}
+
+    $form.on('submit', function(e) {
+        e.preventDefault();
+        syncFields();
+        $.post($form.attr('action'), $form.serialize(), function(res) {
+            alert(res.msg);
+            if (res.code === 0) location.href = '{:url("/admin/form/index")}';
+        });
+    });
+});
+</script>
+{/block}

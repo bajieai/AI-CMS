@@ -1,0 +1,26 @@
+{extend name="layout" /}
+{block name="title"}分发日志{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">分发日志</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5>今日分发</h5><h3 class="text-primary">{$overview.today|default=0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5>本周分发</h5><h3 class="text-success">{$overview.this_week|default=0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5>本月分发</h5><h3 class="text-info">{$overview.this_month|default=0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h5>总阅读量</h5><h3 class="text-warning">{$overview.total_reads|default=0}</h3></div></div></div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-list-ul me-1"></i>分发日志</div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead><tr><th>ID</th><th>内容</th><th>平台</th><th>状态</th><th>阅读量</th><th>时间</th></tr></thead>
+            <tbody>
+            {volist name="list" id="log"}
+            <tr><td>{$log.id}</td><td>{$log.content_title|default='-'}</td><td>{$log.platform_type}</td>
+                <td>{if $log.status=='success'}<span class="badge bg-success">成功</span>{else}<span class="badge bg-danger">失败</span>{/if}</td>
+                <td>{$log.reads|default=0}</td><td>{$log.create_time|date='Y-m-d H:i'}</td></tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

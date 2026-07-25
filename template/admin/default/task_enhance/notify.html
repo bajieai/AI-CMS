@@ -1,0 +1,236 @@
+{extend name="layout" /}
+
+{block name="title"}通知配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">任务增强</li>
+<li class="breadcrumb-item active">通知配置</li>
+{/block}
+
+{block name="content"}
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" data-tab="templates" href="javascript:void(0)" onclick="switchTab('templates')">通知模板</a></li>
+    <li class="nav-item"><a class="nav-link" data-tab="channels" href="javascript:void(0)" onclick="switchTab('channels')">通知渠道</a></li>
+    <li class="nav-item"><a class="nav-link" data-tab="reminders" href="javascript:void(0)" onclick="switchTab('reminders')">催办规则</a></li>
+</ul>
+
+<!-- 通知模板 -->
+<div id="tab-templates">
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-envelope-paper me-1"></i>通知模板</span>
+        <button type="button" class="btn btn-primary btn-sm" onclick="addTemplate()"><i class="bi bi-plus-lg me-1"></i>新建模板</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light"><tr><th width="60">ID</th><th>模板名称</th><th width="120">触发事件</th><th>标题预览</th><th width="100">渠道</th><th width="80">状态</th><th width="120">操作</th></tr></thead>
+            <tbody>
+                {volist name="templates" id="tpl"}
+                <tr>
+                    <td>{$tpl.id}</td>
+                    <td>{$tpl.name}</td>
+                    <td><span class="badge bg-secondary">{$tpl.event_label}</span></td>
+                    <td class="small text-truncate" style="max-width:200px">{$tpl.title_template}</td>
+                    <td>
+                        {if condition="$tpl.channel == 'site'"}<span class="badge bg-primary">站内</span>{/if}
+                        {if condition="$tpl.channel == 'email'"}<span class="badge bg-info">邮件</span>{/if}
+                        {if condition="$tpl.channel == 'feishu'"}<span class="badge bg-success">飞书</span>{/if}
+                        {if condition="$tpl.channel == 'wechat'"}<span class="badge bg-success">微信</span>{/if}
+                        {if condition="$tpl.channel == 'sms'"}<span class="badge bg-warning text-dark">短信</span>{/if}
+                    </td>
+                    <td>{if condition="$tpl.status == 1"}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                    <td><div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary" onclick="editTemplate({$tpl.id})"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-outline-danger" onclick="deleteTemplate({$tpl.id})"><i class="bi bi-trash"></i></button>
+                    </div></td>
+                </tr>
+                {/volist}
+                {empty name="templates"}<tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>暂无模板</td></tr>{/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<!-- 通知渠道 -->
+<div id="tab-channels" style="display:none">
+<div class="card">
+    <div class="card-header"><i class="bi bi-broadcast me-1"></i>通知渠道配置</div>
+    <div class="card-body">
+        <form id="channelForm" method="post" action="/admin/task_enhance/saveChannels">
+            <div class="row g-3">
+                <div class="col-md-6"><div class="card border-primary">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-monitor me-1"></i>站内通知</span>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="channel_site_enabled" value="1" id="ch_site" {if condition="($channels.site_enabled ?? 0) == 1"}checked{/if}><label class="form-check-label" for="ch_site">启用</label></div>
+                    </div>
+                    <div class="card-body"><label class="form-label small">保留天数</label><input type="number" name="site_retention_days" class="form-control form-control-sm" value="{$channels.site_retention_days ?? 30}"></div>
+                </div></div>
+                <div class="col-md-6"><div class="card border-info">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-envelope me-1"></i>邮件通知</span>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="channel_email_enabled" value="1" id="ch_email" {if condition="($channels.email_enabled ?? 0) == 1"}checked{/if}><label class="form-check-label" for="ch_email">启用</label></div>
+                    </div>
+                    <div class="card-body"><label class="form-label small">发件人名称</label><input type="text" name="email_from_name" class="form-control form-control-sm" value="{$channels.email_from_name ?? ''}"></div>
+                </div></div>
+                <div class="col-md-6"><div class="card border-success">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-chat-dots me-1"></i>飞书通知</span>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="channel_feishu_enabled" value="1" id="ch_feishu" {if condition="($channels.feishu_enabled ?? 0) == 1"}checked{/if}><label class="form-check-label" for="ch_feishu">启用</label></div>
+                    </div>
+                    <div class="card-body"><label class="form-label small">Webhook URL</label><input type="text" name="feishu_webhook" class="form-control form-control-sm" value="{$channels.feishu_webhook ?? ''}" placeholder="https://open.feishu.cn/..."></div>
+                </div></div>
+                <div class="col-md-6"><div class="card border-warning">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-wechat me-1"></i>微信通知</span>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="channel_wechat_enabled" value="1" id="ch_wechat" {if condition="($channels.wechat_enabled ?? 0) == 1"}checked{/if}><label class="form-check-label" for="ch_wechat">启用</label></div>
+                    </div>
+                    <div class="card-body"><label class="form-label small">模板消息ID</label><input type="text" name="wechat_template_id" class="form-control form-control-sm" value="{$channels.wechat_template_id ?? ''}"></div>
+                </div></div>
+                <div class="col-md-6"><div class="card border-danger">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-phone me-1"></i>短信通知</span>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="channel_sms_enabled" value="1" id="ch_sms" {if condition="($channels.sms_enabled ?? 0) == 1"}checked{/if}><label class="form-check-label" for="ch_sms">启用</label></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2"><label class="form-label small">短信签名</label><input type="text" name="sms_sign" class="form-control form-control-sm" value="{$channels.sms_sign ?? ''}"></div>
+                        <div><label class="form-label small">短信模板Code</label><input type="text" name="sms_template_code" class="form-control form-control-sm" value="{$channels.sms_template_code ?? ''}"></div>
+                    </div>
+                </div></div>
+            </div>
+            <div class="mt-3"><button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg me-1"></i>保存渠道配置</button></div>
+        </form>
+    </div>
+</div>
+</div>
+
+<!-- 催办规则 -->
+<div id="tab-reminders" style="display:none">
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-alarm me-1"></i>催办规则</span>
+        <button type="button" class="btn btn-primary btn-sm" onclick="addReminder()"><i class="bi bi-plus-lg me-1"></i>添加规则</button>
+    </div>
+    <form id="reminderForm" method="post" action="/admin/task_enhance/saveReminders">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0 align-middle">
+                <thead class="table-light"><tr><th width="50">启用</th><th>规则名称</th><th width="120">提前天数</th><th width="120">频率(小时)</th><th>催办措辞</th><th width="80">操作</th></tr></thead>
+                <tbody id="reminderBody">
+                    {volist name="reminders" id="rule"}
+                    <tr>
+                        <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="rules[{$key}][enabled]" value="1" {if condition="$rule.enabled == 1"}checked{/if}></div></td>
+                        <td><input type="text" name="rules[{$key}][name]" class="form-control form-control-sm" value="{$rule.name}"></td>
+                        <td><input type="number" name="rules[{$key}][advance_days]" class="form-control form-control-sm" value="{$rule.advance_days}" min="0"></td>
+                        <td><input type="number" name="rules[{$key}][frequency_hours]" class="form-control form-control-sm" value="{$rule.frequency_hours}" min="1"></td>
+                        <td><input type="text" name="rules[{$key}][message]" class="form-control form-control-sm" value="{$rule.message}"></td>
+                        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                    {/volist}
+                    {empty name="reminders"}<tr id="emptyReminder"><td colspan="6" class="text-center text-muted py-3">暂无催办规则</td></tr>{/empty}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white"><button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg me-1"></i>保存催办规则</button></div>
+    </form>
+</div>
+</div>
+
+<!-- 模板编辑弹窗 -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="templateModalTitle">新建通知模板</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <form id="templateForm">
+                <input type="hidden" name="id" value="0">
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">模板名称</label><input type="text" name="name" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label">触发事件</label><select name="event" class="form-select">
+                        <option value="task_assigned">任务分配</option><option value="task_status_changed">状态变更</option>
+                        <option value="task_deadline_approaching">截止日临近</option><option value="task_overdue">任务超期</option>
+                        <option value="task_completed">任务完成</option><option value="task_rejected">审核驳回</option>
+                    </select></div>
+                    <div class="col-md-6"><label class="form-label">通知渠道</label><select name="channel" class="form-select">
+                        <option value="site">站内</option><option value="email">邮件</option>
+                        <option value="feishu">飞书</option><option value="wechat">微信</option><option value="sms">短信</option>
+                    </select></div>
+                    <div class="col-md-6"><label class="form-label">状态</label><select name="status" class="form-select"><option value="1">启用</option><option value="0">禁用</option></select></div>
+                    <div class="col-12"><label class="form-label">标题模板 <small class="text-muted">支持变量：{$task_title} {$assignee_name} {$deadline}</small></label><input type="text" name="title_template" class="form-control" placeholder="任务「{$task_title}」已分配给您"></div>
+                    <div class="col-12"><label class="form-label">内容模板</label><textarea name="content_template" class="form-control" rows="4" placeholder="尊敬的{$assignee_name}，任务「{$task_title}」已分配给您，请于{$deadline}前完成。"></textarea></div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary btn-sm" onclick="saveTemplate()"><i class="bi bi-check-lg me-1"></i>保存</button></div>
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var templateModal = null;
+$(function() { templateModal = new bootstrap.Modal(document.getElementById('templateModal')); });
+
+function switchTab(tab) {
+    $('.nav-link').removeClass('active');
+    $('[data-tab="' + tab + '"]').addClass('active');
+    $('div[id^="tab-"]').hide();
+    $('#tab-' + tab).show();
+}
+
+function addTemplate() {
+    $('#templateForm')[0].reset();
+    $('input[name="id"]').val(0);
+    $('#templateModalTitle').text('新建通知模板');
+    templateModal.show();
+}
+
+function editTemplate(id) {
+    $.get('/admin/task_enhance/getTemplate?id=' + id, function(res) {
+        if (res.success) {
+            var d = res.data;
+            $('input[name="id"]').val(d.id);
+            $('input[name="name"]').val(d.name);
+            $('select[name="event"]').val(d.event);
+            $('select[name="channel"]').val(d.channel);
+            $('select[name="status"]').val(d.status);
+            $('input[name="title_template"]').val(d.title_template);
+            $('textarea[name="content_template"]').val(d.content_template);
+            $('#templateModalTitle').text('编辑通知模板');
+            templateModal.show();
+        } else {
+            showToast(res.msg || '加载失败', 'danger');
+        }
+    });
+}
+
+function saveTemplate() {
+    var data = $('#templateForm').serialize();
+    $.post('/admin/task_enhance/saveTemplate', data, function(res) {
+        if (res.success) {
+            showToast('保存成功', 'success');
+            templateModal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast(res.msg || '保存失败', 'danger');
+        }
+    });
+}
+
+function deleteTemplate(id) {
+    confirmDelete('/admin/task_enhance/deleteTemplate', {id: id});
+}
+
+function addReminder() {
+    $('#emptyReminder').remove();
+    var idx = $('#reminderBody tr').length;
+    var html = '<tr>' +
+        '<td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="rules[' + idx + '][enabled]" value="1" checked></div></td>' +
+        '<td><input type="text" name="rules[' + idx + '][name]" class="form-control form-control-sm" placeholder="规则名称" required></td>' +
+        '<td><input type="number" name="rules[' + idx + '][advance_days]" class="form-control form-control-sm" value="1" min="0"></td>' +
+        '<td><input type="number" name="rules[' + idx + '][frequency_hours]" class="form-control form-control-sm" value="24" min="1"></td>' +
+        '<td><input type="text" name="rules[' + idx + '][message]" class="form-control form-control-sm" placeholder="请尽快完成您的任务"></td>' +
+        '<td><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'tr\').remove()"><i class="bi bi-trash"></i></button></td>' +
+        '</tr>';
+    $('#reminderBody').append(html);
+}
+</script>
+{/block}

@@ -1,0 +1,12 @@
+{extend name="layout" /}
+{block name="title"}多语言内容管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/i18n">国际化</a></li><li class="breadcrumb-item active">内容管理</li>{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-header d-flex justify-content-between"><h5>翻译组列表</h5><a href="/admin/i18n_content/create" class="btn btn-primary">新建翻译组</a></div>
+  <div class="card-body">
+    <table class="table table-hover"><thead><tr><th>ID</th><th>组名</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+    <tbody>{volist name="list" id="item"}<tr><td>{$item.id}</td><td>{$item.name}</td><td>{$item.status}</td><td>{$item.created_at}</td><td><a href="/admin/i18n_content/detail/{$item.id}" class="btn btn-sm btn-info">详情</a></td></tr>{/volist}</tbody></table>
+  </div>
+</div>
+{/block}

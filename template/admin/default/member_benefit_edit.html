@@ -1,0 +1,136 @@
+{extend name="layout" /}
+{block name="title"}权益配置 - {$level.name}{/block}
+
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-stars me-2"></i>「{$level.name}」权益配置</h4>
+        <a href="/admin/member_level/index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回等级列表
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="benefitForm">
+                <input type="hidden" name="id" value="{$level.id}">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">购买折扣倍率</label>
+                            <div class="input-group">
+                                <input type="number" name="discount" class="form-control" value="{$level.discount??'1.0'}" step="0.01" min="0" max="100">
+                                <span class="input-group-text">倍</span>
+                            </div>
+                            <div class="form-text text-muted">
+                                1.0=无折扣，0.8=8折。兼容旧数据：填写80也表示8折。
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">签到积分倍率</label>
+                            <div class="input-group">
+                                <input type="number" name="points_rate" class="form-control" value="{$level.points_rate??'1.0'}" step="0.1" min="0">
+                                <span class="input-group-text">倍</span>
+                            </div>
+                            <div class="form-text text-muted">1.0=无倍率，2.0=双倍积分</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">每日AI配额</label>
+                            <input type="number" name="daily_ai_quota" class="form-control" value="{$level.daily_ai_quota??'0'}" min="0">
+                            <div class="form-text text-muted">0=不限，-1=禁用</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">VIP标识图标类名</label>
+                            <div class="input-group">
+                                <input type="text" name="vip_badge_icon" class="form-control" value="{$level.vip_badge_icon??''}" placeholder="如 bi bi-gem" id="iconInput">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#iconPickerModal"><i class="bi bi-grid"></i> 选择</button>
+                            </div>
+                            <div class="form-text text-muted">当前预览：<i id="iconPreview" class="{$level.vip_badge_icon??''}"></i> Bootstrap Icons类名，留空不显示</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">专享内容ID列表</label>
+                    <input type="text" name="exclusive_content_ids" class="form-control"
+                           value="{if is_array($level.exclusive_content_ids)}{:implode(',', $level.exclusive_content_ids)}{/if}"
+                           placeholder="逗号分隔的内容ID，如：12,34,56">
+                    <div class="form-text text-muted">仅限该等级及以上会员可见的内容ID</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">自动降级天数（预留V3.0）</label>
+                    <input type="number" name="auto_downgrade_days" class="form-control" value="{$level.auto_downgrade_days??'0'}" min="0">
+                    <div class="form-text text-muted">0=不自动降级，N=连续N天未活跃则降级。当前版本仅记录，V3.0启用定时任务。</div>
+                </div>
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-primary" id="btnSave">
+                        <i class="bi bi-check-lg"></i> 保存配置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 图标选择器 Modal -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择 Bootstrap Icons 图标</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2" id="iconList">
+                    {volist name=":explode(',','bi-award,bi-trophy,bi-star,bi-star-fill,bi-gem,bi-trophy-fill,bi-lightning,bi-fire,bi-heart,bi-heart-fill,bi-shield,bi-shield-fill,bi-check-circle,bi-check-circle-fill,bi-x-circle,bi-info-circle,bi-exclamation-circle,bi-question-circle,bi-arrow-up-circle,bi-arrow-down-circle,bi-person,bi-person-fill,bi-people,bi-person-check,bi-robot,bi-cpu,bi-rocket,bi-moon,bi-sun,bi-stars,bi-gift,bi-balloon,bi-cash,bi-coin,bi-bank,bi-credit-card,bi-key,bi-lock,bi-unlock,bi-flag,bi-bookmark,bi-bookmark-fill,bi-book,bi-journal,bi-pencil,bi-pen,bi-clipboard,bi-files,bi-folder,bi-folder-fill,bi-gear,bi-wrench,bi-tools,bi-sliders,bi-eye,bi-eye-slash,bi-search,bi-download,bi-upload,bi-cloud-upload,bi-cloud-download,bi-link,bi-share,bi-send,bi-envelope,bi-chat,bi-chat-dots,bi-chat-quote,bi-telephone,bi-camera,bi-image,bi-images,bi-film,bi-music-note,bi-headphones,bi-volume-up,bi-bar-chart,bi-pie-chart,bi-graph-up,bi-activity,bi-calendar,bi-clock,bi-alarm,bi-bell,bi-bell-fill,bi-cart,bi-bag,bi-shop,bi-truck,bi-house,bi-building,bi-globe,bi-map,bi-geo-alt,bi-compass,bi-pin-map')" id="icon"}
+                    <div class="col-2 text-center">
+                        <div class="icon-item p-2 border rounded" data-icon="{$icon}" style="cursor:pointer">
+                            <i class="bi {$icon} fs-4"></i>
+                            <div class="small text-muted mt-1" style="font-size:.7rem">{$icon}</div>
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function() {
+    // 图标预览
+    $('#iconInput').on('input', function(){
+        $('#iconPreview').attr('class', $(this).val());
+    });
+    // 图标选择
+    $('#iconList .icon-item').click(function(){
+        var icon = $(this).data('icon');
+        $('#iconInput').val(icon);
+        $('#iconPreview').attr('class', icon);
+        bootstrap.Modal.getInstance(document.getElementById('iconPickerModal')).hide();
+    });
+    $('#btnSave').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> 保存中...');
+        $.post('/admin/member_benefit/save', $('#benefitForm').serialize(), function(res) {
+            $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> 保存配置');
+            alert(res.msg);
+        }, 'json');
+    });
+});
+</script>
+{/block}

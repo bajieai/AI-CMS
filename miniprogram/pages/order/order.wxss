@@ -1,0 +1,57 @@
+/* order.wxss - 订单页 */
+.page-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+.order-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.order-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+.order-time {
+  font-size: 22rpx;
+  color: #999;
+}
+.order-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-price {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #e64340;
+}
+.order-status {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+.order-status.paid {
+  color: #07c160;
+  background: rgba(7,193,96,0.1);
+}
+.order-status.unpaid {
+  color: #e64340;
+  background: rgba(230,67,64,0.1);
+}
+.pay-btn {
+  background: #07c160;
+  color: #fff;
+  font-size: 24rpx;
+  border-radius: 16rpx;
+  align-self: flex-end;
+}

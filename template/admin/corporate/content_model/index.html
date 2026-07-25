@@ -1,0 +1,100 @@
+{extend name="/layout" /}
+{block name="title"}内容模型管理 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-boxes"></i> 内容模型管理</h5>
+        <a href="{:url('/admin/content_model/create')}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> 新增模型</a>
+    </div>
+    <div class="card-body">
+        {if isset($code) && $code != 0}
+        <div class="alert alert-danger">获取模型列表失败：{$msg??'未知错误'}</div>
+        {elseif empty($data['list'])}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+            <p>暂无内容模型</p>
+            <a href="{:url('/admin/content_model/create')}" class="btn btn-outline-primary"><i class="bi bi-plus-lg"></i> 创建第一个模型</a>
+        </div>
+        {else}
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>图标</th>
+                        <th>模型名称</th>
+                        <th>标识</th>
+                        <th>描述</th>
+                        <th>分组</th>
+                        <th>排序</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {volist name="data.list" id="vo"}
+                    <tr>
+                        <td>{$vo.id??0}</td>
+                        <td><i class="bi {$vo.model_icon|default='bi-box'} fs-5"></i></td>
+                        <td><strong>{$vo.model_name??$vo.name??'未命名'}</strong></td>
+                        <td><code>{$vo.model_identifier??$vo.code??''}</code></td>
+                        <td class="text-muted small">{$vo.model_description??$vo.description??''|mb_substr=0,30}</td>
+                        <td><span class="badge bg-info">{$vo.group_id??'-'}</span></td>
+                        <td>{$vo.sort_order??$vo.sort??0}</td>
+                        <td>
+                            {if ($vo.is_enabled??$vo.status??0)==1}
+                            <span class="badge bg-success">启用</span>
+                            {else}
+                            <span class="badge bg-secondary">禁用</span>
+                            {/if}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{:url('/admin/content_model/designer', ['id' => $vo.id])}" class="btn btn-outline-info" title="表单设计器"><i class="bi bi-grid-3x3-gap"></i></a>
+                                <a href="{:url('/admin/content_model/edit', ['id' => $vo.id])}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil-square"></i></a>
+                                <button type="button" class="btn btn-outline-warning btn-toggle" data-id="{$vo.id}" title="启用/禁用"><i class="bi bi-power"></i></button>
+                                <button type="button" class="btn btn-outline-danger btn-delete" data-id="{$vo.id}" data-name="{$vo.model_name??$vo.name??''}" title="删除"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                {/volist}
+                </tbody>
+            </table>
+        </div>
+        {if $data.total > 20}
+        <div class="d-flex justify-content-center mt-3">
+            <nav><ul class="pagination pagination-sm">
+                {for start="1" end="ceil($data.total/$data.page_size)+1" comparison="lt"}
+                <li class="page-item {if $i == $data.page}active{/if}"><a class="page-link" href="{:url('/admin/content_model/index', ['page' => $i])}">{$i}</a></li>
+                {/for}
+            </ul></nav>
+        </div>
+        {/if}
+        <div class="text-muted small text-end">共 {$data.total} 条</div>
+        {/if}
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$(function(){
+    $('.btn-delete').click(function(){
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        if (!confirm('确定删除模型 "' + name + '" 吗？此操作不可恢复！')) return;
+        $.post('/admin/content_model/delete/' + id, function(res) {
+            alert(res.msg);
+            if (res.code === 0) location.reload();
+        });
+    });
+
+    $('.btn-toggle').click(function(){
+        var id = $(this).data('id');
+        $.post('/admin/content_model/toggle/' + id, function(res) {
+            alert(res.msg);
+            if (res.code === 0) location.reload();
+        });
+    });
+});
+</script>
+{/block}

@@ -1,0 +1,76 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑广告位{else/}添加广告位{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ad_position/index">广告位管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑广告位{else/}添加广告位{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑广告位{else/}添加广告位{/if}
+    </div>
+    <div class="card-body">
+        <form id="positionForm" method="post" action="{if condition="$info"}/admin/ad_position/edit/{$info.id}{else/}/admin/ad_position/add{/if}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">广告位名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="如：首页轮播" maxlength="100">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">标识 <span class="text-danger">*</span></label>
+                        <input type="text" name="code" class="form-control" value="{$info.code ?? ''}" required placeholder="如：home_banner" maxlength="50" pattern="[a-zA-Z0-9_]+">
+                        <div class="form-text">仅限字母、数字和下划线，全局唯一</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">宽度(px)</label>
+                        <input type="number" name="width" class="form-control" value="{$info.width ?? 0}" placeholder="0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">高度(px)</label>
+                        <input type="number" name="height" class="form-control" value="{$info.height ?? 0}" placeholder="0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="1" {if condition="($info.status ?? 1) == 1"}selected{/if}>启用</option>
+                            <option value="0" {if condition="($info.status ?? 1) == 0"}selected{/if}>禁用</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">描述</label>
+                <textarea name="description" class="form-control" rows="2" placeholder="可选">{$info.description ?? ''}</textarea>
+            </div>
+            <div class="d-grid gap-2 d-md-flex mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/admin/ad_position/index" class="btn btn-outline-secondary">取消返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#positionForm').on('submit', function(e) {
+    e.preventDefault();
+    ajaxPost($(this).attr('action'), $(this).serialize());
+});
+</script>
+{/block}

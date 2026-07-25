@@ -1,0 +1,69 @@
+{extend name="layout" /}
+{block name="title"}编辑配置 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-pencil-square me-1"></i>编辑配置</h5>
+    </div>
+    <div class="card-body">
+        <form id="configEditForm">
+            <input type="hidden" name="name" value="{$name}">
+            <input type="hidden" name="group" value="{$group}">
+
+            <div class="mb-3">
+                <label class="form-label">配置名称</label>
+                <input type="text" class="form-control" value="{$name}" disabled>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">配置分组</label>
+                <input type="text" class="form-control" value="{$group}" disabled>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">环境</label>
+                <select name="env" class="form-select">
+                    <option value="">默认（所有环境）</option>
+                    <option value="production" {if $env eq 'production'}selected{/if}>生产环境</option>
+                    <option value="staging" {if $env eq 'staging'}selected{/if}>预发布环境</option>
+                    <option value="development" {if $env eq 'development'}selected{/if}>开发环境</option>
+                    <option value="testing" {if $env eq 'testing'}selected{/if}>测试环境</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">配置值</label>
+                <textarea name="value" class="form-control" rows="8" id="configValue">{$value}</textarea>
+                <div class="form-text">支持多行文本、JSON、序列化数据等</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" onclick="saveConfig()">
+                    <i class="bi bi-check-lg me-1"></i>保存
+                </button>
+                <a href="/admin/config_center/group?group={$group}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>返回
+                </a>
+                <a href="/admin/config_center/versions?name={$name}" class="btn btn-outline-info">
+                    <i class="bi bi-clock-history me-1"></i>版本历史
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function saveConfig() {
+    var formData = $('#configEditForm').serialize();
+    $.post('/admin/config_center/edit', formData, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess('配置已更新');
+        } else {
+            alertError(res.msg || '保存失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+</script>
+{/block}

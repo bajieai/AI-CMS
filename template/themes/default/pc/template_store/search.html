@@ -1,0 +1,86 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | V2.9.31 Sprint T3: 前台模板商店搜索页
+// +----------------------------------------------------------------------
+
+{extend name="layout" /}
+
+{block name="title"}模板搜索 - {:config('site.name')}{/block}
+
+{block name="content"}
+<div class="container py-4">
+    <h5 class="mb-3"><i class="bi bi-search me-1"></i>模板搜索</h5>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" action="/template_store/search" class="row g-2">
+                <div class="col-md-4">
+                    <input type="text" name="keyword" class="form-control" value="{$conditions.keyword ?? ''}" placeholder="关键词">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="price_min" class="form-control" value="{$conditions.price_min ?? ''}" placeholder="最低价格">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="price_max" class="form-control" value="{$conditions.price_max ?? ''}" placeholder="最高价格">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" step="0.1" name="rating_min" class="form-control" value="{$conditions.rating_min ?? ''}" placeholder="最低评分">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> 搜索</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {volist name="list" id="vo"}
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 template-card">
+                <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:160px;object-fit:cover;" alt="" onerror="this.src='/static/images/no-image.png'">
+                <div class="card-body">
+                    <h6 class="card-title text-truncate">{$vo.name}</h6>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">{$vo.category.name ?? ''}</span>
+                        {if condition="isset($prices[$vo.id]) && $prices[$vo.id]['discount_amount'] > 0"}
+                        <span class="text-danger fw-bold">¥{$prices[$vo.id]['final_price']}</span>
+                        {else /}
+                        <span class="text-danger fw-bold">{if condition="$vo.price > 0"}¥{$vo.price}{else /}免费{/if}</span>
+                        {/if}
+                    </div>
+                </div>
+                <a href="/template_store/detail/{$vo.slug}" class="stretched-link"></a>
+            </div>
+        </div>
+        {/volist}
+        {empty name="list"}
+        <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">未找到匹配的模板</p>
+        </div>
+        {/empty}
+    </div>
+
+    {if condition="$pages > 1"}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {for start="1" end="$pages+1"}
+            <li class="page-item {if condition="$page == $i"}active{/if}">
+                <a class="page-link" href="/template_store/search?page={$i}&keyword={$conditions.keyword ?? ''}&price_min={$conditions.price_min ?? ''}&price_max={$conditions.price_max ?? ''}&rating_min={$conditions.rating_min ?? ''}">{$i}</a>
+            </li>
+            {/for}
+        </ul>
+    </nav>
+    {/if}
+</div>
+{/block}
+
+{block name="css"}
+<style>
+.template-card { transition: transform .2s, box-shadow .2s; }
+.template-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+</style>
+{/block}

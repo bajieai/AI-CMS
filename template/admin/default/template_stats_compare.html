@@ -1,0 +1,131 @@
+{extend name="layout" /}
+
+{block name="title"}模板对比分析{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">模板管理</li>
+<li class="breadcrumb-item active">对比分析</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-bar-chart-steps me-1"></i>选择对比模板</div>
+    <div class="card-body">
+        <form id="compareForm" method="get" action="/admin/template_stats/compare" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">模板A</label>
+                <select name="tpl_a" class="form-select form-select-sm" required>
+                    <option value="">请选择模板</option>
+                    {volist name="templates" id="tpl"}
+                    <option value="{$tpl.id}" {if condition="$Request.get.tpl_a == $tpl.id"}selected{/if}>{$tpl.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">模板B</label>
+                <select name="tpl_b" class="form-select form-select-sm" required>
+                    <option value="">请选择模板</option>
+                    {volist name="templates" id="tpl"}
+                    <option value="{$tpl.id}" {if condition="$Request.get.tpl_b == $tpl.id"}selected{/if}>{$tpl.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-arrow-left-right me-1"></i>开始对比</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{if condition="$compare"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-table me-1"></i>对比结果</div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:200px;">对比项</th>
+                    <th>模板A：{$compare.a.name}</th>
+                    <th>模板B：{$compare.b.name}</th>
+                    <th>差异</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-muted">安装数</td>
+                    <td>{$compare.a.install_count}</td>
+                    <td>{$compare.b.install_count}</td>
+                    <td>
+                        {if condition="$compare.diff.install_count > 0"}<span class="text-success">+{$compare.diff.install_count}</span>
+                        {elseif condition="$compare.diff.install_count < 0"/}<span class="text-danger">{$compare.diff.install_count}</span>
+                        {else /}<span class="text-muted">—</span>
+                        {/if}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">评分</td>
+                    <td>{$compare.a.rating ?? '—'}</td>
+                    <td>{$compare.b.rating ?? '—'}</td>
+                    <td>
+                        {if condition="$compare.diff.rating > 0"}<span class="text-success">+{$compare.diff.rating}</span>
+                        {elseif condition="$compare.diff.rating < 0"/}<span class="text-danger">{$compare.diff.rating}</span>
+                        {else /}<span class="text-muted">—</span>
+                        {/if}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">使用量</td>
+                    <td>{$compare.a.usage_count}</td>
+                    <td>{$compare.b.usage_count}</td>
+                    <td>
+                        {if condition="$compare.diff.usage_count > 0"}<span class="text-success">+{$compare.diff.usage_count}</span>
+                        {elseif condition="$compare.diff.usage_count < 0"/}<span class="text-danger">{$compare.diff.usage_count}</span>
+                        {else /}<span class="text-muted">—</span>
+                        {/if}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">文件大小</td>
+                    <td>{$compare.a.file_size} KB</td>
+                    <td>{$compare.b.file_size} KB</td>
+                    <td>
+                        {if condition="$compare.diff.file_size > 0"}<span class="text-success">+{$compare.diff.file_size} KB</span>
+                        {elseif condition="$compare.diff.file_size < 0"/}<span class="text-danger">{$compare.diff.file_size} KB</span>
+                        {else /}<span class="text-muted">—</span>
+                        {/if}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">版本</td>
+                    <td><code class="small">v{$compare.a.version}</code></td>
+                    <td><code class="small">v{$compare.b.version}</code></td>
+                    <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">作者</td>
+                    <td>{$compare.a.author}</td>
+                    <td>{$compare.b.author}</td>
+                    <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">更新时间</td>
+                    <td class="small">{$compare.a.update_time|date='Y-m-d'}</td>
+                    <td class="small">{$compare.b.update_time|date='Y-m-d'}</td>
+                    <td class="text-muted">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{else /}
+<div class="card">
+    <div class="card-body">
+        <div class="ui-empty-state">
+            <div class="ui-empty-icon"><i class="bi bi-bar-chart-steps"></i></div>
+            <div class="ui-empty-title">请选择两个模板进行对比</div>
+            <div class="ui-empty-desc">选择模板A和模板B后点击"开始对比"</div>
+        </div>
+    </div>
+</div>
+{/if}
+{/block}

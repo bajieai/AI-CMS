@@ -1,0 +1,101 @@
+﻿{extend name="/layout" /}
+{block name="title"}积分兑换记录 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">积分兑换记录</h4>
+        <div>
+            <a href="?status=-1" class="btn btn-outline-secondary btn-sm {if $Think.get.status==-1 || $Think.get.status===''}active{/if}">全部</a>
+            <a href="?status=0" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='0'}active{/if}">待处理</a>
+            <a href="?status=1" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='1'}active{/if}">已发放</a>
+            <a href="?status=2" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='2'}active{/if}">已拒绝</a>
+        </div>
+    </div>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>用户</th><th>商品</th><th>消耗积分</th><th>状态</th><th>备注</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>
+                    {if $vo.member}
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="{$vo.member.avatar??'/assets/img/default-avatar.png'}" class="rounded-circle" width="28" height="28" alt="">
+                        <span>{$vo.member.nickname??'用户'.$vo.user_id}</span>
+                    </div>
+                    {else/}用户{$vo.user_id}{/if}
+                </td>
+                <td>
+                    {if $vo.product}
+                    <div class="d-flex align-items-center gap-2">
+                        {if $vo.product.image}<img src="{$vo.product.image}" width="32" height="32" class="rounded" alt="">{/if}
+                        <span>{$vo.product.title}</span>
+                    </div>
+                    {else/}商品{$vo.product_id}{/if}
+                </td>
+                <td><span class="text-primary fw-bold">{$vo.points}</span></td>
+                <td>
+                    {switch vo.status}
+                    {case 0}<span class="badge bg-warning">待处理</span>{/case}
+                    {case 1}<span class="badge bg-success">已发放</span>{/case}
+                    {case 2}<span class="badge bg-danger">已拒绝</span>{/case}
+                    {default /}<span class="badge bg-secondary">未知</span>
+                    {/switch}
+                </td>
+                <td>{$vo.remark}</td>
+                <td>{$vo.create_time|date='Y-m-d H:i'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info" onclick="showDetail({$vo.id})"><i class="bi bi-eye"></i></button>
+                    {if $vo.status==0}
+                    <button class="btn btn-sm btn-outline-success" onclick="doAudit({$vo.id},1)">发放</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="doAudit({$vo.id},2)">拒绝</button>
+                    {/if}
+                </td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+
+<!-- V2.7 兑换详情Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">兑换详情</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="detailBody">
+        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button></div>
+</div></div></div>
+{/block}
+
+{block name="js"}
+<script>
+function doAudit(id, status) {
+    var remark = prompt('请输入备注（可选）：') || '';
+    $.post('/admin/points_exchange/audit', {id:id, status:status, remark:remark}, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+function showDetail(id) {
+    $('#detailModal').modal('show');
+    $('#detailBody').html('<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>');
+    $.get('/admin/points_exchange/detail/id/' + id, function(res) {
+        if (res.code !== 0) { $('#detailBody').html('<div class="alert alert-danger">' + res.msg + '</div>'); return; }
+        var d = res.data;
+        var html = '<div class="row g-3">';
+        html += '<div class="col-md-6"><label class="text-muted">用户</label><div class="fw-bold">' + (d.member ? d.member.nickname : '用户'+d.user_id) + '</div></div>';
+        html += '<div class="col-md-6"><label class="text-muted">商品</label><div class="fw-bold">' + (d.product ? d.product.title : '商品'+d.product_id) + '</div></div>';
+        html += '<div class="col-md-6"><label class="text-muted">消耗积分</label><div class="fw-bold text-primary">' + d.points + '</div></div>';
+        html += '<div class="col-md-6"><label class="text-muted">状态</label><div class="fw-bold">' + (d.status==0?'待处理':d.status==1?'已发放':'已拒绝') + '</div></div>';
+        html += '<div class="col-md-6"><label class="text-muted">创建时间</label><div class="fw-bold">' + d.create_time + '</div></div>';
+        html += '<div class="col-md-6"><label class="text-muted">更新时间</label><div class="fw-bold">' + (d.update_time||'-') + '</div></div>';
+        html += '<div class="col-12"><label class="text-muted">发货信息</label><pre class="bg-light p-2 rounded small">' + JSON.stringify(d.delivery_info||{}, null, 2) + '</pre></div>';
+        html += '</div>';
+        $('#detailBody').html(html);
+    });
+}
+</script>
+{/block}

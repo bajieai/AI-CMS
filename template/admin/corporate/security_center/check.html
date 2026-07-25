@@ -1,0 +1,99 @@
+{extend name="layout" /}
+
+{block name="title"}合规检查 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">安全中心</li>
+<li class="breadcrumb-item active">合规检查</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clipboard-check me-1"></i>合规检查结果</span>
+        <button type="button" class="btn btn-primary btn-sm" onclick="runCheck()">
+            <i class="bi bi-arrow-repeat me-1"></i>重新检查
+        </button>
+    </div>
+    <div class="card-body">
+        <!-- 总览 -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3 border rounded">
+                    <div class="fs-3 fw-bold text-success">{$compliance.passed ?? 0}</div>
+                    <div class="text-muted small">通过</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3 border rounded">
+                    <div class="fs-3 fw-bold text-danger">{$compliance.failed ?? 0}</div>
+                    <div class="text-muted small">失败</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3 border rounded">
+                    <div class="fs-3 fw-bold text-warning">{$compliance.warnings ?? 0}</div>
+                    <div class="text-muted small">警告</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3 border rounded">
+                    <div class="fs-3 fw-bold text-primary">{$compliance.total ?? 0}</div>
+                    <div class="text-muted small">总计</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 检查项列表 -->
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:60px;">状态</th>
+                        <th>检查项</th>
+                        <th>说明</th>
+                        <th>建议</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="compliance.items" id="vo"}
+                    <tr>
+                        <td>
+                            {if condition="$vo.status == 'pass'"}
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                            {elseif condition="$vo.status == 'fail'" /}
+                            <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                            {else /}
+                            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                            {/if}
+                        </td>
+                        <td>{$vo.name}</td>
+                        <td class="small text-muted">{$vo.description ?? '—'}</td>
+                        <td class="small">{$vo.suggestion ?? '—'}</td>
+                    </tr>
+                    {/volist}
+                    {empty name="compliance.items"}
+                    <tr><td colspan="4" class="text-center text-muted py-4">暂无检查结果，请点击"重新检查"</td></tr>
+                    {/empty}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function runCheck() {
+    if (!confirm('确定要重新运行合规检查吗？这可能需要几秒钟。')) return;
+    $.post('/admin/security_center/run_compliance_check', {}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('检查完成');
+            location.reload();
+        } else {
+            alert(res.msg || '检查失败');
+        }
+    });
+}
+</script>
+{/block}

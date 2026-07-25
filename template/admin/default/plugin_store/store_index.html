@@ -1,0 +1,158 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-shop me-2"></i>插件商店</h4>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">插件总数</div>
+                            <div class="fs-3 fw-bold">{$stats.total_plugins|default=0}</div>
+                        </div>
+                        <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">总下载量</div>
+                            <div class="fs-3 fw-bold">{$stats.total_downloads|default=0}</div>
+                        </div>
+                        <i class="bi bi-download fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">总安装量</div>
+                            <div class="fs-3 fw-bold">{$stats.total_installs|default=0}</div>
+                        </div>
+                        <i class="bi bi-hdd-stack fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small">精选插件</div>
+                            <div class="fs-3 fw-bold">{count($featured)}</div>
+                        </div>
+                        <i class="bi bi-star fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 精选推荐 -->
+    {if condition="!empty($featured)"}
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-star-fill text-warning me-2"></i>精选推荐</div>
+        <div class="card-body">
+            <div class="row">
+                {volist name="featured" id="item"}
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                {if $item.icon}<img src="{$item.icon}" style="width:40px;height:40px;border-radius:8px;" class="me-2">{/if}
+                                <div>
+                                    <h6 class="mb-0">{$item.name}</h6>
+                                    <small class="text-muted">{$item.code}</small>
+                                </div>
+                            </div>
+                            <p class="small text-muted text-truncate">{$item.description|default=''}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge {if $item.price > 0}bg-danger{else /}bg-success{/if}">{if $item.price > 0}¥{$item.price}{else /}免费{/if}</span>
+                                <a href="/admin/plugin_store_front/detail/{$item.id}" class="btn btn-sm btn-outline-primary">查看详情</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    <!-- 热门插件 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-fire text-danger me-2"></i>热门插件</span>
+            <a href="/admin/plugin_store_front/list" class="btn btn-sm btn-outline-primary">查看全部</a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {volist name="hot" id="item"}
+                <div class="col-md-2 col-sm-4 mb-3">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="bi bi-puzzle fs-2 text-primary"></i>
+                            <h6 class="mt-2 mb-0 text-truncate">{$item.name}</h6>
+                            <small class="text-muted">{$item.download_count|default=0} 下载</small>
+                            <div class="mt-1">
+                                <span class="badge {if $item.price > 0}bg-danger{else /}bg-success{/if}">{if $item.price > 0}¥{$item.price}{else /}免费{/if}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer p-2">
+                            <a href="/admin/plugin_store_front/detail/{$item.id}" class="btn btn-sm btn-outline-primary w-100">详情</a>
+                        </div>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </div>
+
+    <!-- 最新 & 推荐 -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-clock-history me-2"></i>最新上架</div>
+                <div class="list-group list-group-flush">
+                    {volist name="latest" id="item"}
+                    <a href="/admin/plugin_store_front/detail/{$item.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold">{$item.name}</span>
+                            <small class="text-muted ms-2">{$item.version}</small>
+                        </div>
+                        <span class="badge {if $item.price > 0}bg-danger{else /}bg-success{/if}">{if $item.price > 0}¥{$item.price}{else /}免费{/if}</span>
+                    </a>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-hand-thumbs-up me-2"></i>编辑推荐</div>
+                <div class="list-group list-group-flush">
+                    {volist name="recommended" id="item"}
+                    <a href="/admin/plugin_store_front/detail/{$item.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold">{$item.name}</span>
+                            <small class="text-muted ms-2">{$item.rating|default=0} 分</small>
+                        </div>
+                        <span class="badge {if $item.price > 0}bg-danger{else /}bg-success{/if}">{if $item.price > 0}¥{$item.price}{else /}免费{/if}</span>
+                    </a>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

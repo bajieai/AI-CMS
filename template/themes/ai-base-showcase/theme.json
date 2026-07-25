@@ -1,0 +1,43 @@
+{
+    "name": "AI骨架-展示型",
+    "version": "2.9.11",
+    "description": "V2.9.11 展示型骨架模板（Hero+轮播+三列卡片+动效），供AI基于骨架生成CSS",
+    "author": "八界AI-CMS",
+    "category": "corporate",
+    "tags": ["skeleton", "showcase", "hero", "carousel"],
+    "preview": "",
+    "type": "frontend",
+    "supports": ["pc", "mobile"],
+    "default_device": "pc",
+    "is_skeleton": true,
+    "layout_type": "showcase",
+    "colors": {
+        "primary": "#2563EB",
+        "primary_light": "#DBEAFE",
+        "primary_dark": "#1E40AF",
+        "secondary": "#64748B",
+        "accent": "#F59E0B",
+        "bg": "#FFFFFF",
+        "bg_secondary": "#F8FAFC",
+        "text": "#1E293B",
+        "text_secondary": "#64748B",
+        "border": "#E2E8F0"
+    },
+    "layouts": {
+        "pc": ["layout.html", "index.html", "list.html", "detail.html", "search.html", "member_index.html", "member_login.html"],
+        "mobile": ["layout.html", "index.html", "list.html", "detail.html"]
+    },
+    "assets": {
+        "css": ["assets/css/style.css"],
+        "js": []
+    },
+    "options": {},
+    "pages": {
+        "index": "首页（Hero+轮播+三列卡片+产品/案例/新闻网格）",
+        "list": "列表页（侧栏分类+卡片网格）",
+        "detail": "详情页（文章+评论+侧栏推荐）",
+        "search": "搜索页",
+        "member_index": "会员中心",
+        "member_login": "登录页"
+    }
+}

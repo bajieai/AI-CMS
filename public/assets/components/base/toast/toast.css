@@ -1,0 +1,120 @@
+/**
+ * I8JToast - 样式
+ * V3.0 Phase 2 UI组件库
+ */
+
+.i8j-toast-container {
+    position: fixed;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    padding: 16px;
+}
+
+.i8j-toast-container--top-center {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.i8j-toast-container--top-right {
+    top: 0;
+    right: 0;
+    align-items: flex-end;
+}
+
+.i8j-toast-container--bottom-center {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: column-reverse;
+}
+
+.i8j-toast-container--bottom-right {
+    bottom: 0;
+    right: 0;
+    align-items: flex-end;
+    flex-direction: column-reverse;
+}
+
+.i8j-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--i8j-radius-md, 8px);
+    background: var(--i8j-bg, #fff);
+    color: var(--i8j-text, #1e293b);
+    box-shadow: var(--i8j-shadow-lg, 0 4px 12px rgba(0,0,0,0.15));
+    min-width: 280px;
+    max-width: 400px;
+    pointer-events: auto;
+    position: relative;
+    overflow: hidden;
+    animation: i8j-toast-enter 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.i8j-toast--leaving {
+    animation: i8j-toast-leave 0.3s ease forwards;
+}
+
+.i8j-toast--success { border-left-color: #22c55e; }
+.i8j-toast--error   { border-left-color: #ef4444; }
+.i8j-toast--warning { border-left-color: #f59e0b; }
+.i8j-toast--info    { border-left-color: #3b82f6; }
+
+.i8j-toast__icon {
+    flex-shrink: 0;
+    font-size: 18px;
+}
+.i8j-toast--success .i8j-toast__icon { color: #22c55e; }
+.i8j-toast--error   .i8j-toast__icon { color: #ef4444; }
+.i8j-toast--warning .i8j-toast__icon { color: #f59e0b; }
+.i8j-toast--info    .i8j-toast__icon { color: #3b82f6; }
+
+.i8j-toast__message {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.i8j-toast__close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: var(--i8j-text-secondary, #64748b);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.i8j-toast__close:hover { opacity: 1; }
+
+.i8j-toast__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.3;
+    animation: i8j-toast-progress linear forwards;
+}
+
+@keyframes i8j-toast-enter {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes i8j-toast-leave {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-10px); }
+}
+
+@keyframes i8j-toast-progress {
+    from { width: 100%; }
+    to   { width: 0%; }
+}

@@ -1,0 +1,127 @@
+{extend name="layout" /}
+
+{block name="title"}AI模型管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_model/index">AI中心</a></li>
+<li class="breadcrumb-item active">模型管理</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-cpu me-2" style="color:var(--primary)"></i>AI模型管理</h5>
+    <a href="/admin/ai_model/add" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>添加模型</a>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="50">ID</th>
+                    <th>模型名称</th>
+                    <th width="100">供应商</th>
+                    <th>模型ID</th>
+                    <th width="180">能力标签</th>
+                    <th width="80">状态</th>
+                    <th width="70">默认</th>
+                    <th width="180">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        <div style="font-weight:600">{$vo.name}</div>
+                        <div class="text-muted" style="font-size:.75rem">max_tokens: {$vo.max_tokens} | temp: {$vo.temperature}</div>
+                    </td>
+                    <td>
+                        {if condition="$vo.provider == 'deepseek'"}<span class="badge bg-primary">{$vo.provider}</span>
+                        {elseif condition="$vo.provider == 'qwen'"}<span class="badge bg-warning text-dark">{$vo.provider}</span>
+                        {elseif condition="$vo.provider == 'ernie'"}<span class="badge bg-info">{$vo.provider}</span>
+                        {else /}<span class="badge bg-secondary">{$vo.provider}</span>
+                        {/if}
+                    </td>
+                    <td><code style="font-size:.82rem">{$vo.model_id}</code></td>
+                    <td>
+                        {volist name="vo['capabilities']" id="cap"}
+                        <span class="badge bg-light text-dark border me-1" style="font-size:.72rem">{$cap}</span>
+                        {/volist}
+                    </td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input toggle-enabled" type="checkbox" data-id="{$vo.id}"
+                                {if condition="$vo.is_enabled == 1"}checked{/if}>
+                        </div>
+                    </td>
+                    <td>
+                        {if condition="$vo.is_default == 1"}
+                        <span class="badge bg-success"><i class="bi bi-star-fill me-1"></i>默认</span>
+                        {else/}
+                        <a href="javascript:;" class="text-muted set-default" data-id="{$vo.id}" title="设为默认">
+                            <i class="bi bi-star"></i>
+                        </a>
+                        {/if}
+                    </td>
+                    <td>
+                        <a href="/admin/ai_model/edit/id/{$vo.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <button class="btn btn-sm btn-outline-info test-connection" data-id="{$vo.id}" title="测试连接">
+                            <i class="bi bi-plug"></i>
+                        </button>
+                        <a href="javascript:;" class="btn btn-sm btn-outline-danger btn-delete" data-id="{$vo.id}"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无AI模型，请添加</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    // 切换启用状态
+    $('.toggle-enabled').change(function(){
+        var id=$(this).data('id'), checked=$(this).is(':checked');
+        $.post('/admin/ai_model/toggleEnabled',{id:id,is_enabled:checked?1:0},function(d){
+            if(d.code!==0) { $.toast(d.msg,'danger'); location.reload(); }
+        });
+    });
+
+    // 设为默认
+    $('.set-default').click(function(){
+        var id=$(this).data('id');
+        $.post('/admin/ai_model/setDefault',{id:id},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+
+    // 测试连接
+    $('.test-connection').click(function(){
+        var btn=$(this), id=btn.data('id');
+        btn.prop('disabled',true).html('<i class="bi bi-hourglass-split"></i>');
+        $.post('/admin/ai_model/testConnection',{id:id},function(d){
+            btn.prop('disabled',false).html('<i class="bi bi-plug"></i>');
+            $.toast(d.msg, d.code===0?'success':'danger');
+        }).fail(function(){ btn.prop('disabled',false).html('<i class="bi bi-plug"></i>'); $.toast('请求失败','danger'); });
+    });
+
+    // 删除
+    $('.btn-delete').click(function(){
+        if(!confirm('确定删除该模型？')) return;
+        var id=$(this).data('id');
+        $.post('/admin/ai_model/delete',{id:id},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+});
+</script>
+{/block}

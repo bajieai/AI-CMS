@@ -1,0 +1,51 @@
+{extend name="layout" /}
+{block name="title"}偏好设置 - {/block}
+{block name="content"}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3">{include file="member/ucenter_sidebar" /}</div>
+        <div class="col-md-6">
+            <div class="card"><div class="card-body">
+                <h5 class="card-title mb-4">⚙️ 偏好设置</h5>
+                <div class="mb-3">
+                    <label class="form-label">语言偏好</label>
+                    <select class="form-select" id="langPref">
+                        <option value="">跟随系统</option>
+                        {volist name="languages" id="lang"}
+                        <option value="{$lang.code}" {if $member.lang_pref==$lang.code}selected{/if}>{$lang.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="emailNotify" value="1" {if $member.email_notify??0}checked{/if}>
+                        <label class="form-check-label">邮件通知（接收新内容通知）</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="notifyOn" value="1" {if $member.notify_on??1}checked{/if}>
+                        <label class="form-check-label">站内通知</label>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="savePrefs()">保存设置</button>
+                <div id="prefMsg" class="mt-2 small"></div>
+            </div></div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function savePrefs(){
+    $.post('/member/preferences',{
+        lang_pref: $('#langPref').val(),
+        email_notify: $('#emailNotify').is(':checked') ? 1 : 0,
+        notify_on: $('#notifyOn').is(':checked') ? 1 : 0
+    },function(r){
+        $('#prefMsg').html('<span class="text-success">✅ 已保存</span>');
+        setTimeout(function(){$('#prefMsg').empty()},2000);
+    });
+}
+</script>
+{/block}

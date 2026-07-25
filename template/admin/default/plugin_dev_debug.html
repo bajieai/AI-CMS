@@ -1,0 +1,91 @@
+{extend name="layout" /}
+
+{block name="title"}插件调试模式{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">插件管理</li>
+<li class="breadcrumb-item active">调试模式</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bug me-1"></i>插件调试日志</span>
+        <div class="d-flex gap-2">
+            <select id="pluginSelect" class="form-select form-select-sm" style="min-width:180px;">
+                <option value="">全部插件</option>
+                {volist name="plugins" id="p"}
+                <option value="{$p.code}" {if condition="$Request.get.plugin == $p.code"}selected{/if}>{$p.name}</option>
+                {/volist}
+            </select>
+            <select id="levelFilter" class="form-select form-select-sm">
+                <option value="">全部级别</option>
+                <option value="info" {if condition="$Request.get.level == 'info'"}selected{/if}>Info</option>
+                <option value="warning" {if condition="$Request.get.level == 'warning'"}selected{/if}>Warning</option>
+                <option value="error" {if condition="$Request.get.level == 'error'"}selected{/if}>Error</option>
+            </select>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearLogs()"><i class="bi bi-trash3 me-1"></i>清空日志</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:160px;">时间</th>
+                    <th style="width:90px;">级别</th>
+                    <th>消息</th>
+                    <th style="width:200px;">文件</th>
+                    <th style="width:60px;">行号</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr class="{if condition="$vo.level == 'error'"}table-danger{elseif condition="$vo.level == 'warning'"/}table-warning{/if}">
+                    <td class="small text-muted">{$vo.create_time|date='Y-m-d H:i:s'}</td>
+                    <td>
+                        {if condition="$vo.level == 'info'"}<span class="badge bg-info">Info</span>
+                        {elseif condition="$vo.level == 'warning'"/}<span class="badge bg-warning">Warning</span>
+                        {elseif condition="$vo.level == 'error'"/}<span class="badge bg-danger">Error</span>
+                        {else /}<span class="badge bg-secondary">{$vo.level}</span>
+                        {/if}
+                    </td>
+                    <td class="small">{$vo.message}</td>
+                    <td><code class="small text-muted">{$vo.file ?? '—'}</code></td>
+                    <td class="small">{$vo.line ?? '—'}</td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="5">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-bug"></i></div>
+                        <div class="ui-empty-title">暂无调试日志</div>
+                        <div class="ui-empty-desc">当前没有插件调试日志记录</div>
+                    </div>
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function clearLogs() {
+    showConfirm('清空日志', '确定清空所有调试日志？此操作不可恢复！', function() {
+        $.post('/admin/plugin_dev/clearDebug', {}, function(res) {
+            if (res.code === 0) { showToast('日志已清空', 'success'); setTimeout(function(){location.reload();}, 1500); }
+            else { showToast(res.msg || '操作失败', 'danger'); }
+        }, 'json');
+    });
+}
+</script>
+{/block}

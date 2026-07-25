@@ -1,0 +1,85 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-list-check me-2"></i>结算管理</h4>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">结算批次列表</span>
+            <button class="btn btn-sm btn-primary" onclick="showCreateSettlement()"><i class="bi bi-plus-lg me-1"></i>创建结算</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-light"><tr><th>批次号</th><th>周期</th><th>订单数</th><th>总金额</th><th>佣金</th><th>应结金额</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                    {volist name="list" id="item"}
+                    <tr>
+                        <td><code>{$item.batch_no}</code></td>
+                        <td class="small">{$item.period_start} ~ {$item.period_end}</td>
+                        <td>{$item.total_orders}</td>
+                        <td>&yen;{$item.total_amount}</td>
+                        <td class="text-warning">&yen;{$item.commission_amount}</td>
+                        <td class="text-success">&yen;{$item.settlement_amount}</td>
+                        <td>
+                            {if $item.status == 0}<span class="badge bg-secondary">待审核</span>
+                            {elseif $item.status == 1}<span class="badge bg-info">已审核</span>
+                            {elseif $item.status == 2}<span class="badge bg-success">已打款</span>
+                            {else}<span class="badge bg-dark">已关闭</span>{/if}
+                        </td>
+                        <td>
+                            {if $item.status == 0}
+                            <button class="btn btn-sm btn-outline-success" onclick="auditSettlement({$item.id})">审核</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/volist}
+                    {if empty($list)}
+                    <tr><td colspan="8" class="text-center text-muted py-3">暂无结算记录</td></tr>
+                    {/if}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">创建结算批次</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="settlementForm">
+                    <div class="mb-3"><label class="form-label">开始日期</label><input type="date" name="start" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">结束日期</label><input type="date" name="end" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">佣金比例</label><input type="number" name="commission_rate" class="form-control" value="0.1" step="0.01" min="0" max="1"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitSettlement()">创建</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function showCreateSettlement() { new bootstrap.Modal(document.getElementById('createModal')).show(); }
+function submitSettlement() {
+    var formData = new FormData(document.getElementById('settlementForm'));
+    fetch('/admin/revenue/createSettlement', { method: 'POST', body: new URLSearchParams(formData) })
+        .then(function(r){return r.json()}).then(function(res){
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(function(){location.reload()}, 1000);
+        });
+}
+function auditSettlement(id) {
+    layer.prompt({title: '输入审核备注（可留空）'}, function(remark){
+        fetch('/admin/revenue/auditSettlement', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: 'id=' + id + '&remark=' + encodeURIComponent(remark) })
+            .then(function(r){return r.json()}).then(function(res){
+                layer.msg(res.msg);
+                if (res.code === 0) setTimeout(function(){location.reload()}, 800);
+            });
+    });
+}
+</script>
+{/block}

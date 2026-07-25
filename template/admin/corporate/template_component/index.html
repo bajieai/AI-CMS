@@ -1,0 +1,22 @@
+{extend name="layout" /}
+{block name="title"}模板组件库{/block}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-grid-3x3-gap me-2"></i>模板组件库</h4>
+    <div class="row">
+        {volist name="components" id="comp"}
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-{$comp.type} display-4 text-primary mb-2"></i>
+                    <h6>{$comp.name}</h6>
+                    <p class="text-muted small">{$comp.description}</p>
+                    <span class="badge bg-secondary">{$comp.type}</span>
+                    <span class="badge bg-info">{$comp.version}</span>
+                </div>
+            </div>
+        </div>
+        {/volist}
+    </div>
+</div>
+{/block}

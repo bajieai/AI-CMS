@@ -1,0 +1,37 @@
+{extend name="layout" /}
+
+{block name="title"}我的私信 - {$site_name}{/block}
+
+{block name="content"}
+
+<div class="uc-section-header">
+    <span class="uc-section-title"><i class="bi bi-chat-dots"></i>我的私信</span>
+</div>
+
+<div style="padding:0 20px;">
+    {empty name="conversations"}
+    <div class="uc-empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>暂无会话</p>
+    </div>
+    {/empty}
+
+    {volist name="conversations" id="vo"}
+    <a href="/message/chat/{$vo.id}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid var(--i8j-border,#f1f5f9);text-decoration:none;transition:background .12s;">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;">
+                {:mb_substr($vo.other_user_name ?? 'U', 0, 1)}
+            </div>
+            <div>
+                <div style="font-size:14px;font-weight:600;color:var(--i8j-text,#1e293b);">用户 #{$vo.other_user_id}</div>
+                <small style="color:var(--i8j-text-secondary,#94a3b8);font-size:11.5px;">{$vo.last_message_time|date='Y-m-d H:i'}</small>
+            </div>
+        </div>
+        {if $vo.unread_count > 0}
+        <span class="uc-badge" style="background:var(--i8j-danger,#ef4444);color:#fff;font-size:11px;">{$vo.unread_count}</span>
+        {/if}
+    </a>
+    {/volist}
+</div>
+
+{/block}

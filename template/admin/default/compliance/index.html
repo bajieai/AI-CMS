@@ -1,0 +1,19 @@
+{extend name="layout" /}
+{block name="title"}合规管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">合规管理</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+  <div class="col-md-4"><div class="card bg-success text-white"><div class="card-body text-center"><h5>GDPR合规</h5><h2>{$gdpr_score}%</h2></div></div></div>
+  <div class="col-md-4"><div class="card bg-info text-white"><div class="card-body text-center"><h5>数据安全</h5><h2>{$security_score}%</h2></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body text-center"><h5>数据分级</h5><p>公开: {$classification.by_level.public ?? 0}</p><p>内部: {$classification.by_level.internal ?? 0}</p><p>保密: {$classification.by_level.confidential ?? 0}</p><p>受限: {$classification.by_level.restricted ?? 0}</p></div></div></div>
+</div>
+<div class="row">
+  <div class="col-md-6"><a href="/admin/compliance/auditLog" class="card-link"><div class="card"><div class="card-body text-center"><i class="bi bi-list-check fs-1"></i><h5>审计日志查询</h5></div></div></a></div>
+  <div class="col-md-6"><a href="/admin/compliance/classification" class="card-link"><div class="card"><div class="card-body text-center"><i class="bi bi-shield-lock fs-1"></i><h5>数据分级分类</h5></div></div></a></div>
+</div>
+<div class="row mt-3">
+  <div class="col-md-4"><a href="/admin/compliance/gdprReport"><div class="card"><div class="card-body text-center"><h5>GDPR合规报告</h5></div></div></a></div>
+  <div class="col-md-4"><a href="/admin/compliance/securityReport"><div class="card"><div class="card-body text-center"><h5>数据安全报告</h5></div></div></a></div>
+  <div class="col-md-4"><a href="/admin/compliance/auditReport"><div class="card"><div class="card-body text-center"><h5>审计统计报告</h5></div></div></a></div>
+</div>
+{/block}

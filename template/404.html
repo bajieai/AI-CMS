@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - 页面未找到</title>
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --primary-light: #60a5fa; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%);
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;
+        }
+        .error-wrap { text-align: center; padding: 2rem; max-width: 520px; }
+        .error-code {
+            font-size: 7rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: .5rem;
+            letter-spacing: -2px;
+        }
+        .error-title { font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: .75rem; }
+        .error-desc { color: #64748b; font-size: .95rem; margin-bottom: 1.75rem; line-height: 1.6; }
+        .error-actions { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+        .error-actions .btn { border-radius: 8px; padding: .55rem 1.25rem; font-weight: 500; }
+        .error-illustration {
+            width: 160px; height: 160px; margin: 0 auto 1.5rem;
+            background: #fff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 30px rgba(37,99,235,.12);
+        }
+        .error-illustration i { font-size: 4.5rem; color: var(--primary); opacity: .85; }
+        .hot-links { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; }
+        .hot-links h6 { font-size: .8rem; color: #94a3b8; margin-bottom: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+        .hot-links a { color: #475569; text-decoration: none; font-size: .88rem; display: inline-block; margin: .25rem .5rem; transition: color .2s; }
+        .hot-links a:hover { color: var(--primary); }
+        .hot-links a i { margin-right: 3px; font-size: .8rem; }
+    </style>
+</head>
+<body>
+    <div class="error-wrap">
+        <div class="error-illustration">
+            <i class="bi bi-compass"></i>
+        </div>
+        <div class="error-code">404</div>
+        <div class="error-title">页面找不到了</div>
+        <div class="error-desc">
+            您访问的页面可能已被移除、更名，或者暂时不可用。<br>
+            别担心，我们帮您找到了几个有用的去处。
+        </div>
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary"><i class="bi bi-house-door me-1"></i>返回首页</a>
+            <a href="/search" class="btn btn-outline-primary"><i class="bi bi-search me-1"></i>站内搜索</a>
+            <a href="javascript:history.back();" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回上页</a>
+        </div>
+        <div class="hot-links">
+            <h6>热门内容</h6>
+            <a href="/"><i class="bi bi-house"></i>网站首页</a>
+            <a href="/member"><i class="bi bi-person"></i>会员中心</a>
+            <a href="/admin"><i class="bi bi-speedometer2"></i>后台管理</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{extend name="/layout" /}
+{block name="title"}发送通知 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4"><h4 class="mb-4">🔔 发送站内通知</h4>
+<div class="card"><div class="card-body">
+    <div class="mb-3"><label class="form-label">通知标题 <span class="text-danger">*</span></label><input type="text" id="ntTitle" class="form-control" placeholder="如：系统升级维护通知" maxlength="50"></div>
+    <div class="mb-3"><label class="form-label">通知内容</label><textarea id="ntContent" class="form-control" rows="3" placeholder="通知正文（纯文本）" maxlength="500"></textarea></div>
+    <div class="mb-3"><label class="form-label">跳转链接（可选）</label><input type="text" id="ntLink" class="form-control" placeholder="如：/info/123.html"></div>
+    <div class="mb-3"><label class="form-label">接收范围</label>
+        <select id="ntTarget" class="form-select" style="width:200px"><option value="all">全部用户</option><option value="user_ids">指定用户</option></select>
+    </div>
+    <div class="mb-3" id="uidArea" style="display:none"><label class="form-label">用户ID（逗号分隔）</label><input type="text" id="ntUserIds" class="form-control" placeholder="1,2,3"></div>
+    <button class="btn btn-primary" onclick="doSend()"><i class="bi bi-send"></i> 发送通知</button>
+</div></div></div>
+{/block}
+{block name="js"}
+<script>
+$('#ntTarget').change(function(){$('#uidArea').toggle($(this).val()==='user_ids')});
+function doSend(){
+    var t=$('#ntTitle').val();if(!t)return alert('请输入标题');
+    $.post('/admin/notify/send',{title:t,content:$('#ntContent').val(),link:$('#ntLink').val(),target:$('#ntTarget').val(),user_ids:$('#ntUserIds').val()},function(r){alert(r.msg)});
+}
+</script>
+{/block}

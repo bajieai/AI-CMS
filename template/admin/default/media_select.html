@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择媒体文件</title>
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body { background: #f5f6fa; font-size: 14px; }
+        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .75rem; padding: 1rem; }
+        .media-card {
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .media-card:hover, .media-card.selected { border-color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,.15); }
+        .media-card .thumb { height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; }
+        .media-card .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .media-card .info { padding: .4rem .6rem; font-size: .75rem; }
+        .media-card .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #334155; }
+        .media-card .meta { color: #94a3b8; font-size: .7rem; margin-top: .1rem; }
+        .top-bar {
+            background: #fff;
+            border-bottom: 1px solid #e2e6ef;
+            padding: .6rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .bottom-bar {
+            background: #fff;
+            border-top: 1px solid #e2e6ef;
+            padding: .6rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <select id="filterType" class="form-select form-select-sm" style="width:auto">
+            <option value="image" {if condition="($params.filetype ?? 'image') == 'image'"}selected{/if}>图片</option>
+            <option value="video" {if condition="($params.filetype ?? '') == 'video'"}selected{/if}>视频</option>
+            <option value="file" {if condition="($params.filetype ?? '') == 'file'"}selected{/if}>文件</option>
+        </select>
+        <input type="text" id="filterKeyword" class="form-control form-control-sm" style="max-width:200px" placeholder="搜索文件名" value="{$params.keyword ?? ''}">
+        <button class="btn btn-primary btn-sm" onclick="reloadList()"><i class="bi bi-search"></i></button>
+        <div class="ms-auto">
+            <button class="btn btn-success btn-sm" onclick="$('#uploadArea').toggle()"><i class="bi bi-cloud-upload"></i> 上传</button>
+        </div>
+    </div>
+
+    <div id="uploadArea" style="display:none; padding: 1rem; background: #fff; border-bottom: 1px solid #e2e6ef;">
+        <div class="row g-2 align-items-end">
+            <div class="col-auto">
+                <input type="file" id="uploadInput" class="form-control form-control-sm">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm" onclick="uploadFile()">上传</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="media-grid">
+        {volist name="list" id="vo"}
+        <div class="media-card" data-url="{$vo.filepath}" data-name="{$vo.filename}" data-type="{$vo.filetype}" onclick="selectMedia(this)">
+            <div class="thumb">
+                {if condition="$vo.filetype == 'image'"}
+                <img src="{$vo.filepath}" alt="{$vo.alt_text}">
+                {elseif condition="$vo.filetype == 'video'"}
+                <i class="bi bi-camera-video-fill fs-1 text-danger"></i>
+                {else /}
+                <i class="bi bi-file-earmark-fill fs-1 text-secondary"></i>
+                {/if}
+            </div>
+            <div class="info">
+                <div class="name" title="{$vo.filename}">{$vo.filename}</div>
+                <div class="meta">{$vo.filesize|format_bytes}</div>
+            </div>
+        </div>
+        {/volist}
+        {empty name="list"}
+        <div class="text-center text-muted py-5" style="grid-column: 1 / -1;">暂无媒体文件</div>
+        {/empty}
+    </div>
+
+    {if condition="$list->hasPages() ?? false"}
+    <div class="d-flex justify-content-center py-2">
+        {$list->render()|raw}
+    </div>
+    {/if}
+
+    <div class="bottom-bar">
+        <span class="text-muted small" id="selectedInfo">请选择媒体文件</span>
+        <div>
+            <button class="btn btn-secondary btn-sm" onclick="window.parent.postMessage({mceAction: 'close'}, '*')">取消</button>
+            <button class="btn btn-primary btn-sm" onclick="confirmSelect()" id="btnConfirm" disabled>确定</button>
+        </div>
+    </div>
+
+    <script src="/assets/js/jquery.min.js"></script>
+    <script>
+    var selectedMedia = null;
+
+    function selectMedia(el) {
+        $('.media-card').removeClass('selected');
+        $(el).addClass('selected');
+        selectedMedia = {
+            url: $(el).data('url'),
+            name: $(el).data('name'),
+            type: $(el).data('type')
+        };
+        $('#selectedInfo').text('已选择：' + selectedMedia.name);
+        $('#btnConfirm').prop('disabled', false);
+    }
+
+    function confirmSelect() {
+        if (!selectedMedia) return;
+        var content = '';
+        if (selectedMedia.type === 'image') {
+            content = '<img src="' + selectedMedia.url + '" alt="' + selectedMedia.name + '">';
+        } else if (selectedMedia.type === 'video') {
+            content = '<video src="' + selectedMedia.url + '" controls style="max-width:100%"></video>';
+        } else {
+            content = '<a href="' + selectedMedia.url + '" target="_blank">' + selectedMedia.name + '</a>';
+        }
+        window.parent.postMessage({
+            mceAction: 'insertContent',
+            content: content
+        }, '*');
+        window.parent.postMessage({ mceAction: 'close' }, '*');
+    }
+
+    function reloadList() {
+        var type = $('#filterType').val();
+        var keyword = $('#filterKeyword').val();
+        location.href = '/admin/media/select?filetype=' + type + '&keyword=' + encodeURIComponent(keyword);
+    }
+
+    function uploadFile() {
+        var fileInput = document.getElementById('uploadInput');
+        if (!fileInput.files.length) { alert('请选择文件'); return; }
+        var formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('filetype', $('#filterType').val());
+        $.ajax({
+            url: '/admin/media/upload',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                if (res.code === 0) {
+                    location.reload();
+                } else {
+                    alert(res.msg || '上传失败');
+                }
+            },
+            error: function() { alert('上传失败'); }
+        });
+    }
+
+    $('#filterKeyword').on('keypress', function(e) {
+        if (e.which === 13) reloadList();
+    });
+    </script>
+</body>
+</html>

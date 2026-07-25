@@ -1,0 +1,55 @@
+<div class="ucenter-sidebar corporate-sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-avatar">
+            <img src="{$member.avatar|default='/static/images/default-avatar.png'}" alt="avatar" class="rounded-circle" width="56" height="56">
+        </div>
+        <div class="sidebar-userinfo">
+            <div class="sidebar-username">{$member.nickname|default='用户'}</div>
+            <div class="sidebar-level">{$member.level_name|default='普通会员'}</div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="{:url('member/index')}" class="sidebar-nav-item {if $ucenter_active=='index'}active{/if}">
+            <i class="bi bi-house"></i><span>个人首页</span>
+        </a>
+        <a href="{:url('member/profile')}" class="sidebar-nav-item {if $ucenter_active=='profile'}active{/if}">
+            <i class="bi bi-person"></i><span>个人资料</span>
+        </a>
+        <a href="{:url('member/publish')}" class="sidebar-nav-item {if $ucenter_active=='publish'}active{/if}">
+            <i class="bi bi-file-text"></i><span>我的发布</span>
+        </a>
+        <a href="{:url('member/stats')}" class="sidebar-nav-item {if $ucenter_active=='stats'}active{/if}">
+            <i class="bi bi-bar-chart"></i><span>内容统计</span>
+        </a>
+        <a href="{:url('member/favorite')}" class="sidebar-nav-item {if $ucenter_active=='favorite'}active{/if}">
+            <i class="bi bi-heart"></i><span>我的收藏</span>
+        </a>
+        <a href="{:url('member/comments')}" class="sidebar-nav-item {if $ucenter_active=='comments'}active{/if}">
+            <i class="bi bi-chat-left-text"></i><span>我的评论</span>
+        </a>
+        <a href="{:url('member/notification')}" class="sidebar-nav-item {if $ucenter_active=='notification'}active{/if}">
+            <i class="bi bi-bell"></i><span>通知消息</span>
+            {if $member_unread_count > 0}
+            <span class="sidebar-badge">{$member_unread_count}</span>
+            {/if}
+        </a>
+        <a href="{:url('member/preferences')}" class="sidebar-nav-item {if $ucenter_active=='preferences'}active{/if}">
+            <i class="bi bi-sliders"></i><span>偏好设置</span>
+        </a>
+        <a href="{:url('member/points')}" class="sidebar-nav-item {if $ucenter_active=='points'}active{/if}">
+            <i class="bi bi-coin"></i><span>我的积分</span>
+        </a>
+        <a href="{:url('member/orders')}" class="sidebar-nav-item {if $ucenter_active=='orders'}active{/if}">
+            <i class="bi bi-bag"></i><span>我的订单</span>
+        </a>
+        <a href="{:url('member/coupon')}" class="sidebar-nav-item {if $ucenter_active=='coupon'}active{/if}">
+            <i class="bi bi-ticket-perforated"></i><span>优惠券</span>
+        </a>
+        <a href="{:url('member/level')}" class="sidebar-nav-item {if $ucenter_active=='level'}active{/if}">
+            <i class="bi bi-award"></i><span>等级权益</span>
+        </a>
+        <a href="{:url('member/invite')}" class="sidebar-nav-item {if $ucenter_active=='invite'}active{/if}">
+            <i class="bi bi-share"></i><span>邀请好友</span>
+        </a>
+    </nav>
+</div>

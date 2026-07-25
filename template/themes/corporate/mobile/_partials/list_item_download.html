@@ -1,0 +1,26 @@
+<!-- V2.9.22 F-1: 下载型列表项（移动端 corporate） -->
+{php}$ext = (isset($vo['ext']['data']) && is_array($vo['ext']['data'])) ? $vo['ext']['data'] : [];{/php}
+<div class="card mb-3 download-card border-0 shadow-sm">
+    <div class="card-body text-center">
+        <div class="download-icon mb-2">
+            <i class="bi bi-file-earmark-arrow-down fs-2 text-primary"></i>
+        </div>
+        <h5 class="card-title fs-6 mb-1" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;">
+            <a href="{$vo.url}" class="text-decoration-none text-dark">{$vo.title}</a>
+            {include file="shared/paid_badge" /}
+        </h5>
+        <p class="card-text text-muted small mb-2">{$vo.excerpt|msubstr=0,60}</p>
+        <div class="d-flex gap-2 text-muted small flex-wrap justify-content-center align-items-center">
+            {if condition="!empty($ext['file_size'])"}
+            <span><i class="bi bi-hdd me-1"></i>{$ext['file_size']}</span>
+            {/if}
+            {if condition="!empty($ext['version'])"}
+            <span class="badge bg-primary">v{$ext['version']}</span>
+            {/if}
+            <span><i class="bi bi-calendar3 me-1"></i>{$vo.create_time|date='Y-m-d'}</span>
+        </div>
+    </div>
+    <div class="card-footer bg-transparent border-0 pt-0">
+        <a href="{$vo.url}" class="btn btn-sm btn-primary w-100"><i class="bi bi-download me-1"></i>立即下载</a>
+    </div>
+</div>

@@ -1,0 +1,118 @@
+{extend name="layout" /}
+
+{block name="title"}开发者管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">插件生态</li>
+<li class="breadcrumb-item active">开发者管理</li>
+{/block}
+
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{$stats.total|default=0}</h3>
+                <p class="text-muted mb-0">开发者总数</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{$stats.verified|default=0}</h3>
+                <p class="text-muted mb-0">已认证</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">{$stats.pending|default=0}</h3>
+                <p class="text-muted mb-0">待审核</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{$stats.plugins|default=0}</h3>
+                <p class="text-muted mb-0">已发布插件</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-person-badge me-1"></i>开发者列表</span>
+        <div>
+            <select class="form-select form-select-sm d-inline-block" style="width:auto" onchange="location.href='?status='+this.value">
+                <option value="">全部状态</option>
+                <option value="verified" {if condition="$status eq 'verified'"}selected{/if}>已认证</option>
+                <option value="pending" {if condition="$status eq 'pending'"}selected{/if}>待审核</option>
+                <option value="rejected" {if condition="$status eq 'rejected'"}selected{/if}>已驳回</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="50">ID</th>
+                    <th>开发者名称</th>
+                    <th width="100">联系方式</th>
+                    <th width="80">插件数</th>
+                    <th width="80">下载量</th>
+                    <th width="80">状态</th>
+                    <th width="150">注册时间</th>
+                    <th width="120">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo" empty="<tr><td colspan='8' class='text-center text-muted py-4'>暂无开发者</td></tr>"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name|default=$vo.username}</td>
+                    <td>{$vo.email|default='-'}</td>
+                    <td>{$vo.plugin_count|default=0}</td>
+                    <td>{$vo.download_count|default=0}</td>
+                    <td>
+                        {if condition="$vo.status eq 'verified'"}
+                        <span class="badge bg-success">已认证</span>
+                        {elseif condition="$vo.status eq 'pending'"}
+                        <span class="badge bg-warning text-dark">待审核</span>
+                        {else/}
+                        <span class="badge bg-secondary">未认证</span>
+                        {/if}
+                    </td>
+                    <td>{$vo.create_time}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/admin/plugin_eco/developer_detail?id={$vo.id}" class="btn btn-outline-primary" title="详情"><i class="bi bi-eye"></i></a>
+                            {if condition="$vo.status eq 'pending'"}
+                            <button type="button" class="btn btn-outline-success" title="通过" onclick="approveDeveloper({$vo.id})"><i class="bi bi-check-lg"></i></button>
+                            {/if}
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function approveDeveloper(id) {
+    if (!confirm('确认通过此开发者认证申请？')) return;
+    $.post('/admin/plugin_eco/approve_developer', {id: id}, function(res) {
+        if (res.code === 0) {
+            alert('审核通过');
+            location.reload();
+        } else {
+            alert(res.msg || '操作失败');
+        }
+    });
+}
+</script>
+{/block}

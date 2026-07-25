@@ -1,0 +1,48 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-layer-group me-1"></i>模板批量管理</h5></div>
+    <div class="card-body">
+        <div class="mb-3 d-flex gap-2 flex-wrap">
+            <select id="batch-action" class="form-select form-select-sm" style="width:auto">
+                <option value="">选择操作...</option>
+                <option value="batch_publish">批量上架</option>
+                <option value="batch_unpublish">批量下架</option>
+                <option value="batch_set_price">批量定价</option>
+                <option value="batch_set_category">批量分类</option>
+                <option value="batch_set_industry">批量行业</option>
+            </select>
+            <input type="number" id="batch-price" class="form-control form-control-sm d-none" placeholder="价格" style="width:100px">
+            <button class="btn btn-sm btn-primary" onclick="previewBatch()"><i class="bi bi-eye"></i> 预览</button>
+            <button class="btn btn-sm btn-success" onclick="executeBatch()"><i class="bi bi-check-lg"></i> 执行</button>
+            <a href="/admin/template_batch/log" class="btn btn-sm btn-outline-secondary ms-auto"><i class="bi bi-clock-history"></i> 操作日志</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th width="30"><input type="checkbox" id="select-all"></th><th>ID</th><th>模板名称</th><th>状态</th><th>价格</th><th>行业</th></tr></thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr><td><input type="checkbox" class="tpl-checkbox" value="{$vo.id}"></td><td>{$vo.id}</td><td>{$vo.name}</td>
+                    <td>{if $vo.status==1}<span class="badge bg-success">已上架</span>{else /}<span class="badge bg-secondary">未上架</span>{/if}</td>
+                    <td>{$vo.price|default=0}</td><td>{$vo.industry|default='-'}</td></tr>
+                    {/volist}
+                    {if condition="empty($list)"}<tr><td colspan="6" class="text-center text-muted py-4">暂无模板</td></tr>{/if}
+                </tbody>
+            </table>
+        </div>
+        {if condition="$total > $limit"}
+        <nav class="d-flex justify-content-between mt-3"><span class="text-muted small">共 {$total} 条</span>
+        <ul class="pagination pagination-sm">{for start="1" end="ceil($total/$limit)+1"}<li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}">{$i}</a></li>{/for}</ul></nav>
+        {/if}
+    </div>
+</div>
+<script>
+$('#select-all').on('change', function() { $('.tpl-checkbox').prop('checked', this.checked); });
+function getSelected() { return $('.tpl-checkbox:checked').map(function() { return parseInt(this.value); }).get(); }
+function getAction() { return $('#batch-action').val(); }
+function getParams() { var p = {}; if ($('#batch-price').is(':visible')) p.price = $('#batch-price').val(); return p; }
+function previewBatch() { var ids = getSelected(); var action = getAction(); if (!ids.length || !action) { window.ui.toast('请选择模板和操作', 'warning'); return; } $.post('/admin/template_batch/preview', {template_ids: ids, action: action, params: getParams()}, function(res) { if (res.code === 0) { window.ui.toast('预览: '+res.data.count+'个模板', 'info'); } else { window.ui.toast(res.msg, 'danger'); } }); }
+function executeBatch() { var ids = getSelected(); var action = getAction(); if (!ids.length || !action) { window.ui.toast('请选择模板和操作', 'warning'); return; } if (!confirm('确认对'+ids.length+'个模板执行'+action+'?')) return; $.post('/admin/template_batch/execute', {template_ids: ids, action: action, params: getParams()}, function(res) { if (res.code === 0) { window.ui.toast('成功'+res.data.success+'失败'+res.data.failed, 'success'); setTimeout(()=>location.reload(), 1500); } else { window.ui.toast(res.msg, 'danger'); } }); }
+$('#batch-action').on('change', function() { $('#batch-price').toggleClass('d-none', this.value !== 'batch_set_price'); });
+</script>
+{/block}

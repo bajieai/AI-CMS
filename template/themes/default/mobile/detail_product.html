@@ -1,0 +1,52 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="{$type_url}">产品中心</a></li>
+                <li class="breadcrumb-item active">{$info.title|msubstr=0,20}</li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-lg-5">
+                {if condition="$info.cover"}
+                <img src="{$info.cover}" class="img-fluid rounded mb-3" alt="{$info.title}" id="productMainImg">
+                {/if}
+            </div>
+            <div class="col-lg-7">
+                <h1 class="mb-3">{$info.title}</h1>
+                {if condition="isset($info.ext.data.price) && $info.ext.data.price"}
+                <div class="mb-3"><span class="text-danger fs-4 fw-bold">¥{$info.ext.data.price}</span>{if condition="isset($info.ext.data.original_price) && $info.ext.data.original_price"}<span class="text-muted text-decoration-line-through ms-2">¥{$info.ext.data.original_price}</span>{/if}</div>
+                {/if}
+                <table class="table table-borderless">
+                    {if condition="isset($info.ext.data.brand) && $info.ext.data.brand"}<tr><td class="text-muted" style="width:100px">品牌</td><td>{$info.ext.data.brand}</td></tr>{/if}
+                    {if condition="isset($info.ext.data.model) && $info.ext.data.model"}<tr><td class="text-muted">型号</td><td>{$info.ext.data.model}</td></tr>{/if}
+                    {if condition="isset($info.ext.data.spec) && $info.ext.data.spec"}<tr><td class="text-muted">规格</td><td>{$info.ext.data.spec}</td></tr>{/if}
+                    {if condition="isset($info.ext.data.stock) && $info.ext.data.stock"}<tr><td class="text-muted">库存</td><td>{$info.ext.data.stock}</td></tr>{/if}
+                </table>
+                <div class="mt-3">
+                    <button class="btn btn-primary btn-lg"><i class="bi bi-cart-plus me-1"></i>加入购物车</button>
+                    <button class="btn btn-outline-primary btn-lg ms-2"><i class="bi bi-lightning me-1"></i>立即购买</button>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="productTabs">
+                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#desc">产品详情</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#params">参数</a></li>
+                </ul>
+                <div class="tab-content mt-3">
+                    <div class="tab-pane fade show active" id="desc"><div class="article-content">{$safe_content|raw}</div></div>
+                    <div class="tab-pane fade" id="params"><table class="table">{$info.ext.data.spec_table|raw|default=''}</table></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

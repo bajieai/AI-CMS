@@ -1,0 +1,244 @@
+{extend name="layout" /}
+
+{block name="title"}仪表盘{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item active">仪表盘</li>
+{/block}
+
+{block name="css"}
+<style>
+.trend-wrap { display:flex; align-items:flex-end; height:180px; gap:10px; padding-bottom:24px; position:relative; }
+.trend-bar-wrap { flex:1; text-align:center; position:relative; }
+.trend-bar { width:100%; background:linear-gradient(to top, var(--primary), #60a5fa); border-radius:4px 4px 0 0; min-height:4px; transition:height .5s ease; }
+.trend-label { position:absolute; bottom:-22px; left:0; right:0; font-size:.72rem; color:#94a3b8; white-space:nowrap; }
+.trend-num { position:absolute; top:-18px; left:0; right:0; font-size:.72rem; font-weight:600; color:var(--primary); }
+</style>
+{/block}
+
+{block name="content"}
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-primary"><i class="bi bi-file-text"></i></div>
+            <div class="stat-num text-primary">{$content_count}</div>
+            <div class="stat-label">内容总数</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-success"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-num text-success">{$published_count}</div>
+            <div class="stat-label">已发布</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-warning"><i class="bi bi-pencil"></i></div>
+            <div class="stat-num text-warning">{$draft_count}</div>
+            <div class="stat-label">草稿/待处理</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-info"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-num text-info">{$today_count}</div>
+            <div class="stat-label">今日发布</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="stat-card">
+            <div class="stat-icon text-secondary"><i class="bi bi-people"></i></div>
+            <div class="stat-num text-secondary">{$user_count}</div>
+            <div class="stat-label">用户数</div>
+        </div>
+    </div>
+</div>
+
+<!-- 趋势图 + 最新日志 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-bar-chart-line me-1" style="color:var(--primary)"></i>最近7天发布趋势
+            </div>
+            <div class="card-body">
+                <div class="trend-wrap">
+                    {volist name="trend" id="item"}
+                    <div class="trend-bar-wrap">
+                        <div class="trend-num">{$item.count}</div>
+                        <div class="trend-bar" style="height:{$item.count / $trend_max * 100}%"></div>
+                        <div class="trend-label">{$item.date}</div>
+                    </div>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-journal-text me-1" style="color:var(--primary)"></i>最新操作日志
+            </div>
+            <div class="list-group list-group-flush">
+                {volist name="latest_logs" id="log"}
+                <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                    <div class="small text-truncate" style="max-width:68%">
+                        <span class="badge bg-light text-dark border me-1">{$log.module}</span>
+                        <span class="text-muted">{$log.action}</span>
+                    </div>
+                    <small class="text-muted" style="font-size:.7rem">{$log.create_time|date='m-d H:i'}</small>
+                </div>
+                {/volist}
+                {empty name="latest_logs"}
+                <div class="list-group-item text-muted small py-3">暂无操作记录</div>
+                {/empty}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 内容类型分布 + 热门内容 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-pie-chart me-1" style="color:var(--primary)"></i>内容类型分布</div>
+            <div class="card-body">
+                {volist name="type_distribution" id="vo"}
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:60px;font-size:.84rem">{$vo.name}</div>
+                    <div class="flex-grow-1 mx-2" style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+                        <div style="width:{$vo.percent}%;height:100%;background:{$vo.color};border-radius:4px"></div>
+                    </div>
+                    <div style="width:50px;text-align:right;font-size:.84rem;font-weight:600">{$vo.count}</div>
+                </div>
+                {/volist}
+                {empty name="type_distribution"}
+                <div class="text-muted small py-2">暂无已发布内容</div>
+                {/empty}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-fire me-1" style="color:var(--primary)"></i>热门内容 TOP5</span>
+                {if condition="$pending_count > 0"}
+                <a href="/admin/review/index" class="badge bg-warning text-dark text-decoration-none">{$pending_count} 条待审</a>
+                {/if}
+            </div>
+            <div class="list-group list-group-flush">
+                {volist name="hot_contents" id="vo"}
+                <a href="/admin/content/edit/{$vo.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                    <div class="small text-truncate" style="max-width:75%">
+                        <span class="badge bg-light text-dark border me-1">{$vo.cate.name ?? '未分类'}</span>
+                        {$vo.title}
+                    </div>
+                    <small class="text-muted"><i class="bi bi-eye me-1"></i>{$vo.views}</small>
+                </a>
+                {/volist}
+                {empty name="hot_contents"}
+                <div class="list-group-item text-muted small py-3">暂无内容</div>
+                {/empty}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 定时发布队列 -->
+{if condition="$publish_queue && count($publish_queue) > 0"}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-1" style="color:var(--primary)"></i>定时发布队列</span>
+                <span class="badge bg-info">{$publish_queue|count} 篇待发布</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr><th width="50">ID</th><th>标题</th><th width="120">定时发布时间</th><th width="80">状态</th></tr>
+                    </thead>
+                    <tbody>
+                        {volist name="publish_queue" id="vo"}
+                        <tr>
+                            <td>{$vo.id}</td>
+                            <td><a href="/admin/content/edit/{$vo.id}">{$vo.title}</a></td>
+                            <td class="small">{$vo.publish_time|date='Y-m-d H:i'}</td>
+                            <td><span class="badge bg-info"><i class="bi bi-clock me-1"></i>待发布</span></td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/if}
+
+<!-- 快捷操作 + 系统信息 -->
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-lightning-fill me-1" style="color:var(--primary)"></i>快捷操作</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/content/add" class="btn btn-outline-primary w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-plus-circle d-block fs-4 mb-1"></i>添加内容
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/content/index" class="btn btn-outline-success w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-list-ul d-block fs-4 mb-1"></i>内容列表
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/cate/index" class="btn btn-outline-info w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-folder2 d-block fs-4 mb-1"></i>分类管理
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/system/config" class="btn btn-outline-secondary w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-gear d-block fs-4 mb-1"></i>系统设置
+                        </a>
+                    </div>
+                    <!-- V2.9.24 J-3: 新增缓存管理快捷入口 -->
+                    <div class="col-6 col-md-3">
+                        <a href="/admin/system/cache" class="btn btn-outline-warning w-100 py-3" style="border-radius:10px;font-size:.88rem">
+                            <i class="bi bi-lightning d-block fs-4 mb-1"></i>缓存管理
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-1" style="color:var(--primary)"></i>系统信息
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">V2.9.9</td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">框架版本</td><td class="text-end pe-3" style="font-weight:600">ThinkPHP 8.1</td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">PHP版本</td><td class="text-end pe-3" style="font-weight:600"><?php echo PHP_VERSION; ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">数据库</td><td class="text-end pe-3" style="font-weight:600"><?php echo format_bytes($db_size); ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">磁盘剩余</td><td class="text-end pe-3" style="font-weight:600"><?php echo format_bytes($disk_free); ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">当前用户</td><td class="text-end pe-3" style="font-weight:600"><?php echo session('nickname') ?: 'Admin'; ?></td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">用户角色</td><td class="text-end pe-3" style="font-weight:600">
+                            <?php if(session('role_id') == 1): ?>超级管理员<?php endif; ?>
+                            <?php if(session('role_id') == 2): ?>管理员<?php endif; ?>
+                            <?php if(session('role_id') == 3): ?>编辑<?php endif; ?>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

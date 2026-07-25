@@ -1,0 +1,119 @@
+{extend name="layout" /}
+
+{block name="title"}{$chapter.chapter_title|default=$chapter.title} - {$parent.title}{/block}
+
+{block name="content"}
+<div class="py-3">
+    <!-- 章节目录折叠面板 -->
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#chapterCollapse" style="cursor:pointer">
+            <span><i class="bi bi-list-ul me-1"></i>章节目录 ({:count($chapters)})</span>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+        <div class="collapse" id="chapterCollapse">
+            <div class="list-group list-group-flush">
+                {volist name="chapters" id="ch"}
+                <a href="/chapter/read/{$parent.id}/{$ch.id}"
+                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {if condition="$ch.id == $chapter.id"}active{/if}">
+                    <span class="text-truncate" style="max-width:200px">
+                        {if condition="$ch.is_free"}
+                        <span class="badge bg-success me-1">免费</span>
+                        {elseif condition="$ch.is_unlocked"}
+                        <i class="bi bi-unlock-fill text-success me-1"></i>
+                        {else/}
+                        <i class="bi bi-lock-fill text-muted me-1"></i>
+                        {/if}
+                        {$ch.title}
+                    </span>
+                    {if condition="!$ch.is_unlocked && !$ch.is_free && $ch.price > 0"}
+                    <span class="badge bg-primary">{$ch.price}</span>
+                    {/if}
+                </a>
+                {/volist}
+            </div>
+        </div>
+    </div>
+
+    <!-- 文章内容 -->
+    <div class="card">
+        <div class="card-body">
+            <h1 class="h5 mb-2">{$chapter.chapter_title|default=$chapter.title}</h1>
+            <div class="text-muted small mb-3">
+                <span><i class="bi bi-calendar3 me-1"></i>{$chapter.create_time|date='Y-m-d'}</span>
+            </div>
+
+            <div class="content-body">
+                {if condition="$is_locked"}
+                <div class="alert alert-warning">
+                    <i class="bi bi-lock-fill me-2"></i>该章节为付费内容
+                    {if condition="$is_vip"}
+                    <div class="small mt-1">VIP会员可免费阅读</div>
+                    {/if}
+                </div>
+                <div class="text-muted">{$content|raw}</div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary btn-sm" id="btnBuyChapter" data-chapter="{$chapter.id}">
+                        <i class="bi bi-cart me-1"></i>购买本章
+                    </button>
+                </div>
+                {else/}
+                {$content|raw}
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <!-- 整本购买 -->
+    {if condition="count($chapters) >= 3 && !$is_vip && $parent.is_paid"}
+    <div class="card mt-3 border-primary">
+        <div class="card-body text-center">
+            <h6><i class="bi bi-book me-1"></i>购买整本更优惠</h6>
+            <button class="btn btn-primary btn-sm" id="btnBuyBook" data-parent="{$parent.id}">
+                {$parent.paid_price}积分 购买整本
+            </button>
+        </div>
+    </div>
+    {/if}
+
+    <!-- 上下章 -->
+    <div class="d-flex justify-content-between mt-3">
+        {if condition="$prev_chapter"}
+        <a href="/chapter/read/{$parent.id}/{$prev_chapter.id}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i> 上一章
+        </a>
+        {else/}
+        <span></span>
+        {/if}
+        {if condition="$next_chapter"}
+        <a href="/chapter/read/{$parent.id}/{$next_chapter.id}" class="btn btn-outline-secondary btn-sm">
+            下一章 <i class="bi bi-chevron-right"></i>
+        </a>
+        {/if}
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#btnBuyChapter').click(function(){
+    var chapterId = $(this).data('chapter');
+    if(!chapterId) return;
+    if(!confirm('确认购买本章节？')) return;
+    $.post('/chapter/buy', {chapter_id: chapterId}, function(d){
+        if(d.code === 0){ showToast('购买成功'); setTimeout(function(){location.reload()}, 800); }
+        else if(d.code === 2){ location.href = '/member/login?redirect=' + encodeURIComponent(location.pathname); }
+        else { showToast(d.msg || '购买失败', 'danger'); }
+    }, 'json');
+});
+$('#btnBuyBook').click(function(){
+    var parentId = $(this).data('parent');
+    if(!parentId) return;
+    if(!confirm('确认购买整本？')) return;
+    $.post('/chapter/buy-book', {parent_id: parentId}, function(d){
+        if(d.code === 0){ showToast('购买成功'); setTimeout(function(){location.reload()}, 800); }
+        else if(d.code === 2){ location.href = '/member/login?redirect=' + encodeURIComponent(location.pathname); }
+        else { showToast(d.msg || '购买失败', 'danger'); }
+    }, 'json');
+});
+</script>
+{/block}

@@ -1,0 +1,201 @@
+﻿{extend name="pc/layout" /}
+
+{block name="content"}
+    <!-- 轮播横幅 -->
+    <section class="hero-banner">
+        <div class="banner-slider" id="bannerSlider">
+            <div class="banner-slide active" style="background: linear-gradient(135deg, #ff6b6b, #e53935);">
+                <div class="container">
+                    <div class="banner-content">
+                        <h1>618年中大促</h1>
+                        <p>全场商品低至5折，限时抢购</p>
+                        <a href="/list.html" class="btn btn-primary">立即抢购</a>
+                    </div>
+                    <div class="banner-image">
+                        <img src="/assets/placeholder/banner1.png" alt="618大促">
+                    </div>
+                </div>
+            </div>
+            <div class="banner-slide" style="background: linear-gradient(135deg, #ff8a80, #d32f2f);">
+                <div class="container">
+                    <div class="banner-content">
+                        <h1>新品上市</h1>
+                        <p>最新潮流单品，抢先体验</p>
+                        <a href="/list.html?category=1" class="btn btn-primary">查看新品</a>
+                    </div>
+                    <div class="banner-image">
+                        <img src="/assets/placeholder/banner2.png" alt="新品上市">
+                    </div>
+                </div>
+            </div>
+            <div class="banner-indicators">
+                <span class="indicator active" data-index="0"></span>
+                <span class="indicator" data-index="1"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 分类导航 -->
+    <section class="category-nav">
+        <div class="container">
+            <div class="category-grid">
+                <a href="/list.html?category=1" class="category-item">
+                    <img src="/assets/placeholder/category1.png" alt="新品上市">
+                    <span>新品上市</span>
+                </a>
+                <a href="/list.html?category=2" class="category-item">
+                    <img src="/assets/placeholder/category2.png" alt="热销爆款">
+                    <span>热销爆款</span>
+                </a>
+                <a href="/list.html?category=3" class="category-item">
+                    <img src="/assets/placeholder/category3.png" alt="限时秒杀">
+                    <span>限时秒杀</span>
+                </a>
+                <a href="/list.html?category=4" class="category-item">
+                    <img src="/assets/placeholder/category4.png" alt="品牌特卖">
+                    <span>品牌特卖</span>
+                </a>
+                <a href="/list.html?category=5" class="category-item">
+                    <img src="/assets/placeholder/category5.png" alt="优惠券">
+                    <span>优惠券</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 限时秒杀 -->
+    <section class="flash-sale">
+        <div class="container">
+            <div class="section-header">
+                <h2>限时秒杀</h2>
+                <div class="countdown" id="flashCountdown">
+                    <span class="countdown-label">距离结束：</span>
+                    <span class="countdown-time">
+                        <span class="time-block hours">00</span>
+                        <span class="time-separator">:</span>
+                        <span class="time-block minutes">00</span>
+                        <span class="time-separator">:</span>
+                        <span class="time-block seconds">00</span>
+                    </span>
+                </div>
+                <a href="/list.html?category=3" class="view-all">查看更多 &gt;</a>
+            </div>
+            <div class="product-grid">
+                {volist name="flash_sale_products" id="product" length="4" empty="暂无秒杀商品"}
+                <div class="product-card">
+                    <a href="/detail/{$product.id}.html">
+                        <div class="product-image">
+                            <img src="{$product.thumb|default='/assets/placeholder/product1.jpg'}" alt="{$product.title}">
+                            <span class="product-tag">秒杀</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>{$product.title}</h3>
+                            <div class="product-price">
+                                <span class="current-price">¥{$product.price}</span>
+                                <span class="original-price">¥{$product.original_price}</span>
+                            </div>
+                            <div class="product-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {$product.sold_percent}%"></div>
+                                </div>
+                                <span class="progress-text">已抢{$product.sold_percent}%</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </section>
+
+    <!-- 热销爆款 -->
+    <section class="hot-products">
+        <div class="container">
+            <div class="section-header">
+                <h2>热销爆款</h2>
+                <a href="/list.html?category=2" class="view-all">查看更多 &gt;</a>
+            </div>
+            <div class="product-grid">
+                {volist name="hot_products" id="product" length="8" empty="暂无商品"}
+                <div class="product-card">
+                    <a href="/detail/{$product.id}.html">
+                        <div class="product-image">
+                            <img src="{$product.thumb|default='/assets/placeholder/product2.jpg'}" alt="{$product.title}">
+                            <span class="product-tag">热销</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>{$product.title}</h3>
+                            <div class="product-price">
+                                <span class="current-price">¥{$product.price}</span>
+                                <span class="original-price">¥{$product.original_price}</span>
+                            </div>
+                            <div class="product-rating">
+                                <span class="stars">{for start="1" end="$product.rating"}{/for}</span>
+                                <span class="sold-count">已售{$product.sold_count}件</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </section>
+
+    <!-- 品牌特卖 -->
+    <section class="brand-sale">
+        <div class="container">
+            <div class="section-header">
+                <h2>品牌特卖</h2>
+                <a href="/list.html?category=4" class="view-all">查看更多 &gt;</a>
+            </div>
+            <div class="brand-grid">
+                {volist name="brands" id="brand" length="6" empty="暂无品牌"}
+                <a href="/list.html?brand={$brand.id}" class="brand-card">
+                    <img src="{$brand.logo|default='/assets/placeholder/brand1.png'}" alt="{$brand.name}">
+                    <span class="brand-discount">{$brand.discount}折起</span>
+                </a>
+                {/volist}
+            </div>
+        </div>
+    </section>
+
+    <!-- 最新推荐 -->
+    <section class="recommended">
+        <div class="container">
+            <div class="section-header">
+                <h2>最新推荐</h2>
+                <a href="/list.html" class="view-all">查看更多 &gt;</a>
+            </div>
+            <div class="product-grid">
+                {volist name="recommended_products" id="product" length="12" empty="暂无推荐商品"}
+                <div class="product-card">
+                    <a href="/detail/{$product.id}.html">
+                        <div class="product-image">
+                            <img src="{$product.thumb|default='/assets/placeholder/product3.jpg'}" alt="{$product.title}">
+                            <span class="product-tag">推荐</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>{$product.title}</h3>
+                            <div class="product-price">
+                                <span class="current-price">¥{$product.price}</span>
+                                <span class="original-price">¥{$product.original_price}</span>
+                            </div>
+                            <div class="product-rating">
+                                <span class="stars">{for start="1" end="$product.rating"}{/for}</span>
+                                <span class="sold-count">已售{$product.sold_count}件</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </section>
+
+    <!-- 回到顶部 -->
+    <button class="back-to-top" id="backToTop" aria-label="回到顶部">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 20V4M5 11l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+{/block}

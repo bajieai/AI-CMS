@@ -1,0 +1,43 @@
+{
+    "name": "AI骨架-内容型",
+    "version": "2.9.11",
+    "description": "V2.9.11 内容型骨架模板（紧凑+侧栏+阅读优化），供AI基于骨架生成CSS",
+    "author": "八界AI-CMS",
+    "category": "blog",
+    "tags": ["skeleton", "content", "reading", "sidebar"],
+    "preview": "",
+    "type": "frontend",
+    "supports": ["pc", "mobile"],
+    "default_device": "pc",
+    "is_skeleton": true,
+    "layout_type": "content",
+    "colors": {
+        "primary": "#059669",
+        "primary_light": "#D1FAE5",
+        "primary_dark": "#047857",
+        "secondary": "#6B7280",
+        "accent": "#8B5CF6",
+        "bg": "#FFFFFF",
+        "bg_secondary": "#F9FAFB",
+        "text": "#111827",
+        "text_secondary": "#6B7280",
+        "border": "#E5E7EB"
+    },
+    "layouts": {
+        "pc": ["layout.html", "index.html", "list.html", "detail.html", "search.html", "member_index.html", "member_login.html"],
+        "mobile": ["layout.html", "index.html", "list.html", "detail.html"]
+    },
+    "assets": {
+        "css": ["assets/css/style.css"],
+        "js": []
+    },
+    "options": {},
+    "pages": {
+        "index": "首页（文章列表+侧栏热门/标签/分类）",
+        "list": "列表页（文章列表+侧栏分类/热门）",
+        "detail": "详情页（阅读优化+侧栏相关/标签）",
+        "search": "搜索页",
+        "member_index": "会员中心",
+        "member_login": "登录页"
+    }
+}

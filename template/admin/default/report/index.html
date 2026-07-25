@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}自定义报表{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">自定义报表</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart me-1"></i>报表列表</span>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal"><i class="bi bi-plus-lg"></i> 新建报表</button>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead><tr><th>ID</th><th>报表名称</th><th>类型</th><th>数据源</th><th>图表</th><th>系统预置</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="reports" id="r"}
+            <tr><td>{$r.id}</td><td>{$r.report_name}</td><td>{$r.report_type}</td><td>{$r.data_source}</td>
+                <td><span class="badge bg-info">{$r.chart_type}</span></td>
+                <td>{if $r.is_system==1}<span class="badge bg-success">预置</span>{else}<span class="badge bg-secondary">自定义</span>{/if}</td>
+                <td><button class="btn btn-sm btn-outline-primary gen-report" data-id="{$r.id}">生成</button></td></tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,131 @@
+{extend name="layout" /}
+{block name="title"}编辑智能体 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_agent/index">AI智能体</a></li>
+<li class="breadcrumb-item active">编辑</li>
+{/block}
+
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>编辑智能体</h4>
+        <a href="/admin/ai_agent/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回列表</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form id="agentForm" onsubmit="return false;">
+                <input type="hidden" name="id" value="{$agent.id}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">智能体名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" value="{$agent.name ?? ''}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">交互风格</label>
+                        <select class="form-select" name="style">
+                            <option value="professional" {if condition="($agent.style ?? '') == 'professional'"}selected{/if}>专业严谨</option>
+                            <option value="friendly" {if condition="($agent.style ?? '') == 'friendly'"}selected{/if}>友好亲和</option>
+                            <option value="concise" {if condition="($agent.style ?? '') == 'concise'"}selected{/if}>简洁高效</option>
+                            <option value="creative" {if condition="($agent.style ?? '') == 'creative'"}selected{/if}>创意发散</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">角色设定 <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="role" rows="4" required>{$agent.role ?? ''}</textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold">能力配置</label>
+                        <div class="row g-2">
+                            <?php $caps = $agent['capabilities'] ?? []; if(!is_array($caps)) $caps = []; ?>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_write" id="cap_write" {if in_array('ai_write',$caps)}checked{/if}><label class="form-check-label" for="cap_write">AI写作</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_image" id="cap_image" {if in_array('ai_image',$caps)}checked{/if}><label class="form-check-label" for="cap_image">AI配图</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_translate" id="cap_translate" {if in_array('ai_translate',$caps)}checked{/if}><label class="form-check-label" for="cap_translate">AI翻译</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_qa" id="cap_qa" {if in_array('ai_qa',$caps)}checked{/if}><label class="form-check-label" for="cap_qa">智能问答</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_seo" id="cap_seo" {if in_array('ai_seo',$caps)}checked{/if}><label class="form-check-label" for="cap_seo">SEO优化</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_recommend" id="cap_rec" {if in_array('ai_recommend',$caps)}checked{/if}><label class="form-check-label" for="cap_rec">内容推荐</label></div></div>
+                            <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capabilities[]" value="ai_summary" id="cap_sum" {if in_array('ai_summary',$caps)}checked{/if}><label class="form-check-label" for="cap_sum">内容摘要</label></div></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">触发方式</label>
+                        <select class="form-select" name="trigger">
+                            <option value="manual" {if condition="($agent.trigger ?? '') == 'manual'"}selected{/if}>手动触发</option>
+                            <option value="event" {if condition="($agent.trigger ?? '') == 'event'"}selected{/if}>事件触发</option>
+                            <option value="schedule" {if condition="($agent.trigger ?? '') == 'schedule'"}selected{/if}>定时触发</option>
+                            <option value="webhook" {if condition="($agent.trigger ?? '') == 'webhook'"}selected{/if}>Webhook触发</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">最大自主操作数</label>
+                        <input type="number" class="form-control" name="max_autonomous_actions" value="{$agent.max_autonomous_actions ?? 10}" min="1" max="100">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">触发配置 (JSON)</label>
+                        <input type="text" class="form-control font-monospace" name="trigger_config" value='{$agent.trigger_config ?? ""}'>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">行为规则</label>
+                        <textarea class="form-control" name="rules" rows="5">{$agent.rules ?? ''}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">权限配置</label>
+                        <textarea class="form-control" name="permissions" rows="5">{$agent.permissions ?? ''}</textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="status" value="1" id="swStatus" {if condition="($agent.status ?? 1)==1"}checked{/if}>
+                            <label class="form-check-label" for="swStatus">启用智能体</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="btnSave"><i class="bi bi-check-lg"></i> 保存</button>
+                    <a href="/admin/ai_agent/index" class="btn btn-outline-secondary">取消</a>
+                    <button type="button" class="btn btn-outline-danger ms-auto" id="btnDelete"><i class="bi bi-trash"></i> 删除</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnSave').click(function(){
+        var data = {};
+        $('#agentForm').serializeArray().forEach(function(item){
+            if(item.name === 'max_autonomous_actions'){
+                data[item.name] = parseInt(item.value);
+            }else if(item.name === 'capabilities[]'){
+                if(!data.capabilities) data.capabilities = [];
+                data.capabilities.push(item.value);
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        if(!data.capabilities) data.capabilities = [];
+        data.status = $('#swStatus').is(':checked') ? 1 : 0;
+        ajaxPost('/admin/ai_agent/edit?id={$agent.id}', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/ai_agent/index'},800);
+        });
+    });
+
+    $('#btnDelete').click(function(){
+        if(!confirm('确定删除此智能体？此操作不可恢复。')) return;
+        ajaxPost('/admin/ai_agent/delete', {id: '{$agent.id}'}, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/ai_agent/index'},800);
+        });
+    });
+});
+</script>
+{/block}

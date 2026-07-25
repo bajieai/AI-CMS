@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}模板订单管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">模板订单</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+    <div class="col-md-3"><div class="card text-white bg-success"><div class="card-body"><div class="small">今日收入</div><div class="h5">¥{$stats.today_revenue}</div></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-primary"><div class="card-body"><div class="small">本月收入</div><div class="h5">¥{$stats.month_revenue}</div></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-info"><div class="card-body"><div class="small">总收入</div><div class="h5">¥{$stats.total_revenue}</div></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-warning"><div class="card-body"><div class="small">总订单</div><div class="h5">{$stats.total_orders}</div></div></div></div>
+</div>
+<div class="card"><div class="card-header"><i class="bi bi-receipt me-1"></i>订单列表</div>
+    <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0">
+        <thead><tr><th>订单号</th><th>金额</th><th>实付</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+        <tbody>{volist name="list.data" id="item"}<tr>
+            <td class="small">{$item.order_no}</td>
+            <td>¥{$item.original_amount}</td>
+            <td class="text-success">¥{$item.pay_amount}</td>
+            <td>{if $item.status==1}<span class="badge bg-warning">待支付</span>{elseif $item.status==2}<span class="badge bg-success">已支付</span>{elseif $item.status==3}<span class="badge bg-danger">已退款</span>{else}<span class="badge bg-secondary">已关闭</span>{/if}</td>
+            <td class="small">{:date('Y-m-d H:i',$item.create_time)}</td>
+            <td><a href="/admin/template_order_admin/detail/{$item.id}" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></a></td>
+        </tr>{/volist}</tbody>
+    </table></div></div>
+</div>
+{/block}

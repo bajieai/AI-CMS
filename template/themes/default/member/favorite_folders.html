@@ -1,0 +1,45 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-folder me-1"></i>收藏夹管理</h4>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#folderModal" onclick="resetForm()"><i class="bi bi-plus-lg"></i> 新建收藏夹</button>
+    </div>
+    <div class="row">
+        {volist name="folders" id="vo"}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6>{$vo.name} <span class="badge bg-secondary">{$vo.is_public ? '公开' : '私有'}</span></h6>
+                    <p class="text-muted small">{$vo.description|default=''}</p>
+                    <button class="btn btn-sm btn-outline-primary" onclick="editFolder({$vo.id}, '{$vo.name}', '{$vo.description}', {$vo.is_public})"><i class="bi bi-pencil"></i> 编辑</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteFolder({$vo.id})"><i class="bi bi-trash"></i> 删除</button>
+                </div>
+            </div>
+        </div>
+        {/volist}
+        {if condition="empty($folders)"}<div class="text-center text-muted py-4">暂无收藏夹，点击右上角创建</div>{/if}
+    </div>
+</div>
+<div class="modal fade" id="folderModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">收藏夹</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <input type="hidden" id="folder-id">
+        <div class="mb-3"><label class="form-label">名称</label><input type="text" id="folder-name" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label">描述</label><textarea id="folder-desc" class="form-control" rows="2"></textarea></div>
+        <div class="form-check"><input type="checkbox" id="folder-public" class="form-check-input"><label class="form-check-label">公开</label></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveFolder()">保存</button></div>
+</div></div></div>
+<script>
+function resetForm() { $('#folder-id').val(''); $('#folder-name').val(''); $('#folder-desc').val(''); $('#folder-public').prop('checked', false); }
+function editFolder(id, name, desc, isPublic) { $('#folderModal').modal('show'); $('#folder-id').val(id); $('#folder-name').val(name); $('#folder-desc').val(desc); $('#folder-public').prop('checked', isPublic == 1); }
+function saveFolder() {
+    var id = $('#folder-id').val(); var url = id ? '/member/favorite_folder/edit/'+id : '/member/favorite_folder/create';
+    $.post(url, {name: $('#folder-name').val(), description: $('#folder-desc').val(), is_public: $('#folder-public').is(':checked') ? 1 : 0}, function(res) {
+        if (res.code === 0) { alert('保存成功'); location.reload(); } else { alert(res.msg); }
+    });
+}
+function deleteFolder(id) { if (!confirm('确认删除此收藏夹?收藏内容不会被删除')) return; $.post('/member/favorite_folder/delete/'+id, {}, function(res) { if (res.code === 0) { alert('删除成功'); location.reload(); } else { alert(res.msg); } }); }
+</script>
+{/block}

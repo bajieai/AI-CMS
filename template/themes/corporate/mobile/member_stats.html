@@ -1,0 +1,67 @@
+{extend name="layout" /}
+{block name="title"}内容统计 - 个人中心{/block}
+{block name="content"}
+<link rel="stylesheet" href="/static/css/member_stats.css">
+<div class="container py-3">
+    <h5 class="mb-3">📊 内容统计</h5>
+
+    <div class="stats-cards stats-cards-mobile">
+        <div class="stats-card">
+            <div class="stats-value">{$stats.totalPublished}</div>
+            <div class="stats-label">总发布</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-value">{$stats.monthPublished}</div>
+            <div class="stats-label">本月发布</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-value">{$stats.totalViews|number_format}</div>
+            <div class="stats-label">总阅读</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-value">{$stats.totalShares|number_format}</div>
+            <div class="stats-label">总分享</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-value">{$stats.avgViews}</div>
+            <div class="stats-label">平均阅读</div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h6 class="stats-section-title">近30天阅读趋势</h6>
+        {if empty($trend) || array_sum(array_column($trend, 'views')) == 0}
+        <div class="stats-empty">暂无数据</div>
+        {else}
+        <canvas id="trendChart" height="120"></canvas>
+        {/if}
+    </div>
+
+    <div class="stats-section">
+        <h6 class="stats-section-title">阅读量 TOP5</h6>
+        {if empty($top5)}
+        <div class="stats-empty">暂无内容</div>
+        {else}
+        <div class="list-group list-group-flush">
+            {volist name="top5" id="vo"}
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <div class="text-truncate" style="max-width:60%;">
+                    <span class="badge bg-primary me-1">{$i}</span>
+                    <a href="/info/{$vo.id}.html" class="text-decoration-none small">{$vo.title}</a>
+                </div>
+                <div class="text-end small">
+                    <span class="text-muted"><i class="bi bi-eye"></i> {$vo.views}</span>
+                    <span class="text-muted ms-2"><i class="bi bi-share"></i> {:\app\common\model\ShareClick::where('content_id', $vo.id)->count()}</span>
+                </div>
+            </div>
+            {/volist}
+        </div>
+        {/if}
+    </div>
+</div>
+<script src="/static/js/Chart.min.js"></script>
+<script src="/static/js/member_stats.js"></script>
+<script>
+initStats({:json_encode($trend)});
+</script>
+{/block}

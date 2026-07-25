@@ -1,0 +1,49 @@
+{extend name="layout" /}
+
+{block name="title"}布局预设方案{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">平台扩展</li>
+<li class="breadcrumb-item"><a href="/admin/template_store/index">模板商店管理</a></li>
+<li class="breadcrumb-item active">布局预设</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3">
+    {foreach $presets as $key => $preset}
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{$preset.name}</h5>
+                <p class="card-text text-muted small">{$preset.description}</p>
+                <div class="mb-2">
+                    <span class="text-muted small">包含区块：</span>
+                    {foreach $preset.sections as $section}
+                    <span class="badge bg-light text-dark">{$section.name}</span>
+                    {/foreach}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <button class="btn btn-primary btn-sm" onclick="applyPreset('{$key}')"><i class="bi bi-check-lg me-1"></i>应用此方案</button>
+            </div>
+        </div>
+    </div>
+    {/foreach}
+</div>
+
+<script>
+function applyPreset(key) {
+    if (!confirm('确定要应用此布局预设吗？当前布局配置将被覆盖。')) return;
+    fetch('/admin/template_store/apply_layout_preset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'theme_slug=default&preset_key=' + encodeURIComponent(key)
+    })
+    .then(r => r.json())
+    .then(d => {
+        alert(d.msg || '操作成功');
+    })
+    .catch(e => alert('操作失败'));
+}
+</script>
+{/block}

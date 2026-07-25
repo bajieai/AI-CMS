@@ -1,0 +1,78 @@
+{extend name="layout" /}
+{block name="title"}模板备份{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">模板商店</li>
+<li class="breadcrumb-item active">模板备份</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-archive me-1"></i>模板备份管理</span>
+        <div class="d-flex gap-2">
+            <input type="text" id="themeInput" class="form-control form-control-sm" placeholder="输入主题标识" value="{$theme}" style="width:200px;">
+            <button class="btn btn-primary btn-sm" onclick="doBackup()"><i class="bi bi-plus-circle me-1"></i>创建备份</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>备份ID</th>
+                    <th>主题</th>
+                    <th>创建时间</th>
+                    <th>大小</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td><code>{$vo.backup_id}</code></td>
+                    <td>{$theme}</td>
+                    <td>{$vo.created_at}</td>
+                    <td>{:round($vo.size/1024,2)} KB</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="doRollback('{$vo.backup_id}')">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>回滚
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="5" class="text-center text-muted py-4">
+                    {if condition="$theme"}暂无备份记录{else/}请在上方输入主题标识并创建备份{/if}
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function doBackup() {
+    const theme = document.getElementById('themeInput').value.trim();
+    if(!theme){ alert('请输入主题标识'); return; }
+    fetch('/admin/template_store/doBackup', {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded'},
+        body: 'theme=' + encodeURIComponent(theme)
+    }).then(r=>r.json()).then(res=>{
+        if(res.code===1){ alert('备份成功'); location.reload(); }
+        else alert(res.msg||'备份失败');
+    });
+}
+function doRollback(backupId) {
+    const theme = document.getElementById('themeInput').value.trim();
+    if(!confirm('确认回滚到该备份？当前主题将被覆盖！')) return;
+    fetch('/admin/template_store/doRollback', {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded'},
+        body: 'backup_id=' + encodeURIComponent(backupId) + '&theme=' + encodeURIComponent(theme)
+    }).then(r=>r.json()).then(res=>{
+        if(res.code===1){ alert('回滚成功'); }
+        else alert(res.msg||'回滚失败');
+    });
+}
+</script>
+{/block}

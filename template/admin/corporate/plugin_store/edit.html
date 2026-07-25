@@ -1,0 +1,88 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-pencil me-2"></i>编辑插件包</h4>
+    <div class="card">
+        <div class="card-body">
+            <form id="editForm" method="post" action="/admin/plugin_store/edit/{$package.id}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">插件标识</label>
+                        <input type="text" class="form-control" value="{$package.code}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">插件名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$package.name}" required maxlength="128">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">当前版本 <span class="text-danger">*</span></label>
+                        <input type="text" name="version" class="form-control" value="{$package.version}" required maxlength="32">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">分类</label>
+                        <select name="category_id" class="form-select">
+                            <option value="0">未分类</option>
+                            {volist name="categories" id="c"}
+                            <option value="{$c.id}" {if $package.category_id == $c.id}selected{/if}>{$c.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">价格</label>
+                        <input type="number" name="price" class="form-control" step="0.01" min="0" value="{$package.price}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$package.sort}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">简介</label>
+                        <textarea name="description" class="form-control" rows="3" maxlength="500">{$package.description}</textarea>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">标签</label>
+                        <input type="text" name="tags" class="form-control" value="{$package.tags}" maxlength="255">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="1" {if $package.status == 1}selected{/if}>上架</option>
+                            <option value="0" {if $package.status == 0}selected{/if}>下架</option>
+                            <option value="2" {if $package.status == 2}selected{/if}>审核中</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_recommended" value="1" id="recCheck" {if $package.is_recommended}checked{/if}>
+                            <label class="form-check-label" for="recCheck">推荐</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_hot" value="1" id="hotCheck" {if $package.is_hot}checked{/if}>
+                            <label class="form-check-label" for="hotCheck">热门</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                    <a href="/admin/plugin_store/index" class="btn btn-outline-secondary">返回</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(this.action, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    }).then(r => r.json()).then(res => {
+        layer.msg(res.msg);
+        if (res.code === 0) setTimeout(() => location.href = '/admin/plugin_store/index', 800);
+    });
+});
+</script>
+{/block}

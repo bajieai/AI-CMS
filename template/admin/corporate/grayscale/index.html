@@ -1,0 +1,151 @@
+{extend name="layout" /}
+{block name="title"}灰度发布管理 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-bezier2 me-1"></i>灰度发布管理</h5>
+        <a href="/admin/grayscale/create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>创建灰度计划</a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover table-sm mb-0">
+            <thead>
+                <tr>
+                    <th width="60">ID</th>
+                    <th>名称</th>
+                    <th width="100">策略类型</th>
+                    <th width="90">状态</th>
+                    <th width="120">进度</th>
+                    <th width="150">创建时间</th>
+                    <th width="200">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        <a href="/admin/grayscale/detail?id={$vo.id}">{$vo.name}</a>
+                        {if $vo.feature_key}<code class="small ms-1">{$vo.feature_key}</code>{/if}
+                    </td>
+                    <td>
+                        {switch name="vo.strategy"}
+                            {case value="percentage"}<span class="badge bg-primary">百分比</span>{/case}
+                            {case value="user_group"}<span class="badge bg-info">用户分群</span>{/case}
+                            {case value="ip_list"}<span class="badge bg-warning text-dark">IP列表</span>{/case}
+                            {case value="time_window"}<span class="badge bg-secondary">时间窗口</span>{/case}
+                            {case value="whitelist"}<span class="badge bg-dark">白名单</span>{/case}
+                            {default /}<span class="badge bg-light text-dark">{$vo.strategy}</span>
+                        {/switch}
+                    </td>
+                    <td>
+                        {switch name="vo.status"}
+                            {case value="0"}<span class="badge bg-secondary">草稿</span>{/case}
+                            {case value="1"}<span class="badge bg-success">运行中</span>{/case}
+                            {case value="2"}<span class="badge bg-warning text-dark">已暂停</span>{/case}
+                            {case value="3"}<span class="badge bg-danger">已回滚</span>{/case}
+                            {case value="4"}<span class="badge bg-primary">已完成</span>{/case}
+                            {default /}<span class="badge bg-light text-dark">未知</span>
+                        {/switch}
+                    </td>
+                    <td>
+                        {if $vo.status eq 4}
+                            <div class="progress" style="height:18px;"><div class="progress-bar bg-primary" style="width:100%">100%</div></div>
+                        {elseif $vo.status eq 1}
+                            <div class="progress" style="height:18px;"><div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width:50%">运行中</div></div>
+                        {elseif $vo.status eq 3}
+                            <div class="progress" style="height:18px;"><div class="progress-bar bg-danger" style="width:100%">已回滚</div></div>
+                        {elseif $vo.status eq 2}
+                            <div class="progress" style="height:18px;"><div class="progress-bar bg-warning" style="width:50%">已暂停</div></div>
+                        {else}
+                            <div class="progress" style="height:18px;"><div class="progress-bar bg-secondary" style="width:0%">草稿</div></div>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{:date('Y-m-d H:i', $vo.create_time)}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/admin/grayscale/detail?id={$vo.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                            {if $vo.status eq 0 || $vo.status eq 2}
+                            <button class="btn btn-outline-success" title="启动" onclick="grayscaleAction({$vo.id}, 'activate')"><i class="bi bi-play"></i></button>
+                            {/if}
+                            {if $vo.status eq 1}
+                            <button class="btn btn-outline-warning" title="暂停" onclick="grayscaleAction({$vo.id}, 'pause')"><i class="bi bi-pause"></i></button>
+                            {/if}
+                            {if $vo.status eq 1 || $vo.status eq 2}
+                            <button class="btn btn-outline-danger" title="回滚" onclick="grayscaleRollback({$vo.id})"><i class="bi bi-arrow-counterclockwise"></i></button>
+                            <button class="btn btn-outline-primary" title="完成全量上线" onclick="grayscaleAction({$vo.id}, 'complete')"><i class="bi bi-check2-all"></i></button>
+                            {/if}
+                            {if $vo.status eq 0 || $vo.status eq 3 || $vo.status eq 4}
+                            <button class="btn btn-outline-danger" title="删除" onclick="grayscaleDelete({$vo.id})"><i class="bi bi-trash"></i></button>
+                            {/if}
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+
+        {if condition="empty($list)"}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">暂无灰度计划</p>
+            <a href="/admin/grayscale/create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>创建第一个灰度计划</a>
+        </div>
+        {/if}
+    </div>
+    {if condition="$total > 20"}
+    <div class="card-footer">
+        <span class="text-muted small">共 {$total} 条记录</span>
+    </div>
+    {/if}
+</div>
+
+<script>
+function grayscaleAction(id, action) {
+    var confirmText = {
+        'activate': '确定要启动此灰度计划吗？',
+        'pause': '确定要暂停此灰度计划吗？',
+        'complete': '确定要全量上线吗？此操作将结束灰度。'
+    };
+    if (!confirm(confirmText[action] || '确定操作？')) return;
+    $.post('/admin/grayscale/' + action, {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess(res.msg || '操作成功');
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            alertError(res.msg || '操作失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+
+function grayscaleRollback(id) {
+    var reason = prompt('请输入回滚原因（可选）：');
+    if (reason === null) return;
+    $.post('/admin/grayscale/rollback', {id: id, reason: reason}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess('已回滚');
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            alertError(res.msg || '回滚失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+
+function grayscaleDelete(id) {
+    if (!confirm('确定要删除此灰度计划吗？此操作不可恢复。')) return;
+    $.post('/admin/grayscale/delete', {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess('已删除');
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            alertError(res.msg || '删除失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+</script>
+{/block}

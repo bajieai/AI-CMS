@@ -1,0 +1,46 @@
+{extend name="layout" /}
+{block name="title"}消息管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">小程序/移动端</li><li class="breadcrumb-item active">消息推送</li>{/block}
+{block name="content"}
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-envelope me-1"></i>消息统计 (近30天)</div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-3 text-center"><h4 class="text-primary">{$stats.total|default=0}</h4><p class="small text-muted">总发送</p></div>
+                    <div class="col-3 text-center"><h4 class="text-success">{$stats.sent|default=0}</h4><p class="small text-muted">已送达</p></div>
+                    <div class="col-3 text-center"><h4 class="text-danger">{$stats.failed|default=0}</h4><p class="small text-muted">失败</p></div>
+                    <div class="col-3 text-center"><h4 class="text-warning">{$stats.total-$stats.sent|default=0}</h4><p class="small text-muted">待发送</p></div>
+                </div>
+                {volist name="stats.by_type" id="row"}
+                <span class="badge bg-secondary me-1">{$row.msg_type}: {$row.cnt}</span>
+                {/volist}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-send me-1"></i>发送消息</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label small">用户ID</label><input type="number" id="msgMemberId" class="form-control form-control-sm"></div>
+                <div class="mb-2"><label class="form-label small">类型</label><select id="msgType" class="form-select form-select-sm"><option value="system">系统通知</option><option value="comment_reply">评论回复</option><option value="like_notify">点赞通知</option><option value="favorite_remind">收藏提醒</option><option value="audit_notify">审核通知</option></select></div>
+                <div class="mb-2"><label class="form-label small">标题</label><input type="text" id="msgTitle" class="form-control form-control-sm"></div>
+                <div class="mb-2"><label class="form-label small">内容</label><textarea id="msgContent" class="form-control form-control-sm" rows="3"></textarea></div>
+                <div class="mb-2"><label class="form-label small">渠道</label><select id="msgChannel" class="form-select form-select-sm"><option value="station">站内消息</option><option value="template">模板消息</option><option value="subscribe">订阅消息</option><option value="all">全部渠道</option></select></div>
+                <button class="btn btn-primary btn-sm w-100" onclick="sendMsg()"><i class="bi bi-send me-1"></i>发送</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function sendMsg() {
+    $.post('/admin/mini_manage/sendMessage', {
+        member_id: $('#msgMemberId').val(), type: $('#msgType').val(),
+        title: $('#msgTitle').val(), content: $('#msgContent').val(), channel: $('#msgChannel').val()
+    }, r => { showToast(r.msg, r.success?'success':'danger'); if(r.success) $('#msgTitle,#msgContent').val(''); });
+}
+</script>
+{/block}

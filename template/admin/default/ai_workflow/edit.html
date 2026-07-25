@@ -1,0 +1,111 @@
+{extend name="layout" /}
+{block name="title"}{if condition="$workflow"}编辑工作流{else/}新建工作流{/if} - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_workflow/index">AI工作流</a></li>
+<li class="breadcrumb-item active">{if condition="$workflow"}编辑{else/}新建{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>{if condition="$workflow"}编辑工作流{else/}新建工作流{/if}</h4>
+        <a href="/admin/ai_workflow/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回列表</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form id="workflowForm" onsubmit="return false;">
+                <input type="hidden" name="id" value="{$workflow.id ?? 0}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">工作流名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" value="{$workflow.name ?? ''}" placeholder="如：内容自动发布工作流" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">工作流类型</label>
+                        <select class="form-select" name="workflow_type">
+                            <option value="content" {if condition="($workflow.workflow_type ?? '') == 'content'"}selected{/if}>内容生产</option>
+                            <option value="seo" {if condition="($workflow.workflow_type ?? '') == 'seo'"}selected{/if}>SEO优化</option>
+                            <option value="translate" {if condition="($workflow.workflow_type ?? '') == 'translate'"}selected{/if}>多语言翻译</option>
+                            <option value="image" {if condition="($workflow.workflow_type ?? '') == 'image'"}selected{/if}>AI配图</option>
+                            <option value="custom" {if condition="($workflow.workflow_type ?? '') == 'custom'"}selected{/if}>自定义</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">触发方式</label>
+                        <select class="form-select" name="trigger_type">
+                            <option value="manual" {if condition="($workflow.trigger_type ?? '') == 'manual'"}selected{/if}>手动触发</option>
+                            <option value="schedule" {if condition="($workflow.trigger_type ?? '') == 'schedule'"}selected{/if}>定时触发</option>
+                            <option value="event" {if condition="($workflow.trigger_type ?? '') == 'event'"}selected{/if}>事件触发</option>
+                            <option value="api" {if condition="($workflow.trigger_type ?? '') == 'api'"}selected{/if}>API触发</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">描述</label>
+                        <textarea class="form-control" name="description" rows="2" placeholder="工作流用途说明">{$workflow.description ?? ''}</textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">工作流定义 (JSON)</label>
+                        <textarea class="form-control font-monospace" name="workflow_definition" rows="12" style="font-size:0.85rem;" placeholder='{"nodes":[],"edges":[]}'>{$workflow.workflow_definition ?? '{"nodes":[],"edges":[]}'}</textarea>
+                        <div class="form-text">定义工作流节点和连接关系，JSON格式</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">成本预算 (元)</label>
+                        <input type="number" class="form-control" name="cost_budget" value="{$workflow.cost_budget ?? 0}" min="0" step="0.01">
+                        <div class="form-text">单次执行AI调用成本上限，超过自动停止</div>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="swActive" {if condition="($workflow.is_active ?? 1)==1"}checked{/if}>
+                            <label class="form-check-label" for="swActive">启用工作流</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="btnSave"><i class="bi bi-check-lg"></i> 保存</button>
+                    <a href="/admin/ai_workflow/index" class="btn btn-outline-secondary">取消</a>
+                    {if condition="$workflow"}
+                    <button type="button" class="btn btn-outline-success ms-auto" id="btnExecute"><i class="bi bi-play-fill"></i> 立即执行</button>
+                    {/if}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnSave').click(function(){
+        var data = {};
+        $('#workflowForm').serializeArray().forEach(function(item){
+            if(item.name === 'id' || item.name === 'cost_budget'){
+                data[item.name] = parseFloat(item.value) || 0;
+            }else if(item.name === 'is_active'){
+                data[item.name] = 1;
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        if(!$('#swActive').is(':checked')) data.is_active = 0;
+        var url = data.id > 0 ? '/admin/ai_workflow/edit?id=' + data.id : '/admin/ai_workflow/edit';
+        ajaxPost(url, data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/ai_workflow/index'},800);
+        });
+    });
+
+    {if condition="$workflow"}
+    $('#btnExecute').click(function(){
+        if(!confirm('确定立即执行此工作流？')) return;
+        ajaxPost('/admin/ai_workflow/execute', {workflow_id: {$workflow.id}, target_ids:[]}, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/ai_workflow/logs?workflow_id={$workflow.id}'},1000);
+        });
+    });
+    {/if}
+});
+</script>
+{/block}

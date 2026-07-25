@@ -1,0 +1,104 @@
+{extend name="layout" /}
+
+{block name="title"}
+{if condition="$current_cate"}
+    {$current_cate.seo_title ?: $current_cate.name} - {$site_name}
+{else /}
+    {if condition="$type == 1"}产品中心
+    {elseif condition="$type == 2"}成功案例
+    {elseif condition="$type == 3"}新闻动态
+    {elseif condition="$type == 4"}资料下载
+    {elseif condition="$type == 5"}人才招聘
+    {else /}单页
+    {/if} - {$site_name}
+{/if}
+{/block}
+
+{block name="keywords"}
+{if condition="$current_cate && $current_cate.seo_keywords"}{$current_cate.seo_keywords}{else}{$site_keywords}{/if}
+{/block}
+
+{block name="description"}
+{if condition="$current_cate && $current_cate.seo_description"}{$current_cate.seo_description}{else}{$site_description}{/if}
+{/block}
+
+{block name="content"}
+
+<section class="section-padding" style="padding-top:2.5rem;">
+    <div class="container" style="max-width:1140px;">
+        <!-- 面包屑-->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/"><i class="bi bi-house me-1"></i>首页</a></li>
+                <li class="breadcrumb-item active">
+                    {if condition="$type == 1"}产品中心{/if}
+                    {if condition="$type == 2"}成功案例{/if}
+                    {if condition="$type == 3"}新闻动态{/if}
+                    {if condition="$type == 4"}资料下载{/if}
+                    {if condition="$type == 5"}人才招聘{/if}
+                </li>
+            </ol>
+        </nav>
+
+        <!-- 页面标题 -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h1 style="font-size:1.75rem;font-weight:800;color:var(--i8j-text,#1e293b);">
+                {if condition="$current_cate"}
+                    {$current_cate.name}
+                {else /}
+                    {if condition="$type == 1"}产品中心{elseif condition="$type == 2"}成功案例{elseif condition="$type == 3"}新闻动态{elseif condition="$type == 4"}资料下载{elseif condition="$type == 5"}人才招聘{else}全部内容{/if}
+                {/if}
+            </h1>
+            <!-- 分类筛选夛紙濡傛湁分类鏍戯級 -->
+            {if condition="!empty($cate_tree_html)"}
+            <div class="dropdown">
+                <button class="btn btn-sm px-3" style="background:var(--i8j-bg-secondary,#f1f5f9);border:1px solid #e2e8f0;border-radius:20px;color:#475569;font-weight:500;" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-funnel me-1"></i>筛选分类<i class="bi bi-chevron-down ms-1 small"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-2" style="min-width:240px;box-shadow:var(--shadow-card-hover);">
+                    {$cate_tree_html|raw}
+                </div>
+            </div>
+            {/if}
+        </div>
+
+        <!-- 全宽列表 -->
+        <div class="row g-4">
+            {volist name="list" id="vo"}
+            {switch vo.type}
+                {case 1}{include file="_partials/list_item_product" /}{/case}
+                {case 2}{include file="_partials/list_item_case" /}{/case}
+                {case 3}{include file="_partials/list_item_news" /}{/case}
+                {case 4}{include file="_partials/list_item_download" /}{/case}
+                {case 5}{include file="_partials/list_item_job" /}{/case}
+                {case 6}{include file="_partials/list_item_page" /}{/case}
+                {default /}{include file="_partials/list_item_page" /}{/default}
+            {/switch}
+            {/volist}
+        </div>
+
+        {empty name="list"}
+        <div class="text-center py-6" style="padding:5rem 0;background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;">
+            <i class="bi bi-inbox display-4 text-muted opacity-50"></i>
+            <h5 class="text-muted mt-3 fw-bold opacity-75">暂无相关内容</h5>
+            <p class="text-muted small mt-1 opacity-60">试试其他分类或关键词搜索</p>
+            <a href="/" class="btn mt-2" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>返回首页</a>
+        </div>
+        {/empty}
+
+        <!-- 分页 -->
+        {if condition="($list->hasPages() ?? false)"}
+        <div class="mt-5 d-flex justify-content-center">
+            <nav>{$list->render()|raw}</nav>
+        </div>
+        {/if}
+    </div>
+</section>
+
+{/block}
+
+{block name="css"}
+<style>
+.card:hover img { transform: scale(1.06); }
+</style>
+{/block}

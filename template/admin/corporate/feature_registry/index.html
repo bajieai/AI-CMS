@@ -1,0 +1,109 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-speedometer2 me-1"></i>功能看板</h5>
+        <button class="btn btn-sm btn-primary" onclick="fullCheck()"><i class="bi bi-arrow-repeat"></i> 全量健康检查</button>
+    </div>
+    <div class="card-body">
+        <div class="row text-center mb-3">
+            <div class="col-md-3">
+                <div class="card bg-light"><div class="card-body py-3">
+                    <h2 class="text-primary">{$scores.overall}%</h2>
+                    <small class="text-muted">总体健康度</small>
+                </div></div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light"><div class="card-body py-3">
+                    <h2 class="text-success">{$scores.normal}</h2>
+                    <small class="text-muted">正常功能点</small>
+                </div></div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light"><div class="card-body py-3">
+                    <h2 class="text-danger">{$scores.abnormal}</h2>
+                    <small class="text-muted">异常功能点</small>
+                </div></div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light"><div class="card-body py-3">
+                    <h2 class="text-info">{$scores.total}</h2>
+                    <small class="text-muted">功能点总数</small>
+                </div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{volist name="grouped" id="features" key="sprint"}
+<div class="card mb-3">
+    <div class="card-header">
+        <h6 class="mb-0">
+            <i class="bi bi-collection me-1"></i>Sprint {$sprint}
+            <span class="badge bg-{if $scores.by_sprint[$sprint].score >= 80}success{elseif $scores.by_sprint[$sprint].score >= 50}warning{else /}danger{/if} ms-2">
+                {$scores.by_sprint[$sprint].score}%
+            </span>
+            <small class="text-muted ms-2">{$scores.by_sprint[$sprint].normal}/{$scores.by_sprint[$sprint].total}</small>
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr><th width="80">编码</th><th>功能名称</th><th width="100">状态</th><th width="80">检查</th></tr>
+            </thead>
+            <tbody>
+                {volist name="features" id="vo"}
+                <tr>
+                    <td><code>{$vo.feature_code}</code></td>
+                    <td>{$vo.feature_name}</td>
+                    <td>
+                        {if $vo.status == 1}
+                        <span class="badge bg-success">正常</span>
+                        {elseif $vo.status == 2 /}
+                        <span class="badge bg-danger">异常</span>
+                        {else /}
+                        <span class="badge bg-secondary">禁用</span>
+                        {/if}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info py-0 px-2" onclick="checkFeature({$vo.id})">
+                            <i class="bi bi-heart-pulse"></i>
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/volist}
+
+<script>
+function checkFeature(id) {
+    $.post('/admin/feature_registry/health_check/' + id, {}, function(res) {
+        if (res.code === 0) {
+            window.ui.toast('功能点运行正常', 'success');
+        } else {
+            window.ui.toast('功能点异常: ' + (res.msg || ''), 'danger');
+        }
+    }).fail(function() {
+        window.ui.toast('检查请求失败', 'danger');
+    });
+}
+function fullCheck() {
+    var btn = event.target;
+    btn.disabled = true;
+    $.post('/admin/feature_registry/full_check', {}, function(res) {
+        btn.disabled = false;
+        if (res.code === 0) {
+            var d = res.data;
+            window.ui.toast('全量检查完成: 正常' + d.normal + '/' + d.total, 'success');
+            setTimeout(function() { location.reload(); }, 1500);
+        }
+    }).fail(function() {
+        btn.disabled = false;
+        window.ui.toast('检查请求失败', 'danger');
+    });
+}
+</script>
+{/block}

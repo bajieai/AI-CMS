@@ -1,0 +1,15 @@
+{extend name="layout" /}
+{block name="title"}系统监控 - AI-CMS{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">系统管理</li><li class="breadcrumb-item active">系统监控</li>{/block}
+{block name="content"}
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="card text-center {if $health.overall eq 'critical'}border-danger{elseif $health.overall eq 'warning'}border-warning{else/}border-success{/if}"><div class="card-body"><h5>整体状态</h5><h3 class="text-{if $health.overall eq 'critical'}danger{elseif $health.overall eq 'warning'}warning{else/}success{/if}">{$health.overall|strtoupper}</h3><small class="text-muted">关键:{$health.critical} 警告:{$health.warning}</small></div></div></div>
+  <div class="col-md-3"><div class="card"><div class="card-body"><h6>CPU</h6><h3 class="text-{if $server.cpu.usage > 80}danger{elseif $server.cpu.usage > 60}warning{else/}success{/if}">{$server.cpu.usage}%</h3><small class="text-muted">{$server.cpu.cores}核</small></div></div></div>
+  <div class="col-md-3"><div class="card"><div class="card-body"><h6>内存</h6><h3 class="text-{if $server.memory.usage_percent > 80}danger{elseif $server.memory.usage_percent > 60}warning{else/}success{/if}">{$server.memory.usage_percent}%</h3><small class="text-muted">{$server.memory.used|default=0} / {$server.memory.total|default=0}</small></div></div></div>
+  <div class="col-md-3"><div class="card"><div class="card-body"><h6>队列</h6><h3 class="text-{if $queue.pending > 100}danger{elseif $queue.pending > 20}warning{else/}success{/if}">{$queue.pending|default=0}</h3><small class="text-muted">待处理 / 失败:{$queue.failed|default=0}</small></div></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-md-6"><div class="card"><div class="card-header">磁盘使用</div><div class="card-body"><table class="table table-sm">{volist name="server.disk" id="d"}<tr><td>{$d.path}</td><td>{$d.usage_percent}%</td><td class="text-{if $d.usage_percent > 90}danger{elseif $d.usage_percent > 70}warning{else/}success{/if}"><div class="progress" style="height:6px"><div class="progress-bar bg-{if $d.usage_percent > 90}danger{elseif $d.usage_percent > 70}warning{else/}success{/if}" style="width:{$d.usage_percent}%"></div></div></td></tr>{/volist}</table></div></div></div>
+  <div class="col-md-6"><div class="card"><div class="card-header">数据库</div><div class="card-body"><table class="table table-sm"><tr><td>连接数</td><td>{$db.connections|default=0}</td></tr><tr><td>慢查询</td><td>{$db.slow_queries|default=0}</td></tr><tr><td>运行时间</td><td>{$db.uptime|default=0}s</td></tr><tr><td>总查询</td><td>{$db.questions|default=0}</td></tr></table></div></div></div>
+</div>
+{/block}

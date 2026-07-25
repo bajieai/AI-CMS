@@ -1,0 +1,16 @@
+<!-- V2.9.18 D-3: 邮件订阅表单组件 -->
+<div class="subscribe-form-container py-4 px-3 text-center" id="subscribeForm">
+    <div class="subscribe-box mx-auto" style="max-width:400px">
+        <h6 class="mb-2">📬 订阅最新资讯</h6>
+        <div class="input-group input-group-sm">
+            <input type="email" class="form-control" id="subscribeEmail" placeholder="输入邮箱地址" required>
+            <button class="btn btn-primary" type="button" onclick="doSubscribe()">订阅</button>
+        </div>
+        <small class="text-muted mt-1 d-block">订阅即表示同意接收邮件推送，可随时退订</small>
+        <div id="subscribeMsg" class="mt-2 small"></div>
+    </div>
+</div>
+
+{block name="js"}
+<script src="/static/js/subscribe.js?v=2.9.18"></script>
+{/block}

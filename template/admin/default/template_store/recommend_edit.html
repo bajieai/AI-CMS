@@ -1,0 +1,67 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">{if $info}编辑推荐位{else}添加推荐位{/if}</h4>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">推荐位置 <span class="text-danger">*</span></label>
+                    <select name="position" class="form-select" required>
+                        {foreach $positions as $k=>$v}
+                        <option value="{$k}" {if ($info.position??$k)}selected{/if}>{$v}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">推荐类型</label>
+                    <select name="recommend_type" class="form-select" id="recType">
+                        {foreach $recommendTypes as $k=>$v}
+                        <option value="{$k}" {if ($info.recommend_type??$k)}selected{/if}>{$v}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="col-md-6" id="templateBox">
+                    <label class="form-label">指定模板ID</label>
+                    <input type="number" name="template_id" class="form-control" value="{$info.template_id??'0'}" placeholder="自动推荐填0">
+                    <small class="text-muted">手动指定时填写模板ID，自动推荐填0</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">排序</label>
+                    <input type="number" name="sort" class="form-control" value="{$info.sort??'0'}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">开始时间</label>
+                    <input type="date" name="start_time" class="form-control" value="{if ($info.start_time??0)>0}{:date('Y-m-d',$info.start_time)}{/if}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">结束时间</label>
+                    <input type="date" name="end_time" class="form-control" value="{if ($info.end_time??0)>0}{:date('Y-m-d',$info.end_time)}{/if}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">状态</label>
+                    <select name="status" class="form-select">
+                        <option value="1" {if ($info.status??1)}selected{/if}>启用</option>
+                        <option value="0" {if ($info.status??0)}selected{/if}>禁用</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                    <a href="/admin/template_store_ops/recommendIndex" class="btn btn-outline-secondary">返回</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+const recType = document.getElementById('recType');
+const templateBox = document.getElementById('templateBox');
+if(recType){
+    recType.addEventListener('change',function(){
+        templateBox.style.display = this.value=='1' ? 'block' : 'none';
+    });
+}
+</script>
+{/block}

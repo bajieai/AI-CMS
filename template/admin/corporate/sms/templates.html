@@ -1,0 +1,55 @@
+{extend name="layout" /}
+{block name="title"}短信模板 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-file-text"></i> 短信模板管理</h5>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#templateModal"><i class="bi bi-plus-circle"></i> 新增模板</button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>ID</th><th>模板名称</th><th>模板编码</th><th>内容</th><th>变量</th><th>服务商</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                    {volist name="templates" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.name}</td>
+                        <td><code>{$vo.code}</code></td>
+                        <td>{$vo.content|mb_substr=0,40,'UTF-8'}</td>
+                        <td>{$vo.variables|default='-'}</td>
+                        <td><span class="badge bg-secondary">{$vo.provider}</span></td>
+                        <td>{if condition="$vo.status eq 1"}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-danger">禁用</span>{/if}</td>
+                        <td>
+                            <button onclick="deleteTemplate({$vo.id})" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        {$templates->render()|default=''}
+    </div>
+</div>
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">短信模板</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="template-form">
+                    <input type="hidden" name="id">
+                    <div class="mb-3"><label class="form-label">模板名称</label><input type="text" name="name" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">模板编码</label><input type="text" name="code" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">模板内容</label><textarea name="content" class="form-control" rows="3" required></textarea></div>
+                    <div class="mb-3"><label class="form-label">变量(逗号分隔)</label><input type="text" name="variables" class="form-control" placeholder="code,name"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" onclick="saveTemplate()">保存</button></div>
+        </div>
+    </div>
+</div>
+<script>
+function deleteTemplate(id) { if(!confirm('确定删除？')) return; $.post('{:url("/admin/sms/deleteTemplate")}', {id: id}, function(res){ if(res.code===0) location.reload(); else alert(res.msg); }); }
+function saveTemplate() { var data = $('#template-form').serialize(); $.post('{:url("/admin/sms/saveTemplate")}', data, function(res){ if(res.code===0) location.reload(); else alert(res.msg); }); }
+</script>
+{/block}

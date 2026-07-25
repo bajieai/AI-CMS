@@ -1,0 +1,50 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-clock-history me-2"></i>安装日志</h4>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3 mb-3" method="get">
+                <div class="col-md-3">
+                    <select name="source" class="form-select">
+                        <option value="">全部来源</option>
+                        <option value="web" {if $source == 'web'}selected{/if}>Web</option>
+                        <option value="api" {if $source == 'api'}selected{/if}>API</option>
+                        <option value="cli" {if $source == 'cli'}selected{/if}>CLI</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-outline-primary">筛选</button>
+                    <a href="/admin/plugin_store/logs" class="btn btn-outline-secondary">重置</a>
+                </div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr><th>ID</th><th>插件</th><th>版本</th><th>用户ID</th><th>IP</th><th>来源</th><th>状态</th><th>时间</th><th>错误信息</th></tr>
+                    </thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td>{$item.id}</td>
+                            <td>{if $item.plugin}{$item.plugin.name}{else}—{/if}</td>
+                            <td>{$item.version}</td>
+                            <td>{$item.user_id}</td>
+                            <td>{$item.ip}</td>
+                            <td><span class="badge bg-info">{$item.source}</span></td>
+                            <td>{if $item.status == 1}<span class="badge bg-success">成功</span>{else}<span class="badge bg-danger">失败</span>{/if}</td>
+                            <td>{$item.create_time}</td>
+                            <td class="small text-danger">{$item.error_msg}</td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="text-muted">共 {$list->total() ?? 0} 条</span>
+                <nav>{$list|raw}</nav>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

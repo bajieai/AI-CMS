@@ -1,0 +1,245 @@
+{extend name="layout" /}
+{block name="title"}报表模板库{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/smart_report/index">智能报表</a></li>
+<li class="breadcrumb-item active">模板库</li>
+{/block}
+{block name="content"}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5><i class="bi bi-collection-fill me-2"></i>报表模板库</h5>
+        <a href="/admin/smart_report/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+    </div>
+
+    <div class="mb-3">
+        <ul class="nav nav-pills" id="categoryTabs">
+            <li class="nav-item"><a class="nav-link active" href="#" data-cat="all">全部</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="content">内容运营</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="member">用户增长</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="traffic">流量分析</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="revenue">营收分析</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="seo">SEO优化</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="ai">AI能力</a></li>
+        </ul>
+    </div>
+
+    <div class="row g-3" id="templateList">
+        <div class="col-md-6 col-lg-4 template-card" data-cat="content">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary"><i class="bi bi-file-text me-1"></i>内容运营</span>
+                        <span class="badge bg-light text-dark">日报</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-newspaper me-1 text-primary"></i>每日内容发布统计</h6>
+                    <p class="card-text small text-muted">统计每日新增内容数量、发布状态分布、各分类占比，自动生成内容生产趋势图。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-bar-chart"></i> 柱状图</span>
+                        <span class="me-2"><i class="bi bi-calendar-day"></i> 每日</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('daily_content')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="member">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-success"><i class="bi bi-people me-1"></i>用户增长</span>
+                        <span class="badge bg-light text-dark">周报</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-person-plus me-1 text-success"></i>会员增长周报</h6>
+                    <p class="card-text small text-muted">追踪每周新注册会员数、活跃用户数、留存率变化，分析用户增长漏斗和转化路径。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-graph-up"></i> 折线图</span>
+                        <span class="me-2"><i class="bi bi-calendar-week"></i> 每周</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('weekly_member_growth')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="traffic">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-info"><i class="bi bi-eye me-1"></i>流量分析</span>
+                        <span class="badge bg-light text-dark">月报</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-globe2 me-1 text-info"></i>网站流量月报</h6>
+                    <p class="card-text small text-muted">综合PV/UV/跳出率/平均停留时长，按来源渠道和地域分布分析流量质量。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-pie-chart"></i> 饼图</span>
+                        <span class="me-2"><i class="bi bi-calendar-month"></i> 每月</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('monthly_traffic')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="revenue">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-warning text-dark"><i class="bi bi-currency-yen me-1"></i>营收分析</span>
+                        <span class="badge bg-light text-dark">月报</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-cash-stack me-1 text-warning"></i>营收月度报告</h6>
+                    <p class="card-text small text-muted">统计月度收入总额、订单数、客单价、支付渠道分布，分析收入趋势和异常波动。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-bar-chart"></i> 柱状图</span>
+                        <span class="me-2"><i class="bi bi-calendar-month"></i> 每月</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('monthly_revenue')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="seo">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-danger"><i class="bi bi-search me-1"></i>SEO优化</span>
+                        <span class="badge bg-light text-dark">周报</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-graph-down-arrow me-1 text-danger"></i>SEO关键词排名周报</h6>
+                    <p class="card-text small text-muted">追踪核心关键词排名变化、收录量、外链数量，AI给出SEO优化建议和策略。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-graph-up"></i> 折线图</span>
+                        <span class="me-2"><i class="bi bi-calendar-week"></i> 每周</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('weekly_seo')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="ai">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-dark"><i class="bi bi-cpu me-1"></i>AI能力</span>
+                        <span class="badge bg-light text-dark">月报</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-robot me-1 text-dark"></i>AI使用情况月报</h6>
+                    <p class="card-text small text-muted">统计AI调用次数、Token消耗、各模型使用占比、成本趋势，智能推荐优化方案。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-pie-chart"></i> 饼图</span>
+                        <span class="me-2"><i class="bi bi-calendar-month"></i> 每月</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('monthly_ai_usage')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="content">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary"><i class="bi bi-file-text me-1"></i>内容运营</span>
+                        <span class="badge bg-light text-dark">季报</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-clipboard-data me-1 text-primary"></i>内容质量季度报告</h6>
+                    <p class="card-text small text-muted">季度内容质量评分趋势、优质内容占比、质量分布热力图，AI分析质量瓶颈和改进方向。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-grid-3x3"></i> 混合图</span>
+                        <span class="me-2"><i class="bi bi-calendar3"></i> 每季</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('quarterly_content_quality')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="member">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-success"><i class="bi bi-people me-1"></i>用户增长</span>
+                        <span class="badge bg-light text-dark">自定义</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-funnel me-1 text-success"></i>用户行为漏斗分析</h6>
+                    <p class="card-text small text-muted">自定义时间段的用户行为漏斗：访问→浏览→注册→下单→复购，AI分析各环节流失原因。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-funnel"></i> 漏斗图</span>
+                        <span class="me-2"><i class="bi bi-calendar-event"></i> 自定义</span>
+                        <span><i class="bi bi-robot"></i> AI分析</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('custom_funnel')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 template-card" data-cat="traffic">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-info"><i class="bi bi-eye me-1"></i>流量分析</span>
+                        <span class="badge bg-light text-dark">自定义</span>
+                    </div>
+                    <h6 class="card-title"><i class="bi bi-activity me-1 text-info"></i>实时流量监控大屏</h6>
+                    <p class="card-text small text-muted">实时PV/UV趋势、来源地域分布、热门页面排行、异常流量告警，适合投屏展示。</p>
+                    <div class="small text-muted mb-2">
+                        <span class="me-2"><i class="bi bi-tv"></i> 大屏图</span>
+                        <span class="me-2"><i class="bi bi-clock"></i> 实时</span>
+                        <span><i class="bi bi-robot"></i> AI告警</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-primary btn-sm w-100" onclick="useTemplate('realtime_dashboard')"><i class="bi bi-magic me-1"></i>使用此模板</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$('#categoryTabs a').on('click', function(e){
+    e.preventDefault();
+    $('#categoryTabs a').removeClass('active');
+    $(this).addClass('active');
+    var cat = $(this).data('cat');
+    if(cat === 'all'){
+        $('.template-card').show();
+    } else {
+        $('.template-card').hide();
+        $('.template-card[data-cat="'+cat+'"]').show();
+    }
+});
+
+function useTemplate(templateKey) {
+    if(!confirm('确定使用此模板创建报表？')) return;
+    $.post('/admin/smart_report/create', {template: templateKey}, function(res){
+        if(res.code === 0){
+            showToast('报表已创建，正在跳转...', 'success');
+            setTimeout(function(){ location.href = '/admin/smart_report/preview?id=' + (res.data.id || res.data.report_id || ''); }, 1000);
+        } else {
+            showToast(res.msg || '创建失败', 'danger');
+        }
+    }).fail(function(){ showToast('请求失败', 'danger'); });
+}
+</script>
+{/block}

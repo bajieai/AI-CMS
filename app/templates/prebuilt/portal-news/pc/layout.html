@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$site_name|default='红色资讯'}</title>
+    <meta name="keywords" content="{$site_keywords|default='新闻,资讯,红色,门户'}">
+    <meta name="description" content="{$site_description|default='红色资讯门户，为您提供最新最热的新闻资讯'}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="container">
+            <div class="header-inner">
+                <div class="logo">
+                    <a href="/">
+                        <img src="/assets/placeholder/logo.png" alt="{$site_name|default='红色资讯'}">
+                    </a>
+                </div>
+                <nav class="nav" id="mainNav">
+                    <ul>
+                        <li><a href="/" class="active">首页</a></li>
+                        {volist name="nav_list" id="nav"}
+                        <li><a href="{$nav.url}">{$nav.title}</a></li>
+                        {/volist}
+                    </ul>
+                </nav>
+                <div class="search-box">
+                    <form action="/search" method="get">
+                        <input type="text" name="keyword" placeholder="搜索资讯...">
+                        <button type="submit">搜索</button>
+                    </form>
+                </div>
+                <button class="menu-toggle" id="menuToggle">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        {block name="content"}{/block}
+    </main>
+
+    <!-- 底部 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-info">
+                    <p>© 2024 {$site_name|default='红色资讯'} 版权所有</p>
+                    <p>备案号：{$site_icp|default='京ICP备00000000号'}</p>
+                </div>
+                <div class="footer-links">
+                    <h3>快速链接</h3>
+                    <ul>
+                        {volist name="footer_links" id="link"}
+                        <li><a href="{$link.url}">{$link.title}</a></li>
+                        {/volist}
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3>联系我们</h3>
+                    <p>邮箱：{$site_email|default='info@rednews.com'}</p>
+                    <p>电话：{$site_phone|default='010-00000000'}</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

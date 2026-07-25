@@ -1,0 +1,191 @@
+﻿{include file="pc/layout.html"}
+
+<!-- 首页内容 -->
+<div class="page-home">
+    <!-- Banner 轮播 -->
+    <section class="hero-banner">
+        <div class="banner-slider" id="bannerSlider">
+            <div class="banner-slide active">
+                <img src="/assets/placeholder/banner1.jpg" alt="banner1" class="banner-img">
+                <div class="banner-content">
+                    <h1 class="banner-title">创新科技 引领未来</h1>
+                    <p class="banner-desc">我们致力于为企业提供最优质的数字化解决方案</p>
+                    <a href="/list.html" class="btn btn-primary">了解更多</a>
+                </div>
+            </div>
+            <div class="banner-slide">
+                <img src="/assets/placeholder/banner2.jpg" alt="banner2" class="banner-img">
+                <div class="banner-content">
+                    <h1 class="banner-title">专业服务 值得信赖</h1>
+                    <p class="banner-desc">十年行业经验，服务超过1000家企业客户</p>
+                    <a href="/list.html" class="btn btn-primary">立即咨询</a>
+                </div>
+            </div>
+            <div class="banner-slide">
+                <img src="/assets/placeholder/banner3.jpg" alt="banner3" class="banner-img">
+                <div class="banner-content">
+                    <h1 class="banner-title">智慧赋能 共创价值</h1>
+                    <p class="banner-desc">用技术驱动商业创新，助力企业数字化转型</p>
+                    <a href="/list.html" class="btn btn-primary">查看案例</a>
+                </div>
+            </div>
+        </div>
+        <div class="banner-dots" id="bannerDots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+        <button class="banner-prev" id="bannerPrev" aria-label="上一张">‹</button>
+        <button class="banner-next" id="bannerNext" aria-label="下一张">›</button>
+    </section>
+
+    <!-- 核心优势 -->
+    <section class="section features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">核心优势</h2>
+                <p class="section-desc">我们以专业的技术和优质的服务，为客户创造价值</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="/assets/placeholder/icon1.png" alt="技术创新">
+                    </div>
+                    <h3 class="feature-title">技术创新</h3>
+                    <p class="feature-desc">采用前沿技术架构，确保系统稳定高效运行</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="/assets/placeholder/icon2.png" alt="专业团队">
+                    </div>
+                    <h3 class="feature-title">专业团队</h3>
+                    <p class="feature-desc">资深技术团队，提供全方位技术支持与服务</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="/assets/placeholder/icon3.png" alt="品质保障">
+                    </div>
+                    <h3 class="feature-title">品质保障</h3>
+                    <p class="feature-desc">严格的质量管理体系，确保项目交付品质</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="/assets/placeholder/icon4.png" alt="客户至上">
+                    </div>
+                    <h3 class="feature-title">客户至上</h3>
+                    <p class="feature-desc">以客户需求为导向，提供个性化解决方案</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 产品展示 -->
+    <section class="section products-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">产品中心</h2>
+                <p class="section-desc">我们提供多样化的产品与服务，满足不同客户需求</p>
+            </div>
+            <div class="products-grid">
+                {volist name="products" id="product" key="key" empty="<p>暂无产品数据</p>"}
+                <div class="product-card">
+                    <a href="/detail.html?id={$product.id}">
+                        <div class="product-img">
+                            <img src="{$product.thumb|default='/assets/placeholder/product1.jpg'}" alt="{$product.title}">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">{$product.title}</h3>
+                            <p class="product-desc">{$product.description|mb_substr=0,80}</p>
+                            <span class="product-more">查看详情 →</span>
+                        </div>
+                    </a>
+                </div>
+                {/volist}
+            </div>
+            <div class="section-footer">
+                <a href="/list.html" class="btn btn-outline">查看更多产品</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 新闻动态 -->
+    <section class="section news-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">新闻动态</h2>
+                <p class="section-desc">了解最新行业资讯与公司动态</p>
+            </div>
+            <div class="news-list">
+                {volist name="news" id="item" key="key" empty="<p>暂无新闻数据</p>"}
+                <article class="news-item">
+                    <a href="/detail.html?id={$item.id}" class="news-link">
+                        <div class="news-date">
+                            <span class="news-day">{$item.create_time|date='d'}</span>
+                            <span class="news-month">{$item.create_time|date='Y-m'}</span>
+                        </div>
+                        <div class="news-content">
+                            <h3 class="news-title">{$item.title}</h3>
+                            <p class="news-desc">{$item.description|mb_substr=0,120}</p>
+                            <span class="news-tag">{$item.category|default='公司新闻'}</span>
+                        </div>
+                    </a>
+                </article>
+                {/volist}
+            </div>
+            <div class="section-footer">
+                <a href="/list.html" class="btn btn-outline">查看更多新闻</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 合作伙伴 -->
+    <section class="section partners-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">合作伙伴</h2>
+                <p class="section-desc">感谢众多优秀企业选择与我们合作</p>
+            </div>
+            <div class="partners-grid">
+                {volist name="partners" id="partner" key="key" empty="<p>暂无合作伙伴数据</p>"}
+                <div class="partner-item">
+                    <img src="{$partner.logo|default='/assets/placeholder/partner1.png'}" alt="{$partner.name}">
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系我们 -->
+    <section class="section contact-section">
+        <div class="container">
+            <div class="contact-inner">
+                <div class="contact-info">
+                    <h2 class="contact-title">联系我们</h2>
+                    <p class="contact-desc">如果您有任何需求或疑问，欢迎随时与我们联系</p>
+                    <div class="contact-details">
+                        <p><strong>电话：</strong>{$site.phone|default='400-888-8888'}</p>
+                        <p><strong>邮箱：</strong>{$site.email|default='info@example.com'}</p>
+                        <p><strong>地址：</strong>{$site.address|default='北京市朝阳区某某大厦'}</p>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm" class="form">
+                        <div class="form-group">
+                            <input type="text" name="name" class="form-input" placeholder="您的姓名" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" class="form-input" placeholder="您的邮箱" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" name="phone" class="form-input" placeholder="您的电话">
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" class="form-textarea" placeholder="留言内容" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">提交留言</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

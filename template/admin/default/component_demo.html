@@ -1,0 +1,156 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item active">UI组件库演示</li>
+{/block}
+{block name="content"}
+<div class="container-fluid">
+    <h4 class="mb-4">I8J UI 组件库 V3.0</h4>
+
+    <!-- Toast -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Toast 消息提示</h6></div>
+        <div class="card-body">
+            <button class="btn btn-sm btn-outline-primary me-2" onclick="I8JToast.success('操作成功')">成功</button>
+            <button class="btn btn-sm btn-outline-danger me-2" onclick="I8JToast.error('发生错误')">错误</button>
+            <button class="btn btn-sm btn-outline-warning me-2" onclick="I8JToast.warning('请注意')">警告</button>
+            <button class="btn btn-sm btn-outline-info" onclick="I8JToast.info('提示信息')">信息</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Modal 对话框</h6></div>
+        <div class="card-body">
+            <button class="btn btn-sm btn-primary" id="btn-modal-demo">打开对话框</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Tabs 标签页</h6></div>
+        <div class="card-body">
+            <i8j-tabs data-type="top">
+                <div data-label="首页" data-tab="home">首页内容</div>
+                <div data-label="设置" data-tab="settings">设置内容</div>
+                <div data-label="关于" data-tab="about">关于内容</div>
+            </i8j-tabs>
+        </div>
+    </div>
+
+    <!-- Dropdown -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Dropdown 下拉菜单</h6></div>
+        <div class="card-body">
+            <i8j-dropdown data-trigger="click">
+                <button slot="trigger" class="btn btn-sm btn-outline-secondary">点击展开 <i class="bi bi-chevron-down"></i></button>
+                <div slot="menu">
+                    <div class="i8j-dropdown__item" data-value="edit">编辑</div>
+                    <div class="i8j-dropdown__item" data-value="copy">复制</div>
+                    <div class="i8j-dropdown__divider"></div>
+                    <div class="i8j-dropdown__item" data-value="delete">删除</div>
+                </div>
+            </i8j-dropdown>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Progress 进度条</h6></div>
+        <div class="card-body">
+            <i8j-progress data-value="45" data-type="default"></i8j-progress>
+            <i8j-progress data-value="70" data-type="success" data-striped="true" data-animated="true" class="mt-3"></i8j-progress>
+        </div>
+    </div>
+
+    <!-- Badge -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Badge 徽标</h6></div>
+        <div class="card-body">
+            <span class="position-relative d-inline-block me-4">
+                消息
+                <i8j-badge data-value="5" data-type="danger"></i8j-badge>
+            </span>
+            <span class="position-relative d-inline-block">
+                通知
+                <i8j-badge data-dot="true" data-type="primary"></i8j-badge>
+            </span>
+        </div>
+    </div>
+
+    <!-- DatePicker -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">DatePicker 日期选择</h6></div>
+        <div class="card-body">
+            <i8j-date-picker data-mode="single" data-shortcuts="today,yesterday,last7days"></i8j-date-picker>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Breadcrumb 面包屑</h6></div>
+        <div class="card-body">
+            <i8j-breadcrumb data-separator="/">
+                <span data-href="/">首页</span>
+                <span data-href="/products">产品</span>
+                <span>详情</span>
+            </i8j-breadcrumb>
+        </div>
+    </div>
+
+    <!-- Skeleton -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">Skeleton 骨架屏</h6></div>
+        <div class="card-body">
+            <i8j-skeleton data-rows="3" data-avatar="true" data-title="true"></i8j-skeleton>
+        </div>
+    </div>
+
+    <!-- DataTable -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0">DataTable 数据表格</h6></div>
+        <div class="card-body">
+            <i8j-data-table id="demo-table" data-search="true" data-selectable="true" data-page-size="5"></i8j-data-table>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script src="/assets/components/bundle/i8j-components.full.min.js"></script>
+<link rel="stylesheet" href="/assets/components/bundle/i8j-components.full.min.css">
+<script>
+document.getElementById('btn-modal-demo').addEventListener('click', function() {
+    I8JModal.confirm({
+        title: '确认操作',
+        content: '确定要执行此操作吗？',
+        onConfirm: function() {
+            I8JToast.success('已确认');
+        }
+    });
+});
+
+// DataTable 演示数据
+var demoTable = document.getElementById('demo-table');
+if (demoTable) {
+    demoTable._component.options.columns = [
+        { key: 'name', label: '名称', sortable: true },
+        { key: 'age', label: '年龄', sortable: true },
+        { key: 'city', label: '城市' },
+        { key: 'status', label: '状态', render: function(v) {
+            var cls = v === 'active' ? 'bg-success' : 'bg-secondary';
+            return '<span class="badge ' + cls + '">' + v + '</span>';
+        }}
+    ];
+    demoTable._component.options.data = [
+        { id: 1, name: '张三', age: 28, city: '北京', status: 'active' },
+        { id: 2, name: '李四', age: 32, city: '上海', status: 'inactive' },
+        { id: 3, name: '王五', age: 24, city: '广州', status: 'active' },
+        { id: 4, name: '赵六', age: 35, city: '深圳', status: 'active' },
+        { id: 5, name: '孙七', age: 29, city: '杭州', status: 'inactive' },
+        { id: 6, name: '周八', age: 26, city: '成都', status: 'active' },
+    ];
+    demoTable._component.options.total = 6;
+    demoTable._component.render();
+}
+</script>
+{/block}

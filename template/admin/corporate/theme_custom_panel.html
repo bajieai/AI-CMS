@@ -1,0 +1,192 @@
+{extend name="layout" /}
+{block name="title"}模板定制 - AI-CMS{/block}
+{block name="css"}
+<link rel="stylesheet" href="/assets/lib/pickr/themes/classic.min.css">
+<link rel="stylesheet" href="/assets/css/theme-customizer.css">
+{/block}
+
+{block name="content"}
+<div class="container-fluid p-0 theme-customizer-wrap">
+    <!-- 顶部栏 -->
+    <div class="custom-header d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+        <div class="d-flex align-items-center gap-3">
+            <h5 class="mb-0"><i class="bi bi-palette-fill me-2"></i>模板定制</h5>
+            <select id="variantSelect" class="form-select form-select-sm" style="width:160px;"></select>
+            <span id="themeBadge" class="badge bg-light text-dark border"></span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button id="btnUndo" class="btn btn-outline-secondary btn-sm" onclick="UndoManager.undo()" title="撤销 (Ctrl+Z)" disabled>
+                <i class="bi bi-arrow-counterclockwise me-1"></i>撤销<span id="undoCount" class="ms-1 badge bg-secondary" style="font-size:0.6em;"></span>
+            </button>
+            <button id="btnRedo" class="btn btn-outline-secondary btn-sm" onclick="UndoManager.redo()" title="重做 (Ctrl+Shift+Z)" disabled>
+                <i class="bi bi-arrow-clockwise me-1"></i>重做<span id="redoCount" class="ms-1 badge bg-secondary" style="font-size:0.6em;"></span>
+            </button>
+            <span id="saveStatus" class="small text-muted" style="font-size:0.75rem;"></span>
+            <div class="vr mx-1"></div>
+            <button class="btn btn-outline-secondary btn-sm" onclick="handleReset()" title="重置为默认">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>重置
+            </button>
+            <button class="btn btn-outline-primary btn-sm" onclick="handleSaveAs()" title="另存为新变体">
+                <i class="bi bi-copy me-1"></i>另存为
+            </button>
+            <a class="btn btn-outline-info btn-sm" id="exportBtn" title="导出含定制数据" target="_blank">
+                <i class="bi bi-download me-1"></i>导出
+            </a>
+            <button class="btn btn-primary btn-sm" onclick="handleSave()" title="保存并应用">
+                <i class="bi bi-check-lg me-1"></i>保存并应用
+            </button>
+        </div>
+    </div>
+
+    <!-- 主体：左面板 + 右预览 -->
+    <div class="d-flex" style="height: calc(100vh - 62px);">
+        <!-- 左侧定制面板 -->
+        <div class="custom-panel border-end" id="customPanel">
+            <div class="panel-scroll">
+                <div class="panel-section" id="variantSection" style="display:none;">
+                    <h6 class="section-title"><i class="bi bi-layers me-2"></i>变体管理</h6>
+                    <div id="variantList" class="variant-list"></div>
+                </div>
+
+                <div class="panel-section">
+                    <h6 class="section-title"><i class="bi bi-palette2 me-2"></i>预设方案</h6>
+                    <div class="preset-grid" id="presetGrid"></div>
+                </div>
+
+                <div class="panel-section">
+                    <h6 class="section-title"><i class="bi bi-droplet-fill me-2"></i>颜色设置</h6>
+                    <div class="color-grid" id="colorGrid"></div>
+                </div>
+
+                <div class="panel-section">
+                    <h6 class="section-title"><i class="bi bi-type me-2"></i>字体设置</h6>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">标题字体</label>
+                        <select id="fontHeading" class="form-select form-select-sm"></select>
+                        <div class="font-preview mt-1" id="headingPreview">智慧的灵光 AaBbCc 123</div>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-medium">正文字体</label>
+                        <select id="fontBody" class="form-select form-select-sm"></select>
+                        <div class="font-preview mt-1" id="bodyPreview">智慧的灵光 AaBbCc 123</div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h6 class="section-title"><i class="bi bi-layout-sidebar me-2"></i>布局设置</h6>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">侧栏位置</label>
+                        <div class="layout-options" id="sidebarPosOptions">
+                            <div class="layout-opt" data-value="left" title="左侧">
+                                <div class="layout-icon"><div class="sidebar-left"></div><div class="content-area"></div></div>
+                                <span>左侧</span>
+                            </div>
+                            <div class="layout-opt" data-value="right" title="右侧">
+                                <div class="layout-icon"><div class="content-area"></div><div class="sidebar-right"></div></div>
+                                <span>右侧</span>
+                            </div>
+                            <div class="layout-opt" data-value="none" title="无侧栏">
+                                <div class="layout-icon"><div class="content-full"></div></div>
+                                <span>无</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">内容宽度</label>
+                        <div class="layout-options" id="contentWidthOptions">
+                            <div class="layout-opt" data-value="1200px">
+                                <div class="width-icon"><div class="width-bar" style="width:60%"></div></div>
+                                <span>标准</span>
+                            </div>
+                            <div class="layout-opt" data-value="960px">
+                                <div class="width-icon"><div class="width-bar" style="width:45%"></div></div>
+                                <span>窄屏</span>
+                            </div>
+                            <div class="layout-opt" data-value="100%">
+                                <div class="width-icon"><div class="width-bar" style="width:100%"></div></div>
+                                <span>全宽</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-medium">页头风格</label>
+                        <div class="layout-options" id="headerStyleOptions">
+                            <div class="layout-opt" data-value="full">
+                                <div class="header-icon"><div class="header-full"></div></div>
+                                <span>完整</span>
+                            </div>
+                            <div class="layout-opt" data-value="minimal">
+                                <div class="header-icon"><div class="header-minimal"></div></div>
+                                <span>简洁</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h6 class="section-title"><i class="bi bi-image me-2"></i>Logo设置</h6>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">Logo图片</label>
+                        <div class="logo-upload-area" id="logoUploadArea">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <span class="small">点击或拖拽上传</span>
+                            <input type="file" id="logoFileInput" accept="image/*" class="d-none">
+                        </div>
+                        <div id="logoPreviewWrap" style="display:none;" class="mt-2">
+                            <img id="logoPreviewImg" class="img-thumbnail" style="max-height:60px;" alt="Logo">
+                            <button class="btn btn-outline-danger btn-sm mt-1" onclick="removeLogo()">
+                                <i class="bi bi-trash me-1"></i>移除
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-medium">Logo最大高度: <span id="logoHeightVal">40</span>px</label>
+                        <input type="range" class="form-range" id="logoMaxHeight" min="20" max="120" value="40">
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h6 class="section-title"><i class="bi bi-cursor-fill me-2"></i>按钮设置</h6>
+                    <div class="color-row mb-2">
+                        <label class="form-label small fw-medium">按钮主色</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="pickr-wrapper"><input type="text" id="pickr-btn-primary-bg"></div>
+                            <input type="text" class="form-control form-control-sm hex-input" id="hex-btn-primary-bg" placeholder="#000000" style="width:100px;">
+                        </div>
+                    </div>
+                    <div class="color-row">
+                        <label class="form-label small fw-medium">按钮悬停色</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="pickr-wrapper"><input type="text" id="pickr-btn-primary-hover"></div>
+                            <input type="text" class="form-control form-control-sm hex-input" id="hex-btn-primary-hover" placeholder="#000000" style="width:100px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧预览区 -->
+        <div class="preview-area flex-grow-1 position-relative">
+            <div class="preview-toolbar px-3 py-2 border-bottom bg-light d-flex align-items-center gap-2">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active" data-device="desktop" onclick="setDevice('desktop')"><i class="bi bi-display"></i></button>
+                    <button class="btn btn-outline-secondary" data-device="tablet" onclick="setDevice('tablet')"><i class="bi bi-tablet"></i></button>
+                    <button class="btn btn-outline-secondary" data-device="mobile" onclick="setDevice('mobile')"><i class="bi bi-phone"></i></button>
+                </div>
+                <span class="text-muted small ms-2">实时预览</span>
+                <button class="btn btn-outline-secondary btn-sm ms-auto" onclick="refreshPreview()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>刷新
+                </button>
+            </div>
+            <div class="preview-frame-wrap d-flex justify-content-center align-items-start p-3" style="height:calc(100% - 40px);overflow:auto;">
+                <iframe id="previewFrame" class="preview-iframe" style="width:100%;height:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/lib/pickr/pickr.min.js"></script>
+<script src="/assets/js/customizer-core.js"></script>
+<script src="/assets/js/customizer-ui.js"></script>
+<script src="/assets/js/theme-customizer.js"></script>
+{/block}

@@ -1,0 +1,16 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container py-4">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="mb-3">Page Title</h4>
+            {volist name="list" id="vo"}
+            <div class="border-bottom py-2">
+                <a href="/info/{.id}">{.title}</a>
+            </div>
+            {/volist}
+            {|raw}
+        </div>
+    </div>
+</div>
+{/block}

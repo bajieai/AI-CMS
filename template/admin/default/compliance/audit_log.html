@@ -1,0 +1,20 @@
+{extend name="layout" /}
+{block name="title"}审计日志查询{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/compliance/index">合规管理</a></li><li class="breadcrumb-item active">审计日志</li>{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-header"><h5>审计日志查询</h5></div>
+  <div class="card-body">
+    <form class="row g-2 mb-3" method="post" action="/admin/compliance/auditLog">
+      <div class="col-md-2"><input type="date" name="start_time" class="form-control" placeholder="开始时间"></div>
+      <div class="col-md-2"><input type="date" name="end_time" class="form-control" placeholder="结束时间"></div>
+      <div class="col-md-2"><select name="action" class="form-select"><option value="">全部操作</option>{volist name="filter_options.actions" id="a"}<option value="{$a}">{$a}</option>{/volist}</select></div>
+      <div class="col-md-2"><select name="risk_level" class="form-select"><option value="">全部级别</option><option value="low">低</option><option value="medium">中</option><option value="high">高</option></select></div>
+      <div class="col-md-2"><input type="text" name="keyword" class="form-control" placeholder="关键词"></div>
+      <div class="col-md-2"><button type="submit" class="btn btn-primary">搜索</button></div>
+    </form>
+    <div class="row mb-2"><div class="col">高风险今日: {$risk_stats.high_risk} | 中风险: {$risk_stats.medium_risk} | 低风险: {$risk_stats.low_risk}</div></div>
+    <table class="table table-hover"><thead><tr><th>ID</th><th>模块</th><th>操作</th><th>用户</th><th>IP</th><th>风险</th><th>时间</th></tr></thead><tbody id="log-table"></tbody></table>
+  </div>
+</div>
+{/block}

@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}移动端统计{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">小程序/移动端</li><li class="breadcrumb-item active">数据统计</li>{/block}
+{block name="content"}
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h3 class="text-primary">{$overview.page_views|default=0}</h3><p class="text-muted small mb-0">页面浏览量(PV)</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h3 class="text-success">{$overview.visitors|default=0}</h3><p class="text-muted small mb-0">独立访客(UV)</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h3 class="text-info">{$overview.new_users|default=0}</h3><p class="text-muted small mb-0">新用户数</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h3 class="text-warning">{$overview.bounce_rate|default=0}%</h3><p class="text-muted small mb-0">跳出率</p></div></div></div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-bar-chart me-1"></i>页面访问排行 (近7天)</div>
+    <div class="card-body">
+        <table class="table table-sm table-hover">
+            <thead><tr><th>#</th><th>页面类型</th><th>页面路径</th><th>访问量</th></tr></thead>
+            <tbody>
+                {volist name="page_rank" id="row"}
+                <tr><td>{$i}</td><td><span class="badge bg-info">{$row.page_type}</span></td><td>{$row.page_path}</td><td>{$row.total}</td></tr>
+                {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}

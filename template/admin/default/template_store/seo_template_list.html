@@ -1,0 +1,58 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-1"></i>模板SEO列表</h5>
+        <a href="/admin/template_store_seo/index" class="btn btn-sm btn-secondary"><i class="bi bi-arrow-left"></i> 返回SEO配置</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th width="60">ID</th>
+                        <th>模板名称</th>
+                        <th>SEO标题</th>
+                        <th>SEO描述</th>
+                        <th>SEO关键词</th>
+                        <th width="100">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.name}</td>
+                        <td>{$vo.seo_title|default='<span class="text-muted">未设置</span>'}</td>
+                        <td>{$vo.seo_description|default='<span class="text-muted">未设置</span>'}</td>
+                        <td>{$vo.seo_keywords|default='<span class="text-muted">未设置</span>'}</td>
+                        <td>
+                            <a href="/admin/template_store_seo/editTemplateSeo/{$vo.id}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> 编辑
+                            </a>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {if condition="empty($list)"}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">暂无模板数据</td>
+                    </tr>
+                    {/if}
+                </tbody>
+            </table>
+        </div>
+        {if condition="$total > $limit"}
+        <nav class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-muted small">共 {$total} 条</span>
+            <ul class="pagination pagination-sm">
+                {for start="1" end="ceil($total/$limit)+1"}
+                <li class="page-item {if $i==$page}active{/if}">
+                    <a class="page-link" href="?page={$i}">{$i}</a>
+                </li>
+                {/for}
+            </ul>
+        </nav>
+        {/if}
+    </div>
+</div>
+{/block}

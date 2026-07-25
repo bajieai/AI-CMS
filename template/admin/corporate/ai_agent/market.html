@@ -1,0 +1,105 @@
+{extend name="layout" /}
+{block name="title"}智能体市场 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_agent/index">AI智能体</a></li>
+<li class="breadcrumb-item active">市场</li>
+{/block}
+
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-shop me-2"></i>智能体市场</h4>
+        <a href="/admin/ai_agent/index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 我的智能体</a>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="keyword" class="form-control" placeholder="搜索智能体名称、描述..." value="{$keyword ?? ''}">
+                        <button type="submit" class="btn btn-primary">搜索</button>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <select name="sort" class="form-select d-inline-block" style="width:auto;" onchange="this.form.submit()">
+                        <option value="install" {if condition="($sort ?? '') == 'install'"}selected{/if}>按安装量</option>
+                        <option value="rating" {if condition="($sort ?? '') == 'rating'"}selected{/if}>按评分</option>
+                        <option value="newest" {if condition="($sort ?? '') == 'newest'"}selected{/if}>最新发布</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 智能体卡片 -->
+    <div class="row g-3">
+    {volist name="list" id="vo"}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2" style="width:48px;height:48px;">
+                                <i class="bi bi-robot fs-4 text-success"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title mb-0 fw-bold">
+                                    <a href="/admin/ai_agent/market_detail?id={$vo.id}" class="text-decoration-none">{$vo.name}</a>
+                                </h6>
+                                <small class="text-muted">{$vo.author ?? '官方'}</small>
+                            </div>
+                        </div>
+                        {if $vo.is_installed ?? false}
+                        <span class="badge bg-success">已安装</span>
+                        {/if}
+                    </div>
+                    <p class="card-text text-muted small" style="min-height:2.5em;">{$vo.description ?? '暂无描述'}</p>
+                    <div class="small text-muted d-flex justify-content-between mb-2">
+                        <span><i class="bi bi-download me-1"></i>{$vo.install_count ?? 0} 安装</span>
+                        <span><i class="bi bi-star-fill text-warning me-1"></i>{$vo.rating ?? '5.0'}</span>
+                    </div>
+                    {if !empty($vo.tags)}
+                    <div>
+                        {foreach name="vo.tags" item="tag"}
+                        <span class="badge bg-light text-dark me-1">{$tag}</span>
+                        {/foreach}
+                    </div>
+                    {/if}
+                </div>
+                <div class="card-footer bg-transparent">
+                    {if $vo.is_installed ?? false}
+                    <a href="/admin/ai_agent/edit?id={$vo.agent_id}" class="btn btn-sm btn-outline-success w-100"><i class="bi bi-gear"></i> 管理已安装</a>
+                    {else/}
+                    <button class="btn btn-sm btn-primary w-100" onclick="installAgent({$vo.id})"><i class="bi bi-cloud-download"></i> 一键安装</button>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    {/volist}
+    </div>
+
+    {if condition="empty($list)"}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1"></i>
+        <p class="mt-2">暂无智能体模板</p>
+    </div>
+    {/if}
+    {$list|raw}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function installAgent(id) {
+    if(!confirm('确定安装此智能体？')) return;
+    ajaxPost('/admin/ai_agent/market/install', {template_id: id}, function(d){
+        $.toast(d.msg, d.code===0?'success':'danger');
+        if(d.code===0) setTimeout(function(){location.href='/admin/ai_agent/edit?id='+d.data.id},800);
+    });
+}
+</script>
+{/block}

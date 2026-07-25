@@ -1,0 +1,89 @@
+{extend name="layout" /}
+{block name="title"}创建工作流 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-plus-circle"></i> 创建AI工作流</h5></div>
+    <div class="card-body">
+        {if condition="$templates|default=[]"}
+        <div class="mb-4">
+            <h6>从模板创建</h6>
+            <div class="row">
+                {volist name="templates" id="tpl"}
+                <div class="col-md-3 mb-2">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">{$tpl.name}</h6>
+                            <p class="card-text small text-muted">{$tpl.description|default=''}</p>
+                            <button class="btn btn-outline-primary btn-sm w-100" onclick="useTemplate({$tpl.id})"><i class="bi bi-download"></i> 使用此模板</button>
+                        </div>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+        </div>
+        <hr>
+        {/if}
+        <form method="post" action="{:url('/admin/ai_workflow/create')}">
+            <div class="row mb-3"><label class="col-sm-2 col-form-label">工作流名称</label><div class="col-sm-8"><input type="text" name="name" class="form-control" required></div></div>
+            <div class="row mb-3"><label class="col-sm-2 col-form-label">描述</label><div class="col-sm-8"><textarea name="description" class="form-control" rows="2"></textarea></div></div>
+            <div class="row mb-3"><label class="col-sm-2 col-form-label">类型</label><div class="col-sm-4"><select name="workflow_type" class="form-select">
+                <option value="content_gen">内容生成</option><option value="translation">翻译</option><option value="quality">质量检测</option>
+                <option value="recommend">推荐</option><option value="custom">自定义</option>
+            </select></div>
+            <label class="col-sm-2 col-form-label">触发方式</label><div class="col-sm-4"><select name="trigger_type" class="form-select">
+                <option value="manual">手动触发</option><option value="scheduled">定时触发</option><option value="event">事件触发</option><option value="condition">条件触发</option>
+            </select></div></div>
+            <div class="row mb-3"><label class="col-sm-2 col-form-label">工作流定义(JSON)</label><div class="col-sm-8"><textarea name="workflow_definition" class="form-control" rows="8" placeholder='{"nodes":[],"edges":[]}'></textarea></div></div>
+            <div class="row mb-3"><label class="col-sm-2 col-form-label">成本预算(元)</label><div class="col-sm-4"><input type="number" name="cost_budget" class="form-control" value="0" step="0.01"></div></div>
+            <!-- 可视化编排区域 -->
+            <div class="card mb-3">
+                <div class="card-header">可视化编排 <span class="text-muted small">(拖拽节点到画布)</span></div>
+                <div class="card-body p-0">
+                    <div class="row g-0" style="min-height:400px;">
+                        <div class="col-2 border-end p-2">
+                            <h6 class="small">节点面板</h6>
+                            <div class="d-grid gap-1">
+                                <div class="node-item btn btn-outline-primary btn-sm" draggable="true" data-type="ai_write"><i class="bi bi-pencil-square"></i> AI写作</div>
+                                <div class="node-item btn btn-outline-primary btn-sm" draggable="true" data-type="ai_image"><i class="bi bi-image"></i> AI配图</div>
+                                <div class="node-item btn btn-outline-primary btn-sm" draggable="true" data-type="ai_translate"><i class="bi bi-translate"></i> AI翻译</div>
+                                <div class="node-item btn btn-outline-primary btn-sm" draggable="true" data-type="ai_qa"><i class="bi bi-check2-circle"></i> 质量检测</div>
+                                <div class="node-item btn btn-outline-primary btn-sm" draggable="true" data-type="ai_seo"><i class="bi bi-search"></i> SEO优化</div>
+                                <div class="node-item btn btn-outline-primary btn-sm" draggable="true" data-type="ai_recommend"><i class="bi bi-stars"></i> 推荐</div>
+                                <div class="node-item btn btn-outline-primary btn-sm" draggable="true" data-type="ai_summary"><i class="bi bi-file-text"></i> 摘要</div>
+                                <div class="node-item btn btn-outline-warning btn-sm" draggable="true" data-type="condition"><i class="bi bi-diagram-2"></i> 条件分支</div>
+                                <div class="node-item btn btn-outline-success btn-sm" draggable="true" data-type="publish"><i class="bi bi-send"></i> 发布</div>
+                            </div>
+                        </div>
+                        <div class="col-7 border-end"><div id="workflow-canvas" class="w-100 h-100" style="min-height:400px;overflow:auto;"></div></div>
+                        <div class="col-3 p-2"><h6 class="small">节点属性</h6><div id="node-properties"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center"><button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> 创建工作流</button></div>
+        </form>
+    </div>
+</div>
+<script src="/assets/js/sortable.min.js"></script>
+<script>
+var nodes = [], edges = [];
+var canvas = document.getElementById('workflow-canvas');
+Sortable.create(canvas, {group: {name: 'nodes', pull: false, put: true}, onAdd: function(evt) {
+    var type = evt.item.dataset.type;
+    var nodeId = 'node_' + Date.now();
+    nodes.push({id: nodeId, type: type, label: evt.item.textContent.trim(), config: {}});
+    renderCanvas();
+}});
+function renderCanvas() {
+    canvas.innerHTML = nodes.map(function(n) {
+        return '<div class="workflow-node p-2 m-1 border rounded d-inline-block" data-id="'+n.id+'" style="cursor:move;">'+n.label+'</div>';
+    }).join('');
+}
+function useTemplate(id) {
+    if(!confirm('确定使用此模板创建工作流？')) return;
+    $.post('{:url("/admin/ai_workflow/useTemplate")}', {template_id: id}, function(res){
+        if(res.code === 0) { alert('已创建'); location.href = '{:url("/admin/ai_workflow/index")}'; }
+        else alert(res.msg);
+    });
+}
+</script>
+{/block}

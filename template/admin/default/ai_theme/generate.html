@@ -1,0 +1,256 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_theme/index">AI中心</a></li>
+<li class="breadcrumb-item active">AI主题生成</li>
+{/block}
+{block name="content"}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-magic me-2"></i>AI 生成网站主题</h5>
+            </div>
+            <div class="card-body">
+                {if condition="!$can_generate"}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    今日生成次数已达上限（{$daily_limit}次），请明日再试。
+                </div>
+                {else}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    今日剩余生成次数：<strong>{$remaining}</strong> / {$daily_limit}
+                </div>
+
+                <form id="generateForm">
+                    <!-- V2.9.11: 生成模式选择 -->
+                    <div class="mb-3">
+                        <label class="form-label">生成模式</label>
+                        <div class="row g-2">
+                            {volist name="generate_modes" id="mode" key="modeKey"}
+                            <div class="col-md-6">
+                                <div class="form-check card p-3 mode-card" data-mode="{$modeKey}">
+                                    <input class="form-check-input mode-radio" type="radio" name="generate_mode" value="{$modeKey}" id="mode_{$modeKey}" {if condition="$modeKey == 'full'"}checked{/if}>
+                                    <label class="form-check-label w-100" for="mode_{$modeKey}">
+                                        <strong>{$mode.name}</strong>
+                                        <p class="small text-muted mb-0">{$mode.description}</p>
+                                    </label>
+                                </div>
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+
+                    <!-- V2.9.11: 骨架模板选择（骨架模式时显示） -->
+                    <div class="mb-3" id="skeletonSelector" style="display:none;">
+                        <label class="form-label">选择骨架模板</label>
+                        <div class="row g-2">
+                            {volist name="skeleton_themes" id="sk" key="skKey"}
+                            <div class="col-md-6">
+                                <div class="card skeleton-card p-3" data-skeleton="{$skKey}">
+                                    <div class="d-flex align-items-center">
+                                        <div class="skeleton-icon me-3">
+                                            {if condition="$sk.layout_type == 'showcase'"}<i class="bi bi-window-desktop fs-2 text-primary"></i>{else/}<i class="bi bi-layout-text-sidebar fs-2 text-success"></i>{/if}
+                                        </div>
+                                        <div>
+                                            <strong>{$sk.name}</strong>
+                                            <p class="small text-muted mb-0">{$sk.description}</p>
+                                        </div>
+                                        <input type="radio" name="skeleton_theme" value="{$skKey}" class="form-check-input ms-auto" {if condition="$sk.layout_type == 'showcase'"}checked{/if}>
+                                    </div>
+                                </div>
+                            </div>
+                            {/volist}
+                        </div>
+                        <input type="hidden" name="layout_type" id="layoutTypeInput" value="showcase">
+                    </div>
+
+                    <!-- V2.9.11: 行业类型 -->
+                    <div class="mb-3">
+                        <label class="form-label">行业类型</label>
+                        <select name="industry_type" class="form-select" id="industrySelect">
+                            {foreach $industries as $indKey => $ind}
+                            <option value="{$indKey}" data-colors='{:json_encode($ind.color_suggestions ?? [])}'>{$ind.name}</option>
+                            {/foreach}
+                        </select>
+                        <div class="mt-2" id="colorPreview">
+                            <!-- JS动态渲染色板预览 -->
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">主题描述 <span class="text-danger">*</span></label>
+                        <textarea name="description" class="form-control" rows="4" placeholder="请描述你想要的网站主题风格，例如：一个现代科技博客主题，深色头部，卡片式内容布局，蓝色主色调..." required></textarea>
+                        <div class="form-text">描述越详细，生成效果越好。支持中文描述。</div>
+                    </div>
+
+                    <div class="row mb-3" id="fullOptions">
+                        <div class="col-md-4">
+                            <label class="form-label">风格</label>
+                            <select name="options[style]" class="form-select">
+                                <option value="现代简约">现代简约</option>
+                                <option value="商务专业">商务专业</option>
+                                <option value="科技未来">科技未来</option>
+                                <option value="文艺清新">文艺清新</option>
+                                <option value="复古经典">复古经典</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">色系</label>
+                            <select name="options[color_scheme]" class="form-select">
+                                <option value="蓝色系">蓝色系</option>
+                                <option value="绿色系">绿色系</option>
+                                <option value="紫色系">紫色系</option>
+                                <option value="橙色系">橙色系</option>
+                                <option value="暗色系">暗色系</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">布局</label>
+                            <select name="options[layout_type]" class="form-select">
+                                <option value="响应式">响应式</option>
+                                <option value="PC优先">PC优先</option>
+                                <option value="移动端优先">移动端优先</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="fullPages">
+                        <label class="form-label">需要页面</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="options[page_types][]" value="首页" checked>
+                            <label class="form-check-label">首页</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="options[page_types][]" value="列表页" checked>
+                            <label class="form-check-label">列表页</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="options[page_types][]" value="详情页" checked>
+                            <label class="form-check-label">详情页</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="options[page_types][]" value="关于我们">
+                            <label class="form-check-label">关于我们</label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-magic me-2"></i>开始生成
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 进度区域 -->
+                <div id="progressArea" class="mt-4 d-none">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <span id="progressText">正在生成中，请稍候...</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                    </div>
+                    <div class="form-text mt-1">生成过程通常需要 1-3 分钟，请勿关闭页面。</div>
+                </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+let pollTimer = null;
+let recordId = null;
+
+// V2.9.11: 模式切换
+$('input[name="generate_mode"]').on('change', function() {
+    const mode = $(this).val();
+    if (mode === 'skeleton') {
+        $('#skeletonSelector').show();
+        $('#fullOptions').hide();
+        $('#fullPages').hide();
+    } else {
+        $('#skeletonSelector').hide();
+        $('#fullOptions').show();
+        $('#fullPages').show();
+    }
+});
+
+// V2.9.11: 骨架卡片选择
+$('.skeleton-card').on('click', function() {
+    $('.skeleton-card').removeClass('border-primary bg-light');
+    $(this).addClass('border-primary bg-light');
+    $(this).find('input[type="radio"]').prop('checked', true);
+    $('#layoutTypeInput').val($(this).data('skeleton') === 'ai-base-showcase' ? 'showcase' : 'content');
+});
+
+// V2.9.11: 行业色板预览
+function renderColorPreview() {
+    const colors = $('#industrySelect option:selected').data('colors');
+    if (!colors) return;
+    let html = '<div class="d-flex gap-2 mt-1">';
+    for (const [k, v] of Object.entries(colors)) {
+        html += '<span class="d-inline-block rounded" style="width:20px;height:20px;background:' + v + '" title="' + k + ':' + v + '"></span>';
+    }
+    html += '</div>';
+    $('#colorPreview').html(html);
+}
+$('#industrySelect').on('change', renderColorPreview);
+renderColorPreview();
+
+$('#generateForm').on('submit', function(e) {
+    e.preventDefault();
+    const $btn = $('#submitBtn');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>提交中...');
+
+    $.post('/admin/ai_theme/doGenerate', $(this).serialize(), function(res) {
+        if (res.code === 0) {
+            recordId = res.data.record_id;
+            $('#progressArea').removeClass('d-none');
+            startPolling();
+        } else {
+            I8JToast.error(res.msg);
+            $btn.prop('disabled', false).html('<i class="bi bi-magic me-2"></i>开始生成');
+        }
+    }).fail(function() {
+        I8JToast.error('网络错误');
+        $btn.prop('disabled', false).html('<i class="bi bi-magic me-2"></i>开始生成');
+    });
+});
+
+function startPolling() {
+    let progress = 0;
+    pollTimer = setInterval(function() {
+        progress = Math.min(progress + 5, 90);
+        $('#progressBar').css('width', progress + '%');
+
+        $.get('/admin/ai_theme/progress', {id: recordId}, function(res) {
+            if (res.code !== 0) return;
+            const data = res.data;
+            $('#progressText').text('状态: ' + data.status_text);
+
+            if (data.status === 1 || data.status === 2) {
+                // 完成
+                clearInterval(pollTimer);
+                $('#progressBar').css('width', '100%').removeClass('progress-bar-animated');
+                $('#progressText').html('<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>生成完成！</span>');
+                I8JToast.success('生成完成，前往审核详情');
+                setTimeout(() => {
+                    location.href = '/admin/ai_theme/detail?id=' + recordId;
+                }, 1200);
+            } else if (data.status === -1 || data.status === -2) {
+                // 失败
+                clearInterval(pollTimer);
+                $('#progressBar').addClass('bg-danger').removeClass('progress-bar-animated');
+                $('#progressText').html('<span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i>生成失败</span>');
+                I8JToast.error(data.error_msg || '生成失败');
+                $('#submitBtn').prop('disabled', false).html('<i class="bi bi-magic me-2"></i>重新生成');
+            }
+        });
+    }, 3000);
+}
+</script>
+{/block}

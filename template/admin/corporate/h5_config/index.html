@@ -1,0 +1,112 @@
+{extend name="layout" /}
+{block name="title"}H5配置 - AI-CMS{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">移动端</li>
+<li class="breadcrumb-item active">H5配置</li>
+{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4"><i class="bi bi-phone me-2"></i>H5 移动端配置</h4>
+
+    <div class="row g-3">
+        <!-- 主题配置 -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-palette fs-1 text-primary"></i>
+                    </div>
+                    <h5 class="card-title">主题配置</h5>
+                    <p class="card-text text-muted small">主色调、暗黑模式、字号设置</p>
+                    <div class="mb-2">
+                        <span class="badge bg-light text-dark me-1">主色: {$theme.primary_color ?? '#1989fa'}</span>
+                        <span class="badge bg-light text-dark">暗黑: {$theme.dark_mode ?? 'auto'}</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="/admin/h5_config/theme" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-pencil me-1"></i>编辑</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能配置 -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-toggles fs-1 text-success"></i>
+                    </div>
+                    <h5 class="card-title">功能配置</h5>
+                    <p class="card-text text-muted small">PWA、推送、离线、支付开关</p>
+                    <div class="mb-2">
+                        {if isset($features.enable_pwa) && $features.enable_pwa}
+                            <span class="badge bg-success me-1">PWA</span>
+                        {/if}
+                        {if isset($features.enable_push) && $features.enable_push}
+                            <span class="badge bg-success me-1">推送</span>
+                        {/if}
+                        {if isset($features.enable_offline) && $features.enable_offline}
+                            <span class="badge bg-success me-1">离线</span>
+                        {/if}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="/admin/h5_config/edit?key=feature" class="btn btn-outline-success btn-sm w-100"><i class="bi bi-pencil me-1"></i>编辑</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 性能配置 -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-speedometer2 fs-1 text-info"></i>
+                    </div>
+                    <h5 class="card-title">性能配置</h5>
+                    <p class="card-text text-muted small">SSR、懒加载、缓存、CDN</p>
+                    <div class="mb-2">
+                        <span class="badge bg-light text-dark me-1">SSR: {if isset($performance.ssr_enabled) && $performance.ssr_enabled}开{else/}关{/if}</span>
+                        <span class="badge bg-light text-dark">缓存: {$performance.cache_ttl ?? 300}s</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="/admin/h5_config/edit?key=performance" class="btn btn-outline-info btn-sm w-100"><i class="bi bi-pencil me-1"></i>编辑</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- PWA配置 -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-box-arrow-down fs-1 text-warning"></i>
+                    </div>
+                    <h5 class="card-title">PWA 配置</h5>
+                    <p class="card-text text-muted small">应用名称、显示模式、主题色</p>
+                    <div class="mb-2">
+                        <span class="badge bg-light text-dark">{$pwa.name ?? 'AI-CMS'}</span>
+                        <span class="badge bg-light text-dark">{$pwa.display ?? 'standalone'}</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="/admin/h5_config/pwa" class="btn btn-outline-warning btn-sm w-100"><i class="bi bi-pencil me-1"></i>编辑</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header"><i class="bi bi-info-circle me-1"></i> 配置说明</div>
+        <div class="card-body">
+            <ul class="mb-0 text-muted small">
+                <li><strong>主题配置</strong>：控制 H5 前端的主色调、暗黑模式策略及字号大小</li>
+                <li><strong>功能配置</strong>：开关式控制 PWA、消息推送、离线缓存、在线支付等功能模块</li>
+                <li><strong>性能配置</strong>：SSR 服务端渲染、图片懒加载、接口缓存 TTL、CDN 加速域名</li>
+                <li><strong>PWA 配置</strong>：manifest.json 相关配置，影响"添加到桌面"体验</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,75 @@
+{/* AI助手面板组件 - V3.0 Phase 3 */}
+<div id="ai-assistant-panel" class="ai-assistant-panel">
+    <div class="ai-assistant-header">
+        <h5><i class="bi bi-robot"></i> AI 助手</h5>
+        <div class="ai-assistant-actions">
+            <button class="btn btn-sm btn-outline-secondary" id="btn-version-history" title="版本历史">
+                <i class="bi bi-clock-history"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="btn-toggle-panel">
+                <i class="bi bi-chevron-down" id="panel-toggle-icon"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="ai-assistant-body" id="ai-assistant-body">
+        {/* 对话消息区域 */}
+        <div class="ai-chat-messages" id="ai-chat-messages">
+            <div class="ai-chat-welcome">
+                <div class="ai-avatar">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="ai-welcome-text">
+                    <p>你好！我可以帮你修改这个主题。</p>
+                    <p class="text-muted small">例如："把导航栏改成深色"、"首页增加轮播图"、"调整按钮圆角为16px"</p>
+                </div>
+            </div>
+        </div>
+
+        {/* 输入区域 */}
+        <div class="ai-chat-input-area">
+            <div class="ai-chat-toolbar">
+                <span class="text-muted small" id="ai-status-text">就绪</span>
+                <span class="text-muted small" id="ai-token-info"></span>
+            </div>
+            <div class="input-group">
+                <textarea class="form-control" id="ai-chat-input" rows="2" placeholder="输入修改指令..." maxlength="1000"></textarea>
+                <button class="btn btn-primary" type="button" id="btn-send-chat" disabled>
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{/* 版本历史模态框 */}
+<div class="modal fade" id="versionHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">版本历史</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="version-history-list" class="version-history-list">
+                    <div class="text-center text-muted py-4">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{/* 版本差异模态框 */}
+<div class="modal fade" id="versionDiffModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">版本差异</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="version-diff-content" class="version-diff-content"></pre>
+            </div>
+        </div>
+    </div>
+</div>

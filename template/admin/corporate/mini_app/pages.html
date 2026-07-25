@@ -1,0 +1,79 @@
+{extend name="/layout" /}
+{block name="title"}小程序页面管理 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4"><i class="bi bi-layout-text-window-reverse"></i> 小程序页面管理</h4>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header"><h6 class="mb-0">页面列表</h6></div>
+                <div class="list-group list-group-flush" id="pageList">
+                    {volist name="pageList" id="page"}
+                    <a href="javascript:void(0)" class="list-group-item list-group-item-action page-item" data-name="{$page.name}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-file-earmark"></i> {$page.title}</span>
+                            <span class="badge bg-secondary">{$page.components}组件</span>
+                        </div>
+                    </a>
+                    {/volist}
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header"><h6 class="mb-0">可用组件</h6></div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {volist name="components" id="comp"}
+                        <button class="btn btn-sm btn-outline-primary comp-btn" data-name="{$comp.name}">
+                            <i class="bi bi-{$comp.icon}"></i> {$comp.title}
+                        </button>
+                        {/volist}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">页面配置 - <span id="currentPageName">请选择页面</span></h6>
+                </div>
+                <div class="card-body">
+                    <div id="editorArea" class="mb-3">
+                        <p class="text-muted">选择左侧页面后开始编辑组件配置</p>
+                    </div>
+                    <div id="configArea" style="display:none;">
+                        <label class="form-label">页面标题</label>
+                        <input type="text" class="form-control mb-3" id="pageTitle" placeholder="页面标题">
+                        <label class="form-label">组件配置 (JSON)</label>
+                        <textarea class="form-control mb-3" id="configJson" rows="15" style="font-family:monospace;font-size:13px;">{"title":"","components":[]}</textarea>
+                        <button class="btn btn-primary" id="savePageBtn"><i class="bi bi-check-lg"></i> 保存页面</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('.page-item').on('click', function() {
+    var name = $(this).data('name');
+    $('#currentPageName').text(name);
+    $('#configArea').show();
+    $.get('/api/mini/v1/page/' + name, function(res) {
+        if (res.code === 0) {
+            var d = res.data;
+            $('#pageTitle').val(d.title || name);
+            $('#configJson').val(JSON.stringify({title: d.title, components: d.components || []}, null, 2));
+        }
+    });
+});
+$('#savePageBtn').on('click', function() {
+    var name = $('#currentPageName').text();
+    var config = $('#configJson').val();
+    $.post('/admin/mini_app/page/save', {page_name: name, config: config}, function(res) {
+        alert(res.msg || (res.code === 0 ? '保存成功' : '保存失败'));
+    });
+});
+</script>
+{/block}

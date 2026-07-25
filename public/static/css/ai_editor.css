@@ -1,0 +1,158 @@
+/**
+ * AI-CMS V2.9.14 AI编辑器样式
+ * 用途：AI配图/SEO对比/风格选择弹窗共用样式
+ * 命名空间：ai- 前缀，避免全局污染
+ */
+
+/* ============================================================
+ * AI配图候选卡片
+ * ============================================================ */
+.ai-image-card {
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #f8f9fa;
+    min-height: 120px;
+}
+
+.ai-image-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.ai-image-card:hover {
+    border-color: #0d6efd;
+}
+
+.ai-image-card.ai-image-done {
+    border-color: #198754;
+}
+
+.ai-image-card.ai-image-used {
+    opacity: 0.6;
+    border-color: #6c757d;
+}
+
+.ai-image-card.ai-image-error {
+    border-color: #dc3545;
+}
+
+.ai-image-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.ai-image-card:hover .ai-image-overlay {
+    opacity: 1;
+}
+
+.ai-image-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.85);
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.ai-image-done-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #198754;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+/* ============================================================
+ * AI SEO对比
+ * ============================================================ */
+.ai-seo-field {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.ai-seo-field:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.ai-seo-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.ai-seo-box {
+    background: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    min-height: 60px;
+    word-break: break-all;
+}
+
+.ai-seo-new {
+    background: #e7f3ff;
+}
+
+/* ============================================================
+ * 写作风格选择器
+ * ============================================================ */
+.ai-style-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.ai-style-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+.ai-style-card:hover {
+    border-color: #0d6efd;
+    background: #f8f9ff;
+}
+
+.ai-style-card.active {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+}
+
+.ai-style-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.ai-style-desc {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.ai-style-example {
+    font-size: 0.8rem;
+    color: #495057;
+    font-style: italic;
+}

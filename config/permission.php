@@ -1,0 +1,136 @@
+<?php
+
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
+// +----------------------------------------------------------------------
+// | 官网: http://www.i8j.cn
+// +----------------------------------------------------------------------
+// | Author: 八界AI Team <admin@i8j.cn>
+// +----------------------------------------------------------------------
+// AI-CMS V2.0 权限配置（简化RBAC，role_id字段控制）
+
+return [
+    // 角色定义
+    'roles' => [
+        1 => ['name' => '超级管理员', 'permissions' => '*'],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*', 'report.*', 'apidoc.*', 'ai_translation.*', 'plugin_market.*', 'member_benefit.*', 'export_advanced.*', 'monitor.*', 'menu_manager.*', 'ai_config.*']],
+        3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
+    ],
+    
+    // 权限映射（permission key => 控制器方法映射）
+    'map' => [
+        'content.*' => ['admin/content/index', 'admin/content/add', 'admin/content/edit', 'admin/content/delete', 'admin/content/recycleBin', 'admin/content/restore', 'admin/content/forceDelete'],
+        'content.list' => ['admin/content/index'],
+        'content.add' => ['admin/content/add'],
+        'content.edit' => ['admin/content/edit'],
+        'content.delete' => ['admin/content/delete'],
+        'content.recycle' => ['admin/content/recycleBin', 'admin/content/restore', 'admin/content/forceDelete'],
+        'cate.*' => ['admin/cate/index', 'admin/cate/add', 'admin/cate/edit', 'admin/cate/delete'],
+        'cate.list' => ['admin/cate/index'],
+        'tag.*' => ['admin/tag/index', 'admin/tag/add', 'admin/tag/edit', 'admin/tag/delete'],
+        'tag.list' => ['admin/tag/index'],
+        'user.*' => ['admin/user/index', 'admin/user/add', 'admin/user/edit', 'admin/user/delete'],
+        'system.*' => ['admin/system/config', 'admin/system/customVar', 'admin/system/moduleControl', 'admin/log/index', 'admin/system/templates', 'admin/system/setTheme', 'admin/system/adminTemplates', 'admin/system/setAdminTheme', 'admin/system/allTemplates'],
+        'system.templates' => ['admin/system/templates', 'admin/system/setTheme', 'admin/system/allTemplates'],
+        'system.adminTheme' => ['admin/system/adminTemplates', 'admin/system/setAdminTheme'],
+        'system.log' => ['admin/log/index'],
+        'system.customVar' => ['admin/system/customVar', 'admin/system/customVarSave', 'admin/system/customVarDelete'],
+        'system.moduleControl' => ['admin/system/moduleControl', 'admin/system/moduleToggle'],
+        'media.*' => ['admin/media/index', 'admin/media/upload', 'admin/media/edit', 'admin/media/delete', 'admin/media/select'],
+        'media.list' => ['admin/media/index', 'admin/media/select'],
+        'media.upload' => ['admin/media/upload'],
+        'banner.*' => ['admin/banner/index', 'admin/banner/add', 'admin/banner/edit', 'admin/banner/delete'],
+        'review.*' => ['admin/review/index', 'admin/review/approve', 'admin/review/reject', 'admin/review/history'],
+        'backup.*' => ['admin/backup/index', 'admin/backup/create', 'admin/backup/restore', 'admin/backup/delete', 'admin/backup/download'],
+        'comment.*' => ['admin/comment/index', 'admin/comment/audit', 'admin/comment/delete', 'admin/comment/batch'],
+        'member.*' => ['admin/member/index', 'admin/member/detail', 'admin/member/add', 'admin/member/edit', 'admin/member/delete', 'admin/member/toggleStatus', 'admin/member/audit'],
+        'seo.*' => ['admin/seo/index', 'admin/seo/sitemap', 'admin/seo/robots'],
+        'export.*' => ['admin/export/index'],
+        'token.*' => ['admin/token/index', 'admin/token/create', 'admin/token/revoke'],
+        'ad.*' => ['admin/ad/index', 'admin/ad/add', 'admin/ad/edit', 'admin/ad/delete', 'admin/ad/stat', 'admin/ad_position/index', 'admin/ad_position/add', 'admin/ad_position/edit', 'admin/ad_position/delete'],
+        'link.*' => ['admin/link/index', 'admin/link/add', 'admin/link/edit', 'admin/link/delete', 'admin/link_group/index', 'admin/link_group/add', 'admin/link_group/edit', 'admin/link_group/delete', 'admin/link_group/toggleStatus'],
+        'notification.*' => ['admin/notification/index', 'admin/notification/read'],
+        'log.*' => ['admin/log/index', 'admin/log/export', 'admin/log/cleanup'],
+        'member_level.*' => ['admin/member_level/index', 'admin/member_level/add', 'admin/member_level/edit', 'admin/member_level/delete'],
+        'points.*' => ['admin/points_rule/index', 'admin/points_rule/save'],
+        'ai_model.*' => ['admin/ai_model/index', 'admin/ai_model/add', 'admin/ai_model/edit', 'admin/ai_model/delete', 'admin/ai_model/setDefault', 'admin/ai_model/testConnection'],
+        'ai_log.*' => ['admin/ai_log/index', 'admin/ai_log/detail', 'admin/ai_log/cleanup'],
+        'paid_order.*' => ['admin/paid_order/index', 'admin/paid_order/detail', 'admin/paid_order/refund'],
+        'dashboard.*' => ['admin/dashboard/index', 'admin/dashboard/overview', 'admin/dashboard/trend', 'admin/dashboard/topContent', 'admin/dashboard/categoryStats'],
+        'form.*' => ['admin/form/index', 'admin/form/add', 'admin/form/edit', 'admin/form/editor', 'admin/form/save', 'admin/form/delete', 'admin/form/dataIndex', 'admin/form/dataDetail', 'admin/form/dataExport', 'admin/form/dataDelete', 'admin/form/toggleEnabled'],
+        'seo_keyword.*' => ['admin/seo_keyword/index', 'admin/seo_keyword/add', 'admin/seo_keyword/edit', 'admin/seo_keyword/delete', 'admin/seo_keyword/import', 'admin/seo_keyword/group', 'admin/seo_keyword/saveGroup', 'admin/seo_keyword/deleteGroup'],
+        'import.*' => ['admin/import/index', 'admin/import/import'],
+        'email_subscriber.*' => ['admin/email_subscriber/index', 'admin/email_subscriber/delete', 'admin/email_subscriber/export'],
+        'visit_archive.*' => ['admin/visit_archive/index', 'admin/visit_archive/execute', 'admin/visit_archive/detail'],
+        // V2.5 新增权限映射
+        'payment.*' => ['admin/payment/index', 'admin/payment/config', 'admin/payment/refund', 'admin/payment/revenue'],
+        'payment.config' => ['admin/payment/config'],
+        'payment.refund' => ['admin/payment/refund'],
+        'payment.revenue' => ['admin/payment/revenue'],
+        'ai_batch.*' => ['admin/ai_batch/index', 'admin/ai_batch/create', 'admin/ai_batch/detail', 'admin/ai_batch/cancel'],
+        'collect.*' => ['admin/collect_source/index', 'admin/collect_source/add', 'admin/collect_source/edit', 'admin/collect_source/delete', 'admin/collect_source/run', 'admin/collect_log/index', 'admin/collect_log/detail'],
+        'collect.source' => ['admin/collect_source/index', 'admin/collect_source/add', 'admin/collect_source/edit', 'admin/collect_source/delete', 'admin/collect_source/run'],
+        'collect.log' => ['admin/collect_log/index', 'admin/collect_log/detail'],
+        'publish.*' => ['admin/publish_platform/index', 'admin/publish_platform/add', 'admin/publish_platform/edit', 'admin/publish_platform/delete', 'admin/publish_log/index', 'admin/publish_log/publish'],
+        'publish.platform' => ['admin/publish_platform/index', 'admin/publish_platform/add', 'admin/publish_platform/edit', 'admin/publish_platform/delete'],
+        'publish.log' => ['admin/publish_log/index', 'admin/publish_log/publish'],
+        'email.*' => ['admin/email_template/index', 'admin/email_template/add', 'admin/email_template/edit', 'admin/email_template/delete', 'admin/email_template/test', 'admin/email_log/index'],
+        'email.template' => ['admin/email_template/index', 'admin/email_template/add', 'admin/email_template/edit', 'admin/email_template/delete', 'admin/email_template/test'],
+        'email.log' => ['admin/email_log/index'],
+        'plugin.*' => ['admin/plugin/index', 'admin/plugin/install', 'admin/plugin/uninstall', 'admin/plugin/enable', 'admin/plugin/disable', 'admin/plugin/config'],
+        'language.*' => ['admin/language/index', 'admin/language/add', 'admin/language/edit', 'admin/language/delete', 'admin/language/translate'],
+        'theme_market.*' => ['admin/theme_market/index', 'admin/theme_market/scan', 'admin/theme_market/install', 'admin/theme_market/uninstall', 'admin/theme_market/checkUpdate'],
+        'captcha.*' => ['admin/captcha/config'],
+        // V2.6 新增权限映射
+        'storage.*' => ['admin/storage/config', 'admin/storage/saveConfig'],
+        'chapter.*' => ['admin/chapter/index', 'admin/chapter/add', 'admin/chapter/edit', 'admin/chapter/delete', 'admin/chapter/sort'],
+        'message.*' => ['admin/message/system', 'admin/message/sendSystem'],
+        // V2.9 新增权限映射
+        'coupon.*' => ['admin/coupon/index', 'admin/coupon/add', 'admin/coupon/edit', 'admin/coupon/delete', 'admin/coupon/issue', 'admin/coupon/records', 'admin/coupon/toggleStatus'],
+        'rating.*' => ['admin/rating/index', 'admin/rating/view', 'admin/rating/approve', 'admin/rating/reject', 'admin/rating/delete', 'admin/rating/settings'],
+        'workflow.*' => ['admin/workflow/index', 'admin/workflow/add', 'admin/workflow/edit', 'admin/workflow/delete', 'admin/workflow/records'],
+        'oauth.*' => ['admin/oauth_config/index', 'admin/oauth_config/save'],
+        'points_product.*' => ['admin/points_product/index', 'admin/points_product/add', 'admin/points_product/edit', 'admin/points_product/delete'],
+        'points_exchange.*' => ['admin/points_exchange/index', 'admin/points_exchange/audit', 'admin/points_exchange/detail'],
+        'ai_template.*' => ['admin/ai_template/index', 'admin/ai_template/edit', 'admin/ai_template/delete', 'admin/ai_template/use', 'admin/ai_template/progress'],
+        'template_design.*' => ['admin/template_design/index', 'admin/template_design/save', 'admin/template_design/preview', 'admin/template_design/reset'],
+        // V2.8 新增权限映射
+        'traffic.*' => ['admin/traffic/index', 'admin/traffic/getSourceStats', 'admin/traffic/getDeviceStats', 'admin/traffic/getHourlyStats', 'admin/traffic/getPageRank'],
+        'ai_stat.*' => ['admin/aiStat/index', 'admin/aiStat/getGenerateTrend', 'admin/aiStat/getProviderStats', 'admin/aiStat/getTaskTypeStats', 'admin/aiStat/getQualityDistribution'],
+        'invite.*' => ['admin/invite/index', 'admin/invite/detail'],
+        // V2.9.1 M9: AI数据分析报告
+        'report.*' => ['admin/report/index', 'admin/report/detail', 'admin/report/generate', 'admin/report/delete', 'admin/report/publish'],
+        // V2.9.1 M10: API文档
+        'apidoc.*' => ['admin/api_doc/index', 'admin/api_doc/export'],
+        // V2.9.2 M19a: AI翻译管理
+        'ai_translation.*' => ['admin/ai_translation/index', 'admin/ai_translation/translate', 'admin/ai_translation/batchTranslate', 'admin/ai_translation/deleteTranslation', 'admin/ai_translation/detail'],
+        // V2.9.2 M20: 会员权益配置
+        'member_benefit.*' => ['admin/member_benefit/edit', 'admin/member_benefit/save', 'admin/member_benefit/members', 'admin/member_benefit/downgrade'],
+        // V2.9.2 M23: 高级导出
+        'export_advanced.*' => ['admin/export/dialog', 'admin/export/advanced'],
+        // V2.9.2 M24: 系统监控
+        'monitor.*' => ['admin/monitor/index', 'admin/monitor/refresh'],
+        // V2.9.2 M25: 插件市场
+        'plugin_market.*' => ['admin/plugin_market/index', 'admin/plugin_market/install', 'admin/plugin_market/upload', 'admin/plugin_market/checkUpdates'],
+        // V2.9.1 M16a: 物流配置
+        'shipping.*' => ['admin/shipping/config', 'admin/shipping/saveConfig'],
+        // V2.9.1 M18: 批量内容操作（复用content权限）
+        'content.batch' => ['admin/content/batchAction'],
+        // V2.9.10: 菜单管理
+        'menu_manager.*' => ['admin/menu_manager/index', 'admin/menu_manager/saveGroup', 'admin/menu_manager/saveItem', 'admin/menu_manager/deleteGroup', 'admin/menu_manager/deleteItem', 'admin/menu_manager/sort', 'admin/menu_manager/toggleStatus'],
+        // V2.9.10: AI配置
+        'ai_config.*' => ['admin/system/aiConfig'],
+        // V2.9.21: 模板分类管理
+        'template_category.*' => [
+            'admin/template_category/index',
+            'admin/template_category/add',
+            'admin/template_category/edit',
+            'admin/template_category/save',
+            'admin/template_category/delete',
+            'admin/template_category/toggleStatus',
+        ],
+    ],
+];

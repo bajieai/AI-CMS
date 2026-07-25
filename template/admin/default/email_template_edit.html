@@ -1,0 +1,51 @@
+﻿{extend name="/layout" /}
+{block name="title"}编辑邮件模板 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">{if $info}编辑{else/}添加{/if}邮件模板</h4>
+    <div class="card"><div class="card-body">
+        <form id="tplForm">
+            <input type="hidden" name="id" value="{$info.id??0}">
+            <div class="mb-3">
+                <label class="form-label">模板名称 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="name" value="{$info.name??''}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">模板编码 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="code" value="{$info.code??''}" required placeholder="如：order_confirm">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">邮件主题 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="subject" value="{$info.subject??''}" required placeholder="支持 {{var}} 变量">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">邮件内容 <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="body" rows="10" required placeholder="支持HTML，使用 {{var}} 插入变量">{$info.body??''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">可用变量</label>
+                <input type="text" class="form-control" name="vars" value="{$info.vars??''}" placeholder="如：username,email,order_sn">
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="is_enabled" value="1" id="swEnabled" {if !isset($info) || $info.is_enabled==1}checked{/if}>
+                <label class="form-check-label" for="swEnabled">启用</label>
+            </div>
+            <button type="submit" class="btn btn-primary">保存</button>
+        </form>
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+{/block}
+{block name="js"}
+<script>
+$('#tplForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/admin/email_template/save', $(this).serialize(), function(res) {
+        if (res.code === 0) location.href = '/admin/email_template/index';
+        else alert(res.msg);
+    });
+});
+</script>
+{/block}

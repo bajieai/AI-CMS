@@ -1,0 +1,346 @@
+{extend name="layout" /}
+
+{block name="title"}运营报表{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">数据统计</li>
+<li class="breadcrumb-item active">运营报表</li>
+{/block}
+
+{block name="content"}
+<!-- 时间筛选器 -->
+<div class="card mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <label class="fw-bold mb-0"><i class="bi bi-calendar-range me-1"></i>时间范围：</label>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active" data-range="7" onclick="setRange(this)">近7天</button>
+            <button type="button" class="btn btn-outline-primary" data-range="30" onclick="setRange(this)">近30天</button>
+            <button type="button" class="btn btn-outline-primary" data-range="90" onclick="setRange(this)">近90天</button>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <input type="date" id="startDate" class="form-control form-control-sm" style="width:140px">
+            <span>至</span>
+            <input type="date" id="endDate" class="form-control form-control-sm" style="width:140px">
+            <button class="btn btn-sm btn-primary" onclick="loadCustomRange()">查询</button>
+            <button class="btn btn-sm btn-outline-success" onclick="exportCsv()" title="导出CSV"><i class="bi bi-download"></i> CSV</button>
+        </div>
+    </div>
+</div>
+
+<!-- 核心指标卡片（V2.9.9 J-1: 趋势指示器）-->
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-start border-4 border-primary">
+            <div class="card-body position-relative">
+                <div class="text-muted small mb-1">总浏览量(PV)</div>
+                <div class="fs-3 fw-bold" id="metricPv">-</div>
+                <span class="trend-indicator" id="trendPv" data-metric="pv"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-start border-4 border-success">
+            <div class="card-body position-relative">
+                <div class="text-muted small mb-1">独立访客(UV)</div>
+                <div class="fs-3 fw-bold" id="metricUv">-</div>
+                <span class="trend-indicator" id="trendUv" data-metric="uv"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-start border-4 border-info">
+            <div class="card-body position-relative">
+                <div class="text-muted small mb-1">新访客</div>
+                <div class="fs-3 fw-bold" id="metricNew">-</div>
+                <span class="trend-indicator" id="trendNew" data-metric="new_visitor"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-start border-4 border-warning">
+            <div class="card-body position-relative">
+                <div class="text-muted small mb-1">订单金额</div>
+                <div class="fs-3 fw-bold" id="metricRevenue">-</div>
+                <span class="trend-indicator" id="trendRevenue" data-metric="order_amount"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 内容+订单指标 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-file-text me-1"></i>内容维度</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <div class="text-muted small">新增内容</div>
+                        <div class="fs-4 fw-bold text-primary" id="metricContent">-</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted small">内容总浏览</div>
+                        <div class="fs-4 fw-bold text-success" id="metricContentViews">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-cart me-1"></i>订单维度</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <div class="text-muted small">成交订单</div>
+                        <div class="fs-4 fw-bold text-warning" id="metricOrders">-</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted small">成交金额</div>
+                        <div class="fs-4 fw-bold text-danger" id="metricAmount">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 图表区 -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-1"></i>DAU趋势 <span class="badge-beta">Beta</span></span>
+                <small class="text-muted">基于IP去重日活</small>
+            </div>
+            <div class="card-body">
+                <div id="dauChart" style="height:300px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-browser-chrome me-1"></i>浏览器分布</div>
+            <div class="card-body">
+                <div id="browserChart" style="height:300px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 跳出率 + 停留时长 -->
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-activity me-1"></i>跳出率 <span class="badge-beta">Beta</span></div>
+            <div class="card-body text-center">
+                <div id="bounceRateValue" class="display-4 fw-bold text-primary">-</div>
+                <div class="text-muted small">单页会话占比</div>
+                <div class="mt-2 text-muted small" id="bounceDetail">-</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-clock-history me-1"></i>热门内容停留时长 <span class="badge-beta">Beta</span></div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>内容标题</th>
+                            <th width="80">PV</th>
+                            <th width="80">UV</th>
+                            <th width="100">停留(秒)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contentDurationList">
+                        <tr><td colspan="4" class="text-center text-muted py-4">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="css"}
+<style>
+/* V2.9.9 J-1: 趋势指示器 */
+.trend-indicator { position: absolute; top: 8px; right: 12px; font-size: 0.75rem; padding: 2px 6px; border-radius: 12px; font-weight: 600; }
+.trend-up { background: rgba(25,135,84,0.1); color: #198754; }
+.trend-down { background: rgba(220,53,69,0.1); color: #dc3545; }
+.trend-flat { background: rgba(108,117,125,0.1); color: #6c757d; }
+</style>
+{/block}
+
+{block name="js"}
+<script>
+var dauChart = echarts.init(document.getElementById('dauChart'));
+var browserChart = echarts.init(document.getElementById('browserChart'));
+
+var currentRange = {days: 7, start: '', end: ''};
+
+function setRange(btn) {
+    $('.btn-group .btn').removeClass('active');
+    $(btn).addClass('active');
+    currentRange.days = parseInt($(btn).data('range'));
+    currentRange.start = '';
+    currentRange.end = '';
+    $('#startDate').val('');
+    $('#endDate').val('');
+    loadAll();
+}
+
+function loadCustomRange() {
+    var s = $('#startDate').val();
+    var e = $('#endDate').val();
+    if(!s || !e) { alert('请选择起止日期'); return; }
+    $('.btn-group .btn').removeClass('active');
+    currentRange.days = 0;
+    currentRange.start = s;
+    currentRange.end = e;
+    loadAll();
+}
+
+function loadAll() {
+    // V2.9.9 G-3: 并行加载减少等待时间（K-1修复：真正的异步Promise）
+    Promise.all([
+        loadOperationsReport(),
+        loadDauMau(),
+        loadBrowserStats(),
+        loadBounceRate(),
+        loadContentDuration(),
+        loadTrendIndicators()
+    ]).then(function() {
+        console.log('V2.9.9 operations data loaded');
+    }).catch(function(err) {
+        console.error('Operations data load failed:', err);
+    });
+}
+
+// V2.9.9 J-1: 趋势指示器
+function loadTrendIndicators() {
+    var days = currentRange.days || 7;
+    var metrics = ['pv','uv','new_visitor','order_amount'];
+    var map = { 'pv': 'trendPv', 'uv': 'trendUv', 'new_visitor': 'trendNew', 'order_amount': 'trendRevenue' };
+    metrics.forEach(function(metric) {
+        $.get('/admin/dashboard/getMetricTrend', { metric: metric, days: days }, function(d) {
+            if(d.code !== 0) return;
+            renderTrendIndicator(map[metric], d.data);
+        });
+    });
+}
+
+function renderTrendIndicator(elId, data) {
+    var el = $('#' + elId);
+    if(!el.length || !data) return;
+    var icon = data.trend === 'up' ? 'bi-arrow-up-short' : data.trend === 'down' ? 'bi-arrow-down-short' : 'bi-dash';
+    var cls = data.trend === 'up' ? 'trend-up' : data.trend === 'down' ? 'trend-down' : 'trend-flat';
+    var sign = data.diff_percent > 0 ? '+' : '';
+    el.html('<i class="bi ' + icon + '"></i>' + sign + data.diff_percent + '%').addClass(cls);
+    el.attr('title', '当前: ' + data.current_value + ' / 上期: ' + data.previous_value);
+}
+
+function loadOperationsReport() {
+    var url = '/admin/dashboard/getOperationsReport';
+    if(currentRange.start && currentRange.end) {
+        url += '?start=' + currentRange.start + '&end=' + currentRange.end;
+    }
+    return $.get(url, function(d) {
+        if(d.code !== 0) return;
+        $('#metricPv').text(d.data.visitor.pv.toLocaleString());
+        $('#metricUv').text(d.data.visitor.uv.toLocaleString());
+        $('#metricNew').text(d.data.visitor.new_visitor_count.toLocaleString());
+        $('#metricRevenue').text('¥' + (d.data.order.amount || 0).toLocaleString());
+        $('#metricContent').text(d.data.content.published.toLocaleString());
+        $('#metricContentViews').text(d.data.content.total_views.toLocaleString());
+        $('#metricOrders').text(d.data.order.count.toLocaleString());
+        $('#metricAmount').text('¥' + (d.data.order.amount || 0).toLocaleString());
+    });
+}
+
+function loadDauMau() {
+    var days = currentRange.days || 30;
+    return $.get('/admin/dashboard/getDauMau?days=' + days, function(d) {
+        if(d.code !== 0) return;
+        var dates = [], daus = [];
+        $.each(d.data.daily, function(i, v) {
+            dates.push(v.date);
+            daus.push(v.dau);
+        });
+        dauChart.setOption({
+            tooltip: {trigger: 'axis'},
+            grid: {left: '3%', right: '4%', bottom: '3%', containLabel: true},
+            xAxis: {type: 'category', data: dates},
+            yAxis: {type: 'value'},
+            series: [{
+                type: 'line', data: daus, smooth: true,
+                areaStyle: {color: 'rgba(59,130,246,0.15)'},
+                itemStyle: {color: '#3B82F6'}
+            }]
+        });
+    });
+}
+
+function loadBrowserStats() {
+    return $.get('/admin/dashboard/getBrowserStats?days=7', function(d) {
+        if(d.code !== 0) return;
+        var names = {'chrome':'Chrome','safari':'Safari','firefox':'Firefox','edge':'Edge','opera':'Opera','ie':'IE','other':'其他'};
+        var pieData = $.map(d.data, function(v) {
+            return {name: names[v.browser] || v.browser, value: v.count};
+        });
+        browserChart.setOption({
+            tooltip: {trigger: 'item', formatter: '{b}: {c} ({d}%)'},
+            series: [{type: 'pie', radius: ['40%', '70%'], label: {show: true, formatter: '{b}\n{d}%'}, data: pieData}]
+        });
+    });
+}
+
+function loadBounceRate() {
+    return $.get('/admin/dashboard/getBounceRate?days=7', function(d) {
+        if(d.code !== 0) return;
+        $('#bounceRateValue').text(d.data.bounce_rate + '%');
+        $('#bounceDetail').text('会话' + d.data.total_sessions + ' / 跳出' + d.data.bounced_sessions);
+    });
+}
+
+function loadContentDuration() {
+    return $.get('/admin/dashboard/getTopContentWithDuration?limit=10&days=7', function(d) {
+        if(d.code !== 0) return;
+        var html = '';
+        $.each(d.data, function(i, v) {
+            html += '<tr>'
+                + '<td class="text-truncate" style="max-width:400px" title="' + (v.title || '') + '">' + (v.title || '-') + '</td>'
+                + '<td>' + v.pv + '</td>'
+                + '<td>' + v.uv + '</td>'
+                + '<td>' + (v.avg_duration || 0) + 's</td>'
+                + '</tr>';
+        });
+        if(!html) html = '<tr><td colspan="4" class="text-center text-muted py-3">暂无数据</td></tr>';
+        $('#contentDurationList').html(html);
+    });
+}
+
+$(function() {
+    // 设置默认日期
+    var today = new Date().toISOString().split('T')[0];
+    var weekAgo = new Date(Date.now() - 6*86400000).toISOString().split('T')[0];
+    $('#endDate').val(today);
+    $('#startDate').val(weekAgo);
+    loadAll();
+});
+
+function exportCsv() {
+    var url = '/admin/dashboard/exportOperationsCsv?days=' + (currentRange.days || 30);
+    if(currentRange.start && currentRange.end) {
+        url += '&start=' + currentRange.start + '&end=' + currentRange.end;
+    }
+    window.location.href = url;
+}
+
+$(window).resize(function() {
+    dauChart.resize();
+    browserChart.resize();
+});
+</script>
+{/block}

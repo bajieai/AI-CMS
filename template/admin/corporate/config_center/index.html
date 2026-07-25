@@ -1,0 +1,100 @@
+{extend name="layout" /}
+{block name="title"}配置中心 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-gear me-1"></i>配置中心</h5>
+        <div class="d-flex gap-2">
+            <a href="/admin/config_center/export" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>导出</a>
+            <button type="button" class="btn btn-sm btn-outline-warning" onclick="clearConfigCache()"><i class="bi bi-trash3 me-1"></i>清除缓存</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- 环境切换 -->
+        <div class="mb-3 d-flex align-items-center gap-2">
+            <span class="text-muted small">环境：</span>
+            <select id="envFilter" class="form-select form-select-sm" style="width:auto;" onchange="filterByEnv()">
+                <option value="">全部环境</option>
+                {volist name="envs" id="env"}
+                <option value="{$env.key}" {if $env.key eq ''}selected{/if}>{$env.label}</option>
+                {/volist}
+            </select>
+        </div>
+
+        <!-- 配置组卡片列表 -->
+        <div class="row g-3">
+            {volist name="groups" id="group"}
+            <div class="col-md-3 col-sm-6">
+                <a href="/admin/config_center/group?group={$group.key}" class="card text-decoration-none text-dark h-100 config-group-card">
+                    <div class="card-body text-center">
+                        <div class="mb-2">
+                            {switch name="group.key"}
+                                {case value="system"}<i class="bi bi-cpu fs-1 text-primary"></i>{/case}
+                                {case value="security"}<i class="bi bi-shield-lock fs-1 text-danger"></i>{/case}
+                                {case value="seo"}<i class="bi bi-graph-up fs-1 text-success"></i>{/case}
+                                {case value="email"}<i class="bi bi-envelope fs-1 text-info"></i>{/case}
+                                {case value="sms"}<i class="bi bi-chat-dots fs-1 text-warning"></i>{/case}
+                                {case value="payment"}<i class="bi bi-credit-card fs-1 text-primary"></i>{/case}
+                                {case value="ai"}<i class="bi bi-robot fs-1 text-secondary"></i>{/case}
+                                {case value="upload"}<i class="bi bi-cloud-upload fs-1 text-info"></i>{/case}
+                                {case value="cache"}<i class="bi bi-lightning fs-1 text-warning"></i>{/case}
+                                {case value="performance"}<i class="bi bi-speedometer2 fs-1 text-success"></i>{/case}
+                                {default /}<i class="bi bi-folder fs-1 text-secondary"></i>
+                            {/switch}
+                        </div>
+                        <h6 class="card-title mb-1">{$group.label}</h6>
+                        <span class="badge bg-light text-dark">{$group.count} 项配置</span>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+
+        {if condition="empty($groups)"}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">暂无配置分组</p>
+        </div>
+        {/if}
+    </div>
+</div>
+
+<style>
+.config-group-card {
+    transition: all 0.2s;
+    border: 1px solid #dee2e6;
+}
+.config-group-card:hover {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+function filterByEnv() {
+    var env = $('#envFilter').val();
+    var url = new URL(window.location.href);
+    if (env) {
+        url.searchParams.set('env', env);
+    } else {
+        url.searchParams.delete('env');
+    }
+    window.location.href = url.href;
+}
+
+function clearConfigCache() {
+    if (!confirm('确定要清除所有配置缓存吗？')) return;
+    $.post('/admin/config_center/clearCache', function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess('缓存已清除');
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            alertError(res.msg || '操作失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}购物车{/block}
+{block name="content"}
+<div class="m-content">
+    <h4 style="font-size:17px;font-weight:700;margin-bottom:12px;"><i class="bi bi-cart me-2"></i>购物车</h4>
+    {volist name="cart" id="vo"}
+    <div class="m-card">
+        <div class="m-card-body d-flex justify-content-between align-items-center">
+            <span>模板 #{$vo.template_id}</span>
+            <button class="btn btn-sm btn-outline-danger" onclick="removeCart({$vo.template_id})">移除</button>
+        </div>
+    </div>
+    {/volist}
+    {if condition="count($cart) > 0"}
+    <button class="btn btn-primary w-100 mt-3" onclick="checkout()">结算</button>
+    {else /}
+    <div class="text-center text-muted py-5">购物车为空</div>
+    {/if}
+</div>
+<script>
+function removeCart(id){$.post('/template_store/addToCart',{template_id:id},function(r){if(r.code==0)location.reload()})}
+function checkout(){$.post('/template_store/checkout',function(r){if(r.code==0)alert('结算成功')})}
+</script>
+{/block}

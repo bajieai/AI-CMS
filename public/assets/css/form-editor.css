@@ -1,0 +1,369 @@
+/* ========== AI-CMS V2.7 表单可视化编辑器 ========== */
+
+.form-editor-wrap {
+    display: flex;
+    gap: 16px;
+    height: calc(100vh - 180px);
+    min-height: 520px;
+}
+
+/* 左侧面板 */
+.form-editor-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #fff;
+    border: 1px solid var(--border-color, #e2e6ef);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.form-editor-sidebar .sidebar-header {
+    padding: 12px 14px;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-color, #e2e6ef);
+    background: #f8fafc;
+}
+.form-editor-sidebar .field-palette {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-content: start;
+}
+.form-editor-sidebar .palette-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 4px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    cursor: grab;
+    font-size: 12px;
+    color: #475569;
+    background: #fff;
+    transition: all .15s ease;
+    user-select: none;
+}
+.form-editor-sidebar .palette-item:hover {
+    border-color: var(--primary, #3699ff);
+    color: var(--primary, #3699ff);
+    background: #f0f7ff;
+}
+.form-editor-sidebar .palette-item i {
+    font-size: 18px;
+}
+.form-editor-sidebar .palette-item.dragging {
+    opacity: .5;
+}
+
+/* 中间画布 */
+.form-editor-canvas {
+    flex: 1;
+    background: #f1f5f9;
+    border: 1px solid var(--border-color, #e2e6ef);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.form-editor-canvas .canvas-header {
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color, #e2e6ef);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.form-editor-canvas .canvas-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+.form-editor-canvas .canvas-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 28px 32px;
+    min-height: 300px;
+}
+.form-editor-canvas .canvas-placeholder {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+}
+.form-editor-canvas .canvas-placeholder.drag-over {
+    border-color: var(--primary, #3699ff);
+    background: #f0f7ff;
+}
+
+/* 画布中的字段 */
+.canvas-field {
+    position: relative;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.canvas-field:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+.canvas-field.active {
+    border-color: var(--primary, #3699ff);
+    background: #f0f7ff;
+    box-shadow: 0 0 0 3px rgba(54,153,255,.08);
+}
+.canvas-field .field-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: none;
+    gap: 4px;
+}
+.canvas-field:hover .field-actions,
+.canvas-field.active .field-actions {
+    display: flex;
+}
+.canvas-field .field-actions .btn-icon {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-size: 12px;
+    cursor: pointer;
+}
+.canvas-field .field-actions .btn-icon:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+.canvas-field .field-actions .btn-icon.delete:hover {
+    background: #fef2f2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+.canvas-field .field-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 6px;
+}
+.canvas-field .field-label .required-mark {
+    color: #ef4444;
+    margin-left: 2px;
+}
+.canvas-field .field-input-mock {
+    height: 36px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    width: 100%;
+}
+.canvas-field .field-input-mock.textarea {
+    height: 80px;
+}
+.canvas-field .field-input-mock.select,
+.canvas-field .field-input-mock.radio,
+.canvas-field .field-input-mock.checkbox {
+    height: auto;
+    background: transparent;
+    border: none;
+    padding: 4px 0;
+}
+.canvas-field .field-input-mock .mock-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #64748b;
+}
+.canvas-field .field-input-mock .mock-option::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.canvas-field .field-input-mock.checkbox .mock-option::before {
+    border-radius: 3px;
+}
+.canvas-field .field-help {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+.canvas-field.sort-ghost {
+    opacity: .4;
+    background: #f0f7ff;
+    border: 1px dashed var(--primary, #3699ff);
+}
+
+/* 拖放插入位置指示线 */
+.canvas-field.drop-before {
+    position: relative;
+}
+.canvas-field.drop-before::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: var(--primary, #3699ff);
+    border-radius: 2px;
+    position: absolute;
+    top: -2px;
+    left: 4px;
+    right: 4px;
+    z-index: 2;
+}
+.canvas-field.drop-after {
+    position: relative;
+}
+.canvas-field.drop-after::after {
+    content: '';
+    display: block;
+    height: 3px;
+    background: var(--primary, #3699ff);
+    border-radius: 2px;
+    position: absolute;
+    bottom: -2px;
+    left: 4px;
+    right: 4px;
+    z-index: 2;
+}
+.canvas-field .drag-handle {
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #cbd5e1;
+    cursor: grab;
+    font-size: 14px;
+    display: none;
+}
+.canvas-field:hover .drag-handle {
+    display: block;
+}
+
+/* 右侧面板 */
+.form-editor-props {
+    width: 280px;
+    flex-shrink: 0;
+    background: #fff;
+    border: 1px solid var(--border-color, #e2e6ef);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.form-editor-props .props-header {
+    padding: 12px 14px;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-color, #e2e6ef);
+    background: #f8fafc;
+}
+.form-editor-props .props-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+}
+.form-editor-props .props-empty {
+    text-align: center;
+    padding: 40px 10px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+.form-editor-props .prop-row {
+    margin-bottom: 12px;
+}
+.form-editor-props .prop-row label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 4px;
+}
+.form-editor-props .prop-row input[type="text"],
+.form-editor-props .prop-row input[type="number"],
+.form-editor-props .prop-row textarea,
+.form-editor-props .prop-row select {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+}
+.form-editor-props .prop-row input:focus,
+.form-editor-props .prop-row textarea:focus,
+.form-editor-props .prop-row select:focus {
+    outline: none;
+    border-color: var(--primary, #3699ff);
+    box-shadow: 0 0 0 3px rgba(54,153,255,.08);
+}
+.form-editor-props .prop-row textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+.form-editor-props .prop-row .form-check {
+    font-size: 13px;
+}
+
+/* 预设模板 */
+.template-presets {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.template-presets .preset-chip {
+    padding: 5px 10px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    transition: all .15s;
+}
+.template-presets .preset-chip:hover {
+    border-color: var(--primary, #3699ff);
+    color: var(--primary, #3699ff);
+    background: #f0f7ff;
+}
+
+/* 响应式 */
+@media (max-width: 1199.98px) {
+    .form-editor-wrap {
+        flex-direction: column;
+        height: auto;
+    }
+    .form-editor-sidebar,
+    .form-editor-props {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+    }
+    .form-editor-canvas {
+        min-height: 400px;
+    }
+}

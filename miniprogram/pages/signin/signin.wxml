@@ -1,0 +1,42 @@
+<!-- pages/signin/signin.wxml - V2.9 签到页面 -->
+<view class="container">
+  <view class="signin-header">
+    <text class="signin-days">已连续签到 {{signinDays}} 天</text>
+    <text class="signin-points">累计获得 {{points}} 积分</text>
+    <button class="signin-btn {{hasSignedToday ? 'signed' : ''}}" bindtap="handleSignin">
+      {{hasSignedToday ? '今日已签到' : '立即签到'}}
+    </button>
+  </view>
+
+  <!-- V2.9: 7日连续奖励里程碑 -->
+  <view class="weekly-progress">
+    <view class="weekly-title">7日连续签到奖励</view>
+    <view class="weekly-track">
+      <view wx:for="{{weeklyMilestones}}" wx:key="day" class="milestone-node {{item.achieved ? 'achieved' : ''}} {{item.current ? 'current' : ''}}">
+        <view class="milestone-dot {{item.milestone ? 'milestone-dot-large' : ''}}">
+          <text wx:if="{{item.achieved}}">✓</text>
+          <text wx:elif="{{item.current}}">●</text>
+        </view>
+        <text class="milestone-day">{{item.label}}</text>
+        <text class="milestone-reward {{item.milestone ? 'milestone-reward-hot' : ''}}">+{{item.reward}}</text>
+        <view wx:if="{{item.milestone}}" class="milestone-badge">{{item.milestoneLabel}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="calendar">
+    <view class="calendar-row" wx:for="{{calendarDays}}" wx:key="day" wx:for-item="d">
+      <view class="calendar-day {{d.signed ? 'signed' : ''}} {{d.isToday ? 'today' : ''}}">
+        {{d.day}}
+      </view>
+    </view>
+  </view>
+
+  <view class="records">
+    <text class="section-title">最近签到记录</text>
+    <view wx:for="{{records}}" wx:key="id" class="record-item">
+      <text>{{item.create_time_fmt}}</text>
+      <text>+{{item.points}} 积分</text>
+    </view>
+  </view>
+</view>

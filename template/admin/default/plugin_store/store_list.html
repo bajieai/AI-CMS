@@ -1,0 +1,81 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-list-ul me-2"></i>插件列表</h4>
+    <div class="card mb-4">
+        <div class="card-header">
+            <form class="row g-2" method="get">
+                <div class="col-md-3">
+                    <input type="text" name="keyword" class="form-control" placeholder="搜索插件名称/标识" value="{$filter.keyword|default=''}">
+                </div>
+                <div class="col-md-2">
+                    <select name="category_id" class="form-select">
+                        <option value="">全部分类</option>
+                        {volist name="categories" id="c"}
+                        <option value="{$c.id}" {if $filter.category_id == $c.id}selected{/if}>{$c.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="price_type" class="form-select">
+                        <option value="">全部</option>
+                        <option value="free" {if $filter.price_type == 'free'}selected{/if}>免费</option>
+                        <option value="paid" {if $filter.price_type == 'paid'}selected{/if}>付费</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="download" {if $filter.sort == 'download'}selected{/if}>最多下载</option>
+                        <option value="rating" {if $filter.sort == 'rating'}selected{/if}>评分最高</option>
+                        <option value="latest" {if $filter.sort == 'latest'}selected{/if}>最新上架</option>
+                        <option value="price_asc" {if $filter.sort == 'price_asc'}selected{/if}>价格低到高</option>
+                        <option value="price_desc" {if $filter.sort == 'price_desc'}selected{/if}>价格高到低</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search me-1"></i>搜索</button>
+                    <a href="/admin/plugin_store_front/list" class="btn btn-outline-secondary">重置</a>
+                </div>
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {volist name="list" id="item"}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                {if $item.icon}<img src="{$item.icon}" style="width:48px;height:48px;border-radius:8px;" class="me-2">{else /}<i class="bi bi-puzzle-fill fs-2 text-primary me-2"></i>{/if}
+                                <div>
+                                    <h6 class="mb-0">{$item.name}</h6>
+                                    <small class="text-muted">v{$item.version|default='1.0.0'}</small>
+                                </div>
+                            </div>
+                            <p class="small text-muted" style="min-height:40px;">{$item.description|default=''}</p>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge {if $item.price > 0}bg-danger{else /}bg-success{/if}">{if $item.price > 0}¥{$item.price}{else /}免费{/if}</span>
+                                <small class="text-muted"><i class="bi bi-download"></i> {$item.download_count|default=0}</small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-warning"><i class="bi bi-star-fill"></i> {$item.rating|default=0} ({$item.rating_count|default=0})</small>
+                                <a href="/admin/plugin_store_front/detail/{$item.id}" class="btn btn-sm btn-outline-primary">详情</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+            {if condition="$total > 0"}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="text-muted">共 {$total} 个插件</span>
+            </div>
+            {else /}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">暂无插件</p>
+            </div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}

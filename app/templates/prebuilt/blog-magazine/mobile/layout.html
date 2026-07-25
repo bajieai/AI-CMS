@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{$title|default='文艺清新博客'}</title>
+    <meta name="keywords" content="{$keywords|default='文艺,清新,博客,文字创作'}">
+    <meta name="description" content="{$description|default='一个文艺清新的个人博客，专注于文字创作与分享。'}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header mobile-header">
+        <div class="container">
+            <div class="header-inner">
+                <a href="/" class="site-logo">
+                    <span class="logo-icon">🌿</span>
+                    <span class="logo-text">文艺笔记</span>
+                </a>
+                <button class="menu-toggle" id="menuToggle" aria-label="菜单">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+        <nav class="mobile-nav" id="mobileNav">
+            <ul>
+                <li><a href="/" {if condition="$current == 'index'"}class="active"{/if}>首页</a></li>
+                <li><a href="/list" {if condition="$current == 'list'"}class="active"{/if}>文章</a></li>
+                <li><a href="/about" {if condition="$current == 'about'"}class="active"{/if}>关于</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="site-main">
+        {block name="main"}{/block}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>© 2024 文艺笔记. All rights reserved.</p>
+                    <p>Powered by AI-CMS</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

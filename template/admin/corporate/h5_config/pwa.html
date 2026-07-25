@@ -1,0 +1,106 @@
+{extend name="layout" /}
+
+{block name="title"}PWA配置 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">H5移动端</li>
+<li class="breadcrumb-item"><a href="/admin/h5_config/index">H5配置</a></li>
+<li class="breadcrumb-item active">PWA配置</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-phone me-1"></i>PWA 渐进式Web应用配置</h5>
+    </div>
+    <div class="card-body">
+        <form id="pwaForm">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">应用名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{$config.name|default='AI-CMS'}" required>
+                    <div class="form-text">显示在安装弹窗和应用图标下方的名称</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">短名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="short_name" class="form-control" value="{$config.short_name|default='CMS'}" required maxlength="12">
+                    <div class="form-text">主屏幕图标下方显示（最多12字符）</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">显示模式</label>
+                    <select name="display" class="form-select">
+                        <option value="standalone" {if ($config.display|default='standalone') eq 'standalone'}selected{/if}>standalone（独立窗口）</option>
+                        <option value="fullscreen" {if $config.display eq 'fullscreen'}selected{/if}>fullscreen（全屏）</option>
+                        <option value="minimal-ui" {if $config.display eq 'minimal-ui'}selected{/if}>minimal-ui（最简UI）</option>
+                        <option value="browser" {if $config.display eq 'browser'}selected{/if}>browser（浏览器）</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">方向</label>
+                    <select name="orientation" class="form-select">
+                        <option value="portrait" {if ($config.orientation|default='portrait') eq 'portrait'}selected{/if}>竖屏</option>
+                        <option value="landscape" {if $config.orientation eq 'landscape'}selected{/if}>横屏</option>
+                        <option value="any" {if $config.orientation eq 'any'}selected{/if}>自适应</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">主题色</label>
+                    <div class="input-group">
+                        <input type="color" name="theme_color" id="themeColor" class="form-control form-control-color" value="{$config.theme_color|default='#1989fa'}">
+                        <input type="text" id="themeColorText" class="form-control" value="{$config.theme_color|default='#1989fa'}" oninput="document.getElementById('themeColor').value = this.value">
+                    </div>
+                    <div class="form-text">影响状态栏颜色</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">背景色</label>
+                    <div class="input-group">
+                        <input type="color" name="background_color" id="bgColor" class="form-control form-control-color" value="{$config.background_color|default='#ffffff'}">
+                        <input type="text" id="bgColorText" class="form-control" value="{$config.background_color|default='#ffffff'}" oninput="document.getElementById('bgColor').value = this.value">
+                    </div>
+                    <div class="form-text">启动画面背景色</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">应用图标URL</label>
+                <input type="text" name="icon" class="form-control" value="{$config.icon|default=''}" placeholder="/static/icons/pwa-192x192.png">
+                <div class="form-text">建议 192x192 或 512x512 PNG</div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="enable_offline" value="1" id="enableOffline" {if ($config.enable_offline|default=0) eq 1}checked{/if}>
+                    <label class="form-check-label" for="enableOffline">启用离线缓存（Service Worker）</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="enable_install" value="1" id="enableInstall" {if ($config.enable_install|default=1) eq 1}checked{/if}>
+                    <label class="form-check-label" for="enableInstall">允许添加到主屏幕</label>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="savePwa()">
+                <i class="bi bi-check-lg me-1"></i>保存配置
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+function savePwa() {
+    var data = $('#pwaForm').serialize();
+    $.post('/admin/h5_config/pwa', data, function(res) {
+        if (res.code === 0) { alert('保存成功'); }
+        else { alert(res.msg || '保存失败'); }
+    });
+}
+</script>
+{/block}

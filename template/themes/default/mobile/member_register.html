@@ -1,0 +1,30 @@
+{extend name="layout" /}
+
+{block name="title"}会员注册{/block}
+
+{block name="content"}
+<div class="m-content">
+    <div class="m-card" style="padding:24px 18px;margin-top:10px;">
+        <h4 class="text-center mb-4" style="font-size:18px;font-weight:700;">会员注册</h4>
+        <form id="registerForm">
+            <div class="m-form-group">
+                <input type="text" name="username" class="m-form-control" placeholder="用户名（必填）" required>
+            </div>
+            <div class="m-form-group">
+                <input type="email" name="email" class="m-form-control" placeholder="邮箱地址（必填）" required>
+            </div>
+            <div class="m-form-group">
+                <input type="password" name="password" class="m-form-control" placeholder="设置密码（必填）" required>
+            </div>
+            <div class="m-form-group">
+                <input type="text" name="nickname" class="m-form-control" placeholder="昵称（选填）">
+            </div>
+            <button type="submit" class="m-btn m-btn-primary">注 册</button>
+        </form>
+        <div class="text-center mt-3"><a href="/member/login" style="font-size:13.5px;color:#0d6efd;text-decoration:none;">已有账号？立即登录</a></div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>$('#registerForm').on('submit',function(e){e.preventDefault();$.post('/member/register',$(this).serialize(),function(r){if(r.success){showToast('注册成功','success');setTimeout(function(){location.href='/member/login';},1200);}else showToast(r.msg||'注册失败','danger');});});</script>
+{/block}

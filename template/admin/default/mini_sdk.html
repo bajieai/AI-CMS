@@ -1,0 +1,39 @@
+{extend name="layout" /}
+{block name="title"}小程序SDK管理{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">小程序/移动端</li>
+<li class="breadcrumb-item active">SDK管理</li>
+{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-box-seam me-1"></i>小程序前端SDK</div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <tr><th width="160">SDK版本</th><td>{$sdk_version}</td></tr>
+            <tr><th>文件大小</th><td>{:round($sdk_size/1024,2)} KB</td></tr>
+            <tr><th>状态</th><td>{if condition="$sdk_exists"}<span class="badge bg-success">已部署</span>{else /}<span class="badge bg-secondary">未部署</span>{/if}</td></tr>
+            <tr><th>下载路径</th><td><code>/sdk/mini/ai-cms-sdk.js</code></td></tr>
+        </table>
+        <div class="mt-3">
+            <a href="/sdk/mini/ai-cms-sdk.js" download class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i>下载SDK</a>
+            <a href="/sdk/mini/README.md" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-book me-1"></i>查看文档</a>
+        </div>
+        <hr>
+        <h6>SDK模块</h6>
+        <ul class="list-unstyled">
+            <li><code>http</code> — 网络请求(封装wx.request，自动Token刷新)</li>
+            <li><code>auth</code> — 用户认证(微信登录/Token管理)</li>
+            <li><code>content</code> — 内容展示(列表/详情/搜索/分类)</li>
+            <li><code>interaction</code> — 用户交互(收藏/点赞/评论)</li>
+            <li><code>cache</code> — 缓存管理(TTL过期)</li>
+            <li><code>share</code> — 分享配置</li>
+            <li><code>analytics</code> — 数据分析上报</li>
+            <li><code>utils</code> — 工具函数(日期/截断/价格)</li>
+        </ul>
+        <h6 class="mt-3">快速开始</h6>
+        <pre class="bg-light p-3 rounded"><code>const AICMS = require('./sdk/ai-cms-sdk.js');
+AICMS.init({ baseUrl: 'https://cms.example.com', appId: 'xxx' });
+AICMS.content.getList({ model: 'product', page: 1 }).then(res => { console.log(res); });</code></pre>
+    </div>
+</div>
+{/block}

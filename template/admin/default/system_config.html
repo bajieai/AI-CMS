@@ -1,0 +1,462 @@
+{extend name="layout" /}
+
+{block name="title"}系统配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">系统配置</li>
+{/block}
+
+{block name="css"}
+<style>
+/* ========== V2.4 主题卡片样式（统一CSS管理）========== */
+.theme-card {
+    width:240px;cursor:pointer;border:2px solid #e2e8f0;border-radius:12px;
+    overflow:hidden;transition:all .3s ease;background:#fff;padding:0;
+    text-align:center;position:relative;display:inline-block;vertical-align:top;
+}
+.theme-card:hover { transform:translateY(-5px)!important;box-shadow:0 10px 28px rgba(0,0,0,.14)!important;border-color:#93c5fd!important; }
+.theme-preview { height:80px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#f1f5f9,#e2e8f0); }
+.theme-preview img { width:100%;height:100%;object-fit:cover; }
+.theme-preview i { font-size:1.6rem;color:#94a3b8; }
+.theme-info { padding:.5rem .75rem; }
+.theme-label { display:block;font-size:.92rem;font-weight:700;color:#1e293b;margin-bottom:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .25s; }
+.theme-desc { display:block;text-muted;font-size:.78rem;margin-top:.2rem;line-height:1.4;height:1.35em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:#64748b; }
+.theme-meta { display:block;font-size:.72rem;margin-top:.15rem;opacity:.55;color:#94a3b8; }
+
+/* 选中态 */
+.selected-theme-card {
+    border-color:#3b82f6 !important;
+    box-shadow:0 0 0 4px rgba(59,130,246,.18),0 10px 24px rgba(59,130,246,.15) !important;
+}
+.theme-active-badge {
+    display:inline-block;margin-left:4px;vertical-align:middle;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;
+    border-radius:20px;padding:1px 10px;font-size:.7rem;font-weight:600;line-height:1.6;
+}
+.theme-overlay {
+    position:absolute;top:0;left:0;right:0;height:100%;
+    background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(37,99,235,.06));
+    pointer-events:none;border-radius:10px;
+}
+</style>
+{/block}
+
+{block name="content"}
+<!-- Tab 导航：功能页面 -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'basic'}active{/if}" href="/admin/system/config?tab=basic">基本设置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'features'}active{/if}" href="/admin/system/config?tab=features">功能配置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'business'}active{/if}" href="/admin/system/config?tab=business">业务设置</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == 'system'}active{/if}" href="/admin/system/config?tab=system">系统与安全</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/system/customVar">自定义变量</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/system/moduleControl">功能开关</a>
+    </li>
+</ul>
+
+<!-- ========== V2.4 界面风格选择区（仅基本设置tab显示） ========== -->
+{if $isMainTab}
+<div id="themeSelectorArea" class="mb-4">
+    <!-- 前台风格 -->
+    <div class="card mb-3" style="border-radius:12px;border:2px solid #e0e7ff;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,#eff6ff,#dbeafe);padding:0.85rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;color:#1e40af;font-size:.95rem;"><i class="bi bi-palette2 me-2"></i>前台风格</span>
+            <button type="button" id="refreshThemeBtn" class="btn btn-sm px-3" style="border-radius:20px;background:#fff;border-color:#93c5fd;color:#0369a1;">
+                <i class="bi bi-arrow-clockwise me-1"></i>刷新
+            </button>
+        </div>
+        <div class="p-3 text-center text-muted small"><i class="bi bi-info-circle me-1"></i>切换后前台立即生效</div>
+        <div id="frontendThemeList" class="px-3 pb-3 d-flex gap-4 flex-wrap justify-content-start">
+            <div class="text-center w-100 py-4"><i class="bi bi-hourglass-split spinner-border spinner-border me-2"></i>加载中...</div>
+        </div>
+    </div>
+
+    <!-- 后台模板 -->
+    <div class="card mb-3" style="border-radius:12px;border:2px solid #f0e6ff;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,#ede9fe,#ddd6fe);padding:0.85rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;color:#4338ca;font-size:.95rem;"><i class="bi bi-gear me-2"></i>后台模板</span>
+        </div>
+        <div class="p-3 text-center text-muted small"><i class="bi bi-info-circle me-1"></i>切换后需刷新页面生效</div>
+        <div id="backendThemeList" class="px-3 pb-3 d-flex gap-4 flex-wrap justify-content-start">
+            <div class="text-center w-100 py-4"><i class="bi bi-hourglass-split spinner-border spinner-border me-2"></i>加载中...</div>
+        </div>
+    </div>
+
+    <!-- V2.4 前后台主题独立配置 -->
+    <div class="text-center mt-3 mb-4">
+        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>前台风格与后台模板可独立选择，互不影响</small>
+    </div>
+</div>
+{/if}
+
+<form id="configForm" method="post" action="/admin/system/config">
+    <!-- V2.9.24 J-2: 配置搜索框 -->
+    <div class="mb-3">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="configSearchInput" placeholder="搜索配置项名称或说明...">
+            <button class="btn btn-outline-secondary" type="button" id="configSearchClear"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <small class="text-muted">输入关键词实时过滤配置项，匹配的分组会自动展开</small>
+    </div>
+    {volist name="groups" id="group" key="groupName"}
+    <div class="card mb-3 config-group-card" data-group-name="<?php echo $groupNames[$key] ?? $key; ?>">
+        <div class="card-header d-flex justify-content-between align-items-center config-group-header" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#groupCollapse<?php echo $key; ?>">
+            <span><i class="bi bi-<?php echo $groupIcons[$key] ?? 'sliders'; ?> me-1"></i><?php echo $groupNames[$key] ?? $key; ?></span>
+            <i class="bi bi-chevron-down config-collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="groupCollapse<?php echo $key; ?>">
+        <div class="card-body">
+            {volist name="group" id="item"}
+            {if condition="$item.name == 'logo_icon_only' || $item.name == 'logo_name'"}
+            {php}continue;{/php}
+            {/if}
+            <div class="row mb-3 align-items-center">
+                <label class="col-sm-3 col-form-label text-end">{$item.remark ?: $item.name}</label>
+                <div class="col-sm-6">
+                    {if condition="$item.type == 'text'"}
+                    {if condition="$item.name == 'site_logo'"}
+                    <div class="input-group">
+                        <input type="text" name="{$item.name}" class="form-control" value="{$item.value}" id="siteLogoInput" placeholder="输入图片URL或点击右侧按钮上传/浏览">
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('logoUploadInput').click()" title="上传本地图片">
+                            <i class="bi bi-upload"></i> 上传
+                        </button>
+                        <input type="file" id="logoUploadInput" accept="image/*" style="display:none" onchange="uploadLogo(this)">
+                        <button type="button" class="btn btn-outline-primary" onclick="openMediaBrowser()" title="从媒体库选择">
+                            <i class="bi bi-images"></i> 浏览
+                        </button>
+                        {if condition="$item.value"}
+                        <button type="button" class="btn btn-outline-info" onclick="previewLogo()" title="预览">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        {/if}
+                    </div>
+                    {if condition="$item.value"}
+                    <div id="logoPreview" class="mt-2" style="display:none;">
+                        <img src="{$item.value}" style="max-height:60px;border:1px solid #ddd;border-radius:4px;padding:4px;">
+                    </div>
+                    {/if}
+                    <!-- Logo选项：仅图标 + 自定义名称 -->
+                    <div class="mt-2">
+                        <div class="form-check form-switch d-inline-block me-3">
+                            <input class="form-check-input" type="checkbox" name="logo_icon_only" value="1" id="logoIconOnly" {if condition="$logoIconOnly == 1"}checked{/if}>
+                            <label class="form-check-label" for="logoIconOnly">仅使用Logo图标 <small class="text-muted">(勾选后Logo为图标保留文字)</small></label>
+                        </div>
+                        <div id="logoNameGroup" style="display:{if condition="$logoIconOnly == 1"}inline-block{else}none{/if};">
+                            <label class="form-label d-inline me-2">Logo名称:</label>
+                            <input type="text" name="logo_name" class="form-control d-inline-block" value="{$logoName}" style="width:200px;" placeholder="默认: 八界AI-CMS">
+                        </div>
+                    </div>
+                    <!-- 媒体库浏览弹窗 -->
+                    <div class="modal fade" id="mediaBrowserModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="bi bi-images me-1"></i>选择图片</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-0">
+                                    <iframe id="mediaBrowserIframe" src="" style="width:100%;height:480px;border:none;"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {else /}
+                    <input type="text" name="{$item.name}" class="form-control" value="{$item.value}">
+                    {/if}
+                    {/if}
+
+                    {if condition="$item.type == 'textarea'"}
+                    <textarea name="{$item.name}" class="form-control" rows="3">{$item.value}</textarea>
+                    {/if}
+
+                    {if condition="$item.type == 'number'"}
+                    <input type="number" name="{$item.name}" class="form-control" value="{$item.value}">
+                    {/if}
+
+                    {if condition="$item.type == 'switch'"}
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="{$item.name}" value="1" id="cfg_{$item.name}" {if condition="$item.value == 1"}checked{/if}>
+                        <label class="form-check-label" for="cfg_{$item.name}">启用</label>
+                    </div>
+                    {/if}
+
+                    {if condition="$item.type == 'select'"}
+                    {if $item.options}
+                    <select name="{$item.name}" class="form-select">
+                        {$item.options|raw}
+                    </select>
+                    {elseif $item.name == 'captcha_driver'}
+                    <select name="{$item.name}" class="form-select">
+                        <option value="local" {if $item.value == 'local'}selected{/if}>本地GD验证码</option>
+                        <option value="tencent" {if $item.value == 'tencent'}selected{/if}>腾讯验证码</option>
+                    </select>
+                    {elseif $item.name == 'csp_mode'}
+                    <select name="{$item.name}" class="form-select">
+                        <option value="report_only" {if $item.value == 'report_only'}selected{/if}>仅报告 (Report Only)</option>
+                        <option value="enforce" {if $item.value == 'enforce'}selected{/if}>强制执行 (Enforce)</option>
+                        <option value="disabled" {if $item.value == 'disabled'}selected{/if}>禁用</option>
+                    </select>
+                    {else}
+                    <input type="text" name="{$item.name}" class="form-control" value="{$item.value}">
+                    {/if}
+                    {/if}
+
+                    {if condition="$item.type == 'password'"}
+                    <input type="password" name="{$item.name}" class="form-control" value="{$item.value}" placeholder="输入秘钥">
+                    {/if}
+                </div>
+            </div>
+            {/volist}
+        </div>
+        </div>
+    </div>
+    {/volist}
+
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+        <!-- V2.9.24 J-2: 配置修改审计预留 -->
+        <!-- TODO: V2.10.0 - 配置修改审计日志 -->
+    </div>
+</form>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-trash3 me-1"></i>缓存管理</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">清除系统缓存，当数据更新但前台未显示最新内容时使用。</p>
+        <button type="button" class="btn btn-warning" onclick="clearCacheByType('all','全部缓存')">
+            <i class="bi bi-arrow-clockwise me-1"></i>清除缓存
+        </button>
+    </div>
+</div>
+<script>
+// ========== V2.9.2 网站Logo上传与预览 ==========
+function uploadLogo(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var formData = new FormData();
+    formData.append('file', file);
+    $.ajax({
+        url: '/api/upload/image',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.url) {
+                $('#siteLogoInput').val(res.data.url);
+                $('#logoPreview img').attr('src', res.data.url);
+                $('#logoPreview').show();
+                showToast('Logo上传成功', 'success');
+            } else {
+                showToast(res.msg || '上传失败', 'danger');
+            }
+        },
+        error: function() {
+            showToast('网络错误', 'danger');
+        }
+    });
+    input.value = '';
+}
+function previewLogo() {
+    $('#logoPreview').toggle();
+}
+// 打开媒体库浏览弹窗
+function openMediaBrowser() {
+    $('#mediaBrowserIframe').attr('src', '/admin/media/select');
+    $('#mediaBrowserModal').modal('show');
+}
+// Logo图标模式切换：显示/隐藏Logo名称输入
+$(document).on('change', '#logoIconOnly', function() {
+    $('#logoNameGroup').toggle(this.checked);
+});
+
+// 监听媒体库选择器的postMessage回传
+window.addEventListener('message', function(e) {
+    var data = e.data || {};
+    if (data.mceAction === 'insertContent' && data.content) {
+        // 从<img>标签中提取src
+        var match = data.content.match(/src=["']([^"']+)["']/);
+        if (match && match[1]) {
+            $('#siteLogoInput').val(match[1]);
+            $('#logoPreview img').attr('src', match[1]);
+            $('#logoPreview').show();
+            $('#mediaBrowserModal').modal('hide');
+            showToast('已选择Logo图片', 'success');
+        }
+    }
+});
+
+// ========== V2.4 模板选择器逻辑 ==========
+var selectedFrontend = '';
+var selectedBackend = '';
+
+function loadThemes() {
+    var $btn = $('#refreshThemeBtn');
+    var originalHtml = $btn.html();
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span>加载中');
+    $.get('/admin/system/allTemplates', function(res) {
+        if (res.code !== 0 || !res.data) {
+            $('#frontendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>加载失败' + (res.msg ? ': ' + res.msg : '') + '</div>');
+            $('#backendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>加载失败' + (res.msg ? ': ' + res.msg : '') + '</div>');
+            return;
+        }
+        renderThemeCards('frontendThemeList', res.data.frontend.themes, res.data.frontend.active, 'frontend', true);
+        renderThemeCards('backendThemeList', res.data.admin.themes, res.data.admin.active, 'admin', true);
+    }).fail(function() {
+        $('#frontendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>网络错误，请点击刷新重试</div>');
+        $('#backendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>网络错误，请点击刷新重试</div>');
+    }).always(function() {
+        $btn.prop('disabled', false).html(originalHtml);
+    });
+}
+// 确保全局可访问（PJAX环境下 onclick 可能失效）
+window.loadThemes = loadThemes;
+// 委托事件绑定（比内联 onclick 更可靠）
+$(document).on('click', '#refreshThemeBtn', function(e) {
+    e.preventDefault();
+    loadThemes();
+});
+
+function renderThemeCards(containerId, themes, active, type, allowSelect) {
+    var $container = $('#' + containerId);
+    $container.empty();
+    if (!themes || !themes.length) { $container.html('<div class="text-muted small text-center py-3">暂无可用主题</div>'); return; }
+    $.each(themes, function(i, t) {
+        var isActive = t.name === active;
+        var selClass = isActive ? ' selected-theme-card' : '';
+        var badgeHtml = isActive ? '<span class="theme-active-badge"><i class="bi bi-check-lg me-1"></i>当前</span>' : '';
+        var overlayHtml = isActive ? '<div class="theme-overlay"></div>' : '';
+        var cardHtml = '<div class="theme-card' +
+            selClass +
+            '" data-theme="' + t.name + '" data-type="' + type + '">' +
+            '<div class="theme-preview"' +
+                (t.screenshot ? 'style="background:#f1f5f5;">' : '>') +
+                (t.screenshot
+                    ? '<img src="/template/' + (type === 'admin' ? 'admin/' : 'themes/') + t.name + '/' + t.screenshot + '" loading="lazy">'
+                    : '<i class="bi bi-' + (type === 'admin' ? 'gear-fill' : 'palette2') + ' display-3"></i>'
+                ) +
+            '</div>' +
+            '<div class="theme-info">' +
+                '<strong class="theme-label">' + t.label + '</strong>' +
+                badgeHtml +
+                '<small class="theme-desc">' + (t.description || '企业风格模板') + '</small>' +
+                '<small class="theme-meta">v' + (t.version || '1.0') + ' &middot; ' + (t.author || 'AI-CMS') + (t.supports && t.supports.length ? ' &middot; 支持: ' + t.supports.join(', ') : '') + '</small>' +
+            '</div>' +
+            overlayHtml +
+            '</div>';
+        $container.append(cardHtml);
+
+        // 绑定点击事件
+        if (allowSelect) {
+            $container.find('.theme-card:last').off('click').on('click', function() {
+                var $card = $(this);
+                var themeName = $card.data('theme');
+                var cardType = $card.data('type');
+
+                // 如果已是选中态则不重复处理
+                if ($card.hasClass('selected-theme-card')) return;
+
+                // 清除同容器内所有卡片的选中状态
+                $container.find('.theme-card').each(function() {
+                    $(this).removeClass('selected-theme-card')
+                           .find('.theme-active-badge').remove()
+                           .end().find('.theme-overlay').remove()
+                           .end().find('.theme-label').css({color:'#1e293b'})
+                           .end().find('.theme-preview i').css({color:'#94a3b8'});
+                });
+
+                // 设置当前卡片为选中态
+                $card.addClass('selected-theme-card');
+                $card.find('.theme-info strong:first').after(
+                    '<span class="theme-active-badge"><i class="bi bi-check-lg me-1"></i>已选</span>'
+                );
+                $card.append('<div class="theme-overlay"></div>');
+                $card.find('.theme-label').css({color:'#0369a1'});
+                $card.find('.theme-preview i').css({color:'#3b82f6'});
+
+                // 记录选择
+                if (cardType === 'frontend') selectedFrontend = themeName;
+                else selectedBackend = themeName;
+
+                showToast('已选择 "' + t.label + '"，请点击「保存配置」生效', 'info');
+            });
+        }
+    });
+}
+
+// 保存时同时处理主题切换（在原表单submit之前拦截）
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    var $form = $(this);
+
+    // 处理switch未勾选时不会提交的问题
+    $form.find('.form-check-input:not(:checked)').each(function() {
+        var name = $(this).attr('name');
+        if (name && !$('[name="' + name + '"][type="hidden"]').length) {
+            $(this).after('<input type="hidden" name="' + name + '" value="0">');
+        }
+    });
+
+    // 如果有主题变更，先执行切换API再保存配置
+    var switchPromises = [];
+    if (selectedFrontend && selectedFrontend !== '') {
+        switchPromises.push($.post('/admin/system/setTheme', { theme: selectedFrontend }));
+    }
+    if (selectedBackend && selectedBackend !== '') {
+        switchPromises.push($.post('/admin/system/setAdminTheme', { admin_theme: selectedBackend }));
+    }
+
+    Promise.all(switchPromises).then(function() {
+        ajaxPost($form.attr('action'), $form.serialize());
+    }).catch(function() {
+        alert('主题切换失败，请重试');
+        ajaxPost($form.attr('action'), $form.serialize()); // fallback
+    });
+});
+
+// 初始化加载
+$(function() { loadThemes(); });
+
+// V2.9.24 J-2: 配置搜索功能
+$('#configSearchInput').on('input', function() {
+    var keyword = $(this).val().toLowerCase().trim();
+    if (!keyword) {
+        $('.config-group-card').show();
+        $('.config-group-card .collapse').addClass('show');
+        $('.config-group-card .row').show();
+        return;
+    }
+    $('.config-group-card').each(function() {
+        var $card = $(this);
+        var hasMatch = false;
+        $card.find('.row').each(function() {
+            var text = $(this).text().toLowerCase();
+            var match = text.indexOf(keyword) > -1;
+            $(this).toggle(match);
+            if (match) hasMatch = true;
+        });
+        $card.toggle(hasMatch);
+        if (hasMatch) {
+            $card.find('.collapse').addClass('show');
+        }
+    });
+});
+$('#configSearchClear').click(function() {
+    $('#configSearchInput').val('').trigger('input');
+});
+</script>
+{/block}

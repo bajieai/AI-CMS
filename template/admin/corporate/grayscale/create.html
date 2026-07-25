@@ -1,0 +1,175 @@
+{extend name="layout" /}
+{block name="title"}创建灰度计划 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-plus-circle me-1"></i>创建灰度计划</h5>
+    </div>
+    <div class="card-body">
+        <form id="grayscaleCreateForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">计划名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" required placeholder="如：新首页灰度发布">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">功能标识 (feature_key)</label>
+                        <input type="text" name="feature_key" class="form-control" placeholder="如：new_homepage">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">描述</label>
+                <textarea name="description" class="form-control" rows="2" placeholder="灰度计划描述"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">策略类型 <span class="text-danger">*</span></label>
+                        <select name="strategy" id="strategySelect" class="form-select" onchange="toggleStrategyFields()">
+                            <option value="percentage">百分比灰度</option>
+                            <option value="user_group">用户分群</option>
+                            <option value="ip_list">IP列表</option>
+                            <option value="time_window">时间窗口</option>
+                            <option value="whitelist">白名单</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">目标URL</label>
+                        <input type="text" name="target_url" class="form-control" placeholder="灰度目标页面URL">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 策略配置区域 -->
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+                    <h6 class="mb-3"><i class="bi bi-sliders me-1"></i>策略配置</h6>
+
+                    <!-- 百分比策略 -->
+                    <div id="strategy-percentage" class="strategy-config">
+                        <label class="form-label">灰度百分比 (%)</label>
+                        <input type="number" name="config[percentage]" class="form-control" min="0" max="100" value="10" placeholder="0-100">
+                        <div class="form-text">基于用户ID的稳定hash，同一用户每次结果一致</div>
+                    </div>
+
+                    <!-- 用户分群策略 -->
+                    <div id="strategy-user_group" class="strategy-config" style="display:none;">
+                        <label class="form-label">用户分群ID（逗号分隔）</label>
+                        <input type="text" name="config[group_ids]" class="form-control" placeholder="如：1,2,3">
+                        <div class="form-text">输入用户分群(segment)的ID，多个用逗号分隔</div>
+                    </div>
+
+                    <!-- IP列表策略 -->
+                    <div id="strategy-ip_list" class="strategy-config" style="display:none;">
+                        <label class="form-label">IP列表（每行一个）</label>
+                        <textarea name="config[ip_list]" class="form-control" rows="4" placeholder="192.168.1.1&#10;10.0.0.0/24"></textarea>
+                        <div class="form-text">支持单IP和CIDR格式，每行一个</div>
+                    </div>
+
+                    <!-- 时间窗口策略 -->
+                    <div id="strategy-time_window" class="strategy-config" style="display:none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">窗口开始时间</label>
+                                <input type="time" name="config[window_start]" class="form-control" value="09:00">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">窗口结束时间</label>
+                                <input type="time" name="config[window_end]" class="form-control" value="18:00">
+                            </div>
+                        </div>
+                        <div class="form-text">每天在此时间段内灰度生效</div>
+                    </div>
+
+                    <!-- 白名单策略 -->
+                    <div id="strategy-whitelist" class="strategy-config" style="display:none;">
+                        <label class="form-label">用户ID列表（逗号分隔）</label>
+                        <input type="text" name="config[user_ids]" class="form-control" placeholder="如：1,5,10,20">
+                        <div class="form-text">只有指定用户ID才能进入灰度</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">回退URL</label>
+                <input type="text" name="fallback_url" class="form-control" placeholder="灰度失败时的回退页面URL">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">开始时间</label>
+                        <input type="datetime-local" name="start_time" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">结束时间</label>
+                        <input type="datetime-local" name="end_time" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" onclick="submitGrayscale()">
+                    <i class="bi bi-check-lg me-1"></i>创建计划
+                </button>
+                <a href="/admin/grayscale/index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>返回列表
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleStrategyFields() {
+    var strategy = $('#strategySelect').val();
+    $('.strategy-config').hide();
+    $('#strategy-' + strategy).show();
+}
+
+function submitGrayscale() {
+    var formData = $('#grayscaleCreateForm').serialize();
+
+    // 处理策略配置：IP列表需要转成数组
+    var strategy = $('#strategySelect').val();
+    if (strategy === 'ip_list') {
+        var ipText = $('textarea[name="config[ip_list]"]').val();
+        var ipArr = ipText.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+        formData = formData.replace(encodeURIComponent('config[ip_list]') + '=' + encodeURIComponent(ipText), encodeURIComponent('config[ip_list]') + '=' + encodeURIComponent(JSON.stringify(ipArr)));
+    }
+    if (strategy === 'user_group') {
+        var groupText = $('input[name="config[group_ids]"]').val();
+        var groupArr = groupText.split(',').map(function(s){return parseInt(s.trim());}).filter(function(n){return !isNaN(n);});
+        formData = formData.replace(encodeURIComponent('config[group_ids]') + '=' + encodeURIComponent(groupText), encodeURIComponent('config[group_ids]') + '=' + encodeURIComponent(JSON.stringify(groupArr)));
+    }
+    if (strategy === 'whitelist') {
+        var uidText = $('input[name="config[user_ids]"]').val();
+        var uidArr = uidText.split(',').map(function(s){return parseInt(s.trim());}).filter(function(n){return !isNaN(n);});
+        formData = formData.replace(encodeURIComponent('config[user_ids]') + '=' + encodeURIComponent(uidText), encodeURIComponent('config[user_ids]') + '=' + encodeURIComponent(JSON.stringify(uidArr)));
+    }
+
+    $.post('/admin/grayscale/create', formData, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alertSuccess('创建成功');
+            setTimeout(function() {
+                window.location.href = '/admin/grayscale/index';
+            }, 1000);
+        } else {
+            alertError(res.msg || '创建失败');
+        }
+    }).fail(function() {
+        alertError('网络错误');
+    });
+}
+</script>
+{/block}

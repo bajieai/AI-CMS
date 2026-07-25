@@ -1,0 +1,1 @@
+{"name": "默认后台", "description": "AI-CMS默认后台主题，经典侧边栏布局", "author": "八界", "version": "2.4.0", "layout_modes": ["sidebar"], "default_layout": "sidebar", "colors": {"sidebar_bg": "#1e293b", "sidebar_text": "#94a3b8", "primary": "#3b82f6"}}

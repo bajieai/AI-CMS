@@ -1,0 +1,18 @@
+<!-- V2.9.22 F-1: 招聘型列表项（移动端 corporate） -->
+<div class="card mb-3 job-card border-0 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-2 fs-6" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <a href="{$vo.url}" class="text-decoration-none text-dark">{$vo.title}</a>
+            {if condition="$vo.is_urgent"}<span class="badge bg-danger">急招</span>{/if}
+        </h5>
+        <p class="text-muted small mb-2">{$vo.excerpt|msubstr=0,120}</p>
+        <div class="d-flex gap-2 text-muted small flex-wrap">
+            <span class="badge bg-light text-dark"><i class="bi bi-geo-alt me-1"></i>{$vo.location|default='待定'}</span>
+            <span class="badge bg-light text-dark"><i class="bi bi-cash me-1"></i>{$vo.salary|default='面议'}</span>
+            <span class="badge bg-light text-dark"><i class="bi bi-briefcase me-1"></i>{$vo.experience|default='经验不限'}</span>
+        </div>
+    </div>
+    <div class="card-footer bg-transparent border-0 pt-0">
+        <a href="{$vo.url}" class="btn btn-sm btn-primary w-100">查看详情</a>
+    </div>
+</div>

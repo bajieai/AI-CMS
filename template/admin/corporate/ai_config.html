@@ -1,0 +1,185 @@
+{extend name="layout" /}
+
+{block name="title"}AI配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">AI中心</li>
+<li class="breadcrumb-item active">AI配置</li>
+{/block}
+
+{block name="content"}
+<!-- Tab导航 -->
+<ul class="nav nav-tabs mb-3">
+    {foreach $tabs as $tabKey => $tab}
+    <li class="nav-item">
+        <a class="nav-link {if $currentTab == $tabKey}active{/if}" href="/admin/system/aiConfig?tab={$tabKey}">
+            <i class="bi bi-{$tab.icon} me-1"></i>{$tab.name}
+        </a>
+    </li>
+    {/foreach}
+</ul>
+
+<form id="aiConfigForm" method="post" action="/admin/system/aiConfig">
+    <input type="hidden" name="tab" value="{$currentTab}">
+
+    {php} $curTab = $tabs[$currentTab] ?? []; {/php}
+
+    <!-- 写作风格参考面板 -->
+    {if $currentTab == 'writing' && count($writingStyles) > 0}
+    <div class="card mb-3 border-info">
+        <div class="card-header bg-info bg-opacity-10 text-info-emphasis">
+            <i class="bi bi-info-circle me-1"></i>已配置的写作风格
+        </div>
+        <div class="card-body p-2">
+            <p class="text-muted small mb-2">以下风格会在AI写作时被读取，每种风格包含名称和对应的 System Prompt。下方表格可新增、编辑或删除风格。</p>
+            <table class="table table-sm table-borderless small mb-0">
+                <thead><tr><th>标识</th><th>名称</th><th>System Prompt（简）</th></tr></thead>
+                <tbody>
+                {foreach $writingStyles as $key => $style}
+                <tr>
+                    <td><code>{$key}</code></td>
+                    <td><strong>{$style.name??''}</strong></td>
+                    <td class="text-muted">{$style.system_prompt|mb_substr=0,60}{if mb_strlen($style.system_prompt) > 60}…{/if}</td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {/if}
+
+    <!-- 按子分组渲染卡片 -->
+    {foreach $curTab['groups'] as $groupKey => $groupName}
+    {php} $items = $curTab['items'][$groupKey] ?? []; {/php}
+    {if count($items) > 0}
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <strong>{$groupName}</strong>
+        </div>
+        <div class="card-body p-2">
+            {foreach $items as $item}
+            <div class="row mb-2 align-items-center border-bottom pb-2">
+                <label class="col-sm-3 col-form-label text-end small fw-semibold">{$item.remark ?: $item.name}</label>
+                <div class="col-sm-7">
+                    {if $item.type == 'text' || $item.type == 'number'}
+                    <input type="{if $item.type == 'number'}number{else}text{/if}" name="{$item.name}" class="form-control form-control-sm" value="{$item.value}">
+                    {elseif $item.type == 'textarea'}
+                    <textarea name="{$item.name}" class="form-control form-control-sm" rows="3">{$item.value}</textarea>
+                    {elseif $item.type == 'json'}
+                    <!-- 可视化JSON编辑器（写作风格） -->
+                    <div class="json-editor border rounded p-2 bg-light" data-name="{$item.name}">
+                        <table class="table table-sm table-bordered mb-2 json-table">
+                            <thead class="table-secondary"><tr><th width="120">标识(key)</th><th width="140">名称</th><th>System Prompt</th><th width="60"></th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                        <button type="button" class="btn btn-outline-primary btn-sm json-add-btn"><i class="bi bi-plus-lg"></i> 新增风格</button>
+                        <textarea name="{$item.name}" class="form-control form-control-sm mt-2 d-none json-raw" rows="6">{$item.value}</textarea>
+                    </div>
+                    {elseif $item.type == 'password'}
+                    <input type="password" name="{$item.name}" class="form-control form-control-sm" value="{$item.value}" placeholder="API密钥（已隐藏）">
+                    {elseif $item.type == 'switch'}
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="{$item.name}" value="1" id="cfg_{$item.name}" {if $item.value == 1}checked{/if}>
+                        <label class="form-check-label small" for="cfg_{$item.name}">启用</label>
+                    </div>
+                    {elseif $item.type == 'select'}
+                    <select name="{$item.name}" class="form-select form-select-sm">
+                        {$item.options|raw}
+                    </select>
+                    {else}
+                    <input type="text" name="{$item.name}" class="form-control form-control-sm" value="{$item.value}">
+                    {/if}
+                </div>
+            </div>
+            {/foreach}
+        </div>
+    </div>
+    {/if}
+    {/foreach}
+
+    {if empty($curTab['items'])}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        暂无{$curTab['name']}配置项
+    </div>
+    {/if}
+
+    <div class="mb-3 sticky-bottom bg-body py-2 border-top">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+    </div>
+</form>
+<script>
+// 可视化JSON编辑器（写作风格）
+$(function(){
+    $('.json-editor').each(function(){
+        var $editor = $(this);
+        var $table = $editor.find('.json-table tbody');
+        var $raw = $editor.find('.json-raw');
+        var data = {};
+        try { data = JSON.parse($raw.val() || '{}'); } catch(e) {}
+
+        function render() {
+            $table.empty();
+            $.each(data, function(k, v) {
+                var tr = '<tr>';
+                tr += '<td><input type="text" class="form-control form-control-sm json-key" value="'+esc(k)+'"></td>';
+                tr += '<td><input type="text" class="form-control form-control-sm json-name" value="'+esc(v.name||'')+'"></td>';
+                tr += '<td><input type="text" class="form-control form-control-sm json-prompt" value="'+esc(v.system_prompt||'')+'"></td>';
+                tr += '<td><button type="button" class="btn btn-outline-danger btn-sm json-del"><i class="bi bi-trash"></i></button></td>';
+                tr += '</tr>';
+                $table.append(tr);
+            });
+            syncRaw();
+        }
+
+        function syncRaw() {
+            var obj = {};
+            $table.find('tr').each(function(){
+                var $tr = $(this);
+                var key = $.trim($tr.find('.json-key').val());
+                var name = $.trim($tr.find('.json-name').val());
+                var prompt = $.trim($tr.find('.json-prompt').val());
+                if (key) obj[key] = { name: name, system_prompt: prompt };
+            });
+            $raw.val(JSON.stringify(obj, null, 2));
+        }
+
+        function esc(s) { return $('<span>').text(s).html(); }
+
+        $editor.on('input', '.json-key,.json-name,.json-prompt', syncRaw);
+
+        $editor.on('click', '.json-del', function(){
+            if (confirm('确定删除此写作风格？')) {
+                $(this).closest('tr').remove();
+                syncRaw();
+            }
+        });
+
+        $editor.on('click', '.json-add-btn', function(){
+            var key = prompt('请输入风格标识（英文，如 formal）:');
+            if (!key) return;
+            var name = prompt('请输入风格中文名称（如 正式风格）:');
+            if (!name) return;
+            data[key] = { name: name, system_prompt: '请以' + name + '撰写内容' };
+            render();
+        });
+
+        render();
+    });
+
+    // 提交前确保 json-raw 与表格同步
+    $('#aiConfigForm').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        $form.find('.form-check-input:not(:checked)').each(function() {
+            var name = $(this).attr('name');
+            if (name && !$('[name="' + name + '"][type="hidden"]').length) {
+                $(this).after('<input type="hidden" name="' + name + '" value="0">');
+            }
+        });
+        ajaxPost($form.attr('action'), $form.serialize());
+    });
+});
+</script>
+{/block}
+{block name="js"}{/block}

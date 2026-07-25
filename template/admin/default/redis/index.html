@@ -1,0 +1,27 @@
+{extend name="/layout" /}
+{block name="title"}Redis管理 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-database"></i> Redis 监控</h5></div>
+<div class="card-body">
+{if $monitor.status??''=='disconnected'}
+<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Redis 未连接或未启用，请检查配置</div>
+{else}
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>连接状态</h6><h3><span class="badge bg-success fs-6">已连接</span></h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>内存使用</h6><h3>{$monitor.used_memory_human??'--'}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>连接客户端</h6><h3>{$monitor.connected_clients??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>命中率</h6><h3>{$monitor.hit_rate??'--'}%</h3></div></div></div>
+</div>
+<div class="card"><div class="card-header"><h6 class="mb-0">详细指标</h6></div>
+<table class="table table-sm mb-0"><tbody>
+    <tr><td width="180">版本</td><td>{$monitor.redis_version??'--'}</td></tr>
+    <tr><td>运行天数</td><td>{$monitor.uptime_in_days??'--'}</td></tr>
+    <tr><td>Key 总数</td><td>{$monitor.total_keys??'--'}</td></tr>
+    <tr><td>命中次数 (hits)</td><td>{$monitor.hits??'--'}</td></tr>
+    <tr><td>未命中次数 (misses)</td><td>{$monitor.misses??'--'}</td></tr>
+    <tr><td>内存峰值</td><td>{$monitor.used_memory_peak_human??'--'}</td></tr>
+    <tr><td>碎片率</td><td>{$monitor.mem_fragmentation_ratio??'--'}</td></tr>
+</tbody></table></div>
+{/if}
+</div></div>
+{/block}

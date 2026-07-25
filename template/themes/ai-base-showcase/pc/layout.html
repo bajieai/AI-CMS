@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="{$current_lang|default='zh-CN'}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{block name="title"}{$site_name|default='AI-CMS'}{/block}</title>
+    <meta name="keywords" content="{block name='keywords'}{$site_keywords|default='AI,CMS'}{/block}">
+    <meta name="description" content="{block name='description'}{$site_description|default=''}{/block}">
+    <meta name="csrf-token" content="{:token()}">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="{$site_name|default='AI-CMS'}">
+    <meta property="og:locale" content="{$current_lang|default='zh-CN'}">
+    {block name='og'}{/block}
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{$skin}css/style.css?v=2.9.11" rel="stylesheet">
+    <!-- V2.9.11 Unified 25 CSS Variables -->
+    <style>:root{
+    {foreach $theme_css_vars as $k => $v}
+    {$k}:{$v};
+    {/foreach}
+    }</style>
+    {block name="css"}{/block}
+</head>
+<body>
+    <!-- 顶部信息条（展示型） -->
+    <div class="top-bar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <small><i class="bi bi-telephone me-1"></i> 400-888-8888</small>
+            <small><i class="bi bi-envelope me-1"></i> contact@example.com</small>
+        </div>
+    </div>
+
+    <!-- 固定导航 -->
+    <nav class="main-nav">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="/">
+                {if $site_logo}<img src="{$site_logo}" alt="Logo">{else}<i class="bi bi-hexagon-fill"></i>{$brand_name}{/if}
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/">首页</a></li>
+                <li><a href="/product">产品</a></li>
+                <li><a href="/case">案例</a></li>
+                <li><a href="/news">资讯</a></li>
+                <li><a href="/download">下载</a></li>
+                <li><a href="/job">招聘</a></li>
+            </ul>
+            <div class="nav-actions">
+                {if condition="$is_member_login"}
+                <a href="/member/index"><i class="bi bi-person-circle"></i></a>
+                {else/}
+                <a href="/member/login" class="btn btn-sm btn-primary">登录</a>
+                {/if}
+            </div>
+        </div>
+    </nav>
+
+    {block name="content"}{/block}
+
+    <!-- 友情链接 -->
+    {i8j:linklist limit="20" status="1"}
+    {if condition="$i == 0"}
+    <div class="link-section">
+        <div class="container">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="text-muted small"><i class="bi bi-link-45deg me-1"></i>友情链接：</span>
+    {/if}
+                <a href="{$field.url}" target="_blank" class="small text-muted text-decoration-none">{$field.title}</a>
+    {if condition="$i == count($__LIST__) - 1"}
+            </div>
+        </div>
+    </div>
+    {/if}
+    {/i8j:linklist}
+
+    <!-- 页脚 -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h6>{if $site_logo}<img src="{$site_logo}" alt="Logo" style="height:28px;filter:brightness(0) invert(1);">{else}{$brand_name}{/if}</h6>
+                    <p class="small">AI驱动的企业信息管理系统</p>
+                </div>
+                <div>
+                    <h6>快速链接</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="/">首页</a></li>
+                        <li><a href="/product">产品中心</a></li>
+                        <li><a href="/case">成功案例</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h6>联系方式</h6>
+                    <p class="small mb-1"><i class="bi bi-telephone me-1"></i>400-888-8888</p>
+                    <p class="small"><i class="bi bi-envelope me-1"></i>contact@example.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="small mb-0">{$powered_by|raw} {$copyright_info}</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/front-csrf.js?v=2.9.5"></script>
+    {block name="js"}{/block}
+</body>
+</html>

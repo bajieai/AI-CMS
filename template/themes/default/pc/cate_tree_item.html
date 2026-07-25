@@ -1,0 +1,24 @@
+{php}
+$hasChildren = !empty($cate['children']);
+$isActive = ($cate_id == $cate['id']);
+$isParentActive = false;
+if ($hasChildren && !$isActive) {
+    foreach ($cate['children'] as $child) {
+        if ($cate_id == $child['id']) { $isParentActive = true; break; }
+    }
+}
+$showChildren = $isActive || $isParentActive;
+{/php}
+<a href="/{$type_slug}?cate_id={$cate.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {if condition="$isActive"}active{/if}" style="padding-left:{:($cate.level * 1.2 + 1)}rem">
+    <span>{$cate.name}</span>
+    {if condition="$hasChildren"}
+    <i class="bi bi-chevron-{if condition="$showChildren"}down{else}right{/if} small cate-toggle" data-target="cate-children-{$cate.id}"></i>
+    {/if}
+</a>
+{if condition="$hasChildren"}
+<div class="cate-children" id="cate-children-{$cate.id}" style="{if condition="!$showChildren"}display:none{/if}">
+    {volist name="cate.children" id="cate"}
+    {include file="cate_tree_item" /}
+    {/volist}
+</div>
+{/if}

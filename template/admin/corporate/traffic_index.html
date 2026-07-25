@@ -1,0 +1,161 @@
+{extend name="layout" /}
+
+{block name="title"}流量分析看板{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">数据统计</li>
+<li class="breadcrumb-item active">流量分析</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-pie-chart me-1"></i>来源分析</span>
+                <select class="form-select form-select-sm" style="width:auto;" id="sourceDays" onchange="loadSourceStats()">
+                    <option value="7">近7天</option>
+                    <option value="30">近30天</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div id="sourceChart" style="height:300px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-phone me-1"></i>设备分布</span>
+                <select class="form-select form-select-sm" style="width:auto;" id="deviceDays" onchange="loadDeviceStats()">
+                    <option value="7">近7天</option>
+                    <option value="30">近30天</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div id="deviceChart" style="height:300px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-12">
+        <div class="card border-0" style="box-shadow:var(--card-shadow)">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock me-1"></i>24小时时段分布</span>
+                <select class="form-select form-select-sm" style="width:auto;" id="hourlyDays" onchange="loadHourlyStats()">
+                    <option value="7">近7天</option>
+                    <option value="30">近30天</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div id="hourlyChart" style="height:280px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0" style="box-shadow:var(--card-shadow)">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart me-1"></i>受访页面排行 TOP20</span>
+        <select class="form-select form-select-sm" style="width:auto;" id="pageDays" onchange="loadPageRank()">
+            <option value="7">近7天</option>
+            <option value="30">近30天</option>
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>页面URL</th>
+                    <th width="80">PV</th>
+                    <th width="80">UV</th>
+                </tr>
+            </thead>
+            <tbody id="pageRankList">
+                <tr><td colspan="3" class="text-center text-muted py-4">加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var sourceChart = echarts.init(document.getElementById('sourceChart'));
+var deviceChart = echarts.init(document.getElementById('deviceChart'));
+var hourlyChart = echarts.init(document.getElementById('hourlyChart'));
+
+function loadSourceStats() {
+    var days = $('#sourceDays').val();
+    $.get('/admin/traffic/getSourceStats?days=' + days, function(d) {
+        if(d.code !== 0) return;
+        var pieData = $.map(d.data, function(v) {
+            return {name: v.source_type || '直接访问', value: v.count};
+        });
+        sourceChart.setOption({
+            tooltip: {trigger: 'item', formatter: '{b}: {c} ({d}%)'},
+            series: [{type: 'pie', radius: ['40%', '70%'], label: {show: true, formatter: '{b}\n{d}%'}, data: pieData}]
+        });
+    });
+}
+
+function loadDeviceStats() {
+    var days = $('#deviceDays').val();
+    $.get('/admin/traffic/getDeviceStats?days=' + days, function(d) {
+        if(d.code !== 0) return;
+        var pieData = $.map(d.data, function(v) {
+            return {name: v.device || '未知', value: v.count};
+        });
+        deviceChart.setOption({
+            tooltip: {trigger: 'item', formatter: '{b}: {c} ({d}%)'},
+            series: [{type: 'pie', radius: ['40%', '70%'], label: {show: true, formatter: '{b}\n{d}%'}, data: pieData}]
+        });
+    });
+}
+
+function loadHourlyStats() {
+    var days = $('#hourlyDays').val();
+    $.get('/admin/traffic/getHourlyStats?days=' + days, function(d) {
+        if(d.code !== 0) return;
+        var hours = [];
+        for(var i=0; i<24; i++) hours.push(i + '时');
+        hourlyChart.setOption({
+            tooltip: {trigger: 'axis'},
+            grid: {left: '3%', right: '4%', bottom: '3%', containLabel: true},
+            xAxis: {type: 'category', data: hours},
+            yAxis: {type: 'value'},
+            series: [{type: 'bar', data: d.data, itemStyle: {color: '#667eea'}, barWidth: '60%'}]
+        });
+    });
+}
+
+function loadPageRank() {
+    var days = $('#pageDays').val();
+    $.get('/admin/traffic/getPageRank?days=' + days, function(d) {
+        if(d.code !== 0) return;
+        var html = '';
+        $.each(d.data, function(i, v) {
+            html += '<tr><td class="text-truncate" style="max-width:500px">' + (v.page_url || '/') + '</td>'
+                + '<td>' + v.pv + '</td><td>' + v.uv + '</td></tr>';
+        });
+        if(!html) html = '<tr><td colspan="3" class="text-center text-muted py-3">暂无数据</td></tr>';
+        $('#pageRankList').html(html);
+    });
+}
+
+$(function() {
+    loadSourceStats();
+    loadDeviceStats();
+    loadHourlyStats();
+    loadPageRank();
+});
+
+$(window).resize(function() {
+    sourceChart.resize();
+    deviceChart.resize();
+    hourlyChart.resize();
+});
+</script>
+{/block}

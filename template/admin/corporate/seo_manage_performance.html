@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}性能SEO{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">SEO优化</li><li class="breadcrumb-item active">性能SEO</li>{/block}
+{block name="content"}
+<div class="card mb-3"><div class="card-header"><i class="bi bi-speedometer2 me-1"></i>Core Web Vitals — {$url}</div><div class="card-body">
+<div class="row g-2">
+<div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-{if condition='$analysis.core_web_vitals.lcp.rating eq "good"'}success{elseif condition='$analysis.core_web_vitals.lcp.rating eq "needs_improvement"'}warning{else /}danger{/if}">{$analysis.core_web_vitals.lcp.value}{$analysis.core_web_vitals.lcp.unit}</h4><p class="small">LCP</p></div></div></div>
+<div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-{if condition='$analysis.core_web_vitals.fid.rating eq "good"'}success{elseif condition='$analysis.core_web_vitals.fid.rating eq "needs_improvement"'}warning{else /}danger{/if}">{$analysis.core_web_vitals.fid.value}{$analysis.core_web_vitals.fid.unit}</h4><p class="small">FID</p></div></div></div>
+<div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-{if condition='$analysis.core_web_vitals.cls.rating eq "good"'}success{elseif condition='$analysis.core_web_vitals.cls.rating eq "needs_improvement"'}warning{else /}danger{/if}">{$analysis.core_web_vitals.cls.value}</h4><p class="small">CLS</p></div></div></div>
+<div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-primary">{$analysis.lighthouse_score}</h4><p class="small">Lighthouse评分</p></div></div></div>
+</div>
+<hr><h6>优化建议</h6>{volist name="analysis.suggestions" id="s"}<p class="small"><span class="badge bg-{if condition='$s.priority eq "high"'}danger{elseif condition='$s.priority eq "medium"'}warning{else /}info{/if} me-1">{$s.priority}</span><strong>{$s.category}</strong>: {$s.desc} <em class="text-muted">{$s.impact}</em></p>{/volist}
+<div class="alert alert-info small mt-2"><i class="bi bi-info-circle"></i> P1-2修复: 一键优化仅限配置层面(懒加载/压缩/缓存)，不修改用户模板文件，支持一键还原</div>
+<button class="btn btn-success btn-sm" onclick="autoOptimize()"><i class="bi bi-magic me-1"></i>一键优化</button>
+<button class="btn btn-outline-warning btn-sm" onclick="restoreOptimize()"><i class="bi bi-arrow-counterclockwise me-1"></i>一键还原</button>
+<div id="optimizeResult" class="mt-2"></div>
+</div></div>
+{/block}
+{block name="js"}
+<script>
+function autoOptimize(){$.post('/admin/seo_manage/autoOptimize',{url:'{$url}'},r=>{if(r.success){var h='<div class="alert alert-success small">';r.data.applied.forEach(a=>h+='<div>✓ '+a+'</div>');h+='<div class="mt-1">'+r.data.not_modified+'</div><div><a href="'+r.data.restore_url+'">一键还原</a></div></div>';$('#optimizeResult').html(h);}});}
+function restoreOptimize(){$.post('/admin/seo_manage/restoreOptimize',{url:'{$url}'},r=>showToast(r.msg,r.success?'success':'danger'));}
+</script>
+{/block}

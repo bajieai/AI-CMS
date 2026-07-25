@@ -1,0 +1,31 @@
+{extend name="/layout" /}
+{block name="title"}失败队列 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header d-flex justify-content-between"><h5 class="mb-0"><i class="bi bi-exclamation-triangle text-danger"></i> 失败队列（共 {$total} 条）</h5><a href="{:url('/admin/queue/index')}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回队列管理</a></div>
+<div class="card-body">
+{if empty($list)}
+<div class="text-center text-muted py-4">暂无失败任务</div>
+{else}
+<div class="table-responsive">
+<table class="table table-hover table-sm">
+    <thead><tr><th width="60">ID</th><th width="100">队列</th><th>载荷</th><th>错误信息</th><th width="80">重试次数</th><th width="160">失败时间</th></tr></thead>
+    <tbody>
+    {volist name="list" id="vo"}
+    <tr><td>{$vo.id}</td><td><span class="badge bg-secondary">{$vo.queue??'--'}</span></td>
+        <td><small class="text-muted" style="max-width:200px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{$vo.payload??'--'}</small></td>
+        <td><small class="text-danger">{$vo.exception??'--'}</small></td>
+        <td>{$vo.attempts??0}</td><td>{:date('Y-m-d H:i:s', $vo.failed_at??0)}</td></tr>
+    {/volist}
+    </tbody>
+</table></div>
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <span class="text-muted small">共 {$total} 条，第 {$page}/{:ceil($total/$limit)} 页</span>
+    <ul class="pagination pagination-sm mb-0">
+        {for start="1" end="ceil($total/$limit)"}
+        <li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}">{$i}</a></li>
+        {/for}
+    </ul>
+</div>
+{/if}
+</div></div>
+{/block}

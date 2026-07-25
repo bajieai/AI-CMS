@@ -1,0 +1,129 @@
+{extend name="layout" /}
+
+{block name="title"}示例代码 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">插件生态</li>
+<li class="breadcrumb-item"><a href="{:url('/admin/developer_community/index')}">开发者社区</a></li>
+<li class="breadcrumb-item active">示例代码</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-code-slash me-1"></i>示例代码列表</span>
+        <a href="{:url('/admin/developer_community/examples_create')}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>添加示例
+        </a>
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" action="{:url('/admin/developer_community/examples')}">
+            <div class="col-md-3">
+                <input type="text" name="keyword" value="{$keyword|default=''}" class="form-control form-control-sm" placeholder="搜索示例名称">
+            </div>
+            <div class="col-md-2">
+                <select name="language" class="form-control form-control-sm">
+                    <option value="">全部语言</option>
+                    {volist name="languages" id="l"}
+                    <option value="{$l}" {if condition="$language|default='' eq $l"}selected{/if}>{$l}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="category" class="form-control form-control-sm">
+                    <option value="">全部分类</option>
+                    {volist name="categories" id="c"}
+                    <option value="{$c}" {if condition="$category|default='' eq $c"}selected{/if}>{$c}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary btn-sm">搜索</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>语言</th>
+                    <th>分类</th>
+                    <th>下载数</th>
+                    <th>状态</th>
+                    <th>更新时间</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td><a href="{:url('/admin/developer_community/examples_detail', ['id'=>$vo.id])}">{$vo.name}</a></td>
+                    <td>
+                        {if condition="$vo.language eq 'php'"}
+                        <span class="badge bg-primary">PHP</span>
+                        {elseif condition="$vo.language eq 'javascript'" /}
+                        <span class="badge bg-warning text-dark">JavaScript</span>
+                        {elseif condition="$vo.language eq 'python'" /}
+                        <span class="badge bg-info">Python</span>
+                        {elseif condition="$vo.language eq 'java'" /}
+                        <span class="badge bg-danger">Java</span>
+                        {elseif condition="$vo.language eq 'go'" /}
+                        <span class="badge bg-info">Go</span>
+                        {else /}
+                        <span class="badge bg-secondary">{$vo.language}</span>
+                        {/if}
+                    </td>
+                    <td><span class="badge bg-light text-dark">{$vo.category}</span></td>
+                    <td>{$vo.downloads ?? 0}</td>
+                    <td>
+                        {if condition="$vo.status eq 'published'"}
+                        <span class="badge bg-success">已发布</span>
+                        {else /}
+                        <span class="badge bg-warning text-dark">草稿</span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.updated_at}</td>
+                    <td class="text-end">
+                        <a href="{:url('/admin/developer_community/examples_download', ['id'=>$vo.id])}" class="btn btn-outline-success btn-sm me-1" title="下载">
+                            <i class="bi bi-download"></i>
+                        </a>
+                        <a href="{:url('/admin/developer_community/examples_edit', ['id'=>$vo.id])}" class="btn btn-outline-primary btn-sm me-1" title="编辑">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteExample({$vo.id})" title="删除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无示例代码</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function deleteExample(id) {
+    if (!confirm('确定删除此示例代码？')) return;
+    $.post('{:url("/admin/developer_community/examples_delete")}', {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) location.reload();
+        else alert(res.msg || '删除失败');
+    });
+}
+</script>
+{/block}

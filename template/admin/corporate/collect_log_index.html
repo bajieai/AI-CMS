@@ -1,0 +1,25 @@
+{extend name="/layout" /}
+{block name="title"}采集日志 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">采集日志</h4>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>采集源</th><th>标题</th><th>原始URL</th><th>状态</th><th>采集时间</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.source_id}</td>
+                <td>{$vo.title}</td>
+                <td><small><a href="{$vo.url}" target="_blank">查看原文</a></small></td>
+                <td>{if $vo.status==1}<span class="badge bg-success">已导入</span>{elseif $vo.status==2}<span class="badge bg-warning">跳过</span>{elseif $vo.status==3}<span class="badge bg-danger">失败</span>{else/}<span class="badge bg-info">新采集</span>{/if}</td>
+                <td>{$vo.create_time|date='Y-m-d H:i'}</td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+{/block}

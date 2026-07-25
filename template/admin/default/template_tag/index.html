@@ -1,0 +1,50 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-tags me-1"></i>模板标签管理</h5>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tagModal" onclick="resetForm()"><i class="bi bi-plus-lg"></i> 新建标签</button>
+    </div>
+    <div class="card-body">
+        {volist name="grouped" id="tags" key="type"}
+        <h6 class="text-muted text-uppercase small">{switch $type}{case industry}行业{/case}{case style}风格{/case}{case function}功能{/case}{default /}自定义{/switch}</h6>
+        <div class="mb-3 d-flex flex-wrap gap-2">
+            {volist name="tags" id="tag"}
+            <span class="badge d-flex align-items-center gap-1" style="background:{$tag.color}">
+                {$tag.name}
+                <button class="btn btn-sm btn-link text-white p-0 ms-1" onclick="editTag({$tag.id}, '{$tag.name}', '{$tag.type}', '{$tag.color}', {$tag.sort}, {$tag.status})"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-link text-white p-0" onclick="deleteTag({$tag.id})"><i class="bi bi-x"></i></button>
+            </span>
+            {/volist}
+        </div>
+        {/volist}
+        {if condition="empty($grouped)"}<p class="text-center text-muted py-4">暂无标签，点击右上角"新建标签"创建</p>{/if}
+    </div>
+</div>
+<div class="modal fade" id="tagModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">标签管理</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <form id="tagForm">
+            <input type="hidden" id="tag-id">
+            <div class="mb-3"><label class="form-label">标签名称</label><input type="text" id="tag-name" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">标签类型</label><select id="tag-type" class="form-select"><option value="industry">行业</option><option value="style">风格</option><option value="function">功能</option><option value="custom">自定义</option></select></div>
+            <div class="mb-3"><label class="form-label">颜色</label><input type="color" id="tag-color" class="form-control form-control-color" value="#1890ff"></div>
+            <div class="mb-3"><label class="form-label">排序</label><input type="number" id="tag-sort" class="form-control" value="99"></div>
+        </form>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveTag()">保存</button></div>
+</div></div></div>
+<script>
+function resetForm() { $('#tag-id').val(''); $('#tag-name').val(''); $('#tag-type').val('custom'); $('#tag-color').val('#1890ff'); $('#tag-sort').val(99); }
+function editTag(id, name, type, color, sort, status) {
+    $('#tagModal').modal('show'); $('#tag-id').val(id); $('#tag-name').val(name); $('#tag-type').val(type); $('#tag-color').val(color); $('#tag-sort').val(sort);
+}
+function saveTag() {
+    var id = $('#tag-id').val(); var url = id ? '/admin/template_tag/edit/'+id : '/admin/template_tag/create';
+    $.post(url, {name: $('#tag-name').val(), type: $('#tag-type').val(), color: $('#tag-color').val(), sort: $('#tag-sort').val()}, function(res) {
+        if (res.code === 0) { window.ui.toast('保存成功', 'success'); setTimeout(()=>location.reload(), 1000); } else { window.ui.toast(res.msg, 'danger'); }
+    });
+}
+function deleteTag(id) { if (!confirm('确认删除此标签?')) return; $.post('/admin/template_tag/delete/'+id, {}, function(res) { if (res.code === 0) { window.ui.toast('删除成功', 'success'); setTimeout(()=>location.reload(), 1000); } else { window.ui.toast(res.msg, 'danger'); } }); }
+</script>
+{/block}

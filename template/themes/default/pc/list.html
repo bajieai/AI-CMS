@@ -1,0 +1,87 @@
+{extend name="layout" /}
+
+{block name="title"}
+{if condition="$current_cate"}
+    {$current_cate.seo_title ?: $current_cate.name} - {$site_name}
+{else /}
+    {if condition="$type == 1"}产品中心
+    {elseif condition="$type == 2"/}成功案例
+    {elseif condition="$type == 3"/}新闻动态
+    {elseif condition="$type == 4"/}资料下载
+    {elseif condition="$type == 5"/}人才招聘
+    {else /}单页
+    {/if} - {$site_name}
+{/if}
+{/block}
+
+{block name="keywords"}
+{if condition="$current_cate && $current_cate.seo_keywords"}{$current_cate.seo_keywords}{else}{$site_keywords}{/if}
+{/block}
+
+{block name="description"}
+{if condition="$current_cate && $current_cate.seo_description"}{$current_cate.seo_description}{else}{$site_description}{/if}
+{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">
+                    {if condition="$type == 1"}产品中心{/if}
+                    {if condition="$type == 2"}成功案例{/if}
+                    {if condition="$type == 3"}新闻动态{/if}
+                    {if condition="$type == 4"}资料下载{/if}
+                    {if condition="$type == 5"}人才招聘{/if}
+                    {if condition="$type == 6"}单页{/if}
+                </li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <!-- 渚ц竟鏍?-->
+            <div class="col-lg-3 mb-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white"><i class="bi bi-folder2 me-1"></i>分类</div>
+                    <div class="list-group list-group-flush bg-light" id="cateTree">
+                        {$cate_tree_html|raw}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 内容列表 -->
+            <div class="col-lg-9">
+                <div class="row g-3">
+                    {volist name="list" id="vo"}
+                    {switch vo.type}
+                        {case 1}{include file="_partials/list_item_product" /}{/case}
+                        {case 2}{include file="_partials/list_item_case" /}{/case}
+                        {case 3}{include file="_partials/list_item_news" /}{/case}
+                        {case 4}{include file="_partials/list_item_download" /}{/case}
+                        {case 5}{include file="_partials/list_item_job" /}{/case}
+                        {case 6}{include file="_partials/list_item_page" /}{/case}
+                        {default /}{include file="_partials/list_item_page" /}{/default}
+                    {/switch}
+                    {/volist}
+                </div>
+
+                {empty name="list"}
+                <div class="text-center py-5" style="background:var(--i8j-bg-secondary,#f8fafc);border-radius:12px;margin-top:1rem;">
+                    <i class="bi bi-inbox fs-1" style="color:#cbd5e1;"></i>
+                    <h5 class="text-muted mt-3 fw-bold" style="color:var(--i8j-text-secondary,#64748b);">暂无相关内容</h5>
+                    <p class="text-muted small mt-1 mb-3">该分类下暂时没有文章，看看其他分类吧</p>
+                    <a href="/" class="btn btn-outline-primary btn-sm"><i class="bi bi-house me-1"></i>返回首页</a>
+                </div>
+                {/empty}
+
+                {if condition="($list->hasPages() ?? false)"}
+                <div class="mt-3 d-flex justify-content-center">
+                    {$list->render()|raw}
+                </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

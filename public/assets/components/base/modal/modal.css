@@ -1,0 +1,146 @@
+/**
+ * I8JModal - 样式
+ * V3.0 Phase 2 UI组件库
+ */
+
+.i8j-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.i8j-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    animation: i8j-modal-backdrop-in 0.25s ease;
+}
+
+.i8j-modal--leaving .i8j-modal__backdrop {
+    animation: i8j-modal-backdrop-out 0.25s ease forwards;
+}
+
+.i8j-modal__dialog {
+    position: relative;
+    width: 100%;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+    animation: i8j-modal-dialog-in 0.3s ease;
+}
+
+.i8j-modal--leaving .i8j-modal__dialog {
+    animation: i8j-modal-dialog-out 0.25s ease forwards;
+}
+
+.i8j-modal__dialog--sm  { max-width: 360px; }
+.i8j-modal__dialog--md  { max-width: 520px; }
+.i8j-modal__dialog--lg  { max-width: 720px; }
+.i8j-modal__dialog--xl  { max-width: 960px; }
+
+.i8j-modal__content {
+    background: var(--i8j-bg, #fff);
+    border-radius: var(--i8j-radius-md, 8px);
+    box-shadow: var(--i8j-shadow-xl, 0 8px 32px rgba(0,0,0,0.2));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.i8j-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--i8j-border, #e2e8f0);
+}
+
+.i8j-modal__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--i8j-text, #1e293b);
+}
+
+.i8j-modal__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--i8j-text-secondary, #64748b);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+.i8j-modal__close:hover { opacity: 1; }
+
+.i8j-modal__body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--i8j-text, #1e293b);
+}
+
+.i8j-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--i8j-border, #e2e8f0);
+}
+
+.i8j-modal__btn {
+    padding: 8px 16px;
+    border-radius: var(--i8j-radius-sm, 6px);
+    border: 1px solid transparent;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.i8j-modal__btn--cancel {
+    background: transparent;
+    border-color: var(--i8j-border, #e2e8f0);
+    color: var(--i8j-text-secondary, #64748b);
+}
+.i8j-modal__btn--cancel:hover {
+    background: var(--i8j-bg-secondary, #f8fafc);
+}
+
+.i8j-modal__btn--confirm {
+    background: var(--i8j-primary, #3b82f6);
+    color: #fff;
+}
+.i8j-modal__btn--confirm:hover {
+    background: var(--i8j-primary-hover, #2563eb);
+}
+
+.i8j-modal__prompt-input {
+    margin-top: 8px;
+}
+
+@keyframes i8j-modal-backdrop-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes i8j-modal-backdrop-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@keyframes i8j-modal-dialog-in {
+    from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes i8j-modal-dialog-out {
+    from { opacity: 1; transform: scale(1) translateY(0); }
+    to   { opacity: 0; transform: scale(0.95) translateY(-10px); }
+}

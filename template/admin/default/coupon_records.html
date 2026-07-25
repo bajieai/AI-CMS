@@ -1,0 +1,92 @@
+{extend name="layout" /}
+
+{block name="title"}发放记录{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/dashboard/index">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/coupon/index">优惠券管理</a></li>
+<li class="breadcrumb-item active">发放记录</li>
+{/block}
+
+{block name="content"}
+<div class="card border-0" style="box-shadow:var(--card-shadow)">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            <i class="bi bi-list-ul me-2"></i>优惠券发放记录
+            {if $templateId > 0}
+            <a href="/admin/coupon/index" class="btn btn-sm btn-outline-secondary ms-2">查看全部</a>
+            {/if}
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>优惠券码</th>
+                        <th>会员</th>
+                        <th>类型</th>
+                        <th>门槛/折扣</th>
+                        <th>状态</th>
+                        <th>过期时间</th>
+                        <th>使用时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td><code>{$vo.code}</code></td>
+                        <td>{$vo.member.nickname??$vo.member.username??'未知'}</td>
+                        <td>
+                            {if $vo.coupon_type=='reduce'}
+                            <span class="badge bg-primary">满减</span>
+                            {elseif $vo.coupon_type=='discount'}
+                            <span class="badge bg-info">折扣</span>
+                            {else}
+                            <span class="badge bg-success">免邮</span>
+                            {/if}
+                        </td>
+                        <td>
+                            {if $vo.condition_amount>0}
+                            满{$vo.condition_amount}元
+                            {else/}
+                            无门槛
+                            {/if}
+                        </td>
+                        <td>
+                            {if $vo.status==0}
+                            <span class="badge bg-secondary">未使用</span>
+                            {elseif $vo.status==1}
+                            <span class="badge bg-success">已使用</span>
+                            {elseif $vo.status==2}
+                            <span class="badge bg-warning">已过期</span>
+                            {elseif $vo.status==3}
+                            <span class="badge bg-danger">已作废</span>
+                            {else}
+                            <span class="badge bg-info">已退还</span>
+                            {/if}
+                        </td>
+                        <td>
+                            {if $vo.expire_at>0}
+                            {php}echo date('Y-m-d', $vo['expire_at']);{/php}
+                            {else/}长期有效{/if}
+                        </td>
+                        <td>
+                            {if $vo.used_at>0}
+                            {php}echo date('Y-m-d H:i', $vo['used_at']);{/php}
+                            {else/}—{/if}
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        <!-- 分页 -->
+        <div class="p-3">
+            {$list|raw}
+        </div>
+    </div>
+</div>
+{/block}

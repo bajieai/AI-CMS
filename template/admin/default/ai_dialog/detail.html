@@ -1,0 +1,102 @@
+{extend name="layout" /}
+
+{block name="title"}对话详情 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">AI能力</li>
+<li class="breadcrumb-item"><a href="{:url('/admin/ai_dialog/index')}">对话管理</a></li>
+<li class="breadcrumb-item active">对话详情</li>
+{/block}
+
+{block name="content"}
+<!-- 会话信息 -->
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-info-circle me-1"></i>会话信息</span>
+        <a href="{:url('/admin/ai_dialog/index')}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <label class="text-muted small">会话ID</label>
+                <div class="fw-bold">{$dialog.id}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted small">会话标题</label>
+                <div class="fw-bold">{$dialog.title}</div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="text-muted small">类型</label>
+                <div><span class="badge bg-secondary">{$dialog.type}</span></div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="text-muted small">消息数</label>
+                <div class="fw-bold">{$dialog.message_count ?? 0}</div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="text-muted small">Token总数</label>
+                <div class="fw-bold">{$dialog.token_count ?? 0}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted small">用户ID</label>
+                <div>{$dialog.user_id ?? '—'}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted small">模型</label>
+                <div>{$dialog.model ?? '—'}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted small">状态</label>
+                <div>
+                    {if condition="($dialog.status ?? '') eq 'active'"}
+                    <span class="badge bg-success">活跃</span>
+                    {elseif condition="($dialog.status ?? '') eq 'archived'" /}
+                    <span class="badge bg-secondary">已归档</span>
+                    {else /}
+                    <span class="badge bg-danger">已删除</span>
+                    {/if}
+                </div>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted small">创建时间</label>
+                <div class="small">{$dialog.created_at}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 消息列表 -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-chat-text me-1"></i>消息记录
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {volist name="messages" id="msg"}
+            <div class="list-group-item {if condition="$msg.role eq 'user'"}border-start border-primary border-3{elseif condition="$msg.role eq 'assistant'" /}border-start border-success border-3{else /}border-start border-secondary border-3{/if}">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="badge {if condition="$msg.role eq 'user'"}bg-primary{elseif condition="$msg.role eq 'assistant'" /}bg-success{else /}bg-secondary{/if}">
+                        {if condition="$msg.role eq 'user'"}用户{elseif condition="$msg.role eq 'assistant'" /}AI助手{else /}系统{/if}
+                    </span>
+                    <small class="text-muted">{$msg.created_at} · {$msg.tokens ?? 0} tokens</small>
+                </div>
+                <div class="mt-1 text-break" style="white-space:pre-wrap;">{$msg.content}</div>
+            </div>
+            {/volist}
+            {empty name="messages"}
+            <div class="list-group-item text-center text-muted py-4">暂无消息记录</div>
+            {/empty}
+        </div>
+    </div>
+    {if condition="isset($messages) && is_object($messages) && method_exists($messages, 'hasPages') && $messages->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$messages->total()} 条消息</small>
+            {$messages->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}

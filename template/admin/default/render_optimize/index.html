@@ -1,0 +1,24 @@
+{extend name="layout" /}
+{block name="title"}渲染优化{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">性能优化</li>
+<li class="breadcrumb-item active">渲染优化</li>
+{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-file-earmark-code me-2"></i>页面渲染优化</h5></div>
+    <div class="card-body">
+        <div class="row text-center mb-3">
+            <div class="col-md-6"><div class="card border-info"><div class="card-body"><h3 class="text-info">{$static_count}</h3><small>静态页面数量</small></div></div></div>
+            <div class="col-md-6"><div class="card border-success"><div class="card-body"><h3 class="text-success">{$static_size}MB</h3><small>静态页面总大小</small></div></div></div>
+        </div>
+        <h6>静态页面生成</h6>
+        <button class="btn btn-primary" onclick="genStatic('home')"><i class="bi bi-house me-1"></i>生成首页静态</button>
+        <button class="btn btn-info" onclick="genStatic('hot')"><i class="bi bi-fire me-1"></i>生成热门页静态</button>
+        <button class="btn btn-danger" onclick="genStatic('clear')"><i class="bi bi-trash me-1"></i>清除所有静态页</button>
+    </div>
+</div>
+<script>
+function genStatic(type){fetch('/admin/render_optimize/generate_static',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'type='+type}).then(r=>r.json()).then(res=>{alert(res.msg);location.reload();})}
+</script>
+{/block}

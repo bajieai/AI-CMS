@@ -1,0 +1,1402 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | Copyright (c) 2026 湖北八界智能技术有限公司 Licensed under the MIT License.
+// +----------------------------------------------------------------------
+// | 官网: http://www.i8j.cn
+// +----------------------------------------------------------------------
+// | Author: 八界AI Team <admin@i8j.cn>
+// +----------------------------------------------------------------------
+declare(strict_types=1);
+
+namespace app\admin\controller;
+
+use app\common\controller\AdminBaseController;
+use app\common\model\Content;
+use app\common\model\ContentExt;
+use app\common\model\ContentTag;
+use app\common\model\ContentVersion;
+use app\common\model\Cate;
+use app\common\model\Tag;
+use app\common\model\Config as ConfigModel;
+use app\common\service\CacheService;
+use app\common\service\ContentService;
+use app\common\service\ai\AiImageGenerateService;
+use app\common\service\ai\AiSeoDiagnosisService;
+use app\common\service\ai\AiSeoOptimizerService;
+use app\common\service\ai\AiWritingStyleService;
+use app\common\service\ai\AiPromptTemplateService;
+use think\facade\Config as ThinkConfig;
+use think\facade\Cache;
+
+/**
+ * 内容管理控制器
+ */
+class ContentController extends AdminBaseController
+{
+    /**
+     * V2.9.1 M18: 批量内容操作
+     */
+    public function batchAction()
+    {
+        $action = $this->request->post('action', '');
+        $ids = $this->request->post('ids', []);
+        $cateId = $this->request->post('cate_id', 0);
+
+        $extra = [];
+        if ($action === 'move') {
+            $extra['cate_id'] = (int) $cateId;
+        }
+
+        $result = ContentService::batchOperate($action, $ids, $extra);
+
+        if ($this->request->isAjax()) {
+            return json($result);
+        }
+
+        if ($result['success']) {
+            $this->success($result['msg']);
+        } else {
+            $this->error($result['msg']);
+        }
+    }
+
+    /**
+     * 内容列表
+     */
+    public function index()
+    {
+        $params = $this->request->param();
+        $service = new ContentService();
+        $list = $service->getList($params);
+        
+        // 获取分类树和标签列表用于筛选
+        $cates = Cate::where('status', 1)->select();
+        $tags = Tag::select();
+
+        // V2.9.15: 注入翻译状态数据（用于列表页翻译状态badge）
+        $contentIds = [];
+        foreach ($list as $item) {
+            $contentIds[] = $item['id'];
+        }
+        $translationsMap = [];
+        if (!empty($contentIds)) {
+            $transList = \app\common\model\ContentLang::whereIn('content_id', $contentIds)
+                ->whereIn('lang', ['en', 'ja', 'ko'])
+                ->field('content_id,lang,translate_status')
+                ->select()
+                ->toArray();
+            $langNames = ['en' => '英语', 'ja' => '日语', 'ko' => '韩语'];
+            foreach ($transList as $t) {
+                if (!isset($translationsMap[$t['content_id']])) {
+                    $translationsMap[$t['content_id']] = [];
+                }
+                $translationsMap[$t['content_id']][] = [
+                    'lang_code' => $t['lang'],
+                    'lang_name' => $langNames[$t['lang']] ?? $t['lang'],
+                    'status'    => (int) $t['translate_status'],
+                ];
+            }
+        }
+        // 将 translations 附加到 list 每一项
+        foreach ($list as &$item) {
+            $item['translations'] = $translationsMap[$item['id']] ?? [];
+        }
+        unset($item);
+
+        $this->assign([
+            'list' => $list,
+            'cates' => $cates,
+            'tags' => $tags,
+            'params' => $params,
+        ]);
+
+        return $this->view('/content_list');
+    }
+
+    /**
+     * 添加内容
+     */
+    public function add()
+    {
+        if ($this->request->isGet()) {
+            $type = (int) $this->request->get('type', 1);
+            $cates = Cate::where('status', 1)->where('type', $type)->select();
+            $tags = Tag::select();
+            $extFields = ThinkConfig::get('info_type_fields.' . $type, []);
+
+            // V2.9.20 A-2: 注入内容模型选择
+            $contentModels = \app\common\model\ContentModel::where('status', 1)
+                ->where('type', $type)
+                ->order('sort', 'asc')
+                ->select();
+            $defaultModel = \app\common\model\ContentModel::getDefaultByType($type);
+            $modelId = $defaultModel ? $defaultModel->id : 0;
+            $modelFields = [];
+            if ($modelId > 0) {
+                $modelFields = \app\common\model\ContentModelField::where('model_id', $modelId)
+                    ->where('status', 1)
+                    ->order('sort', 'asc')
+                    ->select();
+            }
+
+            // V2.9.9-R4: 注入AI配图默认配置
+            $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
+            $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
+            $aiImageCandidateCount = (int) ConfigModel::getValue('ai_image_candidate_count', '4');
+
+            // V2.9.9: 注入AI模板列表
+            $aiTemplates = \app\common\model\AiTemplate::where('status', 1)->order('sort desc, id desc')->column('name', 'id');
+
+            // V2.9.9: AI-GEO评分（添加模式无内容，设为null）
+            $geoScore = null;
+
+            // V2.9.9: 会员等级列表
+            $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
+
+            // V2.9.17 T-4: 翻译轮询可配置化
+            $polling = ThinkConfig::get('ai.translate.polling', []);
+            $this->assign([
+                'cates' => $cates,
+                'tags' => $tags,
+                'info' => null,
+                'selected_tags' => [],
+                'ext_fields' => $extFields,
+                'ext_data' => [],
+                // V2.9.20 A-2: 内容模型
+                'content_models' => $contentModels,
+                'model_id' => $modelId,
+                'model_fields' => $modelFields,
+                'ai_image_default_size' => $aiImageDefaultSize,
+                'ai_image_default_style' => $aiImageDefaultStyle,
+                'ai_image_candidate_count' => $aiImageCandidateCount,
+                'ai_templates' => $aiTemplates,
+                'geo_score' => $geoScore,
+                'member_levels' => $memberLevels,
+                'translate_poll_interval'  => $polling['interval'] ?? 3000,
+                'translate_fast_interval'  => $polling['fast_interval'] ?? 1000,
+                'translate_max_poll'       => $polling['max_attempts'] ?? 60,
+                'translate_poll_timeout'   => $polling['timeout'] ?? 180,
+            ]);
+            return $this->view('/content_edit');
+        }
+
+        $data = $this->request->post();
+        $service = new ContentService();
+        $result = $service->create($data);
+
+        if ($result) {
+            $this->recordLog('添加内容', $data['title'] ?? '', $data);
+            return $this->success('添加成功', ['redirect' => '/admin/content/index']);
+        }
+        return $this->error('添加失败');
+    }
+
+    /**
+     * 编辑内容
+     */
+    public function edit(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        if ($this->request->isGet()) {
+            $cates = Cate::where('status', 1)->where('type', $info->type)->select();
+            $tags = Tag::select();
+            $selectedTags = $info->tags()->column('tag_id');
+            $extFields = ThinkConfig::get('info_type_fields.' . $info->type, []);
+            $extData = [];
+            if ($info->ext) {
+                $extData = $info->ext->data ?? [];
+            }
+            // 归一化换行符 \r\n → \n（防止在 input value 属性中显示为乱码）
+            $extData = self::cleanLineEndings($extData);
+
+            // V2.9.20 A-2: 注入内容模型和动态字段
+            $contentModels = \app\common\model\ContentModel::where('status', 1)
+                ->where('type', $info->type)
+                ->order('sort', 'asc')
+                ->select();
+            $modelFields = [];
+            if ($info->model_id > 0) {
+                $modelFields = \app\common\model\ContentModelField::where('model_id', $info->model_id)
+                    ->where('status', 1)
+                    ->order('sort', 'asc')
+                    ->select();
+            }
+
+            // V2.9.9-R4: 注入AI配图默认配置
+            $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
+            $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
+            $aiImageCandidateCount = (int) ConfigModel::getValue('ai_image_candidate_count', '4');
+
+            // V2.9.9: 注入AI模板列表
+            $aiTemplates = \app\common\model\AiTemplate::where('status', 1)->order('sort desc, id desc')->column('name', 'id');
+
+            // V2.9.9: AI-GEO评分
+            $geoScore = null;
+            if ($info && !empty($info->content)) {
+                try {
+                    $geoScore = self::formatGeoScore(\app\common\service\AiGeoService::score($info));
+                } catch (\Throwable) {
+                    // 降级：不显示评分
+                }
+            }
+
+            // V2.9.9: 会员等级列表
+            $memberLevels = \app\common\model\MemberLevel::order('sort', 'asc')->column('name', 'id');
+
+            // V2.9.17 T-4: 翻译轮询可配置化
+            $polling = ThinkConfig::get('ai.translate.polling', []);
+            $this->assign([
+                'info' => $info,
+                'cates' => $cates,
+                'tags' => $tags,
+                'selected_tags' => $selectedTags,
+                'ext_fields' => $extFields,
+                'ext_data' => $extData,
+                // V2.9.20 A-2: 内容模型
+                'content_models' => $contentModels,
+                'model_id' => $info->model_id,
+                'model_fields' => $modelFields,
+                'ai_image_default_size' => $aiImageDefaultSize,
+                'ai_image_default_style' => $aiImageDefaultStyle,
+                'ai_image_candidate_count' => $aiImageCandidateCount,
+                'ai_templates' => $aiTemplates,
+                'geo_score' => $geoScore,
+                'member_levels' => $memberLevels,
+                'translate_poll_interval'  => $polling['interval'] ?? 3000,
+                'translate_fast_interval'  => $polling['fast_interval'] ?? 1000,
+                'translate_max_poll'       => $polling['max_attempts'] ?? 60,
+                'translate_poll_timeout'   => $polling['timeout'] ?? 180,
+            ]);
+            return $this->view('/content_edit');
+        }
+
+        $data = $this->request->post();
+        $service = new ContentService();
+        $result = $service->update($id, $data);
+
+        if ($result) {
+            $this->recordLog('编辑内容', $info->title ?? '', $data);
+            return $this->success('更新成功');
+        }
+        return $this->error('更新失败');
+    }
+
+    /**
+     * V2.9.9: AI-GEO评分AJAX
+     */
+    public function geoScore(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+        try {
+            $score = self::formatGeoScore(\app\common\service\AiGeoService::score($info));
+            return $this->success('评分完成', $score);
+        } catch (\Throwable $e) {
+            return $this->error('评分失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.9: 格式化GEO评分为前端结构
+     */
+    protected static function formatGeoScore(array $raw): array
+    {
+        $dims = $raw['dimensions'] ?? [];
+        $suggestions = [];
+        foreach ($dims as $dim) {
+            if (($dim['score'] ?? 0) < 20) {
+                $suggestions[] = $dim['suggestion'] ?? '';
+            }
+        }
+        return [
+            'total'       => $raw['total'] ?? 0,
+            'dimensions'  => [
+                'structure' => $dims[0]['score'] ?? 0,
+                'citations' => $dims[1]['score'] ?? 0,
+                'authority' => $dims[2]['score'] ?? 0,
+                'entities'  => $dims[3]['score'] ?? 0,
+            ],
+            'suggestions' => array_values(array_filter($suggestions)),
+        ];
+    }
+
+    /**
+     * V2.9.27 S-5c: 一键切换内容模板 (AJAX)
+     */
+    public function switchTemplate(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $template = $this->request->post('template', '');
+        $info->template = $template;
+        $info->save();
+
+        $this->recordLog('切换内容模板', "内容ID:{$id}, 模板:{$template}");
+        return $this->success('模板已切换', ['template' => $template]);
+    }
+
+    /**
+     * V2.9.27 S-5c: 获取可用模板列表 (AJAX)
+     */
+    public function getAvailableTemplates(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $templates = \app\common\service\home\ModelTemplateResolver::getAvailableTemplates(
+            (int)($info->model_id ?? 0),
+            (int)$info->type
+        );
+
+        // 标记当前模板
+        $currentTemplate = $info->template ?? '';
+        foreach ($templates as &$t) {
+            $t['is_current'] = ($t['template'] === $currentTemplate);
+        }
+
+        return $this->success('获取成功', ['templates' => $templates, 'current' => $currentTemplate]);
+    }
+
+    /**
+     * V2.9.27 S-3e: 保存内容关系 (AJAX)
+     */
+    public function saveRelations(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $relationIds = $this->request->post('relation_ids', []);
+        $relationType = $this->request->post('relation_type', 'related');
+
+        $count = \app\common\service\content\TypeContentService::saveRelations(
+            $id, $relationIds, $relationType
+        );
+
+        $this->recordLog('保存内容关系', "内容ID:{$id}, 关系类型:{$relationType}, 数量:{$count}");
+        return $this->success('保存成功', ['count' => $count]);
+    }
+
+    /**
+     * V2.9.27 S-3e: 获取内容关系 (AJAX)
+     */
+    public function getRelations(int $id)
+    {
+        $info = Content::find($id);
+        if (!$info) {
+            return $this->error('内容不存在');
+        }
+
+        $relationType = $this->request->get('relation_type', 'related');
+        $relations = \app\common\service\content\TypeContentService::getRelations(
+            $id, $relationType, 50
+        );
+
+        return $this->success('获取成功', ['relations' => $relations]);
+    }
+
+    /**
+     * 获取扩展字段配置（AJAX）
+     */
+    public function getExtFields()
+    {
+        $type = (int) $this->request->get('type', 1);
+        $extFields = ThinkConfig::get('info_type_fields.' . $type, []);
+        return $this->success('获取成功', ['fields' => $extFields]);
+    }
+
+    /**
+     * V2.7: 获取章节列表（AJAX）
+     */
+    public function getChapters(int $parentId)
+    {
+        $list = Content::where('parent_id', $parentId)
+            ->where('is_chapter', 1)
+            ->where('status', '>=', 0)
+            ->order('chapter_sort', 'asc')
+            ->select();
+        return $this->success('获取成功', ['list' => $list]);
+    }
+
+    /**
+     * V2.7: 保存章节（新增/编辑）
+     */
+    public function saveChapter()
+    {
+        $data = $this->request->post();
+        $id = (int) ($data['id'] ?? 0);
+        $parentId = (int) ($data['parent_id'] ?? 0);
+
+        if ($parentId <= 0) {
+            return $this->error('parent_id参数错误');
+        }
+
+        $saveData = [
+            'parent_id'       => $parentId,
+            'is_chapter'      => 1,
+            'title'           => $data['title'] ?? '',
+            'chapter_title'   => $data['chapter_title'] ?? '',
+            'content'         => $data['content'] ?? '',
+            'chapter_sort'    => (int) ($data['chapter_sort'] ?? 0),
+            'is_free_chapter' => (int) ($data['is_free_chapter'] ?? 0),
+            'chapter_price'   => (float) ($data['chapter_price'] ?? 0),
+            'status'          => (int) ($data['status'] ?? 2),
+            'type'            => 6, // 单页类型
+        ];
+
+        if (empty($saveData['title'])) {
+            return $this->error('章节标题不能为空');
+        }
+
+        try {
+            if ($id > 0) {
+                $chapter = Content::find($id);
+                if (!$chapter || $chapter->parent_id != $parentId) {
+                    return $this->error('章节不存在');
+                }
+                $chapter->save($saveData);
+            } else {
+                $chapter = Content::create($saveData);
+            }
+            return $this->success('保存成功', ['id' => $chapter->id]);
+        } catch (\Exception $e) {
+            return $this->error('保存失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.7: 删除章节
+     */
+    public function deleteChapter(int $id)
+    {
+        $chapter = Content::find($id);
+        if (!$chapter || empty($chapter->is_chapter)) {
+            return $this->error('章节不存在');
+        }
+        $chapter->status = -1;
+        $chapter->save();
+        return $this->success('删除成功');
+    }
+
+    /**
+     * V2.7: 批量更新章节排序
+     */
+    public function sortChapters()
+    {
+        $orders = $this->request->post('orders', []);
+        if (empty($orders) || !is_array($orders)) {
+            return $this->error('参数错误');
+        }
+
+        try {
+            foreach ($orders as $item) {
+                $id = (int) ($item['id'] ?? 0);
+                $sort = (int) ($item['sort'] ?? 0);
+                if ($id > 0) {
+                    Content::where('id', $id)->update(['chapter_sort' => $sort]);
+                }
+            }
+            return $this->success('排序更新成功');
+        } catch (\Exception $e) {
+            return $this->error('排序更新失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 获取分类列表（按类型过滤，AJAX）
+     */
+    public function getCates()
+    {
+        $type = (int) $this->request->get('type', 1);
+        $cates = Cate::where('status', 1)->where('type', $type)->column('name', 'id');
+        return $this->success('获取成功', ['cates' => $cates]);
+    }
+
+    /**
+     * 删除内容（移入回收站）
+     */
+    public function delete(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        // 记录原始状态，用于还原
+        $originalStatus = $info->status;
+
+        // 软删除：将status设为-1
+        $info->status = -1;
+        if ($info->save()) {
+            $this->recordLog('移入回收站', $info->title ?? '', ['original_status' => $originalStatus]);
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+            // V2.6: 从搜索索引删除
+            \app\common\service\MeilisearchService::deleteDocument((int) $info->id);
+            return $this->success('已移入回收站');
+        }
+        return $this->error('操作失败');
+    }
+
+    /**
+     * 发布内容（V3.1: 自动配图增强）
+     */
+    public function publish(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        // V3.1: 发布自动配图 — 如果无封面图则尝试AI生成
+        if (empty($info->cover) && ThinkConfig::get('ai.image.auto_on_publish', false)) {
+            try {
+                $aiService = new \app\common\service\AiService();
+                $prompt = $aiService->buildImagePrompt($info->title ?? '', $info->content ?? '');
+                $imageResult = $aiService->generateImage($prompt, ['style' => 'realistic']);
+                if (!empty($imageResult['url'])) {
+                    $info->cover = $imageResult['url'];
+                }
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning("发布自动配图失败: " . $e->getMessage());
+            }
+        }
+
+        // V2.9.25 M-2: 触发内容发布前 Hook
+        try {
+            $hookResult = \app\common\hook\Hook::fire(\app\common\hook\HookEvents::CONTENT_BEFORE_PUBLISH, [
+                'content_id' => $id,
+                'content_data' => $info->toArray(),
+                'user_id' => $this->adminId ?? 0,
+            ], ['module' => 'admin', 'ip' => $this->request->ip()]);
+            if ($hookResult->stopped) {
+                return $this->error('发布被Hook拦截: ' . $hookResult->message);
+            }
+        } catch (\Throwable $e) {
+            \think\facade\Log::warning('CONTENT_BEFORE_PUBLISH Hook 执行失败: ' . $e->getMessage());
+        }
+
+        $info->status = 2;
+        if ($info->save()) {
+            $this->recordLog('发布内容', $info->title ?? '');
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+            // V2.9.5 通知作者
+            if (!empty($info->user_id)) {
+                try {
+                    (new \app\common\service\NotificationService())->notifyContentApprove($info->user_id, $info->id);
+                } catch (\Throwable $e) {
+                    \think\facade\Log::warning("发布通知发送失败: " . $e->getMessage());
+                }
+            }
+            // V2.9.18: 触发内容发布事件（自动推送到已配置通道）
+            try {
+                event('ContentPublished', new \app\common\event\ContentPublished($info->id));
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning("推送事件触发失败: " . $e->getMessage());
+            }
+            // V2.9.25 M-2: 触发内容发布后 Hook
+            try {
+                \app\common\hook\Hook::fire(\app\common\hook\HookEvents::CONTENT_AFTER_PUBLISH, [
+                    'content_id' => $id,
+                    'content_data' => $info->toArray(),
+                    'user_id' => $this->adminId ?? 0,
+                ], ['module' => 'admin', 'ip' => $this->request->ip()]);
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning('CONTENT_AFTER_PUBLISH Hook 执行失败: ' . $e->getMessage());
+            }
+            return $this->success('发布成功');
+        }
+        return $this->error('发布失败');
+    }
+
+    /**
+     * V2.9.5 通过审核
+     */
+    public function audit(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        $info->status = 2;
+        if ($info->save()) {
+            $this->recordLog('通过审核', $info->title ?? '');
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+            // V2.9.5 通知作者
+            if (!empty($info->user_id)) {
+                try {
+                    (new \app\common\service\NotificationService())->notifyContentApprove($info->user_id, $info->id);
+                } catch (\Throwable $e) {
+                    \think\facade\Log::warning("审核通知发送失败: " . $e->getMessage());
+                }
+            }
+            return $this->success('审核通过');
+        }
+        return $this->error('操作失败');
+    }
+
+    /**
+     * V2.9.5 驳回内容（退回草稿）
+     */
+    public function reject(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        $info->status = 0;
+        if ($info->save()) {
+            $this->recordLog('驳回内容', $info->title ?? '');
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+            // V2.9.5 通知作者
+            if (!empty($info->user_id)) {
+                try {
+                    (new \app\common\service\NotificationService())->notifyContentReject($info->user_id, $info->id);
+                } catch (\Throwable $e) {
+                    \think\facade\Log::warning("驳回通知发送失败: " . $e->getMessage());
+                }
+            }
+            return $this->success('已驳回，内容退回草稿状态');
+        }
+        return $this->error('操作失败');
+    }
+
+    /**
+     * 回收站列表
+     */
+    public function recycleBin()
+    {
+        $params = $this->request->param();
+        $params['recycle'] = 1;
+        $service = new ContentService();
+        $list = $service->getList($params);
+
+        $cates = Cate::where('status', 1)->select();
+
+        $this->app->view->assign('menuActive', 'recycle');
+        $this->assign([
+            'list' => $list,
+            'cates' => $cates,
+            'params' => $params,
+        ]);
+
+        return $this->view('/recycle_list');
+    }
+
+    /**
+     * 还原内容
+     */
+    public function restore(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        if ($info->status != -1) {
+            return $this->error('该内容不在回收站中');
+        }
+
+        // 还原为草稿状态（status=0），避免直接发布未审核内容
+        $info->status = 0;
+        if ($info->save()) {
+            $this->recordLog('还原内容', $info->title ?? '');
+            $cacheService = new CacheService();
+            $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+            return $this->success('还原成功');
+        }
+        return $this->error('还原失败');
+    }
+
+    /**
+     * 彻底删除内容
+     */
+    public function forceDelete(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        if ($info->status != -1) {
+            return $this->error('只能彻底删除回收站中的内容');
+        }
+
+        $title = $info->title ?? '';
+
+        // 删除扩展数据
+        ContentExt::where('content_id', $id)->delete();
+        // 删除标签关联
+        ContentTag::where('content_id', $id)->delete();
+        // 删除主记录
+        $info->delete();
+
+        $this->recordLog('彻底删除', $title);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+        return $this->success('彻底删除成功');
+    }
+
+    /**
+     * 复制内容
+     */
+    public function copy(int $id)
+    {
+        $service = new ContentService();
+        $newId = $service->copy($id);
+
+        if ($newId) {
+            $this->recordLog('复制内容', '原ID:' . $id . ' => 新ID:' . $newId);
+            return $this->success('复制成功', ['redirect' => '/admin/content/edit/' . $newId]);
+        }
+        return $this->error('复制失败');
+    }
+
+    /**
+     * 批量发布
+     */
+    public function batchPublish()
+    {
+        $ids = $this->request->post('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $count = Content::whereIn('id', $ids)->where('status', '<>', 2)->update(['status' => 2, 'update_time' => time()]);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+        $this->recordLog('批量发布', '共' . $count . '条');
+        return $this->success('批量发布成功，共 ' . $count . ' 条');
+    }
+
+    /**
+     * 批量移入回收站
+     */
+    public function batchDelete()
+    {
+        $ids = $this->request->post('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $count = Content::whereIn('id', $ids)->where('status', '>=', 0)->update(['status' => -1, 'update_time' => time()]);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+        $this->recordLog('批量移入回收站', '共' . $count . '条');
+        return $this->success('批量移入回收站成功，共 ' . $count . ' 条');
+    }
+
+    /**
+     * 批量移动分类
+     */
+    public function batchMoveCate()
+    {
+        $ids = $this->request->post('ids', []);
+        $cateId = (int) $this->request->post('cate_id', 0);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $count = Content::whereIn('id', $ids)->update(['cate_id' => $cateId, 'update_time' => time()]);
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+        $this->recordLog('批量移动分类', '分类ID:' . $cateId . ', 共' . $count . '条');
+        return $this->success('批量移动分类成功，共 ' . $count . ' 条');
+    }
+
+    /**
+     * 自动保存草稿（AJAX）
+     */
+    public function autoSave(int $id)
+    {
+        $data = $this->request->post();
+        $service = new ContentService();
+        $result = $service->autoSave($id, $data);
+        if ($result['success']) {
+            return $this->success($result['msg'], ['time' => $result['time'] ?? '']);
+        }
+        return $this->error($result['msg'] ?? '自动保存失败');
+    }
+
+    /**
+     * 版本历史列表
+     */
+    public function versions(int $id)
+    {
+        $info = Content::find($id);
+        if (empty($info)) {
+            return $this->error('内容不存在');
+        }
+
+        $list = ContentVersion::where('content_id', $id)->order('id', 'desc')->paginate(20);
+
+        $this->assign([
+            'info' => $info,
+            'list' => $list,
+        ]);
+        return $this->view('/content_versions');
+    }
+
+    /**
+     * 回滚到指定版本
+     */
+    public function rollback(int $versionId)
+    {
+        $version = ContentVersion::find($versionId);
+        if (empty($version)) {
+            return $this->error('版本不存在');
+        }
+
+        $content = Content::find($version->content_id);
+        if (empty($content)) {
+            return $this->error('内容不存在');
+        }
+
+        // 先保存当前状态为一个新版本
+        $service = new ContentService();
+        $service->update($content->id, [
+            'title' => $content->title,
+            'content' => $content->content,
+            'excerpt' => $content->excerpt,
+            'cover' => $content->cover,
+            'cate_id' => $content->cate_id,
+            'status' => $content->status,
+        ]);
+
+        // 回滚到指定版本
+        $content->title = $version->title;
+        $content->content = $version->content;
+        $content->excerpt = $version->excerpt;
+        $content->cover = $version->cover;
+        $content->cate_id = $version->cate_id;
+        $content->status = $version->status;
+        $content->update_time = time();
+        $content->save();
+
+        // 恢复扩展数据
+        if (!empty($version->ext_data)) {
+            $extData = json_decode($version->ext_data, true);
+            $ext = ContentExt::where('content_id', $content->id)->where('type', $content->type)->find();
+            if ($ext) {
+                $ext->data = $extData;
+                $ext->save();
+            } else {
+                $ext = new ContentExt();
+                $ext->content_id = $content->id;
+                $ext->type = $content->type;
+                $ext->data = $extData;
+                $ext->save();
+            }
+        }
+
+        // 恢复标签关联
+        if (!empty($version->tag_ids)) {
+            $tagIds = array_filter(explode(',', $version->tag_ids));
+            ContentTag::where('content_id', $content->id)->delete();
+            $data = [];
+            foreach ($tagIds as $tagId) {
+                $data[] = ['content_id' => $content->id, 'tag_id' => (int) $tagId];
+            }
+            if (!empty($data)) {
+                (new ContentTag())->saveAll($data);
+            }
+        }
+
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+        $this->recordLog('版本回滚', $content->title . ' => 版本#' . $versionId);
+        return $this->success('回滚成功', ['redirect' => '/admin/content/edit/' . $content->id]);
+    }
+
+    /**
+     * @deprecated V2.9.15 请使用 AiProgressController::batchSeoStart (SSE真进度模式)。
+     *             本方法仅保留向后兼容，处理少量文章时仍可直接调用。
+     *
+     * V2.9.14: 批量SEO优化（保留兼容：同步模式，前端可选择SSE模式）
+     *
+     * 注：V2.9.14新增SSE真进度模式通过 AiProgressController::batchSeoStart 实现。
+     * 本方法保留作为直接调用入口（处理少量文章时直接使用）。
+     */
+    public function batchSeoOptimize()
+    {
+        $ids = $this->request->post('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择要操作的内容');
+        }
+
+        $ids = array_slice($ids, 0, 10);
+        $concurrency = 3;
+        $interval = 2;
+
+        $service = new ContentService();
+        $success = 0;
+        $fail = 0;
+        $batch = 0;
+
+        foreach ($ids as $id) {
+            $batch++;
+            $result = $service->autoFillSeo((int) $id);
+            if ($result['success']) {
+                $success++;
+            } else {
+                $fail++;
+            }
+
+            if ($batch % $concurrency === 0 && $batch < count($ids)) {
+                sleep($interval);
+            }
+        }
+
+        foreach ($ids as $id) {
+            try {
+                $content = Content::find($id);
+                if ($content) {
+                    ContentService::cacheSeoScore($content);
+                }
+            } catch (\Throwable $e) {
+                \think\facade\Log::warning("批量SEO评分缓存失败 content_id={$id}: " . $e->getMessage());
+            }
+        }
+
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+        $this->recordLog('批量SEO优化', "成功:{$success}, 失败:{$fail}, 并发控制:{$concurrency}篇/批");
+        return $this->success("批量SEO优化完成，成功 {$success} 条，失败 {$fail} 条");
+    }
+
+    // ============================================================
+    // V2.9.13: AI内容增强补完 — 6个端点
+    // ============================================================
+
+    /**
+     * V2.9.14: AI配图生成（异步化，提交队列后立即返回）
+     */
+    public function aiImageGenerate(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $service = new AiImageGenerateService();
+        $summary = strip_tags($content->content ?? '');
+        $taskIds = [];
+
+        // 提交3个异步配图任务到队列
+        for ($i = 0; $i < 3; $i++) {
+            $taskId = $service->submitGenerateTask($id, $content->title, $summary, $i);
+            $taskIds[] = $taskId;
+        }
+
+        // 初始化缓存候选结构（15分钟有效期）
+        $candidates = [];
+        foreach ($taskIds as $idx => $taskId) {
+            $candidates[] = [
+                'url'      => '',
+                'task_id'  => $taskId,
+                'provider' => '',
+                'index'    => $idx,
+            ];
+        }
+
+        $cacheKey = 'ai_image_candidates_' . $id;
+        Cache::set($cacheKey, $candidates, 900);
+
+        return $this->success('配图任务已提交', [
+            'content_id' => $id,
+            'task_ids'   => $taskIds,
+            'candidates' => $candidates,
+            'count'      => count($candidates),
+        ]);
+    }
+
+    /**
+     * V2.9.14: AI配图轮询（增强：从队列获取真实任务状态）
+     */
+    public function aiImagePoll(int $id)
+    {
+        $cacheKey = 'ai_image_candidates_' . $id;
+        $candidates = Cache::get($cacheKey);
+
+        if (empty($candidates)) {
+            return $this->error('配图任务已过期或不存在', 1, ['expired' => true]);
+        }
+
+        // V2.9.14: 从队列查询真实任务状态，更新缓存
+        $queueService = new \app\common\service\ai\AiTaskQueueService();
+        $pending = 0;
+        $completed = 0;
+
+        foreach ($candidates as $i => &$c) {
+            if (empty($c['url']) && !empty($c['task_id'])) {
+                $task = $queueService->getStatus((int) $c['task_id']);
+                if ($task) {
+                    if ($task['status'] == \app\common\model\AiTaskQueue::STATUS_COMPLETED) {
+                        $result = $task['result'] ?? [];
+                        $c['url'] = $result['url'] ?? '';
+                        $c['provider'] = $result['provider'] ?? '';
+                        $completed++;
+                    } elseif ($task['status'] == \app\common\model\AiTaskQueue::STATUS_FAILED) {
+                        $c['error'] = $task['error_msg'] ?? '生成失败';
+                        $completed++; // 失败也算完成（不再等待）
+                    } else {
+                        $pending++;
+                    }
+                } else {
+                    $pending++;
+                }
+            } else {
+                $completed++;
+            }
+        }
+
+        // 更新缓存
+        Cache::set($cacheKey, $candidates, 900);
+
+        return $this->success('查询成功', [
+            'content_id' => $id,
+            'candidates' => $candidates,
+            'pending'    => $pending,
+            'completed'  => $completed,
+        ]);
+    }
+
+    /**
+     * V2.9.13 F-6/F-7: AI配图确认（将选中图片写入文章feature_img）
+     */
+    public function aiImageConfirm(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $index = (int) $this->request->post('index', 0);
+        $cacheKey = 'ai_image_candidates_' . $id;
+        $candidates = Cache::get($cacheKey);
+
+        if (empty($candidates) || !isset($candidates[$index])) {
+            return $this->error('配图候选已过期，请重新生成');
+        }
+
+        $selected = $candidates[$index];
+        if (empty($selected['url'])) {
+            return $this->error('该配图尚未生成完成，请稍后再试');
+        }
+
+        // 写入文章配图字段
+        $content->cover = $selected['url'];
+        $content->save();
+
+        // 清除缓存
+        Cache::delete($cacheKey);
+
+        $this->recordLog('AI配图确认', $content->title . ' => 配图' . ($index + 1));
+        return $this->success('配图已应用到文章', ['url' => $selected['url']]);
+    }
+
+    /**
+     * V2.9.13 F-3: AI SEO优化对比（获取优化前后差异，不自动保存）
+     */
+    public function aiSeoOptimize(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $service = new AiSeoOptimizerService();
+        $result = $service->getOptimizeDiff($id);
+
+        if (!$result['success']) {
+            return $this->error($result['message'] ?? 'SEO优化失败');
+        }
+
+        return $this->success('SEO优化对比生成成功', $result['data']);
+    }
+
+    /**
+     * V2.9.13 F-3: AI SEO应用（支持单字段或全部应用）
+     */
+    public function aiSeoApply(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $field = $this->request->post('field', ''); // ''=全部, 'seo_title'/'seo_description'/'seo_keywords'=单字段
+        $value = $this->request->post('value', '');
+
+        $allowedFields = ['seo_title', 'seo_description', 'seo_keywords'];
+
+        if ($field === '') {
+            // 全部应用：重新调用optimizeContent并保存所有字段
+            $service = new AiSeoOptimizerService();
+            $result = $service->optimizeContent($id);
+            if (!$result['success']) {
+                return $this->error($result['message'] ?? 'SEO优化失败');
+            }
+            $content->seo_title = $result['data']['seo_title'];
+            $content->seo_description = $result['data']['seo_description'];
+            $content->seo_keywords = $result['data']['seo_keywords'];
+        } elseif (in_array($field, $allowedFields, true) && $value !== '') {
+            $content->{$field} = $value;
+        } else {
+            return $this->error('字段名无效或值为空');
+        }
+
+        $content->save();
+
+        $cacheService = new CacheService();
+        $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
+
+        $this->recordLog('AI SEO应用', $content->title . ' => 字段:' . ($field ?: '全部'));
+        return $this->success('SEO已应用到文章');
+    }
+
+    /**
+     * V2.9.13 F-4: 按写作风格生成内容
+     */
+    public function generateByStyle(int $id)
+    {
+        $content = Content::find($id);
+        if (!$content) {
+            return $this->error('内容不存在');
+        }
+
+        $style = $this->request->post('style', 'formal');
+        $topic = $this->request->post('topic', $content->title);
+
+        $validStyles = ['formal', 'relaxed', 'professional', 'news', 'marketing', 'academic'];
+        if (!in_array($style, $validStyles, true)) {
+            return $this->error('无效的写作风格');
+        }
+
+        try {
+            $result = AiWritingStyleService::generateWithStyle($topic, $style, [
+                'keywords' => explode(',', $content->seo_keywords ?? ''),
+            ]);
+
+            $this->recordLog('AI风格生成', $content->title . ' => 风格:' . $style);
+            return $this->success('内容生成成功', [
+                'style'   => $style,
+                'title'   => $result['title'] ?? '',
+                'content' => $result['content'] ?? '',
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error('内容生成失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * V2.9.13 F-4: 获取写作风格列表（含示例句子）
+     */
+    public function getWritingStyles()
+    {
+        $styles = AiWritingStyleService::getStyles();
+
+        // 注入示例句子（占位符【关键词】）
+        $examples = [
+            'formal'       => '就【关键词】而言，其核心价值体现在三方面……',
+            'relaxed'      => '嘿，说起【关键词】，这事儿其实挺有意思的！',
+            'professional' => '从技术层面分析，【关键词】的主要挑战在于……',
+            'news'         => '据最新消息，【关键词】领域近期出现了突破性进展',
+            'marketing'    => '还在担心【关键词】问题？这款方案能帮你一次解决',
+            'academic'     => '研究表明，【关键词】与用户行为之间存在显著相关性（p<0.05）',
+        ];
+
+        foreach ($styles as &$s) {
+            $s['example'] = $examples[$s['key']] ?? '';
+        }
+
+        return json(['success' => true, 'data' => $styles]);
+    }
+
+    /**
+     * 清理数组中所有字符串值的 \\r\\n 换行符
+     * 防止在 HTML input value 属性中显示为乱码
+     */
+    private static function cleanLineEndings(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_string($value) && str_contains($value, "\r")) {
+                $data[$key] = str_replace(["\r\n", "\r"], "\n", $value);
+            }
+        }
+        return $data;
+    }
+
+
+    /**
+     * V2.9.30: 批量SEO优化
+     */
+    public function batchAiSeo()
+    {
+        $contentIds = $this->request->post('content_ids', []);
+        if (empty($contentIds)) {
+            return $this->error('请选择要优化的内容');
+        }
+        $service = new \app\common\service\ai\AiSeoOptimizerService();
+        $result = $service->batchOptimize($contentIds);
+        return $this->success("批量优化完成: 成功{$result['success']}篇", $result);
+    }
+
+    // ===== V2.9.31 Sprint AI3: AI SEO诊断 =====
+
+    /**
+     * V2.9.31 AI3-1: 内容SEO诊断
+     */
+    public function seoDiagnose(int $id)
+    {
+        $service = new AiSeoDiagnosisService();
+        $result = $service->diagnose($id);
+
+        if ($this->request->isAjax()) {
+            return json($result);
+        }
+
+        $this->assign([
+            'result' => $result,
+            'content_id' => $id,
+        ]);
+        return $this->view('/content/seo_diagnose');
+    }
+
+    /**
+     * V2.9.31 AI3-1: 批量SEO诊断
+     */
+    public function batchSeoDiagnose()
+    {
+        $ids = $this->request->post('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择要诊断的内容');
+        }
+
+        $service = new AiSeoDiagnosisService();
+        $results = $service->batchDiagnose($ids);
+
+        $lowScore = 0;
+        foreach ($results as $r) {
+            if (($r['success'] ?? false) && $r['score'] < 60) {
+                $lowScore++;
+            }
+        }
+
+        return $this->success("诊断完成，低分内容（<60分）：{$lowScore} 条", [
+            'results' => $results,
+        ]);
+    }
+
+    /**
+     * V2.9.31 AI3-1: 全站SEO概况
+     */
+    public function seoOverview()
+    {
+        $service = new AiSeoDiagnosisService();
+        $overview = $service->getSiteOverview();
+
+        if ($this->request->isAjax()) {
+            return json(['success' => true, 'data' => $overview]);
+        }
+
+        $this->assign('overview', $overview);
+        return $this->view('/content/seo_overview');
+    }
+
+    // ===== V2.9.31 Sprint AI3: AI Prompt模板 =====
+
+    /**
+     * V2.9.31 AI3-2: Prompt模板列表
+     */
+    public function aiPromptTemplates()
+    {
+        $service = new AiPromptTemplateService();
+        $templates = $service->getAll();
+
+        if ($this->request->isAjax()) {
+            return json(['success' => true, 'data' => $templates]);
+        }
+
+        $this->assign('templates', $templates);
+        return $this->view('/content/ai_prompt_templates');
+    }
+
+    /**
+     * V2.9.31 AI3-2: 保存Prompt模板
+     */
+    public function aiPromptTemplateSave()
+    {
+        $data = $this->request->post();
+        if (empty($data['key']) || empty($data['template'])) {
+            return $this->error('参数不完整');
+        }
+
+        $service = new AiPromptTemplateService();
+        $service->save($data['key'], $data);
+
+        return $this->success('保存成功');
+    }
+
+    // ===== V2.9.30 Sprint AI2: AI配图 =====
+
+    /**
+     * AI生成配图
+     */
+    public function aiGenerateImage(int $id)
+    {
+        $style = $this->request->post('style', 'auto');
+        $size = $this->request->post('size', '16:9');
+
+        $service = new \app\common\service\ai\AiImageGenerateService();
+        $result = $service->generate($id, $style, $size);
+
+        if ($result['success']) {
+            return $this->success('配图生成成功', $result);
+        }
+        return $this->error($result['message'] ?? '配图生成失败');
+    }
+
+    // ===== V2.9.30 Sprint AI2: AI写作风格 =====
+
+    /**
+     * 获取AI写作风格列表
+     */
+    public function aiWritingStyles()
+    {
+        $service = new \app\common\service\ai\AiWritingStyleService();
+        $styles = $service->getStyles();
+
+        $result = [];
+        foreach ($styles as $key => $style) {
+            $result[] = [
+                'key' => $key,
+                'name' => $style['name'],
+                'description' => $style['description'],
+                'sample' => $service->getPreviewSample($key),
+            ];
+        }
+
+        return $this->success('获取成功', $styles);
+    }
+}

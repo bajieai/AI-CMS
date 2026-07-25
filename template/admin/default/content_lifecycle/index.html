@@ -1,0 +1,25 @@
+{extend name="layout" /}
+{block name="title"}内容生命周期{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">内容生命周期</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+    {volist name="stats" id="s"}
+    <div class="col-md-2">
+        <div class="card text-center"><div class="card-body">
+            <h6 class="text-muted">{$s.label}</h6>
+            <h4 class="text-{$s.color|default='primary'}">{$s.count}</h4>
+        </div></div>
+    </div>
+    {/volist}
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-diagram-3 me-1"></i>生命周期管理</div>
+    <div class="card-body">
+        <div class="btn-group mb-3">
+            <button class="btn btn-outline-primary archive-btn">归档内容</button>
+            <button class="btn btn-outline-warning restore-btn">恢复内容</button>
+            <button class="btn btn-outline-danger trash-btn">清空回收站</button>
+        </div>
+    </div>
+</div>
+{/block}

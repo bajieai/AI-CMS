@@ -1,0 +1,107 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑模型{else/}添加模型{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_model/index">AI中心</a></li>
+<li class="breadcrumb-item"><a href="/admin/ai_model/index">模型管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑{else/}添加{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="card-body">
+        <form id="modelForm" onsubmit="return false;">
+            <input type="hidden" name="id" value="{$info.id??0}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">模型名称</label>
+                    <input type="text" class="form-control" name="name" value="{$info.name??''}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">供应商</label>
+                    <select class="form-select" name="provider" required>
+                        <option value="deepseek" {if condition="($info.provider ?? '') == 'deepseek'"}selected{/if}>DeepSeek</option>
+                        <option value="qwen" {if condition="($info.provider ?? '') == 'qwen'"}selected{/if}>通义千问</option>
+                        <option value="ernie" {if condition="($info.provider ?? '') == 'ernie'"}selected{/if}>文心一言</option>
+                        <option value="kimi" {if condition="($info.provider ?? '') == 'kimi'"}selected{/if}>Kimi</option>
+                        <option value="glm" {if condition="($info.provider ?? '') == 'glm'"}selected{/if}>智谱 GLM</option>
+                        <option value="openai" {if condition="($info.provider ?? '') == 'openai'"}selected{/if}>OpenAI</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">模型ID</label>
+                    <input type="text" class="form-control" name="model_id" value="{$info.model_id??''}" placeholder="如 deepseek-chat" required>
+                    <div class="form-text">API调用时使用的模型标识</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">API Base URL</label>
+                    <input type="text" class="form-control" name="api_base" value="{$info.api_base??''}" placeholder="如 https://api.deepseek.com/v1">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">API Key</label>
+                    <input type="password" class="form-control" name="api_key" value="{$info.api_key??''}" placeholder="留空表示不修改">
+                    <div class="form-text">编辑时留空表示保持原密钥不变</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">能力标签（逗号分隔）</label>
+                    <input type="text" class="form-control" name="capabilities" value="<?php $caps = $info['capabilities'] ?? ''; echo is_array($caps) ? implode(',', $caps) : ($caps ?: 'write,seo,translate,summarize'); ?>" placeholder="write,seo,translate,summarize">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">最大 Token 数</label>
+                    <input type="number" class="form-control" name="max_tokens" value="{$info.max_tokens??2000}" min="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Temperature</label>
+                    <input type="number" class="form-control" name="temperature" value="{$info.temperature??0.7}" min="0" max="2" step="0.1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">排序</label>
+                    <input type="number" class="form-control" name="sort" value="{$info.sort??0}">
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_enabled" value="1" id="swEnabled" {if condition="($info.is_enabled ?? 1)==1"}checked{/if}>
+                        <label class="form-check-label" for="swEnabled">启用</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_default" value="1" id="swDefault" {if condition="($info.is_default ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swDefault">设为默认</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+                <a href="/admin/ai_model/index" class="btn btn-outline-secondary ms-2">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnSave').click(function(){
+        var data = {};
+        $('#modelForm').serializeArray().forEach(function(item){
+            if(item.name === 'id' || item.name === 'max_tokens' || item.name === 'sort'){
+                data[item.name] = parseInt(item.value);
+            }else if(item.name === 'temperature'){
+                data[item.name] = parseFloat(item.value);
+            }else if(item.name === 'is_enabled' || item.name === 'is_default'){
+                data[item.name] = $('#modelForm [name='+item.name+']').is(':checked') ? 1 : 0;
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        ajaxPost('/admin/ai_model/save', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/ai_model/index'},800);
+        });
+    });
+});
+</script>
+{/block}

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>文章详情 - 八界AI-CMS</title>
+</head>
+<body>
+    <h1>{{ content.title }}</h1>
+    <p>作者：{{ content.author }}</p>
+    <div>{{ content.content|raw }}</div>
+    {% if relations %}
+    <h3>相关文章</h3>
+    <ul>{% for r in relations %}<li><a href="{{ r.url }}">{{ r.title }}</a></li>{% endfor %}</ul>
+    {% endif %}
+</body>
+</html>

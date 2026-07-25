@@ -1,0 +1,33 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-graph-up me-1"></i>API消耗统计</h5>
+        <form class="d-flex gap-2" method="get">
+            <select name="days" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="7" {if $days==7}selected{/if}>近7天</option>
+                <option value="30" {if $days==30}selected{/if}>近30天</option>
+                <option value="90" {if $days==90}selected{/if}>近90天</option>
+            </select>
+        </form>
+    </div>
+    <div class="card-body">
+        {if condition="empty($stats)"}
+        <div class="text-center text-muted py-5">暂无数据</div>
+        {else /}
+        <table class="table table-hover">
+            <thead><tr><th>日期</th><th>调用次数</th><th>Token消耗</th></tr></thead>
+            <tbody>
+            {volist name="stats" id="vo"}
+            <tr>
+                <td>{$vo.date}</td>
+                <td>{$vo.count}</td>
+                <td>{$vo.tokens|default=0}</td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {/if}
+    </div>
+</div>
+{/block}

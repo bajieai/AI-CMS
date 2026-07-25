@@ -1,0 +1,47 @@
+{extend name="layout" /}
+{block name="title"}多语言站点管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">多语言站点管理</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-globe me-1"></i>多语言站点管理</span>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#siteModal"><i class="bi bi-plus-lg"></i> 新建站点</button>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead><tr><th>ID</th><th>语言代码</th><th>站点名称</th><th>域名</th><th>URL模式</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="site"}
+            <tr>
+                <td>{$site.id}</td>
+                <td><span class="badge bg-info">{$site.lang_code}</span></td>
+                <td>{$site.site_name}</td>
+                <td>{$site.site_domain|default='-'}</td>
+                <td>{$site.url_mode}</td>
+                <td>{if $site.status==1}<span class="badge bg-success">启用</span>{else}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                <td><button class="btn btn-sm btn-outline-primary edit-btn" data-id="{$site.id}">编辑</button></td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="siteModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <form id="siteForm" method="post" action="/admin/lang_site/save">
+            <div class="modal-header"><h5 class="modal-title">站点配置</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" name="id" value="0">
+                <div class="mb-3"><label class="form-label">语言代码</label><input type="text" class="form-control" name="lang_code" placeholder="zh-CN/en-US/ja-JP" required></div>
+                <div class="mb-3"><label class="form-label">站点名称</label><input type="text" class="form-control" name="site_name" required></div>
+                <div class="mb-3"><label class="form-label">域名</label><input type="text" class="form-control" name="site_domain" placeholder="example.com"></div>
+                <div class="mb-3"><label class="form-label">URL前缀</label><input type="text" class="form-control" name="url_prefix" placeholder="/en/"></div>
+                <div class="mb-3"><label class="form-label">URL模式</label><select class="form-select" name="url_mode"><option value="prefix">前缀</option><option value="subdomain">子域名</option><option value="domain">独立域名</option></select></div>
+                <div class="mb-3"><label class="form-label">时区</label><input type="text" class="form-control" name="timezone" value="Asia/Shanghai"></div>
+                <div class="mb-3"><label class="form-label">货币</label><input type="text" class="form-control" name="currency" value="CNY"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+        </form>
+    </div></div>
+</div>
+{/block}

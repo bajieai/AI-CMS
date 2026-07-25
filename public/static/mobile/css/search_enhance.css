@@ -1,0 +1,58 @@
+/* V2.9.24 H-3: 移动端搜索增强样式 */
+.search-suggest-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    z-index: 1061;
+    max-height: 320px;
+    overflow-y: auto;
+}
+.search-suggest-box .suggest-header {
+    padding: 8px 16px 4px;
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.search-suggest-box .suggest-clear {
+    font-size: 11px;
+    color: #0d6efd;
+    cursor: pointer;
+    font-weight: 400;
+}
+.search-suggest-box .suggest-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background .15s;
+}
+.search-suggest-box .suggest-item:active {
+    background: #f8f9fa;
+}
+.search-suggest-box .suggest-item:last-child {
+    border-bottom: none;
+}
+.search-suggest-box .suggest-item i {
+    margin-right: 10px;
+    font-size: 14px;
+    color: #6c757d;
+    width: 16px;
+    text-align: center;
+}
+.search-suggest-box .suggest-item mark {
+    background: #fff3cd;
+    padding: 0;
+    border-radius: 2px;
+}

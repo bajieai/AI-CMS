@@ -1,0 +1,102 @@
+{extend name="layout" /}
+
+{block name="title"}数据安全{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">安全中心</li>
+<li class="breadcrumb-item active">数据安全</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>加密工具</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">输入文本</label>
+                    <textarea class="form-control" id="encInput" rows="4" placeholder="输入需要加密或解密的文本"></textarea>
+                </div>
+                <div class="btn-group mb-3">
+                    <button class="btn btn-primary" onclick="doCrypto('encrypt')"><i class="bi bi-lock me-1"></i>加密</button>
+                    <button class="btn btn-warning" onclick="doCrypto('decrypt')"><i class="bi bi-unlock me-1"></i>解密</button>
+                </div>
+                <div>
+                    <label class="form-label">结果</label>
+                    <textarea class="form-control" id="encOutput" rows="4" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-key me-2"></i>密钥管理</h5>
+            </div>
+            <div class="card-body">
+                {if empty($key_list)}
+                <p class="text-muted">暂无密钥记录</p>
+                {else /}
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>密钥ID</th><th>算法</th><th>版本</th><th>状态</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                        {foreach $key_list as $key}
+                        <tr>
+                            <td><code>{$key.key_id}</code></td>
+                            <td>{$key.algorithm}</td>
+                            <td>v{$key.version}</td>
+                            <td>
+                                {switch($key.status)}
+                                {case 1}<span class="badge bg-success">当前</span>{/case}
+                                {case 2}<span class="badge bg-warning">已轮换</span>{/case}
+                                {case 3}<span class="badge bg-secondary">已废弃</span>{/case}
+                                {/switch}
+                            </td>
+                            <td>
+                                {if $key.status eq 1}
+                                <button class="btn btn-sm btn-outline-warning" onclick="rotateKey('{$key.key_id}')"><i class="bi bi-arrow-repeat"></i></button>
+                                {/if}
+                            </td>
+                        </tr>
+                        {/foreach}
+                    </tbody>
+                </table>
+                {/if}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function doCrypto(action) {
+    const text = document.getElementById('encInput').value;
+    if (!text) return;
+    fetch('/admin/data_security/encrypt', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'action=' + action + '&text=' + encodeURIComponent(text)
+    }).then(r => r.json()).then(res => {
+        if (res.code === 0) {
+            document.getElementById('encOutput').value = res.data.result;
+        } else {
+            alert(res.msg);
+        }
+    });
+}
+function rotateKey(keyId) {
+    if (!confirm('确认轮换密钥 ' + keyId + '？轮换后旧密钥仅用于解密历史数据。')) return;
+    fetch('/admin/data_security/rotate_key', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'key_id=' + keyId
+    }).then(r => r.json()).then(res => {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+</script>
+{/block}

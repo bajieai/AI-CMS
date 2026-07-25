@@ -1,0 +1,118 @@
+﻿{include file="pc/layout" /}
+{__CONTENT__}
+
+<!-- 详情页内容 -->
+<div class="page-detail">
+    <!-- 页面标题 -->
+    <section class="page-header">
+        <div class="container">
+            <nav class="breadcrumb">
+                <a href="/">首页</a>
+                <span class="separator">/</span>
+                <a href="/course">课程列表</a>
+                <span class="separator">/</span>
+                <span class="current">{$detail.title}</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- 详情内容 -->
+    <section class="section section-detail">
+        <div class="container">
+            <div class="detail-layout">
+                <!-- 主内容区 -->
+                <div class="detail-main">
+                    <div class="detail-header">
+                        <h1 class="detail-title">{$detail.title}</h1>
+                        <div class="detail-meta">
+                            <span class="meta-item">讲师：{$detail.teacher}</span>
+                            <span class="meta-item">分类：{$detail.category}</span>
+                            <span class="meta-item">更新时间：{$detail.update_time|date='Y-m-d',###}</span>
+                            <span class="meta-item">浏览：{$detail.views} 次</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-image">
+                        <img src="/assets/placeholder/detail_main.jpg" alt="{$detail.title}">
+                    </div>
+
+                    <div class="detail-content">
+                        {$detail.content}
+                    </div>
+
+                    <!-- 课程大纲 -->
+                    <div class="detail-outline">
+                        <h2 class="outline-title">课程大纲</h2>
+                        <ul class="outline-list">
+                            {volist name="outlineList" id="outline"}
+                            <li class="outline-item">
+                                <span class="outline-number">{$outline.order}</span>
+                                <div class="outline-info">
+                                    <h3 class="outline-name">{$outline.title}</h3>
+                                    <p class="outline-desc">{$outline.description}</p>
+                                </div>
+                                <span class="outline-duration">{$outline.duration}</span>
+                            </li>
+                            {/volist}
+                        </ul>
+                    </div>
+
+                    <!-- 相关课程 -->
+                    <div class="detail-related">
+                        <h2 class="related-title">相关课程</h2>
+                        <div class="related-grid">
+                            {volist name="relatedList" id="related" key="key" mod="3"}
+                            <div class="related-card">
+                                <div class="related-image">
+                                    <img src="/assets/placeholder/related_{$key}.jpg" alt="{$related.title}">
+                                </div>
+                                <div class="related-info">
+                                    <h3 class="related-name">{$related.title}</h3>
+                                    <span class="related-price">{$related.price}</span>
+                                </div>
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 侧边栏 -->
+                <aside class="detail-sidebar">
+                    <div class="sidebar-card">
+                        <div class="sidebar-price">
+                            <span class="price-label">课程价格</span>
+                            <span class="price-value">{$detail.price}</span>
+                        </div>
+                        <a href="/buy/{$detail.id}" class="btn btn-primary btn-block">立即购买</a>
+                        <a href="/cart/add/{$detail.id}" class="btn btn-outline btn-block">加入购物车</a>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">课程信息</h3>
+                        <ul class="sidebar-info">
+                            <li><span>课时：</span>{$detail.hours} 小时</li>
+                            <li><span>章节：</span>{$detail.chapters} 章</li>
+                            <li><span>难度：</span>{$detail.level}</li>
+                            <li><span>语言：</span>{$detail.language}</li>
+                            <li><span>有效期：</span>{$detail.validity}</li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">讲师信息</h3>
+                        <div class="sidebar-teacher">
+                            <img src="/assets/placeholder/teacher_detail.jpg" alt="{$detail.teacher}" class="teacher-avatar">
+                            <div class="teacher-info">
+                                <h4 class="teacher-name">{$detail.teacher}</h4>
+                                <p class="teacher-title">{$detail.teacher_title}</p>
+                            </div>
+                        </div>
+                        <p class="teacher-desc">{$detail.teacher_desc}</p>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+</div>
+
+{include file="pc/footer" /}

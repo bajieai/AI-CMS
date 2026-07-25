@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>产品详情 - 八界AI-CMS</title>
+</head>
+<body>
+    <h1>{{ content.title }}</h1>
+    <p>价格：{{ content.price }}</p>
+    <p>规格：{{ content.spec }}</p>
+    <div>{{ content.content|raw }}</div>
+    {% if relations %}
+    <h3>相关产品</h3>
+    <ul>{% for r in relations %}<li><a href="{{ r.url }}">{{ r.title }}</a></li>{% endfor %}</ul>
+    {% endif %}
+</body>
+</html>

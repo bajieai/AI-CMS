@@ -1,0 +1,108 @@
+{extend name="layout" /}
+
+{block name="title"}付费订单管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/paid_order/index">互动管理</a></li>
+<li class="breadcrumb-item active">付费订单</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-credit-card me-2" style="color:var(--primary)"></i>付费订单管理</h5>
+    <div>
+        <select class="form-select form-select-sm d-inline-block" style="width:auto" id="filterStatus">
+            <option value="">全部状态</option>
+            <option value="0">待支付</option>
+            <option value="1">已支付</option>
+            <option value="2">已退款</option>
+            <option value="3">已关闭</option>
+        </select>
+    </div>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="60">ID</th>
+                    <th width="160">订单号</th>
+                    <th>会员</th>
+                    <th>内容</th>
+                    <th width="80">类型</th>
+                    <th width="90">金额</th>
+                    <th width="90">支付方式</th>
+                    <th width="80">状态</th>
+                    <th width="140">创建时间</th>
+                    <th width="120">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td><code style="font-size:.78rem">{$vo.order_sn}</code></td>
+                    <td>
+                        {if $vo.member}
+                        <a href="/admin/member/detail/id/{$vo.member.id}">{$vo.member.nickname}</a>
+                        {else/}<span class="text-muted">未知</span>{/if}
+                    </td>
+                    <td class="text-truncate" style="max-width:200px">
+                        {if $vo.content}
+                        <a href="/admin/content/edit/id/{$vo.content.id}">{$vo.content.title}</a>
+                        {else/}<span class="text-muted">内容已删除</span>{/if}
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{$vo.type}</span></td>
+                    <td style="font-weight:600;color:#43e97b">{$vo.price}</td>
+                    <td>
+                        {if condition="$vo.pay_type == 'points'"}<span class="badge bg-info">积分</span>
+                        {elseif condition="$vo.pay_type == 'wechat'"}<span class="badge bg-success">微信</span>
+                        {elseif condition="$vo.pay_type == 'alipay'"}<span class="badge bg-primary">支付宝</span>
+                        {else /}<span class="badge bg-secondary">{$vo.pay_type}</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.status == 0"}<span class="badge bg-warning text-dark">待支付</span>
+                        {elseif condition="$vo.status == 1"}<span class="badge bg-success">已支付</span>
+                        {elseif condition="$vo.status == 2"}<span class="badge bg-secondary">已退款</span>
+                        {elseif condition="$vo.status == 3"}<span class="badge bg-dark">已关闭</span>
+                        {/if}
+                    </td>
+                    <td style="font-size:.82rem">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <a href="/admin/paid_order/detail/id/{$vo.id}" class="btn btn-sm btn-outline-primary" title="详情"><i class="bi bi-eye"></i></a>
+                        {if condition="$vo.status == 1"}
+                        <button class="btn btn-sm btn-outline-warning btn-refund" data-id="{$vo.id}" title="退款"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        {/if}
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="10" class="text-center text-muted py-4">暂无订单</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    var curStatus = new URLSearchParams(location.search).get('status') || '';
+    if(curStatus) $('#filterStatus').val(curStatus);
+    $('#filterStatus').change(function(){ window.location='/admin/paid_order/index?status='+$(this).val(); });
+
+    $('.btn-refund').click(function(){
+        if(!confirm('确定退款？积分将退回会员账户。')) return;
+        var id=$(this).data('id');
+        $.post('/admin/paid_order/refund',{id:id},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+});
+</script>
+{/block}

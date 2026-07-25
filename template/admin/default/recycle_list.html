@@ -1,0 +1,122 @@
+{extend name="layout" /}
+
+{block name="title"}回收站{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">内容管理</li>
+<li class="breadcrumb-item active">回收站</li>
+{/block}
+
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/content/recycleBin" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">类型</label>
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">全部类型</option>
+                    <option value="1" {if condition="($params.type ?? '') == 1"}selected{/if}>产品</option>
+                    <option value="2" {if condition="($params.type ?? '') == 2"}selected{/if}>案例</option>
+                    <option value="3" {if condition="($params.type ?? '') == 3"}selected{/if}>新闻</option>
+                    <option value="4" {if condition="($params.type ?? '') == 4"}selected{/if}>下载</option>
+                    <option value="5" {if condition="($params.type ?? '') == 5"}selected{/if}>招聘</option>
+                    <option value="6" {if condition="($params.type ?? '') == 6"}selected{/if}>单页</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">分类</label>
+                <select name="cate_id" class="form-select form-select-sm">
+                    <option value="">全部分类</option>
+                    {volist name="cates" id="cate"}
+                    <option value="{$cate.id}" {if condition="$params.cate_id ?? '' == $cate.id"}selected{/if}>{$cate.name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">关键词</label>
+                <input type="text" name="keyword" class="form-control form-control-sm" value="{$params.keyword ?? ''}" placeholder="搜索标题">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
+                <a href="/admin/content/recycleBin" class="btn btn-outline-secondary btn-sm">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-trash3 me-1"></i>回收站列表</span>
+        <a href="/admin/content/index" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="50">ID</th>
+                    <th>标题</th>
+                    <th width="70">类型</th>
+                    <th width="80">分类</th>
+                    <th width="150">删除时间</th>
+                    <th width="140">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        {if condition="$vo.cover"}
+                        <img src="{$vo.cover}" width="36" height="36" class="rounded me-1" style="object-fit:cover">
+                        {/if}
+                        {$vo.title}
+                    </td>
+                    <td>
+                        {if condition="$vo.type == 1"}<span class="badge bg-primary">产品</span>{/if}
+                        {if condition="$vo.type == 2"}<span class="badge bg-info">案例</span>{/if}
+                        {if condition="$vo.type == 3"}<span class="badge bg-success">新闻</span>{/if}
+                        {if condition="$vo.type == 4"}<span class="badge bg-warning text-dark">下载</span>{/if}
+                        {if condition="$vo.type == 5"}<span class="badge bg-secondary">招聘</span>{/if}
+                        {if condition="$vo.type == 6"}<span class="badge bg-dark">单页</span>{/if}
+                    </td>
+                    <td class="text-muted small">{$vo.cate.name ?? '未分类'}</td>
+                    <td class="text-muted small">{$vo.update_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-success" title="还原" onclick="restoreItem({$vo.id})"><i class="bi bi-arrow-counterclockwise"></i></button>
+                            <button type="button" class="btn btn-outline-danger" title="彻底删除" onclick="forceDeleteItem({$vo.id})"><i class="bi bi-trash-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="6" class="text-center text-muted py-4">回收站为空</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="$list->hasPages() ?? false"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function restoreItem(id) {
+    showConfirm('还原内容', '确定还原此内容？还原后将变为草稿状态。', function() {
+        ajaxPost('/admin/content/restore/' + id, {});
+    });
+}
+function forceDeleteItem(id) {
+    showConfirm('彻底删除', '确定要彻底删除吗？此操作不可恢复！', function() {
+        ajaxPost('/admin/content/forceDelete/' + id, {});
+    });
+}
+</script>
+{/block}

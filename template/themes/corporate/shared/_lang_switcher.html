@@ -1,0 +1,30 @@
+{php}
+$currentLang = session('lang', 'zh');
+$langService = new \app\common\service\ai\translate\TranslateLanguageService();
+$allEnabled = $langService->getEnabledLanguages();
+$sortedCodes = $langService->getSortedCodes();
+{/php}
+
+<div class="language-switcher dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {if isset($allEnabled[$currentLang])}
+            <span class="lang-flag">{$allEnabled[$currentLang]['flag'] ?? '🌐'}</span>
+            <span class="lang-native">{$allEnabled[$currentLang]['native'] ?? $currentLang}</span>
+        {else}
+            🌐 {$currentLang}
+        {/if}
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        {foreach $sortedCodes as $code}
+            {if isset($allEnabled[$code])}
+            <li>
+                <a class="dropdown-item {if $code === $currentLang}active fw-bold{/if}" href="?lang={$code}" data-lang-direction="{$allEnabled[$code]['direction'] ?? 'ltr'}">
+                    <span class="lang-flag">{$allEnabled[$code]['flag'] ?? '🌐'}</span>
+                    <span class="lang-native">{$allEnabled[$code]['native'] ?? $code}</span>
+                    <small class="text-muted ms-1">({$allEnabled[$code]['name'] ?? $code})</small>
+                </a>
+            </li>
+            {/if}
+        {/foreach}
+    </ul>
+</div>

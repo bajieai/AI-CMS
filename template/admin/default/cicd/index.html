@@ -1,0 +1,130 @@
+{extend name="layout" /}
+{block name="title"}CI/CD配置 - AI-CMS{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">开发工具</li>
+<li class="breadcrumb-item active">CI/CD配置</li>
+{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-git me-2"></i>CI/CD 集成配置</h4>
+        <a href="/admin/cicd/webhooks" class="btn btn-outline-secondary btn-sm"><i class="bi bi-list-ul me-1"></i>Webhook记录</a>
+    </div>
+
+    <form id="cicdForm">
+        <div class="row">
+            <!-- GitHub Actions -->
+            <div class="col-lg-6">
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-github me-1"></i> GitHub Actions</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="github_enabled" value="1" id="swGithub" {if $configs.github_enabled==1}checked{/if}>
+                            <label class="form-check-label small" for="swGithub">启用</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Access Token</label>
+                            <input type="password" class="form-control" name="github_token" value="{$configs.github_token??''}" placeholder="ghp_xxxxxxxxxxxx">
+                            <div class="form-text">用于触发 workflow 的 Personal Access Token</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">仓库 (owner/repo)</label>
+                            <input type="text" class="form-control" name="github_repo" value="{$configs.github_repo??''}" placeholder="bajieai/ai-cms">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Workflow 文件名</label>
+                            <input type="text" class="form-control" name="github_workflow" value="{$configs.github_workflow??'deploy.yml'}" placeholder="deploy.yml">
+                            <div class="form-text">位于 .github/workflows/ 目录下</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GitLab CI -->
+            <div class="col-lg-6">
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-gitlab me-1"></i> GitLab CI</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="gitlab_enabled" value="1" id="swGitlab" {if $configs.gitlab_enabled==1}checked{/if}>
+                            <label class="form-check-label small" for="swGitlab">启用</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Private Token</label>
+                            <input type="password" class="form-control" name="gitlab_token" value="{$configs.gitlab_token??''}" placeholder="glpat-xxxxxxxxxxxx">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">项目 ID</label>
+                            <input type="text" class="form-control" name="gitlab_project" value="{$configs.gitlab_project??''}" placeholder="12345">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">分支 / Ref</label>
+                            <input type="text" class="form-control" name="gitlab_ref" value="{$configs.gitlab_ref??'main'}" placeholder="main">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通用配置 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-gear me-1"></i> 通用配置</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Webhook 密钥</label>
+                        <input type="text" class="form-control" name="webhook_secret" value="{$configs.webhook_secret??''}" placeholder="用于验证 GitHub/GitLab Webhook 签名">
+                        <div class="form-text">GitHub 使用 HMAC-SHA256，GitLab 使用 X-Gitlab-Token 头</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">部署分支</label>
+                        <input type="text" class="form-control" name="deploy_branch" value="{$configs.deploy_branch??'main'}" placeholder="main">
+                        <div class="form-text">仅该分支的 push 事件触发部署</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">通知邮箱</label>
+                        <input type="email" class="form-control" name="notify_email" value="{$configs.notify_email??''}" placeholder="ops@example.com">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">通知 Webhook URL</label>
+                        <input type="text" class="form-control" name="notify_webhook" value="{$configs.notify_webhook??''}" placeholder="https://hooks.slack.com/...">
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="auto_deploy" value="1" id="swAutoDeploy" {if $configs.auto_deploy==1}checked{/if}>
+                    <label class="form-check-label" for="swAutoDeploy">自动部署（收到 Webhook 后自动触发）</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+        </div>
+    </form>
+</div>
+{/block}
+{block name="js"}
+<script>
+$('#cicdForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/cicd/save', data, function(res) {
+        if (typeof showToast === 'function') {
+            showToast(res.msg, res.code === 0 ? 'success' : 'danger');
+        } else {
+            alert(res.msg);
+        }
+    }).fail(function() {
+        if (typeof showToast === 'function') {
+            showToast('请求失败，请重试', 'danger');
+        } else {
+            alert('请求失败，请重试');
+        }
+    });
+});
+</script>
+{/block}

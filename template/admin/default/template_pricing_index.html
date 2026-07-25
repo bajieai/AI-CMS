@@ -1,0 +1,16 @@
+{extend name="layout" /}
+{block name="title"}模板定价管理{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item active">模板定价</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header d-flex justify-content-between"><span><i class="bi bi-tag me-1"></i>模板定价管理</span></div>
+    <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0">
+        <thead><tr><th>ID</th><th>模板名称</th><th>标识</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody>{volist name="list" id="item"}<tr>
+            <td>{$item.id}</td><td>{$item.name}</td><td><code>{$item.code}</code></td>
+            <td><span class="badge {$item.status==1?'bg-success':'bg-secondary'}">{$item.status==1?'上架':'下架'}</span></td>
+            <td><a href="/admin/template_pricing/edit/{$item.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> 定价</a></td>
+        </tr>{/volist}</tbody>
+    </table></div></div>
+    <div class="card-footer">{$list|raw=''}</div>
+</div>
+{/block}

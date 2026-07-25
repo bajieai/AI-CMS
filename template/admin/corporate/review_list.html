@@ -1,0 +1,248 @@
+{extend name="layout" /}
+
+{block name="title"}内容审核{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">内容管理</li>
+<li class="breadcrumb-item active">内容审核</li>
+{/block}
+
+{block name="content"}
+<!-- 审核统计卡片 -->
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon text-warning"><i class="bi bi-hourglass-split"></i></div>
+            <div class="stat-num">{$stats.pending}</div>
+            <div class="stat-label">待审核</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon text-success"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-num">{$stats.approve}</div>
+            <div class="stat-label">已通过</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon text-danger"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-num">{$stats.reject}</div>
+            <div class="stat-label">已驳回</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon text-info"><i class="bi bi-percent"></i></div>
+            <div class="stat-num">{$stats.approve_rate}%</div>
+            <div class="stat-label">通过率</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" action="/admin/review/index" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">类型</label>
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">全部类型</option>
+                    <option value="1" {if condition="($params.type ?? '') == 1"}selected{/if}>产品</option>
+                    <option value="2" {if condition="($params.type ?? '') == 2"}selected{/if}>案例</option>
+                    <option value="3" {if condition="($params.type ?? '') == 3"}selected{/if}>新闻</option>
+                    <option value="4" {if condition="($params.type ?? '') == 4"}selected{/if}>下载</option>
+                    <option value="5" {if condition="($params.type ?? '') == 5"}selected{/if}>招聘</option>
+                    <option value="6" {if condition="($params.type ?? '') == 6"}selected{/if}>单页</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">关键词</label>
+                <input type="text" name="keyword" class="form-control form-control-sm" value="{$params.keyword ?? ''}" placeholder="搜索标题">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> 搜索</button>
+                <a href="/admin/review/index" class="btn btn-outline-secondary btn-sm">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>待审内容列表</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="50">ID</th>
+                    <th>标题</th>
+                    <th width="70">类型</th>
+                    <th width="100">分类</th>
+                    <th width="100">作者</th>
+                    <th width="150">提交时间</th>
+                    <th width="180">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        {if condition="$vo.cover"}
+                        <img src="{$vo.cover}" width="36" height="36" class="rounded me-1" style="object-fit:cover">
+                        {/if}
+                        <a href="/admin/content/edit/{$vo.id}" target="_blank">{$vo.title}</a>
+                    </td>
+                    <td>
+                        {if condition="$vo.type == 1"}<span class="badge bg-primary">产品</span>{/if}
+                        {if condition="$vo.type == 2"}<span class="badge bg-info">案例</span>{/if}
+                        {if condition="$vo.type == 3"}<span class="badge bg-success">新闻</span>{/if}
+                        {if condition="$vo.type == 4"}<span class="badge bg-warning text-dark">下载</span>{/if}
+                        {if condition="$vo.type == 5"}<span class="badge bg-secondary">招聘</span>{/if}
+                        {if condition="$vo.type == 6"}<span class="badge bg-dark">单页</span>{/if}
+                    </td>
+                    <td class="text-muted small">{$vo.cate.name ?? '未分类'}</td>
+                    <td class="text-muted small">{$vo.user.nickname ?? '未知'}</td>
+                    <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-success" onclick="reviewAction({$vo.id}, 'approve')"><i class="bi bi-check-lg me-1"></i>通过</button>
+                            <button type="button" class="btn btn-outline-danger" onclick="reviewAction({$vo.id}, 'reject')"><i class="bi bi-x-lg me-1"></i>驳回</button>
+                            <button type="button" class="btn btn-outline-info" onclick="viewHistory({$vo.id})" title="历史"><i class="bi bi-clock-history"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7" class="text-center text-muted py-4">暂无待审核内容</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+
+<!-- 审核意见Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalTitle">审核操作</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reviewContentId">
+                <input type="hidden" id="reviewActionType">
+                <div class="mb-3">
+                    <label class="form-label">审核意见</label>
+                    <textarea id="reviewRemark" class="form-control" rows="3" placeholder="请输入审核意见（驳回时必填）"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary btn-sm" id="reviewConfirmBtn" onclick="confirmReview()">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 审核历史Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">审核历史</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="historyContent">
+                    <div class="text-center text-muted py-3">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+var historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+
+function reviewAction(id, action) {
+    $('#reviewContentId').val(id);
+    $('#reviewActionType').val(action);
+    $('#reviewRemark').val('');
+    $('#reviewModalTitle').text(action === 'approve' ? '审核通过' : '审核驳回');
+    $('#reviewConfirmBtn').removeClass('btn-primary btn-success btn-danger')
+        .addClass(action === 'approve' ? 'btn-success' : 'btn-danger')
+        .text(action === 'approve' ? '确认通过' : '确认驳回');
+    reviewModal.show();
+}
+
+function confirmReview() {
+    var id = $('#reviewContentId').val();
+    var action = $('#reviewActionType').val();
+    var remark = $('#reviewRemark').val().trim();
+
+    if (action === 'reject' && !remark) {
+        showToast('请输入驳回原因', 'warning');
+        return;
+    }
+
+    reviewModal.hide();
+    ajaxPost('/admin/review/' + action + '/' + id, { remark: remark });
+}
+
+function viewHistory(id) {
+    $('#historyContent').html('<div class="text-center text-muted py-3">加载中...</div>');
+    historyModal.show();
+
+    $.get('/admin/review/history/' + id, function(res) {
+        if (res.code === 0 && res.data && res.data.length > 0) {
+            var html = '<ul class="list-group list-group-flush">';
+            res.data.forEach(function(item) {
+                var badge = item.action === 'approve'
+                    ? '<span class="badge bg-success">通过</span>'
+                    : '<span class="badge bg-danger">驳回</span>';
+                html += '<li class="list-group-item">' +
+                    '<div class="d-flex justify-content-between align-items-center">' +
+                    '<div>' + badge + ' <span class="ms-2">' + (item.user.nickname || '系统') + '</span></div>' +
+                    '<small class="text-muted">' + formatTime(item.create_time) + '</small>' +
+                    '</div>' +
+                    (item.remark ? '<div class="mt-1 small text-muted">意见：' + escapeHtml(item.remark) + '</div>' : '') +
+                    '</li>';
+            });
+            html += '</ul>';
+            $('#historyContent').html(html);
+        } else {
+            $('#historyContent').html('<div class="text-center text-muted py-3">暂无审核记录</div>');
+        }
+    }).fail(function() {
+        $('#historyContent').html('<div class="text-center text-muted py-3">加载失败</div>');
+    });
+}
+
+function formatTime(ts) {
+    if (!ts) return '-';
+    var d = new Date(ts * 1000);
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function pad(n) { return n < 10 ? '0' + n : n; }
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{/block}

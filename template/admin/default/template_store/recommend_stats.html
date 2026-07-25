@@ -1,0 +1,92 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">推荐效果统计</h4>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-bar-chart me-2"></i>数据概览</span>
+            <div class="d-flex gap-2">
+                <a href="?days=7" class="btn btn-sm {if $days==7}btn-primary{else /}btn-outline-primary{/if}">近7天</a>
+                <a href="?days=30" class="btn btn-sm {if $days==30}btn-primary{else /}btn-outline-primary{/if}">近30天</a>
+                <a href="?days=90" class="btn btn-sm {if $days==90}btn-primary{else /}btn-outline-primary{/if}">近90天</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row text-center mb-4">
+                <div class="col-md-3"><div class="card bg-light"><div class="card-body">
+                    <h6 class="text-muted">总曝光数</h6>
+                    <h3 class="text-primary">{$stats.overview.total_impressions??0}</h3>
+                </div></div></div>
+                <div class="col-md-3"><div class="card bg-light"><div class="card-body">
+                    <h6 class="text-muted">总点击数</h6>
+                    <h3 class="text-info">{$stats.overview.total_clicks??0}</h3>
+                </div></div></div>
+                <div class="col-md-3"><div class="card bg-light"><div class="card-body">
+                    <h6 class="text-muted">总安装数</h6>
+                    <h3 class="text-success">{$stats.overview.total_installs??0}</h3>
+                </div></div></div>
+                <div class="col-md-3"><div class="card bg-light"><div class="card-body">
+                    <h6 class="text-muted">点击率/转化率</h6>
+                    <h3 class="text-warning">{$stats.overview.ctr??0}% / {$stats.overview.cvr??0}%</h3>
+                </div></div></div>
+            </div>
+
+            <h6 class="mb-2">每日趋势</h6>
+            <div class="table-responsive mb-4">
+                <table class="table table-sm table-hover">
+                    <thead class="table-light"><tr><th>日期</th><th>曝光</th><th>点击</th><th>安装</th><th>点击率</th><th>转化率</th></tr></thead>
+                    <tbody>
+                        {volist name="stats.daily" id="row"}
+                        <tr><td>{$row.stat_date}</td><td>{$row.impressions}</td><td>{$row.clicks}</td><td>{$row.installs}</td>
+                            <td>{if $row.impressions > 0}{:round($row.clicks / $row.impressions * 100, 2)}%{else /}0%{/if}</td>
+                            <td>{if $row.clicks > 0}{:round($row.installs / $row.clicks * 100, 2)}%{else /}0%{/if}</td></tr>
+                        {/volist}
+                        {if empty($stats.daily)}<tr><td colspan="6" class="text-center text-muted py-3">暂无数据</td></tr>{/if}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="mb-2">按推荐位统计</h6>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light"><tr><th>推荐位</th><th>曝光</th><th>点击</th><th>安装</th></tr></thead>
+                        <tbody>
+                            {volist name="stats.by_position" id="row"}
+                            <tr><td>{$row.position}</td><td>{$row.impressions}</td><td>{$row.clicks}</td><td>{$row.installs}</td></tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="mb-2">A/B测试对比</h6>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light"><tr><th>分组</th><th>曝光</th><th>点击</th><th>安装</th><th>转化率</th></tr></thead>
+                        <tbody>
+                            {volist name="stats.by_ab_group" id="row"}
+                            <tr><td><span class="badge bg-secondary">{$row.ab_group}</span></td><td>{$row.impressions}</td><td>{$row.clicks}</td><td>{$row.installs}</td>
+                                <td>{if $row.clicks > 0}{:round($row.installs / $row.clicks * 100, 2)}%{else /}0%{/if}</td></tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <h6 class="mb-2 mt-3">Top 10 模板</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead class="table-light"><tr><th>排名</th><th>模板ID</th><th>曝光</th><th>点击</th><th>安装</th><th>转化率</th></tr></thead>
+                    <tbody>
+                        {volist name="stats.top_templates" id="row" key="k"}
+                        <tr><td>{$k}</td><td>{$row.template_id}</td><td>{$row.impressions}</td><td>{$row.clicks}</td><td>{$row.installs}</td>
+                            <td>{if $row.clicks > 0}{:round($row.installs / $row.clicks * 100, 2)}%{else /}0%{/if}</td></tr>
+                        {/volist}
+                        {if empty($stats.top_templates)}<tr><td colspan="6" class="text-center text-muted py-3">暂无数据</td></tr>{/if}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

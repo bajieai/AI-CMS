@@ -1,0 +1,97 @@
+/**
+ * V2.9.15: AI翻译编辑器样式
+ */
+
+/* 语言版本面板 */
+.translate-version-item {
+    transition: background-color 0.2s;
+}
+.translate-version-item:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* 翻译状态badge */
+.badge-translate-pending    { background-color: #6c757d !important; }
+.badge-translate-processing { background-color: #0d6efd !important; }
+.badge-translate-completed  { background-color: #198754 !important; }
+.badge-translate-failed     { background-color: #dc3545 !important; }
+
+/* 顶部翻译状态 */
+#translateTopBadge .badge {
+    font-size: 0.7rem;
+    padding: 0.2em 0.4em;
+}
+
+/* 翻译进度条 */
+.translate-progress {
+    height: 4px;
+    margin-top: 4px;
+}
+.translate-progress .progress-bar {
+    transition: width 0.3s ease;
+}
+
+/* 列表页翻译状态列 */
+.translate-status-col {
+    white-space: nowrap;
+}
+.translate-status-col .badge {
+    font-size: 0.75rem;
+}
+
+/* 批量翻译下拉菜单 */
+.dropdown-translate .dropdown-menu {
+    min-width: 120px;
+}
+.dropdown-translate .dropdown-item {
+    font-size: 0.875rem;
+}
+
+/* 前台语言切换器 */
+.lang-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.lang-switcher .lang-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.lang-switcher .lang-item.active {
+    background: #0d6efd;
+    color: #fff;
+}
+.lang-switcher .lang-item.available {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
+}
+.lang-switcher .lang-item.available:hover {
+    background: #e9ecef;
+}
+.lang-switcher .lang-item.unavailable {
+    background: #f8f9fa;
+    color: #adb5bd;
+    border: 1px solid #e9ecef;
+    cursor: not-allowed;
+}
+.lang-switcher .lang-item.translating::after {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 4px;
+    border: 2px solid #0d6efd;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: translate-spin 0.8s linear infinite;
+}
+
+@keyframes translate-spin {
+    to { transform: rotate(360deg); }
+}

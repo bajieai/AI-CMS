@@ -1,0 +1,116 @@
+{extend name="layout" /}
+{block name="title"}内容质量看板{/block}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-star-half me-2"></i>内容质量看板</h4>
+
+    <!-- 概览卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h6 class="text-muted">全站平均分</h6>
+                    <h2 class="text-primary">{$overview.avg_score}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h6 class="text-muted">已评分内容</h6>
+                    <h2 class="text-success">{$overview.scored_content}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <h6 class="text-muted">今日新增</h6>
+                    <h2 class="text-info">{$overview.today_new}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <h6 class="text-muted">低分内容(<60)</h6>
+                    <h2 class="text-warning">{$overview.level_distribution.poor}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 质量等级分布 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-pie-chart me-1"></i>质量等级分布</div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr><td>优秀(≥80)</td><td class="text-success">{$overview.level_distribution.excellent}</td></tr>
+                        <tr><td>良好(70-79)</td><td class="text-primary">{$overview.level_distribution.good}</td></tr>
+                        <tr><td>合格(60-69)</td><td class="text-warning">{$overview.level_distribution.fair}</td></tr>
+                        <tr><td>较差(<60)</td><td class="text-danger">{$overview.level_distribution.poor}</td></tr>
+                        <tr><td>未评分</td><td class="text-muted">{$overview.level_distribution.unscored}</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-bar-chart me-1"></i>各维度评分分布</div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr><th>维度</th><th>平均分</th><th>高分</th><th>中分</th><th>低分</th></tr>
+                        <tr><td>完整性</td><td>{$dimensions.completeness.avg}</td><td class="text-success">{$dimensions.completeness.high}</td><td class="text-warning">{$dimensions.completeness.mid}</td><td class="text-danger">{$dimensions.completeness.low}</td></tr>
+                        <tr><td>可读性</td><td>{$dimensions.readability.avg}</td><td class="text-success">{$dimensions.readability.high}</td><td class="text-warning">{$dimensions.readability.mid}</td><td class="text-danger">{$dimensions.readability.low}</td></tr>
+                        <tr><td>SEO</td><td>{$dimensions.seo.avg}</td><td class="text-success">{$dimensions.seo.high}</td><td class="text-warning">{$dimensions.seo.mid}</td><td class="text-danger">{$dimensions.seo.low}</td></tr>
+                        <tr><td>配图匹配</td><td>{$dimensions.image_match.avg}</td><td class="text-success">{$dimensions.image_match.high}</td><td class="text-warning">{$dimensions.image_match.mid}</td><td class="text-danger">{$dimensions.image_match.low}</td></tr>
+                        <tr><td>标签准确</td><td>{$dimensions.tag_accuracy.avg}</td><td class="text-success">{$dimensions.tag_accuracy.high}</td><td class="text-warning">{$dimensions.tag_accuracy.mid}</td><td class="text-danger">{$dimensions.tag_accuracy.low}</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 低分TOP10 -->
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-arrow-down-circle me-1"></i>低分内容TOP10</div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead><tr><th>ID</th><th>标题</th><th>总分</th><th>等级</th><th>操作</th></tr></thead>
+                <tbody>
+                    {volist name="lowTop10" id="item"}
+                    <tr>
+                        <td>{$item.content_id}</td>
+                        <td>{$item.content.title ?? '已删除'}</td>
+                        <td><span class="badge bg-danger">{$item.total_score}</span></td>
+                        <td>{$item.repair_status}</td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="repairContent({$item.content_id})">修复</button></td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 高频问题 -->
+    <div class="card">
+        <div class="card-header"><i class="bi bi-exclamation-triangle me-1"></i>高频问题类型</div>
+        <div class="card-body">
+            {volist name="issues" id="count" key="dim"}
+            <span class="badge bg-secondary me-2 mb-2">{$dim}: {$count}</span>
+            {/volist}
+        </div>
+    </div>
+</div>
+<script>
+function repairContent(id) {
+    if (!confirm('确认修复此内容？')) return;
+    $.post('/admin/content_quality/repair/' + id, {mode: 'suggested'}, function(res) {
+        if (res.success) { showToast('修复完成', 'success'); location.reload(); }
+        else { showToast(res.report?.final_status || '修复失败', 'danger'); }
+    });
+}
+</script>
+{/block}

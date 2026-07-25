@@ -1,0 +1,123 @@
+{extend name="layout" /}
+
+{block name="title"}AI对话管理 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">AI能力</li>
+<li class="breadcrumb-item active">对话管理</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-chat-dots me-1"></i>AI对话会话列表</span>
+        <a href="{:url('/admin/ai_dialog/create')}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>新建对话
+        </a>
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" action="{:url('/admin/ai_dialog/index')}">
+            <div class="col-md-3">
+                <input type="text" name="keyword" value="{$keyword|default=''}" class="form-control form-control-sm" placeholder="搜索会话标题">
+            </div>
+            <div class="col-md-2">
+                <select name="type" class="form-control form-control-sm">
+                    <option value="">全部类型</option>
+                    <option value="chat" {if condition="$type|default='' eq 'chat'"}selected{/if}>普通对话</option>
+                    <option value="writing" {if condition="$type|default='' eq 'writing'"}selected{/if}>写作辅助</option>
+                    <option value="analysis" {if condition="$type|default='' eq 'analysis'"}selected{/if}>内容分析</option>
+                    <option value="translate" {if condition="$type|default='' eq 'translate'"}selected{/if}>翻译</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-control form-control-sm">
+                    <option value="">全部状态</option>
+                    <option value="active" {if condition="$status|default='' eq 'active'"}selected{/if}>活跃</option>
+                    <option value="archived" {if condition="$status|default='' eq 'archived'"}selected{/if}>已归档</option>
+                    <option value="deleted" {if condition="$status|default='' eq 'deleted'"}selected{/if}>已删除</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">搜索</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>会话标题</th>
+                    <th>类型</th>
+                    <th>消息数</th>
+                    <th>Token数</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>
+                        <a href="{:url('/admin/ai_dialog/detail', ['id'=>$vo.id])}">{$vo.title}</a>
+                    </td>
+                    <td><span class="badge bg-secondary">{$vo.type}</span></td>
+                    <td>{$vo.message_count ?? 0}</td>
+                    <td>{$vo.token_count ?? 0}</td>
+                    <td>
+                        {if condition="($vo.status ?? '') eq 'active'"}
+                        <span class="badge bg-success">活跃</span>
+                        {elseif condition="($vo.status ?? '') eq 'archived'" /}
+                        <span class="badge bg-secondary">已归档</span>
+                        {else /}
+                        <span class="badge bg-danger">已删除</span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.created_at}</td>
+                    <td class="text-end">
+                        <a href="{:url('/admin/ai_dialog/detail', ['id'=>$vo.id])}" class="btn btn-outline-primary btn-sm me-1" title="详情">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{:url('/admin/ai_dialog/history', ['dialog_id'=>$vo.id])}" class="btn btn-outline-info btn-sm me-1" title="历史">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteDialog({$vo.id})" title="删除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无对话记录</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function deleteDialog(id) {
+    if (!confirm('确定删除此对话？删除后不可恢复。')) return;
+    $.post('{:url("/admin/ai_dialog/delete")}', {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('删除成功');
+            location.reload();
+        } else {
+            alert(res.msg || '删除失败');
+        }
+    });
+}
+</script>
+{/block}

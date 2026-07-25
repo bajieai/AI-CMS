@@ -1,0 +1,84 @@
+{extend name="layout" /}
+
+{block name="title"}邮件订阅{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/email_subscriber/index">系统设置</a></li>
+<li class="breadcrumb-item active">邮件订阅</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-envelope me-2" style="color:var(--primary)"></i>邮件订阅管理</h5>
+    <div>
+        <button class="btn btn-outline-success" id="btnExport"><i class="bi bi-download me-1"></i>导出</button>
+        <button class="btn btn-outline-danger" id="btnDeleteSelected"><i class="bi bi-trash me-1"></i>删除选中</button>
+    </div>
+</div>
+
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="50"><input type="checkbox" class="check-all"></th>
+                    <th width="60">ID</th>
+                    <th>邮箱</th>
+                    <th width="100">状态</th>
+                    <th width="160">订阅时间</th>
+                    <th width="80">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td><input type="checkbox" class="check-item" value="{$vo.id}"></td>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.email}</td>
+                    <td>
+                        {if condition="$vo.status == 1"}<span class="badge bg-success">已订阅</span>
+                        {else/}<span class="badge bg-secondary">已退订</span>{/if}
+                    </td>
+                    <td style="font-size:.82rem">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="{$vo.id}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="6" class="text-center text-muted py-4">暂无订阅</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('.check-all').click(function(){ $('.check-item').prop('checked', $(this).is(':checked')); });
+
+    $('.btn-delete').click(function(){
+        if(!confirm('确定删除？')) return;
+        $.post('/admin/email_subscriber/delete',{id:$(this).data('id')},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+
+    $('#btnExport').click(function(){ window.location='/admin/email_subscriber/export'; });
+
+    $('#btnDeleteSelected').click(function(){
+        var ids = $('.check-item:checked').map(function(){return $(this).val()}).get();
+        if(!ids.length) return $.toast('请选择','warning');
+        if(!confirm('确定删除选中项？')) return;
+        $.post('/admin/email_subscriber/delete',{id:ids},function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(()=>location.reload(),800);
+        });
+    });
+});
+</script>
+{/block}

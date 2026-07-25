@@ -1,0 +1,14 @@
+{extend name="layout" /}
+{block name="title"}自动扩缩容 - AI-CMS{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">系统管理</li><li class="breadcrumb-item active">自动扩缩容</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><i class="bi bi-arrows-angle-expand me-1"></i>扩缩容配置</div><div class="card-body">
+<form id="scaleForm">
+<div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="enabled" value="1" id="enabled" {if $config.enabled}checked{/if}><label class="form-check-label" for="enabled">启用自动扩缩容</label></div>
+<div class="row"><div class="col-md-4 mb-3"><label class="form-label">扩容阈值(%)</label><input type="number" name="scale_up_threshold" class="form-control" value="{$config.scale_up_threshold|default=80}"></div><div class="col-md-4 mb-3"><label class="form-label">缩容阈值(%)</label><input type="number" name="scale_down_threshold" class="form-control" value="{$config.scale_down_threshold|default=30}"></div><div class="col-md-2 mb-3"><label class="form-label">最大实例</label><input type="number" name="max_instances" class="form-control" value="{$config.max_instances|default=5}"></div><div class="col-md-2 mb-3"><label class="form-label">最小实例</label><input type="number" name="min_instances" class="form-control" value="{$config.min_instances|default=1}"></div></div>
+<button type="button" class="btn btn-primary" onclick="saveConfig()"><i class="bi bi-check-lg"></i> 保存配置</button>
+</form></div></div>
+<div class="card mt-3"><div class="card-header">当前实例数</div><div class="card-body"><table class="table table-sm">{volist name="current" id="c" key="k"}<tr><td>{$k}</td><td>{$c} 个实例</td></tr>{/volist}</table></div></div>
+<div class="card mt-3"><div class="card-header">操作历史</div><div class="table-responsive"><table class="table table-hover table-sm"><thead class="table-light"><tr><th>操作</th><th>时间</th></tr></thead><tbody>{volist name="history" id="h" empty="<tr><td colspan='2' class='text-center text-muted py-3'>暂无操作记录</td></tr>"}<tr><td>{$h.action}</td><td>{$h.create_time}</td></tr>{/volist}</tbody></table></div></div>
+<script>function saveConfig(){$.post('/admin/auto_scale/save',$('#scaleForm').serialize(),function(r){alert(r.code===0?'保存成功':r.msg)})}</script>
+{/block}

@@ -1,0 +1,45 @@
+<!-- pages/coupon/coupon.wxml - V2.9 优惠券页面 -->
+<view class="container">
+  <view class="tab-bar">
+    <view class="tab-item {{tab === 'my' ? 'active' : ''}}" bindtap="switchTab" data-tab="my">我的优惠券</view>
+    <view class="tab-item {{tab === 'list' ? 'active' : ''}}" bindtap="switchTab" data-tab="list">领券中心</view>
+  </view>
+
+  <!-- 我的优惠券 -->
+  <view wx:if="{{tab === 'my'}}">
+    <view wx:for="{{myCoupons}}" wx:key="id" class="coupon-card">
+      <view class="coupon-left">
+        <text class="coupon-value" wx:if="{{item.coupon_type === 'reduce'}}">-¥{{item.reduce_amount}}</text>
+        <text class="coupon-value" wx:elif="{{item.coupon_type === 'discount'}}">{{item.reduce_amount * 10}}折</text>
+        <text class="coupon-value" wx:else>免邮</text>
+      </view>
+      <view class="coupon-right">
+        <text class="coupon-name">{{item.coupon_name}}</text>
+        <text class="coupon-time">有效期至 {{item.expire_at_fmt}}</text>
+        <text class="coupon-status {{item.status === 0 ? 'unused' : 'used'}}">
+          {{item.status === 0 ? '未使用' : item.status === 1 ? '已使用' : '已过期'}}
+        </text>
+      </view>
+    </view>
+    <view wx:if="{{myCoupons.length === 0 && !loading}}" class="empty">暂无优惠券</view>
+  </view>
+
+  <!-- 领券中心 -->
+  <view wx:if="{{tab === 'list'}}">
+    <view wx:for="{{couponList}}" wx:key="id" class="coupon-card">
+      <view class="coupon-left">
+        <text class="coupon-value" wx:if="{{item.coupon_type === 'reduce'}}">-¥{{item.reduce_amount}}</text>
+        <text class="coupon-value" wx:elif="{{item.coupon_type === 'discount'}}">{{item.reduce_amount * 10}}折</text>
+        <text class="coupon-value" wx:else>免邮</text>
+      </view>
+      <view class="coupon-right">
+        <text class="coupon-name">{{item.coupon_name}}</text>
+        <text class="coupon-time">有效期至 {{item.end_time_fmt}}</text>
+        <button class="receive-btn" bindtap="receiveCoupon" data-id="{{item.id}}">立即领取</button>
+      </view>
+    </view>
+    <view wx:if="{{couponList.length === 0 && !loading}}" class="empty">暂无可领优惠券</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

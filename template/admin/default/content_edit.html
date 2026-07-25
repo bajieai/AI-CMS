@@ -1,0 +1,893 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑内容{else/}添加内容{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑内容{else/}添加内容{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>
+        {if condition="$info"}编辑内容{else/}添加内容{/if}
+    </div>
+    <div class="card-body">
+        <form id="contentForm" method="post" action="{if condition="$info"}/admin/content/edit/{$info.id}{else/}/admin/content/add{/if}">
+            <div class="row">
+                <!-- 左侧主内容区 -->
+                <div class="col-lg-8">
+                    <div class="mb-3">
+                        <label class="form-label">标题 <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" value="{$info.title ?? ''}" required placeholder="请输入标题">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">内容</label>
+                        <textarea name="content" id="editor" class="form-control" rows="15"><?php echo $info['content'] ?? ''; ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">摘要</label>
+                        <textarea name="excerpt" class="form-control" rows="3" placeholder="留空则自动截取内容前200字">{$info.excerpt ?? ''}</textarea>
+                    </div>
+
+                    <!-- 分类 -->
+                    <div class="mb-3">
+                        <label class="form-label">分类</label>
+                        <select name="cate_id" class="form-select" id="cateSelect">
+                            <option value="0">请选择分类</option>
+                            {volist name="cates" id="cate"}
+                            <option value="{$cate.id}" {if condition="($info.cate_id ?? 0) == $cate.id"}selected{/if}>{$cate.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+
+                    <!-- V2.9.15: 多语言翻译 -->
+                    {if condition="$info"}
+                    <div class="card border-info mb-3">
+                        <div class="card-header py-2 bg-info text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-translate me-1"></i>多语言翻译</span>
+                            <span id="translateTopBadge"></span>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="translateVersionPanel">
+                                <div class="text-muted text-center py-2">加载中...</div>
+                            </div>
+                        </div>
+                    </div>
+                    {/if}
+
+                    <!-- SEO设置 -->
+                    <div class="card border-warning mb-3">
+                        <div class="card-header py-2 bg-warning text-dark d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-search me-1"></i>SEO设置</span>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-sm btn-outline-dark" onclick="seoOptimize()" id="btnSeo">
+                                    <i class="bi bi-magic me-1"></i>一键优化
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="calculateSeoScore()" id="btnSeoScore">
+                                    <i class="bi bi-bar-chart me-1"></i>评分
+                                </button>
+                            </div>
+                            <!-- V2.9.13: AI增强按钮组 -->
+                            <div class="btn-group btn-group-sm ms-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="AiImage.generate()" title="AI配图">
+                                    <i class="bi bi-image me-1"></i>配图
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="AiSeo.open()" title="AI SEO对比">
+                                    <i class="bi bi-search me-1"></i>SEO
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" onclick="document.getElementById('ai-style-modal').classList.add('show')" title="写作风格">
+                                    <i class="bi bi-pen me-1"></i>风格
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body py-2">
+                            <!-- SEO评分条 -->
+                            <div id="seoScoreArea" class="mb-2" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">SEO评分</small>
+                                    <small class="fw-bold" id="seoScoreValue">0分</small>
+                                </div>
+                                <div class="progress" style="height:8px;">
+                                    <div class="progress-bar" id="seoScoreBar" style="width:0%"></div>
+                                </div>
+                                <div class="mt-1" id="seoScoreSuggestions"></div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">SEO标题</label>
+                                <input type="text" name="seo_title" id="seoTitle" class="form-control form-control-sm" value="{$info.seo_title ?? ''}" placeholder="留空则使用文章标题">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">SEO关键词</label>
+                                <input type="text" name="seo_keywords" id="seoKeywords" class="form-control form-control-sm" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用英文逗号分隔">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">SEO描述</label>
+                                <textarea name="seo_description" id="seoDescription" class="form-control form-control-sm" rows="2" placeholder="留空则自动截取摘要">{$info.seo_description ?? ''}</textarea>
+                            </div>
+                            <!-- SEO预览卡片 -->
+                            <div class="border rounded p-2 mt-2" id="seoPreview" style="display:none;">
+                                <small class="text-muted">搜索结果预览：</small>
+                                <div class="mt-1">
+                                    <div class="text-primary small text-truncate" id="previewTitle" style="max-width:500px;"></div>
+                                    <div class="text-success" id="previewUrl" style="font-size:11px;">{$vo.url ?? ''}</div>
+                                    <div class="text-muted" id="previewDescription" style="font-size:12px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI-GEO评分 -->
+                    <div class="card border-primary mb-3">
+                        <div class="card-header py-2 bg-primary text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-stars me-1"></i>AI-GEO评分</span>
+                            <button type="button" class="btn btn-sm btn-outline-light" onclick="calculateGeoScore()" id="btnGeoScore">
+                                <i class="bi bi-arrow-clockwise me-1"></i>检测
+                            </button>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="geoScoreArea" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">AI友好度</small>
+                                    <small class="fw-bold" id="geoScoreValue">0分</small>
+                                </div>
+                                <div class="progress mb-2" style="height:6px;">
+                                    <div class="progress-bar" id="geoScoreBar" style="width:0%"></div>
+                                </div>
+                                <div id="geoScoreDimensions"></div>
+                                <div class="mt-1" id="geoScoreSuggestions"></div>
+                            </div>
+                            <div class="text-center text-muted small py-2" id="geoScoreEmpty">
+                                <i class="bi bi-stars fs-3 d-block mb-1"></i>
+                                点击「检测」评估AI友好度
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- V2.9.20 A-2: 模型动态扩展字段 -->
+                    {notempty name="model_fields"}
+                    <div class="card border-info mb-3" id="modelFieldsCard">
+                        <div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>模型字段</div>
+                        <div class="card-body py-2">
+                            {volist name="model_fields" id="field"}
+                            <div class="mb-2">
+                                <label class="form-label small">{$field.field_label} {if condition="$field.is_required"}<span class="text-danger">*</span>{/if}</label>
+                                {switch field.field_type}
+                                    {case value="text"}
+                                    <input type="text" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}"
+                                        placeholder="{$field.field_label}">
+                                    {/case}
+                                    {case value="number"}
+                                    <input type="number" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}"
+                                        placeholder="{$field.field_label}">
+                                    {/case}
+                                    {case value="textarea"}
+                                    <textarea name="ext[{$field.field_name}]" class="form-control form-control-sm" rows="3"
+                                        placeholder="{$field.field_label}">{$ext_data[$field.field_name] ?? $field.default_value}</textarea>
+                                    {/case}
+                                    {case value="select"}
+                                    <select name="ext[{$field.field_name}]" class="form-select form-select-sm">
+                                        {volist name=":explode(',', $field.options)" id="opt"}
+                                        <option value="{$opt}" {if condition="($ext_data[$field.field_name] ?? '') == $opt"}selected{/if}>{$opt}</option>
+                                        {/volist}
+                                    </select>
+                                    {/case}
+                                    {case value="radio"}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {volist name=":explode(',', $field.options)" id="opt"}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="ext[{$field.field_name}]" value="{$opt}"
+                                                {if condition="($ext_data[$field.field_name] ?? '') == $opt"}checked{/if}>
+                                            <label class="form-check-label small">{$opt}</label>
+                                        </div>
+                                        {/volist}
+                                    </div>
+                                    {/case}
+                                    {case value="checkbox"}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {php}$ckValues = explode(',', $ext_data[$field.field_name] ?? '');{/php}
+                                        {volist name=":explode(',', $field.options)" id="opt"}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" name="ext[{$field.field_name}][]" value="{$opt}"
+                                                {if condition="in_array($opt, $ckValues)"}checked{/if}>
+                                            <label class="form-check-label small">{$opt}</label>
+                                        </div>
+                                        {/volist}
+                                    </div>
+                                    {/case}
+                                    {case value="date"}
+                                    <input type="date" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}">
+                                    {/case}
+                                    {case value="datetime"}
+                                    <input type="datetime-local" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}">
+                                    {/case}
+                                    {default /}
+                                    <input type="text" name="ext[{$field.field_name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.field_name] ?? $field.default_value}"
+                                        placeholder="{$field.field_label}">
+                                {/switch}
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                    {/notempty}
+
+                    <!-- 扩展字段（静态配置保留兼容） -->
+                    {notempty name="ext_fields"}
+                    <div class="card border-secondary mb-3" id="extFieldsCard">
+                        <div class="card-header py-2 bg-secondary text-white"><i class="bi bi-sliders me-1"></i>基础扩展字段</div>
+                        <div class="card-body py-2">
+                            {volist name="ext_fields" id="field"}
+                            <div class="mb-2">
+                                <label class="form-label small">{$field.title} {if condition="$field.required"}<span class="text-danger">*</span>{/if}</label>
+                                {switch field.type}
+                                    {case value="text"}
+                                    <input type="text" name="ext[{$field.name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.name] ?? ''}"
+                                        placeholder="{$field.placeholder ?? ''}"
+                                        {if condition="$field.required"}required{/if}>
+                                    {/case}
+                                    {case value="number"}
+                                    <input type="number" name="ext[{$field.name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.name] ?? ''}"
+                                        placeholder="{$field.placeholder ?? ''}"
+                                        {if condition="$field.required"}required{/if}>
+                                    {/case}
+                                    {case value="textarea"}
+                                    <textarea name="ext[{$field.name}]" class="form-control form-control-sm" rows="3"
+                                        placeholder="{$field.placeholder ?? ''}"
+                                        {if condition="$field.required"}required{/if}>{$ext_data[$field.name] ?? ''}</textarea>
+                                    {/case}
+                                    {default /}
+                                    <input type="text" name="ext[{$field.name}]" class="form-control form-control-sm"
+                                        value="{$ext_data[$field.name] ?? ''}"
+                                        placeholder="{$field.placeholder ?? ''}">
+                                {/switch}
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                    {/notempty}
+
+                    <!-- V2.7 章节管理组件 (仅单页类型且编辑模式显示) -->
+                    {if condition="$info && $info.type == 6"}
+                    <div class="card border-success mb-3" id="chapterManager">
+                        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-list-ol me-1"></i>章节管理</span>
+                            <button type="button" class="btn btn-sm btn-light" onclick="addChapterRow()">
+                                <i class="bi bi-plus-lg me-1"></i>新增章节
+                            </button>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="mb-2">
+                                <label class="form-label small">试读截断字数</label>
+                                <input type="number" name="preview_length" class="form-control form-control-sm" value="{$info.preview_length ?? 500}" min="0" placeholder="付费章节试读字数，0=不截断">
+                                <div class="form-text">付费章节前台展示字数，超出后显示购买按钮</div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0" id="chapterTable">
+                                    <thead><tr>
+                                        <th style="width:40px" class="text-center">#</th>
+                                        <th>章节标题</th>
+                                        <th style="width:80px">价格</th>
+                                        <th style="width:70px">免费</th>
+                                        <th style="width:80px">排序</th>
+                                        <th style="width:90px">操作</th>
+                                    </tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="text-center py-3 text-muted" id="chapterEmpty" style="display:none;">
+                                <i class="bi bi-inbox fs-3 d-block mb-1"></i>暂无章节，点击上方按钮添加
+                            </div>
+                        </div>
+                    </div>
+                    {/if}
+                </div>
+                <!-- 右侧属性配置 -->
+                <div class="col-lg-4">
+                    <div class="mb-3">
+                        <label class="form-label">类型 <span class="text-danger">*</span></label>
+                        <select name="type" class="form-select" id="typeSelect">
+                            <option value="1" {if condition="($info.type ?? 1) == 1"}selected{/if}>产品</option>
+                            <option value="2" {if condition="($info.type ?? 1) == 2"}selected{/if}>案例</option>
+                            <option value="3" {if condition="($info.type ?? 1) == 3"}selected{/if}>新闻</option>
+                            <option value="4" {if condition="($info.type ?? 1) == 4"}selected{/if}>下载</option>
+                            <option value="5" {if condition="($info.type ?? 1) == 5"}selected{/if}>招聘</option>
+                            <option value="6" {if condition="($info.type ?? 1) == 6"}selected{/if}>单页</option>
+                        </select>
+                    </div>
+                    <!-- V2.9.20 A-2: 内容模型选择 -->
+                    <div class="mb-3">
+                        <label class="form-label">内容模型</label>
+                        <select name="model_id" class="form-select" id="modelSelect">
+                            <option value="0">不使用模型</option>
+                            {volist name="content_models" id="model"}
+                            <option value="{$model.id}" {if condition="($model_id ?? 0) == $model.id"}selected{/if}>{$model.name}</option>
+                            {/volist}
+                        </select>
+                        <div class="form-text text-muted" id="modelFieldHint">
+                            {if condition="empty($model_fields)"}当前类型无模型字段{else /}已加载模型字段{/if}
+                        </div>
+                    </div>
+                    <!-- V2.9.9: AI内容模板选择 -->
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-file-earmark-text me-1 text-primary"></i>AI内容模板</span>
+                            <span class="badge bg-info text-dark" style="font-size:10px">V2.9.9</span>
+                        </label>
+                        <select name="ai_template_id" class="form-select" id="aiTemplateSelect">
+                            <option value="0">不使用模板</option>
+                            {volist name="ai_templates" id="tpl"}
+                            <option value="{$tpl.id}" {if condition="($info.ai_template_id ?? 0) == $tpl.id"}selected{/if}>{$tpl.name}</option>
+                            {/volist}
+                        </select>
+                        <div class="form-text">选择AI模板后，内容将按模板规则自动生成结构</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span>封面图</span>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" onclick="aiGenerateImage()" id="btnAiImage">
+                                    <i class="bi bi-image me-1"></i>AI配图
+                                </button>
+                                <button type="button" class="btn btn-outline-info" onclick="openBatchImageModal()" id="btnBatchAiImage">
+                                    <i class="bi bi-images me-1"></i>批量配图
+                                </button>
+                            </div>
+                        </label>
+                        <div class="input-group">
+                            <input type="text" name="cover" id="coverInput" class="form-control" value="{$info.cover ?? ''}" placeholder="图片URL">
+                            <button type="button" class="btn btn-outline-secondary" onclick="uploadCover()"><i class="bi bi-upload"></i></button>
+                        </div>
+                        <div id="coverPreview" class="mt-2" {if condition="!($info.cover ?? '')"}style="display:none"{/if}>
+                            <img src="{$info.cover ?? ''}" class="img-thumbnail" style="max-height:120px">
+                        </div>
+                        <!-- V2.9.9-R4: AI配图区域增强 — 尺寸选择+4候选图+插入编辑器 -->
+                        <div class="mt-2" id="aiImageArea" style="display:none;">
+                            <!-- 进度条 -->
+                            <div id="aiImageProgressArea" class="mb-2 d-none">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted" id="aiImageProgressText">生成中 0/4...</small>
+                                    <small class="text-muted" id="aiImageProgressPercent">0%</small>
+                                </div>
+                                <div class="progress" style="height:4px;">
+                                    <div id="aiImageProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width:0%"></div>
+                                </div>
+                            </div>
+                            <!-- 候选图网格 -->
+                            <div class="row g-2" id="aiImageResults"></div>
+                            <!-- 控制栏 -->
+                            <div class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                                <select id="aiImageStyle" class="form-select form-select-sm" style="width:auto;" title="配图风格">
+                                    <option value="realistic" {if condition="$ai_image_default_style == 'realistic'"}selected{/if}>写实</option>
+                                    <option value="illustration" {if condition="$ai_image_default_style == 'illustration'"}selected{/if}>插画</option>
+                                    <option value="watercolor" {if condition="$ai_image_default_style == 'watercolor'"}selected{/if}>水彩</option>
+                                    <option value="3d_render" {if condition="$ai_image_default_style == '3d_render'"}selected{/if}>3D</option>
+                                    <option value="pixel_art" {if condition="$ai_image_default_style == 'pixel_art'"}selected{/if}>像素</option>
+                                </select>
+                                <select id="aiImageSize" class="form-select form-select-sm" style="width:auto;" title="配图尺寸">
+                                    <option value="1024x1024" {if condition="$ai_image_default_size == '1024x1024'"}selected{/if}>1:1 正方形</option>
+                                    <option value="1024x576" {if condition="$ai_image_default_size == '1024x576'"}selected{/if}>16:9 宽屏</option>
+                                    <option value="1024x768" {if condition="$ai_image_default_size == '1024x768'"}selected{/if}>4:3 标准</option>
+                                    <option value="768x1024" {if condition="$ai_image_default_size == '768x1024'"}selected{/if}>3:4 竖屏</option>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="aiRegenerateImage()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>重新生成
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-select">
+                            <option value="0" {if condition="($info.status ?? 0) == 0"}selected{/if}>草稿</option>
+                            <option value="2" {if condition="($info.status ?? 0) == 2"}selected{/if}>发布</option>
+                        </select>
+                    </div>
+                    <!-- V2.9.5: 付费阅读 -->
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_paid" value="1" id="is_paid" {if condition="($info.is_paid ?? 0) == 1"}checked{/if}>
+                            <label class="form-check-label" for="is_paid">付费阅读</label>
+                        </div>
+                    </div>
+                    <div id="pay-config-group" style="display:{if condition="($info.is_paid ?? 0) == 1"}block{else}none{/if};">
+                        <div class="mb-3">
+                            <label class="form-label">付费类型</label>
+                            <select name="paid_type" class="form-select">
+                                <option value="points" {if condition="($info.paid_type ?? 'points') == 'points'"}selected{/if}>积分</option>
+                                <option value="money" {if condition="($info.paid_type ?? '') == 'money'"}selected{/if}>真钱（微信/支付宝）</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">付费价格</label>
+                            <input type="number" name="paid_price" class="form-control" step="0.01" min="0" value="{$info.paid_price ?? ($info.pay_price ?? 0)}" placeholder="设置阅读价格">
+                            <div class="form-text">积分支付时填积分数量，真钱支付时填人民币金额</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">预览长度（字符）</label>
+                            <input type="number" name="preview_length" class="form-control" min="0" value="{$info.preview_length ?? 500}" placeholder="未付费用户可见的预览字符数">
+                        </div>
+                    </div>
+                    <!-- V2.9.9 会员等级限制 -->
+                    <div class="mb-3">
+                        <label class="form-label">最低可见等级</label>
+                        <select name="min_level_id" class="form-select">
+                            <option value="0">不限制（所有用户可见）</option>
+                            {volist name="member_levels" id="lvl"}
+                            <option value="{$key}" {if condition="($info.min_level_id ?? 0) == $key"}selected{/if}>{$lvl}</option>
+                            {/volist}
+                        </select>
+                        <div class="form-text">设置后仅该等级及以上会员可查看完整内容</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">定时发布</label>
+                        <input type="datetime-local" name="publish_time" class="form-control" value="{$info.publish_time ? date('Y-m-d\TH:i', $info.publish_time) : ''}" placeholder="留空表示立即发布">
+                        <div class="form-text">留空表示立即发布，设置后内容将在指定时间自动发布</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_top" value="1" id="isTop" {if condition="($info.is_top ?? 0) == 1"}checked{/if}>
+                            <label class="form-check-label" for="isTop">置顶</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">标签</label>
+                        <div id="tagList">
+                            {volist name="tags" id="tag"}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="tag_ids[]" value="{$tag.id}" id="tag_{$tag.id}"
+                                    {if condition="in_array($tag.id, $selected_tags ?? [])"}checked{/if}>
+                                <label class="form-check-label small" for="tag_{$tag.id}">{$tag.name}</label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+
+                    {if condition="$info"}
+                    <div class="d-grid mb-2">
+                        <a href="/admin/content/versions/{$info.id}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history me-1"></i>版本历史</a>
+                    </div>
+                    {/if}
+                    <!-- AI辅助写作 -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-robot me-1"></i>AI 辅助</span>
+                            <select id="aiWritingStyle" class="form-select form-select-sm" style="width:auto;min-width:100px;">
+                                <option value="default">默认风格</option>
+                                <option value="formal">正式</option>
+                                <option value="relaxed">轻松</option>
+                                <option value="professional">专业</option>
+                                <option value="news">资讯</option>
+                                <option value="marketing">营销</option>
+                                <option value="academic">学术</option>
+                            </select>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="mb-2">
+                                <textarea id="aiPrompt" class="form-control form-control-sm" rows="4" placeholder="输入AI写作提示，如：写一篇关于新产品发布的新闻稿&#10;快捷键：Ctrl+Shift+C续写 / X改写 / E扩写 / U总结"></textarea>
+                            </div>
+                            <div class="d-grid gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="aiGenerate('replace')" id="btnAi">
+                                    <i class="bi bi-magic me-1"></i>AI 生成内容
+                                </button>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="aiGenerate('append')" title="追加到内容末尾">
+                                        <i class="bi bi-arrow-down-circle me-1"></i>追加
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="aiGenerate('insert')" title="插入到光标位置">
+                                        <i class="bi bi-cursor me-1"></i>插入
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- V2.8 AI质量检测 -->
+                            <div class="border-top pt-2">
+                                <button type="button" class="btn btn-sm btn-outline-success w-100" onclick="aiQualityCheck()" id="btnQuality">
+                                    <i class="bi bi-check-circle me-1"></i>内容质量检测
+                                </button>
+                                <div class="form-text small">检测可读性/SEO/原创性/结构/吸引力</div>
+                            </div>
+                            <div class="mt-2 small text-muted">
+                                <i class="bi bi-keyboard me-1"></i>编辑器内快捷键：
+                                <span class="badge bg-light text-dark border">Ctrl+Shift+C</span> 续写
+                                <span class="badge bg-light text-dark border">X</span> 改写
+                                <span class="badge bg-light text-dark border">E</span> 扩写
+                                <span class="badge bg-light text-dark border">U</span> 总结
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- V2.8 质量提示条（编辑>500字时显示） -->
+                    <div class="alert alert-info alert-dismissible fade show d-none" id="qualityTip" role="alert">
+                        <i class="bi bi-lightbulb me-1"></i>
+                        <strong>提示：</strong>内容已超过500字，建议进行<a href="javascript:;" onclick="aiQualityCheck()" class="alert-link">质量检测</a>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <!-- 自动保存指示器 -->
+                    <div class="text-center mt-2 small text-muted" id="autoSaveStatus"></div>
+                </div>
+            </div>
+            <div class="form-actions-fixed">
+                <a href="/admin/content/index" class="btn btn-outline-secondary">取消返回</a>
+                {if condition="$info"}
+                <button type="button" class="btn btn-outline-info" onclick="syncToPlatforms({$info.id})"><i class="bi bi-cloud-upload me-1"></i>同步到平台</button>
+                <button type="button" class="btn btn-outline-success" onclick="openShareModal({$info.id})"><i class="bi bi-share me-1"></i>分享</button>
+                {/if}
+                <button type="button" class="btn btn-primary" id="saveBtn"><i class="bi bi-check-lg me-1"></i>保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- V3.1: 批量配图弹窗 -->
+<div class="modal fade" id="batchImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-images me-1"></i>AI批量配图</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">配图策略</label>
+                    <select id="batchImageStrategy" class="form-select">
+                        <option value="auto">自动推荐（根据段落数自动配图）</option>
+                        <option value="manual">手动设置</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="batchImageCountGroup">
+                    <label class="form-label">配图数量</label>
+                    <input type="number" id="batchImageCount" class="form-control" value="3" min="1" max="5">
+                    <div class="form-text">最多5张，建议根据段落数设置</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">配图风格</label>
+                    <select id="batchImageStyle" class="form-select">
+                        <option value="realistic">写实</option>
+                        <option value="illustration">插画</option>
+                        <option value="watercolor">水彩</option>
+                        <option value="3d_render">3D</option>
+                        <option value="pixel_art">像素</option>
+                    </select>
+                </div>
+                <!-- 进度条 -->
+                <div id="batchImageProgressArea" style="display:none;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small id="batchImageProgressText">正在生成第 1/3 张...</small>
+                        <small id="batchImageQuotaText"></small>
+                    </div>
+                    <div class="progress mb-2" style="height:10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="batchImageProgressBar" style="width:0%"></div>
+                    </div>
+                    <div class="alert alert-info mb-0 py-1" id="batchImageStatusText">
+                        <i class="bi bi-hourglass-split me-1"></i>AI正在生成图片，请耐心等待...
+                    </div>
+                </div>
+                <!-- 结果预览 -->
+                <div id="batchImageResults" class="d-flex gap-2 flex-wrap mt-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="startBatchImage()" id="btnStartBatchImage">
+                    <i class="bi bi-images me-1"></i>开始配图
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V3.1: 分享弹窗 -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-share me-1"></i>分享内容</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">分享链接</label>
+                    <div class="input-group">
+                        <input type="text" id="shareUrl" class="form-control" readonly>
+                        <button type="button" class="btn btn-outline-primary" onclick="copyShareUrl()">
+                            <i class="bi bi-clipboard"></i>复制
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3" id="shareCardPreview">
+                    <label class="form-label">分享卡片预览</label>
+                    <div class="border rounded p-3">
+                        <div class="fw-bold text-truncate" id="shareCardTitle"></div>
+                        <div class="text-muted small text-truncate mt-1" id="shareCardDesc"></div>
+                        <div class="mt-2">
+                            <img id="shareCardImage" src="" class="img-fluid rounded" style="max-height:120px;display:none;">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="#" id="shareWeibo" target="_blank" class="btn btn-outline-danger">
+                        <i class="bi bi-share me-1"></i>分享到微博
+                    </a>
+                    <a href="#" id="shareQQ" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-chat-dots me-1"></i>分享到QQ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V3.1: SEO对比弹窗 -->
+<div class="modal fade" id="seoCompareModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-arrow-left-right me-1"></i>SEO优化前后对比</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-secondary">
+                            <div class="card-header py-1 bg-secondary text-white">优化前</div>
+                            <div class="card-body py-2">
+                                <div class="mb-2">
+                                    <small class="text-muted">标题</small>
+                                    <div id="seoCompareOldTitle" class="text-truncate"></div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">关键词</small>
+                                    <div id="seoCompareOldKeywords" class="text-truncate"></div>
+                                </div>
+                                <div>
+                                    <small class="text-muted">描述</small>
+                                    <div id="seoCompareOldDesc" class="small"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-header py-1 bg-success text-white">优化后</div>
+                            <div class="card-body py-2">
+                                <div class="mb-2">
+                                    <small class="text-muted">标题</small>
+                                    <div id="seoCompareNewTitle" class="text-truncate fw-bold text-success"></div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">关键词</small>
+                                    <div id="seoCompareNewKeywords" class="text-truncate fw-bold text-success"></div>
+                                </div>
+                                <div>
+                                    <small class="text-muted">描述</small>
+                                    <div id="seoCompareNewDesc" class="small fw-bold text-success"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="applySeoOptimize()">
+                    <i class="bi bi-check-lg me-1"></i>应用优化结果
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V2.9.18: 推送设置 + 分享预览面板 -->
+<div class="container-fluid" id="pushSharePanels">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header" role="button" data-bs-toggle="collapse" data-bs-target="#pushSettings">
+                    <i class="bi bi-send"></i> 推送设置
+                </div>
+                <div id="pushSettings" class="collapse">
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="autoPush" checked>
+                            <label class="form-check-label" for="autoPush">发布时自动推送到已配置的通道</label>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="manualPushAll()">
+                                <i class="bi bi-send"></i> 推送到所有通道
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="manualPushBroadcast()">
+                                <i class="bi bi-megaphone"></i> 站内广播
+                            </button>
+                        </div>
+                        <div class="mt-2" id="recentPushLogs" style="display:none">
+                            <small class="text-muted">最近推送记录：</small>
+                            <div id="recentPushList" class="small"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header" role="button" data-bs-toggle="collapse" data-bs-target="#sharePreviewPanel">
+                    <i class="bi bi-share"></i> 分享预览
+                </div>
+                <div id="sharePreviewPanel" class="collapse">
+                    <div class="card-body">
+                        <div class="btn-group btn-group-sm mb-3" id="previewPlatforms">
+                            <button class="btn btn-outline-success active" data-platform="wechat"><i class="bi bi-wechat"></i> 微信</button>
+                            <button class="btn btn-outline-primary" data-platform="weibo"><i class="bi bi-sina-weibo"></i> 微博</button>
+                            <button class="btn btn-outline-info" data-platform="twitter"><i class="bi bi-twitter-x"></i> Twitter</button>
+                        </div>
+                        <!-- 模拟分享卡片 -->
+                        <div class="share-card-preview border rounded overflow-hidden" id="shareCard" style="max-width:400px">
+                            <div class="share-card-cover bg-light d-flex align-items-center justify-content-center" style="height:210px;background-size:cover;background-position:center" id="shareCardCover">
+                                <span class="text-muted">封面预览</span>
+                            </div>
+                            <div class="p-3">
+                                <div class="fw-bold mb-1" id="shareCardTitle">标题预览</div>
+                                <div class="text-muted small" id="shareCardDesc">描述预览</div>
+                                <div class="text-muted small mt-1" id="shareCardDomain">来自 example.com</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 small">
+                            <label class="form-label">自定义OG标题</label>
+                            <input type="text" class="form-control form-control-sm" id="ogTitleCustom" placeholder="留空则使用内容标题">
+                            <label class="form-label mt-2">自定义OG描述</label>
+                            <textarea class="form-control form-control-sm" id="ogDescCustom" rows="2" placeholder="留空则使用内容摘要"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- V2.9.14: AI编辑器样式（CSS抽离） -->
+<link rel="stylesheet" href="/static/css/ai_editor.css?v=2.9.14">
+
+<!-- V2.9.14: AI增强弹窗（shared子模板，双皮肤共用） -->
+{include file="../shared/content/_ai_image_modal" /}
+{include file="../shared/content/_ai_seo_modal" /}
+{include file="../shared/content/_style_selector" /}
+{/block}
+
+{block name="css"}
+<!-- TinyMCE -->
+<script src="/assets/js/tinymce/tinymce.min.js"></script>
+<!-- V2.9.15: 翻译编辑器样式 -->
+<link rel="stylesheet" href="/static/css/translate_editor.css?v=2.9.15">
+{/block}
+
+{block name="js"}
+<script src="/assets/js/tinymce/tinymce.min.js"></script>
+<script src="/assets/js/quality-check.js"></script>
+<!-- V2.9.13: AI内容编辑器增强 -->
+<script src="/static/js/ai_content_editor.js?v=2.9.13"></script>
+<!-- V2.9.15: 翻译编辑器 -->
+<script src="/static/js/translate_editor.js?v=2.9.15"></script>
+<script>
+window.AI_CMS_CONFIG = {
+    ai_image_candidate_count: parseInt('{$ai_image_candidate_count ?? 4}') || 4,
+    ext_data: {:json_encode($ext_data ?? [], JSON_UNESCAPED_UNICODE)},
+    // V2.9.17 T-4: 翻译轮询可配置化
+    translate_poll_interval: parseInt('{$translate_poll_interval ?? 3000}') || 3000,
+    translate_poll_fast_interval: parseInt('{$translate_fast_interval ?? 1000}') || 1000,
+    translate_poll_max_attempts: parseInt('{$translate_max_poll ?? 60}') || 60,
+    translate_poll_timeout: parseInt('{$translate_poll_timeout ?? 180}') || 180
+};
+// V2.9.13: 初始化AI编辑器增强
+if (typeof initAiContentEditor === 'function' && window.AI_CMS_CONFIG.info_id) {
+    initAiContentEditor(window.AI_CMS_CONFIG.info_id);
+}
+// V2.9.15: 初始化翻译编辑器
+{if condition="$info"}
+$(function() {
+    TranslateEditor.init({$info.id});
+});
+{/if}
+
+// ======== V2.9.18: 推送 + 分享预览 ========
+// 手动推送全部通道
+function manualPushAll() {
+    if (!confirm('将推送当前内容到所有已启用的手动通道，确定继续？')) return;
+    var cid = window.AI_CMS_CONFIG.info_id || 0;
+    if (!cid) { alert('请先保存内容'); return; }
+    $.post('/admin/push/dispatch/' + cid, function(res) {
+        alert(res.code === 0 ? '✅ 推送成功' : '❌ ' + (res.msg || '推送失败'));
+    });
+}
+
+// 站内广播
+function manualPushBroadcast() {
+    if (!confirm('将推送当前内容到所有已注册用户的消息中心，确定继续？')) return;
+    var cid = window.AI_CMS_CONFIG.info_id || 0;
+    if (!cid) { alert('请先保存内容'); return; }
+    $.post('/admin/push/dispatch/channel', {
+        content_id: cid,
+        channel_id: 0
+    }, function(res) {
+        alert(res.code === 0 ? '✅ 站内广播成功' : '❌ ' + (res.msg || '广播失败'));
+    });
+}
+
+// 分享预览
+var previewPlatform = 'wechat';
+$(document).on('click', '#previewPlatforms button', function() {
+    $('#previewPlatforms button').removeClass('active');
+    $(this).addClass('active');
+    previewPlatform = $(this).data('platform');
+    updateSharePreview();
+});
+
+function updateSharePreview() {
+    var title = $('#ogTitleCustom').val() || $('input[name="title"]').val() || '标题预览';
+    var desc  = $('#ogDescCustom').val() || $('textarea[name="description"]').val() || '描述预览';
+    var cover = $('input[name="cover"]').val() || '';
+    $('#shareCardTitle').text(title);
+    $('#shareCardDesc').text(desc);
+    $('#shareCardDomain').text('来自 ' + (location.hostname || '当前站点'));
+    if (cover) {
+        $('#shareCardCover').css('background-image', 'url(' + cover + ')').find('span').hide();
+    } else {
+        $('#shareCardCover').css('background-image', 'none').find('span').show();
+    }
+}
+
+$('#ogTitleCustom, #ogDescCustom').on('input', updateSharePreview);
+setTimeout(updateSharePreview, 500);
+</script>
+<script src="/assets/js/content-edit-default.js?v=2.9.9.1"></script>
+<!-- PJAX兼容：确保TinyMCE在PJAX加载后重新初始化 -->
+<script>
+(function(){
+    if (typeof tinymce === 'undefined') return;
+    var retry = 0;
+    var initTimer = setInterval(function(){
+        var el = document.getElementById('editor');
+        if (!el) { clearInterval(initTimer); return; }
+        if (el.offsetParent === null) { retry++; if (retry > 20) clearInterval(initTimer); return; }
+        clearInterval(initTimer);
+        var existing = tinymce.get('editor');
+        if (existing) existing.remove();
+        tinymce.init({
+            selector: '#editor', height: 400, language: 'zh-Hans',
+            menubar: 'edit view insert format table',
+            plugins: 'link image table code fullscreen',
+            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+            relative_urls: false, convert_urls: false, promotion: false, branding: false,
+            setup: function(editor) {
+                editor.addShortcut('ctrl+shift+c', 'AI续写', function(){
+                    var selected = editor.selection.getContent({format:'text'});
+                    var text = selected || editor.getContent({format:'text'}).substring(0,500);
+                    $('#aiPrompt').val('请续写以下内容：\n'+text); aiGenerate('append');
+                });
+            },
+            images_upload_url: '/api/upload/image',
+            images_upload_handler: function(blobInfo, success, failure) {
+                var formData = new FormData();
+                formData.append('file', blobInfo.blob(), blobInfo.filename());
+                var csrfToken = $('input[name="__token__"]').val();
+                $.ajax({ url: '/api/upload/image', type: 'POST', data: formData,
+                    processData: false, contentType: false,
+                    headers: csrfToken ? {'X-CSRF-TOKEN': csrfToken} : {},
+                    success: function(res){ res.code===0&&res.data&&res.data.url?success(res.data.url):failure(res.msg||'失败'); },
+                    error: function(){ failure('上传失败'); }
+                });
+            }
+        });
+    }, 100);
+})();
+</script>
+{/block}

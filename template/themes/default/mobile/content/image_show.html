@@ -1,0 +1,63 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
+{block name="keywords"}{$info.seo_keywords|default=''}{/block}
+{block name="description"}{$info.seo_description|default=$info.title|msubstr=0,120}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">{$info.title}</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-3 text-center">{$info.title}</h1>
+        
+        {if condition="$model_fields && $model_fields|count > 0"}
+        <div class="text-center text-muted mb-3">
+            {volist name="model_fields" id="mf"}
+            {if condition="$mf.field_def.name == 'photographer' && $mf.value"}
+            <span class="me-3"><i class="bi bi-camera"></i> {$mf.formatted|raw}</span>
+            {/if}
+            {/volist}
+        </div>
+        {/if}
+
+        {if condition="$info.cover"}
+        <div class="image-gallery-main mb-4 text-center">
+            <img src="{$info.cover}" class="img-fluid rounded shadow" alt="{$info.title}" id="mainGalleryImage" style="max-height:600px">
+        </div>
+        {/if}
+
+        {if condition="$model_fields && $model_fields|count > 0"}
+        <div class="image-gallery-thumbs">
+            {volist name="model_fields" id="mf"}
+            {if condition="$mf.field_def.name == 'gallery' && $mf.value"}
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                {foreach explode(',', $mf.value) as $img}
+                <img src="{$img}" class="img-thumbnail" style="width:120px;cursor:pointer" onclick="document.getElementById('mainGalleryImage').src='{$img}'" alt="{$info.title}">
+                {/foreach}
+            </div>
+            {/if}
+            {/volist}
+        </div>
+        {/if}
+
+        {if condition="$info.content"}
+        <div class="row mt-4"><div class="col-md-8 mx-auto">
+            <div class="content-body">{$info.content|raw}</div>
+        </div></div>
+        {/if}
+
+        {volist name="model_fields" id="mf"}
+        {if condition="$mf.field_def.name == 'image_description' && $mf.value"}
+        <div class="row mt-2"><div class="col-md-8 mx-auto">
+            <p class="text-muted small"><i class="bi bi-info-circle"></i> {$mf.formatted|raw}</p>
+        </div></div>
+        {/if}
+        {/volist}
+    </div>
+</section>
+{/block}

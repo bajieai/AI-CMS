@@ -1,0 +1,129 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
+{block name="keywords"}{if condition="$info.seo_keywords"}{$info.seo_keywords}{else}{volist name="info.tags" id="tag"}{$tag.name},{/volist}{$site_keywords}{/if}{/block}
+{block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
+
+{block name="content"}
+<section class="section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="{$type_url}">{if condition="$info.type == 1"}产品中心{elseif condition="$info.type == 2"/}成功案例{elseif condition="$info.type == 3"/}新闻动态{elseif condition="$info.type == 4"/}资料下载{elseif condition="$info.type == 5"/}人才招聘{else/}单页{/if}</a></li>
+                <li class="breadcrumb-item active">{$info.title}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <article class="content-card content-reading">
+                    <h1 class="mb-3">{$info.title}</h1>
+                    <div class="content-meta mb-4">
+                        <span><i class="bi bi-calendar3 me-1"></i>{$info.create_time|date='Y-m-d H:i'}</span>
+                        <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views} 阅读</span>
+                        {if condition="$info.cate"}<span class="ms-3"><i class="bi bi-folder2 me-1"></i>{$info.cate.name}</span>{/if}
+                    </div>
+
+                    {if condition="$info.cover"}
+                    <div class="mb-4"><img data-src="{$info.cover}" class="img-fluid rounded lazyload" alt="{$info.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></div>
+                    {/if}
+
+                    <div class="content-body">
+                        {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
+                        <div class="i8j-paywall-preview">{$safe_content.preview}</div>
+                        <div class="i8j-paywall-box">
+                            <i class="bi bi-lock-fill text-warning fs-2 mb-2 d-block"></i>
+                            <p class="text-secondary">此内容为付费内容，解锁后可阅读全文</p>
+                            {if $isMemberLogin}
+                            <button type="button" class="btn btn-primary" onclick="unlockContent({$info.id})"><i class="bi bi-unlock me-1"></i>立即解锁</button>
+                            {else/}
+                            <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-1"></i>登录后解锁</a>
+                            {/if}
+                        </div>
+                        {else/}
+                        {$safe_content.full|raw}
+                        {/if}
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 mt-4 py-2 border-top border-bottom">
+                        <span class="text-muted small"><i class="bi bi-hand-thumbs-up me-1"></i>{$info.like_count} 赞</span>
+                        <span class="text-muted small"><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
+                    </div>
+
+                    {include file="shared/reward_button" info="$info" /}
+                </article>
+
+                {if condition="config('comment.comment_enabled') !== 0"}
+                <section class="mt-4" id="commentSection">
+                    <h5><i class="bi bi-chat-dots me-1"></i>评论</h5>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <form id="commentForm">
+                                <input type="hidden" name="content_id" value="{$info.id}">
+                                {if condition="!$isMemberLogin"}
+                                <div class="row mb-2">
+                                    <div class="col-md-6"><input type="text" name="nickname" class="form-control form-control-sm" placeholder="昵称" required></div>
+                                    <div class="col-md-6"><input type="email" name="email" class="form-control form-control-sm" placeholder="邮箱"></div>
+                                </div>
+                                {/if}
+                                <textarea name="content" class="form-control form-control-sm" rows="3" placeholder="发表评论..." required></textarea>
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">提交评论</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div id="commentList"></div>
+                </section>
+                {/if}
+            </div>
+
+            <aside class="col-lg-4">
+                <div class="widget">
+                    <h6 class="widget-title"><i class="bi bi-lightning me-1"></i>相关内容</h6>
+                    <div class="list-group list-group-flush">
+                        {volist name="related" id="vo"}
+                        <a href="{$vo.url}" class="list-group-item list-group-item-action"><small class="text-muted">{$vo.create_time|date='m-d'}</small><br>{$vo.title}</a>
+                        {/volist}
+                        {empty name="related"}<div class="list-group-item text-muted small">暂无相关内容</div>{/empty}
+                    </div>
+                </div>
+                <div class="widget">
+                    <h6 class="widget-title"><i class="bi bi-tags me-1"></i>标签</h6>
+                    <div class="tag-cloud">
+                        {volist name="info.tags" id="tag"}<a href="/tag/{$tag.id}" class="tag-link">{$tag.name}</a>{/volist}
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{/block}
+
+{block name="css"}
+<style>
+.content-body img{max-width:100%;height:auto}
+.content-body table{width:100%;margin-bottom:1rem}
+.content-body a{color:var(--primary)}
+.content-reading .content-body{line-height:1.85;font-size:1.05rem}
+</style>
+{/block}
+
+{block name="js"}
+<script>
+function unlockContent(id){
+    if(!confirm('确认解锁？'))return;
+    $.post('/home/paid/buy',{content_id:id,__token__: $('meta[name="csrf-token"]').attr('content')},function(res){
+        if(res.code===0||res.success){location.reload();}
+        else if(res.msg&&res.msg.indexOf('支付')!==-1){location.href='/home/payment/pay?content_id='+id;}
+        else{alert(res.msg||'解锁失败');}
+    });
+}
+$('#commentForm').on('submit',function(e){
+    e.preventDefault();
+    $.post('/home/comment/submit',$(this).serialize(),function(res){
+        if(res.code===0){$(this)[0].reset();alert('评论提交成功');}
+        else{alert(res.msg||'评论失败');}
+    }.bind(this));
+});
+</script>
+{/block}

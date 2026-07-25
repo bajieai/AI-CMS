@@ -1,0 +1,16 @@
+{extend name="layout" /}
+{block name="title"}插件详情{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">插件市场</li><li class="breadcrumb-item active">插件详情</li>{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">{$plugin.name}</h5></div>
+    <div class="card-body">
+        <p><strong>标识：</strong><code>{$plugin.identifier}</code></p>
+        <p><strong>版本：</strong>v{$plugin.version}</p>
+        <p><strong>作者：</strong>{$plugin.author}</p>
+        <p><strong>描述：</strong>{$plugin.description}</p>
+        <p><strong>安装时间：</strong>{$plugin.installed_at}</p>
+        <p><strong>路径：</strong>{$plugin.install_path}</p>
+    </div>
+</div>
+{/block}

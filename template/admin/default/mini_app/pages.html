@@ -1,0 +1,186 @@
+{extend name="layout" /}
+
+{block name="title"}小程序页面管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">小程序管理</li>
+<li class="breadcrumb-item active">页面管理</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-layout-text-window me-1"></i>页面列表</span>
+        <span class="text-muted small">共 {$pages|count} 个页面</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="60">ID</th>
+                    <th width="120">页面标识</th>
+                    <th>页面名称</th>
+                    <th width="140">组件数</th>
+                    <th width="100">排序</th>
+                    <th width="80">状态</th>
+                    <th width="120">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="pages" id="page"}
+                <tr>
+                    <td>{$page.id}</td>
+                    <td><code>{$page.page_key}</code></td>
+                    <td><i class="bi bi-{$page.icon ?? 'file-earmark'} me-1"></i>{$page.name}</td>
+                    <td>
+                        {if condition="$page.components"}
+                            <span class="badge bg-info">{$page.components|count} 个组件</span>
+                        {else/}
+                            <span class="text-muted">未配置</span>
+                        {/if}
+                    </td>
+                    <td>{$page.sort}</td>
+                    <td>{if condition="$page.status == 1"}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-primary" title="配置组件" onclick="editComponents({$page.id})"><i class="bi bi-gear"></i></button>
+                            <button type="button" class="btn btn-outline-info" title="预览" onclick="previewPage({$page.id})"><i class="bi bi-eye"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" title="排序" onclick="editSort({$page.id}, {$page.sort})"><i class="bi bi-arrow-down-up"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="pages"}
+                <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>暂无页面</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 组件配置弹窗 -->
+<div class="modal fade" id="componentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-gear me-2"></i>组件配置 - <span id="componentPageName"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3 d-flex justify-content-between align-items-center">
+                <span class="text-muted small">拖拽排序，点击开关启用/禁用组件</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addComponent()"><i class="bi bi-plus-lg me-1"></i>添加组件</button>
+            </div>
+            <div id="componentList" class="list-group">
+                <div class="text-center text-muted py-4">加载中...</div>
+            </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">关闭</button><button type="button" class="btn btn-primary btn-sm" onclick="saveComponents()"><i class="bi bi-check-lg me-1"></i>保存</button></div>
+    </div></div>
+</div>
+
+<!-- 预览弹窗 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-eye me-2"></i>页面预览</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body text-center">
+            <div style="display:inline-block;width:375px;height:600px;border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#f8f9fa">
+                <div class="bg-light py-2 px-3 border-bottom"><small class="text-muted">小程序预览</small></div>
+                <div id="previewContent" class="p-3" style="height:560px;overflow-y:auto">
+                    <div class="text-center text-muted py-5"><i class="bi bi-phone display-4"></i><p class="mt-2">预览加载中...</p></div>
+                </div>
+            </div>
+        </div>
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var componentModal = null;
+var previewModal = null;
+var currentPageId = 0;
+
+$(function() {
+    componentModal = new bootstrap.Modal(document.getElementById('componentModal'));
+    previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+});
+
+function editComponents(id) {
+    currentPageId = id;
+    $.get('/admin/mini_app/getComponents?page_id=' + id, function(res) {
+        if (res.success) {
+            $('#componentPageName').text(res.data.page_name);
+            renderComponents(res.data.components);
+            componentModal.show();
+        } else {
+            showToast(res.msg || '加载失败', 'danger');
+        }
+    });
+}
+
+function renderComponents(components) {
+    if (!components || !components.length) {
+        $('#componentList').html('<div class="text-center text-muted py-4">暂无组件，点击右上角添加</div>');
+        return;
+    }
+    var html = '';
+    for (var i = 0; i < components.length; i++) {
+        var c = components[i];
+        html += '<div class="list-group-item d-flex justify-content-between align-items-center" data-id="' + c.id + '">' +
+            '<div><i class="bi bi-grip-vertical text-muted me-2"></i><i class="bi bi-' + (c.icon || 'square') + ' me-2"></i><span class="fw-bold">' + c.name + '</span><span class="text-muted small ms-2">' + (c.type || '') + '</span></div>' +
+            '<div class="d-flex align-items-center gap-2">' +
+                '<div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" ' + (c.enabled ? 'checked' : '') + '></div>' +
+                '<button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.list-group-item\').remove()"><i class="bi bi-trash"></i></button>' +
+            '</div></div>';
+    }
+    $('#componentList').html(html);
+}
+
+function addComponent() {
+    var html = '<div class="list-group-item d-flex justify-content-between align-items-center">' +
+        '<div><i class="bi bi-grip-vertical text-muted me-2"></i><select class="form-select form-select-sm d-inline-block" style="width:200px"><option value="banner">轮播图</option><option value="nav">导航栏</option><option value="list">列表</option><option value="grid">宫格</option><option value="article">文章</option><option value="product">产品</option><option value="search">搜索框</option><option value="notice">公告</option></select></div>' +
+        '<div class="d-flex align-items-center gap-2"><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div><button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'.list-group-item\').remove()"><i class="bi bi-trash"></i></button></div>' +
+        '</div>';
+    $('#componentList').append(html);
+}
+
+function saveComponents() {
+    var components = [];
+    $('#componentList .list-group-item').each(function(idx) {
+        var $sel = $(this).find('select');
+        components.push({
+            id: $(this).data('id') || 0,
+            type: $sel.length ? $sel.val() : $(this).find('.fw-bold').text(),
+            name: $sel.length ? $sel.find('option:selected').text() : $(this).find('.fw-bold').text(),
+            sort: idx,
+            enabled: $(this).find('.form-check-input').is(':checked') ? 1 : 0
+        });
+    });
+    $.post('/admin/mini_app/saveComponents', {page_id: currentPageId, components: components}, function(res) {
+        if (res.success) {
+            showToast('保存成功', 'success');
+            componentModal.hide();
+        } else {
+            showToast(res.msg || '保存失败', 'danger');
+        }
+    });
+}
+
+function previewPage(id) {
+    $.get('/admin/mini_app/previewPage?page_id=' + id, function(res) {
+        if (res.success) {
+            $('#previewContent').html(res.data.html || '<div class="text-center text-muted py-5">暂无预览内容</div>');
+            previewModal.show();
+        } else {
+            showToast(res.msg || '预览失败', 'danger');
+        }
+    });
+}
+
+function editSort(id, sort) {
+    var newSort = prompt('请输入排序值（数字越小越靠前）', sort);
+    if (newSort === null) return;
+    $.post('/admin/mini_app/updateSort', {id: id, sort: newSort}, function(res) {
+        if (res.success) { showToast('排序已更新', 'success'); setTimeout(function() { location.reload(); }, 800); }
+        else { showToast(res.msg || '更新失败', 'danger'); }
+    });
+}
+</script>
+{/block}

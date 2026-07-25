@@ -1,0 +1,13 @@
+{/* V2.9.20 A-3: 新闻模型详情差异化片段 (default Mobile) */}
+{php}$ext = $info['ext']['data'] ?? [];{/php}
+<div class="model-news-bar d-flex flex-wrap gap-2 mb-3 py-1">
+    {if condition="!empty($ext['source'])"}
+    <span class="badge bg-light text-dark border small">来源: {$ext['source']|htmlentities}</span>
+    {/if}
+    {if condition="!empty($ext['author'])"}
+    <span class="badge bg-light text-dark border small">作者: {$ext['author']|htmlentities}</span>
+    {/if}
+    {if condition="!empty($ext['is_top']) && $ext['is_top'] == '1'"}
+    <span class="badge bg-danger small"><i class="bi bi-pin-angle me-1"></i>置顶</span>
+    {/if}
+</div>

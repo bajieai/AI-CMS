@@ -1,0 +1,242 @@
+{extend name="layout" /}
+
+{block name="title"}模板缓存管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">模板缓存管理</li>
+{/block}
+
+{block name="content"}
+<!-- V2.9.24 J-1: 模板缓存管理页面 (corporate增强版) -->
+<div class="row">
+    <!-- V2.9.24 J-1: 缓存命中率仪表盘 -->
+    <div class="col-12 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <span><i class="bi bi-graph-up me-2 text-primary"></i>缓存命中率</span>
+                <button class="btn btn-sm btn-outline-secondary rounded-3" id="btnResetHitRate"><i class="bi bi-arrow-clockwise"></i> 重置统计</button>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h2 class="text-success mb-0 fw-bold">{$stats.hit_rate.rate??0}%</h2>
+                        <small class="text-muted">命中率</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-primary mb-0 fw-bold">{$stats.hit_rate.hit??0}</h4>
+                        <small class="text-muted">缓存命中</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning mb-0 fw-bold">{$stats.hit_rate.miss??0}</h4>
+                        <small class="text-muted">缓存未命中</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info mb-0 fw-bold">{$stats.hit_rate.total??0}</h4>
+                        <small class="text-muted">总请求</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <span class="fw-bold"><i class="bi bi-speedometer2 me-2 text-primary"></i>模板缓存统计</span>
+                <span class="badge bg-primary rounded-pill">V2.9.23 A-4</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h3 class="text-primary mb-1 fw-bold">{$stats.template_files}</h3>
+                            <small class="text-muted">监控模板文件</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h3 class="text-info mb-1 fw-bold">{$stats.compile_cache_files}</h3>
+                            <small class="text-muted">编译缓存文件</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h3 class="text-success mb-1 fw-bold">{$stats.compile_cache_size_human}</h3>
+                            <small class="text-muted">缓存总大小</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-folder-check me-2 text-primary"></i>监控目录
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>目录</th>
+                            <th class="text-end">模板文件数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="stats.watch_dirs" id="dir"}
+                        <tr>
+                            <td><code class="bg-light px-2 py-1 rounded">{$dir.path}</code></td>
+                            <td class="text-end"><span class="badge bg-secondary">{$dir.file_count}</span></td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-tools me-2 text-primary"></i>缓存操作
+            </div>
+            <div class="card-body">
+                {if condition="isset($success)"}
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle me-1"></i>{$success}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {/if}
+                {if condition="isset($error)"}
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{$error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {/if}
+
+                <form method="post" action="/admin/system/cache" class="mb-3">
+                    {:token_field()}
+                    <input type="hidden" name="action" value="check">
+                    <button type="submit" class="btn btn-outline-primary w-100 rounded-3">
+                        <i class="bi bi-search me-1"></i>检查模板变更
+                    </button>
+                    <small class="text-muted d-block mt-2">扫描模板文件MD5，自动清除变更文件的缓存</small>
+                </form>
+
+                <form method="post" action="/admin/system/cache" onsubmit="return confirm('确定要清除所有模板编译缓存吗？');">
+                    {:token_field()}
+                    <input type="hidden" name="action" value="clear_all">
+                    <button type="submit" class="btn btn-danger w-100 rounded-3">
+                        <i class="bi bi-trash me-1"></i>一键清除所有缓存
+                    </button>
+                    <small class="text-muted d-block mt-2">清除所有模板编译缓存，下次访问时重新编译</small>
+                </form>
+            </div>
+        </div>
+
+        <!-- V2.9.24 J-1: 自动清理策略 -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3"><i class="bi bi-gear me-2 text-primary"></i>自动清理策略</div>
+            <div class="card-body">
+                <form id="autoCleanForm">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="auto_clean_enabled" id="autoCleanEnabled">
+                        <label class="form-check-label small" for="autoCleanEnabled">启用自动清理</label>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">最大缓存大小(MB)</label>
+                        <input type="number" class="form-control form-control-sm" name="auto_clean_max_size" value="100" min="10" max="1000">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">检查间隔(小时)</label>
+                        <input type="number" class="form-control form-control-sm" name="auto_clean_interval" value="24" min="1" max="168">
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-3">保存策略</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- V2.9.24 J-1: 最近操作日志 -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3"><i class="bi bi-list-check me-2 text-primary"></i>最近操作</div>
+            <div class="card-body" style="max-height:300px;overflow-y:auto;">
+                {volist name="stats.recent_logs" id="log"}
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div>
+                        <span class="badge bg-{if $log.action=='clear'}danger{elseif $log.action=='refresh'}info{else /}secondary{/if} rounded-pill">{$log.action}</span>
+                        <small class="ms-1">{$log.template_path}</small>
+                    </div>
+                    <small class="text-muted">{:date('m-d H:i',$log.create_time)}</small>
+                </div>
+                {/volist}
+                {if count($stats['recent_logs'] ?? []) == 0}
+                <small class="text-muted">暂无操作记录</small>
+                {/if}
+            </div>
+        </div>
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-clipboard-check me-2 text-primary"></i>检查结果
+            </div>
+            <div class="card-body">
+                <p>变更文件: <strong>{:count($checkResult.changed)}</strong></p>
+                <p>已清除缓存: <strong>{:count($checkResult.cleared)}</strong></p>
+                {if condition="count($checkResult.changed) > 0"}
+                <ul class="list-group list-group-flush mt-2">
+                    {volist name="checkResult.changed" id="file"}
+                    <li class="list-group-item py-1"><small><code>{$file}</code></small></li>
+                    {/volist}
+                </ul>
+                {/if}
+            </div>
+        </div>
+        {/if}
+
+        {if condition="isset($clearResult)"}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <i class="bi bi-trash me-2 text-primary"></i>清除结果
+            </div>
+            <div class="card-body">
+                <p>已清除: <strong>{$clearResult.count}</strong> 个文件</p>
+                {if condition="count($clearResult.errors) > 0"}
+                <div class="alert alert-warning mt-2">
+                    <p class="mb-1"><i class="bi bi-exclamation-triangle me-1"></i>以下文件清除失败:</p>
+                    <ul class="mb-0">
+                        {volist name="clearResult.errors" id="err"}
+                        <li><small>{$err}</small></li>
+                        {/volist}
+                    </ul>
+                </div>
+                {/if}
+            </div>
+        </div>
+        {/if}
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var csrfToken = $('[name=__token__]').val();
+
+$('#btnResetHitRate').click(function(){
+    $.post('/admin/system/resetHitRate', {__token__: csrfToken}, function(res){
+        if(res.code===0){ layer.msg(res.msg); setTimeout(()=>location.reload(),500); }
+        else { layer.msg(res.msg||'操作失败'); if(res.data && res.data.token) csrfToken=res.data.token; }
+    });
+});
+$('#autoCleanForm').on('submit', function(e){
+    e.preventDefault();
+    var data = {
+        __token__: csrfToken,
+        auto_clean_enabled: $('#autoCleanEnabled').is(':checked') ? 1 : 0,
+        auto_clean_max_size: $('input[name=auto_clean_max_size]').val(),
+        auto_clean_interval: $('input[name=auto_clean_interval]').val()
+    };
+    $.post('/admin/system/saveCacheConfig', data, function(res){
+        if(res.code===0){ layer.msg(res.msg); }
+        else { layer.msg(res.msg||'保存失败'); if(res.data && res.data.token) csrfToken=res.data.token; }
+    });
+});
+</script>
+{/block}

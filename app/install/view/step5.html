@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安装完成 - AI-CMS V{$version}</title>
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #1a1d21 0%, #2d3748 50%, #1a365d 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .install-card { width: 100%; max-width: 620px; border-radius: 1rem; overflow: hidden; box-shadow: 0 1rem 3rem rgba(0,0,0,0.3); }
+        .install-header { background: #198754; padding: 2rem; color: #fff; text-align: center; }
+        .install-body { padding: 2rem; background: #fff; }
+        .link-card { border: 2px solid #dee2e6; border-radius: 0.75rem; padding: 1.25rem; text-align: center; transition: all 0.3s; cursor: pointer; }
+        .link-card:hover { border-color: #0d6efd; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(13,110,253,0.15); }
+        .link-card.ready { border-color: #198754; }
+        .link-card.ready:hover { border-color: #198754; box-shadow: 0 4px 12px rgba(25,135,84,0.15); }
+        .link-card.warning { border-color: #ffc107; }
+        .link-card.disabled { opacity: 0.5; cursor: not-allowed; }
+        .link-card.disabled:hover { border-color: #dee2e6; transform: none; box-shadow: none; }
+        .site-url { font-size: 0.85rem; color: #6c757d; word-break: break-all; }
+        .status-badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.375rem; }
+        @keyframes pulse-check { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .checking { animation: pulse-check 1s infinite; }
+    </style>
+</head>
+<body>
+    <div class="install-card">
+        <div class="install-header">
+            <i class="bi bi-check-circle-fill fs-1"></i>
+            <h3 class="mt-2 mb-1">安装完成！</h3>
+            <p class="mb-0 opacity-75">AI-CMS V{$version} 已成功安装</p>
+        </div>
+        <div class="install-body">
+            <!-- 安全提示 -->
+            <div class="alert alert-warning text-start small mb-4">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <strong>安全提示：</strong>请及时删除 <code>public/install.php</code> 文件，防止被重复安装。
+            </div>
+
+            <!-- 伪静态检测状态 -->
+            <div id="rewriteStatus" class="mb-4 text-center">
+                <span class="spinner-border spinner-border-sm text-primary me-2 checking"></span>
+                <span class="text-muted">正在检测伪静态配置...</span>
+            </div>
+
+            <!-- 伪静态未生效提示 -->
+            <div id="rewriteHelp" class="alert alert-danger text-start small mb-4" style="display:none;">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+                    <div class="flex-fill">
+                        <strong>检测到伪静态未生效</strong><br>
+                        请在小皮面板中配置伪静态，否则后台管理链接会 404：
+                        <ol class="mb-2 ps-3">
+                            <li>打开小皮面板 → 网站 → 当前站点 → 设置 → 伪静态</li>
+                            <li>清空原有内容，粘贴下方规则</li>
+                            <li>保存并重启 Nginx</li>
+                        </ol>
+                        <div class="input-group input-group-sm">
+                            <textarea id="rewriteRules" class="form-control font-monospace" rows="6" readonly style="resize:none;"></textarea>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyRewriteRules()">
+                                <i class="bi bi-copy"></i> 复制
+                            </button>
+                        </div>
+                        <div id="copyTip" class="text-success mt-1" style="display:none;">已复制到剪贴板</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 站点入口选择 -->
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <div class="link-card disabled" id="cardFrontend" onclick="goSite('frontend')">
+                        <i class="bi bi-house-door fs-3 text-primary"></i>
+                        <h6 class="mt-2 mb-1">前台首页</h6>
+                        <div class="site-url" id="frontendUrl"></div>
+                        <div class="mt-2">
+                            <span class="status-badge bg-light text-muted" id="frontendStatus">
+                                <i class="bi bi-hourglass-split me-1"></i>等待检测
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="link-card disabled" id="cardBackend" onclick="goSite('backend')">
+                        <i class="bi bi-gear fs-3 text-success"></i>
+                        <h6 class="mt-2 mb-1">后台管理</h6>
+                        <div class="site-url" id="backendUrl"></div>
+                        <div class="mt-2">
+                            <span class="status-badge bg-light text-muted" id="backendStatus">
+                                <i class="bi bi-hourglass-split me-1"></i>等待检测
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/js/jquery.min.js"></script>
+    <script>
+    var baseUrl = window.location.origin;
+    document.getElementById('frontendUrl').textContent = baseUrl + '/';
+    document.getElementById('backendUrl').textContent = baseUrl + '/admin.php';
+
+    var maxRetries = 4;
+    var retryDelay = 2500;
+    var retryCount = 0;
+    var rewriteRulesText = '';
+
+    function loadRewriteRules() {
+        $.ajax({
+            url: baseUrl + '/install.php/index/getRewriteRules',
+            type: 'GET',
+            timeout: 5000,
+            dataType: 'json',
+            success: function(res) {
+                if (res.code === 0) {
+                    rewriteRulesText = res.data;
+                    document.getElementById('rewriteRules').value = res.data;
+                }
+            }
+        });
+    }
+
+    function checkRewrite() {
+        retryCount++;
+
+        var frontCheck = $.ajax({ url: baseUrl + '/', type: 'HEAD', timeout: 5000, cache: false });
+        var backCheck = $.ajax({ url: baseUrl + '/admin/login', type: 'HEAD', timeout: 5000, cache: false });
+
+        var frontPromise = frontCheck.then(
+            function() { return { ok: true }; },
+            function(xhr) { return { ok: (xhr && xhr.status) ? xhr.status !== 404 : false }; }
+        );
+        var backPromise = backCheck.then(
+            function() { return { ok: true }; },
+            function(xhr) { return { ok: (xhr && xhr.status) ? xhr.status !== 404 : false }; }
+        );
+
+        Promise.all([frontPromise, backPromise]).then(function(results) {
+            var frontendOk = results[0].ok;
+            var backendOk = results[1].ok;
+
+            if (frontendOk && backendOk) {
+                updateStatus('frontend', 'ready', '就绪');
+                updateStatus('backend', 'ready', '就绪');
+                enableCards();
+                document.getElementById('rewriteStatus').innerHTML =
+                    '<i class="bi bi-check-circle-fill text-success me-1"></i>' +
+                    '<span class="text-success fw-bold">站点就绪，可以正常访问</span>';
+                document.getElementById('rewriteHelp').style.display = 'none';
+            } else if (retryCount >= maxRetries) {
+                updateStatus('frontend', frontendOk ? 'ready' : 'warning', frontendOk ? '就绪' : '待确认');
+                updateStatus('backend', backendOk ? 'ready' : 'warning', backendOk ? '就绪' : '待确认');
+                enableCards();
+                document.getElementById('rewriteStatus').innerHTML =
+                    '<i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>' +
+                    '<span class="text-warning">伪静态尚未生效，请按下方说明配置</span>';
+                document.getElementById('rewriteHelp').style.display = 'block';
+                document.getElementById('cardBackend').classList.add('warning');
+            } else {
+                document.getElementById('rewriteStatus').innerHTML =
+                    '<span class="spinner-border spinner-border-sm text-primary me-2 checking"></span>' +
+                    '<span class="text-muted">正在检测伪静态配置... (第' + retryCount + '/' + maxRetries + '次)</span>';
+                setTimeout(checkRewrite, retryDelay);
+            }
+        });
+    }
+
+    function copyRewriteRules() {
+        var el = document.getElementById('rewriteRules');
+        el.select();
+        el.setSelectionRange(0, 99999);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(rewriteRulesText).then(function() {
+                document.getElementById('copyTip').style.display = 'block';
+                setTimeout(function() { document.getElementById('copyTip').style.display = 'none'; }, 2000);
+            });
+        } else {
+            document.execCommand('copy');
+            document.getElementById('copyTip').style.display = 'block';
+            setTimeout(function() { document.getElementById('copyTip').style.display = 'none'; }, 2000);
+        }
+    }
+
+    function updateStatus(id, status, label) {
+        var el = document.getElementById(id + 'Status');
+        var card = document.getElementById('card' + (id === 'frontend' ? 'Frontend' : 'Backend'));
+
+        card.classList.remove('disabled', 'ready', 'warning');
+
+        if (status === 'ready') {
+            el.className = 'status-badge bg-success text-white';
+            el.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + label;
+            card.classList.add('ready');
+        } else if (status === 'warning') {
+            el.className = 'status-badge bg-warning text-dark';
+            el.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + label;
+            card.classList.add('warning');
+        } else {
+            el.className = 'status-badge bg-light text-muted';
+            el.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>等待检测';
+        }
+    }
+
+    function enableCards() {
+        document.getElementById('cardFrontend').classList.remove('disabled');
+        document.getElementById('cardBackend').classList.remove('disabled');
+    }
+
+    function goSite(type) {
+        var card = document.getElementById('card' + (type === 'frontend' ? 'Frontend' : 'Backend'));
+        if (card.classList.contains('disabled')) return;
+
+        if (type === 'frontend') {
+            window.location.href = baseUrl + '/';
+        } else {
+            window.location.href = baseUrl + '/admin.php';
+        }
+    }
+
+    // 页面加载后1.5秒开始检测伪静态（给服务器一点缓冲时间）
+    setTimeout(checkRewrite, 1500);
+    </script>
+</body>
+</html>

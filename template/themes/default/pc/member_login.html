@@ -1,0 +1,86 @@
+{extend name="layout" /}
+
+{block name="title"}会员登录{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-4">会员登录</h4>
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label">用户名/邮箱</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        {if $captcha_login ?? 0}
+                        <div class="mb-3">
+                            <label class="form-label">验证码</label>
+                            <div class="d-flex gap-2">
+                                <input type="text" name="captcha" class="form-control" style="flex:1;" required>
+                                <input type="hidden" name="captcha_key" id="captchaKey">
+                                <div id="captchaBox" class="d-flex align-items-center justify-content-center" style="width:120px;min-height:38px;background:#f0fdf4;border:1px solid #ddd;border-radius:6px;cursor:pointer;overflow:hidden;">
+                                    <span class="text-muted small">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                        {/if}
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">登录</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/member/register" class="text-decoration-none small">还没有账号？立即注册</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+{php}if (($captcha_login ?? 0) == 1):{/php}
+function loadCaptcha() {
+    $.get('/member/captcha', function(res) {
+        if (res.success && res.data) {
+            var $box = $('#captchaBox');
+            $box.empty();
+            if (res.data.mode === 'image' && res.data.image) {
+                $box.html('<img src="' + res.data.image + '" style="max-width:100%;height:auto;display:block;margin:0 auto;" alt="验证码">');
+            } else {
+                $box.html('<span class="fw-bold" style="font-size:1rem;">' + (res.data.text || '验证码') + '</span>');
+            }
+            $('#captchaKey').val(res.data.key);
+        }
+    });
+}
+loadCaptcha();
+$('#captchaBox').on('click', function() { loadCaptcha(); });
+{php}endif;{/php}
+
+$('#loginForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post('/member/login', $(this).serialize(), function(res) {
+        if (res.success) {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({type: 'CLEAR_PAGES'});
+            }
+            location.href = '/member/profile';
+        } else {
+            alert(res.msg);
+{php}if (($captcha_login ?? 0) == 1):{/php}
+            loadCaptcha();
+            $('[name="captcha"]').val('');
+{php}endif;{/php}
+        }
+    });
+});
+</script>
+{/block}

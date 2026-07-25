@@ -1,0 +1,120 @@
+{extend name="layout" /}
+
+{block name="title"}翻译语言管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">内容管理</li>
+<li class="breadcrumb-item active">翻译语言管理</li>
+{/block}
+
+{block name="content"}
+<div class="container-fluid py-3">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-translate me-2"></i>翻译语言管理</h5>
+            <div><span class="text-muted small">共 {$total_count} 种语言，已启用 {$enabled_count} 种</span></div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3 d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-success" onclick="batchAction('enable_all')"><i class="bi bi-check-all"></i> 全部启用</button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="batchAction('disable_all')"><i class="bi bi-x-circle"></i> 全部禁用</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="saveSort()"><i class="bi bi-save"></i> 保存排序</button>
+                <div class="ms-auto"><input type="text" class="form-control form-control-sm" id="searchLang" placeholder="搜索语言" style="width:200px"></div>
+            </div>
+
+            <table class="table table-hover align-middle" id="langTable">
+                <thead class="table-light">
+                    <tr><th style="width:40px">☐</th><th style="width:80px">排序</th><th>语言</th><th>代码</th><th>方向</th><th>启用状态</th></tr>
+                </thead>
+                <tbody id="langListBody">
+                    {foreach $languages as $k => $lang}
+                    <tr data-code="{$lang.code}" data-index="{$k}">
+                        <td><input class="form-check-input lang-checkbox" type="checkbox" value="{$lang.code}" {if $lang.enabled}checked{/if}></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary move-up" onclick="moveRow(this,-1)" {if $k===0}disabled{/if}><i class="bi bi-chevron-up"></i></button>
+                                <button type="button" class="btn btn-outline-secondary move-down" onclick="moveRow(this,1)" {if $k===count($languages)-1}disabled{/if}><i class="bi bi-chevron-down"></i></button>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fs-5">{$lang.flag}</span>
+                            <span class="ms-2 fw-medium">{$lang.native}</span>
+                            <small class="text-muted ms-1">({$lang.name})</small>
+                        </td>
+                        <td><code>{$lang.code}</code></td>
+                        <td><span class="badge bg-light text-dark">{if $lang.direction=='rtl'}RTL{else /}LTR{/if}</span></td>
+                        <td><span class="badge {if $lang.enabled}bg-success{else /}bg-secondary{/if}">{if $lang.enabled}● 已启用{else /}○ 已禁用{/if}</span></td>
+                    </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+
+            <hr>
+            <div class="mt-3">
+                <h6 class="fw-bold"><i class="bi bi-plus-circle me-1"></i>添加自定义语言 <small class="text-muted fw-normal">（高级模式）</small></h6>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2"><label class="form-label small">语言代码</label><input type="text" class="form-control form-control-sm" id="customCode" placeholder="如: vi"></div>
+                    <div class="col-md-2"><label class="form-label small">英文名称</label><input type="text" class="form-control form-control-sm" id="customName" placeholder="Vietnamese"></div>
+                    <div class="col-md-2"><label class="form-label small">本地名称</label><input type="text" class="form-control form-control-sm" id="customNative" placeholder="Tieng Viet"></div>
+                    <div class="col-md-1"><label class="form-label small">国旗</label><input type="text" class="form-control form-control-sm" id="customFlag" placeholder="🇻🇳"></div>
+                    <div class="col-md-1"><label class="form-label small">方向</label><select class="form-select form-select-sm" id="customDirection"><option value="ltr">LTR</option><option value="rtl">RTL</option></select></div>
+                    <div class="col-md-1"><button type="button" class="btn btn-sm btn-primary" onclick="addCustomLanguage()">添加</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function batchAction(action) {
+    var checked = [];
+    if (action === 'select') {
+        $('.lang-checkbox:checked').each(function() { checked.push($(this).val()); });
+        if (checked.length === 0) { showToast('请先勾选语言','warning'); return; }
+    }
+    $.post('/admin/translate/languages/batch', { action: action, languages: checked }, function(res) {
+        showToast(res.msg, res.success ? 'success' : 'danger');
+        if (res.success) setTimeout(function() { location.reload(); }, 800);
+    });
+}
+function moveRow(btn, direction) {
+    var tr = $(btn).closest('tr'), rows = $('#langListBody tr'), idx = rows.index(tr), targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= rows.length) return;
+    direction === -1 ? tr.insertBefore(rows.eq(targetIdx)) : tr.insertAfter(rows.eq(targetIdx));
+    updateMoveButtons();
+}
+function saveSort() {
+    var order = []; $('#langListBody tr').each(function() { order.push($(this).data('code')); });
+    $.post('/admin/translate/languages/sort', { order: order }, function(res) {
+        showToast(res.msg, res.success ? 'success' : 'danger');
+    });
+}
+function addCustomLanguage() {
+    var data = { code: $('#customCode').val().trim(), name: $('#customName').val().trim(), native: $('#customNative').val().trim(), flag: $('#customFlag').val().trim() || '🌐', direction: $('#customDirection').val() };
+    if (!data.code || !data.name) { showToast('语言代码和名称不能为空','warning'); return; }
+    $.post('/admin/translate/languages/custom', data, function(res) {
+        showToast(res.msg, res.success ? 'success' : 'danger');
+        if (res.success) setTimeout(function() { location.reload(); }, 800);
+    });
+}
+$('#searchLang').on('input', function() {
+    var q = $(this).val().toLowerCase();
+    $('#langListBody tr').each(function() { $(this).toggle($(this).text().toLowerCase().includes(q)); });
+});
+$('.lang-checkbox').change(function() {
+    var code = $(this).val(), enabled = $(this).is(':checked');
+    $.post('/admin/translate/languages/toggle', { code: code, enabled: enabled }, function(res) {
+        showToast(res.msg, res.success ? 'success' : 'danger');
+        if (res.success) setTimeout(function() { location.reload(); }, 500);
+    });
+});
+function updateMoveButtons() {
+    $('#langListBody tr').each(function(idx) {
+        $(this).find('.move-up').prop('disabled', idx === 0);
+        $(this).find('.move-down').prop('disabled', idx === $('#langListBody tr').length - 1);
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,40 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name}{else /}产品中心{/if} - {$site_name}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">产品中心</li>
+            </ol>
+        </nav>
+        <div class="row g-3">
+            {volist name="list" id="vo"}
+            {php}$ext = (isset($vo['ext']['data']) && is_array($vo['ext']['data'])) ? $vo['ext']['data'] : [];{/php}
+            <div class="col-md-3 col-sm-6">
+                <a href="{$vo.url}" class="text-decoration-none">
+                    <div class="card product-card h-100">
+                        {if condition="$vo.cover"}
+                        <img src="{$vo.cover}" class="card-img-top" style="height:180px;object-fit:cover" alt="{$vo.title}" loading="lazy">
+                        {else /}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:180px"><i class="bi bi-box text-muted" style="font-size:3rem"></i></div>
+                        {/if}
+                        <div class="card-body text-center">
+                            <h6 class="card-title text-truncate">{$vo.title}</h6>
+                            {if condition="isset($ext['price']) && $ext['price']"}<p class="text-danger fw-bold mb-1">¥{$ext['price']}{/if}</p>
+                            <p class="text-muted small mb-0"><i class="bi bi-eye me-1"></i>{$vo.views|default=0}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+        </div>
+        {if condition="$list->hasPages()"}
+        <div class="pagination justify-content-center mt-4">{$list->render()|raw}</div>
+        {/if}
+    </div>
+</section>
+{/block}

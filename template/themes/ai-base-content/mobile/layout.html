@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="{$current_lang|default='zh-CN'}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{block name="title"}{$site_name|default='AI-CMS'}{/block}</title>
+    <meta name="csrf-token" content="{:token()}">
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{$skin}css/style.css?v=2.9.11" rel="stylesheet">
+    <style>:root{{foreach $theme_css_vars as $k => $v}{$k}:{$v};{/foreach}}</style>
+    {block name="css"}{/block}
+</head>
+<body>
+    <nav class="mobile-nav">
+        <a class="brand" href="/">{if $site_logo}<img src="{$site_logo}" alt="Logo" style="height:28px">{else}{$brand_name}{/if}</a>
+        <button class="nav-toggle" onclick="document.getElementById('mMenu').classList.toggle('show')"><i class="bi bi-list"></i></button>
+    </nav>
+    <div id="mMenu" class="mobile-menu">
+        <a href="/">首页</a><a href="/product">产品</a><a href="/case">案例</a>
+        <a href="/news">资讯</a><a href="/download">下载</a>
+        {if condition="$is_member_login"}<a href="/member/index">用户中心</a>{else/}<a href="/member/login">登录</a>{/if}
+    </div>
+    {block name="content"}{/block}
+    <footer class="mobile-footer">
+        <p class="small mb-0 text-center">{$powered_by|raw}</p>
+    </footer>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    {block name="js"}{/block}
+</body>
+</html>

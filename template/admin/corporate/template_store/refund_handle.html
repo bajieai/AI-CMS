@@ -1,0 +1,53 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">退款处理</h4>
+    <div class="mb-3"><a href="/admin/template_order_admin/detail/{$refund.order_id}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>返回订单</a></div>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-arrow-return-left me-2"></i>退款详情</div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr><th width="120">退款ID</th><td>{$refund.id}</td><th width="120">退款金额</th><td><span class="text-danger fw-bold">¥{$refund.amount}</span></td></tr>
+                        <tr><th>关联订单</th><td>{$refund.order.order_no ?? '-'}</td><th>模板名称</th><td>{$refund.order.template.name ?? '-'}</td></tr>
+                        <tr><th>退款原因</th><td colspan="3">{$refund.reason}</td></tr>
+                        <tr><th>申请时间</th><td>{:date('Y-m-d H:i:s', $refund.create_time)}</td><th>当前状态</th><td>
+                            {if $refund.status==0}<span class="badge bg-warning">待审核</span>
+                            {elseif $refund.status==1}<span class="badge bg-success">已通过</span>
+                            {elseif $refund.status==2}<span class="badge bg-danger">已拒绝</span>
+                            {/if}
+                        </td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            {if $refund.status==0}
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-gear me-2"></i>审核操作</div>
+                <div class="card-body">
+                    <div class="mb-3"><label class="form-label">管理员备注</label><textarea id="admin_remark" class="form-control" rows="3"></textarea></div>
+                    <button class="btn btn-success w-100 mb-2" onclick="approveRefund()"><i class="bi bi-check-lg me-1"></i>通过退款</button>
+                    <button class="btn btn-danger w-100" onclick="rejectRefund()"><i class="bi bi-x-lg me-1"></i>拒绝退款</button>
+                </div>
+            </div>
+            {/if}
+        </div>
+    </div>
+</div>
+<script>
+function approveRefund() {
+    $.post('/admin/template_order_admin/approveRefund/{$refund.id}', {admin_remark: $('#admin_remark').val()}, function(res) {
+        if (res.code === 0) { alert(res.msg); location.reload(); } else { alert(res.msg); }
+    });
+}
+function rejectRefund() {
+    var remark = $('#admin_remark').val();
+    if (!remark) { alert('请填写拒绝原因'); return; }
+    $.post('/admin/template_order_admin/rejectRefund/{$refund.id}', {admin_remark: remark}, function(res) {
+        if (res.code === 0) { alert(res.msg); location.reload(); } else { alert(res.msg); }
+    });
+}
+</script>
+{/block}

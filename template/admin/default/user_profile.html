@@ -1,0 +1,66 @@
+{extend name="layout" /}
+
+{block name="title"}个人资料{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">用户管理</li>
+<li class="breadcrumb-item active">个人资料</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-person-circle me-1"></i>个人资料
+    </div>
+    <div class="card-body">
+        <form id="profileForm" method="post" action="/admin/user/profile">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" value="{$info.username}" disabled>
+                        <small class="text-muted">用户名不可修改</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">昵称</label>
+                        <input type="text" name="nickname" class="form-control" value="{$info.nickname ?? ''}" placeholder="显示名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" name="email" class="form-control" value="{$info.email ?? ''}" placeholder="请输入邮箱">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">角色</label>
+                        <input type="text" class="form-control" value="{$info.role_id == 1 ? '超级管理员' : ($info.role_id == 2 ? '管理员' : '编辑')}" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">新密码</label>
+                        <input type="password" name="new_password" class="form-control" placeholder="留空则不修改">
+                        <small class="text-muted">如需修改密码请填写</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">创建时间</label>
+                        <input type="text" class="form-control" value="{$info.create_time|date='Y-m-d H:i'}" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存修改</button>
+                <a href="/admin" class="btn btn-outline-secondary">返回首页</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#profileForm').on('submit', function(e) {
+    e.preventDefault();
+    var formData = $(this).serialize();
+    ajaxPost($(this).attr('action'), formData);
+});
+</script>
+{/block}

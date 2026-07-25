@@ -1,0 +1,9 @@
+{extend name="layout" /}
+{block name="title"}翻译组详情{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/i18n_content/index">内容管理</a></li><li class="breadcrumb-item active">详情</li>{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5>翻译组 #{$group_id} 语言版本</h5></div><div class="card-body">
+  <div class="row">{foreach $versions as $lang => $ver}<div class="col-md-3 mb-2"><div class="card"><div class="card-body"><h6>{$lang}</h6><p>{$ver.title ?? '未翻译'}</p><p class="text-muted">{$ver.is_original ? '原始版本' : '翻译版本'}</p></div></div></div>{/foreach}</div>
+  <button class="btn btn-primary mt-3" onclick="syncAll()">同步更新</button>
+</div></div>
+{/block}

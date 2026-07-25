@@ -1,0 +1,58 @@
+/* MO-3: 后台移动端适配 — V2.9.28 */
+/* P0深度适配：导航/侧边栏/内容列表/表单/弹窗 */
+@media (max-width: 768px) {
+    /* 布局 */
+    .sb-nav-fixed #layoutSidenav { flex-direction: column; }
+    .sb-nav-fixed #layoutSidenav_nav { width: 100%; height: auto; position: sticky; top: 0; z-index: 1030; }
+    .sb-nav-fixed #layoutSidenav_content { margin-left: 0; width: 100%; }
+    .sb-sidenav { display: none; }
+    .sb-sidenav.mobile-show { display: block; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; z-index: 1050; overflow-y: auto; }
+
+    /* 导航 */
+    .navbar-toggler { display: block; }
+    .sb-topnav { padding: 0 8px; }
+    .sb-topnav .navbar-brand { font-size: 1rem; }
+
+    /* 内容区域 */
+    .container-fluid { padding: 0 8px !important; }
+    .card { margin-bottom: 12px; }
+    .card-body { padding: 12px; }
+
+    /* 表格 */
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table { min-width: 600px; font-size: 13px; }
+    .table th, .table td { padding: 6px 8px; white-space: nowrap; }
+
+    /* 表单 */
+    .form-control, .form-select { font-size: 14px; height: auto; padding: 8px 10px; }
+    .form-label { font-size: 13px; margin-bottom: 4px; }
+    .row > [class*="col-"] { margin-bottom: 8px; }
+
+    /* 按钮 */
+    .btn { padding: 6px 12px; font-size: 13px; }
+    .btn-sm { padding: 4px 8px; font-size: 12px; }
+
+    /* 弹窗 */
+    .modal-dialog { margin: 8px; max-width: calc(100% - 16px); }
+    .modal-body { padding: 12px; max-height: 70vh; overflow-y: auto; }
+
+    /* 统计卡片 */
+    .col-xl-3 { margin-bottom: 12px; }
+    .card .fs-3 { font-size: 1.5rem !important; }
+    .card .fs-4 { font-size: 1.25rem !important; }
+
+    /* P1基础适配：分页/搜索/筛选 */
+    .pagination { flex-wrap: wrap; justify-content: center; }
+    .d-flex.gap-2 { flex-wrap: wrap; gap: 4px !important; }
+    .d-flex.gap-2 > * { margin-bottom: 4px; }
+
+    /* P2基础适配：通知/Toast/加载动画 */
+    .toast-container { top: 56px; right: 8px; left: 8px; }
+    .alert { padding: 8px 12px; font-size: 13px; }
+}
+
+/* 移动端导航开关 */
+#mobileNavToggle { display: none; }
+@media (max-width: 768px) {
+    #mobileNavToggle { display: inline-block; }
+}

@@ -1,0 +1,344 @@
+{extend name="layout" /}
+
+{block name="title"}{$info.name}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/template_store/market">模板市场</a></li>
+<li class="breadcrumb-item active">{$info.name}</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-md-8">
+        <!-- 截图轮播 -->
+        <div class="card mb-3">
+            <div class="card-body p-0">
+                {if condition="$info.screenshots"}
+                {if is_string($info.screenshots)}{php}$shots = json_decode($info.screenshots, true);{/php}{else /}{php}$shots = $info.screenshots ?? [];{/php}{/if}
+                <div id="screenshotCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {volist name="shots" id="shot"}
+                        <div class="carousel-item {if condition="$i == 1"}active{/if}">
+                            <img src="{$shot}" class="d-block w-100" style="height:360px;object-fit:cover;" alt="截图{$i}">
+                        </div>
+                        {/volist}
+                    </div>
+                    {if condition="count($shots) > 1"}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#screenshotCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#screenshotCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+                    {/if}
+                </div>
+                {else/}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:360px;"><i class="bi bi-image text-muted fs-1"></i></div>
+                {/if}
+            </div>
+        </div>
+
+        <!-- V2.9.13 I-1: 模板介绍 + 版本历史 Tab -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="detailTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="intro-tab" data-bs-toggle="tab" data-bs-target="#intro" type="button" role="tab">模板介绍</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="version-tab" data-bs-toggle="tab" data-bs-target="#version" type="button" role="tab">版本历史</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="detailTabContent">
+                    <div class="tab-pane fade show active" id="intro" role="tabpanel">
+                        <p class="mb-0">{$info.description ?: '暂无介绍'}</p>
+                    </div>
+                    <div class="tab-pane fade" id="version" role="tabpanel">
+                        {if condition="$info.version_history"}
+                        {if is_string($info.version_history)}{php}$versions = json_decode($info.version_history, true);{/php}{else /}{php}$versions = $info.version_history ?? [];{/php}{/if}
+                        <ul class="list-group list-group-flush">
+                            {volist name="versions" id="ver"}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary me-2">{$ver.version}</span>
+                                    <span class="small">{$ver.note}</span>
+                                </div>
+                                <span class="text-muted small">{$ver.date}</span>
+                            </li>
+                            {/volist}
+                        </ul>
+                        {else}
+                        <p class="text-muted mb-0">暂无版本历史记录</p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- 操作面板 -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{$info.name}</h5>
+                <div class="mb-2">
+                    <span class="text-warning"><i class="bi bi-star-fill"></i> {$info.rating_avg}</span>
+                    <span class="text-muted small">({$info.rating_count} 人评分)</span>
+                </div>
+                <div class="mb-3">
+                    {if condition="$info.price > 0"}
+                    <span class="fs-4 fw-bold text-danger">¥{$info.price}</span>
+                    {else/}
+                    <span class="badge bg-success fs-6">免费</span>
+                    {/if}
+                </div>
+                <div class="d-grid gap-2">
+                    {if condition="$installed"}
+                        {if condition="$installed.is_active == 1"}
+                        <button class="btn btn-success" disabled><i class="bi bi-check-lg me-1"></i>当前使用中</button>
+                        {else/}
+                        <button class="btn btn-primary" onclick="ajaxPost('/admin/template_store/doActivate/{$installed.id}')"><i class="bi bi-toggle-on me-1"></i>切换为当前模板</button>
+                        {/if}
+                    {else/}
+                        {if condition="$info.price > 0"}
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#buyModal"><i class="bi bi-cart me-1"></i>立即购买 ¥{$info.price}</button>
+                        {else/}
+                        <button class="btn btn-primary" onclick="ajaxPost('/admin/template_store/doInstall/{$info.id}')"><i class="bi bi-download me-1"></i>立即安装</button>
+                        {/if}
+                    {/if}
+                    <a href="/admin/template_store/preview/{$info.slug}" class="btn btn-outline-secondary" target="_blank"><i class="bi bi-eye me-1"></i>预览效果</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 信息面板 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-list-ul me-1"></i>基本信息</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between"><span>分类</span><span>{$info.category.name ?? '未分类'}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>作者</span><span>{$info.author_name ?: '-'}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>版本</span><span>{$info.version}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>安装次数</span><span class="badge bg-info">{$info.install_count}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span>质量评分</span><span>{$info.quality_score}</span></li>
+            </ul>
+        </div>
+
+        <!-- V2.9.23 B-4: 评分/评论展示 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-chat-square-text me-1"></i>用户评分</div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="fs-2 fw-bold text-warning me-2">{$info.rating_avg}</span>
+                    <div>
+                        <div class="text-warning">
+                            {php}$fullStars = floor($info.rating_avg);{/php}
+                            {php}$halfStar = ($info.rating_avg - $fullStars) >= 0.5 ? 1 : 0;{/php}
+                            {for start="1" end="$fullStars+1"}<i class="bi bi-star-fill"></i>{/for}
+                            {if condition="$halfStar"}<i class="bi bi-star-half"></i>{/if}
+                            {php}$emptyStars = 5 - $fullStars - $halfStar;{/php}
+                            {for start="1" end="$emptyStars+1"}<i class="bi bi-star"></i>{/for}
+                        </div>
+                        <div class="text-muted small">{$info.rating_count} 人评分</div>
+                    </div>
+                </div>
+                {if condition="$installed"}
+                <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                    <i class="bi bi-pencil-square me-1"></i>写评价
+                </button>
+                {/if}
+            </div>
+        </div>
+
+        <!-- V2.9.23 B-5: 安装统计 -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-graph-up me-1"></i>安装统计</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="fs-4 fw-bold text-primary">{$info.install_count}</div>
+                        <div class="small text-muted">总安装</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="fs-4 fw-bold text-success">{$info.rating_count}</div>
+                        <div class="small text-muted">评价数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- V2.9.21 D-3: 模板分类关联（可编辑） -->
+        {if condition="$isAdmin ?? false"}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-tags me-1"></i>分类关联</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="saveCategories()"><i class="bi bi-check-lg me-1"></i>保存</button>
+            </div>
+            <div class="card-body">
+                <div id="categorySelector">
+                    {volist name="categoryGroups" id="group"}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">{$group.label}</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {volist name="group.items" id="cat"}
+                            <label class="btn btn-sm btn-outline-secondary category-tag" style="cursor:pointer;">
+                                <input type="checkbox" name="category_ids[]" value="{$cat.id}" data-group="{$group.type}" class="d-none"
+                                    {if condition="in_array($cat.id, $selectedCategories)"}checked{/if}
+                                    onchange="onCategoryChange(this)">
+                                <i class="bi {if condition="in_array($cat.id, $selectedCategories)"}bi-star-fill text-warning{else}bi-star{/if} me-1 primary-star" onclick="togglePrimary(event, {$cat.id})"></i>
+                                {$cat.name}
+                            </label>
+                            {/volist}
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+                <div class="form-text text-muted">点击星标设置主分类（每维度只能选一个主分类）</div>
+            </div>
+        </div>
+        {/if}
+    </div>
+</div>
+
+<!-- V2.9.21 D-3: 分类选择器 JS -->
+{if condition="$isAdmin ?? false"}
+<script>
+var primaryMap = {:json_encode($primaryMap ?? [])};
+
+function onCategoryChange(chk) {
+    var $tag = $(chk).closest('.category-tag');
+    if (chk.checked) {
+        $tag.removeClass('btn-outline-secondary').addClass('btn-outline-primary active');
+    } else {
+        $tag.removeClass('btn-outline-primary active').addClass('btn-outline-secondary');
+        var cid = parseInt(chk.value);
+        delete primaryMap[cid];
+        $tag.find('.primary-star').removeClass('bi-star-fill text-warning').addClass('bi-star');
+    }
+}
+
+function togglePrimary(event, cid) {
+    event.preventDefault();
+    event.stopPropagation();
+    var $star = $(event.target);
+    var $chk = $star.closest('.category-tag').find('input[type="checkbox"]');
+    if (!$chk.is(':checked')) {
+        $chk.prop('checked', true).trigger('change');
+    }
+    var group = $chk.data('group');
+    var isPrimary = $star.hasClass('bi-star');
+    if (isPrimary) {
+        $('input[data-group="' + group + '"]').each(function() {
+            var otherCid = parseInt($(this).val());
+            if (otherCid !== cid) {
+                delete primaryMap[otherCid];
+                $(this).closest('.category-tag').find('.primary-star')
+                    .removeClass('bi-star-fill text-warning').addClass('bi-star');
+            }
+        });
+        primaryMap[cid] = 1;
+        $star.removeClass('bi-star').addClass('bi-star-fill text-warning');
+    } else {
+        delete primaryMap[cid];
+        $star.removeClass('bi-star-fill text-warning').addClass('bi-star');
+    }
+}
+
+function saveCategories() {
+    var categories = [];
+    var meta = {};
+    $('input[name="category_ids[]"]:checked').each(function() {
+        var cid = parseInt($(this).val());
+        categories.push(cid);
+        meta[cid] = {
+            is_primary: primaryMap[cid] ? 1 : 0,
+            confidence: primaryMap[cid] ? 100 : 80
+        };
+    });
+    $.post('/admin/template_store/saveTemplateCategories', {
+        template_id: {$info.id},
+        category_ids: categories,
+        meta: JSON.stringify(meta)
+    }, function(res) {
+        if (res.code === 1) {
+            alert(res.msg + '（已关联 ' + res.data.total + ' 个分类，主分类 ' + res.data.primary + ' 个）');
+        } else {
+            alert(res.msg);
+        }
+    });
+}
+
+$(function() {
+    $('input[name="category_ids[]"]:checked').each(function() {
+        $(this).closest('.category-tag').removeClass('btn-outline-secondary').addClass('btn-outline-primary active');
+    });
+});
+</script>
+{/if}
+
+<!-- 购买弹窗 -->
+{if condition="!$installed && $info.price > 0"}
+<div class="modal fade" id="buyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">购买模板</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <h6 class="mb-2">{$info.name}</h6>
+        <p class="fs-4 text-danger fw-bold mb-3">¥{$info.price}</p>
+        <div class="d-grid gap-2">
+            <button type="button" class="btn btn-success" onclick="doBuy('wechat')"><i class="bi bi-wechat me-1"></i>微信支付</button>
+            <button type="button" class="btn btn-primary" onclick="doBuy('alipay')"><i class="bi bi-alipay me-1"></i>支付宝支付</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function doBuy(payMethod) {
+    fetch('/admin/template_store/buy/{$info.id}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'pay_method=' + payMethod
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.code === 1) {
+            alert('订单创建成功，请完成支付');
+            location.reload();
+        } else {
+            alert(res.msg || '购买失败');
+        }
+    })
+    .catch(() => alert('网络错误'));
+}
+</script>
+{/if}
+
+<!-- 同分类推荐 -->
+{if condition="count($related) > 0"}
+<div class="mt-4">
+    <h6 class="mb-3">同类推荐</h6>
+    <div class="row row-cols-1 row-cols-md-4 g-3">
+        {volist name="related" id="vo"}
+        {if condition="$vo.id != $info.id"}
+        <div class="col">
+            <div class="card h-100">
+                {if condition="$vo.screenshots"}
+                <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:100px;object-fit:cover;" alt="">
+                {else/}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:100px;"><i class="bi bi-image text-muted"></i></div>
+                {/if}
+                <div class="card-body py-2">
+                    <div class="small fw-medium">{$vo.name}</div>
+                </div>
+                <div class="card-footer bg-white py-2">
+                    <a href="/admin/template_store/detail/{$vo.id}" class="btn btn-sm btn-outline-primary w-100">查看</a>
+                </div>
+            </div>
+        </div>
+        {/if}
+        {/volist}
+    </div>
+</div>
+{/if}
+{/block}

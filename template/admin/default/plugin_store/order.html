@@ -1,0 +1,107 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-receipt me-2"></i>我的订单</h4>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>订单号</th>
+                            <th>插件</th>
+                            <th>版本</th>
+                            <th>金额</th>
+                            <th>支付方式</th>
+                            <th>状态</th>
+                            <th>许可证</th>
+                            <th>下单时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="list" id="item"}
+                        <tr>
+                            <td><small>{$item.order_no}</small></td>
+                            <td>{$item.plugin_name}</td>
+                            <td>v{$item.plugin_version}</td>
+                            <td>{if $item.price > 0}¥{$item.price}{else /}<span class="badge bg-success">免费</span>{/if}</td>
+                            <td>{$item.pay_type|default='-'}</td>
+                            <td>
+                                {if $item.pay_status == 'paid'}<span class="badge bg-success">已支付</span>
+                                {elseif $item.pay_status == 'pending'}<span class="badge bg-warning">待支付</span>
+                                {elseif $item.pay_status == 'cancelled'}<span class="badge bg-secondary">已取消</span>
+                                {elseif $item.pay_status == 'refunded'}<span class="badge bg-info">已退款</span>
+                                {else /}<span class="badge bg-secondary">{$item.pay_status}</span>{/if}
+                            </td>
+                            <td>{if $item.license_key}<small class="text-success">已激活</small>{else /}-{/if}</td>
+                            <td><small>{$item.create_time}</small></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    {if $item.pay_status == 'pending' && $item.price > 0}
+                                    <button class="btn btn-outline-primary" onclick="payOrder({$item.id})" title="支付"><i class="bi bi-credit-card"></i></button>
+                                    <button class="btn btn-outline-warning" onclick="cancelOrder({$item.id})" title="取消"><i class="bi bi-x-circle"></i></button>
+                                    {/if}
+                                    {if $item.pay_status == 'paid'}
+                                    <button class="btn btn-outline-success" onclick="downloadPlugin({$item.id})" title="下载"><i class="bi bi-download"></i></button>
+                                    {if $item.price > 0}
+                                    <button class="btn btn-outline-info" onclick="refundOrder({$item.id})" title="退款"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                    {/if}
+                                    {/if}
+                                </div>
+                            </td>
+                        </tr>
+                        {/volist}
+                        {if condition="empty($list)"}
+                        <tr><td colspan="9" class="text-center text-muted py-4">暂无订单</td></tr>
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+            {if condition="$total > 0"}
+            <div class="mt-3 text-muted">共 {$total} 条记录</div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function payOrder(id) {
+    layer.prompt({title: '选择支付方式', value: 'alipay', formType: 0}, function(val, index) {
+        layer.close(index);
+        fetch('/admin/plugin_payment/pay/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'pay_type=' + val
+        }).then(r => r.json()).then(res => {
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(() => location.reload(), 1500);
+        });
+    });
+}
+function cancelOrder(id) {
+    layer.confirm('确定取消此订单？', function() {
+        fetch('/admin/plugin_order/cancel/' + id, { method: 'POST' })
+            .then(r => r.json()).then(res => {
+                layer.msg(res.msg);
+                if (res.code === 0) setTimeout(() => location.reload(), 800);
+            });
+    });
+}
+function refundOrder(id) {
+    layer.confirm('确定申请退款？（7天无理由）', function() {
+        fetch('/admin/plugin_order/refund/' + id, { method: 'POST' })
+            .then(r => r.json()).then(res => {
+                layer.msg(res.msg);
+                if (res.code === 0) setTimeout(() => location.reload(), 800);
+            });
+    });
+}
+function downloadPlugin(id) {
+    fetch('/admin/plugin_payment/status/' + id).then(r => r.json()).then(() => {
+        layer.msg('下载链接已生成，请在24小时内下载');
+    });
+}
+</script>
+{/block}

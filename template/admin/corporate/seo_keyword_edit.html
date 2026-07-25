@@ -1,0 +1,79 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑关键词{else/}添加关键词{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/seo_keyword/index">SEO与数据</a></li>
+<li class="breadcrumb-item"><a href="/admin/seo_keyword/index">关键词库</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑{else/}添加{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="card-body">
+        <form id="kwForm" onsubmit="return false;">
+            <input type="hidden" name="id" value="{$info.id??0}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">关键词</label>
+                    <input type="text" class="form-control" name="keyword" value="{$info.keyword??''}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">分组</label>
+                    <select class="form-select" name="group_id">
+                        <option value="0">不分组</option>
+                        {volist name="groups" id="g"}
+                        <option value="{$g.id}" {if condition="($info.group_id ?? 0) == $g.id"}selected{/if}>{$g.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">搜索量</label>
+                    <input type="number" class="form-control" name="search_volume" value="{$info.search_volume??0}" min="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">难度指数 (0-100)</label>
+                    <input type="number" class="form-control" name="difficulty" value="{$info.difficulty??50}" min="0" max="100">
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_sensitive" value="1" id="swSensitive" {if condition="($info.is_sensitive ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swSensitive">敏感词</label>
+                    </div>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" name="status" value="1" id="swStatus" {if condition="($info.status ?? 1)==1"}checked{/if}>
+                        <label class="form-check-label" for="swStatus">启用</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+                <a href="/admin/seo_keyword/index" class="btn btn-outline-secondary ms-2">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    $('#btnSave').click(function(){
+        var data = {};
+        $('#kwForm').serializeArray().forEach(function(item){
+            if(item.name === 'id' || item.name === 'group_id' || item.name === 'search_volume' || item.name === 'difficulty'){
+                data[item.name] = parseInt(item.value);
+            }else if(item.name === 'is_sensitive' || item.name === 'status'){
+                data[item.name] = $('#kwForm [name='+item.name+']').is(':checked') ? 1 : 0;
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        ajaxPost('/admin/seo_keyword/save', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/seo_keyword/index'},800);
+        });
+    });
+});
+</script>
+{/block}

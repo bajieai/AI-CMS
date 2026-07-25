@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="{$current_lang|default='zh-CN'}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{block name="title"}{$site_name|default='AI-CMS'}{/block}</title>
+    <meta name="keywords" content="{block name='keywords'}{$site_keywords|default='AI,CMS,内容管理'}{/block}">
+    <meta name="description" content="{block name='description'}{$site_description|default='AI驱动的企业信息管理系统'}{/block}">
+    <!-- V2.9.5 前台CSRF Token -->
+    <meta name="csrf-token" content="{:token()}">
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- V2.9.2 M22a: PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <!-- V2.9.2 M19b: Open Graph通用标签 -->
+    <meta property="og:site_name" content="{$site_name|default='AI-CMS'}">
+    <meta property="og:locale" content="{$current_lang|default='zh-CN'}">
+    {block name='og'}{/block}
+    <!-- V2.6 前台移动端样式（从内联提取到外部CSS文件） -->
+    <link href="{$skin}css/style.css?v=2.6" rel="stylesheet">
+    <!-- V2.9 M11 模板可视化：CSS自定义变量（后台模板设计器可覆盖） -->
+    <style>:root{--primary:{$theme_css_vars['--primary']|default='#3b82f6'};--secondary:{$theme_css_vars['--secondary']|default='#64748b'};--accent:{$theme_css_vars['--accent']|default='#f59e0b'};--bg:{$theme_css_vars['--bg']|default='#ffffff'};--bg-secondary:{$theme_css_vars['--bg-secondary']|default='#f8fafc'};--text:{$theme_css_vars['--text']|default='#1e293b'};--text-secondary:{$theme_css_vars['--text-secondary']|default='#64748b'};--border:{$theme_css_vars['--border']|default='#e2e8f0'};--radius:{$theme_css_vars['--radius']|default='8px'};--shadow:{$theme_css_vars['--shadow']|default='0 1px 3px rgba(0,0,0,.1)'}}</style>
+    {block name="css"}{/block}
+</head>
+<body>
+
+<!-- 顶部固定导航 -->
+<header class="m-navbar">
+    <a class="m-navbar-brand" href="/">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
+    <div class="m-navbar-actions">
+        {if condition="$lang_switcher_enabled && count($enabled_languages) > 1"}
+        <div class="dropdown" id="langSwitcher">
+            <button class="m-nav-btn" data-bs-toggle="dropdown"><i class="bi bi-globe"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end" id="langList">
+                {volist name="enabled_languages" id="lang"}
+                <li><a class="dropdown-item{if $lang.code == $current_lang} active{/if}" href="#" data-lang="{$lang.code}">{$lang.name}</a></li>
+                {/volist}
+            </ul>
+        </div>
+        {/if}
+        <button class="m-nav-btn" onclick="toggleSearch()"><i class="bi bi-search"></i></button>
+        <button class="m-nav-btn" onclick="toggleMenu()"><i class="bi bi-list"></i></button>
+    </div>
+</header>
+
+<!-- 搜索覆盖层 -->
+<div class="m-search-overlay" id="mSearchOverlay" onclick="toggleSearch()">
+    <div class="m-search-box" onclick="event.stopPropagation()">
+        <form action="/search" method="get">
+            <i class="bi bi-search m-search-icon"></i>
+            <input type="text" name="keyword" placeholder="搜索内容..." autofocus>
+        </form>
+        <button type="button" class="btn btn-link btn-sm float-end mt-n3 me-1" onclick="toggleSearch()">取消</button>
+    </div>
+</div>
+
+<!-- 菜单侧滑面板 -->
+<div class="m-menu-overlay" id="mMenuOverlay" onclick="toggleMenu()"></div>
+<aside class="m-menu-panel" id="mMenuPanel">
+    <div class="m-menu-header"><h5>{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="22" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="22" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h5></div>
+    <ul class="m-menu-list">
+        <li><a href="/"><i class="bi bi-house"></i>首页</a></li>
+        <li><a href="/product"><i class="bi bi-box-seam"></i>产品中心</a></li>
+        <li><a href="/case"><i class="bi bi-trophy"></i>成功案例</a></li>
+        <li><a href="/news"><i class="bi bi-newspaper"></i>新闻动态</a></li>
+        <li><a href="/download"><i class="bi bi-download"></i>资料下载</a></li>
+        <li><a href="/job"><i class="bi bi-person-workspace"></i>人才招聘</a></li>
+        <div class="m-menu-divider"></div>
+        {if condition="$is_member_login"}
+        <li><a href="/member/index"><i class="bi bi-house-door"></i>用户中心</a></li>
+        <li><a href="/member/profile"><i class="bi bi-person-circle"></i>{$member_info.nickname}</a></li>
+        <li><a href="/member/points"><i class="bi bi-coin"></i>我的积分</a></li>
+        {if $points_shop_enabled}
+        <li><a href="/points"><i class="bi bi-shop"></i>积分商城</a></li>
+        {/if}
+        <li><a href="/member/orders"><i class="bi bi-cart"></i>我的订单</a></li>
+        <li><a href="/message/index"><i class="bi bi-chat-dots"></i>我的私信 {if $member_unread_count > 0}<span class="badge bg-danger rounded-pill" style="font-size:.65rem;">{$member_unread_count}</span>{/if}</a></li>
+        <li><a href="/message/system"><i class="bi bi-megaphone"></i>系统通知</a></li>
+        <li><a href="/member/logout"><i class="bi bi-box-arrow-right"></i>退出登录</a></li>
+        {else /}
+        <li><a href="/member/login"><i class="bi bi-box-arrow-in-right"></i>登录</a></li>
+        <li><a href="/member/register"><i class="bi bi-person-plus"></i>注册</a></li>
+        {/if}
+    </ul>
+</aside>
+
+<!-- 页面内容 -->
+{if condition="isset($ucenter_active)"}
+<link href="/assets/css/ucenter.css?v=2.9.10" rel="stylesheet">
+<div class="ucenter-wrapper">
+<aside class="ucenter-sidebar">
+    <nav class="ucenter-nav">
+        <!-- 个人管理 -->
+        <a href="/member/index" class="ucenter-nav-item{if $ucenter_active == 'index'} active{/if}"><i class="bi bi-house-door"></i>个人首页</a>
+        <a href="/member/profile" class="ucenter-nav-item{if $ucenter_active == 'profile'} active{/if}"><i class="bi bi-person"></i>个人资料</a>
+        <div class="ucenter-nav-sep"></div>
+        <!-- 积分与奖励 -->
+        <a href="/signin" class="ucenter-nav-item{if $ucenter_active == 'signin'} active{/if}"><i class="bi bi-calendar-check"></i>每日签到</a>
+        <a href="/member/points" class="ucenter-nav-item{if $ucenter_active == 'points'} active{/if}"><i class="bi bi-coin"></i>我的积分</a>
+        {if $points_shop_enabled}
+        <a href="/points" class="ucenter-nav-item{if $ucenter_active == 'points_shop'} active{/if}"><i class="bi bi-shop"></i>积分商城</a>
+        {/if}
+        <a href="/member/exchange" class="ucenter-nav-item{if $ucenter_active == 'exchange'} active{/if}"><i class="bi bi-gift"></i>兑换记录</a>
+        <a href="/member/coupon" class="ucenter-nav-item{if $ucenter_active == 'coupon'} active{/if}"><i class="bi bi-ticket-perforated"></i>优惠券</a>
+        <div class="ucenter-nav-sep"></div>
+        <!-- 消费与内容 -->
+        <a href="/member/orders" class="ucenter-nav-item{if $ucenter_active == 'orders'} active{/if}"><i class="bi bi-cart"></i>我的订单</a>
+        <a href="/paid/purchased" class="ucenter-nav-item{if $ucenter_active == 'purchased'} active{/if}"><i class="bi bi-bag-check"></i>已购内容</a>
+        <a href="/member/favorite" class="ucenter-nav-item{if $ucenter_active == 'favorite'} active{/if}"><i class="bi bi-heart"></i>我的收藏</a>
+        <a href="/member/comments" class="ucenter-nav-item{if $ucenter_active == 'comments'} active{/if}"><i class="bi bi-chat-left-text"></i>我的评论</a>
+        <div class="ucenter-nav-sep"></div>
+        <!-- 社交与成长 -->
+        <a href="/member/notification" class="ucenter-nav-item{if $ucenter_active == 'notification'} active{/if}"><i class="bi bi-bell"></i>消息通知</a>
+        <a href="/member/level" class="ucenter-nav-item{if $ucenter_active == 'level'} active{/if}"><i class="bi bi-award"></i>我的等级</a>
+        <a href="/member/invite" class="ucenter-nav-item{if $ucenter_active == 'invite'} active{/if}"><i class="bi bi-people"></i>我的邀请</a>
+        <div class="ucenter-nav-sep"></div>
+        <a href="/member/logout" class="ucenter-nav-item text-danger"><i class="bi bi-box-arrow-right"></i>退出登录</a>
+    </nav>
+</aside>
+<main class="ucenter-main">
+{/if}
+{block name="content"}{/block}
+{if condition="isset($ucenter_active)"}
+</main></div>
+<script src="/static/home/js/ucenter.js?v=2.9.10"></script>
+{/if}
+
+<!-- 底部 TabBar (V2.9.24 H-2: 动态导航) -->
+<nav class="m-tabbar" id="mTabbar">
+    <a href="/" class="m-tabitem active"><i class="bi bi-house-fill"></i>首页</a>
+    <a href="/product" class="m-tabitem"><i class="bi bi-grid-fill"></i>分类</a>
+    {if condition="$is_member_login"}
+    <a href="/member/index" class="m-tabitem"><i class="bi bi-person-fill"></i>我的</a>
+    {else /}
+    <a href="/member/login" class="m-tabitem"><i class="bi bi-person-fill"></i>登录</a>
+    {/if}
+    <a href="{if condition="$is_member_login"}/message/index{else /}/member/login{/if}" class="m-tabitem position-relative"><i class="bi bi-bell-fill"></i>消息 {if $member_unread_count > 0}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.5rem;">{$member_unread_count}</span>{/if}</a>
+</nav>
+<script>window._memberUnreadCount={$member_unread_count|default=0};</script>
+
+<!-- 友情链接（简化） -->
+{i8j:linklist limit="12" status="1"}
+{if condition="$i == 0"}
+<div style="background:#f0f0f0;border-top:1px solid #e0e0e0;padding:10px 14px;margin:0 -14px;">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">
+{/if}
+        <a href="{$field.url}" target="_blank" style="font-size:11.5px;color:#888;text-decoration:none;">{$field.title}</a>
+    {if condition="$i == count($__LIST__) - 1"}
+    </div>
+</div>
+{/if}
+{/i8j:linklist}
+
+<!-- 页脚 -->
+<footer class="m-footer">
+    <p>{$powered_by|raw} {$copyright_info}</p>
+</footer>
+
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    <!-- V2.9.5 前台通用组件 -->
+    <script src="/assets/js/front-toast.js?v=2.9.5"></script>
+    <script src="/assets/js/front-components.js?v=2.9.5"></script>
+    <!-- V2.9.5 前台CSRF自动注入 -->
+    <script src="/assets/js/front-csrf.js?v=2.9.5"></script>
+<!-- V2.9.2 前台移动端布局脚本（搜索/菜单/分类树/Toast） -->
+<script src="{$skin}js/layout.js?v=2.9.2"></script>
+<!-- V2.9.24 H-2: 动态底部导航 -->
+<script src="/static/mobile/js/bottom_nav.js?v=2.9.24"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){BottomNav.init('#mTabbar');});</script>
+<!-- V2.9.1 M14b: 统一图片懒加载 -->
+<script src="/assets/js/lazyload.js"></script>
+<!-- V2.9.2 M22a: PWA安装提示 -->
+<script src="/assets/js/pwa-install.js"></script>
+<!-- V2.9.4: 注入会员ID用于缓存状态检测 -->
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    var path = window.location.pathname;
+    // Only target primary nav links (inside lists), exclude brand/home logo
+    document.querySelectorAll('header nav a[href], .navbar-nav a.nav-link').forEach(function(el) {
+        var href = el.getAttribute('href');
+        if (href && path === href) {
+            el.classList.add('active');
+        }
+    });
+    // V2.9.9 语言切换
+    document.querySelectorAll('#langList [data-lang]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            var code = this.getAttribute('data-lang');
+            document.cookie = 'lang=' + encodeURIComponent(code) + ';path=/;max-age=' + (86400 * 30);
+            window.location.reload();
+        });
+    });
+});
+</script>
+<!-- V2.9.7 主题定制预览 postMessage 监听 -->
+<script src="/assets/js/theme-custom-listener.js"></script>
+{block name="js"}{/block}
+</body>
+</html>

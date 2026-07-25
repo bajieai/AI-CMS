@@ -1,0 +1,92 @@
+{extend name="layout" /}
+
+{block name="title"}我的邀请 - 邀请返积分{/block}
+
+{block name="content"}
+
+<div class="uc-section-header">
+    <span class="uc-section-title"><i class="bi bi-gift" style="color:#f59e0b;"></i>我的邀请</span>
+</div>
+
+<div style="padding:0 20px;">
+    <!-- 邀请统计 -->
+    <div class="uc-coupon-stats" style="gap:0;padding:0;margin-bottom:0;">
+        <div class="uc-coupon-stat" style="flex:1;padding:14px 10px;text-align:center;">
+            <div class="uc-coupon-stat-value" style="color:#3b82f6;">{$invite_count}</div>
+            <div class="uc-coupon-stat-label" style="color:#64748b;">成功邀请</div>
+        </div>
+        <div class="uc-coupon-stat" style="flex:1;padding:14px 10px;text-align:center;">
+            <div class="uc-coupon-stat-value" style="color:#10b981;">{$invite_points}</div>
+            <div class="uc-coupon-stat-label" style="color:#64748b;">获得积分</div>
+        </div>
+        <div class="uc-coupon-stat" style="flex:1;padding:14px 10px;text-align:center;border-left:none;">
+            <div class="uc-coupon-stat-value" style="color:#f59e0b;">{:count($invite_list)}</div>
+            <div class="uc-coupon-stat-label" style="color:#64748b;">邀请记录</div>
+        </div>
+    </div>
+
+    <!-- 邀请链接 -->
+    <div style="background:#eff6ff;border-radius:12px;padding:16px;margin:14px 0;">
+        <h6 style="font-size:14px;font-weight:600;color:#1d4ed8;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <i class="bi bi-link-45deg"></i>您的专属邀请链接
+        </h6>
+        <div style="display:flex;gap:8px;">
+            <input type="text" id="inviteLink" value="{:url('member/register', ['invite_code' => $invite_code], true, true)}" readonly style="flex:1;border:1.5px solid #c7d2fe;border-radius:10px;padding:10px 14px;font-size:13px;background:#fff;color:#334155;">
+            <button class="uc-signin-btn" style="background:#3b82f6;color:#fff;padding:10px 18px;font-size:13px;border:none;flex-shrink:0;" onclick="copyInviteLink()">
+                <i class="bi bi-copy me-1"></i>复制
+            </button>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:8px;">好友通过您的链接注册，您将获得积分奖励</div>
+    </div>
+
+    <!-- 邀请记录 -->
+    <h6 style="font-size:14px;font-weight:600;color:#1e293b;margin:6px 0 10px;display:flex;align-items:center;gap:6px;">
+        <i class="bi bi-list" style="color:#3b82f6;"></i>邀请记录
+    </h6>
+    {if condition="count($invite_list) > 0"}
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+                <tr style="background:#f8fafc;color:#475569;">
+                    <th style="padding:10px 12px;text-align:left;font-weight:600;">被邀请人</th>
+                    <th style="padding:10px 12px;text-align:left;font-weight:600;">时间</th>
+                    <th style="padding:10px 12px;text-align:left;font-weight:600;">奖励</th>
+                    <th style="padding:10px 12px;text-align:left;font-weight:600;">阶段</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="invite_list" id="vo"}
+                <tr style="border-bottom:1px solid #f5f7fa;">
+                    <td style="padding:11px 12px;color:#1e293b;">{$vo.invitee.nickname ?? '未知用户'}</td>
+                    <td style="padding:11px 12px;color:#94a3b8;font-size:12px;">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td style="padding:11px 12px;color:#10b981;font-weight:600;">+{$vo.reward_points}</td>
+                    <td style="padding:11px 12px;">
+                        {if condition="$vo.reward_stage == 0"}<span class="uc-badge uc-badge-shipped" style="font-size:10px;">注册奖励</span>
+                        {elseif condition="$vo.reward_stage == 1"}<span class="uc-badge uc-badge-approved" style="font-size:10px;">签到奖励</span>
+                        {elseif condition="$vo.reward_stage == 2"}<span class="uc-badge uc-badge-pending" style="font-size:10px;">付费奖励</span>
+                        {/if}
+                    </td>
+                </tr>
+                {/volist}
+            </tbody>
+        </table>
+    </div>
+    {else/}
+    <div class="uc-empty-state" style="padding:32px 0;">
+        <i class="bi bi-inbox"></i>
+        <p>暂无邀请记录，快去分享您的邀请链接吧！</p>
+    </div>
+    {/if}
+</div>
+
+<script>
+function copyInviteLink() {
+    var input = document.getElementById('inviteLink');
+    input.select();
+    navigator.clipboard.writeText(input.value).then(function(){
+        if (typeof showToast === 'function') showToast('邀请链接已复制', 'success');
+        else alert('邀请链接已复制');
+    });
+}
+</script>
+{/block}

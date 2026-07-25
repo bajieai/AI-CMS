@@ -1,0 +1,18 @@
+{extend name="layout" /}
+{block name="title"}数据分级分类{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/compliance/index">合规管理</a></li><li class="breadcrumb-item active">数据分级分类</li>{/block}
+{block name="content"}
+<div class="row mb-3">
+  <div class="col-md-3"><div class="card bg-success"><div class="card-body text-center"><h6>公开</h6><span>{$stats.by_level.public ?? 0}</span></div></div></div>
+  <div class="col-md-3"><div class="card bg-info"><div class="card-body text-center"><h6>内部</h6><span>{$stats.by_level.internal ?? 0}</span></div></div></div>
+  <div class="col-md-3"><div class="card bg-warning"><div class="card-body text-center"><h6>保密</h6><span>{$stats.by_level.confidential ?? 0}</span></div></div></div>
+  <div class="col-md-3"><div class="card bg-danger"><div class="card-body text-center"><h6>受限</h6><span>{$stats.by_level.restricted ?? 0}</span></div></div></div>
+</div>
+<div class="card">
+  <div class="card-header"><h5>分类列表</h5></div>
+  <div class="card-body">
+    <table class="table table-hover"><thead><tr><th>ID</th><th>类型</th><th>级别</th><th>方式</th><th>操作</th></tr></thead>
+    <tbody>{volist name="list" id="item"}<tr><td>{$item.id}</td><td>{$item.item_type}</td><td>{$item.level}</td><td>{$item.classified_by}</td><td><button class="btn btn-sm btn-danger" onclick="deleteClass({$item.id})">删除</button></td></tr>{/volist}</tbody></table>
+  </div>
+</div>
+{/block}

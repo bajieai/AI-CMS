@@ -1,0 +1,59 @@
+﻿{extend name="/layout" /}
+{block name="title"}积分兑换记录 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">积分兑换记录</h4>
+        <div>
+            <a href="?status=-1" class="btn btn-outline-secondary btn-sm {if $Think.get.status==-1 || $Think.get.status===''}active{/if}">全部</a>
+            <a href="?status=0" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='0'}active{/if}">待处理</a>
+            <a href="?status=1" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='1'}active{/if}">已发放</a>
+            <a href="?status=2" class="btn btn-outline-secondary btn-sm {if $Think.get.status==='2'}active{/if}">已拒绝</a>
+        </div>
+    </div>
+    <div class="card"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>ID</th><th>用户ID</th><th>商品ID</th><th>消耗积分</th><th>状态</th><th>备注</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.user_id}</td>
+                <td>{$vo.product_id}</td>
+                <td>{$vo.points}</td>
+                <td>
+                    {switch vo.status}
+                    {case 0}<span class="badge bg-warning">待处理</span>{/case}
+                    {case 1}<span class="badge bg-success">已发放</span>{/case}
+                    {case 2}<span class="badge bg-danger">已拒绝</span>{/case}
+                    {default /}<span class="badge bg-secondary">未知</span>
+                    {/switch}
+                </td>
+                <td>{$vo.remark}</td>
+                <td>{$vo.create_time|date='Y-m-d H:i'}</td>
+                <td>
+                    {if $vo.status==0}
+                    <button class="btn btn-sm btn-outline-success" onclick="doAudit({$vo.id},1)">发放</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="doAudit({$vo.id},2)">拒绝</button>
+                    {/if}
+                </td>
+            </tr>
+            {/volist}
+            </tbody>
+        </table>
+        {$list|raw}
+    </div></div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function doAudit(id, status) {
+    var remark = prompt('请输入备注（可选）：') || '';
+    $.post('/admin/points_exchange/audit', {id:id, status:status, remark:remark}, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+</script>
+{/block}

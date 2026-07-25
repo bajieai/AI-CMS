@@ -1,0 +1,140 @@
+{extend name="layout" /}
+
+{block name="title"}Webhook推送日志{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/webhook/index">Webhook管理</a></li>
+<li class="breadcrumb-item active">推送日志</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-check me-1"></i>Webhook推送日志</span>
+        <form method="get" action="/admin/webhook/logs" class="d-flex gap-2">
+            <select name="webhook_id" class="form-select form-select-sm">
+                <option value="">全部Webhook</option>
+                {volist name="webhooks" id="wh"}
+                <option value="{$wh.id}" {if condition="$Request.get.webhook_id == $wh.id"}selected{/if}>{$wh.name}</option>
+                {/volist}
+            </select>
+            <select name="status_code" class="form-select form-select-sm">
+                <option value="">全部状态码</option>
+                <option value="2" {if condition="$Request.get.status_code == '2'"}selected{/if}>2xx 成功</option>
+                <option value="4" {if condition="$Request.get.status_code == '4'"}selected{/if}>4xx 客户端错误</option>
+                <option value="5" {if condition="$Request.get.status_code == '5'"}selected{/if}>5xx 服务端错误</option>
+                <option value="0" {if condition="$Request.get.status_code == '0'"}selected{/if}>连接失败</option>
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Webhook名称</th>
+                    <th>事件</th>
+                    <th>HTTP状态码</th>
+                    <th>响应时间</th>
+                    <th>时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr class="{if condition="$vo.status_code >= 200 && $vo.status_code < 300"}{elseif condition="$vo.status_code >= 400 && $vo.status_code < 500"}table-warning{elseif condition="$vo.status_code >= 500 || $vo.status_code == 0"/}table-danger{/if}">
+                    <td>{$vo.id}</td>
+                    <td>{$vo.webhook_name}</td>
+                    <td><span class="badge bg-info">{$vo.event}</span></td>
+                    <td>
+                        {if condition="$vo.status_code >= 200 && $vo.status_code < 300"}<span class="badge bg-success">{$vo.status_code}</span>
+                        {elseif condition="$vo.status_code >= 400 && $vo.status_code < 500"/}<span class="badge bg-warning">{$vo.status_code}</span>
+                        {elseif condition="$vo.status_code >= 500"/}<span class="badge bg-danger">{$vo.status_code}</span>
+                        {elseif condition="$vo.status_code == 0"/}<span class="badge bg-danger">连接失败</span>
+                        {else /}<span class="badge bg-secondary">{$vo.status_code}</span>
+                        {/if}
+                    </td>
+                    <td class="small">{$vo.response_time}ms</td>
+                    <td class="small text-muted">{$vo.create_time|date='Y-m-d H:i:s'}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1" onclick="viewDetail({$vo.id})" title="查看详情"><i class="bi bi-eye"></i></button>
+                        {if condition="$vo.status_code >= 400 || $vo.status_code == 0"}
+                        <button type="button" class="btn btn-sm btn-outline-success py-0 px-1" onclick="retryLog({$vo.id})" title="重试"><i class="bi bi-arrow-repeat"></i></button>
+                        {/if}
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="7">
+                    <div class="ui-empty-state">
+                        <div class="ui-empty-icon"><i class="bi bi-list-check"></i></div>
+                        <div class="ui-empty-title">暂无推送日志</div>
+                        <div class="ui-empty-desc">当前没有Webhook推送日志记录</div>
+                    </div>
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+
+<!-- 详情模态框 -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">推送详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                加载中...
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function viewDetail(id) {
+    var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    $('#detailContent').html('加载中...');
+    modal.show();
+    $.get('/admin/webhook/logDetail', {id: id}, function(res) {
+        if (res.code === 0) {
+            var d = res.data;
+            var html = '<table class="table table-sm">'
+                + '<tr><td class="text-muted" style="width:120px;">Webhook</td><td>' + d.webhook_name + '</td></tr>'
+                + '<tr><td class="text-muted">事件</td><td>' + d.event + '</td></tr>'
+                + '<tr><td class="text-muted">HTTP状态码</td><td>' + d.status_code + '</td></tr>'
+                + '<tr><td class="text-muted">响应时间</td><td>' + d.response_time + 'ms</td></tr>'
+                + '<tr><td class="text-muted">时间</td><td>' + d.create_time + '</td></tr>'
+                + '<tr><td class="text-muted">请求头</td><td><pre class="small bg-light p-2 rounded">' + (d.request_headers || '—') + '</pre></td></tr>'
+                + '<tr><td class="text-muted">请求体</td><td><pre class="small bg-light p-2 rounded">' + (d.request_body || '—') + '</pre></td></tr>'
+                + '<tr><td class="text-muted">响应体</td><td><pre class="small bg-light p-2 rounded">' + (d.response_body || '—') + '</pre></td></tr>'
+                + '</table>';
+            $('#detailContent').html(html);
+        } else {
+            $('#detailContent').html('<div class="text-danger">' + (res.msg || '加载失败') + '</div>');
+        }
+    }, 'json');
+}
+function retryLog(id) {
+    showConfirm('重试推送', '确定重新推送该Webhook消息？', function() {
+        $.post('/admin/webhook/retry', {id: id}, function(res) {
+            if (res.code === 0) { showToast('重试已发送', 'success'); setTimeout(function(){location.reload();}, 1500); }
+            else { showToast(res.msg || '重试失败', 'danger'); }
+        }, 'json');
+    });
+}
+</script>
+{/block}

@@ -1,0 +1,25 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-clock-history me-1"></i>批量操作日志</h5></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>ID</th><th>操作人</th><th>操作类型</th><th>结果</th><th>时间</th></tr></thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr><td>{$vo.id}</td><td>{$vo.operator_name}</td><td><code>{$vo.action}</code></td>
+                    <td><?php $r=json_decode($vo['result']??'{}',true); echo '成功'.($r['success']??0).'/失败'.($r['failed']??0); ?></td>
+                    <td>{$vo.create_time}</td></tr>
+                    {/volist}
+                    {if condition="empty($list)"}<tr><td colspan="5" class="text-center text-muted py-4">暂无操作日志</td></tr>{/if}
+                </tbody>
+            </table>
+        </div>
+        {if condition="$total > $limit"}
+        <nav class="d-flex justify-content-between mt-3"><span class="text-muted small">共 {$total} 条</span>
+        <ul class="pagination pagination-sm">{for start="1" end="ceil($total/$limit)+1"}<li class="page-item {if $i==$page}active{/if}"><a class="page-link" href="?page={$i}">{$i}</a></li>{/for}</ul></nav>
+        {/if}
+    </div>
+</div>
+{/block}

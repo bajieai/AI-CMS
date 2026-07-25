@@ -1,0 +1,148 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | 八界AI-CMS 内容管理系统
+// +----------------------------------------------------------------------
+// | V2.9.31 Sprint T3: 前台模板商店首页
+// +----------------------------------------------------------------------
+
+{extend name="layout" /}
+
+{block name="title"}模板商店 - {:config('site.name')}{/block}
+
+{block name="css"}
+<!-- Swiper.js CDN (V2.9.31 T3-1 Q1) -->
+<link rel="stylesheet" href="/static/lib/swiper/swiper.min.css" onerror="this.href='/static/lib/swiper/swiper.min.css'">
+<style>
+.template-card { transition: transform .2s, box-shadow .2s; }
+.template-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+</style>
+{/block}
+
+{block name="content"}
+<div class="container py-4">
+    <!-- 推荐模板轮播 -->
+    {if condition="!empty($featured)"}
+    <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-stars me-1 text-warning"></i>推荐模板</h5>
+        <div class="row g-3">
+            {volist name="featured" id="vo"}
+            <div class="col-md-4 col-lg-2">
+                <div class="card h-100 template-card">
+                    <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:120px;object-fit:cover;" alt="" onerror="this.src='/static/images/no-image.png'">
+                    <div class="card-body p-2">
+                        <h6 class="card-title mb-1 text-truncate" title="{$vo.name}">{$vo.name}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">{$vo.category.name ?? ''}</span>
+                            {if condition="isset($featured_prices[$vo.id]) && $featured_prices[$vo.id]['discount_amount'] > 0"}
+                            <span class="text-danger fw-bold small">¥{$featured_prices[$vo.id]['final_price']}</span>
+                            {else /}
+                            <span class="text-danger fw-bold small">{if condition="$vo.price > 0"}¥{$vo.price}{else /}免费{/if}</span>
+                            {/if}
+                        </div>
+                    </div>
+                    <a href="/template_store/detail/{$vo.slug}" class="stretched-link"></a>
+                </div>
+            </div>
+            {/volist}
+        </div>
+    </div>
+    {/if}
+
+    <!-- 筛选栏 -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <form method="get" action="/template_store" class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <input type="text" name="keyword" class="form-control form-control-sm" value="{$params.keyword ?? ''}" placeholder="搜索模板">
+                </div>
+                <div class="col-md-2">
+                    <select name="category_id" class="form-select form-select-sm">
+                        <option value="">全部分类</option>
+                        {volist name="categories" id="cat"}
+                        <option value="{$cat.id}" {if condition="($params.category_id ?? '') == $cat.id"}selected{/if}>{$cat.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="price_type" class="form-select form-select-sm">
+                        <option value="">全部价格</option>
+                        <option value="free" {if condition="($params.price_type ?? '') == 'free'"}selected{/if}>免费</option>
+                        <option value="paid" {if condition="($params.price_type ?? '') == 'paid'"}selected{/if}>付费</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sort" class="form-select form-select-sm">
+                        <option value="id" {if condition="($params.sort ?? 'id') == 'id'"}selected{/if}>最新</option>
+                        <option value="install_count" {if condition="($params.sort ?? '') == 'install_count'"}selected{/if}>最热</option>
+                        <option value="rating_avg" {if condition="($params.sort ?? '') == 'rating_avg'"}selected{/if}>评分</option>
+                        <option value="price" {if condition="($params.sort ?? '') == 'price'"}selected{/if}>价格</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-search"></i></button>
+                    <a href="/template_store" class="btn btn-sm btn-outline-secondary">重置</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 热门标签 -->
+    {if condition="!empty($hot_tags)"}
+    <div class="mb-3">
+        {volist name="hot_tags" id="tag"}
+        <a href="/template_store?keyword={$tag}" class="badge bg-light text-dark text-decoration-none me-1 mb-1">{$tag}</a>
+        {/volist}
+    </div>
+    {/if}
+
+    <!-- 模板列表 -->
+    <div class="row g-3">
+        {volist name="list" id="vo"}
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 template-card">
+                <img src="{if is_string($vo.screenshots)}{:json_decode($vo.screenshots, true)[0] ?? ''}{else /}{$vo.screenshots[0] ?? ''}{/if}" class="card-img-top" style="height:160px;object-fit:cover;" alt="" onerror="this.src='/static/images/no-image.png'">
+                <div class="card-body">
+                    <h6 class="card-title text-truncate" title="{$vo.name}">{$vo.name}</h6>
+                    <p class="card-text text-muted small text-truncate">{$vo.description}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-secondary">{$vo.category.name ?? ''}</span>
+                        <div>
+                            {if condition="isset($prices[$vo.id]) && $prices[$vo.id]['discount_amount'] > 0"}
+                            <span class="text-muted text-decoration-line-through small">¥{$prices[$vo.id]['original_price']}</span>
+                            <span class="text-danger fw-bold">¥{$prices[$vo.id]['final_price']}</span>
+                            {else /}
+                            <span class="text-danger fw-bold">{if condition="$vo.price > 0"}¥{$vo.price}{else /}免费{/if}</span>
+                            {/if}
+                        </div>
+                    </div>
+                    <div class="mt-2 small text-muted">
+                        <i class="bi bi-star-fill text-warning"></i> {$vo.rating_avg} <span class="ms-2"><i class="bi bi-download"></i> {$vo.install_count}</span>
+                    </div>
+                </div>
+                <a href="/template_store/detail/{$vo.slug}" class="stretched-link"></a>
+            </div>
+        </div>
+        {/volist}
+        {empty name="list"}
+        <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">暂无模板数据</p>
+        </div>
+        {/empty}
+    </div>
+
+    <!-- 分页 -->
+    {if condition="$pages > 1"}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {for start="1" end="$pages+1"}
+            <li class="page-item {if condition="$page == $i"}active{/if}">
+                <a class="page-link" href="/template_store?page={$i}&keyword={$params.keyword ?? ''}&category_id={$params.category_id ?? ''}&price_type={$params.price_type ?? ''}&sort={$params.sort ?? 'id'}">{$i}</a>
+            </li>
+            {/for}
+        </ul>
+    </nav>
+    {/if}
+</div>
+{/block}

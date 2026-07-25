@@ -1,0 +1,101 @@
+{extend name="layout" /}
+
+{block name="title"}安全日志{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">安全中心</li>
+<li class="breadcrumb-item active">安全日志</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>安全事件日志</h5>
+    </div>
+    <div class="card-body">
+        <!-- 筛选栏 -->
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-2">
+                <select name="event_type" class="form-select form-select-sm">
+                    <option value="">全部类型</option>
+                    <option value="xss" {if ($filter.event_type ?? '') eq 'xss'}selected{/if}>XSS</option>
+                    <option value="csrf" {if ($filter.event_type ?? '') eq 'csrf'}selected{/if}>CSRF</option>
+                    <option value="sqli" {if ($filter.event_type ?? '') eq 'sqli'}selected{/if}>SQL注入</option>
+                    <option value="file_upload" {if ($filter.event_type ?? '') eq 'file_upload'}selected{/if}>文件上传</option>
+                    <option value="auth_deny" {if ($filter.event_type ?? '') eq 'auth_deny'}selected{/if}>权限拒绝</option>
+                    <option value="login_fail" {if ($filter.event_type ?? '') eq 'login_fail'}selected{/if}>登录失败</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="severity" class="form-select form-select-sm">
+                    <option value="0">全部级别</option>
+                    <option value="1" {if ($filter.severity ?? 0) eq 1}selected{/if}>低</option>
+                    <option value="2" {if ($filter.severity ?? 0) eq 2}selected{/if}>中</option>
+                    <option value="3" {if ($filter.severity ?? 0) eq 3}selected{/if}>高</option>
+                    <option value="4" {if ($filter.severity ?? 0) eq 4}selected{/if}>严重</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="ip" class="form-control form-control-sm" placeholder="IP地址" value="{$filter.ip ?? ''}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="start_date" class="form-control form-control-sm" value="{$filter.start_date ?? ''}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="end_date" class="form-control form-control-sm" value="{$filter.end_date ?? ''}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>筛选</button>
+            </div>
+        </form>
+
+        <!-- 日志表格 -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>类型</th>
+                        <th>级别</th>
+                        <th>用户</th>
+                        <th>IP</th>
+                        <th>URL</th>
+                        <th>描述</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {foreach $list as $item}
+                    <tr>
+                        <td>{$item.id}</td>
+                        <td><span class="badge bg-{switch($item.event_type)}{case xss}danger{/case}{case csrf}warning{/case}{case sqli}danger{/case}{case login_fail}secondary{/case}{default /}info{/switch}">{$item.event_type}</span></td>
+                        <td>
+                            {switch($item.severity)}
+                            {case 1}<span class="badge bg-success">低</span>{/case}
+                            {case 2}<span class="badge bg-warning">中</span>{/case}
+                            {case 3}<span class="badge bg-danger">高</span>{/case}
+                            {case 4}<span class="badge bg-dark">严重</span>{/case}
+                            {default /}<span class="badge bg-secondary">未知</span>
+                            {/switch}
+                        </td>
+                        <td>{$item.username ?: '-'}</td>
+                        <td>{$item.ip}</td>
+                        <td class="text-truncate" style="max-width:200px;" title="{$item.url}">{$item.url}</td>
+                        <td class="text-truncate" style="max-width:300px;">{$item.description}</td>
+                        <td>{$item.created_at}</td>
+                    </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted small">共 {$total} 条记录</span>
+            {$list|raw}
+        </div>
+
+        <a href="/admin/security/log/export?{$request.server.QUERY_STRING|default=''}" class="btn btn-success btn-sm mt-2"><i class="bi bi-download me-1"></i>导出CSV</a>
+    </div>
+</div>
+{/block}

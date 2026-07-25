@@ -1,0 +1,322 @@
+{extend name="layout" /}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/ai_theme/index">AI中心</a></li>
+<li class="breadcrumb-item active">批量生成</li>
+{/block}
+{block name="content"}
+<div class="row">
+    <!-- 左侧：批量生成配置 -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-stack me-2"></i>批量生成配置</h5>
+            </div>
+            <div class="card-body">
+                <form id="batchForm">
+                    <div class="mb-3">
+                        <label class="form-label">行业类型 <span class="text-danger">*</span></label>
+                        <select name="industry" class="form-select" id="industrySelect" required>
+                            <option value="">请选择行业</option>
+                            {foreach $industries as $key=>$ind}
+                            <option value="{$key}">{$ind.name}</option>
+                            {/foreach}
+                        </select>
+                        <div class="form-text" id="industryDesc">选择行业后自动生成对应风格的模板</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">生成数量 <span class="text-danger">*</span></label>
+                        <input type="number" name="count" class="form-control" value="10" min="1" max="30" required>
+                        <div class="form-text">每次最多生成30套，建议10套/批次</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">风格偏好</label>
+                        <select name="options[style]" class="form-select" id="styleSelect">
+                            <option value="">随机风格</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">色系偏好</label>
+                        <select name="options[color_scheme]" class="form-select" id="colorSelect">
+                            <option value="">随机色系</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">布局偏好</label>
+                        <select name="options[layout_type]" class="form-select" id="layoutSelect">
+                            <option value="">随机布局</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">额外描述（可选）</label>
+                        <textarea name="options[extra_desc]" class="form-control" rows="2" placeholder="对生成主题的额外要求..."></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-stack me-2"></i>开始批量生成
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 今日配额 -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span>今日生成配额</span>
+                    <span class="fw-bold" id="quotaDisplay">{$daily_limit}</span>
+                </div>
+                <div class="progress mt-2" style="height:6px;">
+                    <div class="progress-bar" id="quotaBar" style="width:100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：进度与任务 -->
+    <div class="col-lg-8">
+        <!-- 批次进度总览 -->
+        <div class="card mb-3" id="progressCard" style="display:none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-activity me-2"></i>生成进度</h5>
+                <span class="badge bg-primary" id="progressBadge">0/0</span>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3" style="height:20px;">
+                    <div id="batchProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>
+                </div>
+                <div class="row text-center small">
+                    <div class="col">
+                        <div class="text-primary fw-bold" id="statPending">0</div>
+                        <div class="text-muted">待生成</div>
+                    </div>
+                    <div class="col">
+                        <div class="text-info fw-bold" id="statGenerating">0</div>
+                        <div class="text-muted">生成中</div>
+                    </div>
+                    <div class="col">
+                        <div class="text-success fw-bold" id="statSuccess">0</div>
+                        <div class="text-muted">成功</div>
+                    </div>
+                    <div class="col">
+                        <div class="text-warning fw-bold" id="statReview">0</div>
+                        <div class="text-muted">待审核</div>
+                    </div>
+                    <div class="col">
+                        <div class="text-danger fw-bold" id="statFailed">0</div>
+                        <div class="text-muted">失败</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务列表 -->
+        <div class="card mb-3" id="taskCard" style="display:none;">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>任务列表</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height:400px; overflow-y:auto;">
+                    <table class="table table-sm table-hover mb-0 align-middle">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>描述</th>
+                                <th>状态</th>
+                                <th>质量分</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskListBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 历史批次 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>历史批次</h5>
+                <a href="/admin/ai_theme/index" class="btn btn-sm btn-outline-primary">查看全部</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>批次ID</th>
+                                <th>行业</th>
+                                <th>总数</th>
+                                <th>成功</th>
+                                <th>失败</th>
+                                <th>进度</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="batch_progress" id="bp"}
+                            <tr>
+                                <td><code class="small">{$bp.batch_id??''}</code></td>
+                                <td>{$bp.industry??''}</td>
+                                <td>{$bp.total}</td>
+                                <td class="text-success">{$bp.completed}</td>
+                                <td class="text-danger">{$bp.failed}</td>
+                                <td>
+                                    <div class="progress" style="height:6px; width:80px;">
+                                        <div class="progress-bar" style="width:{$bp.percent}%"></div>
+                                    </div>
+                                    <span class="small text-muted">{$bp.percent}%</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewBatch('{$bp.batch_id}')">查看</button>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {empty name="batch_progress"}
+                            <tr><td colspan="7" class="text-center text-muted py-4">暂无历史批次</td></tr>
+                            {/empty}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+const industryData = {:json_encode($industries)};
+let currentBatchId = null;
+let pollTimer = null;
+
+// 行业切换联动
+$('#industrySelect').on('change', function() {
+    const key = $(this).val();
+    const ind = industryData[key];
+    if (!ind) {
+        $('#industryDesc').text('选择行业后自动生成对应风格的模板');
+        $('#styleSelect').html('<option value="">随机风格</option>');
+        $('#colorSelect').html('<option value="">随机色系</option>');
+        $('#layoutSelect').html('<option value="">随机布局</option>');
+        return;
+    }
+    $('#industryDesc').text(ind.description);
+
+    // 填充选项
+    $('#styleSelect').html('<option value="">随机风格</option>' +
+        (ind.styles || []).map(s => <option value="${s}">${s}</option>).join(''));
+    $('#colorSelect').html('<option value="">随机色系</option>' +
+        (ind.colors || []).map(c => <option value="${c}">${c}</option>).join(''));
+    $('#layoutSelect').html('<option value="">随机布局</option>' +
+        (ind.layouts || []).map(l => <option value="${l}">${l}</option>).join(''));
+});
+
+// 提交批量生成
+$('#batchForm').on('submit', function(e) {
+    e.preventDefault();
+    const $btn = $('#submitBtn');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>提交中...');
+
+    $.post('/admin/ai_theme/doBatchGenerate', $(this).serialize(), function(res) {
+        if (res.code === 0) {
+            currentBatchId = res.data.batch_id;
+            I8JToast.success(res.msg);
+            $('#progressCard, #taskCard').show();
+            startPolling();
+        } else {
+            I8JToast.error(res.msg);
+            $btn.prop('disabled', false).html('<i class="bi bi-stack me-2"></i>开始批量生成');
+        }
+    }).fail(function() {
+        I8JToast.error('网络错误');
+        $btn.prop('disabled', false).html('<i class="bi bi-stack me-2"></i>开始批量生成');
+    });
+});
+
+function startPolling() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function() {
+        if (!currentBatchId) return;
+        $.get('/admin/ai_theme/batchProgress', {batch_id: currentBatchId}, function(res) {
+            if (res.code !== 0) return;
+            updateProgress(res.data);
+            if (res.data.pending === 0 && res.data.generating === 0) {
+                clearInterval(pollTimer);
+                $('#batchProgressBar').removeClass('progress-bar-animated');
+                I8JToast.success('批次生成完成！');
+                $('#submitBtn').prop('disabled', false).html('<i class="bi bi-stack me-2"></i>开始批量生成');
+            }
+        });
+    }, 5000);
+}
+
+function updateProgress(data) {
+    $('#progressBadge').text(data.completed + '/' + data.total);
+    const pct = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+    $('#batchProgressBar').css('width', pct + '%').text(pct + '%');
+
+    $('#statPending').text(data.pending);
+    $('#statGenerating').text(data.generating);
+    $('#statSuccess').text(data.completed);
+    $('#statReview').text(data.pending_review);
+    $('#statFailed').text(data.failed);
+
+    // 渲染任务列表
+    const tbody = $('#taskListBody');
+    tbody.empty();
+    data.tasks.forEach(function(t, i) {
+        const statusMap = {
+            '-2': {cls:'bg-danger', text:'校验失败'},
+            '-1': {cls:'bg-danger', text:'生成失败'},
+            '0': {cls:'bg-secondary', text:'待生成'},
+            '1': {cls:'bg-info', text:'生成中'},
+            '2': {cls:'bg-warning', text:'待审核'},
+            '3': {cls:'bg-success', text:'已发布'},
+            '4': {cls:'bg-primary', text:'已校验'},
+            '5': {cls:'bg-dark', text:'已拒绝'},
+        };
+        const st = statusMap[t.status] || {cls:'bg-secondary', text:'未知'};
+        const score = t.quality_score ? <span class="badge bg-${t.quality_score >= 80 ? 'success' : t.quality_score >= 60 ? 'warning' : 'danger'}">${t.quality_score}</span> : '-';
+        const ops = t.status === 2
+            ? <a href="/admin/ai_theme/detail?id=${t.id}" class="btn btn-sm btn-outline-primary">审核</a>
+            : (t.status === -1 || t.status === -2 ? <button class="btn btn-sm btn-outline-warning" onclick="retryTask(${t.id})">重试</button> : '');
+        tbody.append(<tr>
+            <td>${i+1}</td>
+            <td class="text-truncate" style="max-width:200px;" title="${t.description}">${t.description}</td>
+            <td><span class="badge ${st.cls}">${st.text}</span></td>
+            <td>${score}</td>
+            <td>${ops}</td>
+        </tr>);
+    });
+}
+
+function retryTask(id) {
+    if (!confirm('确认重试此任务？')) return;
+    $.post('/admin/ai_theme/retry', {id: id}, function(res) {
+        if (res.code === 0) {
+            I8JToast.success(res.msg);
+            if (pollTimer) startPolling();
+        } else {
+            I8JToast.error(res.msg);
+        }
+    });
+}
+
+function viewBatch(batchId) {
+    currentBatchId = batchId;
+    $('#progressCard, #taskCard').show();
+    startPolling();
+    $.get('/admin/ai_theme/batchProgress', {batch_id: batchId}, function(res) {
+        if (res.code === 0) updateProgress(res.data);
+    });
+}
+</script>
+{/block}

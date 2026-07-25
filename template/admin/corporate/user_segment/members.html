@@ -1,0 +1,31 @@
+{extend name="layout" /}
+{block name="title"}分群成员 - AI-CMS{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-people"></i> 分群成员列表</h5>
+        <a href="{:url('/admin/user_segment/index')}" class="btn btn-secondary btn-sm">返回列表</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>邮箱</th><th>手机号</th><th>注册时间</th><th>最近登录</th></tr></thead>
+                <tbody>
+                    {volist name="list" id="vo"}
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.username}</td>
+                        <td>{$vo.nickname|default='-'}</td>
+                        <td>{$vo.email|default='-'}</td>
+                        <td>{$vo.phone|default='-'}</td>
+                        <td>{$vo.register_time}</td>
+                        <td>{$vo.last_login_time|default='-'}</td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+        {$pagination|default=''}
+    </div>
+</div>
+{/block}

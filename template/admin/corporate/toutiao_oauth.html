@@ -1,0 +1,45 @@
+{extend name="/layout" /}
+{block name="title"}头条号授权 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-newspaper me-1"></i>头条号 OAuth 授权
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted">点击下方按钮，将在新窗口中打开头条号授权页面。</p>
+                    <p class="small">Client Key: <span class="badge bg-light text-dark">{$client_key}</span></p>
+                    <a href="{$auth_url}" target="_blank" class="btn btn-primary" id="btnOpenAuth">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>前往头条号授权
+                    </a>
+                    <div class="mt-3 alert alert-info small">
+                        <i class="bi bi-info-circle me-1"></i>授权完成后，页面将自动关闭并刷新Token。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'toutiao_oauth') {
+        if (e.data.success) {
+            alert('授权成功！');
+            location.href = '/admin/publish_platform/index';
+        } else {
+            alert('授权失败: ' + (e.data.msg || '未知错误'));
+        }
+    }
+});
+$('#btnOpenAuth').click(function(e) {
+    e.preventDefault();
+    var url = $(this).attr('href');
+    var w = window.open(url, 'toutiao_oauth', 'width=800,height=600');
+    if (!w) alert('请允许弹窗，然后重试');
+});
+</script>
+{/block}

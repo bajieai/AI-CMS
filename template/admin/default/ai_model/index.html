@@ -1,0 +1,119 @@
+{extend name="layout" /}
+
+{block name="title"}AI模型配置 - AI-CMS{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">AI能力</li>
+<li class="breadcrumb-item active">模型配置</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-cpu me-1"></i>AI模型配置列表</span>
+        <a href="{:url('/admin/ai_model/add')}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>添加模型
+        </a>
+    </div>
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" action="{:url('/admin/ai_model/index')}">
+            <div class="col-md-3">
+                <input type="text" name="keyword" value="{$keyword ?? ''}" class="form-control form-control-sm" placeholder="搜索模型名称">
+            </div>
+            <div class="col-md-2">
+                <select name="provider" class="form-control form-control-sm">
+                    <option value="">全部供应商</option>
+                    {volist name="providers" id="p"}
+                    <option value="{$p}" {if condition="($provider ?? '') == $p"}selected{/if}>{$p}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">搜索</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>模型名称</th>
+                    <th>供应商</th>
+                    <th>模型ID</th>
+                    <th>状态</th>
+                    <th>是否默认</th>
+                    <th>排序</th>
+                    <th class="text-end">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.name}</td>
+                    <td><span class="badge bg-info">{$vo.provider}</span></td>
+                    <td class="small text-muted">{$vo.model_id}</td>
+                    <td>
+                        {if condition="$vo.status eq 1"}
+                        <span class="badge bg-success">启用</span>
+                        {else /}
+                        <span class="badge bg-secondary">禁用</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$vo.is_default eq 1"}
+                        <span class="badge bg-primary">默认</span>
+                        {else /}
+                        <span class="text-muted">—</span>
+                        {/if}
+                    </td>
+                    <td>{$vo.sort ?? 0}</td>
+                    <td class="text-end">
+                        <a href="{:url('/admin/ai_model/edit', ['id'=>$vo.id])}" class="btn btn-outline-primary btn-sm me-1" title="编辑">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{:url('/admin/ai_model/quota', ['id'=>$vo.id])}" class="btn btn-outline-info btn-sm me-1" title="配额">
+                            <i class="bi bi-speedometer2"></i>
+                        </a>
+                        <a href="{:url('/admin/ai_model/test', ['id'=>$vo.id])}" class="btn btn-outline-success btn-sm me-1" title="测试">
+                            <i class="bi bi-play-circle"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteModel({$vo.id})" title="删除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="8" class="text-center text-muted py-4">暂无模型配置</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="isset($list) && is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function deleteModel(id) {
+    if (!confirm('确定删除此模型配置？')) return;
+    $.post('{:url("/admin/ai_model/delete")}', {id: id}, function(res) {
+        if (res.code === 0 || res.code === 200) {
+            alert('删除成功');
+            location.reload();
+        } else {
+            alert(res.msg || '删除失败');
+        }
+    });
+}
+</script>
+{/block}

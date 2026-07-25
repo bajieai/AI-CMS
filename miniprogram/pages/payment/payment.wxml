@@ -1,0 +1,31 @@
+<!-- pages/payment/payment.wxml - V2.9 支付页面 -->
+<view class="container">
+  <view class="order-card">
+    <text class="order-title">{{title}}</text>
+    <view class="order-price-row">
+      <text class="label">应付金额</text>
+      <text class="price">¥{{finalPrice}}</text>
+    </view>
+    <view class="order-price-row" wx:if="{{selectedCoupon}}">
+      <text class="label">原价</text>
+      <text class="original-price">¥{{price}}</text>
+    </view>
+  </view>
+
+  <!-- 优惠券选择 -->
+  <view class="coupon-section" wx:if="{{coupons.length > 0}}">
+    <text class="section-title">可用优惠券</text>
+    <view wx:for="{{coupons}}" wx:key="id"
+          class="coupon-item {{selectedCoupon && selectedCoupon.id === item.id ? 'selected' : ''}}"
+          bindtap="selectCoupon"
+          data-index="{{index}}">
+      <text class="coupon-name">{{item.coupon_name}}</text>
+      <text class="coupon-value" wx:if="{{item.coupon_type === 'reduce'}}">-¥{{item.reduce_amount}}</text>
+      <text class="coupon-value" wx:elif="{{item.coupon_type === 'discount'}}">{{item.reduce_amount * 10}}折</text>
+    </view>
+  </view>
+
+  <button class="pay-btn {{loading ? 'disabled' : ''}}" bindtap="handlePay">
+    {{loading ? '处理中...' : '确认支付 ¥' + finalPrice}}
+  </button>
+</view>

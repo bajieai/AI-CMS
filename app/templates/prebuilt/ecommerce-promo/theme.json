@@ -1,0 +1,25 @@
+﻿{
+    "name": "电商购物促销",
+    "description": "适用于电商平台，购物促销风格，突出转化。红色系主色调，瀑布流+促销标签。",
+    "author": "八界AI",
+    "version": "1.0.0",
+    "industry": "ecommerce",
+    "style_tag": "购物促销",
+    "supports": ["pc", "mobile"],
+    "colors": {
+        "primary": "#ef4444",
+        "secondary": "#f97316",
+        "bg": "#ffffff",
+        "bg_secondary": "#fff7ed",
+        "text": "#1c1917",
+        "text_secondary": "#78716c",
+        "border": "#fed7aa",
+        "accent": "#dc2626"
+    },
+    "options": {
+        "show_breadcrumb": true,
+        "show_sidebar": false,
+        "hero_enabled": false,
+        "infos_per_page": 16
+    }
+}

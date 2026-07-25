@@ -1,0 +1,116 @@
+{extend name="layout" /}
+
+{block name="title"}通知默认设置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">通知默认设置</li>
+{/block}
+
+{block name="content"}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>通知默认设置</span>
+        <small class="text-muted">控制新用户注册时各类通知的默认开关状态</small>
+    </div>
+    <div class="card-body">
+        <form id="settingForm" method="post" action="/admin/notification/setting/save">
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[system]" id="sw_system" value="1" {if condition="($settings.system ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_system">系统通知</label>
+                    </div>
+                    <div class="small text-muted mt-1">系统维护、公告等全局消息</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[review]" id="sw_review" value="1" {if condition="($settings.review ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_review">审核通知</label>
+                    </div>
+                    <div class="small text-muted mt-1">内容审核结果提醒</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[publish]" id="sw_publish" value="1" {if condition="($settings.publish ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_publish">发布通知</label>
+                    </div>
+                    <div class="small text-muted mt-1">内容成功发布后的提醒</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[comment_reply]" id="sw_comment_reply" value="1" {if condition="($settings.comment_reply ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_comment_reply">评论回复</label>
+                    </div>
+                    <div class="small text-muted mt-1">收到评论回复时提醒</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[content_approve]" id="sw_content_approve" value="1" {if condition="($settings.content_approve ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_content_approve">内容通过</label>
+                    </div>
+                    <div class="small text-muted mt-1">内容审核通过通知</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[content_reject]" id="sw_content_reject" value="1" {if condition="($settings.content_reject ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_content_reject">内容驳回</label>
+                    </div>
+                    <div class="small text-muted mt-1">内容审核驳回通知</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[reward_receive]" id="sw_reward_receive" value="1" {if condition="($settings.reward_receive ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_reward_receive">打赏到账</label>
+                    </div>
+                    <div class="small text-muted mt-1">收到打赏时提醒</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[level_upgrade]" id="sw_level_upgrade" value="1" {if condition="($settings.level_upgrade ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_level_upgrade">等级升级</label>
+                    </div>
+                    <div class="small text-muted mt-1">会员等级提升通知</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[level_downgrade]" id="sw_level_downgrade" value="1" {if condition="($settings.level_downgrade ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_level_downgrade">等级降级</label>
+                    </div>
+                    <div class="small text-muted mt-1">会员等级下降通知</div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="settings[level_grace_warning]" id="sw_level_grace_warning" value="1" {if condition="($settings.level_grace_warning ?? 0) == 1"}checked{/if}>
+                        <label class="form-check-label" for="sw_level_grace_warning">宽限预警</label>
+                    </div>
+                    <div class="small text-muted mt-1">会员权益即将到期提醒</div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> 保存设置</button>
+                <button type="reset" class="btn btn-outline-secondary">重置</button>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#settingForm').on('submit', function(e) {
+    e.preventDefault();
+    var $form = $(this);
+    $.post($form.attr('action'), $form.serialize(), function(res) {
+        if (res.success) {
+            layer.msg(res.msg || '保存成功', {icon: 1});
+        } else {
+            layer.msg(res.msg || '保存失败', {icon: 2});
+        }
+    }).fail(function() {
+        layer.msg('网络错误', {icon: 2});
+    });
+});
+</script>
+{/block}

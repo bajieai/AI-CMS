@@ -1,0 +1,30 @@
+{extend name="/layout" /}
+{block name="title"}收入统计 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4">收入统计</h4>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center"><div class="card-body">
+                <h6 class="text-muted">今日收入</h6>
+                <h3>¥{$stats.today_revenue??'0.00'}</h3>
+                <small class="text-muted">{$stats.today_orders??0} 笔订单</small>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center"><div class="card-body">
+                <h6 class="text-muted">本月收入</h6>
+                <h3>¥{$stats.month_revenue??'0.00'}</h3>
+                <small class="text-muted">{$stats.month_orders??0} 笔订单</small>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center"><div class="card-body">
+                <h6 class="text-muted">累计收入</h6>
+                <h3>¥{$stats.total_revenue??'0.00'}</h3>
+                <small class="text-muted">{$stats.total_orders??0} 笔订单</small>
+            </div></div>
+        </div>
+    </div>
+</div>
+{/block}

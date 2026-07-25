@@ -1,0 +1,30 @@
+{extend name="/layout" /}
+{block name="title"}智能体监控 - AI-CMS{/block}
+{block name="content"}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-robot"></i> AI智能体监控</h5></div>
+<div class="card-body">
+{if empty($monitors)}
+<div class="text-center text-muted py-4">暂无智能体监控数据</div>
+{else}
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>活跃智能体</h6><h3 class="text-success">{$monitors.active_count??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>今日调用</h6><h3>{$monitors.calls_today??0}</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>成功率</h6><h3>{$monitors.success_rate??'--'}%</h3></div></div></div>
+    <div class="col-md-3"><div class="card bg-light"><div class="card-body text-center"><h6>平均耗时</h6><h3>{$monitors.avg_duration??'--'}ms</h3></div></div></div>
+</div>
+{if !empty($monitors.agents)}
+<div class="card"><div class="card-header"><h6 class="mb-0">智能体列表</h6></div>
+<table class="table table-sm mb-0">
+    <thead><tr><th>名称</th><th width="100">状态</th><th width="100">今日调用</th><th width="100">成功率</th><th width="100">平均耗时</th></tr></thead>
+    <tbody>
+    {volist name="monitors.agents" id="a"}
+    <tr><td>{$a.name??'--'}</td>
+        <td><span class="badge bg-{if $a.status??''=='active'}success{else}secondary{/if}">{$a.status??'--'}</span></td>
+        <td>{$a.calls_today??0}</td><td>{$a.success_rate??'--'}%</td><td>{$a.avg_duration??'--'}ms</td></tr>
+    {/volist}
+    </tbody>
+</table></div>
+{/if}
+{/if}
+</div></div>
+{/block}

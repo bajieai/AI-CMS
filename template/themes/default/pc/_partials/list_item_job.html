@@ -1,0 +1,22 @@
+<!-- V2.9.21 D-4: 招聘型列表项 -->
+<div class="col-12">
+    <div class="card job-card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h5 class="card-title mb-1" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a>
+                        {if condition="$vo.is_urgent"}<span class="badge bg-danger">急招</span>{/if}
+                    </h5>
+                    <p class="text-muted small mb-2">{$vo.excerpt|msubstr=0,100}</p>
+                    <div class="d-flex gap-3 text-muted small flex-wrap">
+                        <span><i class="bi bi-geo-alt me-1"></i>{$vo.location|default='待定'}</span>
+                        <span><i class="bi bi-cash me-1"></i>{$vo.salary|default='面议'}</span>
+                        <span><i class="bi bi-briefcase me-1"></i>{$vo.experience|default='经验不限'}</span>
+                    </div>
+                </div>
+                <a href="{$vo.url}" class="btn btn-sm btn-outline-primary flex-shrink-0">查看详情</a>
+            </div>
+        </div>
+    </div>
+</div>

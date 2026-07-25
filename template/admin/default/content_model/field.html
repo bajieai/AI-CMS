@@ -1,0 +1,188 @@
+{extend name="layout" /}
+
+{block name="title"}字段管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin">首页</a></li>
+<li class="breadcrumb-item"><a href="/admin/content_model/index">内容模型</a></li>
+<li class="breadcrumb-item active">字段管理</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <!-- 左侧字段列表 -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-task me-1"></i>字段列表</span>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="saveSort()"><i class="bi bi-arrow-down-up me-1"></i>保存排序</button>
+                    <button type="button" class="btn btn-sm btn-success" onclick="openFieldModal(0)"><i class="bi bi-plus-lg me-1"></i>添加</button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="fieldList">
+                    {volist name="fields" id="f"}
+                    <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{$f.id}" style="cursor:move">
+                        <div>
+                            <i class="bi bi-grip-vertical text-muted me-2"></i>
+                            <span class="fw-bold">{$f.field_label}</span>
+                            <code class="ms-2 small">{$f.field_name}</code>
+                            {if condition="$f.is_required eq 1"}<span class="badge bg-danger ms-1">必填</span>{/if}
+                            {if condition="$f.is_system eq 1"}<span class="badge bg-warning ms-1">系统</span>{/if}
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-dark me-2">{$f.field_type}</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editField({$f.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-info" onclick="copyField({$f.id})" title="复制"><i class="bi bi-files"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteField({$f.id})" {if condition="$f.is_system eq 1"}disabled{/if}><i class="bi bi-trash"></i></button>
+                        </div>
+                    </li>
+                    {/volist}
+                    {if condition="$fields|count eq 0"}
+                    <li class="list-group-item text-center text-muted py-4">暂无字段，点击上方按钮添加</li>
+                    {/if}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧字段编辑表单 -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-pencil-square me-1"></i>字段编辑</div>
+            <div class="card-body">
+                <form id="fieldForm">
+                    <input type="hidden" name="id" id="ff_id" value="0">
+                    <input type="hidden" name="model_id" value="{$model_id}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3"><label class="form-label">字段标识 <span class="text-danger">*</span></label><input type="text" name="field_name" id="ff_name" class="form-control" placeholder="如：product_price"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3"><label class="form-label">字段标签 <span class="text-danger">*</span></label><input type="text" name="field_label" id="ff_label" class="form-control" placeholder="如：产品价格"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">字段类型</label>
+                                <select name="field_type" id="ff_type" class="form-select">
+                                    {volist name="types" id="t"}
+                                    <option value="{$t.type}" data-group="{$t.group}">{$t.label} ({$t.group})</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3"><label class="form-label">默认值</label><input type="text" name="default_value" id="ff_default" class="form-control"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="optionsRow">
+                        <label class="form-label">选项配置（JSON格式）</label>
+                        <textarea name="field_options" id="ff_options" class="form-control" rows="2" placeholder='{"key1":"值1","key2":"值2"}'></textarea>
+                        <div class="form-text">select/radio/checkbox等类型使用</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">验证规则（JSON格式）</label>
+                        <textarea name="field_validation" id="ff_validation" class="form-control" rows="2" placeholder='[{"rule":"required"},{"rule":"min_length","params":[3]}]'></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3"><label class="form-label">提示文字</label><input type="text" name="placeholder" id="ff_placeholder" class="form-control"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3"><label class="form-label">帮助说明</label><input type="text" name="help_text" id="ff_help" class="form-control"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_required" value="1" id="ff_req"><label class="form-check-label" for="ff_req">必填</label></div></div>
+                        <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_unique" value="1" id="ff_uniq"><label class="form-check-label" for="ff_uniq">唯一</label></div></div>
+                        <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_searchable" value="1" id="ff_search"><label class="form-check-label" for="ff_search">可搜索</label></div></div>
+                        <div class="col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_list_show" value="1" id="ff_list"><label class="form-check-label" for="ff_list">列表显示</label></div></div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存字段</button>
+                        <button type="reset" class="btn btn-outline-secondary">重置</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script src="/assets/js/sortable.min.js"></script>
+<script>
+var MODEL_ID = {$model_id};
+var FIELDS = {:json_encode($fields, JSON_UNESCAPED_UNICODE)};
+
+var sortable = Sortable.create(document.getElementById('fieldList'), {
+    animation: 150,
+    handle: '.bi-grip-vertical',
+    ghostClass: 'bg-light'
+});
+
+function saveSort() {
+    var sortData = [];
+    $('#fieldList li').each(function(i) {
+        var id = $(this).data('id');
+        if (id) sortData.push({id: id, sort_order: i + 1});
+    });
+    $.post('/admin/content_field/sort', {sort_data: JSON.stringify(sortData)}, function(res) {
+        alert(res.msg);
+    });
+}
+
+function openFieldModal(id) {
+    $('#fieldForm')[0].reset();
+    $('#ff_id').val(0);
+}
+
+function editField(id) {
+    var f = FIELDS.find(function(x) { return x.id == id; });
+    if (!f) return;
+    $('#ff_id').val(f.id);
+    $('#ff_name').val(f.field_name);
+    $('#ff_label').val(f.field_label);
+    $('#ff_type').val(f.field_type);
+    $('#ff_default').val(f.default_value || '');
+    $('#ff_options').val(f.field_options ? (typeof f.field_options === 'string' ? f.field_options : JSON.stringify(f.field_options)) : '');
+    $('#ff_validation').val(f.field_validation ? (typeof f.field_validation === 'string' ? f.field_validation : JSON.stringify(f.field_validation)) : '');
+    $('#ff_placeholder').val(f.placeholder || '');
+    $('#ff_help').val(f.help_text || '');
+    $('#ff_req').prop('checked', f.is_required == 1);
+    $('#ff_uniq').prop('checked', f.is_unique == 1);
+    $('#ff_search').prop('checked', f.is_searchable == 1);
+    $('#ff_list').prop('checked', f.is_list_show == 1);
+}
+
+function copyField(id) {
+    if (!confirm('确定复制该字段？')) return;
+    $.post('/admin/content_field/copy/' + id, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+
+function deleteField(id) {
+    if (!confirm('确定删除该字段？')) return;
+    $.post('/admin/content_field/delete/' + id, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+
+$('#fieldForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    var id = $('#ff_id').val();
+    var url = id > 0 ? '/admin/content_field/update/' + id : '/admin/content_field/save';
+    $.post(url, data, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+});
+</script>
+{/block}

@@ -1,0 +1,226 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑模型{else/}新增模型{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item"><a href="/admin/content_model/index">内容模型</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑模型{else/}新增模型{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-{if condition='$info'}pencil{else/}plus-circle{/if} me-1"></i>模型信息</div>
+            <div class="card-body">
+                <form id="modelForm" method="post" action="{if condition="$info"}/admin/content_model/edit/{$info.id}{else/}/admin/content_model/add{/if}">
+                    <div class="mb-3">
+                        <label class="form-label">模型名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="如：标准产品">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">类型</label>
+                        <select name="type" class="form-select">
+                            {foreach $typeMap as $k => $v}
+                            <option value="{$k}" {if condition="($info.type ?? 1) == $k"}selected{/if}>{$v}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">图标</label>
+                        <input type="text" name="icon" class="form-control" value="{$info.icon ?? ''}" placeholder="Bootstrap Icons 名称，如：box">
+                        <div class="form-text"><a href="https://icons.getbootstrap.com/" target="_blank">浏览图标库</a></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">描述</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="模型用途说明">{$info.description ?? ''}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序</label>
+                        <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="status" value="1" id="statusSwitch" {if condition="($info.status ?? 1) == 1"}checked{/if}>
+                            <label class="form-check-label" for="statusSwitch">启用</label>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        <a href="/admin/content_model/index" class="btn btn-outline-secondary">返回</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {if condition="$info"}
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-sliders me-1"></i>字段管理</span>
+                <button type="button" class="btn btn-sm btn-success" onclick="openFieldModal()"><i class="bi bi-plus-lg me-1"></i>新增字段</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="fieldTable">
+                        <thead>
+                            <tr>
+                                <th>字段名</th>
+                                <th>标签</th>
+                                <th>类型</th>
+                                <th>必填</th>
+                                <th>排序</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="fields" id="f"}
+                            <tr data-id="{$f.id}">
+                                <td><code>{$f.field_name}</code></td>
+                                <td>{$f.field_label}</td>
+                                <td><span class="badge bg-light text-dark">{$fieldTypeMap[$f.field_type] ?? $f.field_type}</span></td>
+                                <td>{$f.is_required ? '<span class="badge bg-danger">是</span>' : '<span class="badge bg-secondary">否</span>'}</td>
+                                <td>{$f.sort}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editField({$f.id})"><i class="bi bi-pencil"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteField({$f.id})"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {empty name="fields"}
+                            <tr><td colspan="6" class="text-center text-muted py-4">暂无字段，点击上方按钮添加</td></tr>
+                            {/empty}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {/if}
+</div>
+
+<!-- 字段编辑弹窗 -->
+<div class="modal fade" id="fieldModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fieldModalTitle">新增字段</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="fieldId" value="0">
+                <div class="mb-3">
+                    <label class="form-label">字段名 <span class="text-danger">*</span></label>
+                    <input type="text" id="fieldName" class="form-control" placeholder="如：product_price">
+                    <div class="form-text">只能包含小写字母、数字和下划线，且以字母开头</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">字段标签 <span class="text-danger">*</span></label>
+                    <input type="text" id="fieldLabel" class="form-control" placeholder="如：产品价格">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">字段类型</label>
+                    <select id="fieldType" class="form-select">
+                        {foreach $fieldTypeMap as $k => $v}
+                        <option value="{$k}">{$v}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">默认值</label>
+                    <input type="text" id="fieldDefault" class="form-control" placeholder="留空则无默认值">
+                </div>
+                <div class="mb-3" id="optionsGroup" style="display:none;">
+                    <label class="form-label">选项（逗号分隔）</label>
+                    <input type="text" id="fieldOptions" class="form-control" placeholder="如：选项A,选项B,选项C">
+                </div>
+                <div class="mb-3">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="fieldRequired">
+                        <label class="form-check-label" for="fieldRequired">必填</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">排序</label>
+                    <input type="number" id="fieldSort" class="form-control" value="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveField()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+const MODEL_ID = parseInt('{$info.id ?? 0}');
+const FIELD_TYPE_MAP = {:json_encode($fieldTypeMap ?? [], JSON_UNESCAPED_UNICODE)};
+const FIELDS_DATA = {:json_encode($fields ?? [], JSON_UNESCAPED_UNICODE)};
+
+$('#fieldType').on('change', function() {
+    const t = $(this).val();
+    $('#optionsGroup').toggle(t === 'select' || t === 'radio' || t === 'checkbox');
+});
+
+function openFieldModal() {
+    $('#fieldId').val(0);
+    $('#fieldName').val('').prop('readonly', false);
+    $('#fieldLabel').val('');
+    $('#fieldType').val('text').trigger('change');
+    $('#fieldDefault').val('');
+    $('#fieldOptions').val('');
+    $('#fieldRequired').prop('checked', false);
+    $('#fieldSort').val(0);
+    $('#fieldModalTitle').text('新增字段');
+    new bootstrap.Modal(document.getElementById('fieldModal')).show();
+}
+
+function editField(id) {
+    const f = FIELDS_DATA.find(x => x.id == id);
+    if (!f) return;
+    $('#fieldId').val(f.id);
+    $('#fieldName').val(f.field_name).prop('readonly', true);
+    $('#fieldLabel').val(f.field_label);
+    $('#fieldType').val(f.field_type).trigger('change');
+    $('#fieldDefault').val(f.default_value);
+    $('#fieldOptions').val(f.options);
+    $('#fieldRequired').prop('checked', !!f.is_required);
+    $('#fieldSort').val(f.sort);
+    $('#fieldModalTitle').text('编辑字段');
+    new bootstrap.Modal(document.getElementById('fieldModal')).show();
+}
+
+function saveField() {
+    const data = {
+        model_id: MODEL_ID,
+        field_id: $('#fieldId').val(),
+        field_name: $('#fieldName').val().trim(),
+        field_label: $('#fieldLabel').val().trim(),
+        field_type: $('#fieldType').val(),
+        default_value: $('#fieldDefault').val(),
+        options: $('#fieldOptions').val(),
+        is_required: $('#fieldRequired').is(':checked') ? 1 : 0,
+        sort: $('#fieldSort').val(),
+    };
+    if (!data.field_name || !data.field_label) {
+        alert('字段名和标签不能为空'); return;
+    }
+    $.post('/admin/content_model/saveField', data, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+
+function deleteField(id) {
+    if (!confirm('确定删除该字段？')) return;
+    $.post('/admin/content_model/deleteField/' + id, function(res) {
+        alert(res.msg);
+        if (res.code === 0) location.reload();
+    });
+}
+</script>
+{/block}

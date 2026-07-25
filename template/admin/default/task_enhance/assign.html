@@ -1,0 +1,245 @@
+{extend name="layout" /}
+
+{block name="title"}任务分配管理{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">任务增强</li>
+<li class="breadcrumb-item active">任务分配</li>
+{/block}
+
+{block name="content"}
+<!-- 工具栏 -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <label class="form-label small mb-0">分配策略：</label>
+                <select id="assignStrategy" class="form-select form-select-sm" style="width:160px">
+                    <option value="balanced">均衡分配</option>
+                    <option value="round_robin">轮询分配</option>
+                    <option value="skill_match">技能匹配</option>
+                </select>
+                <button type="button" class="btn btn-primary btn-sm" onclick="batchAssign()">
+                    <i class="bi bi-people me-1"></i>批量分配
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <input type="text" id="keyword" class="form-control form-control-sm" placeholder="搜索任务标题" style="width:200px">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="doSearch()"><i class="bi bi-search"></i> 搜索</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 任务列表 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>任务列表</span>
+        <span class="text-muted small">共 {$tasks|count} 条</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="36"><input type="checkbox" class="form-check-input" id="checkAll"></th>
+                    <th width="60">ID</th>
+                    <th>任务标题</th>
+                    <th width="120">负责人</th>
+                    <th width="140">协作者</th>
+                    <th width="120">审核人</th>
+                    <th width="90">状态</th>
+                    <th width="140">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="tasks" id="task"}
+                <tr>
+                    <td><input type="checkbox" class="form-check-input batch-check" value="{$task.id}"></td>
+                    <td>{$task.id}</td>
+                    <td><a href="/admin/task_enhance/detail/{$task.id}">{$task.title}</a></td>
+                    <td>
+                        {if condition="$task.assignee_name"}
+                            <span class="badge bg-primary">{$task.assignee_name}</span>
+                        {else/}
+                            <span class="text-muted">未分配</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$task.collaborators"}
+                            {foreach $task.collaborators as $col}
+                                <span class="badge bg-info me-1">{$col.name}</span>
+                            {/foreach}
+                        {else/}
+                            <span class="text-muted">-</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$task.reviewer_name"}
+                            <span class="badge bg-warning text-dark">{$task.reviewer_name}</span>
+                        {else/}
+                            <span class="text-muted">-</span>
+                        {/if}
+                    </td>
+                    <td>
+                        {if condition="$task.status == 0"}<span class="badge bg-secondary">待分配</span>{/if}
+                        {if condition="$task.status == 1"}<span class="badge bg-info">进行中</span>{/if}
+                        {if condition="$task.status == 2"}<span class="badge bg-warning text-dark">待审核</span>{/if}
+                        {if condition="$task.status == 3"}<span class="badge bg-success">已完成</span>{/if}
+                        {if condition="$task.status == -1"}<span class="badge bg-danger">已取消</span>{/if}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-primary" title="分配" onclick="assignTask({$task.id})">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-info" title="转派" onclick="reassignTask({$task.id})">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </button>
+                            <a href="/admin/task_enhance/detail/{$task.id}" class="btn btn-outline-secondary" title="详情">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="tasks"}
+                <tr><td colspan="8" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox display-6 d-block mb-2"></i>暂无任务
+                </td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 分配弹窗 -->
+<div class="modal fade" id="assignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i><span id="assignModalTitle">分配任务</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="assignTaskId" value="0">
+                <input type="hidden" id="assignMode" value="assign">
+                <div class="mb-3">
+                    <label class="form-label">负责人</label>
+                    <select id="assigneeSelect" class="form-select">
+                        <option value="">请选择负责人</option>
+                        {volist name="members" id="member"}
+                        <option value="{$member.id}">{$member.nickname}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">协作者（可多选）</label>
+                    <select id="collaboratorSelect" class="form-select" multiple style="height:120px">
+                        {volist name="members" id="member"}
+                        <option value="{$member.id}">{$member.nickname}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">审核人</label>
+                    <select id="reviewerSelect" class="form-select">
+                        <option value="">请选择审核人</option>
+                        {volist name="members" id="member"}
+                        <option value="{$member.id}">{$member.nickname}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="confirmAssign()"><i class="bi bi-check-lg me-1"></i>确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var assignModal = null;
+$(function() {
+    assignModal = new bootstrap.Modal(document.getElementById('assignModal'));
+    $('#checkAll').on('change', function() {
+        $('.batch-check').prop('checked', this.checked);
+    });
+});
+
+function doSearch() {
+    var kw = $('#keyword').val();
+    window.location.href = '/admin/task_enhance/assign?keyword=' + encodeURIComponent(kw);
+}
+
+function assignTask(id) {
+    $('#assignTaskId').val(id);
+    $('#assignMode').val('assign');
+    $('#assignModalTitle').text('分配任务');
+    $('#assigneeSelect').val('');
+    $('#collaboratorSelect').val([]);
+    $('#reviewerSelect').val('');
+    assignModal.show();
+}
+
+function reassignTask(id) {
+    $('#assignTaskId').val(id);
+    $('#assignMode').val('reassign');
+    $('#assignModalTitle').text('转派任务');
+    assignModal.show();
+}
+
+function batchAssign() {
+    var ids = [];
+    $('.batch-check:checked').each(function() {
+        ids.push($(this).val());
+    });
+    if (ids.length === 0) {
+        showToast('请至少选择一个任务', 'warning');
+        return;
+    }
+    var strategy = $('#assignStrategy').val();
+    showConfirm('批量分配', '确定对选中的 ' + ids.length + ' 个任务使用「' + $('#assignStrategy option:selected').text() + '」策略进行分配？', function() {
+        $.post('/admin/task_enhance/batchAssign', {ids: ids, strategy: strategy}, function(res) {
+            if (res.success) {
+                showToast('批量分配成功', 'success');
+                setTimeout(function() { location.reload(); }, 1000);
+            } else {
+                showToast(res.msg || '操作失败', 'danger');
+            }
+        });
+    });
+}
+
+function confirmAssign() {
+    var id = $('#assignTaskId').val();
+    var mode = $('#assignMode').val();
+    var assignee = $('#assigneeSelect').val();
+    var reviewer = $('#reviewerSelect').val();
+    var collaborators = $('#collaboratorSelect').val() || [];
+
+    if (!assignee) {
+        showToast('请选择负责人', 'warning');
+        return;
+    }
+
+    var url = mode === 'reassign' ? '/admin/task_enhance/reassign' : '/admin/task_enhance/assign';
+    $.post(url, {
+        id: id,
+        assignee_id: assignee,
+        reviewer_id: reviewer,
+        collaborator_ids: collaborators
+    }, function(res) {
+        if (res.success) {
+            showToast('操作成功', 'success');
+            assignModal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast(res.msg || '操作失败', 'danger');
+        }
+    });
+}
+</script>
+{/block}

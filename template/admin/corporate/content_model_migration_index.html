@@ -1,0 +1,128 @@
+{extend name="layout" /}
+
+{block name="title"}模型迁移工具{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/content/index">内容管理</a></li>
+<li class="breadcrumb-item active">模型迁移工具</li>
+{/block}
+
+{block name="content"}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-arrow-left-right me-1"></i>批量分配模型</div>
+            <div class="card-body">
+                <p class="text-muted small">将指定类型的未分配模型的内容批量分配到目标模型。</p>
+                <div class="mb-2">
+                    <label class="form-label">内容类型</label>
+                    <select class="form-select form-select-sm" id="assignType">
+                        <option value="1">产品</option><option value="2">案例</option>
+                        <option value="3">新闻</option><option value="4">下载</option>
+                        <option value="5">招聘</option><option value="6">单页</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">目标模型</label>
+                    <select class="form-select form-select-sm" id="assignModel">
+                        {volist name="models" id="m"}
+                        <option value="{$m.id}">{$m.name} (类型:{$m.type})</option>
+                        {/volist}
+                    </select>
+                </div>
+                <button class="btn btn-sm btn-primary mt-2" onclick="batchAssign()"><i class="bi bi-play-fill"></i> 开始分配</button>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-magic me-1"></i>从类型自动导入</div>
+            <div class="card-body">
+                <p class="text-muted small">自动根据内容的type字段匹配默认模型并分配。</p>
+                <button class="btn btn-sm btn-success" onclick="importFromType()"><i class="bi bi-play-fill"></i> 一键导入</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="bi bi-sliders me-1"></i>初始化模型字段</div>
+            <div class="card-body">
+                <p class="text-muted small">为缺少扩展数据的内容初始化默认字段值。</p>
+                <div class="mb-2">
+                    <label class="form-label">目标模型</label>
+                    <select class="form-select form-select-sm" id="initModel">
+                        {volist name="models" id="m"}
+                        <option value="{$m.id}">{$m.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <button class="btn btn-sm btn-warning" onclick="initFields()"><i class="bi bi-play-fill"></i> 初始化</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-clock-history me-1"></i>迁移日志</div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height:600px;overflow-y:auto">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr><th>时间</th><th>类型</th><th>总数</th><th>成功</th><th>失败</th></tr>
+                        </thead>
+                        <tbody>
+                            {volist name="logs" id="log"}
+                            <tr>
+                                <td class="small">{:date('m-d H:i', $log.create_time)}</td>
+                                <td><code>{$log.migration_type}</code></td>
+                                <td>{$log.total_count}</td>
+                                <td class="text-success">{$log.success_count}</td>
+                                <td class="text-danger">{$log.fail_count}</td>
+                            </tr>
+                            {/volist}
+                            {empty name="logs"}
+                            <tr><td colspan="5" class="text-center text-muted py-3">暂无日志</td></tr>
+                            {/empty}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function batchAssign() {
+    if (!confirm('确定开始批量分配？')) return;
+    $.post('/admin/content_model_migration/batchAssign', {
+        model_id: $('#assignModel').val(),
+        type: $('#assignType').val()
+    }, function(res) {
+        if (res.code === 0) {
+            alert('分配完成！总数:' + res.data.total + ' 成功:' + res.data.success + ' 失败:' + res.data.fail);
+            location.reload();
+        } else { alert(res.msg); }
+    });
+}
+function importFromType() {
+    if (!confirm('确定从类型自动导入？')) return;
+    $.post('/admin/content_model_migration/importFromType', function(res) {
+        if (res.code === 0) {
+            alert('导入完成！总数:' + res.data.total + ' 成功:' + res.data.success);
+            location.reload();
+        } else { alert(res.msg); }
+    });
+}
+function initFields() {
+    if (!confirm('确定初始化模型字段？')) return;
+    $.post('/admin/content_model_migration/initFields', {
+        model_id: $('#initModel').val()
+    }, function(res) {
+        if (res.code === 0) {
+            alert('初始化完成！总数:' + res.data.total + ' 成功:' + res.data.success);
+            location.reload();
+        } else { alert(res.msg); }
+    });
+}
+</script>
+{/block}

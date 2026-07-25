@@ -1,0 +1,20 @@
+{extend name="layout" /}
+
+{block name="title"}会员注册{/block}
+
+{block name="content"}
+<div class="cm-main">
+    <div class="cm-card" style="padding:26px 20px;margin-top:8px;">
+        <h4 class="text-center mb-4" style="font-size:18px;font-weight:800;color:var(--i8j-text,#1e293b);">会员注册</h4>
+        <form id="registerForm">
+            <div class="cm-fg"><input type="text" name="username" class="cm-input" placeholder="用户名（必填） required></div>
+            <div class="cm-fg"><input type="email" name="email" class="cm-input" placeholder="邮箱（必填）" required></div>
+            <div class="cm-fg"><input type="password" name="password" class="cm-input" placeholder="密码（必填）" required></div>
+            <div class="cm-fg"><input type="text" name="nickname" class="cm-input" placeholder="昵称（选填）></div>
+            <button type="submit" class="cm-btn cm-btn-pri" style="margin-top:4px;"><i class="bi bi-person-plus me-2"></i>注册</button>
+        </form>
+        <div class="text-center mt-3"><a href="/member/login" style="font-size:13.5px;color:var(--i8j-primary,#3b82f6);text-decoration:none;">已有账号？立即登录</a></div>
+    </div>
+</div>
+{/block}
+{block name="js"}<script>$('#registerForm').on('submit',function(e){e.preventDefault();$.post('/member/register',$(this).serialize(),function(r){if(r.success){showToast('注册成功','success');setTimeout(function(){location.href='/member/login';},1200);}else showToast(r.msg||'注册失败','danger');});});</script>{/block}

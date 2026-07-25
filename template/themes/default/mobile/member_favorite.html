@@ -1,0 +1,28 @@
+{extend name="layout" /}
+
+{block name="title"}我的收藏{/block}
+
+{block name="content"}
+<div class="m-content">
+    <h4 style="font-size:17px;font-weight:700;margin-bottom:12px;"><i class="bi bi-heart me-2"></i>我的收藏</h4>
+
+    {volist name="list" id="vo"}
+    <div class="m-card">
+        {if condition="$vo.cover"}<img src="{$vo.cover}" class="m-card-img" alt="" onerror="this.style.display='none'" style="max-height:140px;object-fit:cover;">{/if}
+        <div class="m-card-body">
+            <h6 class="m-card-tit"><a href="{$vo.url}">{$vo.title}</a></h6>
+            <p class="m-card-text">{$vo.excerpt|msubstr=0,50}</p>
+            <small class="text-muted" style="font-size:11.5px;">{$vo.create_time|date='Y-m-d H:i'}</small>
+        </div>
+    </div>
+    {/volist}
+
+    {empty name="list"}
+    <div class="m-empty"><i class="bi bi-heart"></i><p>暂无收藏内容</p></div>
+    {/empty}
+
+    {if condition="($list->hasPages() ?? false)"}
+    <div class="m-pagination">{$list->render()|raw}</div>
+    {/if}
+</div>
+{/block}

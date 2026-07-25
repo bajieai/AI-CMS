@@ -1,0 +1,7 @@
+rewrite ^/admin/?$ /admin.php last;
+rewrite ^/admin/(.*)$ /admin.php?s=/$1 last;
+rewrite ^/install/(.*)$ /install.php?s=/$1 last;
+rewrite ^/api/(.*)$ /api.php?s=/$1 last;
+if (!-e $request_filename) {
+    rewrite ^(.*)$ /index.php?s=/$1 last;
+}

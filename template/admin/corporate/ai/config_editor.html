@@ -1,0 +1,57 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3">AI编辑器配置</h4>
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-robot me-2"></i>功能开关</div>
+        <div class="card-body">
+            <form method="post" action="/admin/ai_config/save" id="configForm">
+                <table class="table">
+                    <thead><tr><th>功能</th><th>启用</th></tr></thead>
+                    <tbody>
+                        {volist name="config.features" id="feat" key="k"}
+                        <tr><td>{$feat.label}</td><td>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="features[{$k}]" value="1" {if $feat.enabled}checked{/if}>
+                            </div>
+                        </td></tr>
+                        {/volist}
+                    </tbody>
+                </table>
+
+                <hr>
+                <h6>对话配置</h6>
+                <div class="row mb-3">
+                    <div class="col-md-4"><label class="form-label">会话超时(秒)</label><input type="number" name="conversation_timeout" class="form-control" value="{$config.conversation_timeout}"></div>
+                    <div class="col-md-4"><label class="form-label">最大Token</label><input type="number" name="conversation_max_token" class="form-control" value="{$config.conversation_max_token}"></div>
+                    <div class="col-md-4"><label class="form-label">版本上限</label><input type="number" name="snapshot_max" class="form-control" value="{$config.snapshot_max}"></div>
+                </div>
+
+                <hr>
+                <h6>快捷键配置 <small class="text-muted">（Alt键防冲突）</small></h6>
+                <div class="row mb-3">
+                    <div class="col-md-4"><label class="form-label">唤起AI菜单</label><input type="text" name="shortcuts[menu]" class="form-control" value="{$config.shortcuts.menu}"></div>
+                    <div class="col-md-4"><label class="form-label">优化段落</label><input type="text" name="shortcuts[optimize]" class="form-control" value="{$config.shortcuts.optimize}"></div>
+                    <div class="col-md-4"><label class="form-label">翻译</label><input type="text" name="shortcuts[translate]" class="form-control" value="{$config.shortcuts.translate}"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>保存配置</button>
+            </form>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-bar-chart me-2"></i>API消耗统计</div>
+        <div class="card-body">
+            <a href="/admin/ai_config/apiStats" class="btn btn-outline-info">查看API消耗统计</a>
+        </div>
+    </div>
+</div>
+<script>
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    $.post($(this).attr('action'), $(this).serialize(), function(res) {
+        if (res.code === 0) { alert(res.msg); } else { alert(res.msg); }
+    });
+});
+</script>
+{/block}

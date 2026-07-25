@@ -1,0 +1,110 @@
+{extend name="layout" /}
+{block name="title"}创建API令牌{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/token/index">API令牌</a></li>
+<li class="breadcrumb-item active">创建令牌</li>
+{/block}
+
+{block name="content"}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">创建API令牌</div>
+            <div class="card-body">
+                <form id="tokenForm">
+                    <div class="mb-3">
+                        <label class="form-label">令牌名称</label>
+                        <input type="text" name="name" class="form-control" placeholder="例如：移动端接口" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">认证类型</label>
+                        <select name="auth_type" class="form-select">
+                            <option value="bearer">Bearer（简单哈希校验）</option>
+                            <option value="hmac">HMAC（X-Signature签名验证）</option>
+                        </select>
+                        <div class="form-text">Bearer模式仅需携带Token；HMAC模式需额外计算请求签名。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">权限范围</label>
+                        <input type="text" name="scopes" class="form-control" value="*" placeholder="* 或 content,comment">
+                        <div class="form-text">* 表示全部权限，多个用逗号分隔。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">速率限制（次/分钟）</label>
+                        <input type="number" name="rate_limit" class="form-control" value="60" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">有效期（天，0为永久）</label>
+                        <input type="number" name="expire_days" class="form-control" value="0" min="0">
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">创建</button>
+                        <a href="/admin/token/index" class="btn btn-secondary">返回</a>
+                    </div>
+                </form>
+
+                <div id="resultBox" class="alert alert-success mt-3 d-none">
+                    <h6 class="alert-heading">令牌创建成功！请立即保存以下信息</h6>
+                    <hr>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Token</label>
+                        <div class="input-group">
+                            <input type="text" id="resultToken" class="form-control font-monospace" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyText('resultToken')">复制</button>
+                        </div>
+                    </div>
+                    <div class="mb-0" id="resultSecretWrap">
+                        <label class="form-label fw-bold">Secret Key（仅HMAC模式）</label>
+                        <div class="input-group">
+                            <input type="text" id="resultSecret" class="form-control font-monospace" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyText('resultSecret')">复制</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$(function() {
+    $('#tokenForm').on('submit', function(e) {
+        e.preventDefault();
+        var data = $(this).serialize();
+        $.ajax({
+            url: '/admin/token/create',
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            success: function(res) {
+                if (res.success) {
+                    $('#resultToken').val(res.token);
+                    if (res.secret) {
+                        $('#resultSecret').val(res.secret);
+                        $('#resultSecretWrap').removeClass('d-none');
+                    } else {
+                        $('#resultSecretWrap').addClass('d-none');
+                    }
+                    $('#resultBox').removeClass('d-none');
+                    $('#tokenForm').find('button[type="submit"]').prop('disabled', true).text('已创建');
+                } else {
+                    showToast(res.msg || '创建失败', 'danger');
+                }
+            },
+            error: function() {
+                showToast('网络错误', 'danger');
+            }
+        });
+    });
+});
+
+function copyText(id) {
+    var input = document.getElementById(id);
+    input.select();
+    document.execCommand('copy');
+    showToast('已复制到剪贴板', 'success');
+}
+</script>
+{/block}

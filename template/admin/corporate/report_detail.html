@@ -1,0 +1,121 @@
+{extend name="layout" /}
+{block name="title"}报表详情 - {$report.report_name}{/block}
+{block name="content"}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/report/index">报表列表</a></li>
+            <li class="breadcrumb-item active">{$report.report_name}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>{$report.report_name}</span>
+                    <span class="badge {:in_array($report['report_type'],['content','template'])?'bg-info':(in_array($report['report_type'],['user','distribute'])?'bg-primary':'bg-success')}">
+                        {$types[$report['report_type']] ?? $report['report_type'] ?? '未知'}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="120">报表名称</th>
+                            <td>{$report.report_name}</td>
+                        </tr>
+                        <tr>
+                            <th>报表类型</th>
+                            <td>{$types[$report['report_type']] ?? $report['report_type'] ?? '未知'}</td>
+                        </tr>
+                        <tr>
+                            <th>数据源</th>
+                            <td>{$report.data_source}</td>
+                        </tr>
+                        <tr>
+                            <th>图表类型</th>
+                            <td>{$report.chart_type}</td>
+                        </tr>
+                        <tr>
+                            <th>是否系统预置</th>
+                            <td>{if $report.is_system==1}<span class="badge bg-primary">系统预置</span>{else}<span class="badge bg-secondary">自定义</span>{/if}</td>
+                        </tr>
+                        <tr>
+                            <th>默认时间范围</th>
+                            <td>{$report.date_range ?? 'last_30_days'}</td>
+                        </tr>
+                    {if $report.create_time > 0}
+                    <tr>
+                        <th>创建时间</th>
+                        <td>{:date('Y-m-d H:i', (int)$report['create_time'])}</td>
+                    </tr>
+                    {/if}
+                    {if $report.update_time > 0}
+                    <tr>
+                        <th>更新时间</th>
+                        <td>{:date('Y-m-d H:i', (int)$report['update_time'])}</td>
+                    </tr>
+                    {/if}
+                    </table>
+
+                    {if $report.metrics}
+                    <div class="mb-4">
+                        <h5 class="border-start border-3 border-primary ps-2">核心指标</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {foreach $metricsTags as $tag}
+                            <span class="badge bg-primary bg-opacity-75 text-white">{$tag}</span>
+                            {/foreach}
+                        </div>
+                    </div>
+                    {/if}
+
+                    {if $report.dimensions}
+                    <div class="mb-4">
+                        <h5 class="border-start border-3 border-success ps-2">分析维度</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {foreach $dimensionsTags as $tag}
+                            <span class="badge bg-success bg-opacity-75 text-white">{$tag}</span>
+                            {/foreach}
+                        </div>
+                    </div>
+                    {/if}
+
+                    {if $report.filters}
+                    <div class="mb-4">
+                        <h5 class="border-start border-3 border-warning ps-2">筛选条件</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {foreach $filtersTags as $tag}
+                            <span class="badge bg-warning bg-opacity-75 text-dark">{$tag}</span>
+                            {/foreach}
+                        </div>
+                    </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header">操作</div>
+                <div class="card-body">
+                    <a href="/admin/report/generate/{$report.id}" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-play-fill me-1"></i>生成报表数据
+                    </a>
+                    {if $report.is_system==0}
+                    <a href="/admin/report/delete/{$report.id}" class="btn btn-outline-danger w-100" onclick="return confirm('确认删除此报表？')">
+                        <i class="bi bi-trash me-1"></i>删除报表
+                    </a>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">分组方式</div>
+                <div class="card-body">
+                    <p class="text-muted">{$report.group_by ?? '默认分组'}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

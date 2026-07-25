@@ -1,0 +1,139 @@
+{extend name="layout" /}
+
+{block name="title"}小程序配置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">小程序管理</li>
+<li class="breadcrumb-item active">小程序配置</li>
+{/block}
+
+{block name="content"}
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" data-tab="wechat" href="javascript:void(0)" onclick="switchTab('wechat')">微信配置</a></li>
+    <li class="nav-item"><a class="nav-link" data-tab="basic" href="javascript:void(0)" onclick="switchTab('basic')">基本配置</a></li>
+    <li class="nav-item"><a class="nav-link" data-tab="theme" href="javascript:void(0)" onclick="switchTab('theme')">主题配置</a></li>
+    <li class="nav-item"><a class="nav-link" data-tab="features" href="javascript:void(0)" onclick="switchTab('features')">功能开关</a></li>
+    <li class="nav-item"><a class="nav-link" data-tab="api" href="javascript:void(0)" onclick="switchTab('api')">API配置</a></li>
+</ul>
+
+<form id="configForm" method="post" action="/admin/mini_app/saveConfig">
+<!-- 微信配置 -->
+<div id="tab-wechat">
+<div class="card"><div class="card-header"><i class="bi bi-wechat me-1"></i>微信小程序配置</div><div class="card-body">
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">AppID</label><input type="text" name="app_id" class="form-control" value="{$config.app_id ?? ''}" placeholder="wx开头的AppID"></div>
+        <div class="col-md-6"><label class="form-label">AppSecret</label><input type="text" name="app_secret" class="form-control" value="{$config.app_secret ?? ''}" placeholder="小程序密钥"></div>
+        <div class="col-md-6"><label class="form-label">Token</label><input type="text" name="token" class="form-control" value="{$config.token ?? ''}" placeholder="消息推送Token"></div>
+        <div class="col-md-6"><label class="form-label">EncodingAESKey</label><input type="text" name="encoding_aes_key" class="form-control" value="{$config.encoding_aes_key ?? ''}" placeholder="消息加解密密钥"></div>
+    </div>
+</div></div>
+</div>
+
+<!-- 基本配置 -->
+<div id="tab-basic" style="display:none">
+<div class="card"><div class="card-header"><i class="bi bi-gear me-1"></i>基本配置</div><div class="card-body">
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">小程序名称</label><input type="text" name="app_name" class="form-control" value="{$config.app_name ?? ''}"></div>
+        <div class="col-md-6"><label class="form-label">Logo</label><div class="input-group"><input type="text" name="app_logo" id="appLogo" class="form-control" value="{$config.app_logo ?? ''}" placeholder="Logo URL"><button type="button" class="btn btn-outline-secondary" onclick="uploadLogo()"><i class="bi bi-upload"></i></button></div></div>
+        <div class="col-12"><label class="form-label">描述</label><textarea name="app_description" class="form-control" rows="3">{$config.app_description ?? ''}</textarea></div>
+    </div>
+</div></div>
+</div>
+
+<!-- 主题配置 -->
+<div id="tab-theme" style="display:none">
+<div class="card"><div class="card-header"><i class="bi bi-palette me-1"></i>主题配置</div><div class="card-body">
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">主题色</label><div class="input-group"><input type="color" name="theme_color" id="themeColor" class="form-control form-control-color" value="{$config.theme_color ?? '#07C160'}" style="height:38px"><input type="text" id="themeColorText" class="form-control" value="{$config.theme_color ?? '#07C160'}" readonly></div></div>
+        <div class="col-md-4"><label class="form-label">导航栏背景色</label><input type="color" name="nav_bg_color" class="form-control form-control-color" value="{$config.nav_bg_color ?? '#ffffff'}" style="height:38px"></div>
+        <div class="col-md-4"><label class="form-label">导航栏文字色</label><select name="nav_text_color" class="form-select"><option value="black" {if condition="($config.nav_text_color ?? '') == 'black'"}selected{/if}>黑色</option><option value="white" {if condition="($config.nav_text_color ?? '') == 'white'"}selected{/if}>白色</option></select></div>
+    </div>
+    <div class="mt-3 p-3 rounded" style="background:#f8f9fa">
+        <small class="text-muted d-block mb-2">预览</small>
+        <div class="d-inline-flex align-items-center px-3 py-2 rounded" id="navPreview" style="background:{$config.nav_bg_color ?? '#ffffff'}">
+            <span style="color:{$config.nav_text_color ?? 'black'};font-weight:600">首页</span>
+        </div>
+        <button type="button" class="btn btn-sm ms-3" id="primaryBtnPreview" style="background:{$config.theme_color ?? '#07C160'};color:#fff">主要按钮</button>
+    </div>
+</div></div>
+</div>
+
+<!-- 功能开关 -->
+<div id="tab-features" style="display:none">
+<div class="card"><div class="card-header"><i class="bi bi-toggles me-1"></i>功能开关</div><div class="card-body">
+    <div class="row g-3">
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_comment" value="1" id="f_comment" {if condition="($config.feature_comment ?? 1) == 1"}checked{/if}><label class="form-check-label" for="f_comment">评论功能</label></div></div>
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_favorite" value="1" id="f_favorite" {if condition="($config.feature_favorite ?? 1) == 1"}checked{/if}><label class="form-check-label" for="f_favorite">收藏功能</label></div></div>
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_like" value="1" id="f_like" {if condition="($config.feature_like ?? 1) == 1"}checked{/if}><label class="form-check-label" for="f_like">点赞功能</label></div></div>
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_message" value="1" id="f_message" {if condition="($config.feature_message ?? 0) == 1"}checked{/if}><label class="form-check-label" for="f_message">留言功能</label></div></div>
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_share" value="1" id="f_share" {if condition="($config.feature_share ?? 1) == 1"}checked{/if}><label class="form-check-label" for="f_share">分享功能</label></div></div>
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_search" value="1" id="f_search" {if condition="($config.feature_search ?? 1) == 1"}checked{/if}><label class="form-check-label" for="f_search">搜索功能</label></div></div>
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_user_center" value="1" id="f_uc" {if condition="($config.feature_user_center ?? 1) == 1"}checked{/if}><label class="form-check-label" for="f_uc">用户中心</label></div></div>
+        <div class="col-md-3 col-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="feature_login" value="1" id="f_login" {if condition="($config.feature_login ?? 1) == 1"}checked{/if}><label class="form-check-label" for="f_login">微信登录</label></div></div>
+    </div>
+</div></div>
+</div>
+
+<!-- API配置 -->
+<div id="tab-api" style="display:none">
+<div class="card"><div class="card-header"><i class="bi bi-code-slash me-1"></i>API配置</div><div class="card-body">
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">频率限制（次/分钟）</label><input type="number" name="api_rate_limit" class="form-control" value="{$config.api_rate_limit ?? 200}" min="1"><small class="text-muted">默认200次/分钟</small></div>
+        <div class="col-md-4"><label class="form-label">缓存时间（秒）</label><input type="number" name="api_cache_ttl" class="form-control" value="{$config.api_cache_ttl ?? 300}" min="0"></div>
+        <div class="col-md-4"><label class="form-label">单页条数</label><input type="number" name="api_page_size" class="form-control" value="{$config.api_page_size ?? 20}" min="1" max="100"></div>
+    </div>
+</div></div>
+</div>
+
+<div class="mt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存配置</button>
+    <a href="/admin/mini_app/config" class="btn btn-outline-secondary">重置</a>
+</div>
+</form>
+{/block}
+
+{block name="js"}
+<script>
+function switchTab(tab) {
+    $('.nav-link').removeClass('active');
+    $('[data-tab="' + tab + '"]').addClass('active');
+    $('div[id^="tab-"]').hide();
+    $('#tab-' + tab).show();
+}
+
+$('#themeColor').on('input', function() {
+    $('#themeColorText').val(this.value);
+    $('#primaryBtnPreview').css('background', this.value);
+});
+
+$('#configForm').on('submit', function(e) {
+    e.preventDefault();
+    var $form = $(this);
+    $form.find('.form-check-input:not(:checked)').each(function() {
+        var name = $(this).attr('name');
+        if (name && !$('[name="' + name + '"][type="hidden"]').length) {
+            $(this).after('<input type="hidden" name="' + name + '" value="0">');
+        }
+    });
+    ajaxPost($form.attr('action'), $form.serialize());
+});
+
+function uploadLogo() {
+    var input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.onchange = function() {
+        var file = input.files[0]; if (!file) return;
+        var fd = new FormData(); fd.append('file', file);
+        $.ajax({ url: '/api/upload/image', type: 'POST', data: fd, processData: false, contentType: false,
+            success: function(res) {
+                if (res.code === 0 && res.data && res.data.url) {
+                    $('#appLogo').val(res.data.url);
+                    showToast('上传成功', 'success');
+                } else { showToast(res.msg || '上传失败', 'danger'); }
+            }
+        });
+    };
+    input.click();
+}
+</script>
+{/block}

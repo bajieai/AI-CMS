@@ -1,0 +1,11 @@
+{extend name="layout" /}
+{block name="title"}插件统计{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">插件生态</li><li class="breadcrumb-item active">插件统计</li>{/block}
+{block name="content"}
+<div class="row g-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-primary">{$dashboard.install.total_installs|default=0}</h4><p class="small text-muted">总安装量</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-success">{$dashboard.install.active_installs|default=0}</h4><p class="small text-muted">活跃安装</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-info">{$dashboard.performance.avg_response_time|default=0}ms</h4><p class="small text-muted">平均响应时间</p></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><h4 class="text-warning">{$dashboard.performance.error_rate|default=0}%</h4><p class="small text-muted">错误率</p></div></div></div>
+</div>
+{/block}

@@ -1,0 +1,99 @@
+{extend name="layout" /}
+{block name="title"}H5移动端管理{/block}
+{block name="breadcrumb"}
+<li class="breadcrumb-item">小程序/移动端</li>
+<li class="breadcrumb-item active">H5移动端</li>
+{/block}
+{block name="content"}
+<div class="card">
+    <div class="card-header"><i class="bi bi-phone me-1"></i>H5移动端独立前端 (Vue3+Vite+Vant4)</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <h6>H5配置</h6>
+                <div class="mb-2">
+                    <label class="form-label small">主题色</label>
+                    <input type="color" id="themeColor" class="form-control form-control-color" value="#007bff">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">导航样式</label>
+                    <select id="navStyle" class="form-select form-select-sm">
+                        <option value="fixed">固定顶部</option>
+                        <option value="sticky">粘性</option>
+                        <option value="hidden">隐藏</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">分享标题</label>
+                    <input type="text" id="shareTitle" class="form-control form-control-sm" placeholder="默认使用站点名">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">PWA</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="pwaEnabled" checked>
+                        <label class="form-check-label" for="pwaEnabled">启用PWA(离线缓存+添加到桌面)</label>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">暗黑模式</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="darkMode" checked>
+                        <label class="form-check-label" for="darkMode">支持系统暗黑模式</label>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm mt-2" onclick="saveH5Config()"><i class="bi bi-save me-1"></i>保存配置</button>
+            </div>
+            <div class="col-md-6">
+                <h6>多语言适配 (Vue I18n) — P0修复</h6>
+                <p class="text-muted small">H5使用Vue I18n实现多语言切换，语言包从API动态加载</p>
+                <div class="mb-2">
+                    <label class="form-label small">默认语言</label>
+                    <select id="defaultLang" class="form-select form-select-sm">
+                        <option value="zh-cn">简体中文</option>
+                        <option value="en">English</option>
+                        <option value="jp">日本語</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">语言检测方式</label>
+                    <select id="langDetect" class="form-select form-select-sm">
+                        <option value="auto">自动(浏览器语言)</option>
+                        <option value="manual">手动(用户选择)</option>
+                        <option value="url">URL参数</option>
+                    </select>
+                </div>
+                <p class="small text-info"><i class="bi bi-info-circle"></i> Vue I18n集成：createI18n + 按需加载语言包 + 动态切换 + localStorage记忆</p>
+            </div>
+        </div>
+        <hr>
+        <h6>构建与发布</h6>
+        <button class="btn btn-success btn-sm" onclick="buildH5()"><i class="bi bi-hammer me-1"></i>一键生成静态文件</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="previewH5()"><i class="bi bi-eye me-1"></i>预览</button>
+        <div id="buildStatus" class="mt-2"></div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function saveH5Config() {
+    $.post('/admin/mini_manage/saveH5Config', {
+        theme_color: $('#themeColor').val(),
+        nav_style: $('#navStyle').val(),
+        share_title: $('#shareTitle').val(),
+        pwa_enabled: $('#pwaEnabled').is(':checked') ? 1 : 0,
+        dark_mode: $('#darkMode').is(':checked') ? 1 : 0,
+        default_lang: $('#defaultLang').val(),
+        lang_detect: $('#langDetect').val()
+    }, function(res) {
+        showToast(res.success ? '保存成功' : '保存失败', res.success ? 'success' : 'danger');
+    });
+}
+function buildH5() {
+    $('#buildStatus').html('<span class="text-info"><i class="bi bi-arrow-repeat spin"></i> 构建中...</span>');
+    $.post('/admin/mini_manage/buildH5', function(res) {
+        $('#buildStatus').html(res.success ? '<span class="text-success"><i class="bi bi-check-circle"></i> 构建成功</span>' : '<span class="text-danger"><i class="bi bi-x-circle"></i> ' + res.msg + '</span>');
+    });
+}
+function previewH5() { window.open('/h5/', '_blank'); }
+</script>
+{/block}

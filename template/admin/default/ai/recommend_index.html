@@ -1,0 +1,25 @@
+{extend name="layout" /}
+{block name="title"}AI推荐引擎{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item"><a href="/admin/ai">AI管理</a></li><li class="breadcrumb-item active">推荐引擎</li>{/block}
+{block name="content"}
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between"><h5>推荐策略配置</h5><button class="btn btn-outline-secondary" onclick="clearCache()">清除缓存</button></div>
+      <div class="card-body">
+        <form action="/admin/ai_recommend/updateConfig" method="post">
+          <div class="mb-3"><label>协同过滤权重</label><input type="number" step="0.01" name="collaborative_weight" value="{$config.collaborative_weight}" class="form-control"></div>
+          <div class="mb-3"><label>内容相似度权重</label><input type="number" step="0.01" name="content_weight" value="{$config.content_weight}" class="form-control"></div>
+          <div class="mb-3"><label>热门权重</label><input type="number" step="0.01" name="hot_weight" value="{$config.hot_weight}" class="form-control"></div>
+          <div class="mb-3"><label>新鲜度权重</label><input type="number" step="0.01" name="fresh_weight" value="{$config.fresh_weight}" class="form-control"></div>
+          <div class="mb-3"><label>缓存时间(秒)</label><input type="number" name="cache_ttl" value="{$config.cache_ttl}" class="form-control"></div>
+          <button type="submit" class="btn btn-primary">保存配置</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card"><div class="card-header"><h5>推荐统计</h5></div><div class="card-body"><p>总推荐次数: {$stats.total_recommendations ?? 0}</p><p>命中率: {$stats.hit_rate ?? 0}%</p><p>平均响应时间: {$stats.avg_response_time ?? 0}ms</p></div></div>
+  </div>
+</div>
+{/block}

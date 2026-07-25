@@ -1,0 +1,66 @@
+{extend name="layout" /}
+
+{block name="title"}{$site_name} - 首页{/block}
+
+{block name="content"}
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <!-- 主内容区（占8列） -->
+            <div class="col-lg-8">
+                <h2 class="section-title mb-3">最新文章</h2>
+                {i8j:infolist type="news" limit="10"}
+                <article class="content-list-item">
+                    {if condition="$field.cover"}
+                    <a href="{$field.url}" class="item-thumb"><img data-src="{$field.cover}" class="lazyload" alt="{$field.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></a>
+                    {/if}
+                    <div class="item-body">
+                        <h5><a href="{$field.url}">{$field.title}</a></h5>
+                        <p class="text-muted small">{$field.excerpt|msubstr=0,120}</p>
+                        <div class="item-meta">
+                            <span><i class="bi bi-calendar3"></i> {$field.create_time|date='Y-m-d'}</span>
+                            <span><i class="bi bi-eye"></i> {$field.views} 阅读</span>
+                            {if condition="$field.cate"}<span><i class="bi bi-folder2"></i> {$field.cate.name}</span>{/if}
+                        </div>
+                    </div>
+                </article>
+                {/i8j:infolist}
+
+                {empty name="__LIST__"}
+                {include file="shared/empty_state" /}
+                {/empty}
+            </div>
+
+            <!-- 侧边栏（占4列） -->
+            <aside class="col-lg-4">
+                <div class="widget">
+                    <h6 class="widget-title"><i class="bi bi-fire me-1"></i>热门文章</h6>
+                    {i8j:infolist type="news" limit="5" order="views desc"}
+                    <div class="widget-item d-flex gap-2">
+                        <span class="rank-num">{$i+1}</span>
+                        <div><a href="{$field.url}" class="small">{$field.title}</a><br><small class="text-muted">{$field.views} 阅读</small></div>
+                    </div>
+                    {/i8j:infolist}
+                </div>
+
+                <div class="widget">
+                    <h6 class="widget-title"><i class="bi bi-tags me-1"></i>标签云</h6>
+                    <div class="tag-cloud">
+                        {volist name="hot_tags" id="tag"}
+                        <a href="/tag/{$tag.id}" class="tag-link">{$tag.name}</a>
+                        {/volist}
+                        {empty name="hot_tags"}
+                        <span class="text-muted small">暂无标签</span>
+                        {/empty}
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h6 class="widget-title"><i class="bi bi-folder2 me-1"></i>分类</h6>
+                    <div class="list-group list-group-flush">{$cate_tree_html|raw}</div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{/block}

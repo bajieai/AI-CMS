@@ -1,0 +1,200 @@
+{extend name="layout" /}
+
+{block name="title"}{if condition="$info"}编辑等级{else/}添加等级{/if}{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin/member_level/index">用户管理</a></li>
+<li class="breadcrumb-item"><a href="/admin/member_level/index">会员等级</a></li>
+<li class="breadcrumb-item active">{if condition="$info"}编辑{else/}添加{/if}</li>
+{/block}
+
+{block name="content"}
+<div class="card" style="border:none;box-shadow:var(--card-shadow)">
+    <div class="card-body">
+        <form id="levelForm" onsubmit="return false;">
+            <input type="hidden" name="id" value="{$info.id??0}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">等级名称</label>
+                    <input type="text" class="form-control" name="name" value="{$info.name??''}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">图标类名</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="icon" value="{$info.icon??'bi bi-award'}" placeholder="如 bi bi-award" id="iconInput">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#iconPickerModal"><i class="bi bi-grid"></i> 选择</button>
+                    </div>
+                    <div class="form-text">当前预览：<i id="iconPreview" class="{$info.icon??'bi bi-award'}"></i></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">最低积分</label>
+                    <input type="number" class="form-control" name="min_points" value="{$info.min_points??0}" min="0" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">折扣(%)</label>
+                    <input type="number" class="form-control" name="discount" value="{$info.discount??100}" min="1" max="100" required>
+                    <div class="form-text">100=无折扣，80=八折</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">排序</label>
+                    <input type="number" class="form-control" name="sort" value="{$info.sort??0}">
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_vip" value="1" id="swVip" {if condition="($info.is_vip ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swVip">VIP等级 <i class="bi bi-gem text-warning"></i></label>
+                        <div class="form-text">VIP有效期内免费阅读付费内容</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="allow_download" value="1" id="swDownload" {if condition="($info.allow_download ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swDownload">允许下载附件</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="allow_comment_no_review" value="1" id="swComment" {if condition="($info.allow_comment_no_review ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swComment">评论免审核</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_default" value="1" id="swDefault" {if condition="($info.is_default ?? 0)==1"}checked{/if}>
+                        <label class="form-check-label" for="swDefault">设为默认等级</label>
+                    </div>
+                </div>
+            </div>
+            <!-- V2.9.9 权益配置 -->
+            <div class="row g-3 mt-2">
+                <div class="col-md-4">
+                    <label class="form-label">每日AI配额</label>
+                    <input type="number" class="form-control" name="daily_ai_quota" value="{$info.daily_ai_quota??0}" min="0">
+                    <div class="form-text">0=不限制，正数=每日可调用AI次数上限</div>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">专属内容ID列表</label>
+                    <input type="text" class="form-control" name="exclusive_content_ids" value="{if condition="$info.exclusive_content_ids ?? false"}{:implode(',', json_decode($info.exclusive_content_ids, true) ?: [])}{/if}" placeholder="如：12,34,56">
+                    <div class="form-text">该等级会员专属的content_id列表，逗号分隔，留空表示无专属内容</div>
+                </div>
+            </div>
+            <!-- V2.8 VIP免费阅读范围配置区 -->
+            <div class="row g-3 mt-2" id="vipFreeConfig" style="display:none;">
+                <div class="col-12">
+                    <div class="alert alert-info mb-0">
+                        <h6 class="alert-heading"><i class="bi bi-info-circle me-1"></i>VIP免费阅读范围配置</h6>
+                        <p class="mb-2 small">当前全局配置：
+                            <strong>{if condition="$vip_free_read_mode == 1"}<span class="text-success">全部免费</span>{else/}<span class="text-secondary">不免费（仅折扣/已购）</span>{/if}</strong>
+                        </p>
+                        <p class="mb-0 small text-muted">V2.8仅支持全免费/不免费二元开关，分类级别精细控制将在V3.0提供。如需修改请前往「系统设置 → 系统配置」调整 vip_free_read_mode。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+                <a href="/admin/member_level/index" class="btn btn-outline-secondary ms-2">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 图标选择器 Modal -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择 Bootstrap Icons 图标</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2" id="iconList">
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-award" style="cursor:pointer"><i class="bi bi-award fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-award</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-trophy" style="cursor:pointer"><i class="bi bi-trophy fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-trophy</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-star" style="cursor:pointer"><i class="bi bi-star fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-star</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-star-fill" style="cursor:pointer"><i class="bi bi-star-fill fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-star-fill</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-gem" style="cursor:pointer"><i class="bi bi-gem fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-gem</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-trophy" style="cursor:pointer"><i class="bi bi-trophy fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-trophy</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-lightning" style="cursor:pointer"><i class="bi bi-lightning fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-lightning</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-fire" style="cursor:pointer"><i class="bi bi-fire fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-fire</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-heart" style="cursor:pointer"><i class="bi bi-heart fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-heart</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-heart-fill" style="cursor:pointer"><i class="bi bi-heart-fill fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-heart-fill</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-shield" style="cursor:pointer"><i class="bi bi-shield fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-shield</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-shield-fill" style="cursor:pointer"><i class="bi bi-shield-fill fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-shield-fill</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-check-circle" style="cursor:pointer"><i class="bi bi-check-circle fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-check-circle</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-check-circle-fill" style="cursor:pointer"><i class="bi bi-check-circle-fill fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-check-circle-fill</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-x-circle" style="cursor:pointer"><i class="bi bi-x-circle fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-x-circle</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-info-circle" style="cursor:pointer"><i class="bi bi-info-circle fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-info-circle</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-exclamation-circle" style="cursor:pointer"><i class="bi bi-exclamation-circle fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-exclamation-circle</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-question-circle" style="cursor:pointer"><i class="bi bi-question-circle fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-question-circle</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-arrow-up-circle" style="cursor:pointer"><i class="bi bi-arrow-up-circle fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-arrow-up-circle</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-arrow-down-circle" style="cursor:pointer"><i class="bi bi-arrow-down-circle fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-arrow-down-circle</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-person" style="cursor:pointer"><i class="bi bi-person fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-person</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-person-fill" style="cursor:pointer"><i class="bi bi-person-fill fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-person-fill</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-people" style="cursor:pointer"><i class="bi bi-people fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-people</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-person-check" style="cursor:pointer"><i class="bi bi-person-check fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-person-check</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-robot" style="cursor:pointer"><i class="bi bi-robot fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-robot</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-cpu" style="cursor:pointer"><i class="bi bi-cpu fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-cpu</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-rocket" style="cursor:pointer"><i class="bi bi-rocket fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-rocket</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-moon" style="cursor:pointer"><i class="bi bi-moon fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-moon</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-sun" style="cursor:pointer"><i class="bi bi-sun fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-sun</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-stars" style="cursor:pointer"><i class="bi bi-stars fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-stars</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-gift" style="cursor:pointer"><i class="bi bi-gift fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-gift</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-balloon" style="cursor:pointer"><i class="bi bi-balloon fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-balloon</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-cash" style="cursor:pointer"><i class="bi bi-cash fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-cash</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-coin" style="cursor:pointer"><i class="bi bi-coin fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-coin</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-bank" style="cursor:pointer"><i class="bi bi-bank fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-bank</div></div></div>
+                    <div class="col-2 text-center"><div class="icon-item p-2 border rounded" data-icon="bi-credit-card" style="cursor:pointer"><i class="bi bi-credit-card fs-4"></i><div class="small text-muted mt-1" style="font-size:.7rem">bi-credit-card</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{/block}
+
+{block name="js"}
+<script>
+$(function(){
+    // V2.8: VIP等级切换时显示/隐藏免费阅读配置提示
+    function toggleVipConfig() {
+        if($('#swVip').is(':checked')) {
+            $('#vipFreeConfig').show();
+        } else {
+            $('#vipFreeConfig').hide();
+        }
+    }
+    $('#swVip').on('change', toggleVipConfig);
+    toggleVipConfig();
+
+    // 图标预览
+    $('#iconInput').on('input', function(){
+        $('#iconPreview').attr('class', $(this).val());
+    });
+
+    // 图标选择
+    $('#iconList .icon-item').click(function(){
+        var icon = $(this).data('icon');
+        $('#iconInput').val(icon);
+        $('#iconPreview').attr('class', icon);
+        bootstrap.Modal.getInstance(document.getElementById('iconPickerModal')).hide();
+    });
+
+    $('#btnSave').click(function(){
+        var data = {};
+        $('#levelForm').serializeArray().forEach(function(item){
+            if(item.name === 'id' || item.name === 'min_points' || item.name === 'discount' || item.name === 'sort'){
+                data[item.name] = parseInt(item.value);
+            }else if(item.name === 'allow_download' || item.name === 'allow_comment_no_review' || item.name === 'is_default' || item.name === 'is_vip'){
+                data[item.name] = $('#levelForm [name='+item.name+']').is(':checked') ? 1 : 0;
+            }else{
+                data[item.name] = item.value;
+            }
+        });
+        ajaxPost('/admin/member_level/save', data, function(d){
+            $.toast(d.msg, d.code===0?'success':'danger');
+            if(d.code===0) setTimeout(function(){location.href='/admin/member_level/index'},800);
+        });
+    });
+});
+</script>
+{/block}

@@ -1,0 +1,294 @@
+/*
+ * RTL Layout Styles - Corporate Admin Theme
+ * V2.9.39 I18N-V2-4
+ * 使用CSS逻辑属性实现RTL布局翻转
+ * 当html标签设置 dir="rtl" 时自动生效
+ * 适配corporate企业商务皮肤的双栏菜单布局
+ */
+
+/* ===== 全局布局翻转 ===== */
+html[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+}
+
+/* ===== 双栏菜单翻转 ===== */
+html[dir="rtl"] .admin-sidebar {
+    order: 2;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+}
+
+html[dir="rtl"] .admin-sidebar-secondary {
+    order: 1;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    margin-inline-start: 55px;
+    margin-inline-end: 0;
+}
+
+html[dir="rtl"] .admin-main {
+    order: 0;
+    margin-inline-start: 255px;
+    margin-inline-end: 0;
+}
+
+/* L1图标栏翻转 */
+html[dir="rtl"] .sidebar-l1 {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    border-inline-end: 1px solid #e0e0e0;
+    border-inline-start: 0;
+}
+
+/* L2面板翻转 */
+html[dir="rtl"] .sidebar-l2 {
+    inset-inline-start: auto;
+    inset-inline-end: 55px;
+}
+
+/* ===== 导航栏 ===== */
+html[dir="rtl"] .navbar-brand {
+    margin-inline-end: 1rem;
+    margin-inline-start: 0;
+}
+
+html[dir="rtl"] .navbar-nav {
+    padding-inline-start: 0;
+}
+
+html[dir="rtl"] .nav-link {
+    text-align: start;
+}
+
+/* ===== 卡片和面板 ===== */
+html[dir="rtl"] .card-header {
+    text-align: start;
+}
+
+html[dir="rtl"] .card-header .btn-group {
+    float: inline-end;
+}
+
+html[dir="rtl"] .card-body {
+    text-align: start;
+}
+
+/* ===== 统计卡片 ===== */
+html[dir="rtl"] .stat-card .stat-icon {
+    inset-inline-end: 1rem;
+    inset-inline-start: auto;
+}
+
+html[dir="rtl"] .stat-card .stat-value {
+    text-align: start;
+}
+
+/* ===== 表单 ===== */
+html[dir="rtl"] .form-label {
+    text-align: start;
+}
+
+html[dir="rtl"] .input-group-text {
+    border-inline-start: 1px solid #dee2e6;
+    border-inline-end: 0;
+}
+
+html[dir="rtl"] .input-group > :not(:first-child) {
+    border-inline-start: 0;
+    border-inline-end: 1px solid #dee2e6;
+}
+
+html[dir="rtl"] .form-text {
+    text-align: start;
+}
+
+/* corporate皮肤特有：表单分组 */
+html[dir="rtl"] .form-section .form-section-title {
+    padding-inline-start: 0;
+    padding-inline-end: 0.75rem;
+}
+
+/* ===== 表格 ===== */
+html[dir="rtl"] .table {
+    text-align: start;
+}
+
+html[dir="rtl"] .table th {
+    text-align: start;
+}
+
+html[dir="rtl"] .table td .btn-group {
+    justify-content: flex-start;
+}
+
+/* corporate皮肤特有：数据表格行hover */
+html[dir="rtl"] .table-hover tbody tr:hover {
+    box-shadow: inset-inline-start 3px solid var(--primary-color, #2563eb);
+}
+
+/* ===== 按钮组 ===== */
+html[dir="rtl"] .btn-group > .btn:first-child:not(:last-child) {
+    border-start-start-radius: 0;
+    border-start-end-radius: 0.375rem;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0.375rem;
+}
+
+html[dir="rtl"] .btn-group > .btn:last-child:not(:first-child) {
+    border-start-start-radius: 0.375rem;
+    border-start-end-radius: 0;
+    border-end-start-radius: 0.375rem;
+    border-end-end-radius: 0;
+}
+
+/* ===== 面包屑 ===== */
+html[dir="rtl"] .breadcrumb {
+    padding-inline-start: 0;
+}
+
+html[dir="rtl"] .breadcrumb-item + .breadcrumb-item::before {
+    content: "\\";
+    padding-inline-end: 0.5rem;
+    padding-inline-start: 0.5rem;
+}
+
+/* ===== 下拉菜单 ===== */
+html[dir="rtl"] .dropdown-menu {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    text-align: start;
+}
+
+html[dir="rtl"] .dropdown-menu-end {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+}
+
+/* ===== 分页 ===== */
+html[dir="rtl"] .pagination {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .pagination .page-link {
+    border-start-start-radius: 0;
+    border-start-end-radius: 0.375rem;
+}
+
+/* ===== 模态框 ===== */
+html[dir="rtl"] .modal-header .btn-close {
+    margin-inline-start: 0;
+    margin-inline-end: auto;
+}
+
+html[dir="rtl"] .modal-footer {
+    justify-content: flex-start;
+}
+
+/* ===== 列表组 ===== */
+html[dir="rtl"] .list-group-item {
+    text-align: start;
+}
+
+/* ===== 警告框 ===== */
+html[dir="rtl"] .alert {
+    text-align: start;
+}
+
+html[dir="rtl"] .alert .btn-close {
+    float: inline-start;
+}
+
+/* ===== 徽章和标签 ===== */
+html[dir="rtl"] .badge {
+    direction: rtl;
+}
+
+/* ===== 树形菜单 ===== */
+html[dir="rtl"] .tree-item {
+    padding-inline-start: 0;
+    padding-inline-end: 1.5rem;
+}
+
+html[dir="rtl"] .tree-item .tree-toggle {
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+}
+
+/* ===== 搜索框 ===== */
+html[dir="rtl"] .search-box .input-group-text {
+    border-inline-start: 1px solid #dee2e6;
+    border-inline-end: 0;
+}
+
+html[dir="rtl"] .search-box input {
+    border-inline-start: 0;
+    border-inline-end: 1px solid #dee2e6;
+}
+
+/* ===== 工具栏 ===== */
+html[dir="rtl"] .toolbar {
+    flex-direction: row-reverse;
+}
+
+/* ===== 图标对齐 ===== */
+html[dir="rtl"] .icon-start {
+    margin-inline-end: 0.5rem;
+    margin-inline-start: 0;
+}
+
+html[dir="rtl"] .icon-end {
+    margin-inline-start: 0.5rem;
+    margin-inline-end: 0;
+}
+
+/* ===== 滚动条 ===== */
+html[dir="rtl"] ::-webkit-scrollbar {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+}
+
+/* ===== 拖拽排序 ===== */
+html[dir="rtl"] .sortable-ghost {
+    direction: rtl;
+}
+
+/* ===== corporate皮肤特有：仪表盘布局 ===== */
+html[dir="rtl"] .dashboard-grid {
+    direction: rtl;
+}
+
+html[dir="rtl"] .dashboard-card .card-title {
+    text-align: start;
+}
+
+html[dir="rtl"] .dashboard-card .card-action {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+}
+
+/* ===== corporate皮肤特有：侧边栏菜单项 ===== */
+html[dir="rtl"] .sidebar-l1 .nav-item .nav-link {
+    text-align: center;
+}
+
+html[dir="rtl"] .sidebar-l2 .nav-item .nav-link {
+    text-align: start;
+    padding-inline-start: 0;
+    padding-inline-end: 1rem;
+}
+
+html[dir="rtl"] .sidebar-l2 .nav-item .nav-link .nav-icon {
+    margin-inline-end: 0.5rem;
+    margin-inline-start: 0;
+}
+
+/* ===== corporate皮肤特有：内容编辑器 ===== */
+html[dir="rtl"] .content-editor .editor-toolbar {
+    direction: rtl;
+}
+
+html[dir="rtl"] .content-editor .editor-toolbar .btn-group {
+    margin-inline-end: 0.25rem;
+    margin-inline-start: 0;
+}

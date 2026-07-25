@@ -1,0 +1,60 @@
+{extend name="layout" /}
+{block name="title"}报表AI解读{/block}
+{block name="breadcrumb"}<li class="breadcrumb-item">AI助手</li><li class="breadcrumb-item active">报表解读</li>{/block}
+{block name="content"}
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-graph-up me-1"></i>报表AI解读</div>
+    <div class="card-body">
+        <div class="row g-2 mb-3">
+            <div class="col-auto"><select id="reportType" class="form-select form-select-sm">
+                <option value="content" {if condition="$report_type eq 'content'"}selected{/if}>内容报表</option>
+                <option value="user" {if condition="$report_type eq 'user'"}selected{/if}>用户报表</option>
+                <option value="revenue" {if condition="$report_type eq 'revenue'"}selected{/if}>收入报表</option>
+                <option value="seo" {if condition="$report_type eq 'seo'"}selected{/if}>SEO报表</option>
+            </select></div>
+            <div class="col-auto"><input type="date" id="startDate" class="form-control form-control-sm" value="{$start_date}"></div>
+            <div class="col-auto"><input type="date" id="endDate" class="form-control form-control-sm" value="{$end_date}"></div>
+            <div class="col-auto"><button class="btn btn-primary btn-sm" onclick="loadReport()">分析</button></div>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-6">
+                <h6>AI数据摘要</h6>
+                <div class="bg-light p-3 rounded small">{$analysis.summary|default='暂无数据'}</div>
+                <h6 class="mt-3">异常检测</h6>
+                <div class="small">{if condition="empty($analysis.anomalies)"}<span class="text-success">未发现异常</span>{else /}{volist name="analysis.anomalies" id="a"}<span class="badge bg-warning me-1">{$a.metric}: {$a.value} ({$a.type})</span>{/volist}{/if}</div>
+            </div>
+            <div class="col-md-6">
+                <h6>AI运营建议</h6>
+                <div class="bg-light p-3 rounded small">{$analysis.suggestions.text|default='暂无建议'}</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><i class="bi bi-search me-1"></i>自然语言查询</div>
+    <div class="card-body">
+        <div class="input-group">
+            <input type="text" id="nlQuery" class="form-control" placeholder="例如: 上月内容发布量趋势如何？">
+            <button class="btn btn-primary" onclick="naturalQuery()">查询</button>
+        </div>
+        <div id="nlResult" class="mt-2"></div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+function loadReport() {
+    location = '/admin/ai_helper_manage/report?type=' + $('#reportType').val() + '&start=' + $('#startDate').val() + '&end=' + $('#endDate').val();
+}
+function naturalQuery() {
+    var q = $('#nlQuery').val();
+    if (!q) return;
+    $.post('/admin/ai_helper_manage/naturalQuery', {query: q}, r => {
+        if (r.success) {
+            var d = r.data;
+            $('#nlResult').html('<div class="alert alert-info"><strong>检测类型:</strong> ' + d.detected_type + '<br><strong>摘要:</strong> ' + d.summary + '</div>');
+        }
+    });
+}
+</script>
+{/block}

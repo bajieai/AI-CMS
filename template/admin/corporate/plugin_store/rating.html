@@ -1,0 +1,112 @@
+{extend name="layout" /}
+{block name="content"}
+<div class="container-fluid px-4">
+    <h4 class="mt-4 mb-3"><i class="bi bi-star me-2"></i>评价管理</h4>
+
+    <!-- 评分统计 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    <div class="fs-1 fw-bold text-warning">{$stats.avg|default=0}</div>
+                    <div class="text-warning">
+                        {for start="1" end="6"}<i class="bi bi-star-fill"></i>{/for}
+                    </div>
+                    <div class="text-muted">{$stats.total|default=0} 条评价</div>
+                </div>
+                <div class="col-md-9">
+                    {foreach [5,4,3,2,1] as $star}
+                    <div class="d-flex align-items-center mb-1">
+                        <span class="me-2" style="width:30px;">{$star}星</span>
+                        <div class="progress flex-grow-1 me-2" style="height:10px;">
+                            <div class="progress-bar bg-warning" style="width: {if $stats.total > 0}{:round($stats.distribution[$star] / $stats.total * 100)}{else /}0{/if}%"></div>
+                        </div>
+                        <span style="width:40px;">{$stats.distribution[$star]|default=0}</span>
+                    </div>
+                    {/foreach}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 评价列表 -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>评价列表</span>
+            <select class="form-select form-select-sm" style="width:auto;" onchange="changeSort(this.value)">
+                <option value="latest">最新</option>
+                <option value="highest">评分最高</option>
+                <option value="lowest">评分最低</option>
+                <option value="likes">最多点赞</option>
+            </select>
+        </div>
+        <div class="card-body">
+            {volist name="list" id="item"}
+            <div class="border-bottom pb-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fw-semibold me-2">{$item.member_name}</span>
+                            <span class="text-warning">
+                                {for start="1" end="6"}{if $start <= $item.rating}<i class="bi bi-star-fill"></i>{else /}<i class="bi bi-star"></i>{/if}{/for}
+                            </span>
+                            <small class="text-muted ms-2">{$item.create_time}</small>
+                            {if $item.is_verified}<span class="badge bg-info ms-2">已验证</span>{/if}
+                        </div>
+                        {if $item.rating_title}<h6 class="mb-1">{$item.rating_title}</h6>{/if}
+                        <p class="text-muted small mb-2">{$item.rating_content}</p>
+                        {if $item.developer_reply}
+                        <div class="bg-light p-2 rounded">
+                            <small class="text-primary fw-semibold">开发者回复 ({$item.reply_time}):</small>
+                            <p class="small mb-0">{$item.developer_reply}</p>
+                        </div>
+                        {/if}
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="likeRating({$item.id})">
+                            <i class="bi bi-hand-thumbs-up"></i> {$item.like_count}
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="replyRating({$item.id})">
+                            <i class="bi bi-reply"></i> 回复
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+            {if condition="empty($list)"}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-chat-square-text fs-1"></i>
+                <p class="mt-2">暂无评价</p>
+            </div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function changeSort(sort) {
+    location.href = '/admin/plugin_rating/list/{$plugin_id}?sort=' + sort;
+}
+function likeRating(id) {
+    fetch('/admin/plugin_rating/like/' + id, { method: 'POST' })
+        .then(r => r.json()).then(res => {
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(() => location.reload(), 800);
+        });
+}
+function replyRating(id) {
+    layer.prompt({ title: '回复评价', formType: 2 }, function(val, index) {
+        layer.close(index);
+        fetch('/admin/plugin_rating/reply/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'reply=' + encodeURIComponent(val)
+        }).then(r => r.json()).then(res => {
+            layer.msg(res.msg);
+            if (res.code === 0) setTimeout(() => location.reload(), 800);
+        });
+    });
+}
+</script>
+{/block}
