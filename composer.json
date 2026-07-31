@@ -33,6 +33,9 @@
         "sort-packages": true,
         "allow-plugins": {
             "topthink/think-installer": true
+        },
+        "platform": {
+            "php": "8.2.0"
         }
     },
     "scripts": {
