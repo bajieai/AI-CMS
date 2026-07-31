@@ -82,7 +82,7 @@ $('#linkForm').on('submit', function(e) {
 });
 
 function selectLogo() {
-    window.open('/admin/media/select?filetype=image', 'mediaSelect', 'width=900,height=600');
+    window.open('/admin/media/select?filetype=image', 'mediaSelect', 'width=900,height=600,left='+(screen.width-900)/2+',top='+(screen.height-600)/2);
 }
 
 window.addEventListener('message', function(e) {
