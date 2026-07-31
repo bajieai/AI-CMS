@@ -356,11 +356,8 @@ CONF;
     {
         if (trim($sql) === '') return;
         try {
-            $pdo->beginTransaction();
             $pdo->exec($sql);
-            $pdo->commit();
         } catch (\PDOException $e) {
-            $pdo->rollBack();
             $this->collectSqlError($e, $errors);
         }
     }
