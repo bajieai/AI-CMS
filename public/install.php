@@ -1,10 +1,10 @@
 <?php
 namespace think;
 
-mb_internal_encoding('UTF-8');
-mb_http_output('UTF-8');
+if (function_exists('mb_internal_encoding')) mb_internal_encoding('UTF-8');
+if (function_exists('mb_http_output')) mb_http_output('UTF-8');
 ini_set('default_charset', 'UTF-8');
-mb_regex_encoding('UTF-8');
+if (function_exists('mb_regex_encoding')) mb_regex_encoding('UTF-8');
 
 if (file_exists(__DIR__ . '/../install.lock')) {
     $uri = $_SERVER['REQUEST_URI'] ?? '';
