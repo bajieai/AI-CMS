@@ -109,13 +109,17 @@
     var rewriteRulesText = '';
 
     function loadRewriteRules() {
+        var defaultRules = 'rewrite ^/admin/?$ /admin.php last;\nrewrite ^/admin/(.*)$ /admin.php?s=/$1 last;\nrewrite ^/install/(.*)$ /install.php?s=/$1 last;\nrewrite ^/api/(.*)$ /api.php?s=/$1 last;\nif (!-e $request_filename) {\n    rewrite ^(.*)$ /index.php?s=/$1 last;\n}';
+        rewriteRulesText = defaultRules;
+        document.getElementById('rewriteRules').value = defaultRules;
+
         $.ajax({
             url: baseUrl + '/install.php/index/getRewriteRules',
             type: 'GET',
             timeout: 5000,
             dataType: 'json',
             success: function(res) {
-                if (res.code === 0) {
+                if (res.code === 0 && res.data) {
                     rewriteRulesText = res.data;
                     document.getElementById('rewriteRules').value = res.data;
                 }
@@ -220,7 +224,7 @@
         }
     }
 
-    // 页面加载后1.5秒开始检测伪静态（给服务器一点缓冲时间）
+    loadRewriteRules();
     setTimeout(checkRewrite, 1500);
     </script>
 </body>
