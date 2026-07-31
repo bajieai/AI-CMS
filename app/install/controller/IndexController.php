@@ -184,10 +184,11 @@ CONF;
                     // 阶段4: 写入.env配置+创建安装锁+清理缓存
                     $this->writeEnvFile($dbConfig);
                     file_put_contents(root_path() . 'install.lock', date('Y-m-d H:i:s'));
-                    // 清理SQL解析缓存和临时文件
                     $runtimeDir = root_path() . 'runtime/';
                     @array_map('unlink', glob($runtimeDir . 'install_sql_cache_*'));
                     @array_map('unlink', glob($runtimeDir . 'install_temp_*.sql'));
+                    // 清除系统缓存，确保后台Logo等配置从数据库重新读取
+                    @array_map('unlink', glob($runtimeDir . 'cache/*'));
                     session('db_config', null);
                     session('admin_config', null);
                     return json(['code' => 0, 'msg' => '安装成功！', 'phase' => 4, 'done' => true]);
