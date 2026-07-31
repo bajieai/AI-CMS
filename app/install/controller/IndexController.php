@@ -163,7 +163,7 @@ CONF;
                         $pdo->exec("USE `{$dbName}`");
                     }
 
-                    $result = $this->executeSqlBatch($pdo, $dbConfig, $offset, 800);
+                    $result = $this->executeSqlBatch($pdo, $dbConfig, $offset, 200);
                     return json($result);
 
                 case 3:
@@ -356,8 +356,11 @@ CONF;
     {
         if (trim($sql) === '') return;
         try {
+            $pdo->beginTransaction();
             $pdo->exec($sql);
+            $pdo->commit();
         } catch (\PDOException $e) {
+            $pdo->rollBack();
             $this->collectSqlError($e, $errors);
         }
     }
