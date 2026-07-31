@@ -38,7 +38,7 @@ class UploadSecurityService
 
         self::$typeConfigs = [
             'image' => [
-                'maxSize'   => (int)Config::get('upload.max_size', 10 * 1024 * 1024),
+                'maxSize'   => 10 * 1024 * 1024,
                 'mimes'     => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
                 'exts'      => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
                 'mimeToExt' => [
