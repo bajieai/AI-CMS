@@ -6,6 +6,10 @@ if (function_exists('mb_http_output')) mb_http_output('UTF-8');
 ini_set('default_charset', 'UTF-8');
 if (function_exists('mb_regex_encoding')) mb_regex_encoding('UTF-8');
 
+$uploadTmpDir = __DIR__ . '/../runtime/upload_tmp';
+if (!is_dir($uploadTmpDir)) @mkdir($uploadTmpDir, 0777, true);
+ini_set('upload_tmp_dir', $uploadTmpDir);
+
 if (!file_exists(__DIR__ . '/../install.lock')) {
     header('Location: /install.php');
     exit;
