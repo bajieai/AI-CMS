@@ -113,8 +113,16 @@ class UploadSecurityService
 
         $cfg = self::$typeConfigs[$type];
 
-        // 1. 文件大小检查
-        if ($file->getSize() > $cfg['maxSize']) {
+        // 1. 文件大小检查（优先用$_FILES的size，ThinkPHP getSize在Windows下可能stat失败）
+        $fileSize = isset($_FILES['file']['size']) ? (int)$_FILES['file']['size'] : 0;
+        if ($fileSize < 1) {
+            try {
+                $fileSize = $file->getSize();
+            } catch (\Throwable $e) {
+                $fileSize = 0;
+            }
+        }
+        if ($fileSize > $cfg['maxSize']) {
             return [
                 'valid' => false,
                 'error' => '文件大小超过限制，最大允许 ' . ($cfg['maxSize'] / 1024 / 1024) . 'MB',
