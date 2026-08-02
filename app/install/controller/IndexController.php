@@ -23,14 +23,19 @@ use think\facade\Db;
  */
 class IndexController
 {
-    /** AI-CMS 当前版本号（安装页面统一使用此常量） */
-    public const APP_VERSION = '2.9.41';
+    /** AI-CMS 当前版本号（优先从 config/app.php 读取，回退到此常量） */
+    public const APP_VERSION = '2.9.42';
+
+    /** 运行时版本号（优先 config/app.php，回退常量） */
+    protected string $version;
 
     protected App $app;
 
     public function __construct(App $app)
     {
         $this->app = $app;
+        // 优先从配置文件读取版本号，回退到常量（保持单一修改点）
+        $this->version = config('app.app_version') ?: $this->version;
     }
 
     /**
@@ -39,7 +44,7 @@ class IndexController
     public function index()
     {
         $checks = $this->checkEnvironment();
-        return view('/step1', ['checks' => $checks, 'version' => self::APP_VERSION]);
+        return view('/step1', ['checks' => $checks, 'version' => $this->version]);
     }
 
     /**
@@ -69,7 +74,7 @@ class IndexController
                 return json(['code' => 1, 'msg' => '数据库连接失败: ' . $e->getMessage()]);
             }
         }
-        return view('/step2', ['version' => self::APP_VERSION]);
+        return view('/step2', ['version' => $this->version]);
     }
 
     public function step3()
@@ -82,7 +87,7 @@ class IndexController
             session('admin_config', $admin);
             return json(['code' => 0, 'msg' => 'OK']);
         }
-        return view('/step3', ['version' => self::APP_VERSION]);
+        return view('/step3', ['version' => $this->version]);
     }
 
     public function getRewriteRules()
@@ -177,7 +182,7 @@ CONF;
                         $stmt = $pdo->prepare("UPDATE `{$prefix}user` SET `username` = ?, `password` = ? WHERE `id` = 1");
                         $stmt->execute([$adminConfig['username'], $hashedPassword]);
                     }
-                    $pdo->exec("UPDATE `{$prefix}config` SET `value` = '" . self::APP_VERSION . "' WHERE `name` = 'app_version'");
+                    $pdo->exec("UPDATE `{$prefix}config` SET `value` = '" . $this->version . "' WHERE `name` = 'app_version'");
                     return json(['code' => 0, 'msg' => '管理员和版本号更新完成', 'phase' => 3, 'next' => 4]);
 
                 case 4:
@@ -438,7 +443,7 @@ CONF;
             $stmt = $pdo->prepare("UPDATE `{$prefix}user` SET `username` = ?, `password` = ? WHERE `id` = 1");
             $stmt->execute([$adminConfig['username'], $hashedPassword]);
         }
-        $pdo->exec("UPDATE `{$prefix}config` SET `value` = '" . self::APP_VERSION . "' WHERE `name` = 'app_version'");
+        $pdo->exec("UPDATE `{$prefix}config` SET `value` = '" . $this->version . "' WHERE `name` = 'app_version'");
 
         $this->writeEnvFile($dbConfig);
         file_put_contents(root_path() . 'install.lock', date('Y-m-d H:i:s'));
@@ -452,7 +457,7 @@ CONF;
         if (!file_exists(root_path() . 'install.lock')) {
             return redirect('/install.php');
         }
-        return view('/step5', ['version' => self::APP_VERSION]);
+        return view('/step5', ['version' => $this->version]);
     }
 
     /**
@@ -490,7 +495,7 @@ CONF;
      */
     protected function writeEnvFile(array $dbConfig): void
     {
-        $envContent = "# AI-CMS V" . self::APP_VERSION . " 环境配置（安装向导自动生成）\n";
+        $envContent = "# AI-CMS V" . $this->version . " 环境配置（安装向导自动生成）\n";
         $envContent .= "APP_DEBUG = false\n\n";
         $envContent .= "DATABASE_TYPE = mysql\n";
         $envContent .= "DATABASE_HOSTNAME = {$dbConfig['hostname']}\n";
