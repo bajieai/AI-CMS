@@ -23,7 +23,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">分类类型</label>
-                        <select name="type" class="form-select">
+                        <select name="type" class="form-select" id="cateType">
                             <option value="1" {if condition="($info.type ?? 1) == 1"}selected{/if}>产品</option>
                             <option value="2" {if condition="($info.type ?? 1) == 2"}selected{/if}>案例</option>
                             <option value="3" {if condition="($info.type ?? 1) == 3"}selected{/if}>新闻</option>
@@ -94,6 +94,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- V2.9.42: 单页内容编辑器 (type=6时显示) -->
+            <div id="pageContentArea" style="display:none;">
+                <div class="card border-primary mb-3">
+                    <div class="card-header py-2 bg-primary text-white">
+                        <i class="bi bi-file-earmark-text me-1"></i>单页内容
+                    </div>
+                    <div class="card-body">
+                        <textarea name="page_content" id="pageContentEditor" class="form-control" rows="15">{$page_content|raw}</textarea>
+                        <small class="text-muted">编辑单页面正文内容，保存时自动同步到内容表</small>
+                    </div>
+                </div>
+            </div>
             <div class="d-grid gap-2 d-md-flex mt-3">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
                 <a href="/admin/cate/index" class="btn btn-outline-secondary">取消返回</a>
@@ -104,9 +117,51 @@
 {/block}
 
 {block name="js"}
+<script src="/assets/js/tinymce/tinymce.min.js"></script>
 <script>
+// V2.9.42: 单页内容编辑器显隐控制
+function togglePageContent() {
+    var typeVal = parseInt($('#cateType').val());
+    if (typeVal === 6) {
+        $('#pageContentArea').show();
+        initPageEditor();
+    } else {
+        $('#pageContentArea').hide();
+    }
+}
+
+// V2.9.42: 初始化单页内容富文本编辑器
+var pageEditorInitialized = false;
+function initPageEditor() {
+    if (pageEditorInitialized) return;
+    if (typeof tinymce === 'undefined') return;
+    pageEditorInitialized = true;
+    tinymce.init({
+        selector: '#pageContentEditor',
+        height: 400,
+        language: 'zh-Hans',
+        menubar: 'edit view insert format table',
+        plugins: 'link image table code fullscreen',
+        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+        relative_urls: false,
+        convert_urls: false,
+        promotion: false,
+        branding: false,
+    });
+}
+
+$('#cateType').on('change', togglePageContent);
+togglePageContent();
+
 $('#cateForm').on('submit', function(e) {
     e.preventDefault();
+    // V2.9.42: 提交前同步TinyMCE内容到textarea
+    if (typeof tinymce !== 'undefined') {
+        var editor = tinymce.get('pageContentEditor');
+        if (editor) {
+            editor.save();
+        }
+    }
     ajaxPost($(this).attr('action'), $(this).serialize());
 });
 </script>

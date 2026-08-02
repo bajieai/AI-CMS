@@ -15,6 +15,7 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\model\Cate;
+use app\common\model\Content;
 use app\common\service\CacheService;
 use app\common\service\CateService;
 use think\facade\Config as ThinkConfig;
@@ -47,7 +48,7 @@ class CateController extends AdminBaseController
             $service = new CateService();
             $tree = $service->getTree($cates->toArray());
 
-            $this->assign(['cates' => $tree, 'info' => null]);
+            $this->assign(['cates' => $tree, 'info' => null, 'page_content' => '']);
             return $this->view('/cate_edit');
         }
 
@@ -55,6 +56,8 @@ class CateController extends AdminBaseController
         $cate = new Cate();
         if ($cate->save($data)) {
             $this->recordLog('添加分类', $data['name'] ?? '', $data);
+            // V2.9.42: 单页分类自动创建content记录
+            $this->syncPageContent($cate, $data);
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.cate', 'cms_cate'));
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
@@ -78,13 +81,21 @@ class CateController extends AdminBaseController
             $service = new CateService();
             $tree = $service->getTree($cates->toArray());
 
-            $this->assign(['cates' => $tree, 'info' => $info]);
+            // V2.9.42: 单页分类注入关联的内容正文
+            $pageContent = '';
+            if ($info->type == 6 && $info->content_id > 0) {
+                $pageContent = Content::where('id', $info->content_id)->value('content') ?? '';
+            }
+
+            $this->assign(['cates' => $tree, 'info' => $info, 'page_content' => $pageContent]);
             return $this->view('/cate_edit');
         }
 
         $data = $this->request->post();
         if ($info->save($data)) {
             $this->recordLog('编辑分类', $info->name ?? '', $data);
+            // V2.9.42: 单页分类自动同步content记录
+            $this->syncPageContent($info, $data);
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.cate', 'cms_cate'));
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.content', 'cms_content'));
@@ -117,5 +128,52 @@ class CateController extends AdminBaseController
             return $this->success('删除成功');
         }
         return $this->error('删除失败');
+    }
+
+    /**
+     * V2.9.42: 同步单页内容到content表
+     * 当分类type=6时，自动创建/更新关联的content记录
+     */
+    protected function syncPageContent(Cate $cate, array $data): void
+    {
+        if ((int)($data['type'] ?? 0) !== 6) {
+            return;
+        }
+
+        $pageContent = $data['page_content'] ?? '';
+        $now = time();
+
+        if ($cate->content_id > 0) {
+            // 更新已有content记录
+            Content::where('id', $cate->content_id)->update([
+                'title'        => $cate->name,
+                'content'      => $pageContent,
+                'type'         => 6,
+                'cate_id'      => $cate->id,
+                'status'       => 2,
+                'seo_title'    => $data['seo_title'] ?? '',
+                'seo_keywords' => $data['seo_keywords'] ?? '',
+                'seo_description' => $data['seo_description'] ?? '',
+                'update_time'  => $now,
+            ]);
+        } else {
+            // 创建新content记录
+            $content = new Content();
+            $content->save([
+                'title'           => $cate->name,
+                'content'         => $pageContent,
+                'type'            => 6,
+                'cate_id'         => $cate->id,
+                'status'          => 2,
+                'seo_title'       => $data['seo_title'] ?? '',
+                'seo_keywords'    => $data['seo_keywords'] ?? '',
+                'seo_description' => $data['seo_description'] ?? '',
+                'create_time'     => $now,
+                'update_time'     => $now,
+            ]);
+            // 回写content_id到分类
+            $cate->content_id = $content->id;
+            $cate->save();
+        }
     }
 }

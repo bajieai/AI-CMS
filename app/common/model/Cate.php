@@ -34,11 +34,13 @@ class Cate extends Model
         'parent_id' => 'integer',
         'sort' => 'integer',
         'status' => 'integer',
+        'content_id' => 'integer',
     ];
 
     // 允许批量赋值的字段
     // V2.9.29 C-1: 增加 content_model_code, list_template, detail_template
-    protected $field = ['name', 'type', 'parent_id', 'sort', 'status', 'seo_title', 'seo_keywords', 'seo_description', 'default_style', 'model_id', 'content_model_code', 'list_template', 'detail_template'];
+    // V2.9.42: 增加 content_id (单页内容关联)
+    protected $field = ['name', 'type', 'parent_id', 'sort', 'status', 'seo_title', 'seo_keywords', 'seo_description', 'default_style', 'model_id', 'content_model_code', 'list_template', 'detail_template', 'content_id'];
 
     /**
      * 获取URL（模型获取器）
@@ -47,6 +49,10 @@ class Cate extends Model
     {
         $typeMap = [1 => 'product', 2 => 'case', 3 => 'news', 4 => 'download', 5 => 'job', 6 => 'page'];
         $typeSlug = $typeMap[$data['type']] ?? 'info';
+        // V2.9.42: 单页类型直达展示页 /page/{id}
+        if ($data['type'] == 6) {
+            return "/{$typeSlug}/{$data['id']}";
+        }
         return "/{$typeSlug}?cate_id={$data['id']}";
     }
 
@@ -64,5 +70,13 @@ class Cate extends Model
     public function parent()
     {
         return $this->belongsTo(Cate::class, 'parent_id');
+    }
+
+    /**
+     * V2.9.42: 关联单页内容（type=6时使用）
+     */
+    public function pageContent()
+    {
+        return $this->belongsTo(Content::class, 'content_id');
     }
 }

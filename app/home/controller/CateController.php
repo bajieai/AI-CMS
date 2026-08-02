@@ -42,6 +42,44 @@ class CateController extends FrontBaseController
         $cateList = $cateService->getCatelist($typeSlug, 100, 0);
         $cates = $cateService->getTree($cateList->toArray());
 
+        // V2.9.42: 单页类型特殊处理 — 直接展示单页分类列表，点击直达
+        if ($type === 6 && $cateId === 0) {
+            // 获取所有启用的单页分类
+            $pageCates = Cate::where('type', 6)
+                ->where('status', 1)
+                ->order('sort', 'asc')
+                ->order('id', 'asc')
+                ->select();
+
+            // V2.9.15: Schema.org 结构化标记
+            $schemaService = new SchemaMarkupService();
+            $breadcrumbs = [
+                ['name' => '首页', 'url' => request()->domain()],
+                ['name' => '单页', 'url' => request()->url(true)],
+            ];
+            $breadcrumbSchema = $schemaService->generateBreadcrumb($breadcrumbs);
+            $webPageSchema = $schemaService->generateWebPage([
+                'title'       => '单页',
+                'description' => '',
+                'url'         => request()->url(true),
+            ]);
+            $schemaMarkup = $schemaService->toJsonLd([$breadcrumbSchema, $webPageSchema]);
+
+            $this->assign([
+                'type' => $type,
+                'cate_id' => $cateId,
+                'cates' => $cates,
+                'cate_tree_html' => $this->renderCateTree($cates, $typeSlug, $cateId),
+                'page_cates' => $pageCates,
+                'type_slug' => $typeSlug,
+                'current_cate' => null,
+                'schema_markup' => $schemaMarkup,
+            ]);
+
+            $template = ListRenderService::resolveTemplate('/list', null);
+            return $this->view($template);
+        }
+
         // 获取内容列表
         $query = Content::where('status', 2)->where('type', $type);
         if ($cateId > 0) {
@@ -75,6 +113,7 @@ class CateController extends FrontBaseController
             'cates' => $cates,
             'cate_tree_html' => $this->renderCateTree($cates, $typeSlug, $cateId),
             'list' => $list,
+            'page_cates' => null,
             'type_slug' => $typeSlug,
             'current_cate' => $currentCate,
             'schema_markup' => $schemaMarkup,
@@ -117,5 +156,70 @@ class CateController extends FrontBaseController
             }
         }
         return $html;
+    }
+
+    /**
+     * V2.9.42: 单页面直达展示
+     * 路由：/page/{cateId}
+     * 直接展示单页分类关联的content内容，跳过列表页
+     */
+    public function singlePage(int $cateId)
+    {
+        $cate = Cate::find($cateId);
+        if (empty($cate) || $cate->status != 1) {
+            abort(404, '页面不存在');
+        }
+
+        // 如果不是单页类型，跳转到列表页
+        if ($cate->type != 6) {
+            return redirect('/page?cate_id=' . $cateId);
+        }
+
+        // 获取关联的content记录
+        $content = null;
+        if ($cate->content_id > 0) {
+            $content = Content::where('id', $cate->content_id)
+                ->where('status', 2)
+                ->find();
+        }
+
+        // 如果没有关联content，尝试通过cate_id查找
+        if (empty($content)) {
+            $content = Content::where('cate_id', $cateId)
+                ->where('type', 6)
+                ->where('status', 2)
+                ->find();
+        }
+
+        // V2.9.15: Schema.org 结构化标记
+        $schemaService = new SchemaMarkupService();
+        $breadcrumbs = [
+            ['name' => '首页', 'url' => request()->domain()],
+            ['name' => $cate->name, 'url' => request()->url(true)],
+        ];
+        $breadcrumbSchema = $schemaService->generateBreadcrumb($breadcrumbs);
+        $webPageSchema = $schemaService->generateWebPage([
+            'title'       => $cate->seo_title ?: $cate->name,
+            'description' => $cate->seo_description ?: '',
+            'url'         => request()->url(true),
+        ]);
+        $schemaMarkup = $schemaService->toJsonLd([$breadcrumbSchema, $webPageSchema]);
+
+        // SEO数据
+        $seoTitle = $cate->seo_title ?: $cate->name;
+        $seoKeywords = $cate->seo_keywords ?: '';
+        $seoDescription = $cate->seo_description ?: '';
+
+        $this->assign([
+            'cate'           => $cate,
+            'content'        => $content,
+            'page_content'   => $content ? $content->content : '',
+            'seo_title'      => $seoTitle,
+            'seo_keywords'   => $seoKeywords,
+            'seo_description'=> $seoDescription,
+            'schema_markup'  => $schemaMarkup,
+        ]);
+
+        return $this->view('/single_page');
     }
 }

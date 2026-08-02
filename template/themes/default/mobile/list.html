@@ -24,6 +24,22 @@
 {$cate_tree_html|raw}
 
 <!-- 内容列表 -->
+{if condition="$page_cates"}
+<!-- V2.9.42: 单页分类卡片列表 -->
+<div class="m-card-list" id="mCardList">
+{volist name="page_cates" id="pc"}
+<a href="/page/{$pc.id}" class="text-decoration-none">
+    <div class="m-card">
+        <div class="card-body text-center p-3">
+            <i class="bi bi-file-earmark-text display-3 text-primary mb-2"></i>
+            <h6 class="mb-1">{$pc.name}</h6>
+            <p class="small text-muted mb-0">{$pc.seo_description|default='点击查看详情'}</p>
+        </div>
+    </div>
+</a>
+{/volist}
+</div>
+{else /}
 <div class="m-card-list" id="mCardList">
 {volist name="list" id="vo"}
 {switch vo.type}
@@ -44,6 +60,7 @@
 
 {if condition="($list->hasPages() ?? false)"}
 <div class="m-pagination">{$list->render()|raw}</div>
+{/if}
 {/if}
 {/block}
 

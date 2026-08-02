@@ -846,14 +846,16 @@ CREATE TABLE `{prefix}cate` (
   `create_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `default_style` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'formal' COMMENT '默认写作风格: formal/relaxed/professional/warm',
+  `content_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '单页内容ID(type=6时关联content表)',
   PRIMARY KEY (`id`),
   KEY `idx_parent` (`parent_id`),
   KEY `idx_type` (`type`),
   KEY `idx_model_id` (`model_id`),
-  KEY `idx_content_model_code` (`content_model_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
+  KEY `idx_content_model_code` (`content_model_code`),
+  KEY `idx_content_id` (`content_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
 
-INSERT INTO `{prefix}cate` VALUES (1,'产品中心',1,0,'','','',0,1,1,1776933035,1776933035,'formal'),(2,'成功案例',2,0,'','','',0,2,1,1776933035,1776933035,'formal'),(3,'新闻动态',3,0,'','','',0,3,1,1776933035,1776933035,'formal'),(4,'资料下载',4,0,'','','',0,4,1,1776933035,1776933035,'formal'),(5,'人才招聘',5,0,'','','',0,5,1,1776933035,1776933035,'formal');
+INSERT INTO `{prefix}cate` VALUES (1,'产品中心',1,0,'','','',0,1,1,1776933035,1776933035,'formal',0),(2,'成功案例',2,0,'','','',0,2,1,1776933035,1776933035,'formal',0),(3,'新闻动态',3,0,'','','',0,3,1,1776933035,1776933035,'formal',0),(4,'资料下载',4,0,'','','',0,4,1,1776933035,1776933035,'formal',0),(5,'人才招聘',5,0,'','','',0,5,1,1776933035,1776933035,'formal',0),(6,'关于我们',6,0,'','','',0,6,1,1776933035,1776933035,'formal',1),(7,'联系方式',6,0,'','','',0,7,1,1776933035,1776933035,'formal',2),(8,'公司简介',6,0,'','','',0,8,1,1776933035,1776933035,'formal',3);
 DROP TABLE IF EXISTS `{prefix}category`;
 CREATE TABLE `{prefix}category` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -1052,6 +1054,10 @@ CREATE TABLE `{prefix}content` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内容表';
 
 INSERT INTO `{prefix}content` VALUES (1,'1111273','<p>test测试222</p>\n<p>test测试</p>\n<p>test测试</p>\n<p>test测试</p>\n<p>test测试</p>','',3,0,'article','',0,0,'','',NULL,0.00,0.00,'',NULL,0,1,'',NULL,0,1,0,0,0,0,0,0,0,1776944895,1783917512,1,0.00,0.00,'points',500,0,'zh-CN',0,0,0.00,0,'',0,'unscored',18,0,0,'',0,20,3,0,0,'',NULL);
+INSERT INTO `{prefix}content` (`id`,`title`,`content`,`excerpt`,`type`,`status`,`cate_id`,`create_time`,`update_time`,`seo_title`,`seo_keywords`,`seo_description`) VALUES
+(2,'关于我们','<p>八界AI-CMS是一款由AI驱动的内容管理系统...</p>','',6,2,6,1776933035,1776933035,'关于我们 - 八界AI-CMS','关于我们,公司介绍','八界AI-CMS是一款由AI驱动的内容管理系统'),
+(3,'联系方式','<p>电话：xxx-xxxx-xxxx<br>邮箱：contact@example.com<br>地址：xx省xx市xx区xx路xx号</p>','',6,2,7,1776933035,1776933035,'联系方式 - 八界AI-CMS','联系方式,电话,邮箱','联系我们'),
+(4,'公司简介','<p>湖北八界智能技术有限公司成立于xxxx年...</p>','',6,2,8,1776933035,1776933035,'公司简介 - 八界AI-CMS','公司简介,企业介绍','湖北八界智能技术有限公司简介');
 DROP TABLE IF EXISTS `{prefix}content_action_plan`;
 CREATE TABLE `{prefix}content_action_plan` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,

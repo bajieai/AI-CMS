@@ -1,0 +1,44 @@
+{extend name="layout" /}
+
+{block name="title"}{$seo_title} - {$site_name}{/block}
+
+{block name="keywords"}{$seo_keywords}{/block}
+
+{block name="description"}{$seo_description}{/block}
+
+{block name="schema_markup"}{$schema_markup|raw}{/block}
+
+{block name="content"}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item active">{$cate.name}</li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm corporate-card">
+                    <div class="card-body p-4">
+                        <h1 class="h3 mb-3 corporate-section-title">
+                            <span class="border-title">{$cate.name}</span>
+                        </h1>
+                        <div class="corporate-divider mb-4"></div>
+                        {if condition="$page_content"}
+                        <div class="article-content corporate-content">
+                            {$page_content|raw}
+                        </div>
+                        {else /}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-file-earmark-text display-1 d-block mb-3"></i>
+                            <p>暂无内容，请在后台分类管理中编辑单页内容。</p>
+                        </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}

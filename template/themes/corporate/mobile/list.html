@@ -11,6 +11,20 @@
 
 {$cate_tree_html|raw}
 
+{if condition="$page_cates"}
+<!-- V2.9.42: 单页分类卡片列表 -->
+{volist name="page_cates" id="pc"}
+<a href="/page/{$pc.id}" class="text-decoration-none">
+    <div class="cm-card">
+        <div class="card-body text-center p-3">
+            <i class="bi bi-file-earmark-text display-3 text-primary mb-2"></i>
+            <h6 class="mb-1">{$pc.name}</h6>
+            <p class="small text-muted mb-0">{$pc.seo_description|default='点击查看详情'}</p>
+        </div>
+    </div>
+</a>
+{/volist}
+{else /}
 {volist name="list" id="vo"}
 {switch vo.type}
     {case 1}{include file="_partials/list_item_product" /}{/case}
@@ -26,6 +40,7 @@
 {empty name="list"}<div class="cm-empty"><i class="bi bi-inbox"></i><p>暂无相关内容</p></div>{/empty}
 
 {if condition="($list->hasPages() ?? false)"}<div class="m-pagination">{$list->render()|raw}</div>{/if}
+{/if}
 </div>
 
 <!-- V2.9.23 E-3: 下拉刷新容器（iOS Safari 回弹已通过 PullToRefresh.init() 管理） -->

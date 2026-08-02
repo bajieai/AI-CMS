@@ -64,6 +64,22 @@
 
         <!-- 全宽列表 -->
         <div class="row g-4">
+            {if condition="$page_cates"}
+            <!-- V2.9.42: 单页分类卡片列表 -->
+            {volist name="page_cates" id="pc"}
+            <div class="col-md-4">
+                <a href="/page/{$pc.id}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm corporate-card hover-card">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-file-earmark-text display-4 text-primary mb-3"></i>
+                            <h5 class="card-title">{$pc.name}</h5>
+                            <p class="card-text small text-muted">{$pc.seo_description|default='点击查看详情'}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {/volist}
+            {else /}
             {volist name="list" id="vo"}
             {switch vo.type}
                 {case 1}{include file="_partials/list_item_product" /}{/case}
@@ -75,8 +91,10 @@
                 {default /}{include file="_partials/list_item_page" /}{/default}
             {/switch}
             {/volist}
+            {/if}
         </div>
 
+        {if condition="!$page_cates"}
         {empty name="list"}
         <div class="text-center py-6" style="padding:5rem 0;background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;">
             <i class="bi bi-inbox display-4 text-muted opacity-50"></i>
@@ -91,6 +109,7 @@
         <div class="mt-5 d-flex justify-content-center">
             <nav>{$list->render()|raw}</nav>
         </div>
+        {/if}
         {/if}
     </div>
 </section>
