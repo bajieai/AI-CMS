@@ -51,7 +51,7 @@ class Cate extends Model
         $typeSlug = $typeMap[$data['type']] ?? 'info';
         // V2.9.42: 单页类型直达展示页 /page/{id}
         if ($data['type'] == 6) {
-            return "/{$typeSlug}/{$data['id']}";
+            return "/page/{$data['id']}";
         }
         return "/{$typeSlug}?cate_id={$data['id']}";
     }

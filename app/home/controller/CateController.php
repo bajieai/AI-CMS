@@ -37,21 +37,23 @@ class CateController extends FrontBaseController
         $type = $typeMap[$typeSlug] ?? 1;
         $cateId = (int) $this->request->param('cate_id', 0);
 
-        // 获取分类列表（树形结构）
-        $cateService = new CateService();
-        $cateList = $cateService->getCatelist($typeSlug, 100, 0);
-        $cates = $cateService->getTree($cateList->toArray());
+        // V2.9.42: 单页类型不再有列表页概念，/page 展示单页分类卡片
+        // /page?cate_id=X 重定向到 /page/X
+        if ($type === 6) {
+            if ($cateId > 0) {
+                return redirect('/page/' . $cateId, 301);
+            }
 
-        // V2.9.42: 单页类型特殊处理 — 直接展示单页分类列表，点击直达
-        if ($type === 6 && $cateId === 0) {
-            // 获取所有启用的单页分类
+            $cateService = new CateService();
+            $cateList = $cateService->getCatelist($typeSlug, 100, 0);
+            $cates = $cateService->getTree($cateList->toArray());
+
             $pageCates = Cate::where('type', 6)
                 ->where('status', 1)
                 ->order('sort', 'asc')
                 ->order('id', 'asc')
                 ->select();
 
-            // V2.9.15: Schema.org 结构化标记
             $schemaService = new SchemaMarkupService();
             $breadcrumbs = [
                 ['name' => '首页', 'url' => request()->domain()],
@@ -79,6 +81,11 @@ class CateController extends FrontBaseController
             $template = ListRenderService::resolveTemplate('/list', null);
             return $this->view($template);
         }
+
+        // 获取分类列表（树形结构）
+        $cateService = new CateService();
+        $cateList = $cateService->getCatelist($typeSlug, 100, 0);
+        $cates = $cateService->getTree($cateList->toArray());
 
         // 获取内容列表
         $query = Content::where('status', 2)->where('type', $type);

@@ -16,17 +16,23 @@ use think\facade\Route;
 // 首页
 Route::get('/', '\app\home\controller\IndexController@index');
 
-// 分类列表页 /product /case /news /download /job /page
+// 分类列表页 /product /case /news /download /job
+// V2.9.42: 单页(page)类型不使用列表页路由，改用 /page/{cateId} 直达
 Route::get(':type', '\app\home\controller\CateController@listing')
-    ->pattern(['type' => 'product|case|news|download|job|page']);
+    ->pattern(['type' => 'product|case|news|download|job']);
 
-// V2.9.42: 单页面直达路由 /page/6 /page/7 等（按分类ID，必须放在:type/:id之前）
+// V2.9.42: 单页面直达路由 /page/6 /page/7 等（按分类ID）
 Route::get('page/:cateId', '\app\home\controller\CateController@singlePage')
     ->pattern(['cateId' => '\d+']);
 
+// V2.9.42: 单页列表页 /page（展示所有单页分类卡片）
+Route::get('page', '\app\home\controller\CateController@listing')
+    ->append(['type' => 'page']);
+
 // 内容详情页 /product/123 /news/123 等
+// page 类型的详情路由已由 page/:cateId 处理
 Route::get(':type/:id', '\app\home\controller\ContentController@detail')
-    ->pattern(['type' => 'product|case|news|download|job|page', 'id' => '\d+']);
+    ->pattern(['type' => 'product|case|news|download|job', 'id' => '\d+']);
 
 // 搜索页
 Route::get('search', '\app\home\controller\SearchController@index');
