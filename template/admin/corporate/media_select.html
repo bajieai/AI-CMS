@@ -161,7 +161,13 @@
             contentType: false,
             success: function(res) {
                 if (res.code === 0) {
-                    location.reload();
+                    if (res.data && res.data.url) {
+                        var content = '<img src="' + res.data.url + '" alt="' + (res.data.filename || '') + '">';
+                        window.parent.postMessage({ mceAction: 'insertContent', content: content }, '*');
+                        window.parent.postMessage({ mceAction: 'close' }, '*');
+                    } else {
+                        location.reload();
+                    }
                 } else {
                     alert(res.msg || '上传失败');
                 }
