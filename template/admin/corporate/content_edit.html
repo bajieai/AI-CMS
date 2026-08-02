@@ -42,29 +42,23 @@
                             <option value="{$cate.id}" {if condition="($info.cate_id ?? 0) == $cate.id"}selected{/if}>{$cate.name}</option>
                             {/volist}
                         </select>
-                        <div class="form-text">选择分类后自动确定类型和模型</div>
-                    </div>
-                    <!-- 类型：自动推断标签（隐藏字段+只读显示） -->
-                    <div class="mb-3">
-                        <label class="form-label">类型</label>
                         <input type="hidden" name="type" id="typeHidden" value="{$info.type ?? 1}">
-                        <div class="form-control bg-light d-flex align-items-center" style="min-height:38px;">
-                            <span class="badge bg-primary" id="typeBadge">{$info.type ?? '未选择'}</span>
-                            <span class="text-muted small ms-2" id="typeHint">{if condition="!$info"}请先选择分类{else/}由分类自动确定{/if}</span>
+                        <!-- 分类关联信息：类型badge + 模型联动 -->
+                        <div id="cateInfoRow" class="mt-2 d-none">
+                            <span class="badge bg-primary me-1" id="typeBadge"></span>
+                            <span class="text-muted small" id="typeHint">由分类自动确定</span>
                         </div>
                     </div>
-                    <!-- 内容模型：分类联动+手动覆盖 -->
-                    <div class="mb-3">
-                        <label class="form-label">内容模型 <small class="text-muted">(可选覆盖)</small></label>
+                    <!-- 内容模型：分类联动子项（选分类后展开） -->
+                    <div class="mb-3" id="modelGroup" style="display:none;">
+                        <label class="form-label">内容模型</label>
                         <select name="model_id" class="form-select" id="modelSelect">
-                            <option value="0">不使用模型</option>
+                            <option value="0">使用分类默认模型</option>
                             {volist name="all_models" id="model"}
                             <option value="{$model.id}" data-type="{$model.type}" {if condition="($model_id ?? 0) == $model.id"}selected{/if}>{$model.name ?: ($model.model_name ?? '')}</option>
                             {/volist}
                         </select>
-                        <div class="form-text text-muted" id="modelFieldHint">
-                            {if condition="empty($model_fields)"}当前无模型字段{else /}已加载模型字段{/if}
-                        </div>
+                        <div class="form-text text-muted" id="modelFieldHint">跟随分类默认模型</div>
                     </div>
                     <!-- V2.9.9: AI内容模板选择 -->
                     <div class="mb-3">

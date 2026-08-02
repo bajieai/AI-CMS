@@ -178,11 +178,10 @@ $('#cateSelect').on('change', function() {
     var cateId = $(this).val();
     if (!cateId || cateId === '0') {
         $('#typeHidden').val(1);
-        $('#typeBadge').text('未选择');
-        $('#typeHint').text('请先选择分类');
-        $('#modelSelect').val(0);
+        $('#cateInfoRow').addClass('d-none');
+        $('#modelGroup').hide();
         $('#modelFieldsCard').hide();
-        $('#modelFieldHint').text('当前无模型字段');
+        $('#modelFieldHint').text('跟随分类默认模型');
         return;
     }
     $.ajax({
@@ -193,13 +192,13 @@ $('#cateSelect').on('change', function() {
         success: function(res) {
             if (res.code === 0 && res.data) {
                 var d = res.data;
-                // 更新类型隐藏字段和标签
+                // 更新类型隐藏字段和分类行内badge
                 var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页'};
                 $('#typeHidden').val(d.type);
                 $('#typeBadge').text(typeNames[d.type] || d.type_name || '未知');
-                $('#typeHint').text('由分类自动确定');
+                $('#cateInfoRow').removeClass('d-none');
 
-                // 更新模型下拉框：只显示该type下的模型
+                // 显示模型下拉区域，更新选项
                 var modelSelect = $('#modelSelect');
                 modelSelect.find('option').not(':first').remove();
                 if (d.models && d.models.length > 0) {
@@ -207,8 +206,8 @@ $('#cateSelect').on('change', function() {
                         modelSelect.append('<option value="' + d.models[i].id + '">' + d.models[i].name + '</option>');
                     }
                 }
-                // 设置默认模型
                 modelSelect.val(d.model_id || 0);
+                $('#modelGroup').show();
 
                 // 渲染模型字段
                 renderModelFields(d.model_fields || []);
@@ -260,7 +259,7 @@ $('#modelSelect').on('change', function() {
     });
 });
 
-// 编辑模式初始化：如果已有分类选中，更新type标签显示
+// 编辑模式初始化：如果已有分类选中，显示类型badge和模型
 $(function() {
     var cateId = $('#cateSelect').val();
     var typeVal = $('#typeHidden').val();
@@ -268,9 +267,11 @@ $(function() {
     if (cateId && cateId !== '0') {
         if (typeVal && typeNames[typeVal]) {
             $('#typeBadge').text(typeNames[typeVal]);
-            $('#typeHint').text('由分类自动确定');
+            $('#cateInfoRow').removeClass('d-none');
         }
-        // 更新模型下拉框：只显示该type下的模型
+        // 显示模型区域
+        $('#modelGroup').show();
+        // 过滤模型选项：只显示该type下的模型
         var currentType = parseInt(typeVal) || 1;
         $('#modelSelect option').not(':first').each(function() {
             var optType = parseInt($(this).attr('data-type'));
