@@ -20,8 +20,8 @@ Route::get('/', '\app\home\controller\IndexController@index');
 Route::get(':type', '\app\home\controller\CateController@listing')
     ->pattern(['type' => 'product|case|news|download|job|page']);
 
-// V2.9.42: 单页面直达路由 /page/about /page/contact 等（按分类ID）
-Route::get('page/:cateId$', '\app\home\controller\CateController@singlePage')
+// V2.9.42: 单页面直达路由 /page/6 /page/7 等（按分类ID，必须放在:type/:id之前）
+Route::get('page/:cateId', '\app\home\controller\CateController@singlePage')
     ->pattern(['cateId' => '\d+']);
 
 // 内容详情页 /product/123 /news/123 等
