@@ -33,8 +33,8 @@
 
                     <!-- V2.9.15: 多语言翻译 -->
                     {if condition="$info"}
-                    <div class="card border-info mb-3">
-                        <div class="card-header py-2 bg-info text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#0dcaf0 !important">
+                    <div class="card mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-translate me-1"></i>多语言翻译</span>
                             <span id="translateTopBadge"></span>
                         </div>
@@ -47,8 +47,8 @@
                     {/if}
 
                     <!-- SEO设置 -->
-                    <div class="card border-warning mb-3">
-                        <div class="card-header py-2 bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <div class="card mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-search me-1"></i>SEO设置</span>
                             <div class="btn-group btn-group-sm">
                                 <button type="button" class="btn btn-sm btn-outline-dark" onclick="seoOptimize()" id="btnSeo">
@@ -108,10 +108,10 @@
                     </div>
 
                     <!-- AI-GEO评分 -->
-                    <div class="card border-primary mb-3">
-                        <div class="card-header py-2 bg-primary text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#0d6efd !important">
+                    <div class="card mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-stars me-1"></i>AI-GEO评分</span>
-                            <button type="button" class="btn btn-sm btn-outline-light" onclick="calculateGeoScore()" id="btnGeoScore">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="calculateGeoScore()" id="btnGeoScore">
                                 <i class="bi bi-arrow-clockwise me-1"></i>检测
                             </button>
                         </div>
@@ -208,10 +208,10 @@
 
                     <!-- V2.7 章节管理组件 (付费内容且编辑模式显示) -->
                     {if condition="$info && ($info.is_paid == 1 || $info.is_chapter == 1)"}
-                    <div class="card border-success mb-3" id="chapterManager">
-                        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#198754 !important">
+                    <div class="card mb-3" id="chapterManager">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-list-ol me-1"></i>章节管理</span>
-                            <button type="button" class="btn btn-sm btn-light" onclick="addChapterRow()">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addChapterRow()">
                                 <i class="bi bi-plus-lg me-1"></i>新增章节
                             </button>
                         </div>
@@ -350,6 +350,8 @@
                     <!-- V2.9.5: 付费阅读 -->
                     <div class="mb-3">
                         <div class="form-check form-switch">
+                            <!-- 隐藏域兜底：checkbox 未勾选时不提交，隐藏域保证 is_paid=0 被提交 -->
+                            <input type="hidden" name="is_paid" value="0">
                             <input class="form-check-input" type="checkbox" name="is_paid" value="1" id="is_paid" {if condition="($info.is_paid ?? 0) == 1"}checked{/if}>
                             <label class="form-check-label" for="is_paid">付费阅读</label>
                         </div>

@@ -275,11 +275,9 @@ body {
 }
 .card:hover { box-shadow: var(--card-hover-shadow); }
 .card-header {
-    background: linear-gradient(to right, #fafbfc, #fff);
     border-bottom: 1px solid var(--border-color);
     font-weight: 600;
     font-size: .94rem;
-    color: #1e293b;
     padding: .85rem 1.25rem;
     letter-spacing: .01em;
 }

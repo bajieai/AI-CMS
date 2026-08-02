@@ -215,6 +215,8 @@ abstract class FrontBaseController extends \think\BaseController
             // V2.9.7 AI主题兼容：导航高亮/分页高亮用
             'current_page'     => '',
             'current'          => '',
+            // V2.9.42: 前台导航栏目（从数据库动态读取，替换硬编码）
+            'nav_cates'        => $this->getNavCates($currentLang),
 
                             ]);
 
@@ -508,6 +510,37 @@ abstract class FrontBaseController extends \think\BaseController
 
         if (!empty($assignData)) {
             $this->app->view->assign($assignData);
+        }
+    }
+
+    /**
+     * V2.9.42: 获取前台导航栏目列表（从数据库动态读取）
+     * 替换模板中硬编码的导航链接，实现后台栏目分类与前台导航同步
+     */
+    protected function getNavCates(string $currentLang = 'zh-CN'): array
+    {
+        try {
+            $cates = \app\common\model\Cate::where('status', 1)
+                ->order('sort', 'asc')
+                ->select();
+            
+            $result = [];
+            foreach ($cates as $cate) {
+                // 排除单页类型（type=6），单页不在主导航显示
+                if ((int) $cate->type === 6) {
+                    continue;
+                }
+                $result[] = [
+                    'id'    => (int) $cate->id,
+                    'name'  => $cate->name,
+                    'url'   => $cate->url,
+                    'type'  => (int) $cate->type,
+                    'sort'  => (int) $cate->sort,
+                ];
+            }
+            return $result;
+        } catch (\Throwable) {
+            return [];
         }
     }
 }

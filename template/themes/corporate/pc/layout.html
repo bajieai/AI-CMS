@@ -46,11 +46,9 @@
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto me-3">
                 <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
-                <li class="nav-item"><a class="nav-link" href="/product">产品中心</a></li>
-                <li class="nav-item"><a class="nav-link" href="/case">成功案例</a></li>
-                <li class="nav-item"><a class="nav-link" href="/news">新闻动态</a></li>
-                <li class="nav-item"><a class="nav-link" href="/download">资料下载</a></li>
-                <li class="nav-item"><a class="nav-link" href="/job">人才招聘</a></li>
+                {volist name="nav_cates" id="cate"}
+                <li class="nav-item"><a class="nav-link" href="{$cate.url}">{$cate.name}</a></li>
+                {/volist}
             </ul>
             <!-- V2.9 语言切换器（动态） -->
             {if condition="$lang_switcher_enabled && count($enabled_languages) > 1"}

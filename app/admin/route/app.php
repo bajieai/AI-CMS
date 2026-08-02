@@ -1110,11 +1110,6 @@ Route::get('content_action_plan/index$', '\app\admin\controller\ContentActionPla
 Route::post('content_action_plan/cancel/:id$', '\app\admin\controller\ContentActionPlanController@cancel');
 // I-4: 质量诊断
 Route::get('content_diagnosis/diagnose/:id$', '\app\admin\controller\ContentDiagnosisController@diagnose');
-// I-5: 评论管理
-Route::get('comment_admin/index$', '\app\admin\controller\CommentAdminController@index');
-Route::post('comment_admin/audit/:id/:status$', '\app\admin\controller\CommentAdminController@audit');
-Route::post('comment_admin/delete/:id$', '\app\admin\controller\CommentAdminController@delete');
-Route::post('comment_admin/batchDelete$', '\app\admin\controller\CommentAdminController@batchDelete');
 // I-6: 审计日志
 Route::get('content_audit_log/index$', '\app\admin\controller\ContentAuditLogController@index');
 Route::post('content_audit_log/rollback/:id$', '\app\admin\controller\ContentAuditLogController@rollback');

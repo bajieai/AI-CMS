@@ -24,7 +24,7 @@
             <div style="width:{$progress.progress}%;height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:7px;transition:width .5s;"></div>
         </div>
         <div style="text-align:center;font-size:12px;color:#666;margin-top:8px;">
-            距离 <strong>{$progress.next.name}</strong> 还需 {$progress.need_points} 积分
+            距离 <strong>{$progress.next.name}</strong> 还需 {$progress.need_points} 积分
         </div>
     </div>
     {else}
@@ -34,15 +34,15 @@
     </div>
     {/if}
 
-    <!-- 缂撳啿鏈熻鍛?-->
+    <!-- 缓冲期熻鍛?-->
     {if $progress.grace}
     <div class="m-card" style="margin-top:12px;padding:14px;background:#fff3cd;border:1px solid #ffecb5;">
         <div style="display:flex;align-items:flex-start;gap:8px;">
             <i class="bi bi-exclamation-triangle-fill" style="color:var(--i8j-warning,#f59e0b);font-size:18px;flex-shrink:0;"></i>
             <div style="font-size:13px;">
-                <strong>等级降级预警</strong><br>
+                <strong>等级降级预警</strong><br>
                 系统将在 <strong>{$progress.grace.days_left} 澶</strong> 后自动降级
-                <a href="/signin" style="color:#0d6efd;">鍘荤鍒拌禋积分 &rarr;</a>
+                <a href="/signin" style="color:#0d6efd;">去签鍒拌禋积分 &rarr;</a>
             </div>
         </div>
     </div>
@@ -75,7 +75,7 @@
         {/empty}
     </div>
 
-    <!-- 等级阶段 -->
+    <!-- 等级阶段 -->
     <div class="m-card" style="margin-top:12px;padding:0;overflow:hidden;">
         <div style="padding:12px 16px;font-weight:600;border-bottom:1px solid #eee;">
             <i class="bi bi-ladder me-1"></i>等级体系

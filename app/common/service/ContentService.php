@@ -106,6 +106,12 @@ class ContentService
     {
         $content = new Content();
         
+        // V2.9.42: checkbox 未勾选时不提交，显式补零
+        $checkboxFields = ['is_paid', 'is_chapter'];
+        foreach ($checkboxFields as $field) {
+            $data[$field] = isset($data[$field]) ? (int) $data[$field] : 0;
+        }
+        
         // 处理扩展字段
         $extData = $data['ext'] ?? [];
         unset($data['ext']);
@@ -196,6 +202,17 @@ class ContentService
 
         // 保存版本历史（编辑前自动备份）
         $this->saveVersion($content);
+
+        // V2.9.42: checkbox 未勾选时不会出现在 POST 数据中，需显式补零
+        // 否则取消勾选"付费阅读"后保存，is_paid 仍保持旧值 1
+        $checkboxFields = ['is_paid', 'is_chapter'];
+        foreach ($checkboxFields as $field) {
+            if (!array_key_exists($field, $data)) {
+                $data[$field] = 0;
+            } else {
+                $data[$field] = (int) $data[$field];
+            }
+        }
 
         // 处理扩展字段
         $extData = $data['ext'] ?? [];

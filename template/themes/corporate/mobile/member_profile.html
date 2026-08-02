@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}中汉中績{/block}
+{block name="title"}中汉中績{/block}
 
 {block name="content"}
 <div class="cm-main">
@@ -20,8 +20,8 @@
         <form id="profileForm">
             <input type="hidden" name="avatar" id="avatarField" value="{$member.avatar|default=''}">
             <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">用户名（不可修改）</label><input type="text" class="cm-input" value="{$member.username}" disabled style="background:var(--i8j-bg-secondary,#f1f5f9);"></div>
-            <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">是电О</label><input type="text" name="nickname" class="cm-input" value="{$member.nickname}"></div>
-            <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">邮</label><input type="email" class="cm-input" value="{$member.email}" disabled style="background:var(--i8j-bg-secondary,#f1f5f9);"></div>
+            <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">昵称</label><input type="text" name="nickname" class="cm-input" value="{$member.nickname}"></div>
+            <div class="cm-fg"><label style="font-size:12px;color:var(--i8j-text-secondary,#94a3b8);font-weight:550;">邮</label><input type="email" class="cm-input" value="{$member.email}" disabled style="background:var(--i8j-bg-secondary,#f1f5f9);"></div>
             <button type="submit" class="cm-btn cm-btn-pri">保存修改</button>
         </form>
     </div>

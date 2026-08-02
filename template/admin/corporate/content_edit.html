@@ -129,6 +129,8 @@
                     <!-- V2.9.5: 付费阅读 -->
                     <div class="mb-3">
                         <div class="form-check form-switch">
+                            <!-- 隐藏域兜底：checkbox 未勾选时不提交，隐藏域保证 is_paid=0 被提交 -->
+                            <input type="hidden" name="is_paid" value="0">
                             <input class="form-check-input" type="checkbox" name="is_paid" value="1" id="is_paid" {if condition="($info.is_paid ?? 0) == 1"}checked{/if}>
                             <label class="form-check-label" for="is_paid">付费阅读</label>
                         </div>
@@ -169,8 +171,8 @@
                     </div>
                     <!-- V2.9.15: 多语言翻译 -->
                     {if condition="$info"}
-                    <div class="card border-info mb-3">
-                        <div class="card-header py-2 bg-info text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#0dcaf0 !important">
+                    <div class="card mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-translate me-1"></i>多语言翻译</span>
                             <span id="translateTopBadge"></span>
                         </div>
@@ -183,8 +185,8 @@
                     {/if}
 
                     <!-- SEO设置 -->
-                    <div class="card border-warning mb-3">
-                        <div class="card-header py-2 bg-warning text-dark"><i class="bi bi-search me-1"></i>SEO设置</div>
+                    <div class="card mb-3">
+                        <div class="card-header py-2"><i class="bi bi-search me-1"></i>SEO设置</div>
                         <div class="card-body py-2">
                             <div class="mb-2">
                                 <label class="form-label small d-flex justify-content-between">
@@ -210,10 +212,10 @@
                         </div>
                     </div>
                     <!-- V2.9.9 AI-GEO评分 -->
-                    <div class="card border-primary mb-3">
-                        <div class="card-header py-2 bg-primary text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#0d6efd !important">
+                    <div class="card mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-stars me-1"></i>AI-GEO评分</span>
-                            <button type="button" class="btn btn-sm btn-outline-light" onclick="calculateGeoScore()" id="btnGeoScore">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="calculateGeoScore()" id="btnGeoScore">
                                 <i class="bi bi-arrow-clockwise me-1"></i>检测
                             </button>
                         </div>
@@ -337,10 +339,10 @@
 
                     {if condition="$info.is_paid == 1 || $info.is_chapter == 1"}
                     <!-- V2.7 章节管理 (付费内容/章节内容) -->
-                    <div class="card border-success mb-3" id="chapterManageCard">
-                        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#198754 !important">
+                    <div class="card mb-3" id="chapterManageCard">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-book me-1"></i>章节管理</span>
-                            <button type="button" class="btn btn-sm btn-light" onclick="openChapterModal()">+ 新增</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="openChapterModal()">+ 新增</button>
                         </div>
                         <div class="card-body py-2" id="chapterListBox">
                             <div class="text-muted small text-center py-2">加载中...</div>
