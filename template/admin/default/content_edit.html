@@ -34,7 +34,7 @@
                     <!-- V2.9.15: 多语言翻译 -->
                     {if condition="$info"}
                     <div class="card border-info mb-3">
-                        <div class="card-header py-2 bg-info text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header py-2 bg-info text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#0dcaf0 !important">
                             <span><i class="bi bi-translate me-1"></i>多语言翻译</span>
                             <span id="translateTopBadge"></span>
                         </div>
@@ -109,7 +109,7 @@
 
                     <!-- AI-GEO评分 -->
                     <div class="card border-primary mb-3">
-                        <div class="card-header py-2 bg-primary text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header py-2 bg-primary text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#0d6efd !important">
                             <span><i class="bi bi-stars me-1"></i>AI-GEO评分</span>
                             <button type="button" class="btn btn-sm btn-outline-light" onclick="calculateGeoScore()" id="btnGeoScore">
                                 <i class="bi bi-arrow-clockwise me-1"></i>检测
@@ -137,7 +137,7 @@
                     <!-- V2.9.20 A-2: 模型动态扩展字段 -->
                     {notempty name="model_fields"}
                     <div class="card border-info mb-3" id="modelFieldsCard">
-                        <div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>模型字段</div>
+                        <div class="card-header py-2 bg-info text-white" style="color:#fff !important;background-color:#0dcaf0 !important"><i class="bi bi-sliders me-1"></i>模型字段</div>
                         <div class="card-body py-2">
                             {volist name="model_fields" id="field"}
                             <div class="mb-2">
@@ -209,7 +209,7 @@
                     <!-- V2.7 章节管理组件 (付费内容且编辑模式显示) -->
                     {if condition="$info && ($info.is_paid == 1 || $info.is_chapter == 1)"}
                     <div class="card border-success mb-3" id="chapterManager">
-                        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center" style="color:#fff !important;background-color:#198754 !important">
                             <span><i class="bi bi-list-ol me-1"></i>章节管理</span>
                             <button type="button" class="btn btn-sm btn-light" onclick="addChapterRow()">
                                 <i class="bi bi-plus-lg me-1"></i>新增章节
