@@ -125,7 +125,10 @@
     }
 
     function confirmSelect() {
-        if (!selectedMedia) return;
+        if (!selectedMedia) {
+            alert('请先点击选择一张图片');
+            return;
+        }
         var content = '';
         if (selectedMedia.type === 'image') {
             content = '<img src="' + selectedMedia.url + '" alt="' + selectedMedia.name + '">';
