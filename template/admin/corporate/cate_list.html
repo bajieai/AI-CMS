@@ -22,7 +22,7 @@
                     <th width="80">类型</th>
                     <th width="60">排序</th>
                     <th width="70">状态</th>
-                    <th width="140">操作</th>
+                    <th width="170">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -51,6 +51,7 @@
                     <td>
                         <div class="btn-group btn-group-sm">
                             <a href="/admin/cate/edit/{$vo.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                            <a href="{if condition="$vo.type == 6"}/page/{$vo.id}{elseif condition="$vo.type == 1"}/product?cate_id={$vo.id}{elseif condition="$vo.type == 2"}/case?cate_id={$vo.id}{elseif condition="$vo.type == 3"}/news?cate_id={$vo.id}{elseif condition="$vo.type == 4"}/download?cate_id={$vo.id}{elseif condition="$vo.type == 5"}/job?cate_id={$vo.id}{/if}" target="_blank" class="btn btn-outline-success" title="前台预览"><i class="bi bi-eye"></i></a>
                             <button type="button" class="btn btn-outline-danger" title="删除" onclick="confirmDelete('/admin/cate/delete/{$vo.id}')"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>

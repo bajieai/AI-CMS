@@ -171,9 +171,11 @@ function doSearch() {
                         <div class="btn-group btn-group-sm">
                             {if condition="$vo.type == 6"}
                             <a href="/admin/cate/edit/{$vo.cate_id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                            <a href="/page/{$vo.cate_id}" target="_blank" class="btn btn-outline-success" title="前台预览"><i class="bi bi-eye"></i></a>
                             <a href="/admin/cate/index" class="btn btn-outline-secondary" title="单页内容请在分类管理中操作"><i class="bi bi-folder2-open"></i></a>
                             {else /}
                             <a href="/admin/content/edit/{$vo.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                            <a href="{if condition="$vo.type == 1"}/product/{$vo.id}{elseif condition="$vo.type == 2"}/case/{$vo.id}{elseif condition="$vo.type == 3"}/news/{$vo.id}{elseif condition="$vo.type == 4"}/download/{$vo.id}{elseif condition="$vo.type == 5"}/job/{$vo.id}{else /}/info/{$vo.id}{/if}" target="_blank" class="btn btn-outline-success" title="前台预览"><i class="bi bi-eye"></i></a>
                             <button type="button" class="btn btn-outline-info" title="复制" onclick="copyItem({$vo.id})"><i class="bi bi-copy"></i></button>
                             {if condition="$vo.status == 1"}
                             <button type="button" class="btn btn-outline-success" title="通过审核" onclick="auditItem({$vo.id})"><i class="bi bi-check-circle"></i></button>
