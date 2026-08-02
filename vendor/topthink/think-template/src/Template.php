@@ -569,7 +569,7 @@ class Template
                             $v = $this->get(substr($v, 1));
                         }
 
-                        $parseStr = str_replace('[' . $k . ']', $v, $parseStr);
+                        $parseStr = str_replace('[' . $k . ']', is_scalar($v) || is_array($v) ? $v : (is_object($v) && method_exists($v, '__toString') ? (string) $v : ''), $parseStr);
                     }
 
                     $content = str_replace($match[0], $parseStr, $content);

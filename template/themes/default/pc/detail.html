@@ -4,13 +4,13 @@
 
 {block name="keywords"}{if condition="$info.seo_keywords"}{$info.seo_keywords}{else/}{volist name="info.tags" id="tag"}{$tag.name},{/volist}{$site_keywords}{/if}{/block}
 
-{block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
+{block name="description"}{:app\\common\\service\\theme\\ThemeFileService::msubstr($info->seo_description ?: (($info->excerpt ?: '') ?: $info->title), 0, 120)}{/block}
 
 {block name="meta_extra"}
 <meta name="content-id" content="{$info.id}">
 <!-- V2.9.15: OG/Twitter标签增强 -->
 <meta property="og:title" content="{$info.seo_title ?: $info.title}">
-<meta property="og:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
+<meta property="og:description" content="{:app\\common\\service\\theme\\ThemeFileService::msubstr($info->seo_description ?: (($info->excerpt ?: '') ?: $info->title), 0, 120)}">
 {if condition="$info.cover"}<meta property="og:image" content="{$info.cover}">{/if}
 <meta property="og:type" content="article">
 <meta property="og:url" content="{$site_url}{$Request.url}">
@@ -20,7 +20,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{$info.seo_title ?: $info.title}">
-<meta name="twitter:description" content="{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}">
+<meta name="twitter:description" content="{:app\\common\\service\\theme\\ThemeFileService::msubstr($info->seo_description ?: (($info->excerpt ?: '') ?: $info->title), 0, 120)}">
 {if condition="$info.cover"}<meta name="twitter:image" content="{$info.cover}">{/if}
 <!-- V2.9.15: Schema.org 结构化标记（新SchemaMarkupService） -->
 {$schema_markup|raw}
@@ -537,7 +537,7 @@ loadRatings(1);
 window.SocialShare.init({
     url: '{$share_links.wechat|default=$site_url.$Request.url}',
     title: '{$info.seo_title ?: $info.title}',
-    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    description: '{:app\\common\\service\\theme\\ThemeFileService::msubstr($info->seo_description ?: (($info->excerpt ?: '') ?: $info->title), 0, 120)}',
     image: '{$info.cover}',
     enabled: true
 });

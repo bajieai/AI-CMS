@@ -510,4 +510,32 @@ class ThemeFileService
 
         return file_get_contents($realPath) ?: '';
     }
+
+    /**
+     * V2.9.42: 安全字符串截取（模板中使用，避免ThinkPHP 8.1模板过滤器编译错误）
+     *
+     * @param mixed $str 要截取的字符串
+     * @param int $start 开始位置
+     * @param int $length 截取长度
+     * @param string $charset 字符编码
+     * @param bool $suffix 是否加省略号
+     * @return string
+     */
+    public static function msubstr(mixed $str, int $start = 0, int $length = 100, string $charset = 'utf-8', bool $suffix = true): string
+    {
+        $str = (string) $str;
+        if ($str === '') return '';
+
+        if (function_exists('mb_substr')) {
+            $slice = mb_substr($str, $start, $length, $charset);
+        } else {
+            $slice = substr($str, $start, $length);
+        }
+
+        $strLen = function_exists('mb_strlen') ? mb_strlen($str, $charset) : strlen($str);
+        if ($suffix && $strLen > $length) {
+            return $slice . '...';
+        }
+        return $slice;
+    }
 }
