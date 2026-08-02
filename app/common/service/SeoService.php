@@ -142,7 +142,7 @@ class SeoService
                         url($content->url),
                         '0.6',
                         'monthly',
-                        date('c', $content->update_time)
+                        date('c', (int) $content->update_time)
                     );
                     $added++;
                 }
@@ -306,7 +306,7 @@ class SeoService
                 $loc = url($content->url) . '?lang=' . $langCode;
                 $entry = "  <url>\n";
                 $entry .= "    <loc>" . htmlspecialchars($loc, ENT_XML1, 'UTF-8') . "</loc>\n";
-                $entry .= "    <lastmod>" . date('c', $content->update_time) . "</lastmod>\n";
+                $entry .= "    <lastmod>" . date('c', (int) $content->update_time) . "</lastmod>\n";
                 $entry .= "    <changefreq>monthly</changefreq>\n";
                 $entry .= "    <priority>0.6</priority>\n";
 
@@ -402,8 +402,8 @@ class SeoService
             'headline' => $data['title'] ?? '',
             'description' => $data['description'] ?? '',
             'url' => $data['url'] ?? '',
-            'datePublished' => isset($data['create_time']) ? date('c', $data['create_time']) : '',
-            'dateModified' => isset($data['update_time']) ? date('c', $data['update_time']) : '',
+            'datePublished' => isset($data['create_time']) ? date('c', (int) $data['create_time']) : '',
+            'dateModified' => isset($data['update_time']) ? date('c', (int) $data['update_time']) : '',
         ];
 
         if (!empty($data['cover'])) {
@@ -580,7 +580,7 @@ class SeoService
                 $xml .= "        <news:name>" . htmlspecialchars($siteName, ENT_XML1, 'UTF-8') . "</news:name>\n";
                 $xml .= "        <news:language>zh</news:language>\n";
                 $xml .= "      </news:publication>\n";
-                $xml .= "      <news:publication_date>" . date('c', $content->create_time) . "</news:publication_date>\n";
+                $xml .= "      <news:publication_date>" . date('c', (int) $content->create_time) . "</news:publication_date>\n";
                 $xml .= "      <news:title>" . htmlspecialchars($content->title, ENT_XML1, 'UTF-8') . "</news:title>\n";
                 $xml .= "    </news:news>\n";
                 $xml .= "  </url>\n";

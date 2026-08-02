@@ -150,10 +150,10 @@ class ContentController extends FrontBaseController
 
         // V2.9.9: 内容多语言翻译版本
         $contentTranslations = [];
-        if ($info->translation_of > 0) {
-            $contentTranslations = LanguageService::getTranslationsOf($info->translation_of);
+        if ((int) $info->translation_of > 0) {
+            $contentTranslations = LanguageService::getTranslationsOf((int) $info->translation_of);
         } else {
-            $contentTranslations = LanguageService::getTranslationsOf($info->id);
+            $contentTranslations = LanguageService::getTranslationsOf((int) $info->id);
         }
 
         // V2.9.9: AI-GEO生成式引擎优化数据
