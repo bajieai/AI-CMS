@@ -53,6 +53,7 @@ class Cate extends Model
         if ($data['type'] == 6) {
             return "/page/{$data['id']}";
         }
+        // 分类列表页：/{$typeSlug}?cate_id={$data['id']}
         return "/{$typeSlug}?cate_id={$data['id']}";
     }
 

@@ -174,20 +174,20 @@ class ContentController extends AdminBaseController
 
         $data = $this->request->post();
 
+        // V2.9.42: 分类必须选择（cate_id=0 会导致前台列表页无内容显示）
+        if (empty($data['cate_id']) || (int) $data['cate_id'] <= 0) {
+            return $this->error('请先选择内容分类');
+        }
+
         // V2.9.42: 禁止在信息管理中创建单页内容（单页只能在分类管理中操作）
-        if (!empty($data['cate_id']) && (int) $data['cate_id'] > 0) {
-            $cate = Cate::find((int) $data['cate_id']);
-            if ($cate && (int) $cate->type === 6) {
-                $this->error('单页内容请在分类管理中编辑');
-            }
+        $cate = Cate::find((int) $data['cate_id']);
+        if ($cate && (int) $cate->type === 6) {
+            return $this->error('单页内容请在分类管理中编辑');
         }
 
         // 栏目决定一切：从分类自动推断type
-        if (!empty($data['cate_id']) && (int) $data['cate_id'] > 0) {
-            $cate = Cate::find((int) $data['cate_id']);
-            if ($cate) {
-                $data['type'] = (int) $cate->type;
-            }
+        if ($cate) {
+            $data['type'] = (int) $cate->type;
         }
 
         $service = new ContentService();
@@ -288,12 +288,15 @@ class ContentController extends AdminBaseController
 
         $data = $this->request->post();
 
+        // V2.9.42: 分类必须选择（cate_id=0 会导致前台列表页无内容显示）
+        if (empty($data['cate_id']) || (int) $data['cate_id'] <= 0) {
+            return $this->error('请先选择内容分类');
+        }
+
         // 栏目决定一切：从分类自动推断type
-        if (!empty($data['cate_id']) && (int) $data['cate_id'] > 0) {
-            $cate = Cate::find((int) $data['cate_id']);
-            if ($cate) {
-                $data['type'] = (int) $cate->type;
-            }
+        $cate = Cate::find((int) $data['cate_id']);
+        if ($cate) {
+            $data['type'] = (int) $cate->type;
         }
 
         $service = new ContentService();
