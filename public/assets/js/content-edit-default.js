@@ -93,73 +93,192 @@ if (document.getElementById('editor') && typeof tinymce !== 'undefined') {
 var extData = AI_CMS_CONFIG.ext_data || {};
 
 function renderExtFields(fields) {
-    var $card = $('#extFieldsCard');
+    // 兼容保留：静态扩展字段已移除，此函数不再渲染extFieldsCard
+    // 模型字段渲染由 renderModelFields 处理
+}
+
+// 渲染模型动态扩展字段
+function renderModelFields(fields) {
+    var $card = $('#modelFieldsCard');
+    // 如果卡片不存在，动态创建（添加模式下model_fields为空，服务端不渲染卡片）
     if ($card.length === 0) {
         var $tagWrap = $('#tagList').closest('.mb-3');
+        if ($tagWrap.length === 0) {
+            $tagWrap = $('#modelFieldHint').closest('.mb-3');
+        }
         $tagWrap.after(
-            '<div class="card border-info mb-3" id="extFieldsCard" style="display:none;">' +
-            '<div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>扩展字段</div>' +
+            '<div class="card border-info mb-3" id="modelFieldsCard" style="display:none;">' +
             '<div class="card-body py-2"></div></div>'
         );
-        $card = $('#extFieldsCard');
+        $card = $('#modelFieldsCard');
     }
-    var html = '';
     if (fields && fields.length > 0) {
-        html += '<div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>扩展字段</div>';
+        var html = '<div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>模型字段</div>';
         html += '<div class="card-body py-2">';
         for (var i = 0; i < fields.length; i++) {
             var f = fields[i];
-            var val = extData[f.name] || '';
-            // 清理 \\r\\n 控制字符：在 <input value> 中会导致显示为乱码
+            var val = extData[f.field_name] || f.default_value || '';
             var valClean = String(val).replace(/\r\n|\r|\n/g, ' ');
             html += '<div class="mb-2">';
-            html += '<label class="form-label small">' + f.title + (f.required ? ' <span class="text-danger">*</span>' : '') + '</label>';
-            if (f.type === 'textarea') {
-                html += '<textarea name="ext[' + f.name + ']" class="form-control form-control-sm" rows="3" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>' + val + '</textarea>';
-            } else if (f.type === 'number') {
-                html += '<input type="number" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
-            } else {
-                html += '<input type="text" name="ext[' + f.name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + (f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
+            html += '<label class="form-label small">' + f.field_label + (f.is_required ? ' <span class="text-danger">*</span>' : '') + '</label>';
+            switch (f.field_type) {
+                case 'textarea':
+                    html += '<textarea name="ext[' + f.field_name + ']" class="form-control form-control-sm" rows="3" placeholder="' + f.field_label + '">' + val + '</textarea>';
+                    break;
+                case 'number':
+                    html += '<input type="number" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + f.field_label + '">';
+                    break;
+                case 'select':
+                    html += '<select name="ext[' + f.field_name + ']" class="form-select form-select-sm">';
+                    var opts = (f.options || '').split(',');
+                    for (var j = 0; j < opts.length; j++) {
+                        html += '<option value="' + opts[j] + '"' + (val === opts[j] ? ' selected' : '') + '>' + opts[j] + '</option>';
+                    }
+                    html += '</select>';
+                    break;
+                case 'radio':
+                    html += '<div class="d-flex flex-wrap gap-2">';
+                    var ropts = (f.options || '').split(',');
+                    for (var r = 0; r < ropts.length; r++) {
+                        html += '<div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="ext[' + f.field_name + ']" value="' + ropts[r] + '"' + (val === ropts[r] ? ' checked' : '') + '><label class="form-check-label small">' + ropts[r] + '</label></div>';
+                    }
+                    html += '</div>';
+                    break;
+                case 'checkbox':
+                    html += '<div class="d-flex flex-wrap gap-2">';
+                    var copts = (f.options || '').split(',');
+                    var ckVals = String(val).split(',');
+                    for (var c = 0; c < copts.length; c++) {
+                        html += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="ext[' + f.field_name + '][]" value="' + copts[c] + '"' + (ckVals.indexOf(copts[c]) >= 0 ? ' checked' : '') + '><label class="form-check-label small">' + copts[c] + '</label></div>';
+                    }
+                    html += '</div>';
+                    break;
+                case 'date':
+                    html += '<input type="date" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '">';
+                    break;
+                case 'datetime':
+                    html += '<input type="datetime-local" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '">';
+                    break;
+                default:
+                    html += '<input type="text" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + f.field_label + '">';
             }
             html += '</div>';
         }
         html += '</div>';
         $card.html(html).show();
+        $('#modelFieldHint').text('已加载 ' + fields.length + ' 个模型字段');
     } else {
         $card.hide();
+        $('#modelFieldHint').text('当前无模型字段');
     }
 }
 
-$('#typeSelect').on('change', function() {
-    var type = $(this).val();
-    // 更新扩展字段
+// 栏目决定一切：分类选择联动
+$('#cateSelect').on('change', function() {
+    var cateId = $(this).val();
+    if (!cateId || cateId === '0') {
+        $('#typeHidden').val(1);
+        $('#typeBadge').text('未选择');
+        $('#typeHint').text('请先选择分类');
+        $('#modelSelect').val(0);
+        $('#modelFieldsCard').hide();
+        $('#modelFieldHint').text('当前无模型字段');
+        return;
+    }
     $.ajax({
-        url: '/admin/content/getExtFields',
+        url: '/admin/content/getCateInfo',
         type: 'GET',
-        data: { type: type },
+        data: { cate_id: cateId },
         dataType: 'json',
         success: function(res) {
-            if (res.code === 0) {
-                renderExtFields(res.data.fields);
-            }
-        }
-    });
-    // 更新分类列表
-    $.ajax({
-        url: '/admin/content/getCates',
-        type: 'GET',
-        data: { type: type },
-        dataType: 'json',
-        success: function(res) {
-            if (res.code === 0) {
-                var options = '<option value="0">请选择分类</option>';
-                for (var id in res.data.cates) {
-                    options += '<option value="' + id + '">' + res.data.cates[id] + '</option>';
+            if (res.code === 0 && res.data) {
+                var d = res.data;
+                // 更新类型隐藏字段和标签
+                var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页'};
+                $('#typeHidden').val(d.type);
+                $('#typeBadge').text(typeNames[d.type] || d.type_name || '未知');
+                $('#typeHint').text('由分类自动确定');
+
+                // 更新模型下拉框：只显示该type下的模型
+                var modelSelect = $('#modelSelect');
+                modelSelect.find('option').not(':first').remove();
+                if (d.models && d.models.length > 0) {
+                    for (var i = 0; i < d.models.length; i++) {
+                        modelSelect.append('<option value="' + d.models[i].id + '">' + d.models[i].name + '</option>');
+                    }
                 }
-                $('#cateSelect').html(options);
+                // 设置默认模型
+                modelSelect.val(d.model_id || 0);
+
+                // 渲染模型字段
+                renderModelFields(d.model_fields || []);
             }
         }
     });
+});
+
+// 模型手动覆盖：切换模型时重新加载字段
+$('#modelSelect').on('change', function() {
+    var modelId = $(this).val();
+    if (!modelId || modelId === '0') {
+        $('#modelFieldsCard').hide();
+        $('#modelFieldHint').text('当前无模型字段');
+        return;
+    }
+    // 从已有模型字段中查找（通过AJAX获取该模型的字段）
+    var cateId = $('#cateSelect').val();
+    $.ajax({
+        url: '/admin/content/getCateInfo',
+        type: 'GET',
+        data: { cate_id: cateId || 0 },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.models) {
+                // 如果选的模型在列表中，获取其字段需要单独接口
+                // 暂时通过遍历已有模型字段——如果模型改变了，重新调用getCateInfo不够
+                // 实际上需要单独获取模型字段，这里复用一个简单方案
+            }
+        }
+    });
+    // 直接通过接口获取模型字段
+    $.ajax({
+        url: '/admin/content/getModelFields/' + modelId,
+        type: 'GET',
+        dataType: 'json',
+        success: function(res) {
+            if (res.code === 0 && res.data && res.data.fields) {
+                renderModelFields(res.data.fields);
+            } else {
+                $('#modelFieldsCard').hide();
+                $('#modelFieldHint').text('当前模型无字段');
+            }
+        },
+        error: function() {
+            $('#modelFieldsCard').hide();
+            $('#modelFieldHint').text('当前模型无字段');
+        }
+    });
+});
+
+// 编辑模式初始化：如果已有分类选中，更新type标签显示
+$(function() {
+    var cateId = $('#cateSelect').val();
+    var typeVal = $('#typeHidden').val();
+    var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页'};
+    if (cateId && cateId !== '0') {
+        if (typeVal && typeNames[typeVal]) {
+            $('#typeBadge').text(typeNames[typeVal]);
+            $('#typeHint').text('由分类自动确定');
+        }
+        // 更新模型下拉框：只显示该type下的模型
+        var currentType = parseInt(typeVal) || 1;
+        $('#modelSelect option').not(':first').each(function() {
+            var optType = parseInt($(this).attr('data-type'));
+            if (optType && optType !== currentType) {
+                $(this).remove();
+            }
+        });
+    }
 });
 
 // 封面上传

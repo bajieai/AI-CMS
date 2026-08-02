@@ -34,6 +34,8 @@ Route::post('content/delete/:id$', '\app\admin\controller\ContentController@dele
 Route::post('content/publish/:id$', '\app\admin\controller\ContentController@publish');
 Route::get('content/getExtFields$', '\app\admin\controller\ContentController@getExtFields');
 Route::get('content/getCates$', '\app\admin\controller\ContentController@getCates');
+Route::get('content/getCateInfo$', '\app\admin\controller\ContentController@getCateInfo');
+Route::get('content/getModelFields/:modelId$', '\app\admin\controller\ContentController@getModelFields');
 Route::get('content/recycleBin$', '\app\admin\controller\ContentController@recycleBin');
 Route::post('content/restore/:id$', '\app\admin\controller\ContentController@restore');
 Route::post('content/forceDelete/:id$', '\app\admin\controller\ContentController@forceDelete');

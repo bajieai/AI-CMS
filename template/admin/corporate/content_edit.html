@@ -33,28 +33,37 @@
                 </div>
                 <!-- 右侧属性 -->
                 <div class="col-lg-4">
+                    <!-- 分类（栏目决定一切：选分类→自动推断type和model） -->
                     <div class="mb-3">
-                        <label class="form-label">类型 <span class="text-danger">*</span></label>
-                        <select name="type" class="form-select" id="typeSelect">
-                            <option value="1" {if condition="($info.type ?? 1) == 1"}selected{/if}>产品</option>
-                            <option value="2" {if condition="($info.type ?? 1) == 2"}selected{/if}>案例</option>
-                            <option value="3" {if condition="($info.type ?? 1) == 3"}selected{/if}>新闻</option>
-                            <option value="4" {if condition="($info.type ?? 1) == 4"}selected{/if}>下载</option>
-                            <option value="5" {if condition="($info.type ?? 1) == 5"}selected{/if}>招聘</option>
-                            <option value="6" {if condition="($info.type ?? 1) == 6"}selected{/if}>单页</option>
+                        <label class="form-label">分类 <span class="text-danger">*</span></label>
+                        <select name="cate_id" class="form-select" id="cateSelect">
+                            <option value="0">请选择分类</option>
+                            {volist name="cates" id="cate"}
+                            <option value="{$cate.id}" {if condition="($info.cate_id ?? 0) == $cate.id"}selected{/if}>{$cate.name}</option>
+                            {/volist}
                         </select>
+                        <div class="form-text">选择分类后自动确定类型和模型</div>
                     </div>
-                    <!-- V2.9.20 A-2: 内容模型选择 -->
+                    <!-- 类型：自动推断标签（隐藏字段+只读显示） -->
                     <div class="mb-3">
-                        <label class="form-label">内容模型</label>
+                        <label class="form-label">类型</label>
+                        <input type="hidden" name="type" id="typeHidden" value="{$info.type ?? 1}">
+                        <div class="form-control bg-light d-flex align-items-center" style="min-height:38px;">
+                            <span class="badge bg-primary" id="typeBadge">{$info.type ?? '未选择'}</span>
+                            <span class="text-muted small ms-2" id="typeHint">{if condition="!$info"}请先选择分类{else/}由分类自动确定{/if}</span>
+                        </div>
+                    </div>
+                    <!-- 内容模型：分类联动+手动覆盖 -->
+                    <div class="mb-3">
+                        <label class="form-label">内容模型 <small class="text-muted">(可选覆盖)</small></label>
                         <select name="model_id" class="form-select" id="modelSelect">
                             <option value="0">不使用模型</option>
-                            {volist name="content_models" id="model"}
-                            <option value="{$model.id}" {if condition="($model_id ?? 0) == $model.id"}selected{/if}>{$model.name}</option>
+                            {volist name="all_models" id="model"}
+                            <option value="{$model.id}" data-type="{$model.type}" {if condition="($model_id ?? 0) == $model.id"}selected{/if}>{$model.name ?: ($model.model_name ?? '')}</option>
                             {/volist}
                         </select>
                         <div class="form-text text-muted" id="modelFieldHint">
-                            {if condition="empty($model_fields)"}当前类型无模型字段{else /}已加载模型字段{/if}
+                            {if condition="empty($model_fields)"}当前无模型字段{else /}已加载模型字段{/if}
                         </div>
                     </div>
                     <!-- V2.9.9: AI内容模板选择 -->
@@ -70,15 +79,6 @@
                             {/volist}
                         </select>
                         <div class="form-text">选择AI模板后，内容将按模板规则自动生成结构</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">分类</label>
-                        <select name="cate_id" class="form-select" id="cateSelect">
-                            <option value="0">请选择分类</option>
-                            {volist name="cates" id="cate"}
-                            <option value="{$cate.id}" {if condition="($info.cate_id ?? 0) == $cate.id"}selected{/if}>{$cate.name}</option>
-                            {/volist}
-                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between align-items-center">
@@ -327,43 +327,6 @@
                                     <input type="text" name="ext[{$field.field_name}]" class="form-control form-control-sm"
                                         value="{$ext_data[$field.field_name] ?? $field.default_value}"
                                         placeholder="{$field.field_label}">
-                                {/switch}
-                            </div>
-                            {/volist}
-                        </div>
-                    </div>
-                    {/notempty}
-
-                    <!-- 扩展字段（静态配置保留兼容） -->
-                    {notempty name="ext_fields"}
-                    <div class="card border-secondary mb-3" id="extFieldsCard">
-                        <div class="card-header py-2 bg-secondary text-white"><i class="bi bi-sliders me-1"></i>基础扩展字段</div>
-                        <div class="card-body py-2">
-                            {volist name="ext_fields" id="field"}
-                            <div class="mb-2">
-                                <label class="form-label small">{$field.title} {if condition="$field.required"}<span class="text-danger">*</span>{/if}</label>
-                                {switch field.type}
-                                    {case value="text"}
-                                    <input type="text" name="ext[{$field.name}]" class="form-control form-control-sm"
-                                        value="{$ext_data[$field.name] ?? ''}"
-                                        placeholder="{$field.placeholder ?? ''}"
-                                        {if condition="$field.required"}required{/if}>
-                                    {/case}
-                                    {case value="number"}
-                                    <input type="number" name="ext[{$field.name}]" class="form-control form-control-sm"
-                                        value="{$ext_data[$field.name] ?? ''}"
-                                        placeholder="{$field.placeholder ?? ''}"
-                                        {if condition="$field.required"}required{/if}>
-                                    {/case}
-                                    {case value="textarea"}
-                                    <textarea name="ext[{$field.name}]" class="form-control form-control-sm" rows="3"
-                                        placeholder="{$field.placeholder ?? ''}"
-                                        {if condition="$field.required"}required{/if}>{$ext_data[$field.name] ?? ''}</textarea>
-                                    {/case}
-                                    {default /}
-                                    <input type="text" name="ext[{$field.name}]" class="form-control form-control-sm"
-                                        value="{$ext_data[$field.name] ?? ''}"
-                                        placeholder="{$field.placeholder ?? ''}">
                                 {/switch}
                             </div>
                             {/volist}

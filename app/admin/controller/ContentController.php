@@ -122,25 +122,15 @@ class ContentController extends AdminBaseController
     public function add()
     {
         if ($this->request->isGet()) {
-            $type = (int) $this->request->get('type', 1);
-            $cates = Cate::where('status', 1)->select();
+            $cates = Cate::where('status', 1)->order('sort', 'asc')->select();
             $tags = Tag::select();
-            $extFields = ThinkConfig::get('info_type_fields.' . $type, []);
 
-            // V2.9.20 A-2: 注入内容模型选择
-            $contentModels = \app\common\model\ContentModel::where('status', 1)
-                ->where('type', $type)
+            // 获取所有启用的内容模型（供前端分类联动时动态筛选）
+            $allModels = \app\common\model\ContentModel::where('status', 1)
                 ->order('sort', 'asc')
-                ->select();
-            $defaultModel = \app\common\model\ContentModel::getDefaultByType($type);
-            $modelId = $defaultModel ? $defaultModel->id : 0;
-            $modelFields = [];
-            if ($modelId > 0) {
-                $modelFields = \app\common\model\ContentModelField::where('model_id', $modelId)
-                    ->where('status', 1)
-                    ->order('sort', 'asc')
-                    ->select();
-            }
+                ->field('id,name,model_name,type')
+                ->select()
+                ->toArray();
 
             // V2.9.9-R4: 注入AI配图默认配置
             $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
@@ -163,12 +153,7 @@ class ContentController extends AdminBaseController
                 'tags' => $tags,
                 'info' => null,
                 'selected_tags' => [],
-                'ext_fields' => $extFields,
-                'ext_data' => [],
-                // V2.9.20 A-2: 内容模型
-                'content_models' => $contentModels,
-                'model_id' => $modelId,
-                'model_fields' => $modelFields,
+                'all_models' => $allModels,
                 'ai_image_default_size' => $aiImageDefaultSize,
                 'ai_image_default_style' => $aiImageDefaultStyle,
                 'ai_image_candidate_count' => $aiImageCandidateCount,
@@ -184,6 +169,15 @@ class ContentController extends AdminBaseController
         }
 
         $data = $this->request->post();
+
+        // 栏目决定一切：从分类自动推断type
+        if (!empty($data['cate_id']) && (int) $data['cate_id'] > 0) {
+            $cate = Cate::find((int) $data['cate_id']);
+            if ($cate) {
+                $data['type'] = (int) $cate->type;
+            }
+        }
+
         $service = new ContentService();
         $result = $service->create($data);
 
@@ -205,10 +199,9 @@ class ContentController extends AdminBaseController
         }
 
         if ($this->request->isGet()) {
-            $cates = Cate::where('status', 1)->where('type', $info->type)->select();
+            $cates = Cate::where('status', 1)->order('sort', 'asc')->select();
             $tags = Tag::select();
             $selectedTags = $info->tags()->column('tag_id');
-            $extFields = ThinkConfig::get('info_type_fields.' . $info->type, []);
             $extData = [];
             if ($info->ext) {
                 $extData = $info->ext->data ?? [];
@@ -216,11 +209,13 @@ class ContentController extends AdminBaseController
             // 归一化换行符 \r\n → \n（防止在 input value 属性中显示为乱码）
             $extData = self::cleanLineEndings($extData);
 
-            // V2.9.20 A-2: 注入内容模型和动态字段
-            $contentModels = \app\common\model\ContentModel::where('status', 1)
-                ->where('type', $info->type)
+            // 获取所有启用的内容模型（供前端分类联动时动态筛选）
+            $allModels = \app\common\model\ContentModel::where('status', 1)
                 ->order('sort', 'asc')
-                ->select();
+                ->field('id,name,model_name,type')
+                ->select()
+                ->toArray();
+
             $modelFields = [];
             if ($info->model_id > 0) {
                 $modelFields = \app\common\model\ContentModelField::where('model_id', $info->model_id)
@@ -257,10 +252,8 @@ class ContentController extends AdminBaseController
                 'cates' => $cates,
                 'tags' => $tags,
                 'selected_tags' => $selectedTags,
-                'ext_fields' => $extFields,
                 'ext_data' => $extData,
-                // V2.9.20 A-2: 内容模型
-                'content_models' => $contentModels,
+                'all_models' => $allModels,
                 'model_id' => $info->model_id,
                 'model_fields' => $modelFields,
                 'ai_image_default_size' => $aiImageDefaultSize,
@@ -278,6 +271,15 @@ class ContentController extends AdminBaseController
         }
 
         $data = $this->request->post();
+
+        // 栏目决定一切：从分类自动推断type
+        if (!empty($data['cate_id']) && (int) $data['cate_id'] > 0) {
+            $cate = Cate::find((int) $data['cate_id']);
+            if ($cate) {
+                $data['type'] = (int) $cate->type;
+            }
+        }
+
         $service = new ContentService();
         $result = $service->update($id, $data);
 
@@ -518,12 +520,103 @@ class ContentController extends AdminBaseController
     }
 
     /**
-     * 获取分类列表（按类型过滤，AJAX）
+     * 获取分类列表（AJAX，支持按type过滤）
      */
     public function getCates()
     {
-        $cates = Cate::where('status', 1)->column('name', 'id');
+        $type = (int) $this->request->get('type', 0);
+        $query = Cate::where('status', 1);
+        if ($type > 0) {
+            $query = $query->where('type', $type);
+        }
+        $cates = $query->column('name', 'id');
         return $this->success('获取成功', ['cates' => $cates]);
+    }
+
+    /**
+     * 获取分类完整信息（AJAX）：type、默认model_id、模型列表、模型字段
+     * 栏目决定一切范式：选分类 → 自动推断type和model
+     */
+    public function getCateInfo()
+    {
+        $cateId = (int) $this->request->get('cate_id', 0);
+        if ($cateId <= 0) {
+            return $this->success('请选择分类', ['type' => 0, 'type_name' => '', 'model_id' => 0, 'model_name' => '', 'models' => [], 'model_fields' => []]);
+        }
+
+        $cate = Cate::find($cateId);
+        if (empty($cate)) {
+            return $this->error('分类不存在');
+        }
+
+        $typeMap = [1 => '产品', 2 => '案例', 3 => '新闻', 4 => '下载', 5 => '招聘', 6 => '单页'];
+        $type = (int) $cate->type;
+        $typeName = $typeMap[$type] ?? '未知';
+        $modelId = (int) ($cate->model_id ?? 0);
+
+        // 获取该type下的所有可用模型
+        $models = \app\common\model\ContentModel::where('status', 1)
+            ->where('type', $type)
+            ->order('sort', 'asc')
+            ->field('id,name,model_name')
+            ->select()
+            ->toArray();
+
+        // 规范化模型名称（兼容新旧字段名）
+        $modelsNormalized = [];
+        foreach ($models as $m) {
+            $modelsNormalized[] = [
+                'id'   => $m['id'],
+                'name' => $m['name'] ?: ($m['model_name'] ?? ''),
+            ];
+        }
+
+        // 如果分类没有绑定默认模型，尝试取该type的默认模型
+        if ($modelId <= 0) {
+            $defaultModel = \app\common\model\ContentModel::getDefaultByType($type);
+            if ($defaultModel) {
+                $modelId = $defaultModel->id;
+            }
+        }
+
+        $modelName = '';
+        $modelFields = [];
+        if ($modelId > 0) {
+            $currentModel = \app\common\model\ContentModel::find($modelId);
+            if ($currentModel) {
+                $modelName = $currentModel->name ?: ($currentModel->model_name ?? '');
+            }
+            $modelFields = \app\common\model\ContentModelField::where('model_id', $modelId)
+                ->where('status', 1)
+                ->order('sort', 'asc')
+                ->select()
+                ->toArray();
+        }
+
+        return $this->success('获取成功', [
+            'type'         => $type,
+            'type_name'    => $typeName,
+            'model_id'     => $modelId,
+            'model_name'   => $modelName,
+            'models'       => $modelsNormalized,
+            'model_fields' => $modelFields,
+        ]);
+    }
+
+    /**
+     * 获取指定模型的字段列表（AJAX，手动覆盖模型时调用）
+     */
+    public function getModelFields(int $modelId)
+    {
+        if ($modelId <= 0) {
+            return $this->success('获取成功', ['fields' => []]);
+        }
+        $fields = \app\common\model\ContentModelField::where('model_id', $modelId)
+            ->where('status', 1)
+            ->order('sort', 'asc')
+            ->select()
+            ->toArray();
+        return $this->success('获取成功', ['fields' => $fields]);
     }
 
     /**
