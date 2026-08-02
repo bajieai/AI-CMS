@@ -123,7 +123,7 @@ class ContentController extends AdminBaseController
     {
         if ($this->request->isGet()) {
             $type = (int) $this->request->get('type', 1);
-            $cates = Cate::where('status', 1)->where('type', $type)->select();
+            $cates = Cate::where('status', 1)->select();
             $tags = Tag::select();
             $extFields = ThinkConfig::get('info_type_fields.' . $type, []);
 
@@ -522,8 +522,7 @@ class ContentController extends AdminBaseController
      */
     public function getCates()
     {
-        $type = (int) $this->request->get('type', 1);
-        $cates = Cate::where('status', 1)->where('type', $type)->column('name', 'id');
+        $cates = Cate::where('status', 1)->column('name', 'id');
         return $this->success('获取成功', ['cates' => $cates]);
     }
 
