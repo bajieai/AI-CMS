@@ -116,7 +116,7 @@ class UploadService
             'storage_driver' => $driverName,
             'filename' => $file->getOriginalName(),
             'mimetype' => $mimeType,
-            'filesize' => $file->getSize(),
+            'filesize' => isset($_FILES['file']['size']) ? (int)$_FILES['file']['size'] : 0,
         ];
     }
 
