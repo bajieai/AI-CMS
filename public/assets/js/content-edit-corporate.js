@@ -111,50 +111,72 @@ function renderModelFields(fields) {
         html += '<div class="card-body py-2">';
         for (var i = 0; i < fields.length; i++) {
             var f = fields[i];
-            var val = extData[f.field_name] || f.default_value || '';
+            // 兼容数据库实际字段名: name/label/type/required (非 field_name/field_label/field_type/is_required)
+            var fName = f.name || f.field_name || '';
+            var fLabel = f.label || f.field_label || fName;
+            var fType = f.type || f.field_type || 'text';
+            var fRequired = f.required || f.is_required || 0;
+            var fOptions = f.options || '';
+            var fDefault = f.default_value || '';
+            var val = extData[fName] || fDefault;
             var valClean = String(val).replace(/\r\n|\r|\n/g, ' ');
             html += '<div class="mb-2">';
-            html += '<label class="form-label small">' + f.field_label + (f.is_required ? ' <span class="text-danger">*</span>' : '') + '</label>';
-            switch (f.field_type) {
+            html += '<label class="form-label small">' + fLabel + (fRequired ? ' <span class="text-danger">*</span>' : '') + '</label>';
+            switch (fType) {
                 case 'textarea':
-                    html += '<textarea name="ext[' + f.field_name + ']" class="form-control form-control-sm" rows="3" placeholder="' + f.field_label + '">' + val + '</textarea>';
+                    html += '<textarea name="ext[' + fName + ']" class="form-control form-control-sm" rows="3" placeholder="' + fLabel + '">' + val + '</textarea>';
+                    break;
+                case 'rich_text':
+                    html += '<textarea name="ext[' + fName + ']" class="form-control form-control-sm editor-rich" rows="5" placeholder="' + fLabel + '">' + val + '</textarea>';
                     break;
                 case 'number':
-                    html += '<input type="number" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + f.field_label + '">';
+                    html += '<input type="number" name="ext[' + fName + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + fLabel + '">';
                     break;
                 case 'select':
-                    html += '<select name="ext[' + f.field_name + ']" class="form-select form-select-sm">';
-                    var opts = (f.options || '').split(',');
+                    html += '<select name="ext[' + fName + ']" class="form-select form-select-sm">';
+                    var opts = _parseOptions(fOptions);
                     for (var j = 0; j < opts.length; j++) {
-                        html += '<option value="' + opts[j] + '"' + (val === opts[j] ? ' selected' : '') + '>' + opts[j] + '</option>';
+                        html += '<option value="' + opts[j] + '"' + (val == opts[j] ? ' selected' : '') + '>' + opts[j] + '</option>';
                     }
                     html += '</select>';
                     break;
                 case 'radio':
                     html += '<div class="d-flex flex-wrap gap-2">';
-                    var ropts = (f.options || '').split(',');
+                    var ropts = _parseOptions(fOptions);
                     for (var r = 0; r < ropts.length; r++) {
-                        html += '<div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="ext[' + f.field_name + ']" value="' + ropts[r] + '"' + (val === ropts[r] ? ' checked' : '') + '><label class="form-check-label small">' + ropts[r] + '</label></div>';
+                        html += '<div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="ext[' + fName + ']" value="' + ropts[r] + '"' + (val == ropts[r] ? ' checked' : '') + '><label class="form-check-label small">' + ropts[r] + '</label></div>';
                     }
                     html += '</div>';
                     break;
                 case 'checkbox':
                     html += '<div class="d-flex flex-wrap gap-2">';
-                    var copts = (f.options || '').split(',');
+                    var copts = _parseOptions(fOptions);
                     var ckVals = String(val).split(',');
                     for (var c = 0; c < copts.length; c++) {
-                        html += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="ext[' + f.field_name + '][]" value="' + copts[c] + '"' + (ckVals.indexOf(copts[c]) >= 0 ? ' checked' : '') + '><label class="form-check-label small">' + copts[c] + '</label></div>';
+                        html += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="ext[' + fName + '][]" value="' + copts[c] + '"' + (ckVals.indexOf(copts[c]) >= 0 ? ' checked' : '') + '><label class="form-check-label small">' + copts[c] + '</label></div>';
                     }
                     html += '</div>';
                     break;
                 case 'date':
-                    html += '<input type="date" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '">';
+                    html += '<input type="date" name="ext[' + fName + ']" class="form-control form-control-sm" value="' + valClean + '">';
                     break;
                 case 'datetime':
-                    html += '<input type="datetime-local" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '">';
+                    html += '<input type="datetime-local" name="ext[' + fName + ']" class="form-control form-control-sm" value="' + valClean + '">';
+                    break;
+                case 'image':
+                    html += '<input type="text" name="ext[' + fName + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + fLabel + '（图片URL）">';
+                    break;
+                case 'file':
+                    html += '<input type="text" name="ext[' + fName + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + fLabel + '（文件URL）">';
+                    break;
+                case 'color':
+                    html += '<input type="color" name="ext[' + fName + ']" class="form-control form-control-color" value="' + valClean + '">';
+                    break;
+                case 'tags':
+                    html += '<input type="text" name="ext[' + fName + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + fLabel + '（逗号分隔）">';
                     break;
                 default:
-                    html += '<input type="text" name="ext[' + f.field_name + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + f.field_label + '">';
+                    html += '<input type="text" name="ext[' + fName + ']" class="form-control form-control-sm" value="' + valClean + '" placeholder="' + fLabel + '">';
             }
             html += '</div>';
         }
@@ -165,6 +187,19 @@ function renderModelFields(fields) {
         $card.hide();
         $('#modelFieldHint').text('当前无模型字段');
     }
+}
+
+// 解析字段选项（兼容JSON数组和逗号分隔两种格式）
+function _parseOptions(raw) {
+    if (!raw) return [];
+    raw = String(raw).trim();
+    if (raw.charAt(0) === '[') {
+        try {
+            var arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+        } catch(e) { return []; }
+    }
+    return raw.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
 }
 
 // 栏目决定一切：分类选择联动
@@ -187,7 +222,7 @@ $('#cateSelect').on('change', function() {
             if (res.code === 0 && res.data) {
                 var d = res.data;
                 // 更新类型隐藏字段和分类行内badge
-                var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页'};
+                var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页',7:'图片',8:'视频'};
                 $('#typeHidden').val(d.type);
                 $('#typeBadge').text(typeNames[d.type] || d.type_name || '未知');
                 $('#cateInfoRow').removeClass('d-none');
@@ -241,7 +276,7 @@ $('#modelSelect').on('change', function() {
 $(function() {
     var cateId = $('#cateSelect').val();
     var typeVal = $('#typeHidden').val();
-    var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页'};
+    var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页',7:'图片',8:'视频'};
     if (cateId && cateId !== '0') {
         if (typeVal && typeNames[typeVal]) {
             $('#typeBadge').text(typeNames[typeVal]);
