@@ -121,7 +121,11 @@ function doSearch() {
                         {if condition="$vo.cover"}
                         <img src="{$vo.cover}" width="36" height="36" class="rounded me-1" style="object-fit:cover">
                         {/if}
+                        {if condition="$vo.type == 6"}
+                        <a href="/admin/cate/edit/{$vo.cate_id}">{$vo.title}</a>
+                        {else /}
                         <a href="/admin/content/edit/{$vo.id}">{$vo.title}</a>
+                        {/if}
                     </td>
                     <td>
                         {if condition="$vo.type == 1"}<span class="badge bg-primary">产品</span>{/if}
@@ -171,6 +175,10 @@ function doSearch() {
                     <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
                     <td>
                         <div class="btn-group btn-group-sm">
+                            {if condition="$vo.type == 6"}
+                            <a href="/admin/cate/edit/{$vo.cate_id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
+                            <a href="/admin/cate/index" class="btn btn-outline-secondary" title="单页内容请在分类管理中操作"><i class="bi bi-folder2-open"></i></a>
+                            {else /}
                             <a href="/admin/content/edit/{$vo.id}" class="btn btn-outline-primary" title="编辑"><i class="bi bi-pencil"></i></a>
                             <button type="button" class="btn btn-outline-info" title="复制" onclick="copyItem({$vo.id})"><i class="bi bi-copy"></i></button>
                             {if condition="$vo.status == 1"}
@@ -180,6 +188,7 @@ function doSearch() {
                             <button type="button" class="btn btn-outline-success" title="发布" onclick="publishItem({$vo.id})"><i class="bi bi-check-circle"></i></button>
                             {/if}
                             <button type="button" class="btn btn-outline-danger" title="移入回收站" onclick="deleteItem({$vo.id})"><i class="bi bi-trash"></i></button>
+                            {/if}
                         </div>
                     </td>
                 </tr>

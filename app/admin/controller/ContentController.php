@@ -132,6 +132,9 @@ class ContentController extends AdminBaseController
                 ->select()
                 ->toArray();
 
+            // V2.9.42: 单页内容只能在分类管理中编辑，信息管理中排除单页分类
+            $pageCateIds = Cate::where('type', 6)->column('id');
+
             // V2.9.9-R4: 注入AI配图默认配置
             $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
             $aiImageDefaultStyle = ConfigModel::getValue('ai_image_default_style', 'realistic');
@@ -160,6 +163,7 @@ class ContentController extends AdminBaseController
                 'ai_templates' => $aiTemplates,
                 'geo_score' => $geoScore,
                 'member_levels' => $memberLevels,
+                'page_cate_ids' => $pageCateIds,
                 'translate_poll_interval'  => $polling['interval'] ?? 3000,
                 'translate_fast_interval'  => $polling['fast_interval'] ?? 1000,
                 'translate_max_poll'       => $polling['max_attempts'] ?? 60,
@@ -169,6 +173,14 @@ class ContentController extends AdminBaseController
         }
 
         $data = $this->request->post();
+
+        // V2.9.42: 禁止在信息管理中创建单页内容（单页只能在分类管理中操作）
+        if (!empty($data['cate_id']) && (int) $data['cate_id'] > 0) {
+            $cate = Cate::find((int) $data['cate_id']);
+            if ($cate && (int) $cate->type === 6) {
+                $this->error('单页内容请在分类管理中编辑');
+            }
+        }
 
         // 栏目决定一切：从分类自动推断type
         if (!empty($data['cate_id']) && (int) $data['cate_id'] > 0) {
@@ -216,6 +228,9 @@ class ContentController extends AdminBaseController
                 ->select()
                 ->toArray();
 
+            // V2.9.42: 单页内容只能在分类管理中编辑，信息管理中排除单页分类
+            $pageCateIds = Cate::where('type', 6)->column('id');
+
             $modelFields = [];
             if ($info->model_id > 0) {
                 $modelFields = \app\common\model\ContentModelField::where('model_id', $info->model_id)
@@ -262,6 +277,7 @@ class ContentController extends AdminBaseController
                 'ai_templates' => $aiTemplates,
                 'geo_score' => $geoScore,
                 'member_levels' => $memberLevels,
+                'page_cate_ids' => $pageCateIds,
                 'translate_poll_interval'  => $polling['interval'] ?? 3000,
                 'translate_fast_interval'  => $polling['fast_interval'] ?? 1000,
                 'translate_max_poll'       => $polling['max_attempts'] ?? 60,
