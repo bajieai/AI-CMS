@@ -16,23 +16,31 @@ use think\facade\Route;
 // 首页
 Route::get('/', '\app\home\controller\IndexController@index');
 
-// 分类列表页 /product /case /news /download /job
-// V2.9.42: 单页(page)类型不使用列表页路由，改用 /page/{cateId} 直达
-Route::get(':type', '\app\home\controller\CateController@listing')
-    ->pattern(['type' => 'product|case|news|download|job']);
+// 分类列表页（每个类型单独注册，completeMatch防止 /news/1 被匹配）
+Route::get('product', '\app\home\controller\CateController@listing')->append(['type' => 'product'])->completeMatch(true);
+Route::get('case', '\app\home\controller\CateController@listing')->append(['type' => 'case'])->completeMatch(true);
+Route::get('news', '\app\home\controller\CateController@listing')->append(['type' => 'news'])->completeMatch(true);
+Route::get('download', '\app\home\controller\CateController@listing')->append(['type' => 'download'])->completeMatch(true);
+Route::get('job', '\app\home\controller\CateController@listing')->append(['type' => 'job'])->completeMatch(true);
 
-// V2.9.42: 单页面直达路由 /page/6 /page/7 等（按分类ID）
+// V2.9.42: 单页列表页 /page（展示所有单页分类卡片）
+Route::get('page', '\app\home\controller\CateController@listing')->append(['type' => 'page'])->completeMatch(true);
+
+// V2.9.42: 单页面直达路由 /page/6 /page/7 等（按分类ID，必须在 :type/:id 之前）
 Route::get('page/:cateId', '\app\home\controller\CateController@singlePage')
     ->pattern(['cateId' => '\d+']);
 
-// V2.9.42: 单页列表页 /page（展示所有单页分类卡片）
-Route::get('page', '\app\home\controller\CateController@listing')
-    ->append(['type' => 'page']);
-
-// 内容详情页 /product/123 /news/123 等
-// page 类型的详情路由已由 page/:cateId 处理
-Route::get(':type/:id', '\app\home\controller\ContentController@detail')
-    ->pattern(['type' => 'product|case|news|download|job', 'id' => '\d+']);
+// 内容详情页 /product/123 /news/123 等（每个类型单独注册）
+Route::get('product/:id', '\app\home\controller\ContentController@detail')
+    ->append(['type' => 'product'])->pattern(['id' => '\d+']);
+Route::get('case/:id', '\app\home\controller\ContentController@detail')
+    ->append(['type' => 'case'])->pattern(['id' => '\d+']);
+Route::get('news/:id', '\app\home\controller\ContentController@detail')
+    ->append(['type' => 'news'])->pattern(['id' => '\d+']);
+Route::get('download/:id', '\app\home\controller\ContentController@detail')
+    ->append(['type' => 'download'])->pattern(['id' => '\d+']);
+Route::get('job/:id', '\app\home\controller\ContentController@detail')
+    ->append(['type' => 'job'])->pattern(['id' => '\d+']);
 
 // 搜索页
 Route::get('search', '\app\home\controller\SearchController@index');

@@ -86,7 +86,11 @@ class ContentController extends FrontBaseController
         }
 
         // 增加浏览量
-        $info->inc('views')->update();
+        try {
+            \think\facade\Db::table('i8j_content')->where('id', $id)->inc('views')->update();
+        } catch (\Exception $e) {
+            // 静默失败，浏览量非关键功能
+        }
 
         // 获取相关内容（V2.9.5 N+1优化：预加载分类）
         $related = Content::with(['cate'])->where('cate_id', $info->cate_id)
@@ -98,18 +102,23 @@ class ContentController extends FrontBaseController
         // V2.6: 获取章节列表（如果是付费内容或标记有章节）
         $chapters = [];
         $chapterAccess = [];
-        if (!empty($info->is_paid) || Content::where('parent_id', $id)->where('is_chapter', 1)->count() > 0) {
-            $chapters = Content::where('parent_id', $id)
-                ->where('is_chapter', 1)
-                ->where('status', 2)
-                ->order('chapter_sort', 'asc')
-                ->order('id', 'asc')
-                ->select();
+        try {
+            $hasChapters = Content::where('parent_id', $id)->where('is_chapter', 1)->count() > 0;
+            if (!empty($info->is_paid) || $hasChapters) {
+                $chapters = Content::where('parent_id', $id)
+                    ->where('is_chapter', 1)
+                    ->where('status', 2)
+                    ->order('chapter_sort', 'asc')
+                    ->order('id', 'asc')
+                    ->select();
 
-            $memberId = $this->memberInfo['id'] ?? 0;
-            foreach ($chapters as $chapter) {
-                $chapterAccess[$chapter->id] = PaidService::canAccessChapter($memberId, $id, $chapter->id);
+                $memberId = $this->memberInfo['id'] ?? 0;
+                foreach ($chapters as $chapter) {
+                    $chapterAccess[$chapter->id] = PaidService::canAccessChapter($memberId, $id, $chapter->id);
+                }
             }
+        } catch (\Exception $e) {
+            // parent_id 列可能不存在，静默跳过章节查询
         }
 
         $typeMap = [1 => 'product', 2 => 'case', 3 => 'news', 4 => 'download', 5 => 'job', 6 => 'page'];
