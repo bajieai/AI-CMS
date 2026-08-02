@@ -82,7 +82,7 @@
             {if $isMemberLogin}
             <button type="button" class="btn btn-primary btn-sm" onclick="unlockContent({$info.id})">立嬪嵆瑙ｉ攣</button>
             {else}
-            <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary btn-sm">登录后解锁</a>
+            <a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary btn-sm" style="color:#fff">登录后解锁</a>
             {/if}
         </div>
         {else}
