@@ -197,6 +197,7 @@ class ContentController extends FrontBaseController
         $cate = $info->cate ?? null;
 
         $this->assign([
+            'site_url'      => request()->domain(),
             'info'          => $info,
             'related'       => $related,
             'chapters'      => $chapters,
