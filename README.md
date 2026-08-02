@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.9.41
+# 八界AI-CMS V2.9.42
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.41-blue)
+![Version](https://img.shields.io/badge/version-2.9.42-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.41 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.42 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
 
@@ -58,6 +58,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.42** | 2026-08 | **前台导航动态化·注册CSRF修复·付费开关修复·GBK/PUA乱码根除·评价区去重·卡片标题颜色优化**: 导航从硬编码改为数据库动态读取(4套layout)+注册表单CSRF token注入修复+付费阅读checkbox关闭无效修复(ContentService补零+隐藏域)+GBK双重编码乱码全量根除(1256模板0残留)+PUA字符全量清理(18文件)+详情页移除重复评价区仅保留评论+后台卡片标题恢复默认样式+SEO卡片移除黄色边框+JS语法修复(引号缺失+星号符号)+删除重复CommentAdminController+install.sql编码清理合并 |
 | **V2.9.41** | 2026-07 | **表前缀自定义·Model类型修复·数据报表修复·无用文件清理**: install.sql{prefix}动态替换+Db::name规范化+Model删$table+$cast→$type回退+ReportEngineService容错+jsonToTags()badge显示+无用文件清理 |
 | **V2.9.40** | 2026-07 | **移动端H5完善·AI深化·数据深化·国际化增强·合规安全·系统健壮性·开发者生态**: 28功能点(Sprint H5-MOBILE/AI-DEEP2/DATA-DEEP2/I18N-V3/COMPLIANCE2/SYS-ROBUST2/DEV-ECO2)/8新表+6ALTER(15字段+4索引)/H5用户中心完善+内容详情增强(富文本/画廊/视频/附件/阅读模式)+评论互动+分享扩散+性能优化/AI批量生成增强(队列异步)+内容质量控制(8维度评分)+推荐引擎(协同过滤40%+内容30%+热门20%+新鲜10%)+知识库RAG/数据大屏交互增强+报表导出(PDF/Excel/CSV)+报告订阅推送+预警引擎/翻译工作流优化(记忆库+术语库)+多语言URL路由+i18n内容管理+模板标签/审计日志查询+合规报告导出+脱敏策略配置+数据安全分级/监控告警+日志管理+性能诊断+自动扩缩容/插件开发工具链(CLI)+市场接入优化+开发者文档 |
 | **V2.9.39** | 2026-07 | **移动端H5构建·AI深化·数据分析深化·国际化增强·合规安全·系统健壮性·开发者生态**: 28功能点(Sprint H5-FRONT/AI-DEEP/DATA-DEEP/I18N-V2/COMPLIANCE/SYS-ROBUST/DEV-ECO)/9新表+7次ALTER(21字段)/Vue3+Vite H5独立前端+API网关+PWA+模板适配+支付闭环/AI对话增强(多轮+记忆+历史)+辅助写作(续写/改写/扩写)+工作流4新节点+模型配置中心/数据大屏(ECharts)+智能报表(AI分析)+趋势预测(线性回归)+数据钻取/翻译工作流+i18n全覆盖+多语言SEO+RTL布局/GDPR合规(Cookie同意+数据权利)+审计日志增强+数据脱敏+安全中心/备份恢复+灰度发布+配置中心+健康检查/开发者社区+插件市场闭环+CI/CD集成 |
@@ -99,7 +100,7 @@
 
 适用于宝塔面板、小皮面板等已配置好服务器环境的用户：
 
-1. **下载完整安装包** — 从 [Gitee Releases](https://gitee.com/bajieai/ai-cms/releases) 下载 `AI-CMS-V2.9.41-full.zip`（含所有依赖，无需 Composer）
+1. **下载完整安装包** — 从 [Gitee Releases](https://gitee.com/bajieai/ai-cms/releases) 下载 `AI-CMS-V2.9.42-full.zip`（含所有依赖，无需 Composer）
 2. **创建网站** — 在宝塔/小皮面板中创建网站，将域名解析到服务器
 3. **上传解压** — 将 ZIP 包上传到网站根目录并解压
 4. **设置运行目录** — 网站运行目录设为 `public`
