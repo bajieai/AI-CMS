@@ -137,11 +137,10 @@
         } else {
             content = '<a href="' + selectedMedia.url + '" target="_blank">' + selectedMedia.name + '</a>';
         }
-        window.parent.postMessage({
-            mceAction: 'insertContent',
-            content: content
-        }, '*');
-        window.parent.postMessage({ mceAction: 'close' }, '*');
+        if (window.opener) {
+            window.opener.postMessage({ mceAction: 'insertContent', content: content }, '*');
+        }
+        window.close();
     }
 
     function reloadList() {
@@ -166,8 +165,10 @@
                 if (res.code === 0) {
                     if (res.data && res.data.url) {
                         var content = '<img src="' + res.data.url + '" alt="' + (res.data.filename || '') + '">';
-                        window.parent.postMessage({ mceAction: 'insertContent', content: content }, '*');
-                        window.parent.postMessage({ mceAction: 'close' }, '*');
+                        if (window.opener) {
+                            window.opener.postMessage({ mceAction: 'insertContent', content: content }, '*');
+                        }
+                        window.close();
                     } else {
                         location.reload();
                     }
