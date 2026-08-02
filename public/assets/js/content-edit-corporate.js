@@ -782,10 +782,7 @@ if (saveBtn) {
             if (res.code === 0) {
                 window.showToast('保存成功', 'success');
                 if (typeof window.doPjax === 'function') {
-                    setTimeout(function() { window.doPjax(window.location.href); }, 600);
-                } else {
-                    setTimeout(function() { location.reload(); }, 600);
-                }
+                    setTimeout(function() { location.reload(); }, 800);
             } else {
                 window.showToast(res.msg || '保存失败', 'danger');
             }
