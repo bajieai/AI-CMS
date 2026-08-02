@@ -1021,6 +1021,7 @@ CREATE TABLE `{prefix}content` (
   `min_level_id` int(11) DEFAULT '0' COMMENT '最低访问等级(0=无限制)',
   `chapter_price` decimal(10,2) DEFAULT '0.00' COMMENT '章节单购价格',
   `chapter_count` int(10) unsigned DEFAULT '0' COMMENT '总章节数(父记录)',
+  `parent_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '父内容ID(章节归属)',
   `chapter_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '章节标题',
   `quality_score` tinyint(4) DEFAULT '0' COMMENT 'AI质量评分(0-100)',
   `quality_level` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'unscored' COMMENT '质量等级(excellent/good/fair/poor/unscored)',
@@ -1050,6 +1051,7 @@ CREATE TABLE `{prefix}content` (
   KEY `idx_lang` (`lang`),
   KEY `idx_play_count` (`play_count`),
   KEY `idx_download_count` (`download_count`),
+  KEY `idx_parent_id` (`parent_id`),
   FULLTEXT KEY `ft_title_excerpt` (`title`,`excerpt`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内容表';
 

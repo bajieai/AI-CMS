@@ -443,12 +443,17 @@ class ContentController extends AdminBaseController
      */
     public function getChapters(int $parentId)
     {
-        $list = Content::where('parent_id', $parentId)
-            ->where('is_chapter', 1)
-            ->where('status', '>=', 0)
-            ->order('chapter_sort', 'asc')
-            ->select();
-        return $this->success('获取成功', ['list' => $list]);
+        try {
+            $list = Content::where('parent_id', $parentId)
+                ->where('is_chapter', 1)
+                ->where('status', '>=', 0)
+                ->order('chapter_sort', 'asc')
+                ->select();
+            return $this->success('获取成功', ['list' => $list]);
+        } catch (\Throwable $e) {
+            // parent_id 列不存在时优雅降级
+            return $this->success('获取成功', ['list' => []]);
+        }
     }
 
     /**
