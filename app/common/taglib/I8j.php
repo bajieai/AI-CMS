@@ -30,9 +30,9 @@ class I8j extends TagLib
      * 标签定义
      */
     protected $tags = [
-        // 内容列表标签（支持分页：page="1" pagesize="10"；分类筛选：cate_id="3"；指定ID：id="1,2,3"）
+        // 内容列表标签（支持分页：page="1" pagesize="10"；分类筛选：cate_id="3"；指定ID：id="1,2,3"；偏移：offset="1"）
         'infolist' => [
-            'attr' => 'type,limit,order,page,pagesize,cate_id,id',
+            'attr' => 'type,limit,order,page,pagesize,cate_id,id,offset',
             'close' => 1,
         ],
         // 分类列表标签
@@ -87,6 +87,7 @@ class I8j extends TagLib
         $page = isset($tag['page']) ? (int) $tag['page'] : 0;
         $pageSize = isset($tag['pagesize']) ? (int) $tag['pagesize'] : 10;
         $cateId = isset($tag['cate_id']) ? (int) $tag['cate_id'] : 0;
+        $offset = isset($tag['offset']) ? (int) $tag['offset'] : 0;
         $ids = isset($tag['id']) ? trim($tag['id']) : '';
 
         $parse = '<?php ';
@@ -94,7 +95,7 @@ class I8j extends TagLib
         if (!empty($ids)) {
             $parse .= '$__LIST__ = app("app\\common\\service\\ContentService")->getByIds("' . $ids . '", ' . (int) $limit . ', "' . $order . '"); ';
         } else {
-            $parse .= '$__PAGE__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", ' . $page . ', ' . $pageSize . ', ' . $cateId . '); ';
+            $parse .= '$__PAGE__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", ' . $page . ', ' . $pageSize . ', ' . $cateId . ', ' . $offset . '); ';
             $parse .= '$__LIST__ = (is_object($__PAGE__) && method_exists($__PAGE__, "items")) ? $__PAGE__->items() : $__PAGE__; ';
         }
         $parse .= '?>';
