@@ -332,5 +332,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- V2.9.7 主题定制预览 postMessage 监听 -->
 <script src="/assets/js/theme-custom-listener.js"></script>
 {block name="js"}{/block}
+<!-- V2.9.42: 图片懒加载 -->
+<script src="/assets/lib/lazyload/lazyload.min.js"></script>
+<script>
+new LazyLoad({elements_selector: '.lazyload'});
+</script>
 </body>
 </html>
