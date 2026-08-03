@@ -62,11 +62,12 @@ class ContentService
      * @param string $order 排序规则
      * @param int $page 当前页码（>0 则启用分页）
      * @param int $pageSize 每页数量（分页时使用）
+     * @param int $cateId 分类ID（>0 则仅查询该分类下的内容，类似 eyoucms 的 typeid）
      * @return \think\Collection|\think\Paginator
      */
-    public function getInfolist(string $type = '', int $limit = 10, string $order = 'id desc', int $page = 0, int $pageSize = 10)
+    public function getInfolist(string $type = '', int $limit = 10, string $order = 'id desc', int $page = 0, int $pageSize = 10, int $cateId = 0)
     {
-        $cacheKey = 'info_list_' . md5($type . '_' . $limit . '_' . $order . '_' . $page . '_' . $pageSize);
+        $cacheKey = 'info_list_' . md5($type . '_' . $limit . '_' . $order . '_' . $page . '_' . $pageSize . '_' . $cateId);
         $cacheTag = Config::get('cache.tag.content', 'cms_content');
 
         $result = Cache::get($cacheKey);
@@ -87,6 +88,11 @@ class ContentService
 
         if (!empty($type) && isset($typeMap[$type])) {
             $query->where('type', $typeMap[$type]);
+        }
+
+        // V2.9.42: 支持按分类ID筛选（类似 eyoucms 的 typeid 参数）
+        if ($cateId > 0) {
+            $query->where('cate_id', $cateId);
         }
 
         if ($page > 0) {
