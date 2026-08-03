@@ -144,6 +144,15 @@
     <script src="{$skin_admin}js/admin.js?v=2.9.2"></script>
     <!-- V2.9.9 ECharts 全局加载（PJAX 兼容，放在 JS block 外确保始终可用） -->
     <script src="/assets/lib/echarts/echarts.min.js"></script>
+    <!-- V2.9.42: 全局媒体选择器函数（避免 PJAX/弹窗中 openMediaSelect 未定义） -->
+    <script>
+    function openMediaSelect() {
+        layer.open({type:2,title:'选择图片',area:['900px','600px'],content:'/admin/media/select'});
+    }
+    function mediaSelectCallback(url) {
+        // 各页面自行重写此回调
+    }
+    </script>
     {block name="js"}{/block}
 </body>
 </html>
