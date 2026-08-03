@@ -561,6 +561,7 @@ class SystemController extends AdminBaseController
         $id = $this->request->post('id', 0);
         $name = trim($this->request->post('name', ''));
         $value = $this->request->post('value', '');
+        $type = trim($this->request->post('type', 'text'));
         $remark = trim($this->request->post('remark', ''));
         $sort = (int) $this->request->post('sort', 0);
 
@@ -571,9 +572,21 @@ class SystemController extends AdminBaseController
             return $this->error('变量名只能包含字母、数字和下划线，且不能以数字开头');
         }
 
+        // V2.9.42: 允许的字段类型
+        $allowedTypes = ['text', 'image', 'textarea', 'switch', 'number', 'color'];
+        if (!in_array($type, $allowedTypes)) {
+            $type = 'text';
+        }
+
+        // switch 类型：勾选=1，未勾选=0
+        if ($type === 'switch') {
+            $value = $value ? '1' : '0';
+        }
+
         $data = [
             'name'   => $name,
             'value'  => $value,
+            'type'   => $type,
             'remark' => $remark,
             'sort'   => $sort,
         ];

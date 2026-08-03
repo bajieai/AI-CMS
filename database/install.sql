@@ -1510,6 +1510,7 @@ CREATE TABLE `{prefix}custom_var` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'text' COMMENT '类型:text文本,image图片,textarea多行,switch开关,number数字,color颜色',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
   `sort` int(11) NOT NULL DEFAULT '0',
   `create_time` int(10) unsigned NOT NULL DEFAULT '0',
@@ -1518,8 +1519,8 @@ CREATE TABLE `{prefix}custom_var` (
   UNIQUE KEY `uk_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='自定义变量表';
 
-INSERT INTO `{prefix}custom_var` (`id`, `name`, `value`, `remark`, `sort`, `create_time`, `update_time`)
-VALUES (1, 'front_logo', '/assets/images/logo.png', '前台网站Logo（导航栏/页脚显示）', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+INSERT INTO `{prefix}custom_var` (`id`, `name`, `value`, `type`, `remark`, `sort`, `create_time`, `update_time`)
+VALUES (1, 'front_logo', '/assets/images/logo.png', 'image', '前台网站Logo（导航栏/页脚显示）', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
 
 DROP TABLE IF EXISTS `{prefix}custom_whitelist`;
 CREATE TABLE `{prefix}custom_whitelist` (
