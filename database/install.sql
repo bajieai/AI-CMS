@@ -1518,6 +1518,9 @@ CREATE TABLE `{prefix}custom_var` (
   UNIQUE KEY `uk_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='自定义变量表';
 
+INSERT INTO `{prefix}custom_var` (`id`, `name`, `value`, `remark`, `sort`, `create_time`, `update_time`)
+VALUES (1, 'front_logo', '/assets/images/logo.png', '前台网站Logo（导航栏/页脚显示）', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+
 DROP TABLE IF EXISTS `{prefix}custom_whitelist`;
 CREATE TABLE `{prefix}custom_whitelist` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
