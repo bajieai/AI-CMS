@@ -332,7 +332,7 @@ class SystemController extends AdminBaseController
                 'level_manual_downgrade'      => '允许手动降级会员等级',
                 'level_change_notify'         => '等级变更时发送通知',
                 // basic组
-                'site_logo'                   => '网站Logo',
+                'site_logo'                   => '后台Logo(仅显示在管理后台左上角)',
                 'site_name'                   => '网站名称',
                 'site_url'                    => '网站地址',
                 'site_icp'                    => 'ICP备案号',

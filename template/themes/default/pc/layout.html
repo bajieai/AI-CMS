@@ -29,12 +29,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="/">
-                {if $site_logo}
-                    {if $logo_icon_only}
-                    <img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;"> {$brand_name}
-                    {else}
-                    <img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;">
-                    {/if}
+                {if $front_logo}
+                <img src="{$front_logo}" alt="Logo" height="24" style="vertical-align:middle;">
                 {else}
                 <i class="bi bi-robot me-1"></i>{$brand_name}
                 {/if}
@@ -175,7 +171,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h6 class="text-white mb-2">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;filter:brightness(0) invert(1);"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;filter:brightness(0) invert(1);">{/if}{else}<i class="bi bi-robot me-1"></i>{$brand_name}{/if}</h6>
+                    <h6 class="text-white mb-2">{if $front_logo}<img src="{$front_logo}" alt="Logo" height="24" style="vertical-align:middle;filter:brightness(0) invert(1);">{else}<i class="bi bi-robot me-1"></i>{$brand_name}{/if}</h6>
                     <p class="small mb-0">AI驱动的企业信息管理系统</p>
                 </div>
                 <div class="col-md-6 text-md-end">

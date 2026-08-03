@@ -26,7 +26,7 @@
 
 <!-- 深色顶栏 -->
 <header class="cm-nav">
-    <a class="cm-brand" href="/">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
+    <a class="cm-brand" href="/">{if $front_logo}<img src="{$front_logo}" alt="Logo" height="20" style="vertical-align:middle;">{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
     <div class="cm-actions">
         <!-- V2.9 语言切换器（动态） -->
         {if condition="$lang_switcher_enabled && count($enabled_languages) > 1"}
@@ -58,7 +58,7 @@
 <!-- 菜单侧滑（深色） -->
 <div class="cm-menu-ov" id="cmOv" onclick="togM()"></div>
 <aside class="cm-menu-pnl" id="cmPn">
-    <div class="cm-menu-hdr"><h5>{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="22" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="22" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h5><small>企业商务版 V2.4</small></div>
+    <div class="cm-menu-hdr"><h5>{if $front_logo}<img src="{$front_logo}" alt="Logo" height="22" style="vertical-align:middle;">{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h5><small>企业商务版 V2.4</small></div>
     <ul class="cm-menu-ul">
         <li><a href="/"><i class="bi bi-house"></i>首页</a></li>
         {volist name="nav_cates" id="cate"}

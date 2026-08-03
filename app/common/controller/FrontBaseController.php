@@ -204,11 +204,10 @@ abstract class FrontBaseController extends \think\BaseController
             'lang_sitewide'    => $langSitewide,
             // V2.9.10: 积分商城开关
             'points_shop_enabled' => (bool) ($configs['points_shop_enabled'] ?? true),
-            // V2.9.2 注入网站Logo及相关配置到前台视图
-            'site_logo'        => $configs['site_logo'] ?? '',
-            'logo_icon_only'   => ($configs['logo_icon_only'] ?? '') === '1',
-            'logo_name'        => $configs['logo_name'] ?? '',
-            'brand_name'       => !empty($configs['logo_name']) ? $configs['logo_name'] : '八界AI-CMS',
+            // V2.9.42: 前台Logo改为从自定义变量front_logo读取（与后台site_logo分离）
+            // 用户可在后台"自定义变量"中添加 front_logo 变量设置前台Logo
+            'front_logo'       => $configs['front_logo'] ?? '',
+            'brand_name'       => $configs['site_name'] ?? '八界AI-CMS',
             // 知识产权保护 Layer4：前台版权信息
             'powered_by'       => 'Powered by <a href="https://www.i8j.cn" target="_blank">八界AI-CMS</a>',
             'copyright_info'   => '© 2026 湖北八界智能技术有限公司',
@@ -485,13 +484,13 @@ abstract class FrontBaseController extends \think\BaseController
         }
 
         // 排除CMS系统已定义的变量
-        $systemVars = ['site_name', 'site_keywords', 'site_description', 'site_logo',
+        $systemVars = ['site_name', 'site_keywords', 'site_description', 'site_logo', 'front_logo',
             'isMemberLogin', 'is_member_login', 'member_info',
             'seo_title', 'seo_keywords', 'seo_description',
             'custom', 'enabled_modules', 'active_theme', 'theme_assets', 'skin',
             'current_lang', 'enabled_languages', 'theme_css_vars',
             'cdn_enabled', 'cdn_domain', 'lang_switcher_enabled', 'lang_sitewide',
-            'logo_icon_only', 'logo_name', 'brand_name',
+            'brand_name',
             'i', 'field', 'key', 'vo', '__LIST__', '__NOLAYOUT__',
             '__CONTENT__', '__BLOCK__', 'Think', 'category', 'product',
             'info', 'pages', 'member', 'config'];

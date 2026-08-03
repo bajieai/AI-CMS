@@ -30,12 +30,8 @@
 <nav class="navbar navbar-expand-lg navbar-corporate fixed-top" id="corporateNavbar">
     <div class="container">
         <a class="navbar-brand" href="/">
-            {if $site_logo}
-                {if $logo_icon_only}
-                <img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;"> {$brand_name}
-                {else}
-                <img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;">
-                {/if}
+            {if $front_logo}
+            <img src="{$front_logo}" alt="Logo" height="24" style="vertical-align:middle;">
             {else}
             <i class="bi bi-robot me-1"></i>{$brand_name}
             {/if}
@@ -185,7 +181,7 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-4">
-                    <h6>{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="24" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h6>
+                    <h6>{if $front_logo}<img src="{$front_logo}" alt="Logo" height="24" style="vertical-align:middle;">{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h6>
                     <p class="small mb-2">专业的内容管理系统，融合 AI 技术，为企业提供高效的内容运营解决方案。</p>
                     <p class="mb-0 small">{$powered_by|raw} {$copyright_info}</p>
                 </div>

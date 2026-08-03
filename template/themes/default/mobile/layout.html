@@ -26,7 +26,7 @@
 
 <!-- 顶部固定导航 -->
 <header class="m-navbar">
-    <a class="m-navbar-brand" href="/">{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="20" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
+    <a class="m-navbar-brand" href="/">{if $front_logo}<img src="{$front_logo}" alt="Logo" height="20" style="vertical-align:middle;">{else}<i class="bi bi-robot"></i> {$brand_name}{/if}</a>
     <div class="m-navbar-actions">
         {if condition="$lang_switcher_enabled && count($enabled_languages) > 1"}
         <div class="dropdown" id="langSwitcher">
@@ -57,7 +57,7 @@
 <!-- 菜单侧滑面板 -->
 <div class="m-menu-overlay" id="mMenuOverlay" onclick="toggleMenu()"></div>
 <aside class="m-menu-panel" id="mMenuPanel">
-    <div class="m-menu-header"><h5>{if $site_logo}{if $logo_icon_only}<img src="{$site_logo}" alt="Logo" height="22" style="vertical-align:middle;"> {$brand_name}{else}<img src="{$site_logo}" alt="Logo" height="22" style="vertical-align:middle;">{/if}{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h5></div>
+    <div class="m-menu-header"><h5>{if $front_logo}<img src="{$front_logo}" alt="Logo" height="22" style="vertical-align:middle;">{else}<i class="bi bi-robot me-2"></i>{$brand_name}{/if}</h5></div>
     <ul class="m-menu-list">
         <li><a href="/"><i class="bi bi-house"></i>首页</a></li>
         {volist name="nav_cates" id="cate"}
