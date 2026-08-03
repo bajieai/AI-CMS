@@ -106,6 +106,29 @@ class ContentService
     }
 
     /**
+     * V2.9.42: 按ID列表获取指定内容（类似eyoucms的arclist指定id属性）
+     * @param array|string $ids 内容ID（如 "1,2,3" 或 [1,2,3]）
+     * @param int $limit 最多返回条数
+     * @param string $order 排序规则
+     * @return \think\Collection
+     */
+    public function getByIds(array|string $ids, int $limit = 10, string $order = 'id desc'): \think\Collection
+    {
+        if (is_string($ids)) {
+            $ids = array_filter(array_map('intval', explode(',', $ids)));
+        }
+        if (empty($ids)) {
+            return new \think\Collection([]);
+        }
+
+        return Content::where('status', 2)
+            ->whereIn('id', $ids)
+            ->order($order)
+            ->limit($limit)
+            ->select();
+    }
+
+    /**
      * 创建内容
      */
     public function create(array $data): bool

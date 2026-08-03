@@ -30,9 +30,9 @@ class I8j extends TagLib
      * 标签定义
      */
     protected $tags = [
-        // 内容列表标签（支持分页：page="1" pagesize="10"；分类筛选：cate_id="3"）
+        // 内容列表标签（支持分页：page="1" pagesize="10"；分类筛选：cate_id="3"；指定ID：id="1,2,3"）
         'infolist' => [
-            'attr' => 'type,limit,order,page,pagesize,cate_id',
+            'attr' => 'type,limit,order,page,pagesize,cate_id,id',
             'close' => 1,
         ],
         // 分类列表标签
@@ -74,10 +74,10 @@ class I8j extends TagLib
 
     /**
      * {i8j:infolist type="news" cate_id="3" limit="10" order="id desc"}
+     * {i8j:infolist type="news" id="1,2,3"}
      * {i8j:infolist type="news" page="1" pagesize="10" order="id desc"}
-     * 编译为：调用ContentService::getInfolist获取数据，然后用{volist}遍历
-     * 若传page参数，额外暴露 $__PAGE__ 变量供分页渲染
-     * V2.9.42: 新增cate_id属性（类似eyoucms的typeid），指定分类ID筛选
+     * 编译为：调用ContentService::getInfolist/getByIds获取数据，然后用{volist}遍历
+     * V2.9.42: 新增cate_id(分类筛选)+id(指定ID)属性
      */
     public function tagInfolist(array $tag, string $content): string
     {
@@ -87,10 +87,16 @@ class I8j extends TagLib
         $page = isset($tag['page']) ? (int) $tag['page'] : 0;
         $pageSize = isset($tag['pagesize']) ? (int) $tag['pagesize'] : 10;
         $cateId = isset($tag['cate_id']) ? (int) $tag['cate_id'] : 0;
+        $ids = isset($tag['id']) ? trim($tag['id']) : '';
 
         $parse = '<?php ';
-        $parse .= '$__PAGE__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", ' . $page . ', ' . $pageSize . ', ' . $cateId . '); ';
-        $parse .= '$__LIST__ = (is_object($__PAGE__) && method_exists($__PAGE__, "items")) ? $__PAGE__->items() : $__PAGE__; ';
+        // id 属性优先：指定ID列表查询
+        if (!empty($ids)) {
+            $parse .= '$__LIST__ = app("app\\common\\service\\ContentService")->getByIds("' . $ids . '", ' . (int) $limit . ', "' . $order . '"); ';
+        } else {
+            $parse .= '$__PAGE__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", ' . $page . ', ' . $pageSize . ', ' . $cateId . '); ';
+            $parse .= '$__LIST__ = (is_object($__PAGE__) && method_exists($__PAGE__, "items")) ? $__PAGE__->items() : $__PAGE__; ';
+        }
         $parse .= '?>';
         $parse .= '{volist name="__LIST__" id="field" key="i"}';
         $parse .= $content;
