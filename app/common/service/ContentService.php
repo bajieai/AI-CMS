@@ -100,11 +100,12 @@ class ContentService
             $result = $query->order($order)->paginate($pageSize, false, ['page' => $page]);
         } else {
             // V2.9.42: 支持 offset 偏移量（跳过前N条再取，类似 eyoucms limit='2,6'）
-            $q = $query->order($order)->limit($limit);
+            // TP 8.1 中 limit($offset, $length) 而非 Query->offset()
             if ($offset > 0) {
-                $q->offset($offset);
+                $result = $query->order($order)->limit($offset, $limit)->select();
+            } else {
+                $result = $query->order($order)->limit($limit)->select();
             }
-            $result = $q->select();
         }
 
         Cache::set($cacheKey, $result, 3600);
