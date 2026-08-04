@@ -812,6 +812,11 @@ CREATE TABLE `{prefix}banner` (
   KEY `idx_status_sort` (`status`,`sort`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='轮播图表';
 
+INSERT INTO `{prefix}banner` (`id`, `title`, `image`, `link`, `target`, `sort`, `status`, `start_time`, `end_time`, `create_time`, `update_time`)
+VALUES
+(1, '八界AI-CMS 智能内容管理系统', '/assets/images/banner-default.jpg', '', '_self', 1, 1, 0, 0, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+(2, 'AI驱动的内容创作与管理', '/assets/images/banner-default.jpg', '', '_self', 2, 1, 0, 0, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+
 DROP TABLE IF EXISTS `{prefix}cache_stats`;
 CREATE TABLE `{prefix}cache_stats` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
