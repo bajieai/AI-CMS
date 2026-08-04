@@ -71,9 +71,8 @@ function mediaSelectCallback(url) {
     document.getElementById('imageInput').value = url;
     document.getElementById('imagePreview').innerHTML = '<img src="' + url + '" style="max-height:120px;border-radius:4px;">';
 }
-function openMediaSelect() {
-    layer.open({type:2,title:'选择图片',area:['900px','600px'],content:'/admin/media/select'});
-}
+// openMediaSelect 和 mediaSelectCallback 已在 layout.html 全局定义
+// 此处只需重写 mediaSelectCallback 回调
 
 // 跳转类型切换提示
 const targetType = document.getElementById('targetType');
