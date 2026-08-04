@@ -16,8 +16,8 @@
                 <div class="col-md-6">
                     <label class="form-label">Banner图片 <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        <input type="text" name="image" id="imageInput" class="form-control" value="{$info.image??''}" required readonly>
-                        <button type="button" class="btn btn-outline-secondary" onclick="openMediaSelect()">选择图片</button>
+                        <input type="text" name="image" id="imageInput" class="form-control" value="{$info.image??''}" placeholder="输入图片URL或点击选择">
+                        <button type="button" class="btn btn-outline-primary" onclick="openMediaSelect()">上传</button>
                     </div>
                     <div class="mt-2" id="imagePreview">
                         {if ($info.image??'')}<img src="{$info.image}" style="max-height:120px;border-radius:4px;">{/if}
@@ -64,7 +64,7 @@
     </div>
 </div>
 {/block}
-{block name="script"}
+{block name="js"}
 <script>
 // 媒体选择器回调
 function mediaSelectCallback(url) {
