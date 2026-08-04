@@ -129,17 +129,18 @@
             alert('请先点击选择一张图片');
             return;
         }
-        // 优先通过 parent 通信（layer iframe 场景），兼容 opener（window.open 场景）
-        if (window.parent && typeof window.parent.mediaSelectCallback === 'function') {
+        // 区分 layer iframe 和 window.open 两种场景
+        var isInIframe = (window.parent !== window);
+        if (isInIframe && window.parent && typeof window.parent.mediaSelectCallback === 'function') {
+            // layer iframe 场景：调用父窗口的 mediaSelectCallback
             window.parent.mediaSelectCallback(selectedMedia.url);
-        } else if (window.parent && typeof window.parent.postMessage === 'function') {
-            window.parent.postMessage({ mceAction: 'insertContent', content: selectedMedia.url }, '*');
         } else if (window.opener) {
-            window.opener.postMessage({ mceAction: 'insertContent', content: selectedMedia.url }, '*');
+            // window.open 场景：通过 postMessage 发送 HTML（兼容旧版监听器）
+            var content = '<img src="' + selectedMedia.url + '" alt="' + (selectedMedia.name || '') + '">';
+            window.opener.postMessage({ mceAction: 'insertContent', content: content }, '*');
             window.close();
-        }
-        // layer iframe 关闭（兼容 mediaSelectCallback 自行关闭的场景）
-        if (window.parent && window.parent.layer && !(window.parent.mediaSelectCallback)) {
+        } else if (isInIframe && window.parent && window.parent.layer) {
+            // layer iframe 回退：关闭弹窗
             window.parent.layer.closeAll();
         }
     }
