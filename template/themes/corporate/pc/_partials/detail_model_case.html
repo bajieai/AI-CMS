@@ -1,38 +1,33 @@
-{/* V2.9.20 A-3: 案例模型详情差异化片段 (corporate PC) */}
+{/* V2.9.42: 案例模型详情差异化片段 - 动态渲染所有自定义字段 (corporate PC) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
-<div class="model-case-card card mb-4 shadow-sm">
-    <div class="card-body">
-        <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">项目概览</h6>
-        <div class="row g-4">
-            {if condition="!empty($ext['client_name'])"}
-            <div class="col-md-4 col-sm-6">
-                <div class="border-start border-3 border-info ps-3">
-                    <div class="text-muted small">客户名称</div>
-                    <div class="fw-bold">{$ext['client_name']|htmlentities}</div>
-                </div>
-            </div>
-            {/if}
-            {if condition="!empty($ext['project_period'])"}
-            <div class="col-md-4 col-sm-6">
-                <div class="border-start border-3 border-info ps-3">
-                    <div class="text-muted small">项目周期</div>
-                    <div class="fw-bold">{$ext['project_period']|htmlentities}</div>
-                </div>
-            </div>
-            {/if}
-            {if condition="!empty($ext['industry'])"}
-            <div class="col-md-4 col-sm-6">
-                <div class="border-start border-3 border-info ps-3">
-                    <div class="text-muted small">所属行业</div>
-                    <div class="fw-bold"><span class="badge bg-dark">{$ext['industry']|htmlentities}</span></div>
-                </div>
-            </div>
-            {/if}
-        </div>
-        {if condition="empty($ext['client_name']) && empty($ext['project_period']) && empty($ext['industry'])"}
-        <div class="text-muted small text-center py-3 border-top mt-3">
-            <i class="bi bi-info-circle me-1"></i>此案例暂无详细信息
-        </div>
+{php}$fields = $model_fields ?? [];{/php}
+{if condition="!empty($ext) || !empty($fields)"}
+<div class="model-fields-bar d-flex flex-wrap align-items-center gap-3 mb-4 py-2 border-bottom">
+    {volist name="fields" id="field"}
+        {php}$fieldName = $field['name'] ?? ''; $fieldLabel = $field['label'] ?? ''; $fieldType = $field['type'] ?? 'text';{/php}
+        {if condition="!empty($fieldName) && isset($ext[$fieldName]) && $ext[$fieldName] !== ''"}
+            {switch $fieldType}
+                {case image}
+                    {if condition="!empty($ext[$fieldName])"}
+                    <span class="text-muted small">
+                        <i class="bi bi-image me-1"></i>{$fieldLabel}：<img src="{$ext[$fieldName]}" style="max-height:24px;vertical-align:middle;">
+                    </span>
+                    {/if}
+                {/case}
+                {case radio}
+                    <span class="text-muted small">
+                        <i class="bi bi-toggle-on me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+                {/case}
+                {default /}
+                    <span class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+            {/switch}
         {/if}
-    </div>
+    {/volist}
+    {if condition="empty($fields)"}
+        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>暂无自定义字段数据</span>
+    {/if}
 </div>
+{/if}

@@ -1,43 +1,33 @@
-{/* V2.9.20 A-3: 产品模型详情差异化片段 (default PC) */}
+{/* V2.9.42: 产品模型详情差异化片段 - 动态渲染所有自定义字段 (default PC) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
-<div class="model-product-card card mb-4 border-primary border-opacity-25">
-    <div class="card-header bg-primary bg-opacity-10 d-flex align-items-center">
-        <i class="bi bi-box-seam me-2 text-primary"></i>
-        <span class="fw-bold">产品信息</span>
-    </div>
-    <div class="card-body">
-        <div class="row g-3">
-            {if condition="!empty($ext['price']) || isset($ext['price'])"}
-            <div class="col-md-3 col-sm-6">
-                <div class="text-muted small mb-1"><i class="bi bi-currency-yen me-1"></i>价格</div>
-                <div class="fw-bold text-danger fs-5">&yen;{$ext['price']}</div>
-            </div>
-            {/if}
-            {if condition="isset($ext['stock'])"}
-            <div class="col-md-3 col-sm-6">
-                <div class="text-muted small mb-1"><i class="bi bi-boxes me-1"></i>库存</div>
-                <div class="fw-bold {if $ext['stock'] > 0}text-success{else/}text-danger{/if}">
-                    {if $ext['stock'] > 0}{$ext['stock']} 件{else/}暂时缺货{/if}
-                </div>
-            </div>
-            {/if}
-            {if condition="!empty($ext['brand'])"}
-            <div class="col-md-3 col-sm-6">
-                <div class="text-muted small mb-1"><i class="bi bi-tag me-1"></i>品牌</div>
-                <div class="fw-bold">{$ext['brand']|htmlentities}</div>
-            </div>
-            {/if}
-            {if condition="!empty($ext['spec'])"}
-            <div class="col-md-3 col-sm-6">
-                <div class="text-muted small mb-1"><i class="bi bi-sliders me-1"></i>规格</div>
-                <div class="fw-bold">{$ext['spec']|htmlentities}</div>
-            </div>
-            {/if}
-        </div>
-        {if condition="empty($ext['price']) && empty($ext['stock']) && empty($ext['brand']) && empty($ext['spec'])"}
-        <div class="text-muted small text-center py-2">
-            <i class="bi bi-info-circle me-1"></i>此产品暂无详细信息，请联系客服咨询
-        </div>
+{php}$fields = $model_fields ?? [];{/php}
+{if condition="!empty($ext) || !empty($fields)"}
+<div class="model-fields-bar d-flex flex-wrap align-items-center gap-3 mb-4 py-2 px-3 rounded bg-light border">
+    {volist name="fields" id="field"}
+        {php}$fieldName = $field['name'] ?? ''; $fieldLabel = $field['label'] ?? ''; $fieldType = $field['type'] ?? 'text';{/php}
+        {if condition="!empty($fieldName) && isset($ext[$fieldName]) && $ext[$fieldName] !== ''"}
+            {switch $fieldType}
+                {case image}
+                    {if condition="!empty($ext[$fieldName])"}
+                    <span class="text-muted small">
+                        <i class="bi bi-image me-1"></i>{$fieldLabel}：<img src="{$ext[$fieldName]}" style="max-height:24px;vertical-align:middle;">
+                    </span>
+                    {/if}
+                {/case}
+                {case radio}
+                    <span class="text-muted small">
+                        <i class="bi bi-toggle-on me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+                {/case}
+                {default /}
+                    <span class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+            {/switch}
         {/if}
-    </div>
+    {/volist}
+    {if condition="empty($fields)"}
+        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>暂无自定义字段数据</span>
+    {/if}
 </div>
+{/if}

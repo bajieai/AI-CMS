@@ -192,6 +192,8 @@ class ContentController extends FrontBaseController
                     $mobileModelPartial = '_partials/mobile_detail_' . $contentModel->code;
                 }
             }
+            // V2.9.42: 查询模型扩展字段定义，用于前台动态渲染自定义字段（如联系人、电话等）
+            $modelFields = \app\common\model\ContentModelField::getFieldsByModelId($info->model_id);
         }
 
         $cate = $info->cate ?? null;
@@ -217,6 +219,7 @@ class ContentController extends FrontBaseController
             'content_langs' => $contentLangs,
             'model_partial' => $modelPartial,
             'mobile_model_partial' => $mobileModelPartial,
+            'model_fields'  => $modelFields ?? [],
             'field'         => $info,
         ]);
 

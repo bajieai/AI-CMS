@@ -1,20 +1,44 @@
-{/* V2.9.20 A-3: 新闻模型详情差异化片段 (corporate PC) */}
+{/* V2.9.42: 新闻模型详情差异化片段 - 动态渲染所有自定义字段 (corporate PC) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
-<div class="model-news-bar d-flex flex-wrap align-items-center gap-3 mb-4 py-2 border-bottom">
-    {if condition="!empty($ext['source'])"}
-    <span class="text-muted small">
-        <i class="bi bi-newspaper me-1"></i>来源：<span class="fw-medium">{$ext['source']|htmlentities}</span>
-    </span>
-    {/if}
-    {if condition="!empty($ext['author'])"}
-    <span class="text-muted small">
-        <i class="bi bi-person me-1"></i>作者：<span class="fw-medium">{$ext['author']|htmlentities}</span>
-    </span>
-    {/if}
-    {if condition="!empty($ext['is_top']) && $ext['is_top'] == '1'"}
-    <span class="badge bg-dark"><i class="bi bi-pin-angle me-1"></i>置顶</span>
-    {/if}
-    {if condition="empty($ext['source']) && empty($ext['author']) && empty($ext['is_top'])"}
-    <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>此新闻暂无来源/作者信息</span>
+{php}$fields = $model_fields ?? [];{/php}
+{if condition="!empty($ext) || !empty($fields)"}
+<div class="model-fields-bar d-flex flex-wrap align-items-center gap-3 mb-4 py-2 border-bottom">
+    {volist name="fields" id="field"}
+        {php}$fieldName = $field['name'] ?? ''; $fieldLabel = $field['label'] ?? ''; $fieldType = $field['type'] ?? 'text';{/php}
+        {if condition="!empty($fieldName) && isset($ext[$fieldName]) && $ext[$fieldName] !== ''"}
+            {switch $fieldType}
+                {case image}
+                    {if condition="!empty($ext[$fieldName])"}
+                    <span class="text-muted small">
+                        <i class="bi bi-image me-1"></i>{$fieldLabel}：<img src="{$ext[$fieldName]}" style="max-height:24px;vertical-align:middle;">
+                    </span>
+                    {/if}
+                {/case}
+                {case radio}
+                    <span class="text-muted small">
+                        <i class="bi bi-toggle-on me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+                {/case}
+                {default /}
+                    <span class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+            {/switch}
+        {/if}
+    {/volist}
+    {if condition="empty($fields)"}
+        {if condition="!empty($ext['source'])"}
+        <span class="text-muted small"><i class="bi bi-newspaper me-1"></i>来源：<span class="fw-medium">{$ext['source']|htmlentities}</span></span>
+        {/if}
+        {if condition="!empty($ext['author'])"}
+        <span class="text-muted small"><i class="bi bi-person me-1"></i>作者：<span class="fw-medium">{$ext['author']|htmlentities}</span></span>
+        {/if}
+        {if condition="!empty($ext['is_top']) && $ext['is_top'] == '1'"}
+        <span class="badge bg-dark"><i class="bi bi-pin-angle me-1"></i>置顶</span>
+        {/if}
+        {if condition="empty($ext['source']) && empty($ext['author']) && empty($ext['is_top'])"}
+        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>此新闻暂无来源/作者信息</span>
+        {/if}
     {/if}
 </div>
+{/if}

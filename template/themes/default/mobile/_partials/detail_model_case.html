@@ -1,29 +1,16 @@
-{/* V2.9.20 A-3: 案例模型详情差异化片段 (default Mobile) */}
+{/* V2.9.42: 案例模型详情差异化片段 - 动态渲染所有自定义字段 (default Mobile) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
-<div class="model-case-card card mb-3">
-    <div class="card-body py-2 px-3">
-        <div class="row g-2 text-center">
-            {if condition="!empty($ext['client_name'])"}
-            <div class="col-4">
-                <div class="text-muted small">客户</div>
-                <div class="fw-bold small">{$ext['client_name']|htmlentities}</div>
-            </div>
-            {/if}
-            {if condition="!empty($ext['project_period'])"}
-            <div class="col-4">
-                <div class="text-muted small">周期</div>
-                <div class="fw-bold small">{$ext['project_period']|htmlentities}</div>
-            </div>
-            {/if}
-            {if condition="!empty($ext['industry'])"}
-            <div class="col-4">
-                <div class="text-muted small">行业</div>
-                <div class="fw-bold small"><span class="badge bg-secondary">{$ext['industry']|htmlentities}</span></div>
-            </div>
-            {/if}
-        </div>
-        {if condition="empty($ext['client_name']) && empty($ext['project_period']) && empty($ext['industry'])"}
-        <div class="text-muted small text-center py-2"><i class="bi bi-info-circle me-1"></i>暂无案例详细信息</div>
+{php}$fields = $model_fields ?? [];{/php}
+{if condition="!empty($ext) || !empty($fields)"}
+<div class="model-fields-bar d-flex flex-wrap gap-2 mb-3 py-1">
+    {volist name="fields" id="field"}
+        {php}$fieldName = $field['name'] ?? ''; $fieldLabel = $field['label'] ?? '';{/php}
+        {if condition="!empty($fieldName) && isset($ext[$fieldName]) && $ext[$fieldName] !== ''"}
+            <span class="badge bg-light text-dark border small">{$fieldLabel}: {$ext[$fieldName]|htmlentities}</span>
         {/if}
-    </div>
+    {/volist}
+    {if condition="empty($fields)"}
+        <span class="small text-muted">暂无自定义字段数据</span>
+    {/if}
 </div>
+{/if}

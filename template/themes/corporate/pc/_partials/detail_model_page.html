@@ -1,14 +1,33 @@
-{/* V2.9.20 A-3: 单页模型详情差异化片段 (corporate PC) */}
+{/* V2.9.42: 单页模型详情差异化片段 - 动态渲染所有自定义字段 (corporate PC) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
-{if condition="!empty($ext['subtitle']) || !empty($ext['cover_image'])"}
-<div class="model-page-header mb-4">
-    {if condition="!empty($ext['cover_image'])"}
-    <div class="mb-3">
-        <img src="{$ext['cover_image']}" class="img-fluid w-100" alt="{$info.title}" style="max-height:400px;object-fit:cover;" onerror="this.style.display='none'">
-    </div>
-    {/if}
-    {if condition="!empty($ext['subtitle'])"}
-    <p class="lead text-muted border-start border-3 border-dark ps-3">{$ext['subtitle']|htmlentities}</p>
+{php}$fields = $model_fields ?? [];{/php}
+{if condition="!empty($ext) || !empty($fields)"}
+<div class="model-fields-bar d-flex flex-wrap align-items-center gap-3 mb-4 py-2 border-bottom">
+    {volist name="fields" id="field"}
+        {php}$fieldName = $field['name'] ?? ''; $fieldLabel = $field['label'] ?? ''; $fieldType = $field['type'] ?? 'text';{/php}
+        {if condition="!empty($fieldName) && isset($ext[$fieldName]) && $ext[$fieldName] !== ''"}
+            {switch $fieldType}
+                {case image}
+                    {if condition="!empty($ext[$fieldName])"}
+                    <span class="text-muted small">
+                        <i class="bi bi-image me-1"></i>{$fieldLabel}：<img src="{$ext[$fieldName]}" style="max-height:24px;vertical-align:middle;">
+                    </span>
+                    {/if}
+                {/case}
+                {case radio}
+                    <span class="text-muted small">
+                        <i class="bi bi-toggle-on me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+                {/case}
+                {default /}
+                    <span class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>{$fieldLabel}：<span class="fw-medium">{$ext[$fieldName]|htmlentities}</span>
+                    </span>
+            {/switch}
+        {/if}
+    {/volist}
+    {if condition="empty($fields)"}
+        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>暂无自定义字段数据</span>
     {/if}
 </div>
 {/if}

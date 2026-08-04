@@ -1,14 +1,16 @@
-{/* V2.9.20 A-3: 单页模型详情差异化片段 (default Mobile) */}
+{/* V2.9.42: 单页模型详情差异化片段 - 动态渲染所有自定义字段 (default Mobile) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
-{if condition="!empty($ext['subtitle']) || !empty($ext['cover_image'])"}
-<div class="model-page-header mb-3">
-    {if condition="!empty($ext['cover_image'])"}
-    <div class="mb-2">
-        <img src="{$ext['cover_image']}" class="img-fluid rounded w-100" alt="{$info.title}" style="max-height:200px;object-fit:cover;" onerror="this.style.display='none'">
-    </div>
-    {/if}
-    {if condition="!empty($ext['subtitle'])"}
-    <p class="text-muted small">{$ext['subtitle']|htmlentities}</p>
+{php}$fields = $model_fields ?? [];{/php}
+{if condition="!empty($ext) || !empty($fields)"}
+<div class="model-fields-bar d-flex flex-wrap gap-2 mb-3 py-1">
+    {volist name="fields" id="field"}
+        {php}$fieldName = $field['name'] ?? ''; $fieldLabel = $field['label'] ?? '';{/php}
+        {if condition="!empty($fieldName) && isset($ext[$fieldName]) && $ext[$fieldName] !== ''"}
+            <span class="badge bg-light text-dark border small">{$fieldLabel}: {$ext[$fieldName]|htmlentities}</span>
+        {/if}
+    {/volist}
+    {if condition="empty($fields)"}
+        <span class="small text-muted">暂无自定义字段数据</span>
     {/if}
 </div>
 {/if}
