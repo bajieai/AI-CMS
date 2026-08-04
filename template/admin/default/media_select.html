@@ -129,18 +129,19 @@
             alert('请先点击选择一张图片');
             return;
         }
-        var content = '';
-        if (selectedMedia.type === 'image') {
-            content = '<img src="' + selectedMedia.url + '" alt="' + selectedMedia.name + '">';
-        } else if (selectedMedia.type === 'video') {
-            content = '<video src="' + selectedMedia.url + '" controls style="max-width:100%"></video>';
-        } else {
-            content = '<a href="' + selectedMedia.url + '" target="_blank">' + selectedMedia.name + '</a>';
+        // 优先通过 parent 通信（layer iframe 场景），兼容 opener（window.open 场景）
+        if (window.parent && typeof window.parent.mediaSelectCallback === 'function') {
+            window.parent.mediaSelectCallback(selectedMedia.url);
+        } else if (window.parent && typeof window.parent.postMessage === 'function') {
+            window.parent.postMessage({ mceAction: 'insertContent', content: selectedMedia.url }, '*');
+        } else if (window.opener) {
+            window.opener.postMessage({ mceAction: 'insertContent', content: selectedMedia.url }, '*');
+            window.close();
         }
-        if (window.opener) {
-            window.opener.postMessage({ mceAction: 'insertContent', content: content }, '*');
+        // layer iframe 关闭（兼容 mediaSelectCallback 自行关闭的场景）
+        if (window.parent && window.parent.layer && !(window.parent.mediaSelectCallback)) {
+            window.parent.layer.closeAll();
         }
-        window.close();
     }
 
     function reloadList() {
