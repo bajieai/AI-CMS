@@ -43,6 +43,15 @@ class Banner extends Model
     }
 
     /**
+     * 获取打开方式文本
+     */
+    public function getTargetTypeTextAttr($value, $data): string
+    {
+        $map = ['_self' => '当前页', '_blank' => '新窗口'];
+        return $map[$data['target']] ?? '当前页';
+    }
+
+    /**
      * 获取是否有效期内
      */
     public function getIsActiveAttr($value, $data): bool
