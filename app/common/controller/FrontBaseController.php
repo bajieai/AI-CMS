@@ -525,10 +525,8 @@ abstract class FrontBaseController extends \think\BaseController
             
             $result = [];
             foreach ($cates as $cate) {
-                // 排除单页类型（type=6），单页不在主导航显示
-                if ((int) $cate->type === 6) {
-                    continue;
-                }
+                // V2.9.42: 参考 eyoucms 导航菜单栏目调用，所有启用分类（含单页 type=6）均显示在主导航
+                // 单页分类的 URL 在 Cate 模型 getUrlAttr 中已生成 /page/{id} 直达链接
                 $result[] = [
                     'id'    => (int) $cate->id,
                     'name'  => $cate->name,
