@@ -96,7 +96,8 @@
             idx++;
             
             // 检查是否已加载过：已存在则跳过（避免 IIFE 重复执行导致事件委托堆积）
-            var existing = document.head.querySelector('script[src="' + url + '"]');
+            // V2.9.42: 用 document 而非 document.head，因为页面 script 标签可能在 body 中
+            var existing = document.querySelector('script[src="' + url + '"]');
             if (existing) {
                 loadNext();
                 return;
