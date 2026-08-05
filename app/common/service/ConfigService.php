@@ -39,7 +39,13 @@ class ConfigService
 
         // 尝试直接用name查库
         try {
-            $config = ConfigModel::where('name', $key)->find();
+            // V2.9.42: 处理 group.name 格式的 key，提取 name 部分查库
+            $dbName = $key;
+            if (strpos($key, '.') !== false) {
+                $parts = explode('.', $key);
+                $dbName = end($parts); // 取最后一段作为数据库 name
+            }
+            $config = ConfigModel::where('name', $dbName)->find();
             if ($config) {
                 return $config->value;
             }
