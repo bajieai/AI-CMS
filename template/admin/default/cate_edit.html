@@ -56,27 +56,7 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card bg-light">
-                        <div class="card-header py-2"><i class="bi bi-globe me-1"></i>SEO 设置</div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">SEO标题</label>
-                                <input type="text" name="seo_title" class="form-control" value="{$info.seo_title ?? ''}" placeholder="留空则使用分类名称">
-                                <small class="text-muted">用于&lt;title&gt;标签，建议不超过60字符</small>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">SEO关键词</label>
-                                <input type="text" name="seo_keywords" class="form-control" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用逗号分隔">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">SEO描述</label>
-                                <textarea name="seo_description" class="form-control" rows="3" placeholder="建议100-200字">{$info.seo_description ?? ''}</textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- V2.9.4: 默认写作风格 -->
-                    <!-- V2.9.42: 自定义模板选择 -->
+<!-- V2.9.42: 自定义模板选择 -->
                     <div class="card mb-3">
                         <div class="card-header py-2"><i class="bi bi-layout-text-window me-1"></i>自定义模板（留空使用默认）</div>
                         <div class="card-body">
@@ -101,7 +81,28 @@
                         </div>
                     </div>
 
-<div class="card mb-3">
+
+                    <div class="card bg-light">
+                        <div class="card-header py-2"><i class="bi bi-globe me-1"></i>SEO 设置</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">SEO标题</label>
+                                <input type="text" name="seo_title" class="form-control" value="{$info.seo_title ?? ''}" placeholder="留空则使用分类名称">
+                                <small class="text-muted">用于&lt;title&gt;标签，建议不超过60字符</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SEO关键词</label>
+                                <input type="text" name="seo_keywords" class="form-control" value="{$info.seo_keywords ?? ''}" placeholder="多个关键词用逗号分隔">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SEO描述</label>
+                                <textarea name="seo_description" class="form-control" rows="3" placeholder="建议100-200字">{$info.seo_description ?? ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- V2.9.4: 默认写作风格 -->
+                    <div class="card mb-3">
                         <div class="card-header py-2"><i class="bi bi-pen me-1"></i>AI写作设置</div>
                         <div class="card-body">
                             <div class="mb-3">
