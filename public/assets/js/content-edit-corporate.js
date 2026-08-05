@@ -95,19 +95,18 @@ function renderExtFields(fields) {
 // 渲染模型动态扩展字段
 function renderModelFields(fields) {
     var $card = $('#modelFieldsCard');
-    // 如果卡片不存在，动态创建
-    if ($card.length === 0) {
-        var $anchor = $('#chapterManageCard, #chapterManager');
-        if ($anchor.length > 0) {
-            $anchor.before('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
-        } else {
-            var $tagWrap = $('#tagList').closest('.mb-3');
-            if ($tagWrap.length > 0) {
-                $tagWrap.after('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
-            }
+    // V2.9.42: 先清理旧卡片，再动态创建
+    $('#modelFieldsCard').remove();
+    var $anchor = $('#chapterManageCard, #chapterManager');
+    if ($anchor.length > 0) {
+        $anchor.before('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
+    } else {
+        var $tagWrap = $('#tagList').closest('.mb-3');
+        if ($tagWrap.length > 0) {
+            $tagWrap.after('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
         }
-        $card = $('#modelFieldsCard');
     }
+    $card = $('#modelFieldsCard');
     if (fields && fields.length > 0) {
         var html = '<div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>模型字段</div>';
         html += '<div class="card-body py-2">';

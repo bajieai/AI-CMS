@@ -100,21 +100,20 @@ function renderExtFields(fields) {
 // 渲染模型动态扩展字段
 function renderModelFields(fields) {
     var $card = $('#modelFieldsCard');
-    // 如果卡片不存在，动态创建
-    if ($card.length === 0) {
-        // 在章节管理卡片前或 tagList 后插入模型字段卡片
-        var $anchor = $('#chapterManageCard, #chapterManager');
-        if ($anchor.length > 0) {
-            $anchor.before('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
-        } else {
-        // 回退：在 tagList 后面插入
+    // V2.9.42: 先清理旧的模型字段卡片（PJAX 或 AJAX 回调可能残留）
+    $('#modelFieldsCard').remove();
+    
+    // 动态创建新卡片
+    var $anchor = $('#chapterManageCard, #chapterManager');
+    if ($anchor.length > 0) {
+        $anchor.before('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
+    } else {
         var $tagWrap = $('#tagList').closest('.mb-3');
         if ($tagWrap.length > 0) {
             $tagWrap.after('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
         }
-        }
-        $card = $('#modelFieldsCard');
     }
+    $card = $('#modelFieldsCard');
     if (fields && fields.length > 0) {
         var html = '<div class="card-header py-2 bg-info text-white"><i class="bi bi-sliders me-1"></i>模型字段</div>';
         html += '<div class="card-body py-2">';
