@@ -29,7 +29,11 @@
      */
     window.initAdminSidebar = function () {
         menuData = window.MENU_DATA || [];
+        currentGroupId = null;
 
+        // V2.9.42: PJAX 后重新获取 DOM 引用，避免指向已销毁的旧元素
+        $l1Container = null;
+        $l2Container = null;
         $l1Container = $('#sidebarL1');
         $l2Container = $('#sidebarL2');
 
@@ -198,6 +202,7 @@
      * 显示二级列并动态更新总宽度
      */
     function showL2() {
+        if (!$l2Container || !$l2Container.length) return;
         $l2Container.addClass('has-content');
         // 动态更新 CSS 变量，让主内容区跟随缩进
         document.documentElement.style.setProperty('--sidebar-total', 'calc(var(--l1-width) + var(--l2-width))');
@@ -211,6 +216,7 @@
      * 隐藏二级列并重置总宽度
      */
     function hideL2() {
+        if (!$l2Container || !$l2Container.length) return;
         $l2Container.removeClass('has-content');
         document.documentElement.style.setProperty('--sidebar-total', 'var(--l1-width)');
         var $wrapper = $('.sidebar-wrapper');
@@ -490,4 +496,9 @@
     } else {
         setTimeout(window.initAdminSidebar, 50);
     }
+
+    // V2.9.42: PJAX 后重新初始化侧边栏（避免 DOM 引用指向已销毁的旧元素）
+    $(document).on('pjax:complete', function () {
+        setTimeout(window.initAdminSidebar, 50);
+    });
 })();
