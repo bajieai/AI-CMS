@@ -206,8 +206,8 @@ function _parseOptions(raw) {
     return raw.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
 }
 
-// 栏目决定一切：分类选择联动（eyoucms 风格，模型自动确定不暴露给用户）
-$('#cateSelect').on('change', function() {
+// 栏目决定一切：分类选择联动（事件委托，PJAX 兼容）
+$(document).on('change', '#cateSelect', function() {
     var cateId = $(this).val();
     if (!cateId || cateId === '0') {
         $('#typeHidden').val(1);
@@ -242,12 +242,18 @@ $('#cateSelect').on('change', function() {
     });
 });
 
-// 编辑模式初始化：自动触发分类 change 加载模型字段和badge
-$(function() {
+// 编辑模式初始化（PJAX 兼容：DOM ready 和 PJAX 完成后都执行）
+function initContentEditPage() {
     var cateId = $('#cateSelect').val();
     if (cateId && cateId !== '0') {
         $('#cateSelect').trigger('change');
     }
+}
+$(function() {
+    initContentEditPage();
+});
+$(document).on('pjax:complete', function() {
+    initContentEditPage();
 });
 
 // 封面上传
