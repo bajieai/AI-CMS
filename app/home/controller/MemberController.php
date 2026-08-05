@@ -343,6 +343,8 @@ class MemberController extends FrontBaseController
             return redirect('/member/login');
         }
 
+        try {
+
         $memberId = $this->memberInfo['id'];
         $type = $this->request->get('type', '');
 
@@ -384,6 +386,18 @@ class MemberController extends FrontBaseController
             'notif_stats' => $notifStats,
             'ucenter_active' => 'notification',
         ]);
+
+        } catch (\Throwable $e) {
+            return $this->view('/member_notification', [
+                'list' => [],
+                'unread_count' => 0,
+                'type_counts' => [],
+                'current_type' => '',
+                'notif_stats' => [],
+                'ucenter_active' => 'notification',
+                'error_msg' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
