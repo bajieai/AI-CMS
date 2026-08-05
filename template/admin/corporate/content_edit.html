@@ -35,7 +35,7 @@
                 <div class="col-lg-4">
                     <!-- 分类（栏目决定一切：选分类→自动推断type和model） -->
                     <div class="mb-3">
-                        <label class="form-label">分类 <span class="text-danger">*</span></label>
+                        <label class="form-label">分类 <span class="text-danger">*</span> <span class="badge bg-primary ms-2 d-none" id="typeBadge"></span></label>
                         <select name="cate_id" class="form-select" id="cateSelect">
                             <option value="0">请选择分类</option>
                             {volist name="cates" id="cate"}
@@ -45,11 +45,6 @@
                             {/volist}
                         </select>
                         <input type="hidden" name="type" id="typeHidden" value="{$info.type ?? 1}">
-                        <!-- 分类关联信息：类型badge + 模型联动 -->
-                        <div id="cateInfoRow" class="mt-2 d-none">
-                            <span class="badge bg-primary me-1" id="typeBadge"></span>
-                            <span class="text-muted small" id="typeHint">由分类自动确定</span>
-                        </div>
                     </div>
                     <!-- V2.9.42: 内容模型由分类自动绑定，通过隐藏域提交，无需用户感知 -->
                     <input type="hidden" name="model_id" id="modelIdInput" value="{$model_id ?? 0}">

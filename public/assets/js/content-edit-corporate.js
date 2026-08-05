@@ -209,7 +209,7 @@ $(document).on('change', '#cateSelect', function() {
     var cateId = $(this).val();
     if (!cateId || cateId === '0') {
         $('#typeHidden').val(1);
-        $('#cateInfoRow').addClass('d-none');
+        $('#typeBadge').addClass('d-none');
         $('#modelFieldsCard').hide();
         $('#modelIdInput').val(0);
         return;
@@ -224,8 +224,7 @@ $(document).on('change', '#cateSelect', function() {
                 var d = res.data;
                 var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页',7:'图片',8:'视频'};
                 $('#typeHidden').val(d.type);
-                $('#typeBadge').text(typeNames[d.type] || d.type_name || '未知');
-                $('#cateInfoRow').removeClass('d-none');
+                $('#typeBadge').text(typeNames[d.type] || d.type_name || '未知').removeClass('d-none');
 
                 // 自动设置 model_id（分类绑定模型，通过隐藏域提交）
                 $('#modelIdInput').val(d.model_id || 0);
