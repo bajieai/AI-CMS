@@ -1403,4 +1403,3 @@ $(document).on('click', '#saveBtn', function() {
             }
         });
     });
-});
