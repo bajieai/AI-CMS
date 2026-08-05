@@ -57,7 +57,7 @@
                     <td><input type="checkbox" class="form-check-input check-item" value="{$vo.id}"></td>
                     <td>{$vo.id}</td>
                     <td>{$vo->content->title|default=$vo.content_id}</td>
-                    <td class="small text-truncate" style="max-width:300px;" title="{$vo.comment_text}">{$vo.comment_text}</td>
+                    <td class="small text-truncate" style="max-width:300px;">{$vo.raw_content}</td>
                     <td>{$vo.nickname}</td>
                     <td>
                         {if condition="$vo.status == 1"}
