@@ -166,6 +166,9 @@
     function uploadFile() {
         var fileInput = document.getElementById('uploadInput');
         if (!fileInput.files.length) { alert('请选择文件'); return; }
+        var btn = event.target;
+        btn.disabled = true;
+        btn.textContent = '上传中...';
         var formData = new FormData();
         formData.append('file', fileInput.files[0]);
         formData.append('filetype', $('#filterType').val());
@@ -176,21 +179,21 @@
             processData: false,
             contentType: false,
             success: function(res) {
+                btn.disabled = false;
+                btn.textContent = '上传';
                 if (res.code === 0) {
-                    if (res.data && res.data.url) {
-                        var content = '<img src="' + res.data.url + '" alt="' + (res.data.filename || '') + '">';
-                        if (window.opener) {
-                            window.opener.postMessage({ mceAction: 'insertContent', content: content }, '*');
-                        }
-                        window.close();
-                    } else {
-                        location.reload();
-                    }
+                    // 上传成功后刷新文件列表
+                    fileInput.value = '';
+                    location.reload();
                 } else {
                     alert(res.msg || '上传失败');
                 }
             },
-            error: function() { alert('上传失败'); }
+            error: function() {
+                btn.disabled = false;
+                btn.textContent = '上传';
+                alert('上传失败');
+            }
         });
     }
 
