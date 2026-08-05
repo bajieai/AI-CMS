@@ -77,7 +77,7 @@ class ContentController extends FrontBaseController
         }
 
         // V2.5：检查min_level_id内容等级限制
-        if (!PaidService::checkLevelAccess($this->memberInfo['id'] ?? 0, $info)) {
+        if (!PaidService::checkLevelAccess((int) ($this->memberInfo['id'] ?? 0), $info)) {
             if (!$this->isMemberLogin) {
                 return redirect('/member/login?redirect=' . urlencode(request()->url()));
             }
@@ -112,7 +112,7 @@ class ContentController extends FrontBaseController
                     ->order('id', 'asc')
                     ->select();
 
-                $memberId = $this->memberInfo['id'] ?? 0;
+                $memberId = (int) ($this->memberInfo['id'] ?? 0);
                 foreach ($chapters as $chapter) {
                     $chapterAccess[$chapter->id] = PaidService::canAccessChapter($memberId, $id, $chapter->id);
                 }
@@ -137,7 +137,7 @@ class ContentController extends FrontBaseController
         ]);
 
         // V2.6: 付费内容安全展示（预览/完整）
-        $memberId = $this->memberInfo['id'] ?? 0;
+        $memberId = (int) ($this->memberInfo['id'] ?? 0);
         $safeContent = PaidService::getSafeContent($info, $memberId);
 
         // V2.9.9: 社交分享OG元数据与分享链接
@@ -251,7 +251,7 @@ class ContentController extends FrontBaseController
             return $this->error('该内容无附件可下载');
         }
 
-        $memberId = $this->memberInfo['id'] ?? 0;
+        $memberId = (int) ($this->memberInfo['id'] ?? 0);
 
         // 检查下载权限（会员等级）
         if (!$this->checkDownloadPermission()) {
