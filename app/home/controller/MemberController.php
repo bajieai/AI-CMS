@@ -249,21 +249,12 @@ class MemberController extends FrontBaseController
 
         $memberId = (int) $this->memberInfo['id'];
         
-        // 生成或获取邀请码
-        $inviteCode = \app\common\model\InviteLog::where('inviter_id', $memberId)->value('invite_code');
-        if (!$inviteCode) {
-            $inviteCode = \app\common\model\InviteLog::generateCode($memberId);
-            // 创建一条自引用记录作为邀请码持有者
-            $log = new \app\common\model\InviteLog();
-            $log->save([
-                'inviter_id' => $memberId,
-                'invitee_id' => 0,
-                'invite_code' => $inviteCode,
-                'invitee_ip' => '',
-                'reward_points' => 0,
-                'reward_stage' => 0,
-                'create_time' => time(),
-            ]);
+        // V2.9.42: 邀请码直接从 member 表读取（注册时已自动生成）
+        $inviteCode = \app\common\model\MemberModel::where('id', $memberId)->value('invite_code');
+        if (empty($inviteCode)) {
+            // 兼容旧数据：生成并回写
+            $inviteCode = strtoupper(substr(md5(uniqid((string)$memberId, true)), 0, 8));
+            \app\common\model\MemberModel::where('id', $memberId)->update(['invite_code' => $inviteCode]);
         }
         
         // 邀请统计
