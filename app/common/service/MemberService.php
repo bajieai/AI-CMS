@@ -166,7 +166,9 @@ class MemberService
 
         $allowFields = ['nickname', 'avatar'];
         $update = array_intersect_key($data, array_flip($allowFields));
-        $member->save($update);
+        if (!empty($update)) {
+            $member->force()->save($update);
+        }
 
         return ['success' => true, 'msg' => '资料更新成功'];
     }
