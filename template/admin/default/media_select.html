@@ -129,19 +129,31 @@
             alert('请先点击选择一张图片');
             return;
         }
+        // V2.9.42: 防重复点击
+        var btn = document.getElementById('btnConfirm');
+        if (btn._submitting) return;
+        btn._submitting = true;
+        btn.disabled = true;
+        btn.innerHTML = '确定中...';
+
         // 区分 layer iframe 和 window.open 两种场景
         var isInIframe = (window.parent !== window);
         if (isInIframe && window.parent && typeof window.parent.mediaSelectCallback === 'function') {
-            // layer iframe 场景：调用父窗口的 mediaSelectCallback
+            // layer iframe 场景：调用父窗口回调并关闭弹窗
             window.parent.mediaSelectCallback(selectedMedia.url);
+            if (window.parent.layer) {
+                var index = window.parent.layer.getFrameIndex(window.name);
+                window.parent.layer.close(index);
+            }
         } else if (window.opener) {
-            // window.open 场景：通过 postMessage 发送 HTML（兼容旧版监听器）
+            // window.open 场景：通过 postMessage 通信
             var content = '<img src="' + selectedMedia.url + '" alt="' + (selectedMedia.name || '') + '">';
             window.opener.postMessage({ mceAction: 'insertContent', content: content }, '*');
             window.close();
         } else if (isInIframe && window.parent && window.parent.layer) {
-            // layer iframe 回退：关闭弹窗
-            window.parent.layer.closeAll();
+            // 回退：关闭弹窗
+            var index = window.parent.layer.getFrameIndex(window.name);
+            window.parent.layer.close(index);
         }
     }
 

@@ -86,12 +86,16 @@ class MemberFavoriteService
      */
     public function getList(int $memberId, int $page = 1, int $limit = 10): array
     {
-        $list = MemberFavoriteModel::where('member_id', $memberId)
-            ->with('content')
-            ->order('create_time', 'desc')
-            ->page($page, $limit)
-            ->select();
+        try {
+            $list = MemberFavoriteModel::where('member_id', $memberId)
+                ->with('content')
+                ->order('create_time', 'desc')
+                ->page($page, $limit)
+                ->select();
 
-        return ['success' => true, 'data' => $list];
+            return ['success' => true, 'data' => $list];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'msg' => '查询收藏失败: ' . $e->getMessage()];
+        }
     }
 }
