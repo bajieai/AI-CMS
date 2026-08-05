@@ -159,7 +159,7 @@ class MemberService
      */
     public function updateProfile(int $memberId, array $data): array
     {
-        $member = MemberModel::find($memberId);
+        $member = \app\common\model\Member::find($memberId);
         if (!$member) {
             return ['success' => false, 'msg' => '会员不存在'];
         }
@@ -176,7 +176,7 @@ class MemberService
      */
     public function changePassword(int $memberId, string $oldPassword, string $newPassword): array
     {
-        $member = MemberModel::find($memberId);
+        $member = \app\common\model\Member::find($memberId);
         if (!$member || !password_verify($oldPassword, $member->password)) {
             return ['success' => false, 'msg' => '原密码错误'];
         }
