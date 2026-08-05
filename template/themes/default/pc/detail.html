@@ -299,7 +299,8 @@ function loadComments(page) {
     $.get('/home/comment/list', {content_id: {$info.id}, page: page}, function(res) {
         if (res.code === 0 && res.data) {
             var html = '';
-            (res.data.list || []).forEach(function(item) {
+            var list = Array.isArray(res.data) ? res.data : (res.data.list || []);
+            list.forEach(function(item) {
                 var vipBadge = item.vip_badge ? '<span class="badge bg-warning ms-1"><i class="bi ' + item.vip_badge + '"></i></span>' : '';
                 html += '<div class="comment-item"><div class="d-flex justify-content-between"><strong>' + item.nickname + vipBadge + '</strong><small class="text-muted">' + item.create_time + '</small></div><p class="mb-1">' + item.content + '</p>';
                 if (item.replies && item.replies.length) {

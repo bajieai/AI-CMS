@@ -742,7 +742,7 @@ function loadComments(page) {
             var html = '';
 
 
-            (res.data.list || []).forEach(function(item) {
+            (Array.isArray(res.data) ? res.data : (res.data.list || [])).forEach(function(item) {
 
 
                 var vipBadge = item.vip_badge ? '<span class="badge bg-warning ms-1"><i class="bi ' + item.vip_badge + '"></i></span>' : '';
