@@ -222,20 +222,28 @@ class MemberController extends FrontBaseController
      */
     public function profile(Request $request)
     {
-        if (!$this->isMemberLogin) {
-            return redirect('/member/login');
-        }
+        try {
+            if (!$this->isMemberLogin) {
+                return redirect('/member/login');
+            }
 
-        if ($request->isPost()) {
-            $data = $request->post();
-            $result = $this->service->updateProfile($this->memberInfo['id'], $data);
-            return json($result);
-        }
+            if ($request->isPost()) {
+                $data = $request->post();
+                $result = $this->service->updateProfile($this->memberInfo['id'], $data);
+                return json($result);
+            }
 
-        return $this->view('/member_profile', [
-            'member' => $this->memberInfo,
-            'ucenter_active' => 'profile',
-        ]);
+            return $this->view('/member_profile', [
+                'member' => $this->memberInfo,
+                'ucenter_active' => 'profile',
+            ]);
+        } catch (\Throwable $e) {
+            return $this->view('/member_profile', [
+                'member' => $this->memberInfo ?? [],
+                'ucenter_active' => 'profile',
+                'error_msg' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -306,17 +314,25 @@ class MemberController extends FrontBaseController
      */
     public function favorite()
     {
-        if (!$this->isMemberLogin) {
-            return redirect('/member/login');
+        try {
+            if (!$this->isMemberLogin) {
+                return redirect('/member/login');
+            }
+
+            $service = new MemberFavoriteService();
+            $result = $service->getList((int) $this->memberInfo['id'], 1, 20);
+
+            return $this->view('/member_favorite', [
+                'list' => $result['data'] ?? [],
+                'ucenter_active' => 'favorite',
+            ]);
+        } catch (\Throwable $e) {
+            return $this->view('/member_favorite', [
+                'list' => [],
+                'ucenter_active' => 'favorite',
+                'error_msg' => $e->getMessage(),
+            ]);
         }
-
-        $service = new MemberFavoriteService();
-        $result = $service->getList((int) $this->memberInfo['id'], 1, 20);
-
-        return $this->view('/member_favorite', [
-            'list' => $result['data'] ?? [],
-            'ucenter_active' => 'favorite',
-        ]);
     }
 
     /**

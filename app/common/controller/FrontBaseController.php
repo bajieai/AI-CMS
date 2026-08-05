@@ -53,6 +53,7 @@ abstract class FrontBaseController extends \think\BaseController
 
     protected function initialize(): void
     {
+        try {
         // V2.9.7 AI模板兼容：模板中访问空数组key不抛异常
         
 
@@ -228,6 +229,27 @@ abstract class FrontBaseController extends \think\BaseController
 
         // V2.9.7 AI主题兼容：自动注入AI模板中缺失变量的默认值
         $this->injectAiTemplateFallbacks($activeTheme);
+
+        } catch (\Throwable $e) {
+            // V2.9.42: 前台初始化异常兜底，避免整站500
+            error_log('[FrontBaseController initialize error] ' . $e->getMessage());
+            $this->app->view->assign([
+                'site_name' => 'AI-CMS',
+                'site_keywords' => '',
+                'site_description' => '',
+                'isMemberLogin' => false,
+                'is_member_login' => false,
+                'member_info' => [],
+                'member_unread_count' => 0,
+                'nav_cates' => [],
+                'active_theme' => 'default',
+                'theme_assets' => '/template/themes/default/assets',
+                'current_lang' => 'zh-CN',
+                'enabled_languages' => [],
+                'custom' => [],
+                'enabled_modules' => [],
+            ]);
+        }
     }
 
     protected function resolveMember(): void
