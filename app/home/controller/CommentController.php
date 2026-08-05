@@ -38,7 +38,7 @@ class CommentController extends FrontBaseController
      */
     public function submit(Request $request)
     {
-        if (!config('comment.comment_enabled')) {
+        if (!(int) config('comment.comment_enabled')) {
             return json(['success' => false, 'msg' => '评论功能已关闭']);
         }
 
