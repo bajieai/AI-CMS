@@ -96,14 +96,18 @@ function renderModelFields(fields) {
     var $card = $('#modelFieldsCard');
     // 如果卡片不存在，动态创建
     if ($card.length === 0) {
-        var $tagWrap = $('#tagList').closest('.mb-3');
-        if ($tagWrap.length === 0) {
-            $tagWrap = $('#modelFieldHint').closest('.mb-3');
+        var $anchor = $('#chapterManageCard, #chapterManager');
+        if ($anchor.length > 0) {
+            $anchor.before('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
+        } else {
+            var $tagWrap = $('#tagList').closest('.mb-3');
+            if ($tagWrap.length === 0) {
+                $tagWrap = $('#modelInfoText').closest('.mb-3');
+            }
+            if ($tagWrap.length > 0) {
+                $tagWrap.after('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
+            }
         }
-        $tagWrap.after(
-            '<div class="card border-info mb-3" id="modelFieldsCard" style="display:none;">' +
-            '<div class="card-body py-2"></div></div>'
-        );
         $card = $('#modelFieldsCard');
     }
     if (fields && fields.length > 0) {

@@ -100,16 +100,22 @@ function renderExtFields(fields) {
 // 渲染模型动态扩展字段
 function renderModelFields(fields) {
     var $card = $('#modelFieldsCard');
-    // 如果卡片不存在，动态创建（添加模式下model_fields为空，服务端不渲染卡片）
+    // 如果卡片不存在，动态创建
     if ($card.length === 0) {
-        var $tagWrap = $('#tagList').closest('.mb-3');
-        if ($tagWrap.length === 0) {
-            $tagWrap = $('#modelFieldHint').closest('.mb-3');
+        // 在章节管理卡片前或 tagList 后插入模型字段卡片
+        var $anchor = $('#chapterManageCard, #chapterManager');
+        if ($anchor.length > 0) {
+            $anchor.before('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
+        } else {
+            // 回退：在 tagList 后面插入
+            var $tagWrap = $('#tagList').closest('.mb-3');
+            if ($tagWrap.length === 0) {
+                $tagWrap = $('#modelInfoText').closest('.mb-3');
+            }
+            if ($tagWrap.length > 0) {
+                $tagWrap.after('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
+            }
         }
-        $tagWrap.after(
-            '<div class="card border-info mb-3" id="modelFieldsCard" style="display:none;">' +
-            '<div class="card-body py-2"></div></div>'
-        );
         $card = $('#modelFieldsCard');
     }
     if (fields && fields.length > 0) {
