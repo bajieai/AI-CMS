@@ -28,16 +28,16 @@ class MemberService
     public function register(array $data): array
     {
         try {
-            if (MemberModel::where('username', $data['username'])->find()) {
+            if (\app\common\model\Member::where('username', $data['username'])->find()) {
                 return ['success' => false, 'msg' => '用户名已存在'];
             }
-            if (MemberModel::where('email', $data['email'])->find()) {
+            if (\app\common\model\Member::where('email', $data['email'])->find()) {
                 return ['success' => false, 'msg' => '邮箱已被注册'];
             }
 
             $needAudit = (int) ConfigService::get('member_register_audit', 0);
 
-            $member = new MemberModel;
+            $member = new \app\common\model\Member;
             $member->save([
                 'username'     => $data['username'],
                 'email'        => $data['email'],

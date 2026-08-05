@@ -229,7 +229,7 @@ class MemberController extends FrontBaseController
 
             if ($request->isPost()) {
                 $data = $request->post();
-                $result = $this->service->updateProfile($this->memberInfo['id'], $data);
+                $result = $this->service->updateProfile((int) $this->memberInfo['id'], $data);
                 return json($result);
             }
 
@@ -238,6 +238,9 @@ class MemberController extends FrontBaseController
                 'ucenter_active' => 'profile',
             ]);
         } catch (\Throwable $e) {
+            if ($request->isPost()) {
+                return json(['success' => false, 'msg' => $e->getMessage()]);
+            }
             return $this->view('/member_profile', [
                 'member' => $this->memberInfo ?? [],
                 'ucenter_active' => 'profile',
