@@ -202,7 +202,7 @@ function _parseOptions(raw) {
     return raw.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
 }
 
-// 栏目决定一切：分类选择联动
+// 栏目决定一切：分类选择联动（eyoucms 风格，模型自动确定不暴露给用户）
 $('#cateSelect').on('change', function() {
     var cateId = $(this).val();
     if (!cateId || cateId === '0') {
@@ -210,7 +210,7 @@ $('#cateSelect').on('change', function() {
         $('#cateInfoRow').addClass('d-none');
         $('#modelGroup').hide();
         $('#modelFieldsCard').hide();
-        $('#modelFieldHint').text('跟随分类默认模型');
+        $('#modelIdInput').val(0);
         return;
     }
     $.ajax({
@@ -221,21 +221,14 @@ $('#cateSelect').on('change', function() {
         success: function(res) {
             if (res.code === 0 && res.data) {
                 var d = res.data;
-                // 更新类型隐藏字段和分类行内badge
                 var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页',7:'图片',8:'视频'};
                 $('#typeHidden').val(d.type);
                 $('#typeBadge').text(typeNames[d.type] || d.type_name || '未知');
                 $('#cateInfoRow').removeClass('d-none');
 
-                // 显示模型下拉区域，更新选项
-                var modelSelect = $('#modelSelect');
-                modelSelect.find('option').not(':first').remove();
-                if (d.models && d.models.length > 0) {
-                    for (var i = 0; i < d.models.length; i++) {
-                        modelSelect.append('<option value="' + d.models[i].id + '">' + d.models[i].name + '</option>');
-                    }
-                }
-                modelSelect.val(d.model_id || 0);
+                // 自动设置 model_id（eyoucms 风格：分类绑定模型，不需要用户手动选）
+                $('#modelIdInput').val(d.model_id || 0);
+                $('#modelInfoText').text(d.model_name || '使用分类默认模型');
                 $('#modelGroup').show();
 
                 // 渲染模型字段
@@ -245,53 +238,11 @@ $('#cateSelect').on('change', function() {
     });
 });
 
-// 模型手动覆盖：切换模型时重新加载字段
-$('#modelSelect').on('change', function() {
-    var modelId = $(this).val();
-    if (!modelId || modelId === '0') {
-        $('#modelFieldsCard').hide();
-        $('#modelFieldHint').text('当前无模型字段');
-        return;
-    }
-    $.ajax({
-        url: '/admin/content/getModelFields/' + modelId,
-        type: 'GET',
-        dataType: 'json',
-        success: function(res) {
-            if (res.code === 0 && res.data && res.data.fields) {
-                renderModelFields(res.data.fields);
-            } else {
-                $('#modelFieldsCard').hide();
-                $('#modelFieldHint').text('当前模型无字段');
-            }
-        },
-        error: function() {
-            $('#modelFieldsCard').hide();
-            $('#modelFieldHint').text('当前模型无字段');
-        }
-    });
-});
-
-// 编辑模式初始化：如果已有分类选中，显示类型badge和模型
+// 编辑模式初始化：自动触发分类 change 加载模型字段和badge
 $(function() {
     var cateId = $('#cateSelect').val();
-    var typeVal = $('#typeHidden').val();
-    var typeNames = {1:'产品',2:'案例',3:'新闻',4:'下载',5:'招聘',6:'单页',7:'图片',8:'视频'};
     if (cateId && cateId !== '0') {
-        if (typeVal && typeNames[typeVal]) {
-            $('#typeBadge').text(typeNames[typeVal]);
-            $('#cateInfoRow').removeClass('d-none');
-        }
-        // 显示模型区域
-        $('#modelGroup').show();
-        // 过滤模型选项：只显示该type下的模型
-        var currentType = parseInt(typeVal) || 1;
-        $('#modelSelect option').not(':first').each(function() {
-            var optType = parseInt($(this).attr('data-type'));
-            if (optType && optType !== currentType) {
-                $(this).remove();
-            }
-        });
+        $('#cateSelect').trigger('change');
     }
 });
 

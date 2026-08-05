@@ -185,9 +185,13 @@ class ContentController extends AdminBaseController
             return $this->error('单页内容请在分类管理中编辑');
         }
 
-        // 栏目决定一切：从分类自动推断type
+        // 栏目决定一切：从分类自动推断type和model_id（eyoucms风格）
         if ($cate) {
             $data['type'] = (int) $cate->type;
+            // 自动从分类获取 model_id（不再依赖用户手动选择模型下拉框）
+            if (empty($data['model_id']) || (int) $data['model_id'] <= 0) {
+                $data['model_id'] = (int) ($cate->model_id ?? 0);
+            }
         }
 
         $service = new ContentService();
@@ -293,10 +297,14 @@ class ContentController extends AdminBaseController
             return $this->error('请先选择内容分类');
         }
 
-        // 栏目决定一切：从分类自动推断type
+        // 栏目决定一切：从分类自动推断type和model_id
         $cate = Cate::find((int) $data['cate_id']);
         if ($cate) {
             $data['type'] = (int) $cate->type;
+            // 自动从分类获取 model_id（不再依赖用户手动选择模型下拉框）
+            if (empty($data['model_id']) || (int) $data['model_id'] <= 0) {
+                $data['model_id'] = (int) ($cate->model_id ?? 0);
+            }
         }
 
         $service = new ContentService();

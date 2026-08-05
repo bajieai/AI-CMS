@@ -51,16 +51,12 @@
                             <span class="text-muted small" id="typeHint">由分类自动确定</span>
                         </div>
                     </div>
-                    <!-- 内容模型：分类联动子项（选分类后展开） -->
+                    <!-- 内容模型：分类联动自动确定（eyoucms风格，不暴露模型选择） -->
+                    <input type="hidden" name="model_id" id="modelIdInput" value="{$model_id ?? 0}">
                     <div class="mb-3" id="modelGroup" style="display:none;">
-                        <label class="form-label">内容模型</label>
-                        <select name="model_id" class="form-select" id="modelSelect">
-                            <option value="0">使用分类默认模型</option>
-                            {volist name="all_models" id="model"}
-                            <option value="{$model.id}" data-type="{$model.type}" {if condition="($model_id ?? 0) == $model.id"}selected{/if}>{$model.name ?: ($model.model_name ?? '')}</option>
-                            {/volist}
-                        </select>
-                        <div class="form-text text-muted" id="modelFieldHint">跟随分类默认模型</div>
+                        <label class="form-label text-muted small">内容模型</label>
+                        <div class="form-control bg-light text-muted small" id="modelInfoText" style="cursor:default;">选择分类后自动确定</div>
+                    </div>
                     </div>
                     <!-- V2.9.9: AI内容模板选择 -->
                     <div class="mb-3">
