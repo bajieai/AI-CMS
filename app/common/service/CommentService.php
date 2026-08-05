@@ -30,43 +30,46 @@ class CommentService
      */
     public function submit(array $data): array
     {
-        // V2.5：判断会员是否评论免审
-        $autoApprove = (bool) config('comment.comment_auto_approve');
-        $memberId = $data['member_id'] ?? 0;
-        if ($memberId > 0 && !$autoApprove) {
-            $autoApprove = $this->isMemberCommentNoReview($memberId);
-        }
-
-        $comment = new CommentModel;
-        $comment->save([
-            'content_id' => $data['content_id'],
-            'member_id'  => $memberId,
-            'nickname'   => $data['nickname'] ?? '游客',
-            'email'      => $data['email'] ?? '',
-            'content'    => strip_tags($data['content']),
-            'parent_id'  => $data['parent_id'] ?? 0,
-            'status'     => $autoApprove ? 1 : 0,
-            'ip'         => request()->ip(),
-        ]);
-
-        $result = ['success' => true, 'msg' => '评论提交成功', 'data' => ['id' => $comment->id]];
-
-        // V2.4: 评论积分奖励（仅会员）
-        $memberId = $data['member_id'] ?? 0;
-        if ($memberId > 0) {
-            try {
-                if (PointsService::checkDailyLimit('comment', $memberId)) {
-                    $commentPoints = PointsService::getConfig('comment', 2);
-                    if ($commentPoints > 0) {
-                        PointsService::add($memberId, $commentPoints, 'comment', $comment->id, '评论积分');
-                    }
-                }
-            } catch (\Throwable) {
-                // 积分添加失败不影响评论流程
+        try {
+            // V2.5：判断会员是否评论免审
+            $autoApprove = (bool) config('comment.comment_auto_approve');
+            $memberId = $data['member_id'] ?? 0;
+            if ($memberId > 0 && !$autoApprove) {
+                $autoApprove = $this->isMemberCommentNoReview($memberId);
             }
-        }
 
-        return $result;
+            $comment = new CommentModel;
+            $comment->save([
+                'content_id' => $data['content_id'],
+                'member_id'  => $memberId,
+                'nickname'   => $data['nickname'] ?? '游客',
+                'email'      => $data['email'] ?? '',
+                'content'    => strip_tags($data['content']),
+                'parent_id'  => $data['parent_id'] ?? 0,
+                'status'     => $autoApprove ? 1 : 0,
+                'ip'         => request()->ip(),
+            ]);
+
+            $result = ['success' => true, 'msg' => '评论提交成功', 'data' => ['id' => $comment->id]];
+
+            // V2.4: 评论积分奖励（仅会员）
+            if ($memberId > 0) {
+                try {
+                    if (PointsService::checkDailyLimit('comment', $memberId)) {
+                        $commentPoints = PointsService::getConfig('comment', 2);
+                        if ($commentPoints > 0) {
+                            PointsService::add($memberId, $commentPoints, 'comment', $comment->id, '评论积分');
+                        }
+                    }
+                } catch (\Throwable) {
+                    // 积分添加失败不影响评论流程
+                }
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            return ['success' => false, 'msg' => '评论提交失败: ' . $e->getMessage()];
+        }
     }
 
     /**
