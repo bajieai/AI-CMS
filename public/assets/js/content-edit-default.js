@@ -107,14 +107,11 @@ function renderModelFields(fields) {
         if ($anchor.length > 0) {
             $anchor.before('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
         } else {
-            // 回退：在 tagList 后面插入
-            var $tagWrap = $('#tagList').closest('.mb-3');
-            if ($tagWrap.length === 0) {
-                $tagWrap = $('#modelInfoText').closest('.mb-3');
-            }
-            if ($tagWrap.length > 0) {
-                $tagWrap.after('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
-            }
+        // 回退：在 tagList 后面插入
+        var $tagWrap = $('#tagList').closest('.mb-3');
+        if ($tagWrap.length > 0) {
+            $tagWrap.after('<div class="card border-info mb-3" id="modelFieldsCard"></div>');
+        }
         }
         $card = $('#modelFieldsCard');
     }
@@ -220,7 +217,6 @@ $(document).on('change', '#cateSelect', function() {
     if (!cateId || cateId === '0') {
         $('#typeHidden').val(1);
         $('#cateInfoRow').addClass('d-none');
-        $('#modelGroup').hide();
         $('#modelFieldsCard').hide();
         $('#modelIdInput').val(0);
         return;
@@ -238,10 +234,8 @@ $(document).on('change', '#cateSelect', function() {
                 $('#typeBadge').text(typeNames[d.type] || d.type_name || '未知');
                 $('#cateInfoRow').removeClass('d-none');
 
-                // 自动设置 model_id（eyoucms 风格：分类绑定模型，不需要用户手动选）
+                // 自动设置 model_id（分类绑定模型，通过隐藏域提交）
                 $('#modelIdInput').val(d.model_id || 0);
-                $('#modelInfoText').text(d.model_name || '使用分类默认模型');
-                $('#modelGroup').show();
 
                 // 渲染模型字段
                 renderModelFields(d.model_fields || []);

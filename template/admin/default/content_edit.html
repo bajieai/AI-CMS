@@ -191,12 +191,8 @@
                             <span class="text-muted small" id="typeHint">由分类自动确定</span>
                         </div>
                     </div>
-                    <!-- 内容模型：分类联动自动确定（eyoucms风格，不暴露模型选择） -->
+                    <!-- V2.9.42: 内容模型由分类自动绑定，通过隐藏域提交，无需用户感知 -->
                     <input type="hidden" name="model_id" id="modelIdInput" value="{$model_id ?? 0}">
-                    <div class="mb-3" id="modelGroup" style="display:none;">
-                        <label class="form-label text-muted small">内容模型</label>
-                        <div class="form-control bg-light text-muted small" id="modelInfoText" style="cursor:default;">选择分类后自动确定</div>
-                    </div>
                     <!-- V2.9.9: AI内容模板选择 -->
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between align-items-center">
