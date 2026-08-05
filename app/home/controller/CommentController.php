@@ -38,6 +38,11 @@ class CommentController extends FrontBaseController
      */
     public function submit(Request $request)
     {
+        $enabled = config('comment.comment_enabled');
+        $enabledInt = (int) $enabled;
+        file_put_contents(runtime_path() . 'comment_debug.log',
+            date('Y-m-d H:i:s') . " enabled=" . var_export($enabled, true) . " int=$enabledInt checked=" . ($enabledInt ? 'yes' : 'no') . "\n",
+            FILE_APPEND);
         if (!(int) config('comment.comment_enabled')) {
             return json(['success' => false, 'msg' => '评论功能已关闭']);
         }
