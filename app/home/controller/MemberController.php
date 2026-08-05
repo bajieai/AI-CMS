@@ -250,6 +250,15 @@ class MemberController extends FrontBaseController
             if ($request->isPost()) {
                 $data = $request->post();
                 $result = $this->service->updateProfile((int) $this->memberInfo['id'], $data);
+                // 如果同时填了新旧密码，一并修改
+                $oldPwd = $request->post('old_password', '');
+                $newPwd = $request->post('new_password', '');
+                if (!empty($oldPwd) && !empty($newPwd)) {
+                    $pwdResult = $this->service->changePassword((int) $this->memberInfo['id'], $oldPwd, $newPwd);
+                    if (!$pwdResult['success']) {
+                        return json($pwdResult);
+                    }
+                }
                 return json($result);
             }
 
