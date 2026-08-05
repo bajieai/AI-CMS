@@ -107,6 +107,7 @@
 
 {block name="js"}
 <script>
+{literal}
 $('.mark-read').on('click', function() {
     var id = $(this).data('id');
     var token = $('meta[name="csrf-token"]').attr('content');
@@ -116,5 +117,6 @@ $('#markAllRead').on('click', function() {
     var token = $('meta[name="csrf-token"]').attr('content');
     $.ajax({url:'/member/notificationReadAll',type:'POST',dataType:'json',data:{__token__:token},success:function(){location.reload();}});
 });
+{/literal}
 </script>
 {/block}

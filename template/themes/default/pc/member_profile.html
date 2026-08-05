@@ -53,6 +53,7 @@
 
 {block name="js"}
 <script>
+{literal}
 function uploadAvatar(input) {
     var file = input.files[0];
     if (!file) return;
@@ -83,5 +84,6 @@ $('#profileForm').on('submit', function(e) {
     var token = $('meta[name="csrf-token"]').attr('content');
     $.ajax({url:'/member/profile',type:'POST',dataType:'json',data:$(this).serialize() + '&__token__=' + token,headers:{'X-CSRF-TOKEN':token},success:function(res){alert(res.msg || '已更新');}});
 });
+{/literal}
 </script>
 {/block}

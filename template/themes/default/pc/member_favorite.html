@@ -48,6 +48,7 @@
 
 {block name="js"}
 <script>
+{literal}
 function unfavorite(btn) {
     if (!confirm('确定取消收藏？')) return false;
     var id = $(btn).data('id');
@@ -55,5 +56,6 @@ function unfavorite(btn) {
     $.ajax({url:'/member/favoriteRemove',type:'POST',dataType:'json',data:{content_id:id,__token__:token},headers:{'X-CSRF-TOKEN':token},success:function(res){alert(res.msg || '已取消');location.reload();}});
     return false;
 }
+{/literal}
 </script>
 {/block}
