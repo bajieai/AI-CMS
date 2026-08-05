@@ -50,9 +50,13 @@ class CommentController extends AdminBaseController
         }
 
         $list = $query->paginate($limit, false, ['page' => $page]);
-        // V2.9.42: 提取评论内容纯文本到独立字段（避开关联模型 content() 方法的 JSON 序列化）
-        foreach ($list as $item) {
-            $item->raw_content = $item->getData('content');
+        // V2.9.42: 用 Db 直接查原始 content 字段值（避开关联模型 content() 的 JSON 序列化）
+        $ids = $list->column('id');
+        if (!empty($ids)) {
+            $contents = \think\facade\Db::name('comment')->whereIn('id', $ids)->column('content', 'id');
+            foreach ($list as $item) {
+                $item->raw_content = $contents[$item->id] ?? '';
+            }
         }
         return $this->view('/comment_list', ['list' => $list, 'status' => $status]);
     }
