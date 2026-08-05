@@ -38,18 +38,6 @@ try {
         $response = $http->name('home')->run();
     }
 
-    // V2.9.42: 500时直接输出完整响应内容用于调试
-    $code = $response->getCode();
-    if ($code >= 500) {
-        $content = $response->getContent();
-        // 完整写入日志
-        @file_put_contents(__DIR__ . '/../runtime/ai_cms_full_error.html', $content);
-        // 输出到页面
-        header('Content-Type: text/plain; charset=utf-8');
-        echo $content;
-        exit;
-    }
-
     $response->send();
     $http->end($response);
 } catch (\Throwable $e) {
