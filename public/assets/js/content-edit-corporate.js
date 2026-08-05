@@ -6,10 +6,12 @@ $(document).ajaxSuccess(function(event, xhr, settings) {
     }
 });
 
-$('#is_paid').on('change', function() { $('#pay-config-group').toggle($(this).is(':checked')); });
+// 付费阅读开关联动（事件委托，PJAX 兼容）
+$(document).on('change', '#is_paid', function() { $('#pay-config-group').toggle($(this).is(':checked')); });
 
-// TinyMCE编辑器（完全本地化）
-if (document.getElementById('editor') && typeof tinymce !== 'undefined') {
+// TinyMCE编辑器初始化（封装为函数，PJAX 后重新调用）
+function initTinyMCE() {
+    if (!document.getElementById('editor') || typeof tinymce === 'undefined') return;
     var existing = tinymce.get('editor');
     if (existing) existing.destroy();
     tinymce.init({
@@ -51,7 +53,6 @@ if (document.getElementById('editor') && typeof tinymce !== 'undefined') {
             $('#aiPrompt').val('请总结以下内容的要点：\n' + text);
             aiGenerate('append');
         });
-        // V2.9.13: TinyMCE工具栏AI按钮已移除（window.AiImage/AiSeo从未定义，无实际功能）
     },
     // 图片上传
     images_upload_url: '/api/upload/image',
@@ -79,7 +80,7 @@ if (document.getElementById('editor') && typeof tinymce !== 'undefined') {
         }
         $.ajax(ajaxOpts);
     }
-});
+    });
 }
 
 // 扩展字段动态渲染（PJAX 并行加载兼容）
@@ -238,9 +239,22 @@ $(document).on('change', '#cateSelect', function() {
 
 // 编辑模式初始化（PJAX 兼容：DOM ready 和 PJAX 完成后都执行）
 function initContentEditPage() {
+    // 1. TinyMCE 编辑器初始化
+    initTinyMCE();
+    // 2. 分类联动：编辑模式自动加载模型字段
     var cateId = $('#cateSelect').val();
     if (cateId && cateId !== '0') {
         $('#cateSelect').trigger('change');
+    }
+    // 3. 封面预览初始化
+    var coverUrl = $('#coverInput').val();
+    if (coverUrl) {
+        $('#coverPreview img').attr('src', coverUrl);
+        $('#coverPreview').show();
+    }
+    // 4. SEO 预览初始化
+    if (typeof updateSeoPreview === 'function') {
+        updateSeoPreview();
     }
 }
 $(function() {
@@ -285,8 +299,8 @@ function uploadCover() {
     input.click();
 }
 
-// 封面预览
-$('#coverInput').on('change', function() {
+// 封面预览（事件委托，PJAX 兼容）
+$(document).on('change', '#coverInput', function() {
     var url = $(this).val();
     if (url) {
         $('#coverPreview img').attr('src', url);
@@ -589,7 +603,8 @@ function updateSeoPreview() {
     $('#previewDesc').text(desc);
     $('#seoPreview').show();
 }
-$('#seoTitle, #seoDescription').on('input', updateSeoPreview);
+// SEO字段实时预览（事件委托，PJAX 兼容）
+$(document).on('input', '#seoTitle, #seoDescription', updateSeoPreview);
 
 // V3.1: SEO评分
 function calculateSeoScore() {

@@ -79,10 +79,19 @@
     // ==================== 外部脚本加载 & 内联脚本执行 ====================
 
     /**
-     * 串行加载外部JS文件，全部完成后回调（v3.4 修复：顺序加载保证依赖关系）
+     * 串行加载外部JS文件，全部完成后回调
+     * V2.9.42 修复：每次 PJAX 都重新加载页面级 JS，确保事件绑定和初始化代码重新执行
+     * 之前跳过已加载脚本的逻辑导致 PJAX 导航后页面 JS 不执行
      */
     function loadExternalScripts(urls, callback) {
         if (!urls || urls.length === 0) { callback && callback(); return; }
+        
+        // 清理上一次 PJAX 注入的页面级脚本（避免内存泄漏和重复定义）
+        var oldScripts = document.head.querySelectorAll('script[data-pjax-page-js]');
+        for (var i = 0; i < oldScripts.length; i++) {
+            oldScripts[i].parentNode.removeChild(oldScripts[i]);
+        }
+        
         var idx = 0;
         function loadNext() {
             if (idx >= urls.length) {
@@ -91,23 +100,25 @@
             }
             var url = urls[idx];
             idx++;
-            // 避免重复加载：检查页面中是否已存在同src的script
-            var existing = document.querySelector('script[src="' + url + '"]');
-            if (existing) {
-                loadNext();
-                return;
+            
+            // 移除同 src 的旧脚本（不管是不是 PJAX 注入的）
+            var existing = document.head.querySelectorAll('script[src="' + url + '"]');
+            for (var j = 0; j < existing.length; j++) {
+                existing[j].parentNode.removeChild(existing[j]);
             }
+            
             var s = document.createElement('script');
             s.src = url;
+            s.setAttribute('data-pjax-page-js', '1');
             s.onload = s.onreadystatechange = function() {
                 if (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete') {
                     s.onload = s.onreadystatechange = null;
-                    loadNext(); // 上一个加载完成后再加载下一个
+                    loadNext();
                 }
             };
             s.onerror = function() {
                 console.error('[PJAX] 外部脚本加载失败:', url);
-                loadNext(); // 失败也继续下一个
+                loadNext();
             };
             document.head.appendChild(s);
         }
