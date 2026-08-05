@@ -8,7 +8,6 @@
 
 {block name="meta_extra"}
 <meta name="content-id" content="{$info.id}">
-
 <!-- V2.9.15: OG/Twitter标签增强 -->
 <meta property="og:title" content="{$info.seo_title ?: $info.title}">
 <meta property="og:description" content="{:app\\common\\service\\theme\\ThemeFileService::msubstr($info->seo_description ?: (($info->excerpt ?: '') ?: $info->title), 0, 120)}">
@@ -16,7 +15,6 @@
 <meta property="og:type" content="article">
 <meta property="og:url" content="{$site_url}{$Request.url}">
 <meta property="og:site_name" content="{$site_name}">
-
 <!-- V2.9.15: og:locale联动翻译语言切换 -->
 <meta property="og:locale" content="{$og_locale|default='zh_CN'}">
 <!-- Twitter Card -->
@@ -24,10 +22,8 @@
 <meta name="twitter:title" content="{$info.seo_title ?: $info.title}">
 <meta name="twitter:description" content="{:app\\common\\service\\theme\\ThemeFileService::msubstr($info->seo_description ?: (($info->excerpt ?: '') ?: $info->title), 0, 120)}">
 {if condition="$info.cover"}<meta name="twitter:image" content="{$info.cover}">{/if}
-
 <!-- V2.9.15: Schema.org 结构化标记（新SchemaMarkupService） -->
 {$schema_markup|raw}
-
 <!-- V2.9.9: 多语言hreflang标签 -->
 {if condition="count($content_translations) > 1"}
 {foreach $content_translations as $lang_code => $trans}
@@ -42,7 +38,6 @@
 
 <section class="py-4">
     <div class="container">
-
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">首页</a></li>
@@ -58,22 +53,16 @@
                 </li>
                 <li class="breadcrumb-item active">{$info.title}</li>
             </ol>
-
         </nav>
-
         <div class="row">
-
             <div class="col-lg-9">
-
                 <article>
-
                     <h1 class="mb-3">
                         {$info.title}
                         {if condition="$safe_content.is_paid_content"}
                         <i class="bi bi-lock-fill text-warning fs-5" title="付费内容"></i>
                         {/if}
                     </h1>
-
                     <!-- V2.9.15: 前台语言切换器 -->
                     {if condition="$info.id"}
                     <div class="lang-switcher mb-3">
@@ -105,12 +94,10 @@
                         <img data-src="{$info.cover}" class="img-fluid rounded lazyload" alt="{$info.title}" onerror="this.style.display='none'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                     </div>
                     {/if}
-
                     <!-- V2.9.20 A-3: 内容模型差异化片段 -->
                     {if condition="$model_partial"}
                         {include file="$model_partial" /}
                     {/if}
-
                     <!-- V2.9.5 付费内容安全展示 -->
                     <div class="content-body">
                         {if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}
@@ -149,7 +136,6 @@
                         <span class="text-muted small"><i class="bi bi-chat-dots me-1"></i>{$info.comment_count} 评论</span>
                     </div>
                     
-
                     <!-- V2.9.9 社交分享轻量版 -->
                     {if condition="$share_links"}
                     <div class="social-share-bar mb-4">
@@ -176,7 +162,6 @@
                         </div>
                     </div>
                     {/if}
-
                     <!-- V2.9.9 多语言翻译版本 -->
                     {if condition="count($content_translations) > 1"}
                     <div class="content-translations mb-3">
@@ -191,7 +176,6 @@
                     </div>
                     {/if}
                     {include file="shared/reward_button" info="$info" /}
-
                 </article>
                 
 <!-- 评论区-->
@@ -223,14 +207,12 @@
                     </div>
                     <!-- 评论列表 -->
                     <div id="commentList"></div>
-
                     <nav id="commentPagination" class="mt-3"></nav>
 
                 </section>
                 {/if}
             </div>
             <!-- 侧边栏 -->
-
             <div class="col-lg-3">
                 <div class="card mb-3">
                     <div class="card-header"><i class="bi bi-lightning me-1"></i>相关内容</div>
@@ -255,14 +237,12 @@
 {/block}
 
 {block name="css"}
-
 <style>
 .content-body img { max-width: 100%; height: auto; }
 .content-body table { width: 100%; margin-bottom: 1rem; }
 .content-body a { color: var(--primary); }
 .comment-item { border-left: 3px solid #e2e8f0; padding-left: 12px; margin-bottom: 16px; }
 .comment-item .reply { background: var(--i8j-bg-secondary,#f8fafc); border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
-
 </style>
 
 {/block}
@@ -271,10 +251,8 @@
 <!-- JSON-LD 结构化数据?-->
 <script type="application/ld+json">
 {$jsonLd|raw}
-
 </script>
 {if condition="config('comment.comment_enabled') !== 0"}
-
 <script>
 // 加载评论列表
 function loadComments(page) {
@@ -312,12 +290,9 @@ $('#commentForm').on('submit', function(e) {
         }
     }, 'json');
 });
-
 </script>
 {/if}
-
 <!-- V2.9.20 A-4: 下载计数 -->
-
 <script>
 function recordDownload(contentId) {
     $.post('/api/content/download_count', {content_id: contentId, __token__: $('meta[name="csrf-token"]').attr('content')}, function(res) {
@@ -326,7 +301,6 @@ function recordDownload(contentId) {
         }
     }, 'json');
 }
-
 </script>
 
 {/block}
