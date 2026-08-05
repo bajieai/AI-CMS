@@ -27,54 +27,58 @@ class MemberService
      */
     public function register(array $data): array
     {
-        if (MemberModel::where('username', $data['username'])->find()) {
-            return ['success' => false, 'msg' => '用户名已存在'];
-        }
-        if (MemberModel::where('email', $data['email'])->find()) {
-            return ['success' => false, 'msg' => '邮箱已被注册'];
-        }
-
-        $needAudit = (int) ConfigService::get('member_register_audit', 0);
-
-        $member = new MemberModel;
-        $member->save([
-            'username' => $data['username'],
-            'email'    => $data['email'],
-            'password' => $data['password'],
-            'nickname' => $data['nickname'] ?? $data['username'],
-            'status'   => $needAudit ? 2 : 1,
-        ]);
-
-        // V2.4: 赋予默认等级
-        $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->find();
-        if ($defaultLevel) {
-            $member->level_id = $defaultLevel->id;
-            $member->save();
-        }
-
-        // V2.4: 注册奖励积分
-        $registerPoints = (int) ConfigService::get('points_register', 50);
-        if ($registerPoints > 0 && !$needAudit) {
-            try {
-                PointsService::add($member->id, $registerPoints, 'register', 0, '注册奖励');
-            } catch (\Throwable) {
-                // 积分添加失败不影响注册流程
+        try {
+            if (MemberModel::where('username', $data['username'])->find()) {
+                return ['success' => false, 'msg' => '用户名已存在'];
             }
-        }
-
-        // V2.8: 邀请返积分处理
-        if (!empty($data['invite_code']) && !$needAudit) {
-            try {
-                $this->processInviteReward($member->id, $data['invite_code'], request()->ip() ?? '0.0.0.0');
-                // V2.9: 统一入口触发注册奖励（由InviteRewardService处理）
-                InviteRewardService::onMemberEvent($member->id, 'register');
-            } catch (\Throwable) {
-                // 邀请处理失败不影响注册流程
+            if (MemberModel::where('email', $data['email'])->find()) {
+                return ['success' => false, 'msg' => '邮箱已被注册'];
             }
-        }
 
-        $msg = $needAudit ? '注册成功，请等待管理员审核' : '注册成功';
-        return ['success' => true, 'msg' => $msg, 'data' => ['id' => $member->id]];
+            $needAudit = (int) ConfigService::get('member_register_audit', 0);
+
+            $member = new MemberModel;
+            $member->save([
+                'username' => $data['username'],
+                'email'    => $data['email'],
+                'password' => $data['password'],
+                'nickname' => $data['nickname'] ?? $data['username'],
+                'status'   => $needAudit ? 2 : 1,
+            ]);
+
+            // V2.4: 赋予默认等级
+            $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->find();
+            if ($defaultLevel) {
+                $member->level_id = $defaultLevel->id;
+                $member->save();
+            }
+
+            // V2.4: 注册奖励积分
+            $registerPoints = (int) ConfigService::get('points_register', 50);
+            if ($registerPoints > 0 && !$needAudit) {
+                try {
+                    PointsService::add($member->id, $registerPoints, 'register', 0, '注册奖励');
+                } catch (\Throwable) {
+                    // 积分添加失败不影响注册流程
+                }
+            }
+
+            // V2.8: 邀请返积分处理
+            if (!empty($data['invite_code']) && !$needAudit) {
+                try {
+                    $this->processInviteReward($member->id, $data['invite_code'], request()->ip() ?? '0.0.0.0');
+                    // V2.9: 统一入口触发注册奖励（由InviteRewardService处理）
+                    InviteRewardService::onMemberEvent($member->id, 'register');
+                } catch (\Throwable) {
+                    // 邀请处理失败不影响注册流程
+                }
+            }
+
+            $msg = $needAudit ? '注册成功，请等待管理员审核' : '注册成功';
+            return ['success' => true, 'msg' => $msg, 'data' => ['id' => $member->id]];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'msg' => '注册失败: ' . $e->getMessage()];
+        }
     }
 
     /**
