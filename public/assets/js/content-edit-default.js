@@ -245,6 +245,9 @@ $(document).on('change', '#cateSelect', function() {
 
 // 编辑模式初始化（PJAX 兼容：DOM ready 和 PJAX 完成后都执行）
 function initContentEditPage() {
+    // V2.9.42: 只在内容编辑页执行（存在 #cateSelect 或 #editor 才是内容编辑页）
+    if (!$('#cateSelect').length && !$('#editor').length) return;
+
     // 1. TinyMCE 编辑器初始化
     initTinyMCE();
     // 2. 分类联动：编辑模式自动加载模型字段
@@ -432,8 +435,8 @@ $(document).on('input', '#seoTitle, #seoKeywords, #seoDescription', function() {
 });
 
 function updateSeoPreview() {
-    var title = $('#seoTitle').val().trim() || $('[name="title"]').val().trim() || '标题';
-    var description = $('#seoDescription').val().trim() || $('[name="excerpt"]').val().trim() || '描述';
+    var title = ($('#seoTitle').val() || '').trim() || ($('[name="title"]').val() || '').trim() || '标题';
+    var description = ($('#seoDescription').val() || '').trim() || ($('[name="excerpt"]').val() || '').trim() || '描述';
     var url = window.location.origin + ($('[name="id"]').val() ? '/news/' + $('[name="id"]').val() : '/preview');
 
     $('#previewTitle').text(title);
