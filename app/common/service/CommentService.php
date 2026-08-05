@@ -51,6 +51,11 @@ class CommentService
                 'ip'         => request()->ip(),
             ]);
 
+            // 如果免审核（status=1），更新内容评论数
+            if ($autoApprove) {
+                \think\facade\Db::name('content')->where('id', $data['content_id'])->inc('comment_count')->update();
+            }
+
             $result = ['success' => true, 'msg' => '评论提交成功', 'data' => ['id' => $comment->id]];
 
             // V2.4: 评论积分奖励（仅会员）
