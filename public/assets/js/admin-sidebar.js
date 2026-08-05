@@ -455,10 +455,19 @@
      */
     function isUrlPrefixMatch(currentUrl, targetUrl) {
         if (!targetUrl || !currentUrl) return false;
+        // V2.9.42: 提取 targetUrl 最后一段的关键词（如 bannerIndex → banner），
+        // 在 currentUrl 中匹配同一段，避免同前缀不同模块误匹配
         var lastSlash = targetUrl.lastIndexOf('/');
         if (lastSlash <= 0) return false;
-        var prefix = targetUrl.substring(0, lastSlash + 1);
-        return currentUrl.indexOf(prefix) === 0;
+        var lastSegment = targetUrl.substring(lastSlash + 1);
+        // 提取关键词：去掉 Index/Edit/Add 等常见后缀
+        var keyword = lastSegment.replace(/(Index|Edit|Add|Detail|List|Batch)$/i, '');
+        if (!keyword) return false;
+        // currentUrl 中是否包含同关键词的路径段
+        var currentLastSlash = currentUrl.lastIndexOf('/');
+        var currentLastSegment = currentUrl.substring(currentLastSlash + 1);
+        var currentKeyword = currentLastSegment.replace(/(Index|Edit|Add|Detail|List|Batch)$/i, '');
+        return keyword === currentKeyword;
     }
 
     /**
