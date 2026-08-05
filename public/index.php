@@ -6,14 +6,6 @@ if (function_exists('mb_http_output')) mb_http_output('UTF-8');
 ini_set('default_charset', 'UTF-8');
 if (function_exists('mb_regex_encoding')) mb_regex_encoding('UTF-8');
 
-// V2.9.42: 全局错误日志（排查500错误）
-$aiCmsLogFile = __DIR__ . '/../runtime/ai_cms_error.log';
-set_exception_handler(function ($e) use ($aiCmsLogFile) {
-    $entry = date('Y-m-d H:i:s') . ' [Exception] ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n---\n";
-    @file_put_contents($aiCmsLogFile, $entry, FILE_APPEND | LOCK_EX);
-    throw $e; // 重新抛出，保持 ThinkPHP 默认行为
-});
-
 if (!file_exists(__DIR__ . '/../install.lock')) {
     header('Location: /install.php');
     exit;
@@ -49,13 +41,18 @@ try {
     $response->send();
     $http->end($response);
 } catch (\Throwable $e) {
+    // 输出到日志
     $entry = date('Y-m-d H:i:s') . ' [FATAL] ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n---\n";
     @file_put_contents(__DIR__ . '/../runtime/ai_cms_error.log', $entry, FILE_APPEND | LOCK_EX);
-    // 直接输出错误
+    // 直接输出到页面
     http_response_code(500);
-    echo '<pre style=\"background:#fff;color:red;padding:20px;font-size:14px\">';
-    echo '<h2>' . get_class($e) . '</h2>';
-    echo '<p>' . $e->getMessage() . '</p>';
-    echo '<p>' . $e->getFile() . ':' . $e->getLine() . '</p>';
-    echo '</pre>';
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>500 Error</title></head><body>';
+    echo '<div style="background:#fff;color:red;padding:20px;font-size:14px;font-family:monospace">';
+    echo '<h2>' . htmlspecialchars(get_class($e)) . '</h2>';
+    echo '<p><strong>Message:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
+    echo '<p><strong>File:</strong> ' . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . '</p>';
+    echo '<pre style="white-space:pre-wrap;word-break:break-all">' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+    echo '</div></body></html>';
+    exit;
 }
