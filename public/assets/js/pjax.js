@@ -80,17 +80,11 @@
 
     /**
      * 串行加载外部JS文件，全部完成后回调
-     * V2.9.42 修复：每次 PJAX 都重新加载页面级 JS，确保事件绑定和初始化代码重新执行
-     * 之前跳过已加载脚本的逻辑导致 PJAX 导航后页面 JS 不执行
+     * V2.9.42: 只加载尚未加载的 JS（避免重复加载导致事件委托堆积）
+     * 已加载过的 JS 不会重新执行 IIFE，通过 pjax:complete 事件触发重新初始化
      */
     function loadExternalScripts(urls, callback) {
         if (!urls || urls.length === 0) { callback && callback(); return; }
-        
-        // 清理上一次 PJAX 注入的页面级脚本（避免内存泄漏和重复定义）
-        var oldScripts = document.head.querySelectorAll('script[data-pjax-page-js]');
-        for (var i = 0; i < oldScripts.length; i++) {
-            oldScripts[i].parentNode.removeChild(oldScripts[i]);
-        }
         
         var idx = 0;
         function loadNext() {
@@ -101,10 +95,11 @@
             var url = urls[idx];
             idx++;
             
-            // 移除同 src 的旧脚本（不管是不是 PJAX 注入的）
-            var existing = document.head.querySelectorAll('script[src="' + url + '"]');
-            for (var j = 0; j < existing.length; j++) {
-                existing[j].parentNode.removeChild(existing[j]);
+            // 检查是否已加载过：已存在则跳过（避免 IIFE 重复执行导致事件委托堆积）
+            var existing = document.head.querySelector('script[src="' + url + '"]');
+            if (existing) {
+                loadNext();
+                return;
             }
             
             var s = document.createElement('script');
