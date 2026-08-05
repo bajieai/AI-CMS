@@ -48,7 +48,7 @@ class CateController extends AdminBaseController
             $service = new CateService();
             $tree = $service->getTree($cates->toArray());
 
-            $this->assign(['cates' => $tree, 'info' => null, 'page_content' => '']);
+            $this->assign(['cates' => $tree, 'info' => null, 'page_content' => '', 'available_templates' => $this->scanTemplates()]);
             return $this->view('/cate_edit');
         }
 
@@ -87,7 +87,7 @@ class CateController extends AdminBaseController
                 $pageContent = Content::where('id', $info->content_id)->value('content') ?? '';
             }
 
-            $this->assign(['cates' => $tree, 'info' => $info, 'page_content' => $pageContent]);
+            $this->assign(['cates' => $tree, 'info' => $info, 'page_content' => $pageContent, 'available_templates' => $this->scanTemplates()]);
             return $this->view('/cate_edit');
         }
 
@@ -175,5 +175,38 @@ class CateController extends AdminBaseController
             $cate->content_id = $content->id;
             $cate->save();
         }
+    }
+
+    /**
+     * 扫描模板目录获取可用模板列表
+     * 参考 eyoucms：扫描 themes/default/pc/ 下所有 .html 文件
+     */
+    private function scanTemplates(): array
+    {
+        $themePath = app()->getRootPath() . 'template/themes/default/pc/';
+        $listTemplates = [];
+        $detailTemplates = [];
+
+        if (is_dir($themePath)) {
+            $files = scandir($themePath);
+            foreach ($files as $file) {
+                if (pathinfo($file, PATHINFO_EXTENSION) !== 'html') continue;
+                // 过滤掉 _partials 目录、layout 文件、公共组件
+                if (strpos($file, '_') === 0 || in_array($file, ['layout.html', 'header.html', 'footer.html', 'nav.html', 'pagination.html'])) continue;
+
+                // 列表模板：以 list_ 开头
+                if (strpos($file, 'list_') === 0 || $file === 'list.html') {
+                    $listTemplates[] = $file;
+                }
+                // 详情/单页模板
+                elseif (strpos($file, 'detail_') === 0 || $file === 'detail.html' || strpos($file, 'single_') === 0) {
+                    $detailTemplates[] = $file;
+                }
+            }
+            sort($listTemplates);
+            sort($detailTemplates);
+        }
+
+        return ['list' => $listTemplates, 'detail' => $detailTemplates];
     }
 }
