@@ -217,9 +217,14 @@ class CateController extends FrontBaseController
         $seoKeywords = $cate->seo_keywords ?: '';
         $seoDescription = $cate->seo_description ?: '';
 
+        // V2.9.42 直接查 DB 获取 name（绕过模型可能的获取器覆盖）
+        $cateName = \think\facade\Db::name('cate')->where('id', $cateId)->value('name');
+        $contentTitle = $content->title ?? '';
+
         $this->assign([
             'cate'           => $cate,
             'content'        => $content,
+            'cate_name_raw'  => $cateName,
             'page_content'   => $content ? $content->content : '',
             'seo_title'      => $seoTitle,
             'seo_keywords'   => $seoKeywords,
