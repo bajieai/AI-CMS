@@ -126,14 +126,18 @@
      */
     function executeInlineScript(jsText) {
         if (!jsText) return;
+        // V2.9.42: 跳过全局已存在的函数声明（PJAX 重复执行场景）
+        // 仅执行事件绑定和变量赋值等非函数声明代码
+        var funcDecl = jsText.match(/^function\s+(\w+)\s*\(/m);
+        if (funcDecl && typeof window[funcDecl[1]] === 'function') {
+            return; // 已声明过，跳过
+        }
         try {
-            // V2.9.42: 直接执行内联脚本，try-catch 静默忽略 const/let 重复声明错误
             var s = document.createElement('script');
             s.textContent = jsText;
             document.head.appendChild(s);
             document.head.removeChild(s);
         } catch (e) {
-            // 静默忽略 Identifier has already been declared 等重复声明错误
             console.warn('[PJAX] 内联脚本执行警告:', e.message);
         }
     }
