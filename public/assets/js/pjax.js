@@ -127,13 +127,14 @@
     function executeInlineScript(jsText) {
         if (!jsText) return;
         try {
-            // V2.9.42: 用 IIFE 包裹避免 const/let 重复声明（PJAX 重复执行场景）
+            // V2.9.42: 直接执行内联脚本，try-catch 静默忽略 const/let 重复声明错误
             var s = document.createElement('script');
-            s.textContent = '(function(){\n' + jsText + '\n})();';
+            s.textContent = jsText;
             document.head.appendChild(s);
             document.head.removeChild(s);
         } catch (e) {
-            console.error('[PJAX] 内联脚本执行错误:', e);
+            // 静默忽略 Identifier has already been declared 等重复声明错误
+            console.warn('[PJAX] 内联脚本执行警告:', e.message);
         }
     }
 
