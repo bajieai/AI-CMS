@@ -322,7 +322,7 @@ $('#commentForm').on('submit', function(e) {
     e.preventDefault();
     $.post('/home/comment/submit', $(this).serialize(), function(res) {
         if (res.code === 0) {
-            alert('评论提交成功，等待审核');
+            alert('评论已提交，审核通过后显示');
             $('#commentForm')[0].reset();
             loadComments(1);
         } else {
