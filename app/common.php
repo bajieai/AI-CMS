@@ -6,27 +6,6 @@
 
 declare(strict_types=1);
 
-// V2.9.42: 全局错误捕获（写入日志，便于排查500错误）
-if (!defined('AI_CMS_ERROR_LOGGED')) {
-    define('AI_CMS_ERROR_LOGGED', true);
-    $aiCmsErrorLogFile = __DIR__ . '/../runtime/ai_cms_error.log';
-    set_error_handler(function ($severity, $message, $file, $line) use ($aiCmsErrorLogFile) {
-        $entry = date('Y-m-d H:i:s') . " [$severity] $message in $file:$line\n";
-        @file_put_contents($aiCmsErrorLogFile, $entry, FILE_APPEND | LOCK_EX);
-    });
-    set_exception_handler(function ($e) use ($aiCmsErrorLogFile) {
-        $entry = date('Y-m-d H:i:s') . ' [Exception] ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n";
-        @file_put_contents($aiCmsErrorLogFile, $entry, FILE_APPEND | LOCK_EX);
-    });
-    register_shutdown_function(function () use ($aiCmsErrorLogFile) {
-        $error = error_get_last();
-        if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
-            $entry = date('Y-m-d H:i:s') . ' [Fatal] ' . $error['message'] . ' in ' . $error['file'] . ':' . $error['line'] . "\n";
-            @file_put_contents($aiCmsErrorLogFile, $entry, FILE_APPEND | LOCK_EX);
-        }
-    });
-}
-
 /**
  * msubstr 字符串截取函数（ThinkPHP 5.x/6.x 兼容函数）
  * ThinkPHP 8.1 不再内置此函数，模板中大量使用了 {$var|msubstr=0,100} 语法

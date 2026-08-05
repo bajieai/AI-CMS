@@ -6,6 +6,14 @@ if (function_exists('mb_http_output')) mb_http_output('UTF-8');
 ini_set('default_charset', 'UTF-8');
 if (function_exists('mb_regex_encoding')) mb_regex_encoding('UTF-8');
 
+// V2.9.42: 全局错误日志（排查500错误）
+$aiCmsLogFile = __DIR__ . '/../runtime/ai_cms_error.log';
+set_exception_handler(function ($e) use ($aiCmsLogFile) {
+    $entry = date('Y-m-d H:i:s') . ' [Exception] ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n---\n";
+    @file_put_contents($aiCmsLogFile, $entry, FILE_APPEND | LOCK_EX);
+    throw $e; // 重新抛出，保持 ThinkPHP 默认行为
+});
+
 if (!file_exists(__DIR__ . '/../install.lock')) {
     header('Location: /install.php');
     exit;
