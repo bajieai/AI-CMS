@@ -168,6 +168,12 @@ class MemberService
         $update = array_intersect_key($data, array_flip($allowFields));
         if (!empty($update)) {
             $member->force()->save($update);
+            // 清除会员信息缓存，确保下次请求从数据库重新读取
+            $token = Cookie::get('member_token');
+            if ($token) {
+                $hash = sha1($token);
+                Cache::delete('member_token_' . $hash);
+            }
         }
 
         return ['success' => true, 'msg' => '资料更新成功'];
@@ -185,8 +191,13 @@ class MemberService
 
         $member->password = $newPassword;
         $member->save();
+        // 清除登录状态，密码修改后需重新登录
+        $token = Cookie::get('member_token');
+        if ($token) {
+            Cache::delete('member_token_' . sha1($token));
+        }
 
-        return ['success' => true, 'msg' => '密码修改成功'];
+        return ['success' => true, 'msg' => '密码修改成功，请重新登录'];
     }
 
     /**
