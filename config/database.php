@@ -35,6 +35,8 @@ return [
             'params' => [
                 // V2.9.4 性能优化：启用PDO持久连接，减少每次请求的TCP连接建立开销
                 \PDO::ATTR_PERSISTENT => true,
+                // V2.9.42: 强制 utf8mb4 连接，确保 emoji 等 4 字节字符能正常存储
+                \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'",
             ],
             // 数据库编码默认采用utf8mb4
             'charset' => env('database.charset', 'utf8mb4'),
