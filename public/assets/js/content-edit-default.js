@@ -1385,24 +1385,22 @@ function renderGeoScore(data) {
     $('#geoScoreArea').show();
 }
 
-// 保存按钮绑定
-var saveBtn = document.getElementById('saveBtn');
-if (saveBtn) {
-    saveBtn.onclick = function() {
-        if (typeof tinymce !== 'undefined') tinymce.triggerSave();
-        var b = this;
-        b.disabled = true;
-        b.innerHTML = '保存中...';
-        var form = document.getElementById('contentForm');
-        window.ajaxPost(form.getAttribute('action'), $(form).serialize(), function(res) {
-            b.disabled = false;
-            b.innerHTML = '<i class="bi bi-check-lg me-1"></i>保存';
-            if (res.code === 0) {
-                window.showToast('保存成功', 'success');
+// 保存按钮绑定（事件委托，PJAX 兼容）
+$(document).on('click', '#saveBtn', function() {
+    if (typeof tinymce !== 'undefined') tinymce.triggerSave();
+    var b = this;
+    b.disabled = true;
+    b.innerHTML = '保存中...';
+    var form = document.getElementById('contentForm');
+    window.ajaxPost(form.getAttribute('action'), $(form).serialize(), function(res) {
+        b.disabled = false;
+        b.innerHTML = '<i class="bi bi-check-lg me-1"></i>保存';
+        if (res.code === 0) {
+            window.showToast('保存成功', 'success');
                 setTimeout(function() { location.reload(); }, 800);
             } else {
                 window.showToast(res.msg || '保存失败', 'danger');
             }
         });
-    };
-}
+    });
+});
