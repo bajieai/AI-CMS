@@ -167,12 +167,12 @@ class MemberService
         $allowFields = ['nickname', 'avatar'];
         $update = array_intersect_key($data, array_flip($allowFields));
         if (!empty($update)) {
-            $member->force()->save($update);
-            // 清除会员信息缓存，确保下次请求从数据库重新读取
+            // V2.9.42: 用 Db 直接更新指定字段，避免 force()->save() 意外修改其他字段（如 password）
+            Db::name('member')->where('id', $memberId)->update($update);
+            // 清除会员信息缓存
             $token = Cookie::get('member_token');
             if ($token) {
-                $hash = sha1($token);
-                Cache::delete('member_token_' . $hash);
+                Cache::delete('member_token_' . sha1($token));
             }
         }
 

@@ -106,6 +106,9 @@ $('#profileForm').on('submit', function(e) {
             btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i>保存修改');
             alert(res.msg || '已更新');
             if (res.success) {
+                // 更新页面上显示的昵称
+                var newNick = $('input[name="nickname"]').val();
+                $('div[style*="margin-top:8px"]').last().text(newNick);
                 // 清空密码字段
                 $('input[name="old_password"]').val('');
                 $('input[name="new_password"]').val('');
