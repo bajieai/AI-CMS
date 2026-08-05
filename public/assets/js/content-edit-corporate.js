@@ -241,6 +241,11 @@ function initContentEditPage() {
     // V2.9.42: 只在内容编辑页执行
     if (!$('#cateSelect').length && !$('#editor').length) return;
 
+    // V2.9.42: PJAX 后重新获取 ext_data
+    if (window.AI_CMS_CONFIG && window.AI_CMS_CONFIG.ext_data) {
+        extData = window.AI_CMS_CONFIG.ext_data;
+    }
+
     // 1. TinyMCE 编辑器初始化
     initTinyMCE();
     // 2. 分类联动：编辑模式自动加载模型字段
