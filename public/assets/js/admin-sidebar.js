@@ -275,6 +275,10 @@
         }
 
         function realBind() {
+            // V2.9.42: 防重复绑定标记（PJAX 后 initAdminSidebar 可能多次调用）
+            if ($l1Container.data('events-bound')) return;
+            $l1Container.data('events-bound', true);
+
             // 一级分类点击
             $l1Container.on('click', '.l1-item', function (e) {
                 var $el = $(this);
@@ -497,8 +501,11 @@
         setTimeout(window.initAdminSidebar, 50);
     }
 
-    // V2.9.42: PJAX 后重新初始化侧边栏（避免 DOM 引用指向已销毁的旧元素）
+    // V2.9.42: PJAX 后只需更新菜单高亮，不需要重新 initAdminSidebar
+    // 事件委托绑定在 document 上，PJAX 不影响；重新 init 会导致重复绑定 → 无限 PJAX 请求
     $(document).on('pjax:complete', function () {
-        setTimeout(window.initAdminSidebar, 50);
+        if (window.updateSidebarActiveForDualBar) {
+            window.updateSidebarActiveForDualBar();
+        }
     });
 })();
