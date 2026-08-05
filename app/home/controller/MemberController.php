@@ -374,7 +374,7 @@ class MemberController extends FrontBaseController
         } catch (\Throwable) {}
 
         // V2.9.19 N-1b: 通知概览统计
-        $notifStats = NotificationService::getStats($memberId);
+        $notifStats = NotificationService::getStats((int) $memberId);
 
         return $this->view('/member_notification', [
             'list' => $list,

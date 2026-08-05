@@ -26,6 +26,7 @@ class SigninService
      */
     public static function signin(int $memberId): array
     {
+        try {
         $today = date('Y-m-d');
         // 绕过Model字段缓存，直接使用查询构造器
         $member = Db::name('member')->where('id', $memberId)->find();
@@ -104,8 +105,10 @@ class SigninService
 
             Db::commit();
 
-            // V2.9 邀请奖励：首次签到触发邀请人奖励
-            InviteRewardService::onMemberEvent($memberId, 'signin');
+            // V2.9 邀请奖励：首次签到触发邀请人奖励（异常不影响签到）
+            try {
+                InviteRewardService::onMemberEvent($memberId, 'signin');
+            } catch (\Throwable) {}
 
             return [
                 'points'           => $totalPoints,
@@ -116,6 +119,9 @@ class SigninService
         } catch (\Exception $e) {
             Db::rollback();
             throw $e;
+        }
+        } catch (\Throwable $e) {
+            throw new \Exception('签到失败: ' . $e->getMessage());
         }
     }
 
