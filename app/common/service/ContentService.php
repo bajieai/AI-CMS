@@ -162,8 +162,8 @@ class ContentService
         $data['seo_description'] = $data['seo_description'] ?? '';
 
         // V2.9.42: 摘要留空时自动截取内容前200字
-        if (empty($data['excerpt']) && !empty($data['content'])) {
-            $data['excerpt'] = mb_substr(strip_tags($data['content']), 0, 200, 'UTF-8');
+        if (empty($data['excerpt'] ?? null) && !empty($data['content'] ?? null)) {
+            $data['excerpt'] = mb_substr(strip_tags((string) $data['content']), 0, 200, 'UTF-8');
         }
 
         // 归一化换行符：\r\n → \n（防止在 HTML input value 属性中显示为乱码）
@@ -275,8 +275,8 @@ class ContentService
         }
 
         // V2.9.42: 摘要留空时自动截取内容前200字
-        if (empty($data['excerpt']) && !empty($data['content'])) {
-            $data['excerpt'] = mb_substr(strip_tags($data['content']), 0, 200, 'UTF-8');
+        if (empty($data['excerpt'] ?? null) && !empty($data['content'] ?? null)) {
+            $data['excerpt'] = mb_substr(strip_tags((string) $data['content']), 0, 200, 'UTF-8');
         }
 
         // 归一化换行符：\r\n → \n（防止在 HTML input value 属性中显示为乱码）
