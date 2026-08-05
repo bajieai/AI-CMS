@@ -35,14 +35,27 @@ if (!isset($_GET['s']) && !isset($_SERVER['PATH_INFO']) && $uriPath !== '/' && $
 }
 
 $http = (new App())->http;
-error_reporting(E_ALL & ~E_DEPRECATED);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
-$uri = $_SERVER['REQUEST_URI'] ?? '/';
-if (strpos($uri, '/api/') === 0) {
-    $response = $http->name('api')->run();
-} else {
-    $response = $http->name('home')->run();
+try {
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    if (strpos($uri, '/api/') === 0) {
+        $response = $http->name('api')->run();
+    } else {
+        $response = $http->name('home')->run();
+    }
+
+    $response->send();
+    $http->end($response);
+} catch (\Throwable $e) {
+    $entry = date('Y-m-d H:i:s') . ' [FATAL] ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n---\n";
+    @file_put_contents(__DIR__ . '/../runtime/ai_cms_error.log', $entry, FILE_APPEND | LOCK_EX);
+    // 直接输出错误
+    http_response_code(500);
+    echo '<pre style=\"background:#fff;color:red;padding:20px;font-size:14px\">';
+    echo '<h2>' . get_class($e) . '</h2>';
+    echo '<p>' . $e->getMessage() . '</p>';
+    echo '<p>' . $e->getFile() . ':' . $e->getLine() . '</p>';
+    echo '</pre>';
 }
-
-$response->send();
-$http->end($response);
