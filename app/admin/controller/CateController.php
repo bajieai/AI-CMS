@@ -136,7 +136,7 @@ class CateController extends AdminBaseController
      */
     protected function syncPageContent(Cate $cate, array $data): void
     {
-        if ((int)($data['type'] ?? 0) !== 6) {
+        if ((int) $cate->type !== 6) {
             return;
         }
 
@@ -145,7 +145,7 @@ class CateController extends AdminBaseController
 
         if ($cate->content_id > 0) {
             // 更新已有content记录
-            Content::where('id', $cate->content_id)->update([
+            Content::where('id', $cate->content_id)->where('type', 6)->update([
                 'title'        => $cate->name,
                 'content'      => $pageContent,
                 'type'         => 6,
