@@ -38,21 +38,25 @@ try {
         $response = $http->name('home')->run();
     }
 
-    // V2.9.42: 如果返回 500，直接输出响应内容（不经过 send）
-    $code = $response->getCode();
-    if ($code >= 500) {
+    // V2.9.42: 用 ob_start 捕获 send 过程中的输出和错误
+    ob_start();
+    try {
+        $response->send();
+    } catch (\Throwable $e) {
+        ob_end_clean();
+        $entry = date('Y-m-d H:i:s') . ' [SEND_ERROR] ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n---\n";
+        @file_put_contents(__DIR__ . '/../runtime/ai_cms_error.log', $entry, FILE_APPEND | LOCK_EX);
         header('Content-Type: text/html; charset=utf-8');
-        $content = $response->getContent();
-        // 提取错误信息
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Debug</title></head><body>';
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>500 Error</title></head><body>';
         echo '<div style="background:#fff;color:red;padding:20px;font-size:14px;font-family:monospace">';
-        echo '<h2>Response Code: ' . $code . '</h2>';
-        echo '<pre style="white-space:pre-wrap;word-break:break-all;max-height:600px;overflow:auto;background:#fee;padding:10px">' . htmlspecialchars($content) . '</pre>';
+        echo '<h2>SEND Error: ' . htmlspecialchars(get_class($e)) . '</h2>';
+        echo '<p><strong>Message:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
+        echo '<p><strong>File:</strong> ' . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . '</p>';
+        echo '<pre style="white-space:pre-wrap;word-break:break-all">' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
         echo '</div></body></html>';
         exit;
     }
-
-    $response->send();
+    ob_end_flush();
     $http->end($response);
 } catch (\Throwable $e) {
     $entry = date('Y-m-d H:i:s') . ' [FATAL] ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n---\n";
