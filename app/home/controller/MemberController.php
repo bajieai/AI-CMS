@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace app\home\controller;
 
 use app\common\controller\FrontBaseController;
-use app\common\model\Notification as NotificationModel;
+use app\common\model\Notification;
 use app\common\service\MemberFavoriteService;
 use app\common\service\CaptchaService;
 use app\common\service\MemberLevelService;
@@ -250,11 +250,11 @@ class MemberController extends FrontBaseController
         $memberId = (int) $this->memberInfo['id'];
         
         // V2.9.42: 邀请码直接从 member 表读取（注册时已自动生成）
-        $inviteCode = \app\common\model\MemberModel::where('id', $memberId)->value('invite_code');
+        $inviteCode = \app\common\model\Member::where('id', $memberId)->value('invite_code');
         if (empty($inviteCode)) {
             // 兼容旧数据：生成并回写
             $inviteCode = strtoupper(substr(md5(uniqid((string)$memberId, true)), 0, 8));
-            \app\common\model\MemberModel::where('id', $memberId)->update(['invite_code' => $inviteCode]);
+            \app\common\model\Member::where('id', $memberId)->update(['invite_code' => $inviteCode]);
         }
         
         // 邀请统计
@@ -346,7 +346,7 @@ class MemberController extends FrontBaseController
         $memberId = $this->memberInfo['id'];
         $type = $this->request->get('type', '');
 
-        $query = NotificationModel::where('receiver_type', 'member')
+        $query = Notification::where('receiver_type', 'member')
             ->where('receiver_id', $memberId);
 
         $validTypes = ['system', 'review', 'publish', 'comment_reply', 'level_upgrade', 'level_downgrade', 'level_grace_warning', 'content_approve', 'content_reject', 'reward_receive'];
@@ -358,7 +358,7 @@ class MemberController extends FrontBaseController
 
         $list = $query->order('create_time', 'desc')->paginate(20);
 
-        $unreadCount = NotificationModel::where('receiver_type', 'member')
+        $unreadCount = Notification::where('receiver_type', 'member')
             ->where('receiver_id', $memberId)
             ->where('is_read', 0)
             ->count();
@@ -366,7 +366,7 @@ class MemberController extends FrontBaseController
         // V2.9.5 分类未读统计
         $typeCounts = [];
         try {
-            $typeCounts = NotificationModel::where('receiver_type', 'member')
+            $typeCounts = Notification::where('receiver_type', 'member')
                 ->where('receiver_id', $memberId)
                 ->where('is_read', 0)
                 ->group('type')
@@ -396,7 +396,7 @@ class MemberController extends FrontBaseController
         }
 
         $id = (int) $request->post('id', 0);
-        NotificationModel::where('id', $id)
+        Notification::where('id', $id)
             ->where('receiver_id', $this->memberInfo['id'])
             ->update(['is_read' => 1]);
 
@@ -457,7 +457,7 @@ class MemberController extends FrontBaseController
             return json(['success' => false, 'msg' => '请先登录']);
         }
 
-        NotificationModel::where('receiver_type', 'member')
+        Notification::where('receiver_type', 'member')
             ->where('receiver_id', $this->memberInfo['id'])
             ->where('is_read', 0)
             ->update(['is_read' => 1]);
