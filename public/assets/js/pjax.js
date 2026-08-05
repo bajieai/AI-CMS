@@ -127,8 +127,9 @@
     function executeInlineScript(jsText) {
         if (!jsText) return;
         try {
+            // V2.9.42: 用 IIFE 包裹避免 const/let 重复声明（PJAX 重复执行场景）
             var s = document.createElement('script');
-            s.textContent = jsText;
+            s.textContent = '(function(){\n' + jsText + '\n})();';
             document.head.appendChild(s);
             document.head.removeChild(s);
         } catch (e) {
