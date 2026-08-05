@@ -50,6 +50,10 @@ class CommentController extends AdminBaseController
         }
 
         $list = $query->paginate($limit, false, ['page' => $page]);
+        // V2.9.42: 提取评论内容纯文本（避开关联模型 content() 方法的 JSON 序列化）
+        foreach ($list as $item) {
+            $item->comment_text = $item->getData('content');
+        }
         return $this->view('/comment_list', ['list' => $list, 'status' => $status]);
     }
 
