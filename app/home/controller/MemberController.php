@@ -229,16 +229,8 @@ class MemberController extends FrontBaseController
 
             if ($request->isPost()) {
                 $data = $request->post();
-                try {
-                    $result = $this->service->updateProfile((int) $this->memberInfo['id'], $data);
-                    return json($result);
-                } catch (\Throwable $e) {
-                    @file_put_contents(runtime_path() . 'profile_post_error.log',
-                        date('Y-m-d H:i:s') . ' ' . get_class($e) . ': ' . $e->getMessage() .
-                        ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n---\n",
-                        FILE_APPEND | LOCK_EX);
-                    return json(['success' => false, 'msg' => $e->getMessage()]);
-                }
+                $result = $this->service->updateProfile((int) $this->memberInfo['id'], $data);
+                return json($result);
             }
 
             return $this->view('/member_profile', [

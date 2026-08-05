@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace app\common\middleware;
 
 use Closure;
+use think\facade\Db;
 use think\Request;
 use think\Response;
 
