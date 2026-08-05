@@ -39,8 +39,8 @@ class Comment extends Model
      */
     public function setContentAttr($value): string
     {
-        $cleaned = strip_tags((string) $value);
-        return htmlspecialchars($cleaned, ENT_QUOTES, 'UTF-8');
+        // V2.9.42: 只去 HTML 标签，不做 htmlspecialchars（避免双重编码）
+        return strip_tags((string) $value);
     }
 
     public function getStatusTextAttr($value, $data): string

@@ -43,7 +43,7 @@
                 <tr>
                     <th width="40"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                     <th width="50">ID</th>
-                    <th width="80">内容ID</th>
+                    <th width="120">标题</th>
                     <th>评论内容</th>
                     <th width="100">昵称</th>
                     <th width="70">状态</th>
@@ -57,7 +57,7 @@
                     <td><input type="checkbox" class="form-check-input check-item" value="{$vo.id}"></td>
                     <td>{$vo.id}</td>
                     <td>{$vo.content->title|default=$vo.content_id}</td>
-                    <td class="small text-truncate" style="max-width:300px;">{$vo.content|html_entity_decode}</td>
+                    <td class="small text-truncate" style="max-width:300px;" title="{$vo.content}">{$vo.content}</td>
                     <td>{$vo.nickname}</td>
                     <td>
                         {if condition="$vo.status == 1"}
