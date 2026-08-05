@@ -161,6 +161,11 @@ class ContentService
         $data['seo_keywords'] = $data['seo_keywords'] ?? '';
         $data['seo_description'] = $data['seo_description'] ?? '';
 
+        // V2.9.42: 摘要留空时自动截取内容前200字
+        if (empty($data['excerpt']) && !empty($data['content'])) {
+            $data['excerpt'] = mb_substr(strip_tags($data['content']), 0, 200, 'UTF-8');
+        }
+
         // 归一化换行符：\r\n → \n（防止在 HTML input value 属性中显示为乱码）
         $data = $this->normalizeLineEndings($data);
         if (!empty($extData)) {
@@ -267,6 +272,11 @@ class ContentService
         }
         if (isset($data['seo_description'])) {
             $data['seo_description'] = trim($data['seo_description']);
+        }
+
+        // V2.9.42: 摘要留空时自动截取内容前200字
+        if (empty($data['excerpt']) && !empty($data['content'])) {
+            $data['excerpt'] = mb_substr(strip_tags($data['content']), 0, 200, 'UTF-8');
         }
 
         // 归一化换行符：\r\n → \n（防止在 HTML input value 属性中显示为乱码）
