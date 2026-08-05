@@ -39,11 +39,12 @@ class MemberService
 
             $member = new MemberModel;
             $member->save([
-                'username' => $data['username'],
-                'email'    => $data['email'],
-                'password' => $data['password'],
-                'nickname' => $data['nickname'] ?? $data['username'],
-                'status'   => $needAudit ? 2 : 1,
+                'username'     => $data['username'],
+                'email'        => $data['email'],
+                'password'     => $data['password'],
+                'nickname'     => $data['nickname'] ?? $data['username'],
+                'status'       => $needAudit ? 2 : 1,
+                'invite_code'  => $this->generateInviteCode(),
             ]);
 
             // V2.4: 赋予默认等级
@@ -319,5 +320,24 @@ class MemberService
             } catch (\Throwable) {
             }
         }
+    }
+
+    /**
+     * 生成唯一邀请码
+     */
+    private function generateInviteCode(): string
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $maxRetries = 5;
+        for ($i = 0; $i < $maxRetries; $i++) {
+            $code = '';
+            for ($j = 0; $j < 8; $j++) {
+                $code .= $chars[random_int(0, strlen($chars) - 1)];
+            }
+            if (!MemberModel::where('invite_code', $code)->find()) {
+                return $code;
+            }
+        }
+        return strtoupper(bin2hex(random_bytes(4)));
     }
 }
