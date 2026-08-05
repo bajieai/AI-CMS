@@ -49,6 +49,26 @@
     </div>
 </div>
 
+<!-- 修改密码 -->
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:24px;margin-top:20px;">
+    <div class="uc-section-header" style="padding:0 0 14px;margin-bottom:16px;">
+        <span class="uc-section-title"><i class="bi bi-lock"></i>修改密码</span>
+    </div>
+    <form id="passwordForm">
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;">当前密码</label>
+            <input type="password" name="old_password" class="form-control" required style="border-radius:10px;border:1.5px solid #e2e8f0;padding:10px 14px;font-size:14px;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;">新密码</label>
+            <input type="password" name="new_password" class="form-control" required minlength="6" style="border-radius:10px;border:1.5px solid #e2e8f0;padding:10px 14px;font-size:14px;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <button type="submit" class="uc-signin-btn" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:12px;font-size:14px;padding:12px;">
+            <i class="bi bi-key"></i>修改密码
+        </button>
+    </form>
+</div>
+
 {/block}
 
 {block name="js"}
@@ -82,7 +102,24 @@ function uploadAvatar(input) {
 $('#profileForm').on('submit', function(e) {
     e.preventDefault();
     var token = $('meta[name="csrf-token"]').attr('content');
-    $.ajax({url:'/member/profile',type:'POST',dataType:'json',data:$(this).serialize() + '&__token__=' + token,headers:{'X-CSRF-TOKEN':token},success:function(res){alert(res.msg || '已更新');}});
+    $.ajax({url:'/member/profile',type:'POST',dataType:'json',data:$(this).serialize() + '&__token__=' + token,headers:{'X-CSRF-TOKEN':token},
+    success:function(res){alert(res.msg || '已更新');}});
+});
+$('#passwordForm').on('submit', function(e) {
+    e.preventDefault();
+    var token = $('meta[name="csrf-token"]').attr('content');
+    var btn = $(this).find('button[type=submit]');
+    btn.prop('disabled', true).html('<i class="bi bi-hourglass"></i>提交中...');
+    $.ajax({url:'/member/changePassword',type:'POST',dataType:'json',data:$(this).serialize() + '&__token__=' + token,headers:{'X-CSRF-TOKEN':token},
+    success:function(res){
+        btn.prop('disabled', false).html('<i class="bi bi-key"></i>修改密码');
+        alert(res.msg || '操作完成');
+        if (res.success) { $('#passwordForm')[0].reset(); }
+    },
+    error:function(){
+        btn.prop('disabled', false).html('<i class="bi bi-key"></i>修改密码');
+        alert('网络错误');
+    }});
 });
 {/literal}
 </script>

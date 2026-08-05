@@ -54,6 +54,7 @@ Route::rule('member/register$', '\app\home\controller\MemberController@register'
 Route::rule('member/login$', '\app\home\controller\MemberController@login', 'GET|POST');
 Route::get('member/logout$', '\app\home\controller\MemberController@logout');
 Route::rule('member/profile$', '\app\home\controller\MemberController@profile', 'GET|POST');
+Route::post('member/changePassword$', '\app\home\controller\MemberController@changePassword');
 Route::get('member/points$', '\app\home\controller\MemberController@points');
 Route::get('member/exchange$', '\app\home\controller\MemberController@exchangeLog');
 

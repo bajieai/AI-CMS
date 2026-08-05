@@ -168,6 +168,18 @@ class MemberService
         $update = array_intersect_key($data, array_flip($allowFields));
         if (!empty($update)) {
             $member->force()->save($update);
+            // V2.9.42: 刷新会员缓存和session
+            if ($member->id == $memberId) {
+                $token = Cookie::get('member_token');
+                if ($token) {
+                    Cache::delete('member_token_' . sha1($token));
+                    Cache::delete('member_token_' . sha1($token) . '_id');
+                }
+                // 直接更新 session 中的 member_info
+                $memberInfo = $member->toArray();
+                unset($memberInfo['password']);
+                session('member_info', $memberInfo);
+            }
         }
 
         return ['success' => true, 'msg' => '资料更新成功'];

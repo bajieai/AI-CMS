@@ -220,6 +220,26 @@ class MemberController extends FrontBaseController
     /**
      * 个人资料
      */
+    /**
+     * 修改密码
+     */
+    public function changePassword(Request $request)
+    {
+        if (!$this->isMemberLogin) {
+            return json(['success' => false, 'msg' => '请先登录']);
+        }
+        try {
+            $result = $this->service->changePassword(
+                (int) $this->memberInfo['id'],
+                $request->post('old_password', ''),
+                $request->post('new_password', '')
+            );
+            return json($result);
+        } catch (\Throwable $e) {
+            return json(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+
     public function profile(Request $request)
     {
         try {
