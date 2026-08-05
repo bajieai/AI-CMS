@@ -217,6 +217,11 @@ class CateController extends FrontBaseController
         $seoKeywords = $cate->seo_keywords ?: '';
         $seoDescription = $cate->seo_description ?: '';
 
+        // V2.9.42 临时调试
+        file_put_contents(runtime_path() . 'single_page_debug.log', 
+            date('Y-m-d H:i:s') . " cateId=$cateId name={$cate->name} content_id={$cate->content_id} content_title=" . ($content->title ?? 'null') . "\n", 
+            FILE_APPEND);
+
         $this->assign([
             'cate'           => $cate,
             'content'        => $content,
