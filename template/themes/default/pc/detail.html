@@ -321,11 +321,11 @@ $('#commentForm').on('submit', function(e) {
     e.preventDefault();
     $.post('/home/comment/submit', $(this).serialize(), function(res) {
         if (res.code === 0) {
-            showToast('评论提交成功，等待审核', 'success');
+            alert('评论提交成功，等待审核');
             $('#commentForm')[0].reset();
             loadComments(1);
         } else {
-            showToast(res.msg || '评论失败', 'danger');
+            alert(res.msg || '评论失败');
         }
     }, 'json');
 });
