@@ -32,7 +32,8 @@ class CommentService
     {
         try {
             // V2.5：判断会员是否评论免审
-            $autoApprove = (bool) config('comment.comment_auto_approve');
+            $autoApproveConfig = \app\common\model\Config::where('name', 'comment_auto_approve')->find();
+            $autoApprove = $autoApproveConfig ? (bool) (int) $autoApproveConfig->value : false;
             $memberId = $data['member_id'] ?? 0;
             if ($memberId > 0 && !$autoApprove) {
                 $autoApprove = $this->isMemberCommentNoReview($memberId);
