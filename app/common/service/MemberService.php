@@ -16,6 +16,7 @@ namespace app\common\service;
 use app\common\model\Member as MemberModel;
 use think\facade\Cache;
 use think\facade\Cookie;
+use think\facade\Db;
 
 /**
  * 会员服务
