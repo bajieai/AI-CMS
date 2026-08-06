@@ -33,9 +33,35 @@ class CateController extends AdminBaseController
         $list = Cate::order('sort', 'asc')->order('id', 'asc')->select();
         $service = new CateService();
         $tree = $service->getTree($list->toArray());
+        // V2.9.44: 注入 url 字段（type→slug 映射 + seo_url），供后台预览链接使用
+        $tree = $this->injectCateUrl($tree);
 
         $this->assign(['list' => $tree]);
         return $this->view('/cate_list');
+    }
+
+    /**
+     * V2.9.44: 递归注入分类URL到树形结构
+     * 使用与 Cate Model getUrlAttr 相同的逻辑
+     */
+    private function injectCateUrl(array $tree): array
+    {
+        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
+        foreach ($tree as &$item) {
+            $typeSlug = $typeMap[$item['type']] ?? 'info';
+            $seoUrl = $item['seo_url'] ?? '';
+            if ($item['type'] == 6) {
+                $item['url'] = !empty($seoUrl) ? "/page/{$seoUrl}" : "/page/{$item['id']}";
+            } elseif (!empty($seoUrl)) {
+                $item['url'] = "/{$typeSlug}/{$seoUrl}";
+            } else {
+                $item['url'] = "/{$typeSlug}?cate_id={$item['id']}";
+            }
+            if (!empty($item['children'])) {
+                $item['children'] = $this->injectCateUrl($item['children']);
+            }
+        }
+        return $tree;
     }
 
     /**

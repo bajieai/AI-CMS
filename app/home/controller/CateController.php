@@ -150,7 +150,14 @@ class CateController extends FrontBaseController
             }
             $showChildren = $isActive || $isParentActive;
             $padding = ($cate['level'] * 1.2 + 1);
-            $html .= '<a href="/' . $typeSlug . '?cate_id=' . $cate['id'] . '" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ' . ($isActive ? 'active' : '') . '" style="padding-left:' . $padding . 'rem">';
+            // V2.9.44: 优先使用 seo_url 生成伪静态URL，无 seo_url 时回退到 ?cate_id=X
+            $cateUrl = '';
+            if (!empty($cate['seo_url'])) {
+                $cateUrl = '/' . $typeSlug . '/' . $cate['seo_url'];
+            } else {
+                $cateUrl = '/' . $typeSlug . '?cate_id=' . $cate['id'];
+            }
+            $html .= '<a href="' . $cateUrl . '" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ' . ($isActive ? 'active' : '') . '" style="padding-left:' . $padding . 'rem">';
             $html .= '<span>' . htmlspecialchars((string) $cate['name']) . '</span>';
             if ($hasChildren) {
                 $html .= '<i class="bi bi-chevron-' . ($showChildren ? 'down' : 'right') . ' small cate-toggle" data-target="cate-children-' . $cate['id'] . '"></i>';
