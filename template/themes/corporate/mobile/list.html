@@ -7,7 +7,7 @@
 {block name="content"}
 <!-- V2.9.24 H-5: 骨架屏CSS -->
 <link href="/static/mobile/css/skeleton.css?v=2.9.24" rel="stylesheet">
-<nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">首页</a></li><li class="breadcrumb-item active">{if condition="$type==1"}产品中心{elseif condition="$type==2"/}成功案例{elseif condition="$type==3"/}信息动态{/elseif condition="$type==4"/}资料下载{elseif condition="$type==5"/}人才招聘{/if}</li></ol></nav>
+<nav class="cm-bc"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">首页</a></li><li class="breadcrumb-item active">{$current_cate.name|default='全部'}</li></ol></nav>
 
 {$cate_tree_html|raw}
 

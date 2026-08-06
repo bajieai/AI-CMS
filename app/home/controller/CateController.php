@@ -271,8 +271,51 @@ class CateController extends FrontBaseController
         if (!$cate || $cate->isEmpty()) {
             abort(404, '分类不存在');
         }
-        // 注入 cate_id 参数后复用 listing
-        $this->request->withGet(['cate_id' => $cate->id]);
-        return $this->listing();
+        // V2.9.44: ThinkPHP param() 优先读路由参数，withGet/setParam 无法覆盖
+        // 直接用 request()->get('cate_id') 替代 param() 获取方式
+        $typeMap = ['product' => 1, 'case' => 2, 'info' => 3, 'download' => 4, 'job' => 5, 'page' => 6];
+        $typeId = $typeMap[$type] ?? 1;
+        $cateId = $cate->id;
+
+        // 获取分类列表（树形结构）
+        $cateService = new CateService();
+        $cateList = $cateService->getCatelist($type, 100, 0);
+        $cates = $cateService->getTree($cateList->toArray());
+
+        // 获取内容列表
+        $list = Content::where('status', 2)->where('type', $typeId)
+            ->where('cate_id', $cateId)
+            ->order('id', 'desc')->paginate(12);
+
+        $currentCate = $cate;
+
+        // Schema 结构化标记
+        $schemaService = new SchemaMarkupService();
+        $breadcrumbs = [
+            ['name' => '首页', 'url' => request()->domain()],
+            ['name' => $currentCate->name, 'url' => request()->url(true)],
+        ];
+        $breadcrumbSchema = $schemaService->generateBreadcrumb($breadcrumbs);
+        $webPageSchema = $schemaService->generateWebPage([
+            'title'       => $currentCate->name,
+            'description' => $currentCate->description ?: '',
+            'url'         => request()->url(true),
+        ]);
+        $schemaMarkup = $schemaService->toJsonLd([$breadcrumbSchema, $webPageSchema]);
+
+        $this->assign([
+            'type' => $typeId,
+            'cate_id' => $cateId,
+            'cates' => $cates,
+            'cate_tree_html' => $this->renderCateTree($cates, $type, $cateId),
+            'list' => $list,
+            'page_cates' => null,
+            'type_slug' => $type,
+            'current_cate' => $currentCate,
+            'schema_markup' => $schemaMarkup,
+        ]);
+
+        $template = ListRenderService::resolveTemplate('/list', $currentCate);
+        return $this->view($template);
     }
 }

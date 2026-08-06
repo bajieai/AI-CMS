@@ -30,13 +30,7 @@
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/"><i class="bi bi-house me-1"></i>首页</a></li>
-                <li class="breadcrumb-item active">
-                    {if condition="$type == 1"}产品中心{/if}
-                    {if condition="$type == 2"}成功案例{/if}
-                    {if condition="$type == 3"}信息动态{/if}
-                    {if condition="$type == 4"}资料下载{/if}
-                    {if condition="$type == 5"}人才招聘{/if}
-                </li>
+                <li class="breadcrumb-item active">{$current_cate.name|default='全部'}</li>
             </ol>
         </nav>
 

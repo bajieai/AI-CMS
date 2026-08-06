@@ -55,14 +55,7 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">首页</a></li>
                 <li class="breadcrumb-item">
-                    <a href="{$type_url}">
-                        {if condition="$info.type == 1"}产品中心{/if}
-                        {if condition="$info.type == 2"}成功案例{/if}
-                        {if condition="$info.type == 3"}信息动态{/if}
-                        {if condition="$info.type == 4"}资料下载{/if}
-                        {if condition="$info.type == 5"}人才招聘{/if}
-                        {if condition="$info.type == 6"}卡曢〉{/if}
-                    </a>
+                    <a href="{$type_url}">{$info.cate.name|default='全部'}</a>
                 </li>
                 <li class="breadcrumb-item active">{$info.title}</li>
             </ol>
