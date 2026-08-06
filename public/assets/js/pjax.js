@@ -123,15 +123,11 @@
 
     /**
      * 安全执行内联JS脚本
+     * V2.9.42 fix: 不再跳过同名函数声明（不同页面可能需要不同的 selectImage/init 实现）
+     * 函数声明重复执行无害（后者覆盖前者），事件绑定需业务代码自行用事件委托避免重复
      */
     function executeInlineScript(jsText) {
         if (!jsText) return;
-        // V2.9.42: 跳过全局已存在的函数声明（PJAX 重复执行场景）
-        // 仅执行事件绑定和变量赋值等非函数声明代码
-        var funcDecl = jsText.match(/^function\s+(\w+)\s*\(/m);
-        if (funcDecl && typeof window[funcDecl[1]] === 'function') {
-            return; // 已声明过，跳过
-        }
         try {
             var s = document.createElement('script');
             s.textContent = jsText;
