@@ -183,19 +183,19 @@ class CateController extends FrontBaseController
         }
 
         // 获取关联的content记录
-        $content = null;
-        if ($cate->content_id > 0) {
-            $content = Content::where('id', $cate->content_id)
-                ->where('status', 2)
-                ->find();
-        }
+        // V2.9.42 修复：直接通过 cate_id+type=6 查找，避免 OPcache 缓存导致 content_id 读取异常
+        $content = Content::where('cate_id', $cateId)
+            ->where('type', 6)
+            ->where('status', 2)
+            ->find();
 
-        // 如果没有关联content，尝试通过cate_id查找
-        if (empty($content)) {
-            $content = Content::where('cate_id', $cateId)
-                ->where('type', 6)
-                ->where('status', 2)
-                ->find();
+        // 如果 cate_id 方式没找到，尝试通过 content_id 查找（兼容旧数据）
+        if (!$content || $content->isEmpty()) {
+            if ($cate->content_id > 0) {
+                $content = Content::where('id', $cate->content_id)
+                    ->where('status', 2)
+                    ->find();
+            }
         }
 
         // V2.9.15: Schema.org 结构化标记
@@ -225,7 +225,7 @@ class CateController extends FrontBaseController
             'cate'           => $cate,
             'content'        => $content,
             'cate_name_raw'  => $cateName,
-            'page_content'   => $content ? $content->content : '',
+            'page_content'   => ($content && !$content->isEmpty()) ? $content->content : '',
             'seo_title'      => $seoTitle,
             'seo_keywords'   => $seoKeywords,
             'seo_description'=> $seoDescription,
