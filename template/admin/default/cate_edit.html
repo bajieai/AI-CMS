@@ -152,15 +152,22 @@ function togglePageContent() {
     }
 }
 
-// V2.9.42: 初始化单页内容富文本编辑器（PJAX兼容）
+// V2.9.42: 初始化单页内容富文本编辑器（PJAX兼容+持续重试）
 var pageEditorInitialized = false;
+var _pageEditorRetries = 0;
 function initPageEditor() {
     if (pageEditorInitialized) return;
     if (typeof tinymce === 'undefined') {
-        // TinyMCE可能还在加载中，延迟重试
-        setTimeout(initPageEditor, 200);
+        // TinyMCE 在 PJAX 场景下可能尚未加载完成，持续重试最多 30 次（6 秒）
+        if (_pageEditorRetries < 30) {
+            _pageEditorRetries++;
+            setTimeout(initPageEditor, 200);
+        } else {
+            console.warn('[cate_edit] TinyMCE 加载超时，单页编辑器不可用');
+        }
         return;
     }
+    _pageEditorRetries = 0;
     pageEditorInitialized = true;
     // PJAX切页时先移除旧实例
     try { tinymce.remove('#pageContentEditor'); } catch(e) {}
