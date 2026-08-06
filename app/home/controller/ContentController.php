@@ -40,7 +40,7 @@ class ContentController extends FrontBaseController
 
     /**
      * 内容详情页
-     * 路由：/product/{id}, /news/{id} 等（通过append传入type参数）
+     * 路由：/product/{id}, /info/{id} 等（通过append传入type参数）
      */
     public function detail(int $id)
     {
@@ -121,7 +121,7 @@ class ContentController extends FrontBaseController
             // parent_id 列可能不存在，静默跳过章节查询
         }
 
-        $typeMap = [1 => 'product', 2 => 'case', 3 => 'news', 4 => 'download', 5 => 'job', 6 => 'page'];
+        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
         $typeUrl = '/' . ($typeMap[$info->type] ?? 'info');
 
         // V2.3 JSON-LD结构化数据

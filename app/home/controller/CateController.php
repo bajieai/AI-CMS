@@ -28,12 +28,12 @@ class CateController extends FrontBaseController
 {
     /**
      * 分类列表页
-     * 路由：/product, /news 等（通过append传入type参数）
+     * 路由：/product, /info 等（通过append传入type参数）
      */
     public function listing()
     {
         $typeSlug = $this->request->param('type', 'product');
-        $typeMap = ['product' => 1, 'case' => 2, 'news' => 3, 'download' => 4, 'job' => 5, 'page' => 6];
+        $typeMap = ['product' => 1, 'case' => 2, 'info' => 3, 'download' => 4, 'job' => 5, 'page' => 6];
         $type = $typeMap[$typeSlug] ?? 1;
         $cateId = (int) $this->request->param('cate_id', 0);
 

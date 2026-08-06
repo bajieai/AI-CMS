@@ -68,7 +68,7 @@ if (!function_exists('get_type_text')) {
         $map = [
             1 => '产品',
             2 => '案例',
-            3 => '新闻',
+            3 => '信息',
             4 => '下载',
             5 => '招聘',
             6 => '单页',
@@ -86,7 +86,7 @@ if (!function_exists('get_type_slug')) {
         $map = [
             1 => 'product',
             2 => 'case',
-            3 => 'news',
+            3 => 'info',
             4 => 'download',
             5 => 'job',
             6 => 'page',

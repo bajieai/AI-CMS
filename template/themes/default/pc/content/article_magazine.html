@@ -1,4 +1,4 @@
-{extend name="layout" /}
+﻿{extend name="layout" /}
 
 {block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
 {block name="keywords"}{$info.seo_keywords|default=''}{/block}
@@ -10,7 +10,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">首页</a></li>
-                <li class="breadcrumb-item"><a href="/news">资讯</a></li>
+                <li class="breadcrumb-item"><a href="/info">资讯</a></li>
                 <li class="breadcrumb-item active">{$info.title}</li>
             </ol>
         </nav>

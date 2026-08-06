@@ -163,7 +163,7 @@ class TemplateCustomizeService
             ['id' => 'hero',      'name' => '首屏大图', 'desc' => '首页顶部大图/欢迎区域', 'icon' => 'bi bi-image-alt'],
             ['id' => 'features',  'name' => '功能特色', 'desc' => '核心功能或服务亮点展示', 'icon' => 'bi bi-stars'],
             ['id' => 'about',     'name' => '关于我们', 'desc' => '公司/团队介绍区域', 'icon' => 'bi bi-building'],
-            ['id' => 'news',      'name' => '最新动态', 'desc' => '新闻/文章列表区域', 'icon' => 'bi bi-newspaper'],
+            ['id' => 'news',      'name' => '最新动态', 'desc' => '信息/文章列表区域', 'icon' => 'bi bi-newspaper'],
             ['id' => 'gallery',   'name' => '图库展示', 'desc' => '图片/作品展示区域', 'icon' => 'bi bi-images'],
             ['id' => 'pricing',   'name' => '价格方案', 'desc' => '产品/服务定价展示', 'icon' => 'bi bi-tags'],
             ['id' => 'faq',       'name' => '常见问题', 'desc' => 'FAQ问答区域', 'icon' => 'bi bi-question-circle'],

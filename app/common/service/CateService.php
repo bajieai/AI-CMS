@@ -54,7 +54,7 @@ class CateService
         $typeMap = [
             'product' => 1,
             'case' => 2,
-            'news' => 3,
+            'info' => 3,
             'download' => 4,
             'job' => 5,
             'page' => 6,

@@ -1,9 +1,9 @@
-{extend name="layout" /}
+﻿{extend name="layout" /}
 {block name="title"}{$site_name}{/block}
 {block name="content"}
 <div class="mobile-hero">
     <h1>AI 驱动信息管理</h1>
-    <p>高效管理产品、案例、新闻等内容</p>
+    <p>高效管理产品、案例、信息等内容</p>
     <a href="/product" class="btn btn-primary btn-sm">了解更多</a>
 </div>
 {i8j:bannerlist limit="3" status="1"}
@@ -23,7 +23,7 @@
     </div>
 </div>
 <div class="mobile-section">
-    <h6><i class="bi bi-newspaper me-1"></i>新闻动态</h6>
+    <h6><i class="bi bi-newspaper me-1"></i>信息动态</h6>
     {i8j:infolist type="news" limit="5"}
     <a href="{$field.url}" class="mobile-list-item">
         <div class="flex-grow-1">

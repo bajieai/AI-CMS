@@ -50,7 +50,7 @@ class Cate extends Model
      */
     public function getUrlAttr($value, $data): string
     {
-        $typeMap = [1 => 'product', 2 => 'case', 3 => 'news', 4 => 'download', 5 => 'job', 6 => 'page'];
+        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
         $typeSlug = $typeMap[$data['type']] ?? 'info';
         $seoUrl = $data['seo_url'] ?? '';
 

@@ -149,7 +149,7 @@ class MiniPageConfigService
                     ['type' => 'nav', 'props' => ['items' => []]],
                     ['type' => 'content_list', 'props' => ['model' => 'product', 'limit' => 6, 'style' => 'card']],
                     ['type' => 'content_list', 'props' => ['model' => 'case', 'limit' => 4, 'style' => 'grid']],
-                    ['type' => 'content_list', 'props' => ['model' => 'news', 'limit' => 5, 'style' => 'list']],
+                    ['type' => 'content_list', 'props' => ['model' => 'info', 'limit' => 5, 'style' => 'list']],
                 ],
             ],
             'home_simple' => [

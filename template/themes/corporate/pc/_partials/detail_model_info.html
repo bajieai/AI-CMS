@@ -1,4 +1,4 @@
-{/* V2.9.42: 新闻模型详情差异化片段 - 动态渲染所有自定义字段 (corporate PC) */}
+﻿{/* V2.9.42: 信息模型详情差异化片段 - 动态渲染所有自定义字段 (corporate PC) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
 {php}$fields = $model_fields ?? [];{/php}
 {if condition="!empty($ext) || !empty($fields)"}
@@ -37,7 +37,7 @@
         <span class="badge bg-dark"><i class="bi bi-pin-angle me-1"></i>置顶</span>
         {/if}
         {if condition="empty($ext['source']) && empty($ext['author']) && empty($ext['is_top'])"}
-        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>此新闻暂无来源/作者信息</span>
+        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>此信息暂无来源/作者信息</span>
         {/if}
     {/if}
 </div>

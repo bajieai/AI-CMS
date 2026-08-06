@@ -16,18 +16,18 @@ use think\facade\Route;
 // 首页
 Route::get('/', '\app\home\controller\IndexController@index');
 
-// 分类列表页（每个类型单独注册，completeMatch防止 /news/1 被匹配）
+// 分类列表页（每个类型单独注册，completeMatch防止 /info/1 被匹配）
 Route::get('product', '\app\home\controller\CateController@listing')->append(['type' => 'product'])->completeMatch(true);
 Route::get('case', '\app\home\controller\CateController@listing')->append(['type' => 'case'])->completeMatch(true);
-Route::get('news', '\app\home\controller\CateController@listing')->append(['type' => 'news'])->completeMatch(true);
+Route::get('info', '\app\home\controller\CateController@listing')->append(['type' => 'info'])->completeMatch(true);
 Route::get('download', '\app\home\controller\CateController@listing')->append(['type' => 'download'])->completeMatch(true);
 Route::get('job', '\app\home\controller\CateController@listing')->append(['type' => 'job'])->completeMatch(true);
 
-// V2.9.43: 分类列表页英文URL路由 /product/products /news/news 等
+// V2.9.43: 分类列表页英文URL路由 /product/products /info/info 等
 // 注意：详情页 :id（纯数字）路由必须在这些路由之前注册，否则数字ID会被当seoUrl匹配
 Route::get('product/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'product'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
 Route::get('case/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'case'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
-Route::get('news/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'news'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
+Route::get('info/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'info'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
 Route::get('download/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'download'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
 Route::get('job/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'job'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
 
@@ -42,13 +42,13 @@ Route::get('page/:cateId', '\app\home\controller\CateController@singlePage')
 Route::get('page/:seoUrl', '\app\home\controller\CateController@singlePageBySlug')
     ->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
 
-// 内容详情页 /product/123 /news/123 等（每个类型单独注册）
+// 内容详情页 /product/123 /info/123 等（每个类型单独注册）
 Route::get('product/:id', '\app\home\controller\ContentController@detail')
     ->append(['type' => 'product'])->pattern(['id' => '\d+']);
 Route::get('case/:id', '\app\home\controller\ContentController@detail')
     ->append(['type' => 'case'])->pattern(['id' => '\d+']);
-Route::get('news/:id', '\app\home\controller\ContentController@detail')
-    ->append(['type' => 'news'])->pattern(['id' => '\d+']);
+Route::get('info/:id', '\app\home\controller\ContentController@detail')
+    ->append(['type' => 'info'])->pattern(['id' => '\d+']);
 Route::get('download/:id', '\app\home\controller\ContentController@detail')
     ->append(['type' => 'download'])->pattern(['id' => '\d+']);
 Route::get('job/:id', '\app\home\controller\ContentController@detail')

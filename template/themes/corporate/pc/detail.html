@@ -1,4 +1,4 @@
-{extend name="layout" /}
+﻿{extend name="layout" /}
 
 {block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
 {block name="keywords"}{if condition="$info.seo_keywords"}{$info.seo_keywords}{else/}{volist name="info.tags" id="tag"}{$tag.name},{/volist}{$site_keywords}{/if}{/block}
@@ -43,7 +43,7 @@
                     <a href="{$type_url}">
                         {if condition="$info.type == 1"}产品中心{/if}
                         {if condition="$info.type == 2"}成功案例{/if}
-                        {if condition="$info.type == 3"}新闻动态{/if}
+                        {if condition="$info.type == 3"}信息动态{/if}
                         {if condition="$info.type == 4"}资料下载{/if}
                         {if condition="$info.type == 5"}人才招聘{/if}
                         {if condition="$info.type == 6"}卡曢〉{/if}

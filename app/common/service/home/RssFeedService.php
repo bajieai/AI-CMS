@@ -7,9 +7,9 @@ use app\common\model\Config;
 
 class RssFeedService
 {
-    public static function generateFeed(string $type = 'news', int $limit = 20): string
+    public static function generateFeed(string $type = 'info', int $limit = 20): string
     {
-        $typeMap = ['product' => 1, 'case' => 2, 'news' => 3, 'download' => 4, 'job' => 5];
+        $typeMap = ['product' => 1, 'case' => 2, 'info' => 3, 'download' => 4, 'job' => 5];
         $contentType = $typeMap[$type] ?? 3;
         $items = Content::where('status', 2)->where('type', $contentType)->order('id', 'desc')->limit($limit)->select();
         $siteName = Config::getValue('site_name', '八界AI-CMS');

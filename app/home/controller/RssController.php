@@ -7,7 +7,7 @@ use think\Response;
 
 class RssController extends \app\home\controller\BaseController
 {
-    public function feed(string $type = 'news')
+    public function feed(string $type = 'info')
     {
         $xml = RssFeedService::generateFeed($type, 20);
         return Response::create($xml)->contentType('application/rss+xml; charset=utf-8');

@@ -1,4 +1,4 @@
-{extend name="layout" /}
+﻿{extend name="layout" /}
 
 {block name="title"}{$site_name} - 首页{/block}
 
@@ -7,7 +7,7 @@
 <section class="hero-showcase">
     <div class="container text-center">
         <h1>AI 驱动的企业信息管理</h1>
-        <p class="hero-desc">高效管理产品、案例、新闻等多类型内容，AI智能写作助力企业数字化升级</p>
+        <p class="hero-desc">高效管理产品、案例、信息等多类型内容，AI智能写作助力企业数字化升级</p>
         <div class="hero-actions">
             <a href="/product" class="btn btn-primary btn-lg">了解更多 <i class="bi bi-arrow-right"></i></a>
             <a href="/case" class="btn btn-outline-light btn-lg">成功案例</a>
@@ -118,10 +118,10 @@
     </div>
 </section>
 
-<!-- 新闻动态 -->
+<!-- 信息动态 -->
 <section class="section">
     <div class="container">
-        <h2 class="section-title"><i class="bi bi-newspaper me-2"></i>新闻动态</h2>
+        <h2 class="section-title"><i class="bi bi-newspaper me-2"></i>信息动态</h2>
         <div class="row g-3 mt-2">
             {i8j:infolist type="news" limit="8"}
             <div class="col-md-6 col-lg-3">
@@ -134,7 +134,7 @@
             {/i8j:infolist}
         </div>
         <div class="text-end mt-3">
-            <a href="/news" class="btn btn-outline-primary btn-sm">查看全部 <i class="bi bi-arrow-right"></i></a>
+            <a href="/info" class="btn btn-outline-primary btn-sm">查看全部 <i class="bi bi-arrow-right"></i></a>
         </div>
     </div>
 </section>

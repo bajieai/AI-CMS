@@ -73,7 +73,7 @@ class Content extends Model
         $typeMap = [
             1 => 'product',
             2 => 'case',
-            3 => 'news',
+            3 => 'info',
             4 => 'download',
             5 => 'job',
             6 => 'page',
@@ -97,7 +97,7 @@ class Content extends Model
      */
     public function getTypeTextAttr($value, $data): string
     {
-        $map = [1 => '产品', 2 => '案例', 3 => '新闻', 4 => '下载', 5 => '招聘', 6 => '单页'];
+        $map = [1 => '产品', 2 => '案例', 3 => '信息', 4 => '下载', 5 => '招聘', 6 => '单页'];
         return $map[$data['type']] ?? '未知';
     }
 

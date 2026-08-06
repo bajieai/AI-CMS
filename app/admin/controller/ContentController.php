@@ -581,7 +581,7 @@ class ContentController extends AdminBaseController
             return $this->error('分类不存在');
         }
 
-        $typeMap = [1 => '产品', 2 => '案例', 3 => '新闻', 4 => '下载', 5 => '招聘', 6 => '单页', 7 => '图片', 8 => '视频'];
+        $typeMap = [1 => '产品', 2 => '案例', 3 => '信息', 4 => '下载', 5 => '招聘', 6 => '单页', 7 => '图片', 8 => '视频'];
         $type = (int) $cate->type;
         $typeName = $typeMap[$type] ?? '未知';
         $modelId = (int) ($cate->model_id ?? 0);

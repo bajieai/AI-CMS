@@ -17,7 +17,7 @@
                     <option value="">全部类型</option>
                     <option value="1" {if condition="($params.type ?? '') == 1"}selected{/if}>产品</option>
                     <option value="2" {if condition="($params.type ?? '') == 2"}selected{/if}>案例</option>
-                    <option value="3" {if condition="($params.type ?? '') == 3"}selected{/if}>新闻</option>
+                    <option value="3" {if condition="($params.type ?? '') == 3"}selected{/if}>信息</option>
                     <option value="4" {if condition="($params.type ?? '') == 4"}selected{/if}>下载</option>
                     <option value="5" {if condition="($params.type ?? '') == 5"}selected{/if}>招聘</option>
                     <option value="6" {if condition="($params.type ?? '') == 6"}selected{/if}>单页</option>
@@ -74,7 +74,7 @@
                     <td>
                         {if condition="$vo.type == 1"}<span class="badge bg-primary">产品</span>{/if}
                         {if condition="$vo.type == 2"}<span class="badge bg-info">案例</span>{/if}
-                        {if condition="$vo.type == 3"}<span class="badge bg-success">新闻</span>{/if}
+                        {if condition="$vo.type == 3"}<span class="badge bg-success">信息</span>{/if}
                         {if condition="$vo.type == 4"}<span class="badge bg-warning text-dark">下载</span>{/if}
                         {if condition="$vo.type == 5"}<span class="badge bg-secondary">招聘</span>{/if}
                         {if condition="$vo.type == 6"}<span class="badge bg-dark">单页</span>{/if}

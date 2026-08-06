@@ -11,7 +11,7 @@ use think\facade\Cache;
 class AiImageMatchService
 {
     private const CONTENT_STYLE_MAP = [
-        'product' => 'business', 'case' => 'business', 'news' => 'tech',
+        'product' => 'business', 'case' => 'business', 'info' => 'tech',
         'download' => 'tech', 'job' => 'business', 'recruit' => 'business',
     ];
 
@@ -86,8 +86,8 @@ class AiImageMatchService
     {
         $cateId = (int) ($content->cate_id ?? 0);
         $modelId = (int) ($content->model_id ?? 0);
-        $typeMap = [1 => 'news', 2 => 'product', 3 => 'case', 4 => 'download', 5 => 'job', 6 => 'recruit'];
-        return $typeMap[$modelId] ?? 'news';
+        $typeMap = [1 => 'info', 2 => 'product', 3 => 'case', 4 => 'download', 5 => 'job', 6 => 'recruit'];
+        return $typeMap[$modelId] ?? 'info';
     }
 
     private function recordImage(int $contentId, string $imageUrl, string $style, bool $aiGenerated, bool $autoTriggered): void

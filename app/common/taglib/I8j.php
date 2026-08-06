@@ -21,8 +21,8 @@ use think\template\TagLib;
  * 仅负责标签编译（将模板标签编译为PHP代码），数据查询委托给ContentService
  * 
  * 支持的标签：
- * {i8j:infolist type="news" limit="10" order="id desc"}...{/i8j:infolist}
- * {i8j:catelist type="news" limit="100"}...{/i8j:catelist}
+ * {i8j:infolist type="info" limit="10" order="id desc"}...{/i8j:infolist}
+ * {i8j:catelist type="info" limit="100"}...{/i8j:catelist}
  */
 class I8j extends TagLib
 {
@@ -73,9 +73,9 @@ class I8j extends TagLib
     ];
 
     /**
-     * {i8j:infolist type="news" cate_id="3" limit="10" order="id desc"}
-     * {i8j:infolist type="news" id="1,2,3"}
-     * {i8j:infolist type="news" page="1" pagesize="10" order="id desc"}
+     * {i8j:infolist type="info" cate_id="3" limit="10" order="id desc"}
+     * {i8j:infolist type="info" id="1,2,3"}
+     * {i8j:infolist type="info" page="1" pagesize="10" order="id desc"}
      * 编译为：调用ContentService::getInfolist/getByIds获取数据，然后用{volist}遍历
      * V2.9.42: 新增cate_id(分类筛选)+id(指定ID)属性
      */
@@ -107,7 +107,7 @@ class I8j extends TagLib
     }
 
     /**
-     * {i8j:catelist type="news" limit="100" parent="0"}
+     * {i8j:catelist type="info" limit="100" parent="0"}
      * 编译为：调用CateService::getCatelist获取数据，然后用{volist}遍历
      */
     public function tagCatelist(array $tag, string $content): string

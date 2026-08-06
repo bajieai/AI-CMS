@@ -63,7 +63,7 @@ class ContentService
 
     /**
      * 获取信息列表（前台模板标签使用，TagLib委托调用）
-     * @param string $type 信息类型标识（product/case/news/download/job/page）
+     * @param string $type 信息类型标识（product/case/info/download/job/page）
      * @param int $limit 查询数量（不分页时使用）
      * @param string $order 排序规则
      * @param int $page 当前页码（>0 则启用分页）
@@ -85,7 +85,7 @@ class ContentService
         $typeMap = [
             'product' => 1,
             'case' => 2,
-            'news' => 3,
+            'info' => 3,
             'download' => 4,
             'job' => 5,
             'page' => 6,

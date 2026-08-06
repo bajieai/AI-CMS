@@ -1,23 +1,23 @@
-{/* V2.9.42: 新闻模型详情差异化片段 - 动态渲染所有自定义字段 (corporate Mobile) */}
+﻿{/* V2.9.42: 信息模型详情差异化片段 - 动态渲染所有自定义字段 (default Mobile) */}
 {php}$ext = $info['ext']['data'] ?? [];{/php}
 {php}$fields = $model_fields ?? [];{/php}
 {if condition="!empty($ext) || !empty($fields)"}
-<div class="model-fields-bar d-flex flex-wrap gap-2 mb-3 py-1 border-bottom">
+<div class="model-fields-bar d-flex flex-wrap gap-2 mb-3 py-1">
     {volist name="fields" id="field"}
         {php}$fieldName = $field['name'] ?? ''; $fieldLabel = $field['label'] ?? ''; $fieldType = $field['type'] ?? 'text';{/php}
         {if condition="!empty($fieldName) && isset($ext[$fieldName]) && $ext[$fieldName] !== ''"}
-            <span class="small text-muted">{$fieldLabel}: {$ext[$fieldName]|htmlentities}</span>
+            <span class="badge bg-light text-dark border small">{$fieldLabel}: {$ext[$fieldName]|htmlentities}</span>
         {/if}
     {/volist}
     {if condition="empty($fields)"}
         {if condition="!empty($ext['source'])"}
-        <span class="small text-muted">来源: {$ext['source']|htmlentities}</span>
+        <span class="badge bg-light text-dark border small">来源: {$ext['source']|htmlentities}</span>
         {/if}
         {if condition="!empty($ext['author'])"}
-        <span class="small text-muted">作者: {$ext['author']|htmlentities}</span>
+        <span class="badge bg-light text-dark border small">作者: {$ext['author']|htmlentities}</span>
         {/if}
         {if condition="!empty($ext['is_top']) && $ext['is_top'] == '1'"}
-        <span class="badge bg-dark small"><i class="bi bi-pin-angle me-1"></i>置顶</span>
+        <span class="badge bg-danger small"><i class="bi bi-pin-angle me-1"></i>置顶</span>
         {/if}
     {/if}
 </div>
