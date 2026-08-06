@@ -198,10 +198,38 @@ class TemplateCacheService
         // 同时清除MD5缓存
         Cache::clear();
 
+        // V2.9.44: 重置 PHP OPcache，确保修改后的 PHP/模板代码立即生效
+        // 仅删除编译缓存文件不会清除 OPcache 内存中的旧字节码
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+        if (function_exists('opcache_invalidate')) {
+            // 遍历 runtime 目录下的所有 PHP 缓存文件，逐个失效 OPcache
+            $this->invalidateOpcache($rootPath . 'runtime/');
+        }
+
         // V2.9.24 J-1: 写入日志
         $this->writeLog('ALL', 'clear', 'admin');
 
         return $result;
+    }
+
+    /**
+     * V2.9.44: 递归遍历目录，失效所有 PHP 文件的 OPcache
+     */
+    private function invalidateOpcache(string $dir): void
+    {
+        if (!is_dir($dir) || !function_exists('opcache_invalidate')) {
+            return;
+        }
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                @opcache_invalidate($file->getPathname(), true);
+            }
+        }
     }
 
     /**

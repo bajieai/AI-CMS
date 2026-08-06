@@ -147,6 +147,8 @@
         $box.html(html);
     }
 
+    var confirmModal = null;
+
     function startUpgrade() {
         if (!latestInfo || !latestInfo.has_update) {
             showToast('暂无可升级版本', 'warning');
@@ -157,8 +159,27 @@
             return;
         }
 
-        if (!confirm('确定要升级到 V' + latestInfo.latest_version + ' 吗？\n升级过程可能需要几分钟，请不要关闭页面。')) {
-            return;
+        $('#confirmFromVersion').text(escapeHtml(window.currentVersion || latestInfo.current_version || ''));
+        $('#confirmToVersion').text(escapeHtml(latestInfo.latest_version));
+
+        var modalEl = document.getElementById('upgradeConfirmModal');
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            if (!confirmModal) {
+                confirmModal = new bootstrap.Modal(modalEl);
+            }
+            confirmModal.show();
+        } else {
+            // 无 Bootstrap JS 时回退到原生 confirm
+            if (!confirm('确定要升级到 V' + latestInfo.latest_version + ' 吗？\n升级过程可能需要几分钟，请不要关闭页面。')) {
+                return;
+            }
+            doStartUpgrade();
+        }
+    }
+
+    function doStartUpgrade() {
+        if (confirmModal) {
+            confirmModal.hide();
         }
 
         $('#progressCard').show();
@@ -193,6 +214,10 @@
             }
         });
     }
+
+    $(document).on('click', '#btnConfirmUpgrade', function () {
+        doStartUpgrade();
+    });
 
     function pollProgress(logId, isFinal) {
         if (pollTimer) {

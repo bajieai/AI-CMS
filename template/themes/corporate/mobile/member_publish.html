@@ -25,7 +25,7 @@
 {else}
 <div class="member-publish-list">
     {volist name="list" id="vo"}
-    <a href="/info/{$vo.id}.html" class="member-publish-item">
+    <a href="{$vo.url}" class="member-publish-item">
         <div class="member-publish-title">{$vo.title}</div>
         <div class="member-publish-meta">
             <span class="member-publish-time">{$vo.update_time|date='m-d H:i'}</span>

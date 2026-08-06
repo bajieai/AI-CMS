@@ -201,6 +201,7 @@ return [
             ['id' => 484, 'name' => '邮件日志', 'url' => '/admin/mail_log/index', 'permission' => 'mail_log.*', 'active' => 'mail_log', 'icon' => 'bi bi-envelope-check'],
             // V2.9.44: 在线升级
             ['id' => 485, 'name' => '在线升级', 'url' => '/admin/online_upgrade/index', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade', 'icon' => 'bi bi-cloud-arrow-up'],
+            ['id' => 486, 'name' => '升级配置', 'url' => '/admin/online_upgrade/config', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade_config', 'icon' => 'bi bi-gear'],
         ],
     ],
 ];

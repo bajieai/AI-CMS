@@ -44,7 +44,7 @@ class ContentModelService
             }
 
             $total = $query->count();
-            $list  = $query->order('sort_order', 'asc')
+            $list  = $query->order('sort', 'asc')
                 ->order('id', 'desc')
                 ->page($page, $pageSize)
                 ->select()
@@ -100,7 +100,12 @@ class ContentModelService
                 return ['code' => 1, 'msg' => '模型标识已存在', 'data' => null];
             }
 
+            // 自动分配 type 值（当前最大 type + 1，最小从 9 开始避免与预设冲突）
+            $maxType = (int) Db::name(self::TABLE)->max('type');
+            $autoType = max(9, $maxType + 1);
+
             $insert = [
+                'type'              => $autoType,
                 'model_name'        => trim($data['model_name'] ?? ''),
                 'model_identifier'  => trim($data['model_identifier'] ?? ''),
                 'model_description' => $data['model_description'] ?? '',
@@ -109,7 +114,7 @@ class ContentModelService
                 'template_config'   => json_encode($data['template_config'] ?? [], JSON_UNESCAPED_UNICODE),
                 'url_rule'          => $data['url_rule'] ?? '',
                 'group_id'          => (int)($data['group_id'] ?? 0),
-                'sort_order'        => (int)($data['sort_order'] ?? 0),
+                'sort'              => (int)($data['sort'] ?? 0),
                 'is_system'         => 0,
                 'is_enabled'        => isset($data['is_enabled']) ? (int)$data['is_enabled'] : 1,
                 'is_deleted'        => 0,
@@ -164,8 +169,8 @@ class ContentModelService
             if (isset($data['group_id'])) {
                 $update['group_id'] = (int)$data['group_id'];
             }
-            if (isset($data['sort_order'])) {
-                $update['sort_order'] = (int)$data['sort_order'];
+            if (isset($data['sort'])) {
+                $update['sort'] = (int)$data['sort'];
             }
             if (isset($data['is_enabled'])) {
                 $update['is_enabled'] = (int)$data['is_enabled'];
@@ -247,7 +252,7 @@ class ContentModelService
                 return Db::name(self::TABLE)
                     ->where('is_enabled', 1)
                     ->where('is_deleted', 0)
-                    ->order('sort_order', 'asc')
+                    ->order('sort', 'asc')
                     ->order('id', 'asc')
                     ->select()
                     ->toArray();

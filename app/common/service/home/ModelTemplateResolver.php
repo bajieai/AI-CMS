@@ -32,7 +32,7 @@ class ModelTemplateResolver
     private static array $defaultTemplates = [
         1 => 'content/product_show',    // 产品
         2 => 'content/case_show',       // 案例
-        3 => 'content/article_show',    // 新闻/文章
+        3 => 'content/info_show',       // 信息
         4 => 'content/download_show',   // 下载
         5 => 'content/job_show',        // 招聘
         6 => 'content/page_show',       // 单页
@@ -68,7 +68,7 @@ class ModelTemplateResolver
         }
 
         // 3. 默认类型模板
-        return self::$defaultTemplates[$type] ?? 'content/article_show';
+        return self::$defaultTemplates[$type] ?? 'content/info_show';
     }
 
     /**
@@ -82,7 +82,7 @@ class ModelTemplateResolver
         $templates = [];
 
         // 默认模板
-        $defaultTemplate = self::$defaultTemplates[$type] ?? 'content/article_show';
+        $defaultTemplate = self::$defaultTemplates[$type] ?? 'content/info_show';
         $templates[] = [
             'id' => 0,
             'name' => '默认模板',
@@ -125,11 +125,11 @@ class ModelTemplateResolver
         return match ($type) {
             1 => ['product_show' => '产品详情模板', 'product_gallery' => '产品图册模板'],
             2 => ['case_show' => '案例详情模板', 'case_timeline' => '案例时间线模板'],
-            3 => ['article_show' => '文章详情模板', 'article_magazine' => '杂志风格模板', 'image_show' => '图集展示模板', 'video_show' => '视频播放模板'],
+            3 => ['info_show' => '信息详情模板', 'info_magazine' => '杂志风格模板', 'image_show' => '图集展示模板', 'video_show' => '视频播放模板'],
             4 => ['download_show' => '下载详情模板'],
             5 => ['job_show' => '招聘详情模板'],
             6 => ['page_show' => '单页模板'],
-            default => ['article_show' => '默认文章模板'],
+            default => ['info_show' => '默认信息模板'],
         };
     }
 

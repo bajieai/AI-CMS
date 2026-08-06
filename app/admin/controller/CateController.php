@@ -16,6 +16,7 @@ namespace app\admin\controller;
 use app\common\controller\AdminBaseController;
 use app\common\model\Cate;
 use app\common\model\Content;
+use app\common\model\ContentModel;
 use app\common\service\CacheService;
 use app\common\service\CateService;
 use think\facade\Config as ThinkConfig;
@@ -42,7 +43,7 @@ class CateController extends AdminBaseController
 
     /**
      * V2.9.44: 递归注入分类URL到树形结构
-     * 使用与 Cate Model getUrlAttr 相同的逻辑
+     * V2.9.44: 使用单段URL /{seoUrl}（去掉模型前缀）
      */
     private function injectCateUrl(array $tree): array
     {
@@ -51,10 +52,13 @@ class CateController extends AdminBaseController
             $typeSlug = $typeMap[$item['type']] ?? 'info';
             $seoUrl = $item['seo_url'] ?? '';
             if ($item['type'] == 6) {
-                $item['url'] = !empty($seoUrl) ? "/page/{$seoUrl}" : "/page/{$item['id']}";
+                // 单页：有英文名用 /about，无英文名用 /page/6
+                $item['url'] = !empty($seoUrl) ? "/{$seoUrl}" : "/page/{$item['id']}";
             } elseif (!empty($seoUrl)) {
-                $item['url'] = "/{$typeSlug}/{$seoUrl}";
+                // 有英文名用单段URL /news /products
+                $item['url'] = "/{$seoUrl}";
             } else {
+                // 无英文名回退到旧格式
                 $item['url'] = "/{$typeSlug}?cate_id={$item['id']}";
             }
             if (!empty($item['children'])) {
@@ -74,7 +78,20 @@ class CateController extends AdminBaseController
             $service = new CateService();
             $tree = $service->getTree($cates->toArray());
 
-            $this->assign(['cates' => $tree, 'info' => null, 'page_content' => '', 'available_templates' => $this->scanTemplates()]);
+            // 动态读取内容模型列表，用于分类类型下拉选项
+            $models = ContentModel::where('is_deleted', 0)
+                ->where('is_enabled', 1)
+                ->order('sort', 'asc')
+                ->field('id, type, model_name, model_description, model_icon')
+                ->select();
+
+            $this->assign([
+                'cates' => $tree,
+                'info' => null,
+                'page_content' => '',
+                'available_templates' => $this->scanTemplates(),
+                'models' => $models,
+            ]);
             return $this->view('/cate_edit');
         }
 
@@ -125,7 +142,20 @@ class CateController extends AdminBaseController
                 $pageContent = Content::where('id', $info->content_id)->value('content') ?? '';
             }
 
-            $this->assign(['cates' => $tree, 'info' => $info, 'page_content' => $pageContent, 'available_templates' => $this->scanTemplates()]);
+            // 动态读取内容模型列表，用于分类类型下拉选项
+            $models = ContentModel::where('is_deleted', 0)
+                ->where('is_enabled', 1)
+                ->order('sort', 'asc')
+                ->field('id, type, model_name, model_description, model_icon')
+                ->select();
+
+            $this->assign([
+                'cates' => $tree,
+                'info' => $info,
+                'page_content' => $pageContent,
+                'available_templates' => $this->scanTemplates(),
+                'models' => $models,
+            ]);
             return $this->view('/cate_edit');
         }
 
@@ -229,6 +259,42 @@ class CateController extends AdminBaseController
             $cate->content_id = $content->id;
             $cate->save();
         }
+    }
+
+    /**
+     * V2.9.44: 检查英文URL别名是否已存在（AJAX查重）
+     * 支持排除当前编辑的分类ID
+     */
+    public function checkSeoUrl()
+    {
+        $seoUrl = trim($this->request->get('seo_url', ''));
+        $excludeId = (int) $this->request->get('exclude_id', 0);
+
+        if (empty($seoUrl)) {
+            return json(['exists' => false, 'suggestion' => '']);
+        }
+
+        $query = Cate::where('seo_url', $seoUrl);
+        if ($excludeId > 0) {
+            $query = $query->where('id', '<>', $excludeId);
+        }
+        $exist = $query->find();
+
+        if ($exist) {
+            // 冲突时生成建议别名（加后缀2,3,4...）
+            $suggestion = $seoUrl . '2';
+            $suffix = 2;
+            while (Cate::where('seo_url', $suggestion)->when($excludeId > 0, function($q) use ($excludeId) {
+                $q->where('id', '<>', $excludeId);
+            })->find()) {
+                $suffix++;
+                $suggestion = $seoUrl . $suffix;
+                if ($suffix > 20) break;
+            }
+            return json(['exists' => true, 'suggestion' => $suggestion]);
+        }
+
+        return json(['exists' => false, 'suggestion' => '']);
     }
 
     /**

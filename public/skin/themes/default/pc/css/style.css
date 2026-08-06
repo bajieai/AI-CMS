@@ -48,14 +48,45 @@ footer a:hover { color: var(--bg); }
 
 /* V2.9.44 Banner 轮播图：统一高度 + 背景填充（修复首张 banner 显示异常） */
 .banner-slide {
-    height: 400px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    height: 450px;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.banner-img {
+    max-height: 450px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
 }
 .carousel-caption {
     background: rgba(0, 0, 0, 0.4);
     border-radius: 8px;
     padding: 1rem;
+}
+
+/* 轮播图左右箭头：半透明圆形背景确保白色箭头在任何背景上都可见 */
+#homeBanner .carousel-control-prev,
+#homeBanner .carousel-control-next {
+    width: 44px;
+    height: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 50%;
+    opacity: 0.6;
+    transition: opacity 0.2s, background 0.2s;
+}
+#homeBanner .carousel-control-prev {
+    left: 16px;
+}
+#homeBanner .carousel-control-next {
+    right: 16px;
+}
+#homeBanner .carousel-control-prev:hover,
+#homeBanner .carousel-control-next:hover {
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 1;
 }

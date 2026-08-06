@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
+use app\common\service\ConfigService;
 use app\common\service\UpgradeService;
 use think\facade\Request;
 
@@ -36,6 +37,34 @@ class OnlineUpgradeController extends AdminBaseController
         return $this->view('/online_upgrade', [
             'currentVersion' => $currentVersion,
             'history' => $history,
+        ]);
+    }
+
+    /**
+     * 升级配置页面
+     */
+    public function config()
+    {
+        if (Request::isPost()) {
+            $data = Request::post();
+            ConfigService::set('upgrade_check_enabled', ($data['upgrade_check_enabled'] ?? 0) ? 1 : 0, 'system', '是否开启升级检查');
+            ConfigService::set('upgrade_channel', in_array($data['upgrade_channel'] ?? '', ['stable', 'beta']) ? $data['upgrade_channel'] : 'stable', 'system', '升级通道');
+            ConfigService::set('gitee_token', trim($data['gitee_token'] ?? ''), 'system', 'Gitee 私人令牌');
+            ConfigService::set('upgrade_last_check', time(), 'system', '上次升级检查时间');
+
+            return $this->success('配置已保存');
+        }
+
+        $config = [
+            'upgrade_check_enabled' => (int) ConfigService::get('upgrade_check_enabled', 1),
+            'upgrade_channel'       => ConfigService::get('upgrade_channel', 'stable'),
+            'gitee_token'           => ConfigService::get('gitee_token', ''),
+            'upgrade_last_check'    => (int) ConfigService::get('upgrade_last_check', 0),
+            'upgrade_latest_version'=> ConfigService::get('upgrade_latest_version', ''),
+        ];
+
+        return $this->view('/online_upgrade_config', [
+            'config' => $config,
         ]);
     }
 

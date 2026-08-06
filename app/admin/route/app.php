@@ -87,6 +87,7 @@ Route::rule('cate/index$', '\app\admin\controller\CateController@index', 'GET');
 Route::rule('cate/add$', '\app\admin\controller\CateController@add', 'GET|POST');
 Route::rule('cate/edit/:id$', '\app\admin\controller\CateController@edit', 'GET|POST');
 Route::post('cate/delete/:id$', '\app\admin\controller\CateController@delete');
+Route::get('cate/checkSeoUrl$', '\app\admin\controller\CateController@checkSeoUrl');
 
 // 标签管理
 Route::rule('tag/index$', '\app\admin\controller\TagController@index', 'GET');
@@ -1631,6 +1632,7 @@ Route::post('dev_doc/runTests$', '\app\admin\controller\DevDocController@runTest
 
 // ===== V2.9.44: 在线升级 =====
 Route::get('online_upgrade/index$', '\app\admin\controller\OnlineUpgradeController@index');
+Route::rule('online_upgrade/config$', '\app\admin\controller\OnlineUpgradeController@config', 'GET|POST');
 Route::get('online_upgrade/check$', '\app\admin\controller\OnlineUpgradeController@check');
 Route::get('online_upgrade/environment$', '\app\admin\controller\OnlineUpgradeController@environment');
 Route::post('online_upgrade/execute$', '\app\admin\controller\OnlineUpgradeController@execute');

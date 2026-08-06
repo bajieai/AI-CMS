@@ -103,7 +103,7 @@ class UpgradeService
     }
 
     /**
-     * 检查最新版本（带10分钟缓存）
+     * 检查最新版本（带30分钟缓存）
      */
     public function checkLatest(): array
     {
@@ -111,7 +111,8 @@ class UpgradeService
             $config = Config::get('upgrade');
             $owner = $config['gitee_owner'] ?? 'bajieai';
             $repo = $config['gitee_repo'] ?? 'ai-cms';
-            $token = $config['gitee_token'] ?? '';
+            // 优先读取 i8j_config 中的 token，未设置则回退到 config/upgrade.php
+            $token = ConfigService::get('gitee_token', $config['gitee_token'] ?? '');
 
             $url = "https://gitee.com/api/v5/repos/{$owner}/{$repo}/releases/latest";
             $query = [];
@@ -156,6 +157,10 @@ class UpgradeService
                     }
                 }
 
+                // 同步缓存最新版本到 i8j_config
+                ConfigService::set('upgrade_last_check', time(), 'system', '上次升级检查时间');
+                ConfigService::set('upgrade_latest_version', $latestVersion, 'system', '缓存的最新版本号');
+
                 return [
                     'success' => true,
                     'msg' => '获取成功',
@@ -179,7 +184,7 @@ class UpgradeService
                     'data' => null,
                 ];
             }
-        }, 600);
+        }, 1800);
     }
 
     /**
@@ -188,6 +193,37 @@ class UpgradeService
     public function clearLatestCache(): void
     {
         Cache::delete('upgrade_latest_check');
+    }
+
+    /**
+     * 获取 Dashboard 首页版本提醒（仅读取缓存，不触发网络请求）
+     * 返回 null 表示无提醒（未开启检查、缓存不存在、已是最新）
+     */
+    public function getDashboardNotice(): ?array
+    {
+        // 检查是否开启升级检查（未配置或关闭则不提醒）
+        $enabled = (int) ConfigService::get('upgrade_check_enabled', 1);
+        if (!$enabled) {
+            return null;
+        }
+
+        $cached = Cache::get('upgrade_latest_check');
+        if (empty($cached) || !is_array($cached) || !isset($cached['data'])) {
+            return null;
+        }
+
+        $data = $cached['data'];
+        if (empty($data['has_update'])) {
+            return null;
+        }
+
+        return [
+            'current_version' => $data['current_version'] ?? $this->getCurrentVersion(),
+            'latest_version' => $data['latest_version'] ?? '',
+            'published_at' => $data['published_at'] ?? '',
+            'body' => $data['body'] ?? '',
+            'url' => '/admin/online_upgrade/index',
+        ];
     }
 
     /**
@@ -209,6 +245,22 @@ class UpgradeService
         }
         if (!extension_loaded('json')) {
             $errors[] = '缺少 json 扩展';
+        }
+
+        // disable_functions 检查
+        $disabled = ini_get('disable_functions');
+        if (!empty($disabled)) {
+            $disabledList = array_map('trim', explode(',', strtolower($disabled)));
+            $keyFunctions = ['set_time_limit', 'ini_set', 'exec', 'system', 'shell_exec', 'passthru', 'proc_open', 'popen'];
+            $missing = [];
+            foreach ($keyFunctions as $fn) {
+                if (in_array($fn, $disabledList, true)) {
+                    $missing[] = $fn;
+                }
+            }
+            if (!empty($missing)) {
+                $warnings[] = 'PHP disable_functions 禁用了部分函数: ' . implode(', ', $missing) . '，可能影响升级或后置命令执行';
+            }
         }
 
         // 数据库连接
@@ -249,6 +301,23 @@ class UpgradeService
         @set_time_limit(0);
         @ini_set('memory_limit', '512M');
 
+        // 升级锁：防止并发升级
+        $lockFile = $this->workPath . 'upgrade.lock';
+        if (file_exists($lockFile)) {
+            $lockTime = filemtime($lockFile);
+            // 锁超过30分钟自动视为失效
+            if ($lockTime && (time() - $lockTime) > 1800) {
+                @unlink($lockFile);
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => '已有升级任务正在进行中，请等待完成后再试',
+                    'data' => [],
+                ];
+            }
+        }
+        touch($lockFile);
+
         // 自举：首次使用时确保升级系统表存在
         $this->ensureTablesExist();
 
@@ -258,101 +327,127 @@ class UpgradeService
         $this->addStep('init', '开始升级', 'pending');
 
         try {
-            // Step 1: 环境检查
-            $this->addStep('env_check', '环境检查', 'running');
-            $env = $this->checkEnvironment();
-            if (!$env['success']) {
-                throw new \RuntimeException('环境检查未通过: ' . implode('; ', $env['errors']));
-            }
-            $this->addStep('env_check', '环境检查通过', 'done');
-
-            // Step 2: 下载升级包
-            $this->addStep('download', '下载升级包', 'running');
-            $zipFile = $this->downloadPackage($downloadUrl);
-            $this->addStep('download', '下载完成: ' . basename($zipFile), 'done');
-
-            // Step 3: 校验并解压
-            $this->addStep('verify', '校验升级包', 'running');
-            $manifest = $this->verifyAndExtract($zipFile);
-            $this->addStep('verify', '校验通过', 'done');
-
-            // 校验目标版本
-            $manifestToVersion = $this->normalizeVersion($manifest['to_version'] ?? '');
-            if ($manifestToVersion && $manifestToVersion !== $this->normalizeVersion($expectedVersion)) {
-                throw new \RuntimeException('升级包目标版本与期望版本不一致: ' . ($manifest['to_version'] ?? 'unknown'));
-            }
-            $toVersion = $manifestToVersion ?: $expectedVersion;
-
-            // 校验 from_version
-            $manifestFromVersion = $this->normalizeVersion($manifest['from_version'] ?? '');
-            if ($manifestFromVersion && $manifestFromVersion !== $currentVersion) {
-                $warnings = '升级包来源版本(' . $manifest['from_version'] . ')与当前版本(' . $currentVersion . ')不一致，继续升级可能存在风险';
-                $this->addStep('version_match', $warnings, 'warning');
-            }
-
-            // Step 4: 备份
-            $this->addStep('backup', '创建自动备份', 'running');
-            $backupResult = $this->createBackups();
-            $this->updateLogBackup($backupResult);
-            $this->addStep('backup', '备份完成', 'done');
-
-            // Step 5: 执行SQL迁移
-            $this->addStep('sql', '执行数据库迁移', 'running');
-            $this->executeSqlPatches($manifest['sql_patches'] ?? [], $toVersion);
-            $this->addStep('sql', '数据库迁移完成', 'done');
-
-            // Step 6: 更新文件
-            $this->addStep('files', '更新系统文件', 'running');
-            $fileResult = $this->updateFiles($manifest);
-            $this->addStep('files', '文件更新完成: 新增' . $fileResult['added'] . ', 修改' . $fileResult['modified'] . ', 跳过' . $fileResult['skipped'] . ', 删除' . $fileResult['deleted'], 'done');
-
-            // Step 7: 清理缓存
-            $this->addStep('cache', '清理缓存', 'running');
-            $this->clearCache();
-            $this->addStep('cache', '缓存清理完成', 'done');
-
-            // Step 8: 更新版本号
-            $this->addStep('version', '更新版本号', 'running');
-            $this->updateVersion($toVersion);
-            $this->addStep('version', '版本号已更新为 V' . $toVersion, 'done');
-
-            // 完成
-            $this->finishLog(UpgradeLog::STATUS_SUCCESS, '升级成功');
-            $this->clearLatestCache();
-
-            return [
-                'success' => true,
-                'msg' => '升级成功',
-                'data' => [
-                    'from_version' => $currentVersion,
-                    'to_version' => $toVersion,
-                    'log_id' => $this->logId,
-                    'file_result' => $fileResult,
-                ],
-            ];
-        } catch (\Throwable $e) {
-            Log::error('[Upgrade] 升级失败: ' . $e->getMessage());
-
-            // 自动回滚
-            $this->addStep('rollback', '升级失败，正在自动回滚: ' . $e->getMessage(), 'running');
             try {
-                $this->rollback();
-                $this->addStep('rollback', '已自动回滚到升级前状态', 'done');
-                $this->finishLog(UpgradeLog::STATUS_FAILED, '升级失败已回滚: ' . $e->getMessage());
+                // Step 1: 环境检查
+                $this->addStep('env_check', '环境检查', 'running');
+                $env = $this->checkEnvironment();
+                if (!$env['success']) {
+                    throw new \RuntimeException('环境检查未通过: ' . implode('; ', $env['errors']));
+                }
+                $this->addStep('env_check', '环境检查通过', 'done');
+
+                // Step 2: 下载升级包
+                $this->addStep('download', '下载升级包', 'running');
+                $zipFile = $this->downloadPackage($downloadUrl);
+                $this->addStep('download', '下载完成: ' . basename($zipFile), 'done');
+
+                // Step 3: 校验并解压
+                $this->addStep('verify', '校验升级包', 'running');
+                $manifest = $this->verifyAndExtract($zipFile);
+                $this->addStep('verify', '校验通过', 'done');
+
+                // 校验目标版本
+                $manifestToVersion = $this->normalizeVersion($manifest['to_version'] ?? '');
+                if ($manifestToVersion && $manifestToVersion !== $this->normalizeVersion($expectedVersion)) {
+                    throw new \RuntimeException('升级包目标版本与期望版本不一致: ' . ($manifest['to_version'] ?? 'unknown'));
+                }
+                $toVersion = $manifestToVersion ?: $expectedVersion;
+
+                // 校验 from_version
+                $manifestFromVersion = $this->normalizeVersion($manifest['from_version'] ?? '');
+                if ($manifestFromVersion && $manifestFromVersion !== $currentVersion) {
+                    $warnings = '升级包来源版本(' . $manifest['from_version'] . ')与当前版本(' . $currentVersion . ')不一致，继续升级可能存在风险';
+                    $this->addStep('version_match', $warnings, 'warning');
+                }
+
+                // Step 4: 备份
+                $this->addStep('backup', '创建自动备份', 'running');
+                $backupResult = $this->createBackups();
+                $this->updateLogBackup($backupResult);
+                $this->addStep('backup', '备份完成', 'done');
+
+                // Step 5: 执行SQL迁移
+                $this->addStep('sql', '执行数据库迁移', 'running');
+                $this->executeSqlPatches($manifest['sql_patches'] ?? [], $toVersion);
+                $this->addStep('sql', '数据库迁移完成', 'done');
+
+                // Step 6: 更新文件
+                $this->addStep('files', '更新系统文件', 'running');
+                $fileResult = $this->updateFiles($manifest);
+                $this->addStep('files', '文件更新完成: 新增' . $fileResult['added'] . ', 修改' . $fileResult['modified'] . ', 跳过' . $fileResult['skipped'] . ', 删除' . $fileResult['deleted'], 'done');
+
+                // Step 7: 执行 manifest run_after 命令
+                $this->addStep('run_after', '执行后置命令', 'running');
+                $runAfterCommands = $manifest['run_after'] ?? [];
+                $runAfterSuffixes = $manifest['run_after_suffix'] ?? [];
+                if (!empty($runAfterSuffixes)) {
+                    $extractDir = $this->getCurrentManifestDir();
+                    foreach ($runAfterSuffixes as $suffix) {
+                        $suffix = ltrim($suffix, '.');
+                        if (empty($suffix)) {
+                            continue;
+                        }
+                        $files = $this->findFilesBySuffix($extractDir, $suffix);
+                        foreach ($files as $file) {
+                            $relative = str_replace($extractDir . DIRECTORY_SEPARATOR, '', $file);
+                            $runAfterCommands[] = $relative;
+                        }
+                    }
+                }
+                $this->runAfterCommands($runAfterCommands);
+                $this->addStep('run_after', '后置命令执行完成', 'done');
+
+                // Step 8: 清理缓存
+                $this->addStep('cache', '清理缓存', 'running');
+                $this->clearCache();
+                $this->addStep('cache', '缓存清理完成', 'done');
+
+                // Step 9: 更新版本号
+                $this->addStep('version', '更新版本号', 'running');
+                $this->updateVersion($toVersion);
+                $this->addStep('version', '版本号已更新为 V' . $toVersion, 'done');
+
+                // 完成
+                $this->finishLog(UpgradeLog::STATUS_SUCCESS, '升级成功');
+                $this->clearLatestCache();
+
                 return [
-                    'success' => false,
-                    'msg' => '升级失败，已自动回滚: ' . $e->getMessage(),
-                    'data' => ['log_id' => $this->logId],
+                    'success' => true,
+                    'msg' => '升级成功',
+                    'data' => [
+                        'from_version' => $currentVersion,
+                        'to_version' => $toVersion,
+                        'log_id' => $this->logId,
+                        'file_result' => $fileResult,
+                    ],
                 ];
-            } catch (\Throwable $rollbackEx) {
-                $this->addStep('rollback', '回滚失败: ' . $rollbackEx->getMessage(), 'failed');
-                $this->finishLog(UpgradeLog::STATUS_FAILED, '升级失败且回滚失败: ' . $e->getMessage() . ' | 回滚错误: ' . $rollbackEx->getMessage());
-                return [
-                    'success' => false,
-                    'msg' => '升级失败，回滚也失败: ' . $e->getMessage() . '（回滚错误: ' . $rollbackEx->getMessage() . '）',
-                    'data' => ['log_id' => $this->logId],
-                ];
+            } catch (\Throwable $e) {
+                Log::error('[Upgrade] 升级失败: ' . $e->getMessage());
+
+                // 自动回滚（仅文件，SQL不自动回滚）
+                $this->addStep('rollback', '升级失败，正在自动回滚文件: ' . $e->getMessage(), 'running');
+                try {
+                    $this->rollback();
+                    $this->addStep('rollback', '已自动回滚文件到升级前状态', 'done');
+                    $this->finishLog(UpgradeLog::STATUS_FAILED, '升级失败已回滚: ' . $e->getMessage());
+                    return [
+                        'success' => false,
+                        'msg' => '升级失败，已自动回滚文件: ' . $e->getMessage(),
+                        'data' => ['log_id' => $this->logId],
+                    ];
+                } catch (\Throwable $rollbackEx) {
+                    $this->addStep('rollback', '回滚失败: ' . $rollbackEx->getMessage(), 'failed');
+                    $this->finishLog(UpgradeLog::STATUS_FAILED, '升级失败且回滚失败: ' . $e->getMessage() . ' | 回滚错误: ' . $rollbackEx->getMessage());
+                    return [
+                        'success' => false,
+                        'msg' => '升级失败，回滚也失败: ' . $e->getMessage() . '（回滚错误: ' . $rollbackEx->getMessage() . '）',
+                        'data' => ['log_id' => $this->logId],
+                    ];
+                }
             }
+        } finally {
+            // 释放升级锁
+            @unlink($lockFile);
         }
     }
 
@@ -368,9 +463,9 @@ class UpgradeService
         $filename = 'upgrade_' . date('Ymd_His') . '_' . md5($url . time()) . '.zip';
         $filepath = $this->workPath . $filename;
 
-        // Gitee assets 可能需要 token；若配置中提供，自动附加
+        // Gitee assets 可能需要 token；优先读取 i8j_config，回退到 config/upgrade.php
         $config = Config::get('upgrade');
-        $token = $config['gitee_token'] ?? '';
+        $token = ConfigService::get('gitee_token', $config['gitee_token'] ?? '');
         $options = ['sink' => $filepath];
         if (!empty($token) && str_contains($url, 'gitee.com')) {
             $options['query'] = ['access_token' => $token];
@@ -697,6 +792,68 @@ class UpgradeService
     }
 
     /**
+     * 执行 manifest run_after 后置命令
+     */
+    protected function runAfterCommands(array $commands): void
+    {
+        if (empty($commands)) {
+            return;
+        }
+
+        $phpBinary = $this->detectPhpBinary();
+        foreach ($commands as $command) {
+            if (empty($command) || !is_string($command)) {
+                continue;
+            }
+            $command = trim($command);
+            if (empty($command)) {
+                continue;
+            }
+
+            // 安全校验：禁止绝对路径、禁止跳出根目录、禁止敏感操作符
+            if (str_starts_with($command, '/') || str_starts_with($command, '\\') || str_contains($command, '..')) {
+                Log::warning('[Upgrade] 跳过后置命令: ' . $command);
+                continue;
+            }
+
+            // 支持占位符 {php} 替换为 PHP 可执行文件路径
+            $cmd = str_replace('{php}', $phpBinary, $command);
+            // 默认在命令前加上 php 解释器（如果命令不是以 php 开头）
+            if (!str_starts_with($cmd, 'php ') && !str_starts_with($cmd, $phpBinary . ' ')) {
+                $cmd = $phpBinary . ' ' . $cmd;
+            }
+
+            $this->addStep('run_after_' . md5($command), '执行: ' . $command, 'running');
+            $output = [];
+            $returnVar = 0;
+            $cwd = root_path();
+            exec('cd ' . escapeshellarg($cwd) . ' && ' . $cmd . ' 2>&1', $output, $returnVar);
+            if ($returnVar !== 0) {
+                throw new \RuntimeException('后置命令执行失败 [' . $command . ']: ' . implode("\n", $output));
+            }
+            $this->addStep('run_after_' . md5($command), '完成: ' . $command, 'done');
+        }
+    }
+
+    /**
+     * 检测 PHP 可执行文件路径
+     */
+    protected function detectPhpBinary(): string
+    {
+        if (defined('PHP_BINARY') && PHP_BINARY && is_executable(PHP_BINARY)) {
+            return PHP_BINARY;
+        }
+        $candidates = ['php', 'php8.2', 'php8.3', 'php8.4'];
+        foreach ($candidates as $bin) {
+            $output = shell_exec('command -v ' . escapeshellarg($bin));
+            if (!empty($output)) {
+                return trim($output);
+            }
+        }
+        return 'php';
+    }
+
+    /**
      * 清理缓存
      */
     protected function clearCache(): void
@@ -742,15 +899,11 @@ class UpgradeService
             return ['success' => false, 'msg' => '升级日志不存在'];
         }
 
-        // 1. 恢复数据库
-        $dbBackup = $log->backup_db_path;
-        if (!empty($dbBackup) && file_exists($dbBackup)) {
-            $backupService = new BackupService();
-            // 复用 BackupService 的 restore 方法
-            $backupService->restore($dbBackup, false);
-        }
+        // V2.9.44: PRD 5.6 规定升级失败时不自动回滚数据库
+        // 因为用户可能在升级失败后继续操作数据库，自动 SQL 回滚会导致数据丢失。
+        // 数据库备份保留在 backup_db_path 中，管理员可手动恢复。
 
-        // 2. 恢复文件
+        // 1. 恢复文件
         $filesBackup = $log->backup_files_path;
         if (!empty($filesBackup) && file_exists($filesBackup)) {
             $zip = new \ZipArchive();
@@ -760,16 +913,16 @@ class UpgradeService
             }
         }
 
-        // 3. 清理缓存
+        // 2. 清理缓存
         $this->clearCache();
 
-        // 4. 更新日志状态
+        // 3. 更新日志状态
         $log->status = UpgradeLog::STATUS_ROLLED_BACK;
         $log->save();
 
         $this->clearLatestCache();
 
-        return ['success' => true, 'msg' => '回滚完成'];
+        return ['success' => true, 'msg' => '文件已回滚，数据库未自动回滚，请根据需要手动恢复数据库备份'];
     }
 
     /**
@@ -958,6 +1111,27 @@ class UpgradeService
             'error_message' => $status === UpgradeLog::STATUS_SUCCESS ? '' : $message,
             'upgrade_steps' => json_encode($this->steps, JSON_UNESCAPED_UNICODE),
         ]);
+    }
+
+    /**
+     * 递归查找指定后缀的文件
+     */
+    protected function findFilesBySuffix(string $dir, string $suffix): array
+    {
+        $files = [];
+        if (!is_dir($dir)) {
+            return $files;
+        }
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile() && str_ends_with(strtolower($file->getFilename()), '.' . strtolower($suffix))) {
+                $files[] = $file->getPathname();
+            }
+        }
+        return $files;
     }
 
     /**

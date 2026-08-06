@@ -44,28 +44,33 @@ class Cate extends Model
 
     /**
      * 获取URL（模型获取器）
-     * V2.9.43: 优先使用英文URL别名 seo_url 生成伪静态目录URL
-     * 有seo_url: /product/products, /page/about
-     * 无seo_url: /product?cate_id=1, /page/6 (兼容旧版)
+     * URL体系：
+     *   有seo_url：/{seo_url}  如 /news, /products, /about
+     *   无seo_url：/{type_slug}?cate_id={id} 如 /info?cate_id=3
+     *   单页有seo_url：/{seo_url}  如 /about
+     *   单页无seo_url：/page/{id}  如 /page/6
      */
     public function getUrlAttr($value, $data): string
     {
-        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
-        $typeSlug = $typeMap[$data['type']] ?? 'info';
         $seoUrl = $data['seo_url'] ?? '';
+        $type = $data['type'] ?? 3;
 
-        // V2.9.42: 单页类型
-        if ($data['type'] == 6) {
-            // V2.9.43: 有英文名用 /page/about，无英文名用 /page/6
+        // 单页类型
+        if ($type == 6) {
             if (!empty($seoUrl)) {
-                return "/page/{$seoUrl}";
+                return "/{$seoUrl}";
             }
             return "/page/{$data['id']}";
         }
-        // V2.9.43: 有英文名用 /product/products，无英文名用 /product?cate_id=1
+
+        // 其他类型：有英文名用单段URL
         if (!empty($seoUrl)) {
-            return "/{$typeSlug}/{$seoUrl}";
+            return "/{$seoUrl}";
         }
+
+        // 无英文名回退到旧格式
+        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job'];
+        $typeSlug = $typeMap[$type] ?? 'info';
         return "/{$typeSlug}?cate_id={$data['id']}";
     }
 

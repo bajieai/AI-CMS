@@ -106,6 +106,19 @@ class ContentController extends AdminBaseController
         }
         unset($item);
 
+        // 注入前台预览URL（规范URL：有seo_url用/{seo_url}/{id}，否则用/{type_slug}/{id}）
+        $typeSlugMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job'];
+        foreach ($list as &$item) {
+            $cateSeoUrl = $item['cate']['seo_url'] ?? '';
+            $typeSlug = $typeSlugMap[$item['type']] ?? 'info';
+            if (!empty($cateSeoUrl)) {
+                $item['preview_url'] = '/' . $cateSeoUrl . '/' . $item['id'];
+            } else {
+                $item['preview_url'] = '/' . $typeSlug . '/' . $item['id'];
+            }
+        }
+        unset($item);
+
         $this->assign([
             'list' => $list,
             'cates' => $cates,

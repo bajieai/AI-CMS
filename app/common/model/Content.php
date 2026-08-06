@@ -66,7 +66,10 @@ class Content extends Model
 
     /**
      * 获取URL（模型获取器）
-     * 模板中使用 {$field.url}
+     * 模板中使用 {$field.url} 或 {$vo.url}
+     * URL体系：
+     *   内容所属分类有seo_url：/{seo_url}/{id} 如 /news/1
+     *   无seo_url：/{type_slug}/{id} 如 /info/1
      */
     public function getUrlAttr($value, $data): string
     {
@@ -80,6 +83,17 @@ class Content extends Model
         ];
 
         $typeSlug = $typeMap[$data['type']] ?? 'info';
+
+        // 尝试从关联分类获取 seo_url（安全访问，避免获取器中触发查询异常）
+        try {
+            $cate = $this->getAttr('cate');
+            if ($cate && !empty($cate->seo_url)) {
+                return '/' . $cate->seo_url . '/' . $data['id'];
+            }
+        } catch (\Throwable $e) {
+            // 关联未加载或查询失败，回退到 type_slug 格式
+        }
+
         return "/{$typeSlug}/{$data['id']}";
     }
 

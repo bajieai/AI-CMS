@@ -381,3 +381,27 @@ body {
 
 /* ==================== TinyMCE 隐藏 ==================== */
 .tox-promotion, .tox-statusbar__branding { display: none !important; }
+
+/* 轮播图左右箭头：半透明圆形背景确保白色箭头在任何背景上都可见 */
+#homeBanner .carousel-control-prev,
+#homeBanner .carousel-control-next {
+    width: 44px;
+    height: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 50%;
+    opacity: 0.6;
+    transition: opacity 0.2s, background 0.2s;
+}
+#homeBanner .carousel-control-prev {
+    left: 16px;
+}
+#homeBanner .carousel-control-next {
+    right: 16px;
+}
+#homeBanner .carousel-control-prev:hover,
+#homeBanner .carousel-control-next:hover {
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 1;
+}

@@ -20,8 +20,9 @@
     <div class="carousel-inner">
 {/if}
         <div class="carousel-item {if condition='$i == 1'}active{/if}">
-            <a href="{$field.link|default='javascript:;'}" target="{$field.target|default='_self'}" class="d-block banner-slide" style="background-image:url('{$field.image}')">
-                <div class="carousel-caption d-none d-md-block" style="background:rgba(0,0,0,.4);border-radius:8px;padding:1rem">
+            <a href="{$field.link|default='javascript:;'}" target="{$field.target|default='_self'}" class="d-block banner-slide">
+                <img src="{$field.image}" alt="{$field.title}" class="banner-img">
+                <div class="carousel-caption d-none d-md-block">
                     <h5>{$field.title}</h5>
                 </div>
             </a>

@@ -70,18 +70,11 @@ class ContentService
      * @param int $pageSize 每页数量（分页时使用）
      * @param int $cateId 分类ID（>0 则仅查询该分类下的内容，类似 eyoucms 的 typeid）
      * @param int $offset 偏移量（跳过前N条，类似 SQL OFFSET / eyoucms 的 limit='2,6'）
+     * @param bool $autoPage 是否自动从URL读取page参数（分页模式下 page=0 时生效）
      * @return \think\Collection|\think\Paginator
      */
-    public function getInfolist(string $type = '', int $limit = 10, string $order = 'id desc', int $page = 0, int $pageSize = 10, int $cateId = 0, int $offset = 0)
+    public function getInfolist(string $type = '', int $limit = 10, string $order = 'id desc', int $page = 0, int $pageSize = 10, int $cateId = 0, int $offset = 0, bool $autoPage = false)
     {
-        $cacheKey = 'info_list_' . md5($type . '_' . $limit . '_' . $order . '_' . $page . '_' . $pageSize . '_' . $cateId . '_' . $offset);
-        $cacheTag = Config::get('cache.tag.content', 'cms_content');
-
-        $result = Cache::get($cacheKey);
-        if ($result !== null) {
-            return $result;
-        }
-
         $typeMap = [
             'product' => 1,
             'case' => 2,
@@ -91,7 +84,7 @@ class ContentService
             'page' => 6,
         ];
 
-        $query = Content::where('status', 2); // 仅已发布
+        $query = Content::with('cate')->where('status', 2); // 仅已发布，预加载分类用于URL生成
 
         if (!empty($type) && isset($typeMap[$type])) {
             $query->where('type', $typeMap[$type]);
@@ -102,16 +95,30 @@ class ContentService
             $query->where('cate_id', $cateId);
         }
 
+        // V2.9.44: autoPage 模式下从URL自动读取 page 参数
+        if ($autoPage && $page === 0 && $pageSize > 0) {
+            return $query->order($order)->paginate($pageSize);
+        }
+
         if ($page > 0) {
-            $result = $query->order($order)->paginate($pageSize, false, ['page' => $page]);
+            return $query->order($order)->paginate($pageSize, false, ['page' => $page]);
+        }
+
+        // 非分页模式：缓存查询
+        $cacheKey = 'info_list_' . md5($type . '_' . $limit . '_' . $order . '_' . $cateId . '_' . $offset);
+        $cacheTag = Config::get('cache.tag.content', 'cms_content');
+
+        $result = Cache::get($cacheKey);
+        if ($result !== null) {
+            return $result;
+        }
+
+        // V2.9.42: 支持 offset 偏移量（跳过前N条再取，类似 eyoucms limit='2,6'）
+        // TP 8.1 中 limit($offset, $length) 而非 Query->offset()
+        if ($offset > 0) {
+            $result = $query->order($order)->limit($offset, $limit)->select();
         } else {
-            // V2.9.42: 支持 offset 偏移量（跳过前N条再取，类似 eyoucms limit='2,6'）
-            // TP 8.1 中 limit($offset, $length) 而非 Query->offset()
-            if ($offset > 0) {
-                $result = $query->order($order)->limit($offset, $limit)->select();
-            } else {
-                $result = $query->order($order)->limit($limit)->select();
-            }
+            $result = $query->order($order)->limit($limit)->select();
         }
 
         Cache::set($cacheKey, $result, 3600);
@@ -134,7 +141,7 @@ class ContentService
             return new \think\Collection([]);
         }
 
-        return Content::where('status', 2)
+        return Content::with('cate')->where('status', 2)
             ->whereIn('id', $ids)
             ->order($order)
             ->limit($limit)

@@ -30,12 +30,23 @@ class CateController extends FrontBaseController
      * 分类列表页
      * 路由：/product, /info 等（通过append传入type参数）
      */
-    public function listing()
+    public function listing(int $forceCateId = 0)
     {
         $typeSlug = $this->request->param('type', 'product');
         $typeMap = ['product' => 1, 'case' => 2, 'info' => 3, 'download' => 4, 'job' => 5, 'page' => 6];
         $type = $typeMap[$typeSlug] ?? 1;
-        $cateId = (int) $this->request->param('cate_id', 0);
+        $cateId = $forceCateId > 0 ? $forceCateId : (int) $this->request->param('cate_id', 0);
+
+        // V2.9.44: 单段路由入口 listingBySlug 传入 forceCateId 时，
+        // 从分类数据覆盖 type/typeSlug（因为 param('type') 默认是 product）
+        if ($forceCateId > 0) {
+            $forceCate = Cate::find($forceCateId);
+            if ($forceCate) {
+                $type = (int) $forceCate->type;
+                $typeSlugMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
+                $typeSlug = $typeSlugMap[$type] ?? 'info';
+            }
+        }
 
         // V2.9.44: 如果 cate_id 为 0 但有 seoUrl 路由参数，通过 seoUrl 反查分类ID
         // 注意：路由参数名是 seoUrl（驼峰），不是 seo_url（下划线）
@@ -99,12 +110,15 @@ class CateController extends FrontBaseController
         $cateList = $cateService->getCatelist($typeSlug, 100, 0);
         $cates = $cateService->getTree($cateList->toArray());
 
-        // 获取内容列表
-        $query = Content::where('status', 2)->where('type', $type);
+        // 获取内容列表（预加载cate用于URL生成）
+        $query = Content::with('cate')->where('status', 2)->where('type', $type);
         if ($cateId > 0) {
             $query->where('cate_id', $cateId);
         }
-        $list = $query->order('id', 'desc')->paginate(12);
+        // V2.9.44: 支持URL参数 pagesize 自定义每页条数，默认12
+        $pageSize = (int) $this->request->param('pagesize', 12);
+        $pageSize = max(1, min(100, $pageSize)); // 限制1-100
+        $list = $query->order('id', 'desc')->paginate($pageSize);
 
         // 获取当前分类SEO信息
         $currentCate = null;
@@ -162,10 +176,10 @@ class CateController extends FrontBaseController
             }
             $showChildren = $isActive || $isParentActive;
             $padding = ($cate['level'] * 1.2 + 1);
-            // V2.9.44: 优先使用 seo_url 生成伪静态URL，无 seo_url 时回退到 ?cate_id=X
+            // V2.9.44: 优先使用单段URL /{seo_url}，无 seo_url 时回退到 ?cate_id=X
             $cateUrl = '';
             if (!empty($cate['seo_url'])) {
-                $cateUrl = '/' . $typeSlug . '/' . $cate['seo_url'];
+                $cateUrl = '/' . $cate['seo_url'];
             } else {
                 $cateUrl = '/' . $typeSlug . '?cate_id=' . $cate['id'];
             }
@@ -269,22 +283,53 @@ class CateController extends FrontBaseController
     }
 
     /**
-     * V2.9.43: 分类列表页英文URL
-     * 路由：/product/{seoUrl}（如 /product/products）
-     * 通过英文别名查找分类后复用 listing()
-     * V2.9.44: listing() 已内置 seo_url→cate_id 反查，此方法只做分类存在性验证
+     * V2.9.44: 单段URL路由统一入口 /{seoUrl}
+     * 通过 seoUrl 反查分类，根据分类类型自动分发：
+     *   - 单页(type=6) → singlePage()
+     *   - 其他类型 → listing()
      */
-    public function listingBySlug(string $type)
+    public function dispatch()
     {
-        $seoUrl = $this->request->param('seo_url', '');
+        $seoUrl = $this->request->param('seoUrl', '');
         if (empty($seoUrl)) {
-            return $this->listing();
+            abort(404, '页面不存在');
         }
-        // 验证分类存在
+
+        $cate = Cate::where('seo_url', $seoUrl)->where('status', 1)->find();
+        if (!$cate || $cate->isEmpty()) {
+            abort(404, '页面不存在');
+        }
+
+        // 单页类型直接调用 singlePage
+        if ($cate->type == 6) {
+            return $this->singlePage($cate->id);
+        }
+
+        // 其他类型调用 listing
+        return $this->listing($cate->id);
+    }
+
+    /**
+     * V2.9.44: 旧版两段URL路由入口 /{type}/{seoUrl}
+     * 兼容旧版 /info/news /product/products 等
+     * 如果分类有 seo_url，301重定向到规范的单段URL
+     */
+    public function listingBySlug(string $type = '')
+    {
+        $seoUrl = $this->request->param('seoUrl', '');
+        if (empty($seoUrl)) {
+            $seoUrl = $this->request->param('seo_url', '');
+        }
+        if (empty($seoUrl)) {
+            abort(404, '页面不存在');
+        }
+
         $cate = Cate::where('seo_url', $seoUrl)->where('status', 1)->find();
         if (!$cate || $cate->isEmpty()) {
             abort(404, '分类不存在');
         }
-        return $this->listing();
+
+        // 301重定向到规范的单段URL
+        return redirect('/' . $seoUrl, 301);
     }
 }

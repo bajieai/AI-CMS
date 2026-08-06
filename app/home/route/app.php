@@ -11,38 +11,33 @@
 // | Author: 八界AI Team <admin@i8j.cn>
 // +----------------------------------------------------------------------
 // AI-CMS V2.0 前台路由
+//
+// URL 体系（参考 eyoucms/织梦模式）：
+//   列表页：/{seo_url}       如 /news, /products, /about
+//   列表页：/{type_slug}     如 /info, /product （无 seo_url 时回退）
+//   详情页：/{seo_url}/{id}  如 /news/1, /products/3
+//   详情页：/{type_slug}/{id} 如 /info/1 （无 seo_url 时回退）
+//   单页面：/{seo_url}       如 /about, /contact
+//   单页面：/page/{id}       如 /page/6 （无 seo_url 时回退）
+//
+// 旧URL通过控制器内301重定向到规范URL
 use think\facade\Route;
 
 // 首页
 Route::get('/', '\app\home\controller\IndexController@index');
 
-// 分类列表页（每个类型单独注册，completeMatch防止 /info/1 被匹配）
+// ========== 固定路由（系统保留路径，必须在通配路由之前注册） ==========
+
+// 分类列表页（无 seo_url 时回退入口）
+// completeMatch 防止 /info/1 被匹配到这里
 Route::get('product', '\app\home\controller\CateController@listing')->append(['type' => 'product'])->completeMatch(true);
 Route::get('case', '\app\home\controller\CateController@listing')->append(['type' => 'case'])->completeMatch(true);
 Route::get('info', '\app\home\controller\CateController@listing')->append(['type' => 'info'])->completeMatch(true);
 Route::get('download', '\app\home\controller\CateController@listing')->append(['type' => 'download'])->completeMatch(true);
 Route::get('job', '\app\home\controller\CateController@listing')->append(['type' => 'job'])->completeMatch(true);
 
-// V2.9.43: 分类列表页英文URL路由 /product/products /info/info 等
-// 注意：详情页 :id（纯数字）路由必须在这些路由之前注册，否则数字ID会被当seoUrl匹配
-Route::get('product/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'product'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
-Route::get('case/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'case'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
-Route::get('info/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'info'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
-Route::get('download/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'download'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
-Route::get('job/:seoUrl', '\app\home\controller\CateController@listingBySlug')->append(['type' => 'job'])->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
-
-// V2.9.42: 单页列表页 /page（展示所有单页分类卡片）
-Route::get('page', '\app\home\controller\CateController@listing')->append(['type' => 'page'])->completeMatch(true);
-
-// V2.9.42: 单页面直达路由 /page/6 /page/7 等（按分类ID，必须在 :type/:id 之前）
-Route::get('page/:cateId', '\app\home\controller\CateController@singlePage')
-    ->pattern(['cateId' => '\d+']);
-
-// V2.9.43: 单页面英文URL路由 /page/about /page/contact 等（必须以字母开头，避免与纯数字ID路由冲突）
-Route::get('page/:seoUrl', '\app\home\controller\CateController@singlePageBySlug')
-    ->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
-
-// 内容详情页 /product/123 /info/123 等（每个类型单独注册）
+// 内容详情页（无 seo_url 时回退入口）
+// /product/123 /info/123 等（纯数字ID，completeMatch 不需要因为 pattern 已限制）
 Route::get('product/:id', '\app\home\controller\ContentController@detail')
     ->append(['type' => 'product'])->pattern(['id' => '\d+']);
 Route::get('case/:id', '\app\home\controller\ContentController@detail')
@@ -53,6 +48,23 @@ Route::get('download/:id', '\app\home\controller\ContentController@detail')
     ->append(['type' => 'download'])->pattern(['id' => '\d+']);
 Route::get('job/:id', '\app\home\controller\ContentController@detail')
     ->append(['type' => 'job'])->pattern(['id' => '\d+']);
+
+// 单页列表页 /page（展示所有单页分类卡片）
+Route::get('page', '\app\home\controller\CateController@listing')->append(['type' => 'page'])->completeMatch(true);
+
+// 单页面直达路由 /page/6 /page/7 等（按分类ID）
+Route::get('page/:cateId', '\app\home\controller\CateController@singlePage')
+    ->pattern(['cateId' => '\d+']);
+
+// 旧版两段URL 301重定向 /product/{seoUrl} → /{seoUrl}
+// 保留一段时间用于SEO过渡，之后可移除
+Route::get('product/:seoUrl', '\app\home\controller\CateController@listingBySlug')->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
+Route::get('case/:seoUrl', '\app\home\controller\CateController@listingBySlug')->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
+Route::get('info/:seoUrl', '\app\home\controller\CateController@listingBySlug')->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
+Route::get('download/:seoUrl', '\app\home\controller\CateController@listingBySlug')->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
+Route::get('job/:seoUrl', '\app\home\controller\CateController@listingBySlug')->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
+Route::get('page/:seoUrl', '\app\home\controller\CateController@singlePageBySlug')
+    ->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*']);
 
 // 搜索页
 Route::get('search', '\app\home\controller\SearchController@index');
@@ -199,3 +211,25 @@ Route::post('payment/wechat_notify$', '\app\home\controller\PaymentController@we
 Route::post('payment/alipay_notify$', '\app\home\controller\PaymentController@alipayNotify');
 Route::get('payment/alipay_return$', '\app\home\controller\PaymentController@alipayReturn');
 
+// ========== 通配路由（必须放在所有固定路由之后） ==========
+//
+// 系统保留词（被这些词精确匹配的URL不会进入通配路由）：
+//   固定路径：product, case, info, download, job, page, search, member, user,
+//            rss, form, chapter, points, signin, comment, oauth, ai, template,
+//            template_store, plugin_store, developer, payment, my_templates, 404
+//
+// 通配路由1：/{seoUrl}/{id} → 内容详情页
+//   匹配 /news/1, /products/3 等（第二段为纯数字）
+//   先查 seo_url 对应的分类，找到则展示详情；找不到则 404
+//
+// 通配路由2：/{seoUrl} → 分类列表页或单页面
+//   匹配 /news, /products, /about 等
+//   先查 seo_url 对应的分类，列表类型展示列表，单页类型展示单页
+
+// 通配路由1：内容详情页 /{seoUrl}/{id}
+Route::get(':seoUrl/:id', '\app\home\controller\ContentController@detailBySlug')
+    ->pattern(['seoUrl' => '[a-zA-Z][a-zA-Z0-9\-]*', 'id' => '\d+']);
+
+// 通配路由2：分类列表页/单页面 /{seoUrl}
+Route::get(':seoUrl', '\app\home\controller\CateController@dispatch')
+    ->pattern(['seoUrl' => '(?!product$|case$|info$|download$|job$|page$|search$|member$|user$|rss$|form$|chapter$|points$|signin$|comment$|oauth$|ai$|template$|template_store$|plugin_store$|developer$|payment$|my_templates$|404$)[a-zA-Z][a-zA-Z0-9\-]*']);

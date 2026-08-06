@@ -40,7 +40,7 @@
                         <td><code>{$vo.model_identifier??$vo.code??''}</code></td>
                         <td class="text-muted small">{$vo.model_description??$vo.description??''|mb_substr=0,30}</td>
                         <td><span class="badge bg-info">{$vo.group_id??'-'}</span></td>
-                        <td>{$vo.sort_order??$vo.sort??0}</td>
+                        <td>{$vo.sort??0}</td>
                         <td>
                             {if ($vo.is_enabled??$vo.status??0)==1}
                             <span class="badge bg-success">启用</span>

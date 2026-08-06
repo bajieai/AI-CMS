@@ -75,26 +75,42 @@ class I8j extends TagLib
     /**
      * {i8j:infolist type="info" cate_id="3" limit="10" order="id desc"}
      * {i8j:infolist type="info" id="1,2,3"}
-     * {i8j:infolist type="info" page="1" pagesize="10" order="id desc"}
+     * {i8j:infolist type="info" pagesize="4" order="id desc"}    ← 分页：每页4条
      * 编译为：调用ContentService::getInfolist/getByIds获取数据，然后用{volist}遍历
      * V2.9.42: 新增cate_id(分类筛选)+id(指定ID)属性
+     * V2.9.44: 新增pagesize分页支持，自动从URL读取page参数
+     *          指定pagesize后，标签内可用 {$pageNav|raw} 输出分页导航
      */
     public function tagInfolist(array $tag, string $content): string
     {
         $type = $tag['type'] ?? '';
         $limit = $tag['limit'] ?? 10;
         $order = $tag['order'] ?? 'id desc';
-        $page = isset($tag['page']) ? (int) $tag['page'] : 0;
-        $pageSize = isset($tag['pagesize']) ? (int) $tag['pagesize'] : 10;
         $cateId = isset($tag['cate_id']) ? (int) $tag['cate_id'] : 0;
         $offset = isset($tag['offset']) ? (int) $tag['offset'] : 0;
         $ids = isset($tag['id']) ? trim($tag['id']) : '';
 
+        // V2.9.44: pagesize 指定后启用分页，page 从 URL 自动读取
+        $pageSize = isset($tag['pagesize']) ? (int) $tag['pagesize'] : 0;
+        // 兼容旧 page 属性（固定页码），不推荐使用
+        $page = isset($tag['page']) ? (int) $tag['page'] : 0;
+
         $parse = '<?php ';
-        // id 属性优先：指定ID列表查询
         if (!empty($ids)) {
+            // id 属性优先：指定ID列表查询
             $parse .= '$__LIST__ = app("app\\common\\service\\ContentService")->getByIds("' . $ids . '", ' . (int) $limit . ', "' . $order . '"); ';
+        } elseif ($pageSize > 0) {
+            // 分页模式：自动从URL读取page参数
+            $parse .= '$pageNav = ""; ';
+            $parse .= '$__PAGE_RESULT__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", 0, ' . $pageSize . ', ' . $cateId . ', ' . $offset . ', true); ';
+            $parse .= 'if (is_object($__PAGE_RESULT__) && method_exists($__PAGE_RESULT__, "items")) { ';
+            $parse .= '  $__LIST__ = $__PAGE_RESULT__->items(); ';
+            $parse .= '  $pageNav = $__PAGE_RESULT__->render(); ';
+            $parse .= '} else { ';
+            $parse .= '  $__LIST__ = $__PAGE_RESULT__; ';
+            $parse .= '} ';
         } else {
+            // 非分页模式
             $parse .= '$__PAGE__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", ' . $page . ', ' . $pageSize . ', ' . $cateId . ', ' . $offset . '); ';
             $parse .= '$__LIST__ = (is_object($__PAGE__) && method_exists($__PAGE__, "items")) ? $__PAGE__->items() : $__PAGE__; ';
         }

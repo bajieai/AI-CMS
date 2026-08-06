@@ -17,7 +17,12 @@
         <div class="card card-corporate">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-cloud-arrow-up me-2"></i>在线升级</span>
-                <span class="badge bg-secondary">当前版本 V{$currentVersion}</span>
+                <div>
+                    <a href="/admin/online_upgrade/config" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-gear me-1"></i>升级配置
+                    </a>
+                    <span class="badge bg-secondary">当前版本 V{$currentVersion}</span>
+                </div>
             </div>
             <div class="card-body">
                 <div id="versionInfo">
@@ -126,6 +131,35 @@
                     <li>升级失败会自动回滚到升级前状态</li>
                     <li>建议升级前先手动创建一次完整备份</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 升级确认对话框 -->
+<div class="modal fade" id="upgradeConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>确认升级</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>即将从 <strong>V<span id="confirmFromVersion"></span></strong> 升级到 <strong>V<span id="confirmToVersion"></span></strong></p>
+                <div class="alert alert-warning small">
+                    <ul class="mb-0 ps-3">
+                        <li>升级过程可能需要几分钟，请不要关闭页面</li>
+                        <li>系统会自动备份数据库和将被覆盖的文件</li>
+                        <li>升级失败时会自动回滚文件，数据库不会自动回滚</li>
+                        <li>建议升级前先手动创建一次完整备份</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmUpgrade">
+                    <i class="bi bi-download me-1"></i>确认升级
+                </button>
             </div>
         </div>
     </div>

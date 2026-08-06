@@ -100,5 +100,7 @@ return [
         // V2.9.40 DEV-ECO2-1: 插件打包/发布
         'plugin:build'          => 'app\admin\command\PluginBuildCommand',
         'plugin:publish'        => 'app\admin\command\PluginPublishCommand',
+        // V2.9.44: 在线升级包生成工具
+        'upgrade:package'       => 'app\common\command\UpgradePackageCommand',
     ],
 ];

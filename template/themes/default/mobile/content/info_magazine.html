@@ -1,4 +1,4 @@
-﻿{extend name="layout" /}
+{extend name="layout" /}
 
 {block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
 {block name="keywords"}{$info.seo_keywords|default=''}{/block}
@@ -59,7 +59,7 @@
         
         {if condition="$related_contents && $related_contents|count > 0"}
         <div class="mt-5">
-            <h5 class="border-bottom pb-2 mb-3">相关文章</h5>
+            <h5 class="border-bottom pb-2 mb-3">相关信息</h5>
             <div class="row">
                 {volist name="related_contents" id="rel"}
                 <div class="col-md-4 mb-3"><div class="card h-100">

@@ -1,4 +1,4 @@
-﻿{extend name="layout" /}
+{extend name="layout" /}
 
 {block name="title"}
 {if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name} - {$site_name}{else /}{if condition="$type==1"}产品中心{elseif condition="$type==2"/}成功案例{elseif condition="$type==3"/}信息动态{/elseif condition="$type==4"/}资料下载{elseif condition="$type==5"/}人才招聘{else /}单页{/if} - {$site_name}{/if}

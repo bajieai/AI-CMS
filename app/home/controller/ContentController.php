@@ -39,8 +39,56 @@ class ContentController extends FrontBaseController
     protected bool $enablePageCache = false;
 
     /**
-     * 内容详情页
+     * 内容详情页（规范入口）
+     * 路由：/{seoUrl}/{id} 如 /news/1, /products/3
+     * 先通过 seoUrl 查找分类，再验证内容归属，最后渲染详情
+     */
+    public function detailBySlug()
+    {
+        $seoUrl = $this->request->param('seoUrl', '');
+        $id = (int) $this->request->param('id', 0);
+
+        if (empty($seoUrl) || $id <= 0) {
+            abort(404, '内容不存在');
+        }
+
+        // 通过 seoUrl 查找分类
+        $cate = Cate::where('seo_url', $seoUrl)->where('status', 1)->find();
+        if (!$cate || $cate->isEmpty()) {
+            abort(404, '页面不存在');
+        }
+
+        // 单页类型不应该走详情页路由，重定向到单页面
+        if ($cate->type == 6) {
+            return redirect('/' . $seoUrl, 301);
+        }
+
+        // 查找内容
+        $info = Content::with(['cate', 'user', 'ext', 'tags'])->find($id);
+        if (empty($info) || $info->status != 2) {
+            abort(404, '内容不存在');
+        }
+
+        // 验证内容归属分类（内容 cate_id 必须匹配分类 ID，或属于该分类的子分类）
+        if ($info->cate_id != $cate->id) {
+            // 内容不属于此分类，尝试重定向到规范URL
+            $realCate = $info->cate;
+            if ($realCate && !empty($realCate->seo_url)) {
+                return redirect('/' . $realCate->seo_url . '/' . $id, 301);
+            }
+            // 无 seo_url 的回退到 type_slug
+            $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job'];
+            $typeSlug = $typeMap[$info->type] ?? 'info';
+            return redirect('/' . $typeSlug . '/' . $id, 301);
+        }
+
+        return $this->renderDetail($info);
+    }
+
+    /**
+     * 内容详情页（旧版回退入口）
      * 路由：/product/{id}, /info/{id} 等（通过append传入type参数）
+     * 如果内容的分类有 seo_url，301 重定向到规范URL /{seoUrl}/{id}
      */
     public function detail(int $id)
     {
@@ -49,6 +97,27 @@ class ContentController extends FrontBaseController
         if (empty($info) || $info->status != 2) {
             abort(404, '内容不存在');
         }
+
+        // 旧URL 301 重定向到规范URL
+        $cate = $info->cate ?? null;
+        if ($cate && !empty($cate->seo_url)) {
+            $currentPath = request()->pathinfo();
+            $expectedPath = $cate->seo_url . '/' . $id;
+            // 如果当前路径不是规范路径，301重定向
+            if ($currentPath !== $expectedPath) {
+                return redirect('/' . $expectedPath, 301);
+            }
+        }
+
+        return $this->renderDetail($info);
+    }
+
+    /**
+     * 渲染内容详情页（公共逻辑）
+     */
+    protected function renderDetail($info)
+    {
+        $id = (int) $info->id;
 
         // V2.9.15: 多语言切换支持 (?lang=en/ja/ko)
         $lang = request()->get('lang', '');
@@ -122,7 +191,16 @@ class ContentController extends FrontBaseController
         }
 
         $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
-        $typeUrl = '/' . ($typeMap[$info->type] ?? 'info');
+        $typeSlug = $typeMap[$info->type] ?? 'info';
+
+        // V2.9.44: 面包屑链接优先用分类的 seo_url（单段URL），无则回退到模型前缀
+        $cate = $info->cate ?? null;
+        $typeUrl = '/';
+        if ($cate && !empty($cate->seo_url)) {
+            $typeUrl = '/' . $cate->seo_url;
+        } else {
+            $typeUrl = '/' . $typeSlug;
+        }
 
         // V2.3 JSON-LD结构化数据
         $seoService = new SeoService();

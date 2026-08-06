@@ -29,7 +29,7 @@ class ContentModel extends Model
     public static function getEnabledModels(): array
     {
         return self::where('is_enabled', 1)
-            ->order('sort_order', 'asc')
+            ->order('sort', 'asc')
             ->select()
             ->toArray();
     }

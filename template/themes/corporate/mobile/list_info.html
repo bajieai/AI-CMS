@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name}{else /}文章列表{/if} - {$site_name}{/block}
+{block name="title"}{if condition="$current_cate"}{$current_cate.seo_title ?: $current_cate.name}{else /}信息列表{/if} - {$site_name}{/block}
 
 {block name="keywords"}{if condition="$current_cate && $current_cate.seo_keywords"}{$current_cate.seo_keywords}{else /}{$site_keywords}{/if}{/block}
 
@@ -12,7 +12,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">首页</a></li>
-                <li class="breadcrumb-item active">文章列表</li>
+                <li class="breadcrumb-item active">信息列表</li>
             </ol>
         </nav>
         <div class="row">
