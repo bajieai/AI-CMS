@@ -123,14 +123,18 @@
 
     /**
      * 安全执行内联JS脚本
-     * V2.9.42 fix: 不再跳过同名函数声明（不同页面可能需要不同的 selectImage/init 实现）
-     * 函数声明重复执行无害（后者覆盖前者），事件绑定需业务代码自行用事件委托避免重复
+     * 策略：将 function xxx() 转为 window.xxx = function()，再用 IIFE 包裹
+     * - IIFE 解决 const/let 重复声明报错（"already been declared"）
+     * - window.xxx 确保 onclick="xxx()" 等内联事件可用
+     * - 事件绑定需业务代码自行用事件委托避免重复
      */
     function executeInlineScript(jsText) {
         if (!jsText) return;
         try {
+            // 将 function xxx() 转为 window.xxx = function xxx() 确保全局可访问
+            var wrapped = jsText.replace(/^function\s+(\w+)\s*\(/gm, 'window.$1 = function $1(');
             var s = document.createElement('script');
-            s.textContent = jsText;
+            s.textContent = '(function(){\n' + wrapped + '\n})();';
             document.head.appendChild(s);
             document.head.removeChild(s);
         } catch (e) {
