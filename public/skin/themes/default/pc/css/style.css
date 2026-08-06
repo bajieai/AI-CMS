@@ -45,3 +45,17 @@ footer a:hover { color: var(--bg); }
     border-left: 3px solid transparent;
     transition: all .15s ease;
 }
+
+/* V2.9.44 Banner 轮播图：统一高度 + 背景填充（修复首张 banner 显示异常） */
+.banner-slide {
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+.carousel-caption {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 1rem;
+}
