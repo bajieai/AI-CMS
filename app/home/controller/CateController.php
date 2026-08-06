@@ -37,6 +37,17 @@ class CateController extends FrontBaseController
         $type = $typeMap[$typeSlug] ?? 1;
         $cateId = (int) $this->request->param('cate_id', 0);
 
+        // V2.9.44: 如果 cate_id 为 0 但有 seo_url 路由参数，通过 seo_url 反查分类ID
+        if ($cateId === 0) {
+            $seoUrl = $this->request->param('seo_url', '');
+            if (!empty($seoUrl)) {
+                $seoCate = Cate::where('seo_url', $seoUrl)->where('type', $type)->where('status', 1)->find();
+                if ($seoCate && !$seoCate->isEmpty()) {
+                    $cateId = (int) $seoCate->id;
+                }
+            }
+        }
+
         // V2.9.42: 单页类型不再有列表页概念，/page 展示单页分类卡片
         // /page?cate_id=X 重定向到 /page/X
         if ($type === 6) {
@@ -259,7 +270,8 @@ class CateController extends FrontBaseController
     /**
      * V2.9.43: 分类列表页英文URL
      * 路由：/product/{seoUrl}（如 /product/products）
-     * 通过英文别名查找分类后复用 listing()，注入 cate_id 参数
+     * 通过英文别名查找分类后复用 listing()
+     * V2.9.44: listing() 已内置 seo_url→cate_id 反查，此方法只做分类存在性验证
      */
     public function listingBySlug(string $type)
     {
@@ -267,55 +279,11 @@ class CateController extends FrontBaseController
         if (empty($seoUrl)) {
             return $this->listing();
         }
+        // 验证分类存在
         $cate = Cate::where('seo_url', $seoUrl)->where('status', 1)->find();
         if (!$cate || $cate->isEmpty()) {
             abort(404, '分类不存在');
         }
-        // V2.9.44: ThinkPHP param() 优先读路由参数，withGet/setParam 无法覆盖
-        // 直接用 request()->get('cate_id') 替代 param() 获取方式
-        $typeMap = ['product' => 1, 'case' => 2, 'info' => 3, 'download' => 4, 'job' => 5, 'page' => 6];
-        $typeId = $typeMap[$type] ?? 1;
-        $cateId = $cate->id;
-
-        // 获取分类列表（树形结构）
-        $cateService = new CateService();
-        $cateList = $cateService->getCatelist($type, 100, 0);
-        $cates = $cateService->getTree($cateList->toArray());
-
-        // 获取内容列表
-        $list = Content::where('status', 2)->where('type', $typeId)
-            ->where('cate_id', $cateId)
-            ->order('id', 'desc')->paginate(12);
-
-        $currentCate = $cate;
-
-        // Schema 结构化标记
-        $schemaService = new SchemaMarkupService();
-        $breadcrumbs = [
-            ['name' => '首页', 'url' => request()->domain()],
-            ['name' => $currentCate->name, 'url' => request()->url(true)],
-        ];
-        $breadcrumbSchema = $schemaService->generateBreadcrumb($breadcrumbs);
-        $webPageSchema = $schemaService->generateWebPage([
-            'title'       => $currentCate->name,
-            'description' => $currentCate->description ?: '',
-            'url'         => request()->url(true),
-        ]);
-        $schemaMarkup = $schemaService->toJsonLd([$breadcrumbSchema, $webPageSchema]);
-
-        $this->assign([
-            'type' => $typeId,
-            'cate_id' => $cateId,
-            'cates' => $cates,
-            'cate_tree_html' => $this->renderCateTree($cates, $type, $cateId),
-            'list' => $list,
-            'page_cates' => null,
-            'type_slug' => $type,
-            'current_cate' => $currentCate,
-            'schema_markup' => $schemaMarkup,
-        ]);
-
-        $template = ListRenderService::resolveTemplate('/list', $currentCate);
-        return $this->view($template);
+        return $this->listing();
     }
 }
