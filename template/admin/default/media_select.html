@@ -246,6 +246,8 @@
                         $('#selectedInfo').text('请选择媒体文件');
                         $('#btnConfirm').prop('disabled', true);
                     }
+                    // 取消 beforeunload 拦截，避免 reload 时弹出二次确认
+                    _keepOnTop = false;
                     location.reload();
                 } else {
                     alert(res.msg || '删除失败');
