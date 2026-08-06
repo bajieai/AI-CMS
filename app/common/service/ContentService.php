@@ -39,6 +39,12 @@ class ContentService
             $query = Content::with('cate')->where('status', '>=', 0);
         }
 
+        // V2.9.42: 单页内容(type=6)通过分类管理编辑，不在信息列表中显示
+        // 除非用户明确筛选了 type=6
+        if (!isset($params['type']) || (int) $params['type'] !== 6) {
+            $query->where('type', '<>', 6);
+        }
+
         if (!empty($params['type'])) {
             $query->where('type', (int) $params['type']);
         }

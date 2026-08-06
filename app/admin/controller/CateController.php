@@ -121,6 +121,10 @@ class CateController extends AdminBaseController
         }
 
         if ($info->delete()) {
+            // V2.9.42: 单页分类删除时同步删除关联的content记录
+            if ((int) $info->type === 6 && $info->content_id > 0) {
+                Content::where('id', $info->content_id)->where('type', 6)->delete();
+            }
             $this->recordLog('删除分类', $info->name ?? '');
             $cacheService = new CacheService();
             $cacheService->clearByTag(ThinkConfig::get('cache.tag.cate', 'cms_cate'));

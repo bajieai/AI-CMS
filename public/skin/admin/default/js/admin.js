@@ -217,9 +217,9 @@
     };
 
     // ==================== 确认删除 ====================
-    window.confirmDelete = function (url) {
+    window.confirmDelete = function (url, callback) {
         showConfirm('确定要删除吗？', '此操作不可恢复！', function () {
-            ajaxPost(url, {});
+            ajaxPost(url, {}, callback);
         });
     };
 
