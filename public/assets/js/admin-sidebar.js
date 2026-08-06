@@ -462,12 +462,29 @@
         var lastSegment = targetUrl.substring(lastSlash + 1);
         // 提取关键词：去掉 Index/Edit/Add 等常见后缀
         var keyword = lastSegment.replace(/(Index|Edit|Add|Detail|List|Batch)$/i, '');
-        if (!keyword) return false;
+        // V2.9.42-fix: keyword 为空时（如 /admin/banner/index → ""），
+        // 回退到上一级路径段（如 banner）
+        if (!keyword) {
+            var prevSlash = targetUrl.lastIndexOf('/', lastSlash - 1);
+            if (prevSlash <= 0) return false;
+            keyword = targetUrl.substring(prevSlash + 1, lastSlash);
+            if (!keyword) return false;
+        }
         // currentUrl 中是否包含同关键词的路径段
-        var currentLastSlash = currentUrl.lastIndexOf('/');
-        var currentLastSegment = currentUrl.substring(currentLastSlash + 1);
-        var currentKeyword = currentLastSegment.replace(/(Index|Edit|Add|Detail|List|Batch)$/i, '');
-        return keyword === currentKeyword;
+        // 逐段向上回退：处理 /admin/banner/add（→banner）和 /admin/workflow/edit/1（→workflow）
+        var remaining = currentUrl;
+        while (remaining.length > 0) {
+            var clSlash = remaining.lastIndexOf('/');
+            if (clSlash <= 0) break;
+            var clSegment = remaining.substring(clSlash + 1);
+            remaining = remaining.substring(0, clSlash);
+            var ck = clSegment.replace(/(Index|Edit|Add|Detail|List|Batch)$/i, '');
+            // 跳过纯数字段（如 /edit/1 中的 1）
+            if (/^\d+$/.test(ck)) continue;
+            if (!ck) continue;
+            return keyword === ck;
+        }
+        return false;
     }
 
     /**
