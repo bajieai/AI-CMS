@@ -1,0 +1,140 @@
+{extend name="layout" /}
+
+{block name="title"}在线升级{/block}
+
+{block name="css"}
+<link href="/assets/css/online-upgrade.css?v=2.9.44" rel="stylesheet">
+{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统设置</li>
+<li class="breadcrumb-item active">在线升级</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-cloud-arrow-up me-2"></i>在线升级</span>
+                <span class="badge bg-secondary">当前版本 V{$currentVersion}</span>
+            </div>
+            <div class="card-body">
+                <div id="versionInfo">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted mt-2 mb-0">正在检查最新版本...</p>
+                    </div>
+                </div>
+
+                <div id="upgradeAction" class="d-none mt-4">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-primary" id="btnCheckEnv">
+                            <i class="bi bi-shield-check me-1"></i>环境检查
+                        </button>
+                        <button type="button" class="btn btn-success d-none" id="btnStartUpgrade">
+                            <i class="bi bi-download me-1"></i>立即升级
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btnRefreshCheck">
+                            <i class="bi bi-arrow-clockwise me-1"></i>重新检测
+                        </button>
+                    </div>
+                    <div id="envResult" class="mt-3 d-none"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3" id="progressCard" style="display:none;">
+            <div class="card-header">
+                <i class="bi bi-activity me-2"></i>升级进度
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3" style="height:24px;">
+                    <div id="upgradeProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width:0%">0%</div>
+                </div>
+                <div id="upgradeSteps" class="upgrade-steps"></div>
+                <div id="upgradeResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>升级历史
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>版本</th>
+                                <th>状态</th>
+                                <th>时间</th>
+                                <th width="60">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="history.list" id="vo"}
+                            <tr>
+                                <td>
+                                    <small class="text-muted">V{$vo.from_version}</small>
+                                    <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                                    <strong>V{$vo.to_version}</strong>
+                                </td>
+                                <td>
+                                    {if $vo.status == 1}
+                                    <span class="badge bg-success">成功</span>
+                                    {elseif $vo.status == 2}
+                                    <span class="badge bg-danger">失败</span>
+                                    {elseif $vo.status == 3}
+                                    <span class="badge bg-warning text-dark">已回滚</span>
+                                    {else}
+                                    <span class="badge bg-secondary">待执行</span>
+                                    {/if}
+                                </td>
+                                <td class="text-muted small">{$vo.create_time|date='Y-m-d H:i'}</td>
+                                <td>
+                                    {if $vo.status == 1 || $vo.status == 2}
+                                    <button type="button" class="btn btn-outline-warning btn-xs" onclick="rollbackUpgrade({$vo.id})" title="回滚">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                    {/if}
+                                </td>
+                            </tr>
+                            {/volist}
+                            {empty name="history.list"}
+                            <tr><td colspan="4" class="text-center text-muted py-3">暂无升级记录</td></tr>
+                            {/empty}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-shield-shaded me-2"></i>安全说明
+            </div>
+            <div class="card-body">
+                <ul class="small text-muted mb-0 ps-3">
+                    <li>升级前会自动备份数据库</li>
+                    <li>受保护文件（.env、uploads/、config/database.php等）不会被覆盖</li>
+                    <li>SQL补丁采用幂等执行，重复升级不会报错</li>
+                    <li>升级失败会自动回滚到升级前状态</li>
+                    <li>建议升级前先手动创建一次完整备份</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script src="/assets/js/online-upgrade.js?v=2.9.44"></script>
+<script>
+window.currentVersion = '{$currentVersion}';
+</script>
+{/block}

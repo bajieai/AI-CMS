@@ -16,7 +16,7 @@ return [
     // 角色定义
     'roles' => [
         1 => ['name' => '超级管理员', 'permissions' => '*'],
-        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*', 'report.*', 'apidoc.*', 'ai_translation.*', 'plugin_market.*', 'member_benefit.*', 'export_advanced.*', 'monitor.*', 'menu_manager.*', 'ai_config.*']],
+        2 => ['name' => '管理员', 'permissions' => ['content.*', 'cate.*', 'tag.*', 'user.*', 'system.*', 'media.*', 'banner.*', 'link.*', 'review.*', 'comment.*', 'member.*', 'member_level.*', 'points.*', 'points_product.*', 'points_exchange.*', 'seo.*', 'seo_keyword.*', 'export.*', 'token.*', 'ad.*', 'notification.*', 'log.*', 'ai_model.*', 'ai_log.*', 'paid_order.*', 'dashboard.*', 'form.*', 'import.*', 'email_subscriber.*', 'visit_archive.*', 'payment.*', 'ai_batch.*', 'collect.*', 'publish.*', 'email.*', 'plugin.*', 'language.*', 'theme_market.*', 'captcha.*', 'ai_template.*', 'coupon.*', 'rating.*', 'template_design.*', 'report.*', 'apidoc.*', 'ai_translation.*', 'plugin_market.*', 'member_benefit.*', 'export_advanced.*', 'monitor.*', 'menu_manager.*', 'ai_config.*', 'online_upgrade.*']],
         3 => ['name' => '编辑', 'permissions' => ['content.*', 'cate.list', 'tag.list', 'media.list', 'media.upload']],
     ],
     
@@ -131,6 +131,17 @@ return [
             'admin/template_category/save',
             'admin/template_category/delete',
             'admin/template_category/toggleStatus',
+        ],
+        // V2.9.44: 在线升级
+        'online_upgrade.*' => [
+            'admin/online_upgrade/index',
+            'admin/online_upgrade/check',
+            'admin/online_upgrade/environment',
+            'admin/online_upgrade/execute',
+            'admin/online_upgrade/progress',
+            'admin/online_upgrade/history',
+            'admin/online_upgrade/rollback',
+            'admin/online_upgrade/clearCache',
         ],
     ],
 ];

@@ -9,7 +9,7 @@
             <!-- 主内容区（占8列） -->
             <div class="col-lg-8">
                 <h2 class="section-title mb-3">最新文章</h2>
-                {i8j:infolist type="news" limit="10"}
+                {i8j:infolist type="info" limit="10"}
                 <article class="content-list-item">
                     {if condition="$field.cover"}
                     <a href="{$field.url}" class="item-thumb"><img data-src="{$field.cover}" class="lazyload" alt="{$field.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></a>
@@ -35,7 +35,7 @@
             <aside class="col-lg-4">
                 <div class="widget">
                     <h6 class="widget-title"><i class="bi bi-fire me-1"></i>热门文章</h6>
-                    {i8j:infolist type="news" limit="5" order="views desc"}
+                    {i8j:infolist type="info" limit="5" order="views desc"}
                     <div class="widget-item d-flex gap-2">
                         <span class="rank-num">{$i+1}</span>
                         <div><a href="{$field.url}" class="small">{$field.title}</a><br><small class="text-muted">{$field.views} 阅读</small></div>

@@ -3,7 +3,7 @@
 {block name="content"}
 <div class="mobile-section">
     <h6>最新文章</h6>
-    {i8j:infolist type="news" limit="10"}
+    {i8j:infolist type="info" limit="10"}
     <a href="{$field.url}" class="mobile-list-item">
         {if condition="$field.cover"}<img data-src="{$field.cover}" class="lazyload me-2" style="width:72px;height:54px;object-fit:cover;border-radius:4px" alt="{$field.title}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">{/if}
         <div class="flex-grow-1">

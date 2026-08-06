@@ -1628,3 +1628,13 @@ Route::post('dev_doc/generateTemplate$', '\app\admin\controller\DevDocController
 Route::get('dev_doc/checklist$', '\app\admin\controller\DevDocController@checklist');
 Route::post('dev_doc/createSandbox$', '\app\admin\controller\DevDocController@createSandbox');
 Route::post('dev_doc/runTests$', '\app\admin\controller\DevDocController@runTests');
+
+// ===== V2.9.44: 在线升级 =====
+Route::get('online_upgrade/index$', '\app\admin\controller\OnlineUpgradeController@index');
+Route::get('online_upgrade/check$', '\app\admin\controller\OnlineUpgradeController@check');
+Route::get('online_upgrade/environment$', '\app\admin\controller\OnlineUpgradeController@environment');
+Route::post('online_upgrade/execute$', '\app\admin\controller\OnlineUpgradeController@execute');
+Route::get('online_upgrade/progress$', '\app\admin\controller\OnlineUpgradeController@progress');
+Route::get('online_upgrade/history$', '\app\admin\controller\OnlineUpgradeController@history');
+Route::post('online_upgrade/rollback$', '\app\admin\controller\OnlineUpgradeController@rollback');
+Route::post('online_upgrade/clearCache$', '\app\admin\controller\OnlineUpgradeController@clearCache');

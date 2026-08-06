@@ -1,0 +1,105 @@
+/* AI-CMS 在线升级页面样式 - V2.9.44 */
+
+.upgrade-steps {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+}
+
+.upgrade-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #dee2e6;
+}
+
+.upgrade-step:last-child {
+    border-bottom: none;
+}
+
+.upgrade-step-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+}
+
+.upgrade-step-icon.pending {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.upgrade-step-icon.running {
+    background: #cfe2ff;
+    color: #0d6efd;
+}
+
+.upgrade-step-icon.done {
+    background: #d1e7dd;
+    color: #198754;
+}
+
+.upgrade-step-icon.failed {
+    background: #f8d7da;
+    color: #dc3545;
+}
+
+.upgrade-step-icon.warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.upgrade-step-icon.skipped {
+    background: #e2e3e5;
+    color: #41464b;
+}
+
+.upgrade-step-content {
+    flex: 1;
+}
+
+.upgrade-step-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.1rem;
+}
+
+.upgrade-step-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.changelog-body {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    white-space: pre-wrap;
+}
+
+.card-corporate .card-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: #fff;
+}
+
+.card-corporate .table-light {
+    background: #f1f5f9;
+}
+
+.btn-xs {
+    padding: 0.15rem 0.35rem;
+    font-size: 0.75rem;
+}
+
+#envResult pre {
+    max-height: 200px;
+    overflow-y: auto;
+}

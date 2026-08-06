@@ -199,6 +199,8 @@ return [
             // V2.9.18: 订阅管理
             ['id' => 483, 'name' => '订阅管理', 'url' => '/admin/subscriber/index', 'permission' => 'subscriber.*', 'active' => 'subscriber', 'icon' => 'bi bi-envelope-plus'],
             ['id' => 484, 'name' => '邮件日志', 'url' => '/admin/mail_log/index', 'permission' => 'mail_log.*', 'active' => 'mail_log', 'icon' => 'bi bi-envelope-check'],
+            // V2.9.44: 在线升级
+            ['id' => 485, 'name' => '在线升级', 'url' => '/admin/online_upgrade/index', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade', 'icon' => 'bi bi-cloud-arrow-up'],
         ],
     ],
 ];

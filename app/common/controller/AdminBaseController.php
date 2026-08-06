@@ -124,6 +124,8 @@ abstract class AdminBaseController extends \think\BaseController
         'workflow'         => 'workflow',
         // V2.9.21: 模板分类管理
         'template_category' => 'template_category',
+        // V2.9.44: 在线升级
+        'online_upgrade' => 'online_upgrade',
     ];
 
     /**
