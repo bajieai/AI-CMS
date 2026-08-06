@@ -22,6 +22,11 @@
                         <input type="text" name="name" class="form-control" value="{$info.name ?? ''}" required placeholder="请输入分类名称">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">英文URL别名 <small class="text-muted">(伪静态目录名)</small></label>
+                        <input type="text" name="seo_url" class="form-control" value="{$info.seo_url ?? ''}" placeholder="如 products、about、contact（留空则用数字ID）">
+                        <small class="text-muted">用于伪静态URL，如 <code>/product/products</code> 或 <code>/page/about</code>。仅限英文字母、数字、短横线</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">分类类型</label>
                         <select name="type" class="form-select" id="cateType">
                             <option value="1" {if condition="($info.type ?? 1) == 1"}selected{/if}>产品</option>

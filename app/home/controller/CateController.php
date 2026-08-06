@@ -234,4 +234,38 @@ class CateController extends FrontBaseController
 
         return $this->view('/single_page');
     }
+
+    /**
+     * V2.9.43: 单页面英文URL直达展示
+     * 路由：/page/{seoUrl}（如 /page/about）
+     * 通过英文别名查找分类后复用 singlePage()
+     */
+    public function singlePageBySlug(string $seoUrl)
+    {
+        $cate = Cate::where('seo_url', $seoUrl)->where('status', 1)->find();
+        if (!$cate || $cate->isEmpty()) {
+            abort(404, '页面不存在');
+        }
+        return $this->singlePage($cate->id);
+    }
+
+    /**
+     * V2.9.43: 分类列表页英文URL
+     * 路由：/product/{seoUrl}（如 /product/products）
+     * 通过英文别名查找分类后复用 listing()，注入 cate_id 参数
+     */
+    public function listingBySlug(string $type)
+    {
+        $seoUrl = $this->request->param('seo_url', '');
+        if (empty($seoUrl)) {
+            return $this->listing();
+        }
+        $cate = Cate::where('seo_url', $seoUrl)->where('status', 1)->find();
+        if (!$cate || $cate->isEmpty()) {
+            abort(404, '分类不存在');
+        }
+        // 注入 cate_id 参数后复用 listing
+        $this->request->withGet(['cate_id' => $cate->id]);
+        return $this->listing();
+    }
 }

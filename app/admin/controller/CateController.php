@@ -53,6 +53,18 @@ class CateController extends AdminBaseController
         }
 
         $data = $this->request->post();
+        // V2.9.43: seo_url 格式校验 + 唯一性校验
+        $seoUrl = trim($data['seo_url'] ?? '');
+        if (!empty($seoUrl)) {
+            if (!preg_match('/^[a-zA-Z0-9\-]+$/', $seoUrl)) {
+                return $this->error('英文URL别名只能包含英文字母、数字和短横线');
+            }
+            $exist = Cate::where('seo_url', $seoUrl)->find();
+            if ($exist) {
+                return $this->error('英文URL别名已存在，请更换');
+            }
+        }
+        $data['seo_url'] = $seoUrl;
         $cate = new Cate();
         if ($cate->save($data)) {
             $this->recordLog('添加分类', $data['name'] ?? '', $data);
@@ -92,6 +104,18 @@ class CateController extends AdminBaseController
         }
 
         $data = $this->request->post();
+        // V2.9.43: seo_url 格式校验 + 唯一性校验（排除自身）
+        $seoUrl = trim($data['seo_url'] ?? '');
+        if (!empty($seoUrl)) {
+            if (!preg_match('/^[a-zA-Z0-9\-]+$/', $seoUrl)) {
+                return $this->error('英文URL别名只能包含英文字母、数字和短横线');
+            }
+            $exist = Cate::where('seo_url', $seoUrl)->where('id', '<>', $id)->find();
+            if ($exist) {
+                return $this->error('英文URL别名已存在，请更换');
+            }
+        }
+        $data['seo_url'] = $seoUrl;
         if ($info->save($data)) {
             $this->recordLog('编辑分类', $info->name ?? '', $data);
             // V2.9.42: 单页分类自动同步content记录

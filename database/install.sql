@@ -852,15 +852,17 @@ CREATE TABLE `{prefix}cate` (
   `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `default_style` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'formal' COMMENT '默认写作风格: formal/relaxed/professional/warm',
   `content_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '单页内容ID(type=6时关联content表)',
+  `seo_url` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '英文URL别名(伪静态目录名,留空则用cate_id)',
   PRIMARY KEY (`id`),
   KEY `idx_parent` (`parent_id`),
   KEY `idx_type` (`type`),
   KEY `idx_model_id` (`model_id`),
   KEY `idx_content_model_code` (`content_model_code`),
-  KEY `idx_content_id` (`content_id`)
+  KEY `idx_content_id` (`content_id`),
+  KEY `idx_seo_url` (`seo_url`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
 
-INSERT INTO `{prefix}cate` VALUES (1,'产品中心',1,0,'','','',0,1,1,1776933035,1776933035,'formal',0),(2,'成功案例',2,0,'','','',0,2,1,1776933035,1776933035,'formal',0),(3,'新闻动态',3,0,'','','',0,3,1,1776933035,1776933035,'formal',0),(4,'资料下载',4,0,'','','',0,4,1,1776933035,1776933035,'formal',0),(5,'人才招聘',5,0,'','','',0,5,1,1776933035,1776933035,'formal',0),(6,'关于我们',6,0,'','','',0,6,1,1776933035,1776933035,'formal',2),(7,'联系方式',6,0,'','','',0,7,1,1776933035,1776933035,'formal',3),(8,'公司简介',6,0,'','','',0,8,1,1776933035,1776933035,'formal',4);
+INSERT INTO `{prefix}cate` VALUES (1,'产品中心',1,0,'','','',0,1,1,1776933035,1776933035,'formal',0,'products'),(2,'成功案例',2,0,'','','',0,2,1,1776933035,1776933035,'formal',0,'cases'),(3,'新闻动态',3,0,'','','',0,3,1,1776933035,1776933035,'formal',0,'news'),(4,'资料下载',4,0,'','','',0,4,1,1776933035,1776933035,'formal',0,'downloads'),(5,'人才招聘',5,0,'','','',0,5,1,1776933035,1776933035,'formal',0,'jobs'),(6,'关于我们',6,0,'','','',0,6,1,1776933035,1776933035,'formal',2,'about'),(7,'联系方式',6,0,'','','',0,7,1,1776933035,1776933035,'formal',3,'contact'),(8,'公司简介',6,0,'','','',0,8,1,1776933035,1776933035,'formal',4,'company');
 DROP TABLE IF EXISTS `{prefix}category`;
 CREATE TABLE `{prefix}category` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
