@@ -37,9 +37,10 @@ class CateController extends FrontBaseController
         $type = $typeMap[$typeSlug] ?? 1;
         $cateId = (int) $this->request->param('cate_id', 0);
 
-        // V2.9.44: 如果 cate_id 为 0 但有 seo_url 路由参数，通过 seo_url 反查分类ID
+        // V2.9.44: 如果 cate_id 为 0 但有 seoUrl 路由参数，通过 seoUrl 反查分类ID
+        // 注意：路由参数名是 seoUrl（驼峰），不是 seo_url（下划线）
         if ($cateId === 0) {
-            $seoUrl = $this->request->param('seo_url', '');
+            $seoUrl = $this->request->param('seoUrl', '');
             if (!empty($seoUrl)) {
                 $seoCate = Cate::where('seo_url', $seoUrl)->where('type', $type)->where('status', 1)->find();
                 if ($seoCate && !$seoCate->isEmpty()) {
