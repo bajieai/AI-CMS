@@ -59,14 +59,14 @@
 
     <!-- 友情链接 -->
     {i8j:linklist limit="20" status="1"}
-    {if condition="$i == 0"}
+    {if condition="$i == 1"}
     <div class="link-section">
         <div class="container">
             <div class="d-flex align-items-center flex-wrap gap-2">
                 <span class="text-muted small"><i class="bi bi-link-45deg me-1"></i>友情链接：</span>
     {/if}
                 <a href="{$field.url}" target="_blank" class="small text-muted text-decoration-none">{$field.title}</a>
-    {if condition="$i == count($__LIST__) - 1"}
+    {if condition="$i == count($__LIST__)"}
             </div>
         </div>
     </div>

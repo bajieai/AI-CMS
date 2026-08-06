@@ -5,23 +5,23 @@
 {block name="content"}
 <!-- 轮播图 -->
 {i8j:bannerlist limit="5" status="1"}
-{if condition="$i == 0"}
+{if condition="$i == 1"}
 <div id="homeBanner" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-indicators">
         {/if}
-        <button type="button" data-bs-target="#homeBanner" data-bs-slide-to="{$i}" {if condition="$i == 0"}class="active" aria-current="true"{/if} aria-label="{$field.title}"></button>
-        {if condition="$i == count($__LIST__) - 1"}
+        <button type="button" data-bs-target="#homeBanner" data-bs-slide-to="{$i - 1}" {if condition="$i == 1"}class="active" aria-current="true"{/if} aria-label="{$field.title}"></button>
+        {if condition="$i == count($__LIST__)"}
     </div>
     <div class="carousel-inner">
         {/if}
-        <div class="carousel-item {if condition='$i == 0'}active{/if}">
+        <div class="carousel-item {if condition='$i == 1'}active{/if}">
             <a href="{$field.link|default='javascript:;'}" target="{$field.target|default='_self'}" class="d-block" style="height:400px;background:url('{$field.image}') center/cover no-repeat;">
                 <div class="carousel-caption d-none d-md-block" style="background:rgba(0,0,0,.4);border-radius:8px;padding:1rem">
                     <h5>{$field.title}</h5>
                 </div>
             </a>
         </div>
-        {if condition="$i == count($__LIST__) - 1"}
+        {if condition="$i == count($__LIST__)"}
     </div>
     <button class="carousel-control-prev" type="button" data-bs-target="#homeBanner" data-bs-slide="prev">
         <span class="carousel-control-prev-icon"></span>

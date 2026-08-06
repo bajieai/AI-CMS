@@ -139,11 +139,11 @@
 
 <!-- 友情链接 -->
 {i8j:linklist limit="12" status="1"}
-{if condition="$i == 0"}
+{if condition="$i == 1"}
 <div style="background:rgba(30,41,59,.06);border-top:1px solid var(--bor);padding:10px 14px;margin:0 -14px;"><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">
 {/if}
 <a href="{$field.url}" target="_blank" style="font-size:11.5px;color:var(--txt-m);text-decoration:none;">{$field.title}</a>
-{if condition="$i == count($__LIST__) - 1"}</div></div>{/if}
+{if condition="$i == count($__LIST__)"}</div></div>{/if}
 {/i8j:linklist}
 
 <!-- CTA + 页脚 -->
