@@ -17,6 +17,25 @@
 {/block}
 
 {block name="content"}
+<!-- V2.9.45: 版本升级提醒（从数据看板移到仪表盘首页） -->
+{if condition="$has_upgrade"}
+<div class="row g-3 mb-3">
+    <div class="col-12">
+        <div class="alert alert-info alert-dismissible fade show mb-0 d-flex align-items-center" role="alert">
+            <span class="badge bg-danger me-2">NEW</span>
+            <div>
+                <strong>发现新版本 V{$upgrade_latest_version}</strong>
+                <span class="text-muted ms-2">当前版本 V{$current_version}</span>
+            </div>
+            <a href="/admin/online_upgrade/index" class="btn btn-sm btn-primary ms-auto">
+                <i class="bi bi-cloud-arrow-up me-1"></i>立即升级
+            </a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+{/if}
+
 <!-- 统计卡片 -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-4 col-lg">
@@ -224,7 +243,15 @@
             <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                     <tbody>
-                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">V2.9.9</td></tr>
+                        <tr><td class="ps-3 text-muted" style="font-size:.84rem">系统版本</td><td class="text-end pe-3" style="font-weight:600">
+                            {if condition="$has_upgrade"}
+                            <a href="/admin/online_upgrade/index" class="text-decoration-none text-warning" title="发现新版本 V{$upgrade_latest_version}，点击升级">
+                                V{$current_version} <i class="bi bi-cloud-arrow-up"></i>
+                            </a>
+                            {else /}
+                            V{$current_version}
+                            {/if}
+                        </td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">框架版本</td><td class="text-end pe-3" style="font-weight:600">ThinkPHP 8.1</td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">PHP版本</td><td class="text-end pe-3" style="font-weight:600"><?php echo PHP_VERSION; ?></td></tr>
                         <tr><td class="ps-3 text-muted" style="font-size:.84rem">数据库</td><td class="text-end pe-3" style="font-weight:600"><?php echo format_bytes($db_size); ?></td></tr>

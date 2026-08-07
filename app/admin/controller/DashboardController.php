@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
-use app\common\service\UpgradeService;
 use think\facade\Cache;
 use think\facade\Db;
 use app\common\service\CacheService;
@@ -30,13 +29,7 @@ class DashboardController extends AdminBaseController
      */
     public function index()
     {
-        // V2.9.44: Dashboard 首页版本提醒（读取缓存，不阻塞页面）
-        $upgradeService = new UpgradeService();
-        $upgradeNotice = $upgradeService->getDashboardNotice();
-
-        return $this->view('/dashboard_index', [
-            'upgradeNotice' => $upgradeNotice,
-        ]);
+        return $this->view('/dashboard_index');
     }
 
     /**

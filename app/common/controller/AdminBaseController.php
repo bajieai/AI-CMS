@@ -232,6 +232,20 @@ abstract class AdminBaseController extends \think\BaseController
             'logo_name'      => $cmsConfigs['logo_name'] ?? '',
             'brand_name'     => $brandName,       // 自定义品牌名称
         ]);
+
+        // V2.9.45: 全局注入当前版本号 + 升级提醒（仅读缓存，不阻塞页面）
+        try {
+            $upgradeService = new \app\common\service\UpgradeService();
+            $currentVersion = $upgradeService->getCurrentVersion();
+            $this->app->view->assign('current_version', $currentVersion);
+            $notice = $upgradeService->getDashboardNotice();
+            $this->app->view->assign('has_upgrade', !empty($notice));
+            $this->app->view->assign('upgrade_latest_version', $notice['latest_version'] ?? '');
+        } catch (\Throwable $e) {
+            $this->app->view->assign('current_version', '');
+            $this->app->view->assign('has_upgrade', false);
+            $this->app->view->assign('upgrade_latest_version', '');
+        }
     }
 
     /**

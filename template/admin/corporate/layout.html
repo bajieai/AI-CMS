@@ -90,6 +90,22 @@
                     </ul>
                 </div>
 
+                <!-- V2.9.45: 版本号 + 在线升级提醒 -->
+                {if condition="!empty($current_version)"}
+                {if condition="$has_upgrade"}
+                <a href="/admin/online_upgrade/index" class="btn btn-sm btn-outline-primary position-relative" title="发现新版本 V{$upgrade_latest_version}，点击升级">
+                    <i class="bi bi-cloud-arrow-up"></i><span class="d-none d-md-inline ms-1">V{$current_version}</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger p-1" style="font-size:0.55rem;">
+                        <span class="visually-hidden">有新版本</span>
+                    </span>
+                </a>
+                {else /}
+                <span class="btn btn-sm btn-light text-secondary" title="当前版本 V{$current_version}">
+                    <i class="bi bi-check-circle"></i><span class="d-none d-md-inline ms-1">V{$current_version}</span>
+                </span>
+                {/if}
+                {/if}
+
             </div>
             <!-- 通知铃铛 -->
             <div class="dropdown me-2">
