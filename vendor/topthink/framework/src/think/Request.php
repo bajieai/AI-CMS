@@ -1267,7 +1267,7 @@ class Request implements ArrayAccess
             'b'     => (bool) $data,
             'd'     => (int) $data,
             'f'     => (float) $data,
-            's'     => is_scalar($data) ? (string) $data : throw new \InvalidArgumentException('variable type error：' . gettype($data)),
+            's'     => is_scalar($data) ? (string) $data : (is_array($data) ? json_encode($data, JSON_UNESCAPED_UNICODE) : (string) $data),
             default => $data,
         };
     }

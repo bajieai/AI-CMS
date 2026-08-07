@@ -1,0 +1,18 @@
+{extend name="layout" /}
+
+{block name="title"}重置密码{/block}
+
+{block name="content"}
+<div class="cm-main">
+    <div class="cm-card" style="padding:26px 20px;margin-top:8px;">
+        <h4 class="text-center mb-3" style="font-size:18px;font-weight:800;color:var(--i8j-text,#1e293b);">重置密码</h4>
+        <form id="resetForm">
+            <input type="hidden" name="token" value="{$token}">
+            <div class="cm-fg"><label style="font-size:12.5px;font-weight:600;color:var(--i8j-text-secondary,#64748b);display:block;margin-bottom:4px;">新密码</label><input type="password" name="password" class="cm-input" placeholder="至少6位" required minlength="6"></div>
+            <div class="cm-fg"><label style="font-size:12.5px;font-weight:600;color:var(--i8j-text-secondary,#64748b);display:block;margin-bottom:4px;">确认密码</label><input type="password" name="confirm_password" class="cm-input" placeholder="再次输入" required minlength="6"></div>
+            <button type="submit" class="cm-btn cm-btn-pri" id="submitBtn" style="margin-top:8px;"><i class="bi bi-check-lg me-2"></i>重置密码</button>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="js"}<script>$('#resetForm').on('submit',function(e){e.preventDefault();var b=$('#submitBtn');b.prop('disabled',!0).text('重置中...');$.post('/member/password/reset',$(this).serialize(),function(r){b.prop('disabled',!1).text('重置密码');if(r.success){alert(r.msg);location.href='/member/login';}else{alert(r.msg);}}).fail(function(){b.prop('disabled',!1).text('重置密码');alert('网络错误');});});</script>{/block}

@@ -57,7 +57,7 @@ return [
         // 模式: block(阻断) / log(仅记录)
         'mode'          => 'block',
         // 白名单URL
-        'whitelist'     => ['/admin/sql_query/', '/admin/db_optimize/'],
+        'whitelist'     => ['/admin/sql_query/', '/admin/db_optimize/', 'system/config'],
         // 慢查询阈值(秒)
         'slow_threshold' => 2,
     ],

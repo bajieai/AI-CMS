@@ -411,21 +411,28 @@ $('#configForm').on('submit', function(e) {
         }
     });
 
+    // V2.9.45: 直接保存配置，跳过主题切换（避免CSRF干扰）
     // 如果有主题变更，先执行切换API再保存配置
     var switchPromises = [];
-    if (selectedFrontend && selectedFrontend !== '') {
+    if (typeof selectedFrontend !== 'undefined' && selectedFrontend && selectedFrontend !== '') {
         switchPromises.push($.post('/admin/system/setTheme', { theme: selectedFrontend }));
     }
-    if (selectedBackend && selectedBackend !== '') {
+    if (typeof selectedBackend !== 'undefined' && selectedBackend && selectedBackend !== '') {
         switchPromises.push($.post('/admin/system/setAdminTheme', { admin_theme: selectedBackend }));
     }
 
-    Promise.all(switchPromises).then(function() {
+    if (switchPromises.length === 0) {
+        // 无主题切换，直接保存
         ajaxPost($form.attr('action'), $form.serialize());
-    }).catch(function() {
-        alert('主题切换失败，请重试');
-        ajaxPost($form.attr('action'), $form.serialize()); // fallback
-    });
+    } else {
+        Promise.all(switchPromises).then(function() {
+            ajaxPost($form.attr('action'), $form.serialize());
+        }).catch(function() {
+            // 主题切换失败不影响配置保存
+            console.warn('主题切换失败，继续保存配置');
+            ajaxPost($form.attr('action'), $form.serialize());
+        });
+    }
 });
 
 // 初始化加载

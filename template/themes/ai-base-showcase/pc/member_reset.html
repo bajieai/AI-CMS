@@ -1,0 +1,53 @@
+{extend name="layout" /}
+
+{block name="title"}重置密码 - {$site_name}{/block}
+
+{block name="content"}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h4 class="text-center mb-3">重置密码</h4>
+                        <form id="resetForm">
+                            <input type="hidden" name="token" value="{$token}">
+                            <div class="mb-3">
+                                <label class="form-label">新密码</label>
+                                <input type="password" name="password" class="form-control" required placeholder="至少6位" minlength="6">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">确认密码</label>
+                                <input type="password" name="confirm_password" class="form-control" required placeholder="再次输入新密码" minlength="6">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="submitBtn">重置密码</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}
+
+{block name="js"}
+<script>
+$('#resetForm').on('submit', function(e) {
+    e.preventDefault();
+    var btn = $('#submitBtn');
+    btn.prop('disabled', true).text('重置中...');
+    $.post('/member/password/reset', $(this).serialize(), function(res) {
+        btn.prop('disabled', false).text('重置密码');
+        if (res.success) {
+            alert(res.msg);
+            location.href = '/member/login';
+        } else {
+            alert(res.msg);
+        }
+    }).fail(function() {
+        btn.prop('disabled', false).text('重置密码');
+        alert('网络错误，请稍后重试');
+    });
+});
+</script>
+{/block}

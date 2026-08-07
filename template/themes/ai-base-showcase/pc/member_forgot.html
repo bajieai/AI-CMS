@@ -1,0 +1,51 @@
+{extend name="layout" /}
+
+{block name="title"}找回密码 - {$site_name}{/block}
+
+{block name="content"}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h4 class="text-center mb-3">找回密码</h4>
+                        <p class="text-muted text-center small mb-4">输入您的注册邮箱，我们将向您发送密码重置链接</p>
+                        <form id="forgotForm">
+                            <div class="mb-3">
+                                <label class="form-label">注册邮箱</label>
+                                <input type="email" name="email" class="form-control" required placeholder="请输入注册邮箱">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="submitBtn">发送重置链接</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a href="/member/login" class="small text-decoration-none">返回登录</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{/block}
+
+{block name="js"}
+<script>
+$('#forgotForm').on('submit', function(e) {
+    e.preventDefault();
+    var btn = $('#submitBtn');
+    btn.prop('disabled', true).text('发送中...');
+    $.post('/member/password/forgot', $(this).serialize(), function(res) {
+        btn.prop('disabled', false).text('发送重置链接');
+        if (res.success) {
+            alert(res.msg + '，请检查您的邮箱');
+        } else {
+            alert(res.msg);
+        }
+    }).fail(function() {
+        btn.prop('disabled', false).text('发送重置链接');
+        alert('网络错误，请稍后重试');
+    });
+});
+</script>
+{/block}

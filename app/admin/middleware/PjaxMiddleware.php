@@ -26,7 +26,27 @@ class PjaxMiddleware
             return $response;
         }
 
-        $content = $response->getContent();
+        // =====================================================
+        // 关键修复：业务 JSON 响应（如 {code:0, msg:'保存成功'}）
+        // 必须直接透传，不做 PJAX 转换。仅当 JSON 中包含
+        // code 字段时视为业务响应，否则视为 HTML 包装的 JSON。
+        // =====================================================
+        $htmlContent = null;
+        if ($response instanceof JsonResponse) {
+            $raw = $response->getContent();
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded) && isset($decoded['code'])) {
+                // 业务 JSON 响应，直接透传
+                return $response;
+            }
+            // autoResponse 因 Accept:application/json 将字符串模板创建为 Json 响应
+            // 提取原始 HTML 字符串，用于后续 PJAX 提取
+            if (is_string($decoded)) {
+                $htmlContent = $decoded;
+            }
+        }
+
+        $content = $htmlContent ?? $response->getContent();
         if (!is_string($content) || strlen($content) < 20) {
             return json([
                 'title' => '',
@@ -35,23 +55,6 @@ class PjaxMiddleware
                 'js'    => '',
                 'csrf_token' => session('__token__'),
             ]);
-        }
-
-        // =====================================================
-        // 关键修复：ThinkPHP autoResponse() 会根据请求的 Accept
-        // 头判断 isJson()，当 jQuery AJAX 设置 dataType:'json'
-        // 时，Accept 头包含 "application/json"，导致框架将
-        // 控制器返回的 HTML 字符串自动包装为 Json 响应。
-        // 此时 $content 已是 json_encode 后的字符串（如
-        // "\"\\r\\n<div class=\\\"card\\\">..." ），需要先
-        // json_decode 还原为原始 HTML，否则后续再次
-        // json_encode 会导致双重编码。
-        // =====================================================
-        if ($response instanceof JsonResponse) {
-            $decoded = json_decode($content, true);
-            if (is_string($decoded)) {
-                $content = $decoded;
-            }
         }
 
         $title = '';
@@ -98,6 +101,8 @@ class PjaxMiddleware
             $endPos = stripos($content, $endMark, $startPos + strlen($startMark));
             if ($endPos !== false && $endPos > $startPos) {
                 $inner = substr($content, $startPos + strlen($startMark), $endPos - $startPos - strlen($startMark));
+                // 清除 \r\n，HTML 中换行由块级元素控制，\r\n 会导致 PJAX JSON 响应中显示为可见字符
+                $inner = str_replace("\r\n", '', $inner);
                 return trim($inner, "\r\n\t ");
             }
         }
@@ -110,7 +115,10 @@ class PjaxMiddleware
                 $bodyStart = $mainTagEnd + 1;
                 $mainEnd   = stripos($content, '</main>', $bodyStart);
                 if ($mainEnd !== false) {
-                    return trim(substr($content, $bodyStart, $mainEnd - $bodyStart), "\r\n\t ");
+                    $inner = substr($content, $bodyStart, $mainEnd - $bodyStart);
+                    // 清除 \r\n，HTML 中换行由块级元素控制，\r\n 会导致 PJAX JSON 响应中显示为可见字符
+                    $inner = str_replace("\r\n", '', $inner);
+                    return trim($inner, "\r\n\t ");
                 }
             }
         }

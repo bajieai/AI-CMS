@@ -1,0 +1,54 @@
+{extend name="layout" /}
+
+{block name="title"}重置密码{/block}
+
+{block name="content"}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-3">重置密码</h4>
+                    <p class="text-muted text-center small mb-4">请输入您的新密码</p>
+                    <form id="resetForm">
+                        <input type="hidden" name="token" value="{$token}">
+                        <div class="mb-3">
+                            <label class="form-label">新密码</label>
+                            <input type="password" name="password" class="form-control" required placeholder="请输入新密码（至少6位）" minlength="6">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">确认密码</label>
+                            <input type="password" name="confirm_password" class="form-control" required placeholder="请再次输入新密码" minlength="6">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">重置密码</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+$('#resetForm').on('submit', function(e) {
+    e.preventDefault();
+    var btn = $('#submitBtn');
+    btn.prop('disabled', true).text('重置中...');
+    $.post('/member/password/reset', $(this).serialize(), function(res) {
+        btn.prop('disabled', false).text('重置密码');
+        if (res.success) {
+            alert(res.msg);
+            location.href = '/member/login';
+        } else {
+            alert(res.msg);
+        }
+    }).fail(function() {
+        btn.prop('disabled', false).text('重置密码');
+        alert('网络错误，请稍后重试');
+    });
+});
+</script>
+{/block}

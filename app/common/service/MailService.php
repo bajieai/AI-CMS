@@ -141,8 +141,8 @@ class MailService
                 'username'   => \app\common\model\Config::where('name', 'smtp_username')->value('value') ?: ($defaults['username'] ?? ''),
                 'password'   => \app\common\model\Config::where('name', 'smtp_password')->value('value') ?: ($defaults['password'] ?? ''),
                 'encryption' => \app\common\model\Config::where('name', 'smtp_encryption')->value('value') ?: ($defaults['encryption'] ?? 'ssl'),
-                'from_addr'  => \app\common\model\Config::where('name', 'smtp_from_addr')->value('value') ?: ($defaults['from_addr'] ?? 'noreply@i8j.cn'),
-                'from_name'  => \app\common\model\Config::where('name', 'site_name')->value('value') ?: ($defaults['from_name'] ?? 'AI-CMS'),
+                'from_addr'  => \app\common\model\Config::where('name', 'smtp_from_email')->value('value') ?: \app\common\model\Config::where('name', 'smtp_from_addr')->value('value') ?: ($defaults['from_addr'] ?? 'noreply@i8j.cn'),
+                'from_name'  => \app\common\model\Config::where('name', 'smtp_from_name')->value('value') ?: \app\common\model\Config::where('name', 'site_name')->value('value') ?: ($defaults['from_name'] ?? 'AI-CMS'),
             ];
         } catch (\Throwable $e) {
             return $defaults;

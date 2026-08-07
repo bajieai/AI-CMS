@@ -400,7 +400,12 @@ abstract class Response
                     '__toString',
                 ])
             ) {
-                throw new \InvalidArgumentException(sprintf('variable type error： %s', gettype($content)));
+                // 数组/对象自动转为 JSON 字符串，避免 Nginx rewrite 后 autoResponse 类型判断错误
+                if (is_array($content) || is_object($content)) {
+                    $content = json_encode($content, JSON_UNESCAPED_UNICODE);
+                } else {
+                    $content = (string) $content;
+                }
             }
 
             $this->content = (string) $content;

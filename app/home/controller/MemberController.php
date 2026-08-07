@@ -135,6 +135,51 @@ class MemberController extends FrontBaseController
     }
 
     /**
+     * 忘记密码 - 发送重置邮件
+     */
+    public function forgotPassword(Request $request)
+    {
+        if ($request->isPost()) {
+            $email = trim($request->post('email', ''));
+            if (empty($email)) {
+                return json(['success' => false, 'msg' => '请输入邮箱']);
+            }
+            $authService = new \app\common\service\AuthService();
+            $result = $authService->sendPasswordResetEmail($email);
+            return json(['success' => $result['code'] === 0, 'msg' => $result['msg']]);
+        }
+        return $this->view('/member_forgot');
+    }
+
+    /**
+     * 重置密码
+     */
+    public function passwordReset(Request $request)
+    {
+        $token = trim($request->param('token', ''));
+        if (empty($token)) {
+            return redirect('/member/password/forgot')->with('error', '重置链接无效');
+        }
+
+        if ($request->isPost()) {
+            $newPassword = $request->post('password', '');
+            $confirmPassword = $request->post('confirm_password', '');
+            if (empty($newPassword)) {
+                return json(['success' => false, 'msg' => '请输入新密码']);
+            }
+            if ($newPassword !== $confirmPassword) {
+                return json(['success' => false, 'msg' => '两次密码不一致']);
+            }
+            $authService = new \app\common\service\AuthService();
+            $result = $authService->resetPassword($token, $newPassword);
+            return json(['success' => $result['code'] === 0, 'msg' => $result['msg']]);
+        }
+
+        $this->assign('token', $token);
+        return $this->view('/member_reset');
+    }
+
+    /**
      * V2.9.10-fix: 旧URL 301重定向到用户中心统一入口
      */
     public function home()

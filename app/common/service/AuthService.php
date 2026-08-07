@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\Member;
+use app\common\service\EmailService;
+use think\facade\Cache;
 use think\facade\Session;
 
 /**
@@ -118,17 +120,116 @@ class AuthService
         }
 
         $token = bin2hex(random_bytes(32));
-        Session::set('pwd_reset_' . $token, ['member_id' => $member->id, 'expire' => time() + 1800]);
+        Cache::set('pwd_reset_' . $token, ['member_id' => $member->id, 'expire' => time() + 1800], 1800);
 
-        $siteUrl = config('app.app_host', request()->domain());
+        $siteUrl = config('app.app_host') ?: request()->domain();
         $resetUrl = rtrim($siteUrl, '/') . '/member/password/reset?token=' . $token;
+        $siteName = \app\common\service\ConfigService::get('site_name', 'AI-CMS');
 
-        $mailService = new MailService();
-        $subject = '【AI-CMS】密码找回';
-        $body = "<p>点击下方链接重置密码（30分钟内有效）：</p><p><a href='{$resetUrl}'>{$resetUrl}</a></p>";
-        $mailService->send($email, $subject, $body);
+        // 优先使用 EmailService（支持 smtp_from_name/smtp_from_email 配置），失败降级到 MailService
+        $subject = '【' . $siteName . '】密码找回';
+        $body = $this->buildPasswordResetEmail($resetUrl, $siteName);
+        $result = EmailService::send($email, $subject, $body);
+
+        if (!$result) {
+            // EmailService 失败，降级使用 MailService（支持 PHP mail() 降级）
+            $mailService = new MailService();
+            $result = $mailService->send($email, $subject, $body);
+        }
+
+        if (!$result) {
+            // 发送失败，清除 token
+            Cache::delete('pwd_reset_' . $token);
+            return ['code' => 1, 'msg' => '邮件发送失败，请联系管理员'];
+        }
 
         return ['code' => 0, 'msg' => '重置链接已发送到您的邮箱'];
+    }
+
+    /**
+     * 构建密码重置邮件 HTML 正文
+     */
+    protected function buildPasswordResetEmail(string $resetUrl, string $siteName): string
+    {
+        $expireMinutes = 30;
+        $siteUrl = config('app.app_host') ?: request()->domain();
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>密码找回</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7;padding:40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color:#1a73e8;padding:32px 40px;text-align:center;">
+                            <h1 style="color:#ffffff;font-size:22px;font-weight:600;margin:0;">{$siteName}</h1>
+                            <p style="color:rgba(255,255,255,0.85);font-size:14px;margin:8px 0 0;">密码找回</p>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:40px;">
+                            <p style="font-size:15px;color:#333333;line-height:1.6;margin:0 0 20px;">
+                                您好，您正在为账号申请重置密码。
+                            </p>
+                            <p style="font-size:15px;color:#333333;line-height:1.6;margin:0 0 24px;">
+                                请点击下方按钮重置密码（{$expireMinutes} 分钟内有效）：
+                            </p>
+                            <!-- Button -->
+                            <table cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+                                <tr>
+                                    <td align="center" style="background-color:#1a73e8;border-radius:6px;">
+                                        <a href="{$resetUrl}" target="_blank" style="display:inline-block;padding:14px 48px;color:#ffffff;font-size:16px;font-weight:500;text-decoration:none;letter-spacing:0.5px;">
+                                            重置密码
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <!-- Fallback link -->
+                            <p style="font-size:13px;color:#888888;line-height:1.6;margin:0 0 16px;">
+                                如果按钮无法点击，请复制以下链接到浏览器打开：
+                            </p>
+                            <p style="background-color:#f8f9fa;border:1px solid #e8eaed;border-radius:4px;padding:12px 16px;font-size:13px;color:#555555;word-break:break-all;margin:0 0 24px;line-height:1.5;">
+                                {$resetUrl}
+                            </p>
+                            <!-- Warning -->
+                            <table cellpadding="0" cellspacing="0" style="background-color:#fff8e1;border:1px solid #ffcc02;border-radius:4px;width:100%;">
+                                <tr>
+                                    <td style="padding:12px 16px;">
+                                        <p style="font-size:12px;color:#8d6e00;margin:0;line-height:1.5;">
+                                            如非您本人操作，请忽略此邮件。为保障账号安全，请勿将链接转发给他人。
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color:#f8f9fa;padding:20px 40px;text-align:center;border-top:1px solid #e8eaed;">
+                            <p style="font-size:12px;color:#999999;margin:0;line-height:1.5;">
+                                此邮件由系统自动发送，请勿回复。
+                            </p>
+                            <p style="font-size:12px;color:#999999;margin:4px 0 0;line-height:1.5;">
+                                {$siteUrl}
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+HTML;
     }
 
     /**
@@ -136,7 +237,7 @@ class AuthService
      */
     public function resetPassword(string $token, string $newPassword): array
     {
-        $data = Session::get('pwd_reset_' . $token);
+        $data = Cache::get('pwd_reset_' . $token);
         if (!$data || $data['expire'] < time()) {
             return ['code' => 1, 'msg' => '重置链接已过期，请重新申请'];
         }
@@ -155,6 +256,7 @@ class AuthService
         $member->save();
 
         Session::delete('pwd_reset_' . $token);
+        Cache::delete('pwd_reset_' . $token);
 
         return ['code' => 0, 'msg' => '密码重置成功，请使用新密码登录'];
     }

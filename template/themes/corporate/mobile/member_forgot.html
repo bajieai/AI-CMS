@@ -1,0 +1,18 @@
+{extend name="layout" /}
+
+{block name="title"}找回密码{/block}
+
+{block name="content"}
+<div class="cm-main">
+    <div class="cm-card" style="padding:26px 20px;margin-top:8px;">
+        <h4 class="text-center mb-3" style="font-size:18px;font-weight:800;color:var(--i8j-text,#1e293b);">找回密码</h4>
+        <p class="text-center" style="font-size:12.5px;color:var(--i8j-text-secondary,#64748b);margin-bottom:16px;">输入注册邮箱，发送重置链接</p>
+        <form id="forgotForm">
+            <div class="cm-fg"><label style="font-size:12.5px;font-weight:600;color:var(--i8j-text-secondary,#64748b);display:block;margin-bottom:4px;">注册邮箱</label><input type="email" name="email" class="cm-input" placeholder="请输入注册邮箱" required></div>
+            <button type="submit" class="cm-btn cm-btn-pri" id="submitBtn" style="margin-top:8px;"><i class="bi bi-send me-2"></i>发送重置链接</button>
+        </form>
+        <div class="text-center mt-3"><a href="/member/login" style="font-size:13.5px;color:var(--i8j-primary,#3b82f6);text-decoration:none;">返回登录</a></div>
+    </div>
+</div>
+{/block}
+{block name="js"}<script>$('#forgotForm').on('submit',function(e){e.preventDefault();var b=$('#submitBtn');b.prop('disabled',!0).text('发送中...');$.post('/member/password/forgot',$(this).serialize(),function(r){b.prop('disabled',!1).text('发送重置链接');if(r.success){alert(r.msg+'，请检查您的邮箱');}else{alert(r.msg);}}).fail(function(){b.prop('disabled',!1).text('发送重置链接');alert('网络错误');});});</script>{/block}

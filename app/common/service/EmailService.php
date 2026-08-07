@@ -162,7 +162,7 @@ class EmailService
     /**
      * 底层SMTP发送
      */
-    protected static function send(string $toEmail, string $subject, string $body): bool
+    public static function send(string $toEmail, string $subject, string $body): bool
     {
         $config = self::getSmtpConfig();
         if (empty($config['host']) || empty($config['username'])) {
@@ -237,16 +237,23 @@ class EmailService
      */
     protected static function buildHeaders(array $config, string $toEmail, string $subject): string
     {
-        $from = $config['from_email'];
-        $fromName = $config['from_name'] ?: 'AI-CMS';
+        // 发件人邮箱：优先 smtp_from_email，兼容旧字段 smtp_from_addr
+        $fromEmail = $config['from_email'] ?: ConfigService::get('smtp_from_addr', '');
+        $fromName = $config['from_name'] ?: ConfigService::get('site_name', 'AI-CMS');
+
+        // 动态读取版本号（从 README.md 或 app.php 配置）
+        $version = ConfigService::get('app_version', '') ?: config('app.app_version', '');
+        if (empty($version)) {
+            $version = 'AI-CMS';
+        }
 
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$from}>\r\n";
+        $headers .= "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>\r\n";
         $headers .= "To: <{$toEmail}>\r\n";
         $headers .= "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=\r\n";
         $headers .= "Date: " . date('r') . "\r\n";
-        $headers .= "X-Mailer: AI-CMS V2.5\r\n";
+        $headers .= "X-Mailer: {$version}\r\n";
 
         return $headers;
     }

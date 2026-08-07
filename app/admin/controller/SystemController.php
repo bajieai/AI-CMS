@@ -487,23 +487,39 @@ class SystemController extends AdminBaseController
 
         // 保存配置（编码根治：写入前校验UTF-8合法性，防止乱码落库）
         $data = $this->request->post();
-        foreach ($data as $name => $value) {
-            // 跳过非字符串值和系统保留字段
-            if (!is_string($value) || in_array($name, ['__token__'], true)) {
-                continue;
+        try {
+            foreach ($data as $name => $value) {
+                // 跳过非字符串值和系统保留字段
+                if (!is_string($value) || in_array($name, ['__token__'], true)) {
+                    continue;
+                }
+                // 校验UTF-8编码合法性：无效UTF-8序列将替换为�(U+FFFD)
+                $cleaned = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                if ($cleaned !== $value) {
+                    \think\facade\Log::warning("[编码防护] 配置 {$name} 包含非UTF-8字符，已自动清理");
+                    $value = $cleaned;
+                }
+                ConfigModel::where('name', $name)->update(['value' => $value]);
             }
-            // 校验UTF-8编码合法性：无效UTF-8序列将替换为�(U+FFFD)
-            $cleaned = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
-            if ($cleaned !== $value) {
-                // 记录异常日志
-                \think\facade\Log::warning("[编码防护] 配置 {$name} 包含非UTF-8字符，已自动清理");
-                $value = $cleaned;
-            }
-            ConfigModel::where('name', $name)->update(['value' => $value]);
-        }
 
-        $this->recordLog('保存系统配置', '', $data);
-        return $this->success('保存成功');
+            $this->recordLog('保存系统配置', '', $data);
+        } catch (\Throwable $e) {
+            \think\facade\Log::error('[config保存异常] ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            return json([
+                'code' => 1,
+                'msg'  => '保存失败: ' . $e->getMessage(),
+                'data' => [],
+            ])->header(['Content-Type' => 'application/json; charset=utf-8']);
+        }
+        
+        // V2.9.45: 确保 JSON 响应不被 PJAX 中间件干扰
+        return json([
+            'code' => 0,
+            'msg'  => '保存成功',
+            'data' => [],
+        ])->header([
+            'Content-Type' => 'application/json; charset=utf-8',
+        ]);
     }
 
     /**
