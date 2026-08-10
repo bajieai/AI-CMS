@@ -173,6 +173,13 @@ CONF;
                     $pdo->exec("USE `{$dbName}`");
                     $prefix = $dbConfig['prefix'] ?? 'i8j_';
 
+                    // 验证关键表存在
+                    try {
+                        $pdo->query("SELECT 1 FROM `{$prefix}user` LIMIT 1");
+                    } catch (\Exception $e) {
+                        return json(['code' => 1, 'msg' => "数据库表未完整创建（缺少 {$prefix}user 表），请返回步骤2重新创建", 'phase' => 3]);
+                    }
+
                     if (!empty($adminConfig)) {
                         $hashedPassword = password_hash($adminConfig['password'], PASSWORD_DEFAULT);
                         $stmt = $pdo->prepare("UPDATE `{$prefix}user` SET `username` = ?, `password` = ? WHERE `id` = 1");
@@ -321,6 +328,23 @@ CONF;
             $logContent = date('Y-m-d H:i:s') . " - SQL errors(" . count($errors) . ")\n";
             $logContent .= implode("\n", array_slice($errors, 0, 5)) . "\n\n";
             @file_put_contents(root_path() . 'runtime/log/install_sql_errors.log', $logContent, FILE_APPEND);
+        }
+
+        // 批次完成后验证关键表是否存在
+        $missingTables = [];
+        if (!$hasMore) {
+            $requiredTables = ['{prefix}user', '{prefix}config', '{prefix}content', '{prefix}category'];
+            foreach ($requiredTables as $table) {
+                $tableName = str_replace('{prefix}', $prefix, $table);
+                try {
+                    $pdo->query("SELECT 1 FROM `{$tableName}` LIMIT 1");
+                } catch (\Exception $e) {
+                    $missingTables[] = $tableName;
+                }
+            }
+            if (!empty($missingTables)) {
+                return ['code' => 1, 'phase' => 2, 'msg' => '关键表创建失败: ' . implode(', ', $missingTables) . '。可能原因：SQL语法不兼容或权限不足'];
+            }
         }
 
         $result = [
