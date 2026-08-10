@@ -41,7 +41,7 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
-                    {volist name="nav_cates" id="cate"}
+                    {volist name="nav_cates" id="cate" length="5"}
                     <li class="nav-item"><a class="nav-link" href="{$cate.url}">{$cate.name}</a></li>
                     {/volist}
                 </ul>

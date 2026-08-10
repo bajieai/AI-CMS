@@ -23,10 +23,7 @@ use think\facade\Db;
  */
 class IndexController
 {
-    /** AI-CMS 当前版本号（优先从 config/app.php 读取，回退到此常量） */
-    public const APP_VERSION = '2.9.42';
-
-    /** 运行时版本号（优先 config/app.php，回退常量） */
+    /** 运行时版本号（从 config/app.php 读取，单一修改点） */
     protected string $version;
 
     protected App $app;
@@ -34,8 +31,7 @@ class IndexController
     public function __construct(App $app)
     {
         $this->app = $app;
-        // 优先从配置文件读取版本号，回退到常量（保持单一修改点）
-        $this->version = config('app.app_version') ?: $this->version;
+        $this->version = config('app.app_version') ?: '2.9.45';
     }
 
     /**
