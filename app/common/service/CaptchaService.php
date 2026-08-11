@@ -37,13 +37,17 @@ class CaptchaService
                 'appid' => ConfigService::get('captcha_tencent_appid', ''),
             ];
         }
-        // 默认本地GD增强验证码
-        return self::generateImage();
+        // 默认本地验证码：优先 GD 图片，环境不支持时降级为纯文本算术验证码
+        if (extension_loaded('gd') && function_exists('imagecreatetruecolor')) {
+            return self::generateImage();
+        }
+        return self::generateText();
     }
 
     /**
      * 生成GD增强图像验证码（干扰线/扭曲文字/噪点）
      * V2.7 P0-7: 替代简单SVG，提高安全性
+     * 字体缺失时自动降级为 imagestring 内置位图字体，确保任何环境不 500
      * @return array [key, image_base64]
      */
     public static function generateImage(): array
@@ -77,6 +81,9 @@ class CaptchaService
             imageline($image, random_int(0, $width), random_int(0, $height), random_int(0, $width), random_int(0, $height), $color);
         }
 
+        $fontPath = self::getFontPath();
+        $useTtf = $fontPath !== '' && function_exists('imagettftext');
+
         // 绘制文字（确保所有字符都在图片边界内）
         $chars = str_split($question);
         $charCount = count($chars);
@@ -89,12 +96,19 @@ class CaptchaService
         $x = (int) ($padding + ($usableWidth - $totalWidth) / 2); // 水平居中起始
 
         foreach ($chars as $char) {
-            $size = random_int(18, 22);
             $color = imagecolorallocate($image, random_int(30, 100), random_int(30, 100), random_int(30, 100));
-            $angle = random_int(-10, 10);
-            $y = random_int(38, 48); // y 在图片中部偏下，不超出底部
-            imagettftext($image, $size, $angle, $x, $y, $color, self::getFontPath(), $char);
-            $x += $charWidth;
+            if ($useTtf) {
+                $size = random_int(18, 22);
+                $angle = random_int(-10, 10);
+                $y = random_int(38, 48); // y 在图片中部偏下，不超出底部
+                imagettftext($image, $size, $angle, $x, $y, $color, $fontPath, $char);
+                $x += $charWidth;
+            } else {
+                // 字体缺失降级：使用 GD 内置位图字体（无需外部 ttf 文件）
+                $y = (int) (($height - 15) / 2);
+                imagestring($image, 5, $x, $y, (string) $char, $color);
+                $x += $charWidth;
+            }
         }
 
         // 输出为base64
@@ -107,6 +121,27 @@ class CaptchaService
             'key'   => $key,
             'image' => 'data:image/png;base64,' . base64_encode($data),
             'mode'  => 'image',
+        ];
+    }
+
+    /**
+     * 纯文本算术验证码（GD 扩展不可用时的降级方案）
+     * 返回 mode=text，前端 login.html 已兼容（展示 "a + b = ?"，用户输入结果）
+     * @return array [key, text, mode]
+     */
+    public static function generateText(): array
+    {
+        $a = random_int(1, 50);
+        $b = random_int(1, 50);
+        $answer = $a + $b;
+
+        $key = 'captcha_' . md5(uniqid((string) mt_rand(), true));
+        Cache::set($key, (string) $answer, 300); // 5分钟有效
+
+        return [
+            'key'   => $key,
+            'text'  => "{$a} + {$b} = ?",
+            'mode'  => 'text',
         ];
     }
 
