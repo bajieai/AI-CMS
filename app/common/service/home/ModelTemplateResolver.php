@@ -19,6 +19,7 @@ use app\common\model\Content;
 use app\common\model\ContentModel;
 use app\common\model\ContentModelTemplateMap;
 use think\facade\Cache;
+use app\common\support\ContentTypeMap;
 
 /**
  * V2.9.27 S-4: 模型模板解析器
@@ -30,12 +31,14 @@ class ModelTemplateResolver
      * 默认模板映射（内容类型 -> 模板文件名）
      */
     private static array $defaultTemplates = [
-        1 => 'content/product_show',    // 产品
-        2 => 'content/case_show',       // 案例
-        3 => 'content/info_show',       // 信息
-        4 => 'content/download_show',   // 下载
-        5 => 'content/job_show',        // 招聘
-        6 => 'content/page_show',       // 单页
+        ContentTypeMap::INFO => 'content/info_show',
+        ContentTypeMap::PAGE => 'content/page_show',
+        ContentTypeMap::PRODUCT => 'content/product_show',
+        ContentTypeMap::CASE => 'content/case_show',
+        ContentTypeMap::DOWNLOAD => 'content/download_show',
+        ContentTypeMap::JOB => 'content/job_show',
+        ContentTypeMap::GALLERY => 'content/image_show',
+        ContentTypeMap::VIDEO => 'content/video_show',
     ];
 
     /**
@@ -123,12 +126,14 @@ class ModelTemplateResolver
     public static function getPresetTemplates(int $type): array
     {
         return match ($type) {
-            1 => ['product_show' => '产品详情模板', 'product_gallery' => '产品图册模板'],
-            2 => ['case_show' => '案例详情模板', 'case_timeline' => '案例时间线模板'],
-            3 => ['info_show' => '信息详情模板', 'info_magazine' => '杂志风格模板', 'image_show' => '图集展示模板', 'video_show' => '视频播放模板'],
-            4 => ['download_show' => '下载详情模板'],
-            5 => ['job_show' => '招聘详情模板'],
-            6 => ['page_show' => '单页模板'],
+            ContentTypeMap::INFO => ['info_show' => '信息详情模板', 'info_magazine' => '杂志风格模板'],
+            ContentTypeMap::PAGE => ['page_show' => '单页模板'],
+            ContentTypeMap::PRODUCT => ['product_show' => '产品详情模板', 'product_gallery' => '产品图册模板'],
+            ContentTypeMap::CASE => ['case_show' => '案例详情模板', 'case_timeline' => '案例时间线模板'],
+            ContentTypeMap::DOWNLOAD => ['download_show' => '下载详情模板'],
+            ContentTypeMap::JOB => ['job_show' => '招聘详情模板'],
+            ContentTypeMap::GALLERY => ['image_show' => '图集展示模板'],
+            ContentTypeMap::VIDEO => ['video_show' => '视频播放模板'],
             default => ['info_show' => '默认信息模板'],
         };
     }

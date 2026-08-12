@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace app\common\model;
 
+use app\common\support\ContentTypeMap;
+
 use think\Model;
 
 /**
@@ -56,7 +58,7 @@ class Cate extends Model
         $type = $data['type'] ?? 3;
 
         // 单页类型
-        if ($type == 6) {
+        if ($type === ContentTypeMap::pageType()) {
             if (!empty($seoUrl)) {
                 return "/{$seoUrl}";
             }
@@ -69,8 +71,7 @@ class Cate extends Model
         }
 
         // 无英文名回退到旧格式
-        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job'];
-        $typeSlug = $typeMap[$type] ?? 'info';
+        $typeSlug = ContentTypeMap::slugByType()[$type] ?? 'info';
         return "/{$typeSlug}?cate_id={$data['id']}";
     }
 

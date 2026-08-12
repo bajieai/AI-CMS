@@ -89,15 +89,8 @@ class ContentMigrationService
      */
     private function inferModelCodeByType(int $type): string
     {
-        $map = [
-            1 => 'product',
-            2 => 'case',
-            3 => 'article',
-            4 => 'download',
-            5 => 'article',
-            6 => 'article',
-        ];
-        return $map[$type] ?? 'article';
+        $slug = \app\common\support\ContentTypeMap::slugByType()[$type] ?? 'info';
+        return $slug === 'info' ? 'article' : $slug;
     }
 
     /**

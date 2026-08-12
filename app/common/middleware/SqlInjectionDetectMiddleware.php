@@ -25,9 +25,10 @@ class SqlInjectionDetectMiddleware
         }
 
         $whitelist = $config['whitelist'] ?? [];
-        $currentPath = $request->pathinfo();
+        $currentPath = strtolower($request->pathinfo());
+        $isLoginPath = str_contains($currentPath, 'login');
         foreach ($whitelist as $pattern) {
-            if (str_contains($currentPath, $pattern)) {
+            if (str_contains($currentPath, strtolower($pattern))) {
                 return $next($request);
             }
         }
@@ -41,7 +42,8 @@ class SqlInjectionDetectMiddleware
             $detectService->logThreat($threat, $request);
 
             $mode = $config['mode'] ?? 'block';
-            if ($mode === 'block') {
+            // 登录密码属于不可解释的用户输入，不能按SQL片段拦截，否则合法特殊密码无法登录。
+            if ($mode === 'block' && !$isLoginPath) {
                 return Response::create([
                     'code' => 403,
                     'msg'  => '请求包含不安全的内容，已被安全防护拦截。',

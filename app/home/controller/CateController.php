@@ -17,6 +17,7 @@ namespace app\home\controller;
 use app\common\controller\FrontBaseController;
 use app\common\model\Cate;
 use app\common\model\Content;
+use app\common\support\ContentTypeMap;
 use app\common\service\CateService;
 use app\common\service\seo\SchemaMarkupService;
 use app\home\service\ListRenderService;
@@ -32,9 +33,9 @@ class CateController extends FrontBaseController
      */
     public function listing(int $forceCateId = 0)
     {
-        $typeSlug = $this->request->param('type', 'product');
-        $typeMap = ['product' => 1, 'case' => 2, 'info' => 3, 'download' => 4, 'job' => 5, 'page' => 6];
-        $type = $typeMap[$typeSlug] ?? 1;
+        $typeSlug = $this->request->param('type', 'info');
+        $typeMap = ContentTypeMap::typeBySlug();
+        $type = $typeMap[$typeSlug] ?? ContentTypeMap::INFO;
         $cateId = $forceCateId > 0 ? $forceCateId : (int) $this->request->param('cate_id', 0);
 
         // V2.9.44: 单段路由入口 listingBySlug 传入 forceCateId 时，
@@ -43,7 +44,7 @@ class CateController extends FrontBaseController
             $forceCate = Cate::find($forceCateId);
             if ($forceCate) {
                 $type = (int) $forceCate->type;
-                $typeSlugMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
+                $typeSlugMap = ContentTypeMap::slugByType();
                 $typeSlug = $typeSlugMap[$type] ?? 'info';
             }
         }
@@ -62,7 +63,7 @@ class CateController extends FrontBaseController
 
         // V2.9.42: 单页类型不再有列表页概念，/page 展示单页分类卡片
         // /page?cate_id=X 重定向到 /page/X
-        if ($type === 6) {
+        if ($type === ContentTypeMap::pageType()) {
             if ($cateId > 0) {
                 return redirect('/page/' . $cateId, 301);
             }
@@ -71,7 +72,7 @@ class CateController extends FrontBaseController
             $cateList = $cateService->getCatelist($typeSlug, 100, 0);
             $cates = $cateService->getTree($cateList->toArray());
 
-            $pageCates = Cate::where('type', 6)
+            $pageCates = Cate::where('type', ContentTypeMap::pageType())
                 ->where('status', 1)
                 ->order('sort', 'asc')
                 ->order('id', 'asc')
@@ -97,6 +98,7 @@ class CateController extends FrontBaseController
                 'cate_tree_html' => $this->renderCateTree($cates, $typeSlug, $cateId),
                 'page_cates' => $pageCates,
                 'type_slug' => $typeSlug,
+                'type_name' => ContentTypeMap::nameByType()[$type] ?? '未知',
                 'current_cate' => null,
                 'schema_markup' => $schemaMarkup,
             ]);
@@ -148,6 +150,7 @@ class CateController extends FrontBaseController
             'list' => $list,
             'page_cates' => null,
             'type_slug' => $typeSlug,
+            'type_name' => ContentTypeMap::nameByType()[$type] ?? '未知',
             'current_cate' => $currentCate,
             'schema_markup' => $schemaMarkup,
         ]);
@@ -211,14 +214,13 @@ class CateController extends FrontBaseController
         }
 
         // 如果不是单页类型，跳转到列表页
-        if ($cate->type != 6) {
+        if ((int) $cate->type !== ContentTypeMap::pageType()) {
             return redirect('/page?cate_id=' . $cateId);
         }
 
-        // 获取关联的content记录
-        // V2.9.42 修复：直接通过 cate_id+type=6 查找，避免 OPcache 缓存导致 content_id 读取异常
+        // 直接通过分类和单页类型查找关联正文。
         $content = Content::where('cate_id', $cateId)
-            ->where('type', 6)
+            ->where('type', ContentTypeMap::pageType())
             ->where('status', 2)
             ->find();
 
@@ -301,7 +303,7 @@ class CateController extends FrontBaseController
         }
 
         // 单页类型直接调用 singlePage
-        if ($cate->type == 6) {
+        if ((int) $cate->type === ContentTypeMap::pageType()) {
             return $this->singlePage($cate->id);
         }
 

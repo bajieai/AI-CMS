@@ -17,6 +17,7 @@ use app\common\controller\AdminBaseController;
 use app\common\model\Cate;
 use app\common\model\Content;
 use app\common\model\ContentModel;
+use app\common\support\ContentTypeMap;
 use app\common\service\CacheService;
 use app\common\service\CateService;
 use think\facade\Config as ThinkConfig;
@@ -34,8 +35,8 @@ class CateController extends AdminBaseController
         $list = Cate::order('sort', 'asc')->order('id', 'asc')->select();
         $service = new CateService();
         $tree = $service->getTree($list->toArray());
-        // V2.9.44: 注入 url 字段（type→slug 映射 + seo_url），供后台预览链接使用
-        $tree = $this->injectCateUrl($tree);
+        // 注入预览链接及统一内容类型名称，供后台分类列表使用
+        $tree = $this->injectCateListMeta($tree);
 
         $this->assign(['list' => $tree]);
         return $this->view('/cate_list');
@@ -45,13 +46,25 @@ class CateController extends AdminBaseController
      * V2.9.44: 递归注入分类URL到树形结构
      * V2.9.44: 使用单段URL /{seoUrl}（去掉模型前缀）
      */
+    private function injectCateListMeta(array $tree): array
+    {
+        $typeNames = ContentTypeMap::categoryNameByType();
+        foreach ($tree as &$item) {
+            $item['type_name'] = $typeNames[(int) $item['type']] ?? '未知';
+        }
+        unset($item);
+
+        return $this->injectCateUrl($tree);
+    }
+
     private function injectCateUrl(array $tree): array
     {
-        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
+        $typeMap = ContentTypeMap::slugByType();
+        $pageType = ContentTypeMap::pageType();
         foreach ($tree as &$item) {
-            $typeSlug = $typeMap[$item['type']] ?? 'info';
+            $typeSlug = $typeMap[(int) $item['type']] ?? 'info';
             $seoUrl = $item['seo_url'] ?? '';
-            if ($item['type'] == 6) {
+            if ((int) $item['type'] === $pageType) {
                 // 单页：有英文名用 /about，无英文名用 /page/6
                 $item['url'] = !empty($seoUrl) ? "/{$seoUrl}" : "/page/{$item['id']}";
             } elseif (!empty($seoUrl)) {
@@ -138,7 +151,7 @@ class CateController extends AdminBaseController
 
             // V2.9.42: 单页分类注入关联的内容正文
             $pageContent = '';
-            if ($info->type == 6 && $info->content_id > 0) {
+            if ((int) $info->type === ContentTypeMap::pageType() && $info->content_id > 0) {
                 $pageContent = Content::where('id', $info->content_id)->value('content') ?? '';
             }
 
@@ -202,8 +215,8 @@ class CateController extends AdminBaseController
 
         if ($info->delete()) {
             // V2.9.42: 单页分类删除时同步删除关联的content记录
-            if ((int) $info->type === 6 && $info->content_id > 0) {
-                Content::where('id', $info->content_id)->where('type', 6)->delete();
+            if ((int) $info->type === ContentTypeMap::pageType() && $info->content_id > 0) {
+                Content::where('id', $info->content_id)->where('type', ContentTypeMap::pageType())->delete();
             }
             $this->recordLog('删除分类', $info->name ?? '');
             $cacheService = new CacheService();
@@ -220,7 +233,7 @@ class CateController extends AdminBaseController
      */
     protected function syncPageContent(Cate $cate, array $data): void
     {
-        if ((int) $cate->type !== 6) {
+        if ((int) $cate->type !== ContentTypeMap::pageType()) {
             return;
         }
 
@@ -229,10 +242,10 @@ class CateController extends AdminBaseController
 
         if ($cate->content_id > 0) {
             // 更新已有content记录
-            Content::where('id', $cate->content_id)->where('type', 6)->update([
+            Content::where('id', $cate->content_id)->where('type', ContentTypeMap::pageType())->update([
                 'title'        => $cate->name,
                 'content'      => $pageContent,
-                'type'         => 6,
+                'type'         => ContentTypeMap::pageType(),
                 'cate_id'      => $cate->id,
                 'status'       => 2,
                 'seo_title'    => $data['seo_title'] ?? '',
@@ -246,7 +259,9 @@ class CateController extends AdminBaseController
             $content->save([
                 'title'           => $cate->name,
                 'content'         => $pageContent,
-                'type'            => 6,
+                'type'            => ContentTypeMap::pageType(),
+                'model_id'        => ContentTypeMap::pageType(),
+                'model_identifier'=> 'model_page',
                 'cate_id'         => $cate->id,
                 'status'          => 2,
                 'seo_title'       => $data['seo_title'] ?? '',

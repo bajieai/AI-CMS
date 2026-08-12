@@ -35,6 +35,10 @@ class ReviewController extends AdminBaseController
 
         $reviewService = new ReviewService();
         $list = $reviewService->getPendingList($params, 20);
+        foreach ($list as &$item) {
+            $item['type_text'] = \app\common\support\ContentTypeMap::nameByType()[(int) ($item['type'] ?? 0)] ?? '未知';
+        }
+        unset($item);
         $stats = $reviewService->getStats();
 
         $this->app->view->assign('list', $list);

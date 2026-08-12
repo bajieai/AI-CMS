@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace app\common\service;
 
+use app\common\support\ContentTypeMap;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -312,8 +313,8 @@ class ExportService
             return $map[$value] ?? $value;
         }
         if ($field === 'type') {
-            $map = [1 => '产品', 2 => '案例', 3 => '新闻', 4 => '下载', 5 => '招聘', 6 => '单页'];
-            return $map[$value] ?? $value;
+            $map = ContentTypeMap::nameByType();
+            return $map[(int) $value] ?? $value;
         }
         if ($field === 'cate_name' && is_array($item) && isset($item['cate']['name'])) {
             return $item['cate']['name'];

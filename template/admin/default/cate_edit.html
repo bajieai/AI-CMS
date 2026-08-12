@@ -123,7 +123,7 @@
                 </div>
             </div>
 
-            <!-- V2.9.42: 单页内容编辑器 (type=6时显示) -->
+            <!-- 单页内容编辑器（type=2 时显示） -->
             <div id="pageContentArea" style="display:none;">
                 <div class="mb-3">
                     <label class="form-label fw-bold"><i class="bi bi-file-earmark-text me-1"></i>单页内容</label>
@@ -147,7 +147,7 @@
 // V2.9.42: 单页内容编辑器显隐控制
 function togglePageContent() {
     var typeVal = parseInt($('#cateType').val());
-    if (typeVal === 6) {
+    if (typeVal === 2) {
         $('#pageContentArea').show();
         initPageEditor();
     } else {

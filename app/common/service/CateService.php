@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\Cate;
+use app\common\support\ContentTypeMap;
 use think\facade\Cache;
 use think\facade\Config;
 
@@ -51,14 +52,7 @@ class CateService
             return $result;
         }
 
-        $typeMap = [
-            'product' => 1,
-            'case' => 2,
-            'info' => 3,
-            'download' => 4,
-            'job' => 5,
-            'page' => 6,
-        ];
+        $typeMap = ContentTypeMap::typeBySlug();
 
         $query = Cate::where('status', 1);
 

@@ -18,6 +18,7 @@ use app\common\model\User;
 use app\common\model\Config as CmsConfig;
 use app\common\service\CaptchaService;
 use think\facade\Config;
+use think\facade\Log;
 
 /**
  * 后台登录控制器
@@ -101,7 +102,16 @@ class LoginController extends AdminBaseController
      */
     public function captcha()
     {
-        $result = CaptchaService::generate();
+        try {
+            $result = CaptchaService::generate();
+        } catch (\Throwable $e) {
+            Log::error('Admin captcha generation failed: ' . $e->getMessage());
+            return json([
+                'success' => false,
+                'message' => '验证码服务暂不可用，请稍后重试',
+            ], 503);
+        }
+
         return json([
             'success' => true,
             'data'    => $result,

@@ -1180,6 +1180,7 @@ Route::post('content_model/update/:id$', '\app\admin\controller\ContentModelCont
 Route::post('content_model/delete/:id$', '\app\admin\controller\ContentModelController@delete');
 Route::post('content_model/toggle/:id$', '\app\admin\controller\ContentModelController@toggle');
 Route::get('content_model/fields/:id$', '\app\admin\controller\ContentFieldController@index');
+Route::get('content_model/fields.html$', '\app\admin\controller\ContentFieldController@index');
 Route::post('content_model/field/save$', '\app\admin\controller\ContentFieldController@save');
 Route::post('content_model/field/update/:id$', '\app\admin\controller\ContentFieldController@update');
 Route::post('content_model/field/delete/:id$', '\app\admin\controller\ContentFieldController@delete');

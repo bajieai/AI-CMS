@@ -46,8 +46,8 @@
             <div class="card-body p-2">
                 <div id="fieldPalette" class="d-grid gap-1">
                     {volist name="fields" id="f"}
-                    <div class="btn btn-outline-secondary btn-sm text-start designer-field" data-field-name="{$f.field_name}" data-field-label="{$f.field_label}" data-field-type="{$f.field_type}" data-field-id="{$f.id}">
-                        <i class="bi bi-grip-vertical me-1"></i>{$f.field_label} <small class="text-muted">({$f.field_type})</small>
+                    <div class="btn btn-outline-secondary btn-sm text-start designer-field" data-field-name="{$f.name}" data-field-label="{$f.label}" data-field-type="{$f.type}" data-field-id="{$f.id}">
+                        <i class="bi bi-grip-vertical me-1"></i>{$f.label} <small class="text-muted">({$f.type})</small>
                     </div>
                     {/volist}
                 </div>

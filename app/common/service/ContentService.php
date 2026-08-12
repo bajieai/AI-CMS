@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\Content;
+use app\common\support\ContentTypeMap;
 use app\common\model\ContentExt;
 use app\common\model\ContentTag;
 use app\common\service\CacheService;
@@ -39,10 +40,10 @@ class ContentService
             $query = Content::with('cate')->where('status', '>=', 0);
         }
 
-        // V2.9.42: 单页内容(type=6)通过分类管理编辑，不在信息列表中显示
-        // 除非用户明确筛选了 type=6
-        if (!isset($params['type']) || (int) $params['type'] !== 6) {
-            $query->where('type', '<>', 6);
+        // 单页内容通过分类管理编辑，不在内容管理列表中显示。
+        $pageType = ContentTypeMap::pageType();
+        if (!isset($params['type']) || (int) $params['type'] !== $pageType) {
+            $query->where('type', '<>', $pageType);
         }
 
         if (!empty($params['type'])) {
@@ -75,14 +76,7 @@ class ContentService
      */
     public function getInfolist(string $type = '', int $limit = 10, string $order = 'id desc', int $page = 0, int $pageSize = 10, int $cateId = 0, int $offset = 0, bool $autoPage = false)
     {
-        $typeMap = [
-            'product' => 1,
-            'case' => 2,
-            'info' => 3,
-            'download' => 4,
-            'job' => 5,
-            'page' => 6,
-        ];
+        $typeMap = ContentTypeMap::typeBySlug();
 
         $query = Content::with('cate')->where('status', 2); // 仅已发布，预加载分类用于URL生成
 

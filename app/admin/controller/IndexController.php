@@ -16,6 +16,7 @@ namespace app\admin\controller;
 use app\common\controller\AdminBaseController;
 use app\common\model\Content;
 use app\common\model\User;
+use app\common\support\ContentTypeMap;
 use think\facade\Cache;
 use think\facade\Db;
 
@@ -56,7 +57,7 @@ class IndexController extends AdminBaseController
                 ->select()
                 ->toArray();
             $typeDistribution = [];
-            $typeMap = [1 => '产品', 2 => '案例', 3 => '信息', 4 => '下载', 5 => '招聘', 6 => '单页'];
+            $typeMap = ContentTypeMap::nameByType();
             $typeColors = [1 => '#2563eb', 2 => '#06b6d4', 3 => '#22c55e', 4 => '#f59e0b', 5 => '#64748b', 6 => '#1e293b'];
             $totalPublished = 0;
             foreach ($typeDistRaw as $item) {

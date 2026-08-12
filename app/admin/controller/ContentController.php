@@ -15,6 +15,7 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\model\Content;
+use app\common\support\ContentTypeMap;
 use app\common\model\ContentExt;
 use app\common\model\ContentTag;
 use app\common\model\ContentVersion;
@@ -103,11 +104,12 @@ class ContentController extends AdminBaseController
         // 将 translations 附加到 list 每一项
         foreach ($list as &$item) {
             $item['translations'] = $translationsMap[$item['id']] ?? [];
+            $item['type_text'] = ContentTypeMap::nameByType()[(int) ($item['type'] ?? 0)] ?? '未知';
         }
         unset($item);
 
         // 注入前台预览URL（规范URL：有seo_url用/{seo_url}/{id}，否则用/{type_slug}/{id}）
-        $typeSlugMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job'];
+        $typeSlugMap = ContentTypeMap::slugByType();
         foreach ($list as &$item) {
             $cateSeoUrl = $item['cate']['seo_url'] ?? '';
             $typeSlug = $typeSlugMap[$item['type']] ?? 'info';
@@ -146,7 +148,7 @@ class ContentController extends AdminBaseController
                 ->toArray();
 
             // V2.9.42: 单页内容只能在分类管理中编辑，信息管理中排除单页分类
-            $pageCateIds = Cate::where('type', 6)->column('id');
+            $pageCateIds = Cate::where('type', ContentTypeMap::pageType())->column('id');
 
             // V2.9.9-R4: 注入AI配图默认配置
             $aiImageDefaultSize = ConfigModel::getValue('ai_image_default_size', '1024x1024');
@@ -194,7 +196,7 @@ class ContentController extends AdminBaseController
 
         // V2.9.42: 禁止在信息管理中创建单页内容（单页只能在分类管理中操作）
         $cate = Cate::find((int) $data['cate_id']);
-        if ($cate && (int) $cate->type === 6) {
+        if ($cate && (int) $cate->type === ContentTypeMap::pageType()) {
             return $this->error('单页内容请在分类管理中编辑');
         }
 
@@ -246,7 +248,7 @@ class ContentController extends AdminBaseController
                 ->toArray();
 
             // V2.9.42: 单页内容只能在分类管理中编辑，信息管理中排除单页分类
-            $pageCateIds = Cate::where('type', 6)->column('id');
+            $pageCateIds = Cate::where('type', ContentTypeMap::pageType())->column('id');
 
             $modelFields = [];
             if ($info->model_id > 0) {
@@ -503,7 +505,7 @@ class ContentController extends AdminBaseController
             'is_free_chapter' => (int) ($data['is_free_chapter'] ?? 0),
             'chapter_price'   => (float) ($data['chapter_price'] ?? 0),
             'status'          => (int) ($data['status'] ?? 2),
-            'type'            => 6, // 单页类型
+            'type'            => ContentTypeMap::pageType(), // 单页类型
         ];
 
         if (empty($saveData['title'])) {
@@ -594,7 +596,7 @@ class ContentController extends AdminBaseController
             return $this->error('分类不存在');
         }
 
-        $typeMap = [1 => '产品', 2 => '案例', 3 => '信息', 4 => '下载', 5 => '招聘', 6 => '单页', 7 => '图片', 8 => '视频'];
+        $typeMap = ContentTypeMap::nameByType();
         $type = (int) $cate->type;
         $typeName = $typeMap[$type] ?? '未知';
         $modelId = (int) ($cate->model_id ?? 0);
@@ -827,6 +829,10 @@ class ContentController extends AdminBaseController
         $params['recycle'] = 1;
         $service = new ContentService();
         $list = $service->getList($params);
+        foreach ($list as &$item) {
+            $item['type_text'] = ContentTypeMap::nameByType()[(int) ($item['type'] ?? 0)] ?? '未知';
+        }
+        unset($item);
 
         $cates = Cate::where('status', 1)->select();
 

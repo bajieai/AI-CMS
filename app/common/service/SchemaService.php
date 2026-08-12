@@ -241,12 +241,14 @@ class SchemaService
     protected static function getSchemaType(int $type): string
     {
         $map = [
-            1 => 'Product',
-            2 => 'Article',
-            3 => 'NewsArticle',
-            4 => 'SoftwareApplication',
-            5 => 'JobPosting',
-            6 => 'Article',
+            \app\common\support\ContentTypeMap::INFO => 'NewsArticle',
+            \app\common\support\ContentTypeMap::PAGE => 'Article',
+            \app\common\support\ContentTypeMap::PRODUCT => 'Product',
+            \app\common\support\ContentTypeMap::CASE => 'Article',
+            \app\common\support\ContentTypeMap::DOWNLOAD => 'SoftwareApplication',
+            \app\common\support\ContentTypeMap::JOB => 'JobPosting',
+            \app\common\support\ContentTypeMap::GALLERY => 'ImageGallery',
+            \app\common\support\ContentTypeMap::VIDEO => 'VideoObject',
         ];
         return $map[$type] ?? 'Article';
     }
@@ -257,12 +259,14 @@ class SchemaService
     protected static function getOgType(int $type): string
     {
         $map = [
-            1 => 'product',
-            2 => 'article',
-            3 => 'article',
-            4 => 'product',
-            5 => 'article',
-            6 => 'website',
+            \app\common\support\ContentTypeMap::INFO => 'article',
+            \app\common\support\ContentTypeMap::PAGE => 'website',
+            \app\common\support\ContentTypeMap::PRODUCT => 'product',
+            \app\common\support\ContentTypeMap::CASE => 'article',
+            \app\common\support\ContentTypeMap::DOWNLOAD => 'product',
+            \app\common\support\ContentTypeMap::JOB => 'article',
+            \app\common\support\ContentTypeMap::GALLERY => 'article',
+            \app\common\support\ContentTypeMap::VIDEO => 'video.other',
         ];
         return $map[$type] ?? 'article';
     }

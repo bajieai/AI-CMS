@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace app\common\model;
 
+use app\common\support\ContentTypeMap;
 use think\Model;
 use think\model\concern\SoftDelete;
 
@@ -73,16 +74,7 @@ class Content extends Model
      */
     public function getUrlAttr($value, $data): string
     {
-        $typeMap = [
-            1 => 'product',
-            2 => 'case',
-            3 => 'info',
-            4 => 'download',
-            5 => 'job',
-            6 => 'page',
-        ];
-
-        $typeSlug = $typeMap[$data['type']] ?? 'info';
+        $typeSlug = ContentTypeMap::slugByType()[(int) ($data['type'] ?? ContentTypeMap::INFO)] ?? 'info';
 
         // 尝试从关联分类获取 seo_url（安全访问，避免获取器中触发查询异常）
         try {
@@ -111,8 +103,8 @@ class Content extends Model
      */
     public function getTypeTextAttr($value, $data): string
     {
-        $map = [1 => '产品', 2 => '案例', 3 => '信息', 4 => '下载', 5 => '招聘', 6 => '单页'];
-        return $map[$data['type']] ?? '未知';
+        $map = ContentTypeMap::nameByType();
+        return $map[(int) ($data['type'] ?? 0)] ?? '未知';
     }
 
     /**

@@ -92,8 +92,7 @@ class ContentModelController extends AdminBaseController
         }
         $layout = $this->designerService->getLayout($id);
         $containers = $this->designerService->getLayoutContainers();
-        $fieldService = app(\app\common\service\content\ContentFieldService::class);
-        $fields = $fieldService->getFields($id);
+        $fields = \app\common\model\ContentModelField::getFieldsByModelId($id);
         return $this->view('content_model/designer', [
             'model' => $model,
             'layout' => $layout,

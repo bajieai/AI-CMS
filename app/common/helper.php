@@ -65,15 +65,7 @@ if (!function_exists('get_type_text')) {
      */
     function get_type_text(int $type): string
     {
-        $map = [
-            1 => '产品',
-            2 => '案例',
-            3 => '信息',
-            4 => '下载',
-            5 => '招聘',
-            6 => '单页',
-        ];
-        return $map[$type] ?? '未知';
+        return \app\common\support\ContentTypeMap::nameByType()[$type] ?? '未知';
     }
 }
 
@@ -83,15 +75,7 @@ if (!function_exists('get_type_slug')) {
      */
     function get_type_slug(int $type): string
     {
-        $map = [
-            1 => 'product',
-            2 => 'case',
-            3 => 'info',
-            4 => 'download',
-            5 => 'job',
-            6 => 'page',
-        ];
-        return $map[$type] ?? 'info';
+        return \app\common\support\ContentTypeMap::slugByType()[$type] ?? 'info';
     }
 }
 

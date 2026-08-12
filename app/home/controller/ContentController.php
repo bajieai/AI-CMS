@@ -16,6 +16,7 @@ namespace app\home\controller;
 
 use app\common\controller\FrontBaseController;
 use app\common\model\Content;
+use app\common\support\ContentTypeMap;
 use app\common\model\Cate;
 use app\common\model\Member;
 use app\common\model\MemberLevel;
@@ -59,7 +60,7 @@ class ContentController extends FrontBaseController
         }
 
         // 单页类型不应该走详情页路由，重定向到单页面
-        if ($cate->type == 6) {
+        if ((int) $cate->type === ContentTypeMap::pageType()) {
             return redirect('/' . $seoUrl, 301);
         }
 
@@ -77,8 +78,8 @@ class ContentController extends FrontBaseController
                 return redirect('/' . $realCate->seo_url . '/' . $id, 301);
             }
             // 无 seo_url 的回退到 type_slug
-            $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job'];
-            $typeSlug = $typeMap[$info->type] ?? 'info';
+            $typeMap = ContentTypeMap::slugByType();
+            $typeSlug = $typeMap[(int) $info->type] ?? 'info';
             return redirect('/' . $typeSlug . '/' . $id, 301);
         }
 
@@ -190,8 +191,8 @@ class ContentController extends FrontBaseController
             // parent_id 列可能不存在，静默跳过章节查询
         }
 
-        $typeMap = [1 => 'product', 2 => 'case', 3 => 'info', 4 => 'download', 5 => 'job', 6 => 'page'];
-        $typeSlug = $typeMap[$info->type] ?? 'info';
+        $typeMap = ContentTypeMap::slugByType();
+        $typeSlug = $typeMap[(int) $info->type] ?? 'info';
 
         // V2.9.44: 面包屑链接优先用分类的 seo_url（单段URL），无则回退到模型前缀
         $cate = $info->cate ?? null;
@@ -279,6 +280,7 @@ class ContentController extends FrontBaseController
         $this->assign([
             'site_url'      => request()->domain(),
             'info'          => $info,
+            'type_name'     => \app\common\support\ContentTypeMap::nameByType()[(int) ($info->type ?? 0)] ?? '未知',
             'related'       => $related,
             'chapters'      => $chapters,
             'chapter_access'=> $chapterAccess,

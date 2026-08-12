@@ -39,7 +39,7 @@
                         <select name="cate_id" class="form-select" id="cateSelect">
                             <option value="0">请选择分类</option>
                             {volist name="cates" id="cate"}
-                            {if condition="$cate.type neq 6"}
+                            {if condition="$cate.type neq 2"}
                             <option value="{$cate.id}" {if condition="($info.cate_id ?? 0) == $cate.id"}selected{/if}>{$cate.name}</option>
                             {/if}
                             {/volist}

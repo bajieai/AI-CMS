@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use think\facade\Cache;
+use think\facade\Log;
 
 /**
  * 验证码服务 - V2.5新增
@@ -37,9 +38,14 @@ class CaptchaService
                 'appid' => ConfigService::get('captcha_tencent_appid', ''),
             ];
         }
-        // 默认本地验证码：优先 GD 图片，环境不支持时降级为纯文本算术验证码
+
+        // 本地验证码优先使用 GD；扩展不完整或绘图失败时降级为文本验证码。
         if (extension_loaded('gd') && function_exists('imagecreatetruecolor')) {
-            return self::generateImage();
+            try {
+                return self::generateImage();
+            } catch (\Throwable $e) {
+                Log::warning('Captcha image generation failed, fallback to text: ' . $e->getMessage());
+            }
         }
         return self::generateText();
     }

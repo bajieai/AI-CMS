@@ -4,13 +4,14 @@ namespace app\common\service\home;
 
 use app\common\model\Content;
 use app\common\model\Config;
+use app\common\support\ContentTypeMap;
 
 class RssFeedService
 {
     public static function generateFeed(string $type = 'info', int $limit = 20): string
     {
-        $typeMap = ['product' => 1, 'case' => 2, 'info' => 3, 'download' => 4, 'job' => 5];
-        $contentType = $typeMap[$type] ?? 3;
+        $typeMap = ContentTypeMap::typeBySlug();
+        $contentType = $typeMap[$type] ?? ContentTypeMap::INFO;
         $items = Content::where('status', 2)->where('type', $contentType)->order('id', 'desc')->limit($limit)->select();
         $siteName = Config::getValue('site_name', '八界AI-CMS');
         $siteUrl = Config::getValue('site_url', 'http://localhost');

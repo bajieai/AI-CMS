@@ -564,7 +564,7 @@ class SeoService
             // 最近48小时内发布的新闻类型内容
             $contents = ContentModel::where('status', 2)
                 ->where('translation_of', 0)
-                ->where('type', 3) // 新闻类型
+                ->where('type', \app\common\support\ContentTypeMap::INFO) // 信息资讯类型
                 ->where('create_time', '>', time() - 172800)
                 ->order('id', 'desc')
                 ->limit(1000)
