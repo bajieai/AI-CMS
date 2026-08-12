@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.9.45
+# 八界AI-CMS V2.9.46
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.45-blue)
+![Version](https://img.shields.io/badge/version-2.9.46-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.45 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.46 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
 
@@ -75,6 +75,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.46** | 2026-08 | **内容模型身份统一·字段管理完善**: 统一内容模型唯一顺序(1信息/2单页/3产品/4案例/5下载/6招聘/7图集/8视频)+ContentTypeMap唯一映射源+分类/内容新增编辑双皮肤单页type=2联动修复+内容列表/审核/回收站类型标签统一+前台默认/企业/基础主题面包屑统一+内容模型字段管理(新增/编辑/删除/排序)+字段类型下拉修复+可视化选项编辑器(替换JSON输入)+字段管理路由404修复+验证码GD降级+登录SQL注入白名单 |
 | **V2.9.45** | 2026-08 | **在线升级系统完善·URL体系统一·内容模型优化**: Dashboard版本提醒+NEW徽章+升级配置中心（开关/通道/Token）+升级锁+disable_functions检查+manifest增强（deleted_files/run_after/run_after_suffix）+SQL不自动回滚+升级包生成CLI+30分钟缓存+二次确认对话框+双皮肤后台模板+权限配置+URL体系统一(列表/{seo_url}+详情/{seo_url}/{id}+旧URL 301重定向)+内容模型ID调整(信息id=1/单页id=2)+sort_order冗余字段清理+分类类型动态化(从content_model读取)+Banner轮播按钮可见性修复 |
 | **V2.9.42** | 2026-08 | **前台导航动态化·注册CSRF修复·付费开关修复·GBK/PUA乱码根除·评价区去重·卡片标题颜色优化**: 导航从硬编码改为数据库动态读取(4套layout)+注册表单CSRF token注入修复+付费阅读checkbox关闭无效修复(ContentService补零+隐藏域)+GBK双重编码乱码全量根除(1256模板0残留)+PUA字符全量清理(18文件)+详情页移除重复评价区仅保留评论+后台卡片标题恢复默认样式+SEO卡片移除黄色边框+JS语法修复(引号缺失+星号符号)+删除重复CommentAdminController+install.sql编码清理合并 |
 | **V2.9.41** | 2026-07 | **表前缀自定义·Model类型修复·数据报表修复·无用文件清理**: install.sql{prefix}动态替换+Db::name规范化+Model删$table+$cast→$type回退+ReportEngineService容错+jsonToTags()badge显示+无用文件清理 |
@@ -118,7 +119,7 @@
 
 适用于宝塔面板、小皮面板等已配置好服务器环境的用户：
 
-1. **下载完整安装包** — 从 [Gitee Releases](https://gitee.com/bajieai/ai-cms/releases) 下载 `AI-CMS-V2.9.45-full.zip`（含所有依赖，无需 Composer）
+1. **下载完整安装包** — 从 [Gitee Releases](https://gitee.com/bajieai/ai-cms/releases) 下载 `AI-CMS-V2.9.46-full.zip`（含所有依赖，无需 Composer）
 2. **创建网站** — 在宝塔/小皮面板中创建网站，将域名解析到服务器
 3. **上传解压** — 将 ZIP 包上传到网站根目录并解压
 4. **设置运行目录** — 网站运行目录设为 `public`
@@ -200,8 +201,8 @@ php think seo:diagnose 123         # 诊断指定内容ID
 php think seo:diagnose --all       # 批量诊断所有内容
 php think perf:warmup --all        # 全量缓存预热
 php think perf:warmup --stats      # 查看缓存命中率
-php think upgrade:package 2.9.44 2.9.45  # 生成升级包
-php think upgrade:package 2.9.44 2.9.45 --diff  # 基于git diff生成
+php think upgrade:package 2.9.45 2.9.46  # 生成升级包
+php think upgrade:package 2.9.45 2.9.46 --diff  # 基于git diff生成
 
 # Docker 操作
 docker-compose ps                             # 查看服务状态
