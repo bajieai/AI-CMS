@@ -114,7 +114,8 @@ class UpgradePackageCommand extends Command
                 \RecursiveIteratorIterator::LEAVES_ONLY
             );
             foreach ($sqlFiles as $file) {
-                if ($file->isFile() && str_ends_with($file->getFilename(), '.sql')) {
+                if ($file->isFile() && str_ends_with($file->getFilename(), '.sql')
+                    && $file->getFilename() !== 'install.sql') {
                     $relative = $this->getRelativePath($sourceDir, $file->getPathname());
                     $manifest['sql_patches'][] = $relative;
                 }
