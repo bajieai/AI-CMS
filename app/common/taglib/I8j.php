@@ -30,9 +30,9 @@ class I8j extends TagLib
      * 标签定义
      */
     protected $tags = [
-        // 内容列表标签（支持分页：page="1" pagesize="10"；分类筛选：cate_id="3"；指定ID：id="1,2,3"；偏移：offset="1"）
+        // 内容列表标签（支持分页：page="1" pagesize="10"；分类筛选：cate_id="3"；指定ID：id="1,2,3"；偏移：offset="1"；循环变量：field="vo"）
         'infolist' => [
-            'attr' => 'type,limit,order,page,pagesize,cate_id,id,offset',
+            'attr' => 'type,limit,order,page,pagesize,cate_id,id,offset,field',
             'close' => 1,
         ],
         // 分类列表标签
@@ -84,11 +84,43 @@ class I8j extends TagLib
     public function tagInfolist(array $tag, string $content): string
     {
         $type = $tag['type'] ?? '';
+        // type 支持变量引用：type="$type_slug" → 运行时读取模板变量
+        $typeExpr = '';
+        if ($type !== '') {
+            if (str_starts_with(trim((string) $type), '$')) {
+                $typeExpr = '(string) (' . trim((string) $type) . ')';
+            } else {
+                $typeExpr = '"' . trim((string) $type) . '"';
+            }
+        } else {
+            $typeExpr = '""';
+        }
         $limit = $tag['limit'] ?? 10;
         $order = $tag['order'] ?? 'id desc';
-        $cateId = isset($tag['cate_id']) ? (int) $tag['cate_id'] : 0;
         $offset = isset($tag['offset']) ? (int) $tag['offset'] : 0;
         $ids = isset($tag['id']) ? trim($tag['id']) : '';
+
+        // cate_id 支持三种写法：
+        //   1) cate_id="3"           静态数字分类ID
+        //   2) cate_id="current"     自动跟随当前分类（优先 cate_id 参数，其次 seoUrl 单段路由反查，最后模板变量 $cate_id）
+        //   3) cate_id="$cate_id"    引用模板作用域变量（编译期保留为PHP变量）
+        $cateIdExpr = '0';
+        if (isset($tag['cate_id'])) {
+            $rawCateId = trim((string) $tag['cate_id']);
+            if ($rawCateId === 'current') {
+                // current 模式：动态解析当前分类ID。
+                // 优先 request cate_id 参数（/product?cate_id=5）；其次 seoUrl 单段路由（/news）反查分类；
+                // 最后回退到模板作用域变量 $cate_id（控制器 assign 的当前分类，可能为 0 表示"全部"）。
+                $cateIdExpr = '\app\common\taglib\I8j::resolveCurrentCateId($cate_id ?? 0)';
+            } elseif (str_starts_with($rawCateId, '$')) {
+                $cateIdExpr = '(int) (' . $rawCateId . ')';
+            } else {
+                $cateIdExpr = (string) (int) $rawCateId;
+            }
+        }
+
+        // 循环变量名，默认 field，可通过 field="vo" 自定义（兼容旧 partial 模板用 $vo）
+        $fieldVar = isset($tag['field']) && trim((string) $tag['field']) !== '' ? trim((string) $tag['field']) : 'field';
 
         // V2.9.44: pagesize 指定后启用分页，page 从 URL 自动读取
         $pageSize = isset($tag['pagesize']) ? (int) $tag['pagesize'] : 0;
@@ -102,7 +134,7 @@ class I8j extends TagLib
         } elseif ($pageSize > 0) {
             // 分页模式：自动从URL读取page参数
             $parse .= '$pageNav = ""; ';
-            $parse .= '$__PAGE_RESULT__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", 0, ' . $pageSize . ', ' . $cateId . ', ' . $offset . ', true); ';
+            $parse .= '$__PAGE_RESULT__ = app("app\\common\\service\\ContentService")->getInfolist(' . $typeExpr . ', ' . (int) $limit . ', "' . $order . '", 0, ' . $pageSize . ', ' . $cateIdExpr . ', ' . $offset . ', true); ';
             $parse .= 'if (is_object($__PAGE_RESULT__) && method_exists($__PAGE_RESULT__, "items")) { ';
             $parse .= '  $__LIST__ = $__PAGE_RESULT__->items(); ';
             $parse .= '  $pageNav = $__PAGE_RESULT__->render(); ';
@@ -111,11 +143,11 @@ class I8j extends TagLib
             $parse .= '} ';
         } else {
             // 非分页模式
-            $parse .= '$__PAGE__ = app("app\\common\\service\\ContentService")->getInfolist("' . $type . '", ' . (int) $limit . ', "' . $order . '", ' . $page . ', ' . $pageSize . ', ' . $cateId . ', ' . $offset . '); ';
+            $parse .= '$__PAGE__ = app("app\\common\\service\\ContentService")->getInfolist(' . $typeExpr . ', ' . (int) $limit . ', "' . $order . '", ' . $page . ', ' . $pageSize . ', ' . $cateIdExpr . ', ' . $offset . '); ';
             $parse .= '$__LIST__ = (is_object($__PAGE__) && method_exists($__PAGE__, "items")) ? $__PAGE__->items() : $__PAGE__; ';
         }
         $parse .= '?>';
-        $parse .= '{volist name="__LIST__" id="field" key="i"}';
+        $parse .= '{volist name="__LIST__" id="' . $fieldVar . '" key="i"}';
         $parse .= $content;
         $parse .= '{/volist}';
 
@@ -243,5 +275,42 @@ class I8j extends TagLib
         $parse = '<?php echo htmlspecialchars($custom["' . $name . '"] ?? "' . $default . '", ENT_QUOTES, "UTF-8"); ?>';
 
         return $parse;
+    }
+
+    /**
+     * 解析当前分类ID（供 cate_id="current" 使用）
+     * 优先级：
+     *   1) 请求参数 cate_id（/product?cate_id=5）
+     *   2) 请求参数 seoUrl（单段路由 /news），反查分类
+     *   3) 传入的模板变量 $cate_id（控制器 assign，可能为 0 表示"全部"）
+     *
+     * @param int $fallbackCateId 模板作用域变量 $cate_id 的值
+     */
+    public static function resolveCurrentCateId(int $fallbackCateId = 0): int
+    {
+        $request = request();
+
+        // 1) cate_id 请求参数
+        $cateId = (int) $request->param('cate_id', 0);
+        if ($cateId > 0) {
+            return $cateId;
+        }
+
+        // 2) seoUrl 单段路由（/news、/about 等），反查分类
+        $seoUrl = (string) $request->param('seoUrl', '');
+        if ($seoUrl === '') {
+            $seoUrl = (string) $request->param('seo_url', '');
+        }
+        if ($seoUrl !== '') {
+            $cate = \app\common\model\Cate::where('seo_url', $seoUrl)
+                ->where('status', 1)
+                ->find();
+            if ($cate && !$cate->isEmpty()) {
+                return (int) $cate->id;
+            }
+        }
+
+        // 3) 回退到控制器传入的模板变量
+        return $fallbackCateId > 0 ? $fallbackCateId : 0;
     }
 }

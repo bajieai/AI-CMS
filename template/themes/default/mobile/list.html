@@ -39,25 +39,21 @@
 </div>
 {else /}
 <div class="m-card-list" id="mCardList">
-{volist name="list" id="vo"}
+{i8j:infolist type="$type_slug" cate_id="current" pagesize="6" order="id desc" field="vo"}
 {switch vo.type}
-    {case 1}{include file="_partials/list_item_product" /}{/case}
-    {case 2}{include file="_partials/list_item_case" /}{/case}
-    {case 3}{include file="_partials/list_item_info" /}{/case}
-    {case 4}{include file="_partials/list_item_download" /}{/case}
-    {case 5}{include file="_partials/list_item_job" /}{/case}
-    {case 6}{include file="_partials/list_item_page" /}{/case}
-    {default /}{include file="_partials/list_item_page" /}{/default}
+    {case 1}{include file="_partials/list_item_info" /}{/case}
+    {case 2}{include file="_partials/list_item_page" /}{/case}
+    {case 3}{include file="_partials/list_item_product" /}{/case}
+    {case 4}{include file="_partials/list_item_case" /}{/case}
+    {case 5}{include file="_partials/list_item_download" /}{/case}
+    {case 6}{include file="_partials/list_item_job" /}{/case}
+    {default /}{include file="_partials/list_item_info" /}{/default}
 {/switch}
-{/volist}
+{/i8j:infolist}
 </div>
 
-{empty name="list"}
-<div class="m-empty"><i class="bi bi-inbox"></i><p>暂无相关内容</p></div>
-{/empty}
-
-{if condition="($list->hasPages() ?? false)"}
-<div class="m-pagination">{$list->render()|raw}</div>
+{if condition="!empty($pageNav)"}
+<div class="m-pagination">{$pageNav|raw}</div>
 {/if}
 {/if}
 {/block}

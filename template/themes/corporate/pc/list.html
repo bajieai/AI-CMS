@@ -68,34 +68,25 @@
             </div>
             {/volist}
             {else /}
-            {volist name="list" id="vo"}
+            {i8j:infolist type="$type_slug" cate_id="current" pagesize="6" order="id desc" field="vo"}
             {switch vo.type}
-                {case 1}{include file="_partials/list_item_product" /}{/case}
-                {case 2}{include file="_partials/list_item_case" /}{/case}
-                {case 3}{include file="_partials/list_item_info" /}{/case}
-                {case 4}{include file="_partials/list_item_download" /}{/case}
-                {case 5}{include file="_partials/list_item_job" /}{/case}
-                {case 6}{include file="_partials/list_item_page" /}{/case}
-                {default /}{include file="_partials/list_item_page" /}{/default}
+                {case 1}{include file="_partials/list_item_info" /}{/case}
+                {case 2}{include file="_partials/list_item_page" /}{/case}
+                {case 3}{include file="_partials/list_item_product" /}{/case}
+                {case 4}{include file="_partials/list_item_case" /}{/case}
+                {case 5}{include file="_partials/list_item_download" /}{/case}
+                {case 6}{include file="_partials/list_item_job" /}{/case}
+                {default /}{include file="_partials/list_item_info" /}{/default}
             {/switch}
-            {/volist}
+            {/i8j:infolist}
             {/if}
         </div>
 
         {if condition="!$page_cates"}
-        {empty name="list"}
-        <div class="text-center py-6" style="padding:5rem 0;background:var(--i8j-bg-secondary,#f8fafc);border-radius:16px;">
-            <i class="bi bi-inbox display-4 text-muted opacity-50"></i>
-            <h5 class="text-muted mt-3 fw-bold opacity-75">暂无相关内容</h5>
-            <p class="text-muted small mt-1 opacity-60">试试其他分类或关键词搜索</p>
-            <a href="/" class="btn mt-2" style="background:var(--color-accent);color:#fff;border-radius:var(--radius-btn);font-weight:600;"><i class="bi bi-house me-1"></i>返回首页</a>
-        </div>
-        {/empty}
-
         <!-- 分页 -->
-        {if condition="($list->hasPages() ?? false)"}
+        {if condition="!empty($pageNav)"}
         <div class="mt-5 d-flex justify-content-center">
-            <nav>{$list->render()|raw}</nav>
+            <nav>{$pageNav|raw}</nav>
         </div>
         {/if}
         {/if}
