@@ -16,7 +16,7 @@ return [
     // HTTP 请求超时（秒）
     'timeout' => 120,
     // 是否验证 SSL 证书
-    'verify_ssl' => true,
+    'verify_ssl' => false,
 
     // 升级包文件名匹配前缀（用于在 Release assets 中定位升级包）
     'upgrade_package_prefix' => 'ai-cms-upgrade-',

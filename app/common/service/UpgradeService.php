@@ -481,6 +481,19 @@ class UpgradeService
             throw new \RuntimeException('下载文件无效或为空');
         }
 
+        // 校验下载内容为合法ZIP（魔数PK），避免下载到错误页/截断文件后走到ZipArchive才报模糊错误
+        $handle = fopen($filepath, 'rb');
+        if ($handle === false) {
+            throw new \RuntimeException('无法读取下载文件');
+        }
+        $magic = fread($handle, 4);
+        fclose($handle);
+        if ($magic !== "PK\x03\x04") {
+            $actualSize = filesize($filepath);
+            @unlink($filepath);
+            throw new \RuntimeException('下载内容不是有效的ZIP升级包（大小: ' . $actualSize . ' 字节，可能被防火墙/代理拦截或网络中断）');
+        }
+
         return $filepath;
     }
 
@@ -490,8 +503,10 @@ class UpgradeService
     protected function verifyAndExtract(string $zipFile): array
     {
         $zip = new \ZipArchive();
-        if ($zip->open($zipFile) !== true) {
-            throw new \RuntimeException('无法打开升级包ZIP文件');
+        $openResult = $zip->open($zipFile);
+        if ($openResult !== true) {
+            $size = file_exists($zipFile) ? filesize($zipFile) : 0;
+            throw new \RuntimeException('无法打开升级包ZIP文件（错误码: ' . $openResult . ', 文件大小: ' . $size . ' 字节，可能下载不完整）');
         }
 
         // 安全扫描：检查是否有跳出根目录的文件
@@ -509,7 +524,12 @@ class UpgradeService
             mkdir($extractDir, 0755, true);
         }
         $zip->extractTo($extractDir);
-        $zip->close();
+        try {
+            $zip->close();
+        } catch (\Throwable $e) {
+            $size = file_exists($zipFile) ? filesize($zipFile) : 0;
+            throw new \RuntimeException('升级包解压失败（文件大小: ' . $size . ' 字节，可能下载不完整，请重试）: ' . $e->getMessage());
+        }
 
         // 如果ZIP根目录只有一个文件夹，进入该文件夹
         $entries = array_diff(scandir($extractDir), ['.', '..']);
@@ -977,6 +997,10 @@ class UpgradeService
     protected function getCurrentManifestDir(): string
     {
         $steps = UpgradeLog::where('id', $this->logId)->value('upgrade_steps');
+        if (is_string($steps)) {
+            $decoded = json_decode($steps, true);
+            $steps = is_array($decoded) ? $decoded : [];
+        }
         if (!empty($steps)) {
             foreach ($steps as $step) {
                 if (!empty($step['extract_dir'])) {
