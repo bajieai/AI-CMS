@@ -22,7 +22,7 @@
         <div style="padding:2.25rem 2.5rem 2.5rem;">
             <form id="loginForm">
                 <div class="mb-3">
-                    <label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);letter-spacing:.04em;">用户名/邮箱箱</label>
+                    <label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);letter-spacing:.04em;">用户名/邮箱</label>
                     <input type="text" name="username" class="form-control form-control-lg" required placeholder="请输入用户名或邮箱" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);font-size:.96rem;padding:.7rem 1rem;">
                 </div>
                 <div class="mb-3">
@@ -59,8 +59,10 @@
 
 {block name="js"}
 <script>
-{php}if (($captcha_login ?? 0) == 1):{/php}
+var CAPTCHA_ENABLED = parseInt('{$captcha_login ?? 0}') || 0;
+
 function loadCaptcha() {
+    if (!CAPTCHA_ENABLED) return;
     $.get('/member/captcha', function(res) {
         if (res.success && res.data) {
             var $box = $('#captchaBox');
@@ -74,9 +76,10 @@ function loadCaptcha() {
         }
     });
 }
-loadCaptcha();
-$('#captchaBox').on('click', function() { loadCaptcha(); });
-{php}endif;{/php}
+if (CAPTCHA_ENABLED) {
+    loadCaptcha();
+    $('#captchaBox').on('click', function() { loadCaptcha(); });
+}
 
 $('#loginForm').on('submit', function(e) {
     e.preventDefault();
@@ -88,10 +91,10 @@ $('#loginForm').on('submit', function(e) {
             location.href = '/member/profile';
         } else {
             alert(res.msg);
-{php}if (($captcha_login ?? 0) == 1):{/php}
             loadCaptcha();
-            $('[name="captcha"]').val('');
-{php}endif;{/php}
+            if (CAPTCHA_ENABLED) {
+                $('[name="captcha"]').val('');
+            }
         }
     });
 });
