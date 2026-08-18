@@ -49,8 +49,10 @@ class CateController extends AdminBaseController
     private function injectCateListMeta(array $tree): array
     {
         $typeNames = ContentTypeMap::categoryNameByType();
+        $typeColors = ContentTypeMap::badgeColorByType();
         foreach ($tree as &$item) {
             $item['type_name'] = $typeNames[(int) $item['type']] ?? '未知';
+            $item['type_color'] = $typeColors[(int) $item['type']] ?? 'bg-secondary';
         }
         unset($item);
 

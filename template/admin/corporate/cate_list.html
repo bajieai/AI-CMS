@@ -36,7 +36,7 @@
                         {/if}
                         {$vo.name}
                     </td>
-                    <td><span class="badge bg-secondary">{$vo.type_name}</span></td>
+                    <td><span class="badge {$vo.type_color}">{$vo.type_name}</span></td>
                     <td>{$vo.sort}</td>
                     <td>
                         {if condition="$vo.status == 1"}<span class="badge bg-success">启用</span>{else/}<span class="badge bg-secondary">禁用</span>{/if}

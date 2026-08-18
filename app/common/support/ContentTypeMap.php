@@ -70,6 +70,24 @@ final class ContentTypeMap
         ];
     }
 
+    /**
+     * 内容类型对应的 Bootstrap 徽章颜色 class（后台分类/内容列表“类型”标识）
+     * @return array<int, string>
+     */
+    public static function badgeColorByType(): array
+    {
+        return [
+            self::INFO     => 'bg-success',
+            self::PAGE     => 'bg-dark',
+            self::PRODUCT  => 'bg-primary',
+            self::CASE     => 'bg-info',
+            self::DOWNLOAD => 'bg-warning text-dark',
+            self::JOB      => 'bg-secondary',
+            self::GALLERY  => 'bg-danger',
+            self::VIDEO    => 'bg-info',
+        ];
+    }
+
     public static function pageType(): int
     {
         return self::PAGE;
