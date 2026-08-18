@@ -1,16 +1,21 @@
-# 八界AI-CMS V2.9.46
+# 八界AI-CMS V2.9.47
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.46-blue)
+![Version](https://img.shields.io/badge/version-2.9.47-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.46 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.47 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.47 — 分类列表类型标识配色恢复·模型字段命名统一·信息模型字段优化
+- **分类列表类型标识恢复彩色** — 类型徽章从统一灰色恢复为按类型着色（信息=绿/单页=深/产品=蓝/案例=青/下载=黄/招聘=灰/图集=红/视频=青），颜色映射集中到 ContentTypeMap
+- **模型扩展字段命名统一** — install.sql 种子数据旧前缀命名（product_price/info_author 等）统一为无前缀新命名（price/author/source 等），修正类型与字段错位
+- **信息模型字段优化** — 扩展字段"作者"改为"发布者"，新增"联系方式"字段，前台详情页同步显示
 
 ### V2.9.45 — 在线升级系统完善·URL体系统一·内容模型优化
 - **后台一键在线升级** — 通过 Gitee Releases API 检测新版本，下载增量升级包，自动执行数据库迁移和文件更新
@@ -75,7 +80,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
-| **V2.9.46** | 2026-08 | **内容模型身份统一·字段管理完善**: 统一内容模型唯一顺序(1信息/2单页/3产品/4案例/5下载/6招聘/7图集/8视频)+ContentTypeMap唯一映射源+分类/内容新增编辑双皮肤单页type=2联动修复+内容列表/审核/回收站类型标签统一+前台默认/企业/基础主题面包屑统一+内容模型字段管理(新增/编辑/删除/排序)+字段类型下拉修复+可视化选项编辑器(替换JSON输入)+字段管理路由404修复+验证码GD降级+登录SQL注入白名单 |
+| **V2.9.47** | 2026-08 | **分类列表类型标识配色恢复·模型字段命名统一·信息模型字段优化**: 分类列表类型徽章恢复按类型着色(颜色映射集中ContentTypeMap)+install.sql模型扩展字段旧前缀命名统一为无前缀新命名(price/author/source等)+修正类型与字段错位+信息模型扩展字段"作者"改"发布者"+"联系方式"新增+前台详情页同步 |
 | **V2.9.45** | 2026-08 | **在线升级系统完善·URL体系统一·内容模型优化**: Dashboard版本提醒+NEW徽章+升级配置中心（开关/通道/Token）+升级锁+disable_functions检查+manifest增强（deleted_files/run_after/run_after_suffix）+SQL不自动回滚+升级包生成CLI+30分钟缓存+二次确认对话框+双皮肤后台模板+权限配置+URL体系统一(列表/{seo_url}+详情/{seo_url}/{id}+旧URL 301重定向)+内容模型ID调整(信息id=1/单页id=2)+sort_order冗余字段清理+分类类型动态化(从content_model读取)+Banner轮播按钮可见性修复 |
 | **V2.9.42** | 2026-08 | **前台导航动态化·注册CSRF修复·付费开关修复·GBK/PUA乱码根除·评价区去重·卡片标题颜色优化**: 导航从硬编码改为数据库动态读取(4套layout)+注册表单CSRF token注入修复+付费阅读checkbox关闭无效修复(ContentService补零+隐藏域)+GBK双重编码乱码全量根除(1256模板0残留)+PUA字符全量清理(18文件)+详情页移除重复评价区仅保留评论+后台卡片标题恢复默认样式+SEO卡片移除黄色边框+JS语法修复(引号缺失+星号符号)+删除重复CommentAdminController+install.sql编码清理合并 |
 | **V2.9.41** | 2026-07 | **表前缀自定义·Model类型修复·数据报表修复·无用文件清理**: install.sql{prefix}动态替换+Db::name规范化+Model删$table+$cast→$type回退+ReportEngineService容错+jsonToTags()badge显示+无用文件清理 |
