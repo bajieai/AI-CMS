@@ -460,8 +460,14 @@ $('#configForm').on('submit', function(e) {
     }
 });
 
-// 初始化加载
+// 初始化加载（V2.9.47: 同时绑定 pjax:complete，解决菜单点击 PJAX 进入时主题列表一直转圈不加载的问题）
 $(function() { loadThemes(); });
+// 用命名空间事件 + off 先解绑，避免 PJAX 内联脚本重复执行导致监听器堆积
+$(document).off('pjax:complete.systemConfig').on('pjax:complete.systemConfig', function() {
+    if ($('#frontendThemeList').length && $('#backendThemeList').length) {
+        loadThemes();
+    }
+});
 
 // V2.9.24 J-2: 配置搜索功能
 $('#configSearchInput').on('input', function() {
