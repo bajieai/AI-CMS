@@ -25,6 +25,17 @@ function initTinyMCE() {
     convert_urls: false,
     promotion: false,
     branding: false,
+    // V2.9.47: 防止输入 # / 连续大写英文等特殊字符导致页面卡死
+    browser_spellcheck: false,          // 关闭浏览器拼写检查（连续英文触发红波浪线卡顿）
+    automatic_link: false,              // 关闭 link 插件自动链接检测
+    link: { automatic_link: false },    // TinyMCE5+ 语法兼容
+    link_context_toolbar: false,        // 关闭链接上下文工具栏
+    paste_auto_cleanup: true,           // 粘贴自动清理
+    paste_remove_styles: true,          // 粘贴移除样式
+    paste_remove_script_contents: true, // 粘贴移除脚本内容
+    paste_strip_class_attributes: 'all',// 粘贴剥离class属性
+    content_css: [],
+    end_container_on_empty_block: true, // 空块自动收尾，减少布局卡顿
     setup: function(editor) {
         // AI快捷键：Ctrl+Shift+C 续写
         editor.addShortcut('ctrl+shift+c', 'AI续写', function() {
@@ -881,10 +892,32 @@ function renderGeoScore(data) {
     $('#geoScoreArea').show();
 }
 
+// V2.9.47: 安全同步编辑器内容到 textarea（防止 # / 连续英文等导致 TinyMCE 卡死时保存按钮一直转圈）
+function safeSyncEditorContent() {
+    if (typeof tinymce === 'undefined' || !tinymce.activeEditor) return true;
+    var editor = tinymce.activeEditor;
+    try {
+        editor.triggerSave();
+        return true;
+    } catch (e) {
+        try {
+            var $body = $('#editor_ifr').contents().find('body');
+            if ($body.length && $('#editor').length) {
+                $('#editor').val($body.html());
+                return true;
+            }
+        } catch (e2) {}
+        return false;
+    }
+}
+
 // 保存按钮绑定（事件委托，PJAX 兼容）
 $(document).on('click', '#saveBtn', function() {
-    if (typeof tinymce !== 'undefined') tinymce.triggerSave();
     var b = this;
+    var ok = safeSyncEditorContent();
+    if (!ok) {
+        window.showToast('编辑器状态异常，已使用当前文本内容，请检查后重试', 'warning');
+    }
     b.disabled = true;
     b.innerHTML = '保存中...';
     var form = document.getElementById('contentForm');

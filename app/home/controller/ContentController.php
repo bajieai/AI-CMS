@@ -277,10 +277,42 @@ class ContentController extends FrontBaseController
 
         $cate = $info->cate ?? null;
 
+        // V2.9.47: 上一篇/下一篇（同分类下，按 id 相邻）
+        $prevContent = null;
+        $nextContent = null;
+        if ($cate) {
+            $prevRow = Content::where('cate_id', $info->cate_id)
+                ->where('id', '<', $id)->where('status', 2)
+                ->order('id', 'desc')->field('id,title')->find();
+            $nextRow = Content::where('cate_id', $info->cate_id)
+                ->where('id', '>', $id)->where('status', 2)
+                ->order('id', 'asc')->field('id,title')->find();
+            $cateUrlPrefix = $cate->seo_url ? ('/' . $cate->seo_url) : ('/' . $typeSlug);
+            if ($prevRow) {
+                $prevContent = [
+                    'id'    => $prevRow->id,
+                    'title' => $prevRow->title,
+                    'url'   => $cateUrlPrefix . '/' . $prevRow->id,
+                ];
+            }
+            if ($nextRow) {
+                $nextContent = [
+                    'id'    => $nextRow->id,
+                    'title' => $nextRow->title,
+                    'url'   => $cateUrlPrefix . '/' . $nextRow->id,
+                ];
+            }
+        }
+
         $this->assign([
             'site_url'      => request()->domain(),
             'info'          => $info,
             'type_name'     => \app\common\support\ContentTypeMap::nameByType()[(int) ($info->type ?? 0)] ?? '未知',
+            'prev_content'  => $prevContent,
+            'next_content'  => $nextContent,
+            // 兼容旧版预置模板变量名
+            'prev'          => $prevContent,
+            'next'          => $nextContent,
             'related'       => $related,
             'chapters'      => $chapters,
             'chapter_access'=> $chapterAccess,
