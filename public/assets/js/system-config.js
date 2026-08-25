@@ -69,8 +69,8 @@
         }
         $.get('/admin/system/allTemplates', function(res) {
             if ($btn.length) $btn.prop('disabled', false).html('<i class="bi bi-arrow-clockwise"></i> 刷新');
-            // API 实际返回结构：res.data.frontend = {themes:[...], active:'xxx'}, res.data.admin = {...}
-            if (res.code === 1 && res.data) {
+            // 后端 success() 默认 code=0；兼容旧版/第三方可能返回 code=1
+            if ((res.code === 0 || res.code === 1) && res.data) {
                 var fe = res.data.frontend || {};
                 var be = res.data.admin || {};
                 renderThemeCards('frontendThemeList', fe.themes || [], fe.active, 'frontend', true);

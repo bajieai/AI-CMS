@@ -70,8 +70,8 @@
 
     function loadThemes() {
         var $btn = $('#refreshThemeBtn');
-        var originalHtml = $btn.html();
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span>加载中');
+        var originalHtml = $btn.length ? $btn.html() : '';
+        if ($btn.length) $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span>加载中');
         $.get('/admin/system/allTemplates', function(res) {
             if (res.code !== 0 || !res.data) {
                 $('#frontendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>加载失败' + (res.msg ? ': ' + res.msg : '') + '</div>');
@@ -84,7 +84,7 @@
             $('#frontendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>网络错误，请点击刷新重试</div>');
             $('#backendThemeList').html('<div class="text-danger small p-3"><i class="bi bi-exclamation-triangle me-1"></i>网络错误，请点击刷新重试</div>');
         }).always(function() {
-            $btn.prop('disabled', false).html(originalHtml);
+            if ($btn.length) $btn.prop('disabled', false).html(originalHtml);
         });
     }
     // 确保全局可访问（PJAX环境下 onclick 可能失效）
