@@ -164,12 +164,18 @@ class CateController extends AdminBaseController
                 ->field('id, type, model_name, model_description, model_icon')
                 ->select();
 
+            // V2.9.47: 计算当前分类"生效模板"，供编辑页提示（栏目自定义 → 模型默认 → 系统默认）
+            $effectiveListTpl = $this->resolveEffectiveTemplate((int) $info->model_id, (string) ($info->list_template ?? ''), 'list');
+            $effectiveDetailTpl = $this->resolveEffectiveTemplate((int) $info->model_id, (string) ($info->detail_template ?? ''), 'detail');
+
             $this->assign([
                 'cates' => $tree,
                 'info' => $info,
                 'page_content' => $pageContent,
                 'available_templates' => $this->scanTemplates(),
                 'models' => $models,
+                'effective_list_template' => $effectiveListTpl,
+                'effective_detail_template' => $effectiveDetailTpl,
             ]);
             return $this->view('/cate_edit');
         }
@@ -368,5 +374,51 @@ class CateController extends AdminBaseController
         }
 
         return ['list' => $listTemplates, 'detail' => $detailTemplates];
+    }
+
+    /**
+     * 解析分类的"当前生效模板"（V2.9.47）
+     * Fallback链与前台一致：栏目自定义模板 → 模型默认模板 → 系统默认
+     *
+     * @param int    $modelId        分类绑定的模型id
+     * @param string $customTemplate 分类自定义模板（可能为空）
+     * @param string $prefix         list / detail
+     */
+    private function resolveEffectiveTemplate(int $modelId, string $customTemplate, string $prefix): string
+    {
+        // 1. 栏目自定义模板
+        if (!empty($customTemplate)) {
+            return $customTemplate;
+        }
+
+        // 2. 模型默认模板（list_{code} / detail_{code}，code 去掉 model_ 前缀）
+        $themePath = app()->getRootPath() . 'template/themes/default/pc/';
+        if ($modelId > 0) {
+            $model = ContentModel::find($modelId);
+            if ($model) {
+                // 优先取模型 default_list_template / default_detail_template 字段
+                $modelDefault = $prefix === 'list' ? ($model->default_list_template ?? '') : ($model->default_detail_template ?? '');
+                if (!empty($modelDefault)) {
+                    $tplFile = $themePath . $modelDefault . '.html';
+                    if (is_file($tplFile)) {
+                        return $modelDefault . '.html';
+                    }
+                }
+                // 否则用 code 去掉 model_ 前缀拼接（如 model_info → list_info）
+                $code = (string) ($model->code ?? '');
+                if (strpos($code, 'model_') === 0) {
+                    $code = substr($code, 6);
+                }
+                if (!empty($code)) {
+                    $tplFile = $themePath . $prefix . '_' . $code . '.html';
+                    if (is_file($tplFile)) {
+                        return $prefix . '_' . $code . '.html';
+                    }
+                }
+            }
+        }
+
+        // 3. 系统默认
+        return $prefix . '.html';
     }
 }

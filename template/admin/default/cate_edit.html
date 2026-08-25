@@ -28,12 +28,12 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">内容模型</label>
-                        <select name="type" class="form-select" id="cateType" data-current-model="{$info.model_id ?? $info.type ?? 0}">
+                        <select name="type" class="form-select" id="cateType" data-current-model="{$info.model_id ?? ($info.type ?? 0)}">
                             {volist name="models" id="model"}
                             <option value="{$model.type}" data-model-id="{$model.id}" {if condition="($info.type ?? 3) == $model.type"}selected{/if}>{$model.model_name}</option>
                             {/volist}
                         </select>
-                        <input type="hidden" name="model_id" id="cateModelId" value="{$info.model_id ?? $info.type ?? 0}">
+                        <input type="hidden" name="model_id" id="cateModelId" value="{$info.model_id ?? ($info.type ?? 0)}">
                         <small class="form-text text-muted">选择内容模型后，该分类下的内容将使用对应模型的字段结构。</small>
                     </div>
                     <div class="mb-3">
@@ -72,6 +72,9 @@
                                     <option value="{$tpl}" {if condition="($info.list_template ?? '') == $tpl"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
+                                {if condition="!empty($effective_list_template)"}
+                                <small class="form-text text-muted">当前生效：<code>{$effective_list_template}</code></small>
+                                {/if}
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">详情页模板 <small class="text-muted">(模板目录: themes/default/pc/)</small></label>
@@ -81,6 +84,9 @@
                                     <option value="{$tpl}" {if condition="($info.detail_template ?? '') == $tpl"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
+                                {if condition="!empty($effective_detail_template)"}
+                                <small class="form-text text-muted">当前生效：<code>{$effective_detail_template}</code></small>
+                                {/if}
                             </div>
                         </div>
                     </div>
