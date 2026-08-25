@@ -199,9 +199,9 @@ return [
             // V2.9.18: 订阅管理
             ['id' => 483, 'name' => '订阅管理', 'url' => '/admin/subscriber/index', 'permission' => 'subscriber.*', 'active' => 'subscriber', 'icon' => 'bi bi-envelope-plus'],
             ['id' => 484, 'name' => '邮件日志', 'url' => '/admin/mail_log/index', 'permission' => 'mail_log.*', 'active' => 'mail_log', 'icon' => 'bi bi-envelope-check'],
-            // V2.9.44: 在线升级
-            ['id' => 485, 'name' => '在线升级', 'url' => '/admin/online_upgrade/index', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade', 'icon' => 'bi bi-cloud-arrow-up'],
-            ['id' => 486, 'name' => '升级配置', 'url' => '/admin/online_upgrade/config', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade_config', 'icon' => 'bi bi-gear'],
+            // V2.9.44: 在线升级（id 与 install.sql 菜单种子保持一致，避免 menu:sync 产生重复）
+            ['id' => 934, 'name' => '在线升级', 'url' => '/admin/online_upgrade/index', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade', 'icon' => 'bi bi-cloud-arrow-up'],
+            ['id' => 935, 'name' => '升级配置', 'url' => '/admin/online_upgrade/config', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade_config', 'icon' => 'bi bi-gear'],
         ],
     ],
 ];
