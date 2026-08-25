@@ -88,6 +88,7 @@ Route::rule('cate/add$', '\app\admin\controller\CateController@add', 'GET|POST')
 Route::rule('cate/edit/:id$', '\app\admin\controller\CateController@edit', 'GET|POST');
 Route::post('cate/delete/:id$', '\app\admin\controller\CateController@delete');
 Route::get('cate/checkSeoUrl$', '\app\admin\controller\CateController@checkSeoUrl');
+Route::get('cate/getModelTemplates$', '\app\admin\controller\CateController@getModelTemplates');
 
 // 标签管理
 Route::rule('tag/index$', '\app\admin\controller\TagController@index', 'GET');

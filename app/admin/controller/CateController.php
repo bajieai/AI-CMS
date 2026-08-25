@@ -350,21 +350,52 @@ class CateController extends AdminBaseController
     }
 
     /**
+     * AJAX：根据分类类型 + 模型id 返回过滤后的模板列表与生效模板（V2.9.47）
+     * 用于分类编辑页切换"内容模型"时，实时联动刷新列表/详情模板下拉框。
+     */
+    public function getModelTemplates()
+    {
+        $type = (int) $this->request->get('type', 0);
+        $modelId = (int) $this->request->get('model_id', 0);
+
+        $templates = $this->scanTemplates($type, $modelId);
+
+        // 计算该模型的生效模板（无自定义时，用于下拉框默认选中）
+        $effectiveList = $this->resolveEffectiveTemplate($type, $modelId, '', 'list');
+        $effectiveDetail = $this->resolveEffectiveTemplate($type, $modelId, '', 'detail');
+
+        // 单页分类列表页不适用 → 前端隐藏
+        $isSinglePage = ($type === ContentTypeMap::pageType());
+
+        return $this->success('获取成功', [
+            'list'         => $templates['list'],
+            'detail'       => $templates['detail'],
+            'list_rule'    => $templates['list_rule'],
+            'detail_rule'  => $templates['detail_rule'],
+            'effective_list'   => $effectiveList,
+            'effective_detail' => $effectiveDetail,
+            'is_single_page'   => $isSinglePage,
+        ]);
+    }
+
+    /**
      * 扫描模板目录，并按当前分类模型过滤可用模板列表（V2.9.47）
      *
      * 过滤规则：
-     *  - 列表页模板：list.html（默认共用）+ 所有 list_{模型code}_* 前缀的模板
-     *  - 详情页模板：detail.html（默认共用）+ 所有 detail_{模型code}_* 前缀的模板
-     *  - 单页类型：仅 single_* 前缀的模板
+     *  - 普通模型：仅显示模型专属模板 list_{模型code}_* / detail_{模型code}_*
+     *    （如产品中心默认 list_product.html / detail_product.html）
+     *  - 若某模型没有任何专属模板（新建自定义模型未建模板），才回退显示
+     *    list.html / detail.html 作为备用默认模板
+     *  - 单页类型（type=2）：仅 single_* 前缀模板，无列表页
      * 模型 code 取 content_model.code 去掉 model_ 前缀（如 model_info → info）。
      *
      * 取名规则（供二次开发）：
-     *  - 默认模板（所有模型共用）：list.html / detail.html
      *  - 模型专属列表页：list_{模型code}.html 或 list_{模型code}_{自定义}.html，如 list_info.html、list_info_faq.html
      *  - 模型专属详情页：detail_{模型code}.html 或 detail_{模型code}_{自定义}.html
+     *  - 备用默认（仅当模型无专属模板时）：list.html / detail.html
      *  - 单页：single_*.html（single_page.html 等）
      *
-     * @param int $type    分类类型（ContentTypeMap），0 表示未知（返回全部）
+     * @param int $type    分类类型（ContentTypeMap），0 表示未知
      * @param int $modelId 分类绑定的模型id
      * @return array{list:array, detail:array, list_rule:string, detail_rule:string}
      */
@@ -397,37 +428,43 @@ class CateController extends AdminBaseController
         $listTemplates = [];
         $detailTemplates = [];
 
-        foreach ($allTemplates as $file) {
-            if ($isSinglePage) {
-                // 单页：只列 single_ 前缀
-                if (strpos($file, 'single_') === 0) {
+        if ($isSinglePage) {
+            // 单页：只列 single_ 前缀
+            foreach ($allTemplates as $file) {
+                if (str_starts_with($file, 'single_')) {
                     $detailTemplates[] = $file;
                 }
-                continue;
             }
-            // 普通模型：
-            // 列表页：list.html 或 list_{code} 前缀（list_product.html、list_product_xxx.html）
-            // 用 str_starts_with 精确前缀匹配，避免误匹配 list_productivity 之类
-            if ($file === 'list.html' || (!empty($modelCode) && str_starts_with($file, 'list_' . $modelCode))) {
+            return [
+                'list'        => [],
+                'detail'      => $detailTemplates,
+                'list_rule'   => '单页分类无列表页',
+                'detail_rule' => '单页模板：single_*.html（如 single_page.html）',
+            ];
+        }
+
+        // 普通模型：先收集模型专属模板
+        foreach ($allTemplates as $file) {
+            if (!empty($modelCode) && str_starts_with($file, 'list_' . $modelCode)) {
                 $listTemplates[] = $file;
             }
-            // 详情页：detail.html 或 detail_{code} 前缀（detail_product.html、detail_product_xxx.html）
-            if ($file === 'detail.html' || (!empty($modelCode) && str_starts_with($file, 'detail_' . $modelCode))) {
+            if (!empty($modelCode) && str_starts_with($file, 'detail_' . $modelCode)) {
                 $detailTemplates[] = $file;
             }
         }
 
-        // 取名规则说明
-        $listRule = '默认模板：list.html（所有模型共用）；模型专属列表页：list_' . ($modelCode ?: '{模型code}') . '_*.html';
-        $detailRule = '默认模板：detail.html（所有模型共用）；模型专属详情页：detail_' . ($modelCode ?: '{模型code}') . '_*.html';
-        if ($isSinglePage) {
-            $listRule = '单页分类无列表页';
-            $detailRule = '单页模板：single_*.html（如 single_page.html）';
-        }
+        // 模型没有任何专属模板（新建自定义模型未建模板）时，回退显示备用默认 list.html / detail.html
+        $fallbackList = [];
+        $fallbackDetail = [];
+        if (in_array('list.html', $allTemplates, true)) $fallbackList[] = 'list.html';
+        if (in_array('detail.html', $allTemplates, true)) $fallbackDetail[] = 'detail.html';
+
+        $listRule = '模型专属列表页：list_' . ($modelCode ?: '{模型code}') . '_*.html';
+        $detailRule = '模型专属详情页：detail_' . ($modelCode ?: '{模型code}') . '_*.html';
 
         return [
-            'list'        => $listTemplates,
-            'detail'      => $detailTemplates,
+            'list'        => $listTemplates ?: $fallbackList,
+            'detail'      => $detailTemplates ?: $fallbackDetail,
             'list_rule'   => $listRule,
             'detail_rule' => $detailRule,
         ];

@@ -66,21 +66,21 @@
                         <div class="card-body">
                             <div class="mb-3" id="listTemplateArea">
                                 <label class="form-label">列表页模板 <small class="text-muted">(模板目录: themes/default/pc/)</small></label>
-                                <select name="list_template" class="form-select">
+                                <select name="list_template" id="listTemplateSelect" class="form-select">
                                     {volist name="available_templates.list" id="tpl"}
                                     <option value="{$tpl}" {if condition="($info.list_template ?? '') == $tpl || (empty($info.list_template) && ($effective_list_template ?? '') == $tpl)"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
-                                <small class="form-text text-muted">取名规则：默认 <code>list.html</code>（所有模型共用）；模型专属列表页 <code>list_{模型code}_*.html</code>（如 list_info_faq.html）。</small>
+                                <small class="form-text text-muted" id="listTemplateRule">模型专属列表页 <code>list_{模型code}_*.html</code>（如 list_info_faq.html）；模型无专属模板时用 <code>list.html</code> 备用。</small>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">详情页模板 <small class="text-muted">(模板目录: themes/default/pc/)</small></label>
-                                <select name="detail_template" class="form-select">
+                                <select name="detail_template" id="detailTemplateSelect" class="form-select">
                                     {volist name="available_templates.detail" id="tpl"}
                                     <option value="{$tpl}" {if condition="($info.detail_template ?? '') == $tpl || (empty($info.detail_template) && ($effective_detail_template ?? '') == $tpl)"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
-                                <small class="form-text text-muted">取名规则：默认 <code>detail.html</code>（所有模型共用）；模型专属详情页 <code>detail_{模型code}_*.html</code>（如 detail_product_detail.html）。</small>
+                                <small class="form-text text-muted" id="detailTemplateRule">模型专属详情页 <code>detail_{模型code}_*.html</code>；模型无专属模板时用 <code>detail.html</code> 备用。</small>
                             </div>
                         </div>
                     </div>
@@ -209,14 +209,59 @@ $(document).on('pjax:beforeSend', function() {
     pageEditorInitialized = false;
 });
 
+// V2.9.47: 根据当前选中的内容模型，AJAX 刷新列表/详情模板下拉框（实时联动）
+function refreshTemplatesForModel() {
+    var typeVal = parseInt($('#cateType').val() || 0);
+    var modelId = parseInt($('#cateModelId').val() || 0);
+    if (!modelId) return;
+    $.get('/admin/cate/getModelTemplates', { type: typeVal, model_id: modelId }, function(res) {
+        if (!res || res.code !== 0 || !res.data) return;
+        var d = res.data;
+        // 刷新列表页模板下拉
+        var $list = $('#listTemplateSelect');
+        var prevList = $list.val();
+        $list.empty();
+        (d.list || []).forEach(function(tpl) {
+            $list.append($('<option>').val(tpl).text(tpl));
+        });
+        // 保留原选中值（仍在新列表里则保持），否则选中生效模板
+        if (prevList && $list.find('option[value="' + prevList + '"]').length) {
+            $list.val(prevList);
+        } else if (d.effective_list) {
+            $list.val(d.effective_list);
+        }
+        // 刷新详情页模板下拉
+        var $detail = $('#detailTemplateSelect');
+        var prevDetail = $detail.val();
+        $detail.empty();
+        (d.detail || []).forEach(function(tpl) {
+            $detail.append($('<option>').val(tpl).text(tpl));
+        });
+        if (prevDetail && $detail.find('option[value="' + prevDetail + '"]').length) {
+            $detail.val(prevDetail);
+        } else if (d.effective_detail) {
+            $detail.val(d.effective_detail);
+        }
+        // 更新取名规则说明
+        if (d.list_rule) $('#listTemplateRule').html(d.list_rule);
+        if (d.detail_rule) $('#detailTemplateRule').html(d.detail_rule);
+        // 单页分类：隐藏列表页模板区
+        if (d.is_single_page) $('#listTemplateArea').hide();
+        else $('#listTemplateArea').show();
+    }, 'json');
+}
+
 $('#cateType').on('change', function() {
     togglePageContent();
     // V2.9.47: 切换内容模型时同步 model_id（每个模型 type 对应唯一 model_id）
     var $opt = $(this).find(':selected');
     var mid = $opt.data('model-id');
     if (mid) $('#cateModelId').val(mid);
+    // V2.9.47: 实时联动刷新模板下拉
+    refreshTemplatesForModel();
 });
 togglePageContent();
+refreshTemplatesForModel();
 
 $('#cateForm').on('submit', function(e) {
     e.preventDefault();
