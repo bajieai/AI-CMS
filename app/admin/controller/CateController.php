@@ -164,9 +164,11 @@ class CateController extends AdminBaseController
                 ->field('id, type, model_name, model_description, model_icon')
                 ->select();
 
-            // V2.9.47: 计算当前分类"生效模板"，供编辑页提示（栏目自定义 → 模型默认 → 系统默认）
-            $effectiveListTpl = $this->resolveEffectiveTemplate((int) $info->model_id, (string) ($info->list_template ?? ''), 'list');
-            $effectiveDetailTpl = $this->resolveEffectiveTemplate((int) $info->model_id, (string) ($info->detail_template ?? ''), 'detail');
+            // V2.9.47: 计算当前分类"生效模板"，供编辑页下拉框默认选中
+            //（栏目自定义 → 模型默认 → 系统默认；单页类型 special 处理）
+            $cateType = (int) ($info->type ?? 0);
+            $effectiveListTpl = $this->resolveEffectiveTemplate($cateType, (int) $info->model_id, (string) ($info->list_template ?? ''), 'list');
+            $effectiveDetailTpl = $this->resolveEffectiveTemplate($cateType, (int) $info->model_id, (string) ($info->detail_template ?? ''), 'detail');
 
             $this->assign([
                 'cates' => $tree,
@@ -379,20 +381,36 @@ class CateController extends AdminBaseController
     /**
      * 解析分类的"当前生效模板"（V2.9.47）
      * Fallback链与前台一致：栏目自定义模板 → 模型默认模板 → 系统默认
+     * 单页类型（type=2）只用 single_page.html，无列表页概念。
      *
+     * @param int    $type           分类类型（ContentTypeMap）
      * @param int    $modelId        分类绑定的模型id
      * @param string $customTemplate 分类自定义模板（可能为空）
      * @param string $prefix         list / detail
      */
-    private function resolveEffectiveTemplate(int $modelId, string $customTemplate, string $prefix): string
+    private function resolveEffectiveTemplate(int $type, int $modelId, string $customTemplate, string $prefix): string
     {
+        $themePath = app()->getRootPath() . 'template/themes/default/pc/';
+
+        // 0. 单页类型（type=2）：只用 single_page.html；列表页概念不适用（返回空），详情页=单页模板
+        if ($type === ContentTypeMap::pageType()) {
+            // 自定义优先（若用户曾自定义）
+            if (!empty($customTemplate)) {
+                return $customTemplate;
+            }
+            // 单页模板存在性：优先 single_page.html，其次 detail.html
+            if (is_file($themePath . 'single_page.html')) {
+                return $prefix === 'list' ? '' : 'single_page.html';
+            }
+            return $prefix === 'list' ? '' : 'detail.html';
+        }
+
         // 1. 栏目自定义模板
         if (!empty($customTemplate)) {
             return $customTemplate;
         }
 
         // 2. 模型默认模板（list_{code} / detail_{code}，code 去掉 model_ 前缀）
-        $themePath = app()->getRootPath() . 'template/themes/default/pc/';
         if ($modelId > 0) {
             $model = ContentModel::find($modelId);
             if ($model) {

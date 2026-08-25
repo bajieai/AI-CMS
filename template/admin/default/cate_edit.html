@@ -64,29 +64,29 @@
                     <div class="card mb-3">
                         <div class="card-header py-2"><i class="bi bi-layout-text-window me-1"></i>自定义模板（留空使用默认）</div>
                         <div class="card-body">
-                            <div class="mb-3">
+                            <div class="mb-3" id="listTemplateArea">
                                 <label class="form-label">列表页模板 <small class="text-muted">(模板目录: themes/default/pc/)</small></label>
                                 <select name="list_template" class="form-select">
-                                    <option value="">使用默认模板</option>
+                                    <option value="" {if condition="($info.list_template ?? '') == ''"}selected{/if}>
+                                        {if condition="empty($effective_list_template)"}使用默认模板{else /}使用默认模板（当前：{$effective_list_template}）{/if}
+                                    </option>
                                     {volist name="available_templates.list" id="tpl"}
                                     <option value="{$tpl}" {if condition="($info.list_template ?? '') == $tpl"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
-                                {if condition="!empty($effective_list_template)"}
-                                <small class="form-text text-muted">当前生效：<code>{$effective_list_template}</code></small>
-                                {/if}
+                                <small class="form-text text-muted">第一个选项为默认项，括号内为该分类当前生效的模板文件。</small>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">详情页模板 <small class="text-muted">(模板目录: themes/default/pc/)</small></label>
                                 <select name="detail_template" class="form-select">
-                                    <option value="">使用默认模板</option>
+                                    <option value="" {if condition="($info.detail_template ?? '') == ''"}selected{/if}>
+                                        {if condition="empty($effective_detail_template)"}使用默认模板{else /}使用默认模板（当前：{$effective_detail_template}）{/if}
+                                    </option>
                                     {volist name="available_templates.detail" id="tpl"}
                                     <option value="{$tpl}" {if condition="($info.detail_template ?? '') == $tpl"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
-                                {if condition="!empty($effective_detail_template)"}
-                                <small class="form-text text-muted">当前生效：<code>{$effective_detail_template}</code></small>
-                                {/if}
+                                <small class="form-text text-muted">第一个选项为默认项，括号内为该分类当前生效的模板文件。</small>
                             </div>
                         </div>
                     </div>
@@ -153,13 +153,16 @@
 <script src="/skin/admin/js/seo-url-autofill.js?v=2.9.44"></script>
 <script>
 // V2.9.42: 单页内容编辑器显隐控制
+// V2.9.47: 单页分类无列表页，隐藏"列表页模板"选择
 function togglePageContent() {
     var typeVal = parseInt($('#cateType').val());
     if (typeVal === 2) {
         $('#pageContentArea').show();
+        $('#listTemplateArea').hide();
         initPageEditor();
     } else {
         $('#pageContentArea').hide();
+        $('#listTemplateArea').show();
     }
 }
 
