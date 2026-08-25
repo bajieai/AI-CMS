@@ -342,6 +342,10 @@ class SystemController extends AdminBaseController
             $configs = ConfigModel::order('sort', 'asc')->select();
             $groups = [];
             foreach ($configs as $config) {
+                // V2.9.47: 系统版本号由 config/app.php 顶层 app_version 权威决定，禁止后台手动编辑
+                if (in_array($config->name, ['app_version', 'version'], true)) {
+                    continue;
+                }
                 // V2.9.32: remark为空时使用中文fallback
                 if (empty($config->remark) && isset($configNameFallback[$config->name])) {
                     $config->remark = $configNameFallback[$config->name];
@@ -487,10 +491,16 @@ class SystemController extends AdminBaseController
 
         // 保存配置（编码根治：写入前校验UTF-8合法性，防止乱码落库）
         $data = $this->request->post();
+        // V2.9.47: 系统版本号由 config/app.php 顶层 app_version 权威决定，禁止任何途径后台修改
+        $reservedConfigKeys = ['app_version', 'version'];
         try {
             foreach ($data as $name => $value) {
                 // 跳过非字符串值和系统保留字段
                 if (!is_string($value) || in_array($name, ['__token__'], true)) {
+                    continue;
+                }
+                // V2.9.47: app_version/version 是只读代码配置，POST 包含时直接忽略
+                if (in_array($name, $reservedConfigKeys, true)) {
                     continue;
                 }
                 // 校验UTF-8编码合法性：无效UTF-8序列将替换为�(U+FFFD)

@@ -241,8 +241,8 @@ class EmailService
         $fromEmail = $config['from_email'] ?: ConfigService::get('smtp_from_addr', '');
         $fromName = $config['from_name'] ?: ConfigService::get('site_name', 'AI-CMS');
 
-        // 动态读取版本号（从 README.md 或 app.php 配置）
-        $version = ConfigService::get('app_version', '') ?: config('app.app_version', '');
+        // 动态读取版本号（V2.9.47: 以 config/app.php 为权威源，数据库配置不再覆盖）
+        $version = config('app.app_version', '') ?: ConfigService::get('app_version', '');
         if (empty($version)) {
             $version = 'AI-CMS';
         }
