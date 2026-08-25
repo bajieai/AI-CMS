@@ -77,18 +77,32 @@ class UpgradeService
     }
 
     /**
-     * 获取当前版本号（优先 app_version，回退 version）
+     * 获取当前版本号
+     * 优先级：config/app.php 顶层 app_version → i8j_config(system.app_version) → i8j_config(system.version) → 兜底 2.9.43
+     *
+     * V2.9.47: 以代码版本 config/app.php 为权威源。数据库版本仅作为后备，避免代码升级到 2.9.47 后
+     *          数据库仍显示 2.9.45 导致"系统版本滞后不同步"的问题。
      */
     public function getCurrentVersion(): string
     {
+        // 1) 优先读取代码版本（config/app.php 顶层 app_version）
+        $codeVersion = (string) Config::get('app.app_version', Config::get('app_version', ''));
+        if ($codeVersion !== '') {
+            return $this->normalizeVersion($codeVersion);
+        }
+
+        // 2) 回退到数据库 i8j_config.system.app_version（在线升级流程写入）
         $appVersion = ConfigService::get('system.app_version', '');
         if (!empty($appVersion)) {
             return $this->normalizeVersion($appVersion);
         }
+
+        // 3) 再回退到 system.version
         $version = ConfigService::get('system.version', '');
         if (!empty($version)) {
             return $this->normalizeVersion($version);
         }
+
         return '2.9.43';
     }
 
@@ -898,11 +912,35 @@ class UpgradeService
 
     /**
      * 更新版本号
+     * V2.9.47: 同时使用 ConfigService::set 和 Config::set，让数据库和 ThinkPHP 已加载配置都同步到新版本，
+     *          防止后续 getCurrentVersion() 回退读到旧值。
      */
     protected function updateVersion(string $version): void
     {
         ConfigService::set('app_version', $version, 'system', '当前系统版本号');
         ConfigService::set('version', 'V' . $version, 'system', 'AI-CMS版本号');
+
+        // 同步覆盖 config/app.php 的顶层 app_version，避免手动部署场景下数据库/代码版本不一致
+        try {
+            $appConfigPath = app()->getRootPath() . 'config' . DIRECTORY_SEPARATOR . 'app.php';
+            if (is_file($appConfigPath)) {
+                $contents = file_get_contents($appConfigPath);
+                if ($contents !== false && preg_match("/'app_version'\s*=>\s*'[^']*'/", $contents)) {
+                    $newContents = preg_replace(
+                        "/('app_version'\s*=>\s*')[^']*(')/",
+                        '${1}' . $version . '${2}',
+                        $contents,
+                        1
+                    );
+                    if ($newContents !== null && $newContents !== $contents) {
+                        file_put_contents($appConfigPath, $newContents);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // 写文件失败不影响升级结果，数据库版本已更新
+            Log::warning('[Upgrade] 同步 config/app.php app_version 失败: ' . $e->getMessage());
+        }
     }
 
     /**
