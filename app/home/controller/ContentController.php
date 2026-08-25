@@ -277,30 +277,29 @@ class ContentController extends FrontBaseController
 
         $cate = $info->cate ?? null;
 
-        // V2.9.47: 上一篇/下一篇（同分类下，按 id 相邻）
+        // V2.9.47: 上一页/下一页（按 type 查询，与 /info 等跨分类列表一致，避免点开内容显示"没有了"）
+        // 注：列表页 /info 默认按 type 展示全部内容（不限定分类），因此翻页也按 type 查询。
         $prevContent = null;
         $nextContent = null;
-        if ($cate) {
-            $prevRow = Content::where('cate_id', $info->cate_id)
+        $infoType = (int) ($info->type ?? 0);
+        if ($infoType > 0) {
+            $prevRow = Content::where('type', $infoType)
                 ->where('id', '<', $id)->where('status', 2)
                 ->order('id', 'desc')->field('id,title')->find();
-            $nextRow = Content::where('cate_id', $info->cate_id)
+            $nextRow = Content::where('type', $infoType)
                 ->where('id', '>', $id)->where('status', 2)
                 ->order('id', 'asc')->field('id,title')->find();
-            $cateUrlPrefix = $cate->seo_url ? ('/' . $cate->seo_url) : ('/' . $typeSlug);
+
+            // 生成 URL：优先用内容自身分类的 seo_url，否则用 type slug
+            $prevUrl = '';
+            $nextUrl = '';
             if ($prevRow) {
-                $prevContent = [
-                    'id'    => $prevRow->id,
-                    'title' => $prevRow->title,
-                    'url'   => $cateUrlPrefix . '/' . $prevRow->id,
-                ];
+                $prevUrl = $this->buildContentDetailUrl($prevRow, $infoType, $typeSlug);
+                $prevContent = ['id' => $prevRow->id, 'title' => $prevRow->title, 'url' => $prevUrl];
             }
             if ($nextRow) {
-                $nextContent = [
-                    'id'    => $nextRow->id,
-                    'title' => $nextRow->title,
-                    'url'   => $cateUrlPrefix . '/' . $nextRow->id,
-                ];
+                $nextUrl = $this->buildContentDetailUrl($nextRow, $infoType, $typeSlug);
+                $nextContent = ['id' => $nextRow->id, 'title' => $nextRow->title, 'url' => $nextUrl];
             }
         }
 
@@ -337,6 +336,27 @@ class ContentController extends FrontBaseController
 
         $template = DetailRenderService::resolveTemplate('/detail', $cate, $info);
         return $this->view($template);
+    }
+
+    /**
+     * V2.9.47: 构建内容详情 URL（上一页/下一页用）
+     * 优先用内容所属分类的 seo_url（如 /news/5），否则用 type slug（如 /info/5）
+     *
+     * @param object $row       内容记录（含 cate_id）
+     * @param int    $infoType  内容类型
+     * @param string $typeSlug  当前 type 的 slug
+     */
+    protected function buildContentDetailUrl($row, int $infoType, string $typeSlug): string
+    {
+        try {
+            $rowCate = Cate::find((int) $row->cate_id);
+            if ($rowCate && !empty($rowCate->seo_url)) {
+                return '/' . $rowCate->seo_url . '/' . $row->id;
+            }
+        } catch (\Throwable $e) {
+            // 分类可能不存在，回退 type slug
+        }
+        return '/' . $typeSlug . '/' . $row->id;
     }
 
     /**

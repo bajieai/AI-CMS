@@ -189,18 +189,18 @@
                     {/if}
                     {include file="shared/reward_button" info="$info" /}
                 </article>
-                <!-- V2.9.47: 上一篇 / 下一篇 -->
+                <!-- V2.9.47: 上一页 / 下一页 -->
                 <nav class="content-prev-next my-4">
                     <div class="row g-2">
                         <div class="col-md-6">
                             {if condition="$prev_content"}
                             <a href="{$prev_content.url}" class="d-block text-decoration-none p-3 rounded border prev-next-item">
-                                <small class="text-muted d-block mb-1"><i class="bi bi-arrow-left me-1"></i>上一篇</small>
+                                <small class="text-muted d-block mb-1"><i class="bi bi-arrow-left me-1"></i>上一页</small>
                                 <span class="text-truncate d-block">{$prev_content.title}</span>
                             </a>
                             {else /}
                             <div class="p-3 rounded border prev-next-item text-muted">
-                                <small class="d-block mb-1"><i class="bi bi-arrow-left me-1"></i>上一篇</small>
+                                <small class="d-block mb-1"><i class="bi bi-arrow-left me-1"></i>上一页</small>
                                 <span>没有了</span>
                             </div>
                             {/if}
@@ -208,12 +208,12 @@
                         <div class="col-md-6 text-md-end">
                             {if condition="$next_content"}
                             <a href="{$next_content.url}" class="d-block text-decoration-none p-3 rounded border prev-next-item">
-                                <small class="text-muted d-block mb-1">下一篇<i class="bi bi-arrow-right ms-1"></i></small>
+                                <small class="text-muted d-block mb-1">下一页<i class="bi bi-arrow-right ms-1"></i></small>
                                 <span class="text-truncate d-block">{$next_content.title}</span>
                             </a>
                             {else /}
                             <div class="p-3 rounded border prev-next-item text-muted">
-                                <small class="d-block mb-1">下一篇<i class="bi bi-arrow-right ms-1"></i></small>
+                                <small class="d-block mb-1">下一页<i class="bi bi-arrow-right ms-1"></i></small>
                                 <span>没有了</span>
                             </div>
                             {/if}
