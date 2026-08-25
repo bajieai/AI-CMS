@@ -67,22 +67,20 @@
                             <div class="mb-3" id="listTemplateArea">
                                 <label class="form-label">列表页模板 <small class="text-muted">(模板目录: themes/default/pc/)</small></label>
                                 <select name="list_template" class="form-select">
-                                    <option value="" {if condition="($info.list_template ?? '') == '' && empty($effective_list_template)"}selected{/if}>使用默认模板</option>
                                     {volist name="available_templates.list" id="tpl"}
                                     <option value="{$tpl}" {if condition="($info.list_template ?? '') == $tpl || (empty($info.list_template) && ($effective_list_template ?? '') == $tpl)"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
-                                <small class="form-text text-muted">默认选中该项即该分类当前使用的模板。</small>
+                                <small class="form-text text-muted">取名规则：默认 <code>list.html</code>（所有模型共用）；模型专属列表页 <code>list_{模型code}_*.html</code>（如 list_info_faq.html）。</small>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">详情页模板 <small class="text-muted">(模板目录: themes/default/pc/)</small></label>
                                 <select name="detail_template" class="form-select">
-                                    <option value="" {if condition="($info.detail_template ?? '') == '' && empty($effective_detail_template)"}selected{/if}>使用默认模板</option>
                                     {volist name="available_templates.detail" id="tpl"}
                                     <option value="{$tpl}" {if condition="($info.detail_template ?? '') == $tpl || (empty($info.detail_template) && ($effective_detail_template ?? '') == $tpl)"}selected{/if}>{$tpl}</option>
                                     {/volist}
                                 </select>
-                                <small class="form-text text-muted">默认选中该项即该分类当前使用的模板。</small>
+                                <small class="form-text text-muted">取名规则：默认 <code>detail.html</code>（所有模型共用）；模型专属详情页 <code>detail_{模型code}_*.html</code>（如 detail_product_detail.html）。</small>
                             </div>
                         </div>
                     </div>

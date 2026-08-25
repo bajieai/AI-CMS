@@ -104,7 +104,7 @@ class CateController extends AdminBaseController
                 'cates' => $tree,
                 'info' => null,
                 'page_content' => '',
-                'available_templates' => $this->scanTemplates(),
+                'available_templates' => $this->scanTemplates(0, 0),
                 'models' => $models,
             ]);
             return $this->view('/cate_edit');
@@ -167,14 +167,18 @@ class CateController extends AdminBaseController
             // V2.9.47: 计算当前分类"生效模板"，供编辑页下拉框默认选中
             //（栏目自定义 → 模型默认 → 系统默认；单页类型 special 处理）
             $cateType = (int) ($info->type ?? 0);
-            $effectiveListTpl = $this->resolveEffectiveTemplate($cateType, (int) $info->model_id, (string) ($info->list_template ?? ''), 'list');
-            $effectiveDetailTpl = $this->resolveEffectiveTemplate($cateType, (int) $info->model_id, (string) ($info->detail_template ?? ''), 'detail');
+            $cateModelId = (int) ($info->model_id ?? 0);
+            $effectiveListTpl = $this->resolveEffectiveTemplate($cateType, $cateModelId, (string) ($info->list_template ?? ''), 'list');
+            $effectiveDetailTpl = $this->resolveEffectiveTemplate($cateType, $cateModelId, (string) ($info->detail_template ?? ''), 'detail');
+
+            // V2.9.47: 按模型过滤模板下拉选项（默认 + 模型专属前缀）
+            $filteredTemplates = $this->scanTemplates($cateType, $cateModelId);
 
             $this->assign([
                 'cates' => $tree,
                 'info' => $info,
                 'page_content' => $pageContent,
-                'available_templates' => $this->scanTemplates(),
+                'available_templates' => $filteredTemplates,
                 'models' => $models,
                 'effective_list_template' => $effectiveListTpl,
                 'effective_detail_template' => $effectiveDetailTpl,
@@ -346,36 +350,87 @@ class CateController extends AdminBaseController
     }
 
     /**
-     * 扫描模板目录获取可用模板列表
-     * 参考 eyoucms：扫描 themes/default/pc/ 下所有 .html 文件
+     * 扫描模板目录，并按当前分类模型过滤可用模板列表（V2.9.47）
+     *
+     * 过滤规则：
+     *  - 列表页模板：list.html（默认共用）+ 所有 list_{模型code}_* 前缀的模板
+     *  - 详情页模板：detail.html（默认共用）+ 所有 detail_{模型code}_* 前缀的模板
+     *  - 单页类型：仅 single_* 前缀的模板
+     * 模型 code 取 content_model.code 去掉 model_ 前缀（如 model_info → info）。
+     *
+     * 取名规则（供二次开发）：
+     *  - 默认模板（所有模型共用）：list.html / detail.html
+     *  - 模型专属列表页：list_{模型code}.html 或 list_{模型code}_{自定义}.html，如 list_info.html、list_info_faq.html
+     *  - 模型专属详情页：detail_{模型code}.html 或 detail_{模型code}_{自定义}.html
+     *  - 单页：single_*.html（single_page.html 等）
+     *
+     * @param int $type    分类类型（ContentTypeMap），0 表示未知（返回全部）
+     * @param int $modelId 分类绑定的模型id
+     * @return array{list:array, detail:array, list_rule:string, detail_rule:string}
      */
-    private function scanTemplates(): array
+    private function scanTemplates(int $type = 0, int $modelId = 0): array
     {
         $themePath = app()->getRootPath() . 'template/themes/default/pc/';
+        $allTemplates = [];
+        if (is_dir($themePath)) {
+            foreach (scandir($themePath) as $file) {
+                if (pathinfo($file, PATHINFO_EXTENSION) !== 'html') continue;
+                if (strpos($file, '_') === 0 || in_array($file, ['layout.html', 'header.html', 'footer.html', 'nav.html', 'pagination.html'])) continue;
+                $allTemplates[] = $file;
+            }
+        }
+        sort($allTemplates);
+
+        // 取模型 code（去掉 model_ 前缀）
+        $modelCode = '';
+        if ($modelId > 0) {
+            $model = ContentModel::find($modelId);
+            if ($model) {
+                $modelCode = (string) ($model->code ?? '');
+                if (strpos($modelCode, 'model_') === 0) {
+                    $modelCode = substr($modelCode, 6);
+                }
+            }
+        }
+
+        $isSinglePage = ($type === ContentTypeMap::pageType());
         $listTemplates = [];
         $detailTemplates = [];
 
-        if (is_dir($themePath)) {
-            $files = scandir($themePath);
-            foreach ($files as $file) {
-                if (pathinfo($file, PATHINFO_EXTENSION) !== 'html') continue;
-                // 过滤掉 _partials 目录、layout 文件、公共组件
-                if (strpos($file, '_') === 0 || in_array($file, ['layout.html', 'header.html', 'footer.html', 'nav.html', 'pagination.html'])) continue;
-
-                // 列表模板：以 list_ 开头
-                if (strpos($file, 'list_') === 0 || $file === 'list.html') {
-                    $listTemplates[] = $file;
-                }
-                // 详情/单页模板
-                elseif (strpos($file, 'detail_') === 0 || $file === 'detail.html' || strpos($file, 'single_') === 0) {
+        foreach ($allTemplates as $file) {
+            if ($isSinglePage) {
+                // 单页：只列 single_ 前缀
+                if (strpos($file, 'single_') === 0) {
                     $detailTemplates[] = $file;
                 }
+                continue;
             }
-            sort($listTemplates);
-            sort($detailTemplates);
+            // 普通模型：
+            // 列表页：list.html 或 list_{code} 前缀（list_product.html、list_product_xxx.html）
+            // 用 str_starts_with 精确前缀匹配，避免误匹配 list_productivity 之类
+            if ($file === 'list.html' || (!empty($modelCode) && str_starts_with($file, 'list_' . $modelCode))) {
+                $listTemplates[] = $file;
+            }
+            // 详情页：detail.html 或 detail_{code} 前缀（detail_product.html、detail_product_xxx.html）
+            if ($file === 'detail.html' || (!empty($modelCode) && str_starts_with($file, 'detail_' . $modelCode))) {
+                $detailTemplates[] = $file;
+            }
         }
 
-        return ['list' => $listTemplates, 'detail' => $detailTemplates];
+        // 取名规则说明
+        $listRule = '默认模板：list.html（所有模型共用）；模型专属列表页：list_' . ($modelCode ?: '{模型code}') . '_*.html';
+        $detailRule = '默认模板：detail.html（所有模型共用）；模型专属详情页：detail_' . ($modelCode ?: '{模型code}') . '_*.html';
+        if ($isSinglePage) {
+            $listRule = '单页分类无列表页';
+            $detailRule = '单页模板：single_*.html（如 single_page.html）';
+        }
+
+        return [
+            'list'        => $listTemplates,
+            'detail'      => $detailTemplates,
+            'list_rule'   => $listRule,
+            'detail_rule' => $detailRule,
+        ];
     }
 
     /**
