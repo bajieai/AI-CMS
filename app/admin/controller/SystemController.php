@@ -346,6 +346,13 @@ class SystemController extends AdminBaseController
                 if (in_array($config->name, ['app_version', 'version'], true)) {
                     continue;
                 }
+                // V2.9.47: 在线升级相关配置由「系统设置 → 在线升级」专用页管理，不在此处重复展示
+                if (in_array($config->name, [
+                    'upgrade_check_enabled', 'upgrade_channel', 'gitee_token',
+                    'upgrade_last_check', 'upgrade_latest_version',
+                ], true)) {
+                    continue;
+                }
                 // V2.9.32: remark为空时使用中文fallback
                 if (empty($config->remark) && isset($configNameFallback[$config->name])) {
                     $config->remark = $configNameFallback[$config->name];
@@ -492,7 +499,7 @@ class SystemController extends AdminBaseController
         // 保存配置（编码根治：写入前校验UTF-8合法性，防止乱码落库）
         $data = $this->request->post();
         // V2.9.47: 系统版本号由 config/app.php 顶层 app_version 权威决定，禁止任何途径后台修改
-        $reservedConfigKeys = ['app_version', 'version'];
+        $reservedConfigKeys = ['app_version', 'version', 'upgrade_check_enabled', 'upgrade_channel', 'gitee_token', 'upgrade_last_check', 'upgrade_latest_version'];
         try {
             foreach ($data as $name => $value) {
                 // 跳过非字符串值和系统保留字段

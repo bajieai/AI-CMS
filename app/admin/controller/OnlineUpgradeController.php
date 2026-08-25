@@ -47,10 +47,9 @@ class OnlineUpgradeController extends AdminBaseController
     {
         if (Request::isPost()) {
             $data = Request::post();
-            ConfigService::set('upgrade_check_enabled', ($data['upgrade_check_enabled'] ?? 0) ? 1 : 0, 'system', '是否开启升级检查');
+            ConfigService::set('upgrade_check_enabled', ($data['upgrade_check_enabled'] ?? 0) ? 1 : 0, 'system', '启用升级检查提醒');
             ConfigService::set('upgrade_channel', in_array($data['upgrade_channel'] ?? '', ['stable', 'beta']) ? $data['upgrade_channel'] : 'stable', 'system', '升级通道');
-            ConfigService::set('gitee_token', trim($data['gitee_token'] ?? ''), 'system', 'Gitee 私人令牌');
-            ConfigService::set('upgrade_last_check', time(), 'system', '上次升级检查时间');
+            ConfigService::set('gitee_token', trim($data['gitee_token'] ?? ''), 'system', 'Gitee 访问令牌');
 
             return $this->success('配置已保存');
         }
@@ -59,8 +58,6 @@ class OnlineUpgradeController extends AdminBaseController
             'upgrade_check_enabled' => (int) ConfigService::get('upgrade_check_enabled', 1),
             'upgrade_channel'       => ConfigService::get('upgrade_channel', 'stable'),
             'gitee_token'           => ConfigService::get('gitee_token', ''),
-            'upgrade_last_check'    => (int) ConfigService::get('upgrade_last_check', 0),
-            'upgrade_latest_version'=> ConfigService::get('upgrade_latest_version', ''),
         ];
 
         return $this->view('/online_upgrade_config', [

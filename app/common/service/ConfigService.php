@@ -73,14 +73,16 @@ class ConfigService
             if ($config) {
                 $config->value = $value;
                 if ($group) $config->group = $group;
-                if ($description) $config->description = $description;
+                // V2.9.47: i8j_config 表的说明字段是 remark，不是 description（原字段名写错导致中文说明丢失）
+                if ($description) $config->remark = $description;
                 $config->save();
             } else {
                 ConfigModel::create([
                     'name'        => $key,
                     'value'       => $value,
                     'group'       => $group ?: 'system',
-                    'description' => $description,
+                    'remark'      => $description,
+                    'type'        => 'text',
                 ]);
             }
 

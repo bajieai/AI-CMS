@@ -171,9 +171,8 @@ class UpgradeService
                     }
                 }
 
-                // 同步缓存最新版本到 i8j_config
-                ConfigService::set('upgrade_last_check', time(), 'system', '上次升级检查时间');
-                ConfigService::set('upgrade_latest_version', $latestVersion, 'system', '缓存的最新版本号');
+                // V2.9.47: 最新版本/检查时间仅作为内存缓存（1800s），不再写 i8j_config，
+                // 避免污染「系统设置」页出现英文配置项。getDashboardNotice() 直接读 Cache，无需入库。
 
                 return [
                     'success' => true,
