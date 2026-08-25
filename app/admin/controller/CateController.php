@@ -187,6 +187,29 @@ class CateController extends AdminBaseController
             }
         }
         $data['seo_url'] = $seoUrl;
+
+        // V2.9.47: 分类绑定模型的兜底——确保 type 与 model_id 一致。
+        // 兼容旧版仅提交 type 的场景：若 model_id 缺失或不属于当前 type，自动取该 type 的默认模型。
+        $type = (int) ($data['type'] ?? $info->type ?? 0);
+        $modelId = (int) ($data['model_id'] ?? 0);
+        if ($modelId <= 0) {
+            // 未提交 model_id：沿用当前分类已绑定的（需校验是否属于新 type）
+            $modelId = (int) ($info->model_id ?? 0);
+        }
+        $modelValid = $modelId > 0
+            && ContentModel::where('id', $modelId)->where('type', $type)->count() > 0;
+        if (!$modelValid) {
+            $defaultModel = ContentModel::getDefaultByType($type);
+            if ($defaultModel) {
+                $modelId = (int) $defaultModel->id;
+            }
+        }
+        $data['model_id'] = $modelId;
+        // 同步写 content 表冗余的 model_id 一致化
+        if ($type > 0) {
+            $data['type'] = $type;
+        }
+
         if ($info->save($data)) {
             $this->recordLog('编辑分类', $info->name ?? '', $data);
             // V2.9.42: 单页分类自动同步content记录

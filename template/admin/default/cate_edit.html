@@ -28,11 +28,13 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">内容模型</label>
-                        <select name="type" class="form-select" id="cateType">
+                        <select name="type" class="form-select" id="cateType" data-current-model="{$info.model_id ?? $info.type ?? 0}">
                             {volist name="models" id="model"}
-                            <option value="{$model.type}" {if condition="($info.type ?? 3) == $model.type"}selected{/if}>{$model.model_name}</option>
+                            <option value="{$model.type}" data-model-id="{$model.id}" {if condition="($info.type ?? 3) == $model.type"}selected{/if}>{$model.model_name}</option>
                             {/volist}
                         </select>
+                        <input type="hidden" name="model_id" id="cateModelId" value="{$info.model_id ?? $info.type ?? 0}">
+                        <small class="form-text text-muted">选择内容模型后，该分类下的内容将使用对应模型的字段结构。</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">上级分类</label>
@@ -204,7 +206,13 @@ $(document).on('pjax:beforeSend', function() {
     pageEditorInitialized = false;
 });
 
-$('#cateType').on('change', togglePageContent);
+$('#cateType').on('change', function() {
+    togglePageContent();
+    // V2.9.47: 切换内容模型时同步 model_id（每个模型 type 对应唯一 model_id）
+    var $opt = $(this).find(':selected');
+    var mid = $opt.data('model-id');
+    if (mid) $('#cateModelId').val(mid);
+});
 togglePageContent();
 
 $('#cateForm').on('submit', function(e) {

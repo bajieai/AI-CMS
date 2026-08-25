@@ -618,11 +618,22 @@ class ContentController extends AdminBaseController
             ];
         }
 
-        // 如果分类没有绑定默认模型，尝试取该type的默认模型
-        if ($modelId <= 0) {
+        // V2.9.47: 确保 model_id 属于当前 type——若分类绑定的 model_id 与 type 不一致
+        //（例如旧数据或手工改 type 未改 model_id），自动回退到该 type 的默认模型，
+        // 避免出现"角标显示信息模型但字段仍是产品模型"的不同步问题。
+        $modelValid = $modelId > 0
+            && \app\common\model\ContentModel::where('id', $modelId)->where('type', $type)->count() > 0;
+        if (!$modelValid) {
+            // 尝试该 type 的默认模型；没有再取全站第一条该 type 模型
             $defaultModel = \app\common\model\ContentModel::getDefaultByType($type);
             if ($defaultModel) {
                 $modelId = $defaultModel->id;
+            }
+        }
+        if ($modelId <= 0) {
+            $firstModel = \app\common\model\ContentModel::where('type', $type)->order('sort', 'asc')->find();
+            if ($firstModel) {
+                $modelId = $firstModel->id;
             }
         }
 
