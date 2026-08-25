@@ -100,20 +100,30 @@
     function renderThemeCards(containerId, themes, active, type, allowSelect) {
         var $container = $('#' + containerId);
         if (!$container.length) return;
+        $container.empty();
         if (!themes || !themes.length) {
-            $container.html('<div class="text-center text-muted py-3">暂无可用模板</div>');
+            $container.html('<div class="text-muted small text-center py-3">暂无可用主题</div>');
             return;
         }
         var html = '';
         $.each(themes, function(i, t) {
             var isActive = (t.name === active);
-            html += '<div class="theme-card' + (isActive ? ' selected-theme-card' : '') + '" data-theme="' + t.name + '" data-type="' + type + '">';
-            html += '  <div class="theme-preview"><i class="bi bi-image"></i></div>';
-            html += '  <div class="theme-info"><strong>' + (t.label || t.name) + '</strong>';
-            if (t.description) html += '<small class="d-block text-muted">' + t.description + '</small>';
+            var selClass = isActive ? ' selected-theme-card' : '';
+            var badgeHtml = isActive ? '<span class="theme-active-badge"><i class="bi bi-check-lg me-1"></i>当前</span>' : '';
+            var overlayHtml = isActive ? '<div class="theme-overlay"></div>' : '';
+            html += '<div class="theme-card' + selClass + '" data-theme="' + t.name + '" data-type="' + type + '">';
+            html += '  <div class="theme-preview"' + (t.screenshot ? ' style="background:#f1f5f5;">' : '>');
+            html += t.screenshot
+                ? '<img src="/template/' + (type === 'admin' ? 'admin/' : 'themes/') + t.name + '/' + t.screenshot + '" loading="lazy">'
+                : '<i class="bi bi-' + (type === 'admin' ? 'gear-fill' : 'palette2') + ' display-3"></i>';
             html += '  </div>';
-            if (isActive) html += '<span class="theme-active-badge"><i class="bi bi-check-lg me-1"></i>已选</span>';
-            if (allowSelect && !isActive) html += '<button type="button" class="btn btn-sm btn-outline-primary theme-select-btn">选择</button>';
+            html += '  <div class="theme-info">';
+            html += '    <strong class="theme-label">' + (t.label || t.name) + '</strong>';
+            html += badgeHtml;
+            html += '    <small class="theme-desc">' + (t.description || '企业风格模板') + '</small>';
+            html += '    <small class="theme-meta">v' + (t.version || '1.0') + ' &middot; ' + (t.author || 'AI-CMS') + (t.supports && t.supports.length ? ' &middot; 支持: ' + t.supports.join(', ') : '') + '</small>';
+            html += '  </div>';
+            html += overlayHtml;
             html += '</div>';
         });
         $container.html(html);
@@ -126,8 +136,8 @@
         var themeName = $card.data('theme');
         if (!cardType || !themeName) return;
 
-        // 查询模板信息（从卡片文本获取 label）
-        var t = { name: themeName, label: $card.find('.theme-info strong').text() };
+        // 如果已是选中态则不重复处理
+        if ($card.hasClass('selected-theme-card')) return;
 
         // 取消同类型其他卡片的选中态
         $card.parent().find('.theme-card').each(function() {
@@ -151,7 +161,7 @@
         if (cardType === 'frontend') selectedFrontend = themeName;
         else selectedBackend = themeName;
 
-        showToast('已选择 "' + t.label + '"，请点击「保存配置」生效', 'info');
+        showToast('已选择 "' + $card.find('.theme-label').text() + '"，请点击「保存配置」生效', 'info');
     });
 
     // 保存时同时处理主题切换（在原表单submit之前拦截）
