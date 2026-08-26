@@ -892,23 +892,29 @@ function renderGeoScore(data) {
     $('#geoScoreArea').show();
 }
 
-// V2.9.47: 安全同步编辑器内容到 textarea（防止 # / 连续英文等导致 TinyMCE 卡死时保存按钮一直转圈）
+// V2.9.47: 安全同步编辑器内容到 textarea
+// 直接用 iframe body 的 innerHTML（原生DOM），不走 TinyMCE getContent()/triggerSave()
+// （getContent 对含 # / 连续大写英文等特殊内容的正则解析会卡死 JS 线程，导致保存按钮一直转圈）
 function safeSyncEditorContent() {
-    if (typeof tinymce === 'undefined' || !tinymce.activeEditor) return true;
-    var editor = tinymce.activeEditor;
     try {
-        editor.triggerSave();
-        return true;
+        var ifr = document.getElementById('editor_ifr');
+        if (ifr && ifr.contentDocument && ifr.contentDocument.body) {
+            var html = ifr.contentDocument.body.innerHTML;
+            var $editor = $('#editor');
+            if ($editor.length && html !== undefined) {
+                $editor.val(html);
+                return true;
+            }
+        }
     } catch (e) {
         try {
-            var $body = $('#editor_ifr').contents().find('body');
-            if ($body.length && $('#editor').length) {
-                $('#editor').val($body.html());
+            if (typeof tinymce !== 'undefined' && tinymce.activeEditor) {
+                tinymce.activeEditor.triggerSave();
                 return true;
             }
         } catch (e2) {}
-        return false;
     }
+    return false;
 }
 
 // 保存按钮绑定（事件委托，PJAX 兼容）

@@ -629,20 +629,25 @@ var qualityCheckTimer = null;
 var lastQualityCheckWordCount = 0;
 
 // 监听编辑器内容变化，>500字显示提示条
+// V2.9.47: 用 editor.getBody().textContent 获取纯文本（原生DOM，性能好），
+// 避免 getContent({format:'text'}) 对含 # / 连续大写英文等特殊内容的正则解析卡死 JS 线程
 setTimeout(function() {
     var editor = tinymce.activeEditor;
     if (editor) {
         editor.on('keyup', function() {
             clearTimeout(qualityCheckTimer);
             qualityCheckTimer = setTimeout(function() {
-                var content = editor.getContent({format: 'text'});
-                var wordCount = content.length;
-                if (wordCount > 500 && wordCount !== lastQualityCheckWordCount) {
-                    $('#qualityTip').removeClass('d-none');
-                    lastQualityCheckWordCount = wordCount;
-                } else if (wordCount <= 500) {
-                    $('#qualityTip').addClass('d-none');
-                }
+                try {
+                    var bodyEl = editor.getBody && editor.getBody();
+                    var content = bodyEl ? (bodyEl.textContent || '') : '';
+                    var wordCount = content.length;
+                    if (wordCount > 500 && wordCount !== lastQualityCheckWordCount) {
+                        $('#qualityTip').removeClass('d-none');
+                        lastQualityCheckWordCount = wordCount;
+                    } else if (wordCount <= 500) {
+                        $('#qualityTip').addClass('d-none');
+                    }
+                } catch (e) {}
             }, 1000); // 防抖1秒
         });
     }
@@ -1399,26 +1404,32 @@ function renderGeoScore(data) {
     $('#geoScoreArea').show();
 }
 
-// V2.9.47: 安全同步编辑器内容到 textarea（防止 # / 连续英文等导致 TinyMCE 卡死时保存按钮一直转圈）
-// 若编辑器异常/超时，回退使用 textarea 现有内容，并允许按钮恢复。
+// V2.9.47: 安全同步编辑器内容到 textarea
+// 直接用 iframe body 的 innerHTML（原生DOM），不走 TinyMCE getContent()/triggerSave()
+// （getContent 对含 # / 连续大写英文等特殊内容的正则解析会卡死 JS 线程，导致保存按钮一直转圈）
 function safeSyncEditorContent() {
-    if (typeof tinymce === 'undefined' || !tinymce.activeEditor) return true;
-    var editor = tinymce.activeEditor;
     try {
-        // 触发保存到关联 textarea（TinyMCE 自动同步），带异常兜底
-        editor.triggerSave();
-        return true;
+        // 直接从编辑器 iframe body 提取 HTML（原生 DOM，性能好、不卡死）
+        var ifr = document.getElementById('editor_ifr');
+        if (ifr && ifr.contentDocument && ifr.contentDocument.body) {
+            var html = ifr.contentDocument.body.innerHTML;
+            var $editor = $('#editor');
+            if ($editor.length && html !== undefined) {
+                $editor.val(html);
+                return true;
+            }
+        }
     } catch (e) {
+        // 提取失败，尝试 triggerSave（带 try-catch）
         try {
-            // 编辑器异常时，直接从编辑器 body 提取 HTML
-            var $body = $('#editor_ifr').contents().find('body');
-            if ($body.length && $('#editor').length) {
-                $('#editor').val($body.html());
+            if (typeof tinymce !== 'undefined' && tinymce.activeEditor) {
+                tinymce.activeEditor.triggerSave();
                 return true;
             }
         } catch (e2) {}
-        return false;
     }
+    // 兜底：保留 textarea 现有内容
+    return false;
 }
 
 // 保存按钮绑定（事件委托，PJAX 兼容）
