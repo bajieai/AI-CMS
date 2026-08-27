@@ -400,6 +400,8 @@ function startAutoSave() {
             type: 'POST',
             data: formData,
             dataType: 'json',
+            // V2.9.47: autoSave 需携带 CSRF token，否则被 AdminCsrf 中间件拦截返回 403
+            headers: { 'X-CSRF-TOKEN': $('input[name="__token__"]').val() || '' },
             success: function(res) {
                 if (res.code === 0) {
                     $('#autoSaveStatus').html('<i class="bi bi-check-circle text-success me-1"></i>自动保存于 ' + (res.data.time || ''));
