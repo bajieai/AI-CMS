@@ -28,9 +28,12 @@ class SqlInjectionDetectService
         '/\bwaitfor\s+delay\b/i'                            => 'TIME_BLIND_WAITFOR',
 
         // 注释符
+        // V2.9.47: 修正 # 注释检测——原 /#.*$/m 会把任何含 # 的正常内容（如标题、颜色、
+        // hashtag、hello#world）误判为 SQL 注释注入而 403。真正的 # 注释注入是"闭合引号/
+        // 括号/分号后紧跟 #"（注释掉后续 SQL），故收紧为正则：
         '/--\s*$/m'                                         => 'SQL_COMMENT_DASH',
         '/\/\*.*?\*\//'                                     => 'SQL_COMMENT_BLOCK',
-        '/#.*$/m'                                           => 'SQL_COMMENT_HASH',
+        '/(?:[\'"]|\)|;)\s*#[^\n]*$/m'                       => 'SQL_COMMENT_HASH',
 
         // 信息泄露
         '/information_schema/i'                             => 'INFO_SCHEMA',
