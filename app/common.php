@@ -18,8 +18,12 @@ declare(strict_types=1);
  * @return string
  */
 if (!function_exists('msubstr')) {
-    function msubstr(string $str, int $start = 0, int $length = 100, string $charset = 'utf-8', bool $suffix = true): string
+    function msubstr(?string $str, int $start = 0, int $length = 100, string $charset = 'utf-8', bool $suffix = true): string
     {
+        // V2.9.47: 对 null/空值容错，避免模板中 excerpt 等字段为空时 msubstr(null) 抛 TypeError
+        if ($str === null || $str === '') {
+            return '';
+        }
         $str = (string) $str;
         if (function_exists('mb_substr')) {
             $slice = mb_substr($str, $start, $length, $charset);
