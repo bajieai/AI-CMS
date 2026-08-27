@@ -114,6 +114,9 @@
                     });
                 } else {
                     showToast(res.msg || '操作失败', 'danger');
+                    // V2.9.47: 业务失败也调用 callback（之前只 showToast 不调 callback，导致
+                    // 调用方按钮永远卡在"保存中"——如未选分类保存等业务错误场景）
+                    if (typeof callback === 'function') { callback(res); }
                 }
             },
             error: function (xhr) {
@@ -128,6 +131,8 @@
                 } else {
                     showToast('网络错误，请重试', 'danger');
                 }
+                // V2.9.47: 网络错误也调用 callback，让调用方恢复按钮状态
+                if (typeof callback === 'function') { callback({ code: -1, msg: '网络错误', xhr: xhr }); }
             }
         };
         if (csrfToken) {

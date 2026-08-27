@@ -1421,16 +1421,9 @@ function safeSyncEditorContent() {
                 return true;
             }
         }
-    } catch (e) {
-        // 提取失败，尝试 triggerSave（带 try-catch）
-        try {
-            if (typeof tinymce !== 'undefined' && tinymce.activeEditor) {
-                tinymce.activeEditor.triggerSave();
-                return true;
-            }
-        } catch (e2) {}
-    }
-    // 兜底：保留 textarea 现有内容
+    } catch (e) {}
+    // V2.9.47: catch 块不再调用 tinymce.triggerSave()，因为它内部会调 getContent()，
+    // 对某些内容仍可能卡死 JS 线程。直接返回 false（保留 textarea 现有内容作为兜底）。
     return false;
 }
 

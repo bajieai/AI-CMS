@@ -908,14 +908,8 @@ function safeSyncEditorContent() {
                 return true;
             }
         }
-    } catch (e) {
-        try {
-            if (typeof tinymce !== 'undefined' && tinymce.activeEditor) {
-                tinymce.activeEditor.triggerSave();
-                return true;
-            }
-        } catch (e2) {}
-    }
+    } catch (e) {}
+    // V2.9.47: catch 块不再调用 tinymce.triggerSave()，避免 getContent() 卡死 JS 线程
     return false;
 }
 
