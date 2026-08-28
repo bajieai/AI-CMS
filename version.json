@@ -1,0 +1,9 @@
+{
+    "version": "2.9.51",
+    "tag": "v2.9.51",
+    "name": "AI-CMS V2.9.51 正式版",
+    "published_at": "2026-08-28T17:20:00+08:00",
+    "notes": "- 详情页侧栏 500 根治：4 个 detail_info.html 侧栏引用 {$cate_tree_html|raw} 但详情页控制器未传递，走模型专属详情模板时 Undefined variable 直接 500；分类树渲染迁移到 CateService::renderTreeHtml() 公共方法，详情页注入真实分类树\n- V2.9.50 修复了 20 个模型专属模板的 Array to string conversion 与时间字段 1970 问题\n- 如果站点详情页报 500，请务必升级到 V2.9.51",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.51/ai-cms-upgrade-2.9.51.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.51"
+}
