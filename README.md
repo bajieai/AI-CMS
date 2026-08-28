@@ -1,22 +1,22 @@
-# 八界AI-CMS V2.9.48
+# 八界AI-CMS V2.9.49
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.48-blue)
+![Version](https://img.shields.io/badge/version-2.9.49-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.48 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.49 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
 
-### V2.9.48 — 保存卡死根治·版本号权威化·安装升级稳健性修复
-- **后台按钮"保存中"卡死全面修复** — ajaxPost 业务失败/网络错误时也回调，任何未选必填、保存校验失败都不再卡按钮
-- **内容编辑器特殊字符卡死根治** — 改用原生 DOM 提取编辑器内容，彻底规避 TinyMCE getContent/triggerSave 对 `#`/连续大写英文的正则卡死
-- **系统版本号权威化** — 版本号仅由 `config/app.php` 决定，后台不可手动编辑；系统设置项改为中文且升级项改纯内存缓存
-- **安装/升级稳健性修复** — install.sql config 表连续逗号修复、SQL注入检测正则收紧不再误判 `#` 内容、摘要为空时列表/详情页 500 修复、草稿自动保存补全 CSRF token
+### V2.9.49 — 详情页解析错误根治·列表页 TypeError 修复·模板引擎安全性增强
+- **详情页 ParseError 根治** — `description` 块用 ThinkPHP 8.1 模板引擎**不支持**的 `|default=$var|msubstr=` 链式语法（如 `{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}`），编译后拼成 `...|default=$info['title']|msubstr=0,120` 非法 PHP 报 "unexpected token default"。V2.9.42 修复过 `detail.html` 兜底模板但**未同步**到模型专属模板（detail_info / detail_video / detail_product / detail_image / detail_download / content/info_magazine / index / mobile / corporate 共 21 个模板），本次批量改为 `{:msubstr(strip_tags(...), 0, 120)}` 全局函数安全写法（与 `detail.html` 风格一致）
+- **列表页 TypeError 修复** — `date('Y-m-d', $vo.create_time)` 当数据库字段是历史字符串（外部导入/老版本迁移）时，PHP 8 严格类型检查报 "Argument #2 must be of type ?int, string given"。**根因**：`Content` 模型的 `protected $type` 数组只控制 `views/status` 等业务字段类型转换，**没有** `create_time`/`update_time`/`publish_time`，`$autoWriteTimestamp='int'` 只控制**写入**而不控制**读取**。**根解**：`Content::$type` 补三个时间字段为 `integer`（模型访问器层强制转换，所有路由生效），并对模板里 `date()` 调用加 `(int)` 双保险
+- **移动端 index.html 隐藏 bug 清除** — V2.9.31 创建的 `default/mobile/index.html` 和 `corporate/mobile/index.html` 第 1 行有**残留的 `<?php` 包装**，导致 ThinkPHP 模板标签 `{extend}` 解析时 PHP 引擎处于打开状态并报 "unexpected token <"（这个 bug 一直没触发是因为首页走的是 layout 兜底路径，但 V2.9.49 起的 4 套主题对应模板会显式 include，触发概率上升）
+- **模板编译验证脚本** — `.codebuddy/test_compile_249.php` 用 ThinkPHP 模板编译器（反射调 `parse` 方法）+ PHP `php -l` lint 验证 21 个真实可渲染模板全部通过编译，剩余 `template_store/` 下的 5 个文件是模板编辑器源码展示文件（含 `<?php` 是有意的），不影响运行
 
 ### V2.9.47 — 分类列表类型标识配色恢复·模型字段命名统一·信息模型字段优化
 - **分类列表类型标识恢复彩色** — 类型徽章从统一灰色恢复为按类型着色（信息=绿/单页=深/产品=蓝/案例=青/下载=黄/招聘=灰/图集=红/视频=青），颜色映射集中到 ContentTypeMap
@@ -90,7 +90,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
-| **V2.9.48** | 2026-08 | **保存卡死根治·版本号权威化·安装升级稳健性修复**: ajaxPost业务失败/网络错误不回调导致按钮卡"保存中"全面修复+内容编辑器特殊字符(#/连续大写英文)卡死根治(改用原生DOM提取编辑器内容规避TinyMCE getContent/triggerSave正则卡死)+系统版本号仅由config/app.php决定(后台不可编辑)+系统设置项改中文+upgrade_*改纯内存缓存+ConfigService description→remark bug修复+install.sql config表连续逗号修复+SQL注入检测正则收紧不再误判#内容+摘要为空时列表/详情页msubstr 500修复+草稿自动保存补全CSRF token |
+| **V2.9.49** | 2026-08 | **详情页解析错误根治·列表页TypeError修复·模板引擎安全性增强**: 详情页/列表页/内容/图集/产品/视频模板的{description}块用 ThinkPHP 8.1 不支持的 `|default=$var|msubstr=` 链式语法编译报 ParseError(被 V2.9.42 detail.html 兜底修过但未同步到模型专属模板)全部改为 `{:msubstr(...)}` 全局函数安全写法+Content 模型 $type 补 create_time/update_time/publish_time→integer 根除 PHP 8 date() 严格类型报错(TypeError: Argument #2 must be of type ?int, string given 当数据库为历史字符串值时)+date() 第二参数加 (int) 保险型转换+default/pc/mobile 与 corporate/pc/mobile 共 4 套主题 21 个模板批量修复+移动端 index.html V2.9.31 残留的原生 PHP 包装清除(隐藏 bug)+模板编译验证脚本确保 18 个真实可渲染模板全部通过 lint |
 | **V2.9.47** | 2026-08 | **分类列表类型标识配色恢复·模型字段命名统一·信息模型字段优化**: 分类列表类型徽章恢复按类型着色(颜色映射集中ContentTypeMap)+install.sql模型扩展字段旧前缀命名统一为无前缀新命名(price/author/source等)+修正类型与字段错位+信息模型扩展字段"作者"改"发布者"+"联系方式"新增+前台详情页同步+系统设置页PJAX主题列表加载/红字报错/主题卡片样式恢复+分类模板按模型过滤+切换模型实时联动+单页模板修正+前台详情页上一页/下一页翻页 |
 | **V2.9.45** | 2026-08 | **在线升级系统完善·URL体系统一·内容模型优化**: Dashboard版本提醒+NEW徽章+升级配置中心（开关/通道/Token）+升级锁+disable_functions检查+manifest增强（deleted_files/run_after/run_after_suffix）+SQL不自动回滚+升级包生成CLI+30分钟缓存+二次确认对话框+双皮肤后台模板+权限配置+URL体系统一(列表/{seo_url}+详情/{seo_url}/{id}+旧URL 301重定向)+内容模型ID调整(信息id=1/单页id=2)+sort_order冗余字段清理+分类类型动态化(从content_model读取)+Banner轮播按钮可见性修复 |
 | **V2.9.42** | 2026-08 | **前台导航动态化·注册CSRF修复·付费开关修复·GBK/PUA乱码根除·评价区去重·卡片标题颜色优化**: 导航从硬编码改为数据库动态读取(4套layout)+注册表单CSRF token注入修复+付费阅读checkbox关闭无效修复(ContentService补零+隐藏域)+GBK双重编码乱码全量根除(1256模板0残留)+PUA字符全量清理(18文件)+详情页移除重复评价区仅保留评论+后台卡片标题恢复默认样式+SEO卡片移除黄色边框+JS语法修复(引号缺失+星号符号)+删除重复CommentAdminController+install.sql编码清理合并 |

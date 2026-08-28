@@ -44,7 +44,12 @@ class Content extends Model
         'views' => 'integer',
         'play_count' => 'integer',
         'download_count' => 'integer',
+        // V2.9.49: 时间字段强制 int 转换，避免部分历史数据/导入数据 create_time 是字符串，
+        // 模板里 date('Y-m-d', $vo.create_time) 报 TypeError（PHP 8 严格类型）。
+        // autoWriteTimestamp='int' 只控制写入，读取仍按数据库原值。
         'publish_time' => 'integer',
+        'create_time' => 'integer',
+        'update_time' => 'integer',
         'hotness' => 'integer',
         'is_recommend' => 'integer',
         'like_count' => 'integer',

@@ -2,7 +2,7 @@
 
 {block name="title"}{$info.seo_title ?: $info.title} - {$site_name}{/block}
 {block name="keywords"}{if condition="$info.seo_keywords"}{$info.seo_keywords}{else}{volist name="info.tags" id="tag"}{$tag.name},{/volist}{$site_keywords}{/if}{/block}
-{block name="description"}{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}{/block}
+{block name="description"}{:msubstr(strip_tags((string)($info[\'seo_description\'] ?: (\'\' ?: $info[\'excerpt\'] ?: $info[\'title\']))), 0, 120)}{/block}
 
 {block name="content"}
 <section class="section">
