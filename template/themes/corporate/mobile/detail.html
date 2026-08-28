@@ -974,7 +974,7 @@ window.SocialShare.init({
 
 
 
-    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    description: '{:msubstr(strip_tags((string)($info[\'seo_description\'] ?: (\'\' ?: $info[\'excerpt\'] ?: $info[\'title\']))), 0, 120)}',
 
 
 
@@ -1026,7 +1026,7 @@ SharePanel.init({
 
 
 
-    description: '{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}',
+    description: '{:msubstr(strip_tags((string)($info[\'seo_description\'] ?: (\'\' ?: $info[\'excerpt\'] ?: $info[\'title\']))), 0, 120)}',
 
 
 

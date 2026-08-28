@@ -2,7 +2,7 @@
 
 {block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
 {block name="keywords"}{$info.seo_keywords|default=''}{/block}
-{block name="description"}{$info.seo_description|default=$info.title|msubstr=0,120}{/block}
+{block name="description"}{:msubstr(strip_tags((string)$info[\'seo_description\'] ?: $info[\'title\']), 0, 120)}{/block}
 
 {block name="content"}
 <section class="py-4">
@@ -22,7 +22,7 @@
             <span><i class="bi bi-clock"></i> {$mf.formatted|raw}</span>
             {/if}
             {/volist}
-            {if condition="$info.create_time"}<span><i class="bi bi-calendar"></i> {:date('Y-m-d', $info.create_time)}</span>{/if}
+            {if condition="$info.create_time"}<span><i class="bi bi-calendar"></i> {:date('Y-m-d', (int)$info.create_time)}</span>{/if}
             <span><i class="bi bi-eye"></i> {$info.views|default=0}</span>
         </div>
         {/if}

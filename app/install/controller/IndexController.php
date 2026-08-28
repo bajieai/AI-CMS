@@ -31,7 +31,7 @@ class IndexController
     public function __construct(App $app)
     {
         $this->app = $app;
-        $this->version = config('app.app_version') ?: '2.9.48';
+        $this->version = config('app.app_version') ?: '2.9.49';
     }
 
     /**

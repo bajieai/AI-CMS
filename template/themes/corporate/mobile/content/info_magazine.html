@@ -2,7 +2,7 @@
 
 {block name="title"}{$info.seo_title|default=$info.title} - {$site_name}{/block}
 {block name="keywords"}{$info.seo_keywords|default=''}{/block}
-{block name="description"}{$info.seo_description|default=$info.title|msubstr=0,120}{/block}
+{block name="description"}{:msubstr(strip_tags((string)$info[\'seo_description\'] ?: $info[\'title\']), 0, 120)}{/block}
 
 {block name="content"}
 <section class="py-4">
@@ -20,7 +20,7 @@
                 <h1 class="display-6 mb-3">{$info.title}</h1>
                 <div class="article-meta d-flex align-items-center gap-3 text-muted">
                     {if condition="$info.user"}<span><i class="bi bi-person"></i> {$info.user.nickname|default='匿名'}</span>{/if}
-                    {if condition="$info.create_time"}<span><i class="bi bi-calendar3"></i> {:date('Y-m-d', $info.create_time)}</span>{/if}
+                    {if condition="$info.create_time"}<span><i class="bi bi-calendar3"></i> {:date('Y-m-d', (int)$info.create_time)}</span>{/if}
                     <span><i class="bi bi-eye"></i> {$info.views|default=0} 阅读</span>
                     {if condition="$model_fields && $model_fields|count > 0"}
                     {volist name="model_fields" id="mf"}
@@ -66,7 +66,7 @@
                     {if condition="$rel.cover"}<img src="{$rel.cover}" class="card-img-top" alt="{$rel.title}" style="height:160px;object-fit:cover">{/if}
                     <div class="card-body">
                         <h6 class="card-title"><a href="{$rel.url}" class="text-decoration-none">{$rel.title}</a></h6>
-                        <p class="card-text text-muted small">{$rel.excerpt|default=$rel.title|msubstr=0,80}</p>
+                        <p class="card-text text-muted small">{:msubstr(strip_tags((string)($rel[\'excerpt\'] ?: $rel[\'title\'])), 0, 80)}</p>
                     </div>
                 </div></div>
                 {/volist}

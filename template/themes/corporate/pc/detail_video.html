@@ -15,7 +15,7 @@
         <div class="row">
             <div class="col-lg-8">
                 <h1 class="mb-3">{$info.title}</h1>
-                <div class="text-muted small mb-3"><span><i class="bi bi-clock me-1"></i>{:date('Y-m-d', $info.create_time)}</span><span class="ms-3"><i class="bi bi-play me-1"></i>{$info.play_count|default=0} 次播放</span></div>
+                <div class="text-muted small mb-3"><span><i class="bi bi-clock me-1"></i>{:date('Y-m-d', (int)$info.create_time)}</span><span class="ms-3"><i class="bi bi-play me-1"></i>{$info.play_count|default=0} 次播放</span></div>
                 {if condition="isset($info.ext.data.video_url) && $info.ext.data.video_url"}
                 <div class="ratio ratio-16x9 mb-3">
                     <video controls poster="{$info.cover|default=''}"><source src="{$info.ext.data.video_url}" type="video/mp4">您的浏览器不支持视频播放。</video>
