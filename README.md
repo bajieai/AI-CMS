@@ -1,16 +1,21 @@
-# 八界AI-CMS V2.9.51
+# 八界AI-CMS V2.9.52
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.51-blue)
+![Version](https://img.shields.io/badge/version-2.9.52-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.51 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.52 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.52 — 升级检测 403 限流根治·raw 静态通道·失败缓存自愈
+- **升级检测 "403 Forbidden (Rate Limit Exceeded)" 根治** — 旧版检测调 Gitee `releases/latest` API，未配置 token 的用户实例全部走匿名请求，受 Gitee 限流（Rate Limit）影响随机 403，导致后台无法检测升级。**双通道改造**：通道1（默认）改为请求仓库 **raw 静态文件 `version.json`**（走 Gitee CDN，不占 API 配额，带时间戳参数穿透 CDN 缓存）；通道2（回退）保留 Gitee API。所有用户实例从此不再依赖 API 配额
+- **失败缓存自愈修复** — 旧版 `Cache::remember` 会把失败结果也缓存 30 分钟，限流恢复后 30 分钟内仍显示"检查版本失败"。改为：成功缓存 30 分钟、失败仅缓存 60 秒，防雪崩重试的同时保证限流恢复后快速自愈
+- **发版流程新增 `version.json` 维护** — 每次发版同步更新仓库根目录 `version.json` 的版本号/发布时间/升级包地址（已加入发布流程清单）
 
 ### V2.9.51 — 复查深挖：详情页侧栏 Undefined variable 根治·分类树渲染下沉服务层
 - **详情页侧栏 500 根治（复查发现的第四个先天 bug）** — `detail_info.html`（default+corporate × pc+mobile 共 4 个）侧栏引用 `{$cate_tree_html|raw}`，但该变量**只有列表页控制器（CateController）传递**，详情页控制器（ContentController）从未传递 → 走模型专属详情模板时 `Undefined variable` ErrorException 直接 500。与 V2.9.50 修的 Array to string conversion 同属"预置模型专属模板从未被真实路由验证过"的先天缺陷。**修复**：`renderCateTree` 逻辑从 CateController 迁移到 `CateService::renderTreeHtml()`（公共化），`ContentController::detail()` 注入真实分类树（try-catch 包裹，失败侧栏留空），侧栏分类树在详情页真正可用
@@ -99,6 +104,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.52** | 2026-08 | **升级检测403限流根治·raw静态通道·失败缓存自愈**: 升级检测双通道改造——通道1(默认)请求仓库 raw 静态文件 version.json(走 Gitee CDN 不占 API 匿名配额,时间戳参数穿透 CDN 缓存)通道2(回退)保留 releases/latest API,根治未配 token 用户实例随机 403 Rate Limit Exceeded 导致无法检测升级+修复失败结果被缓存 30 分钟的 bug(限流恢复后仍显示失败)改为成功缓存30分钟/失败仅缓存60秒快速自愈+发版流程新增 version.json 维护 |
 | **V2.9.51** | 2026-08 | **复查深挖:详情页侧栏Undefined variable根治·分类树渲染下沉服务层**: 4 个 detail_info.html(default+corporate × pc+mobile)侧栏引用 `{$cate_tree_html|raw}` 但详情页控制器从未传递该变量(仅列表页传)走模型专属详情模板时 Undefined variable 直接 500(renderCateTree 从 CateController 迁移到 CateService::renderTreeHtml 公共化+ContentController::detail() 注入真实分类树)+确立"临时设置分类 detail_template+清缓存+编译缓存头比对"的真实路由链路验证方法论(本地空配置 Fallback 到 detail.html 与线上不同构,HTTP 通过≠模型专属模板无错) |
 | **V2.9.50** | 2026-08 | **详情页Array to string conversion根治·时间字段语义统一**: PaidService::getSafeContent() 自 V2.9.5 返回数组但 20 个模型专属详情模板(detail_info/video/product/image/download × default+corporate × pc+mobile)仍用 `{$safe_content|raw}` 把数组当字符串输出导致详情页必崩(本地走 detail.html 兜底未暴露)全部改为带付费墙判断的正确结构(未解锁显示预览+付费墙/已解锁显示 `{$safe_content.full|raw}`)+Content 模型新增 getCreateTimeAttr/getUpdateTimeAttr 获取器覆盖 ThinkPHP 时间字段自动格式化(其会把 create_time 转成 'Y-m-d H:i:s' 字符串)统一返回 int 时间戳根除详情页 JSON-LD datePublished/dateModified 显示 1970-01-01(因 SeoService 按 int 时间戳 date('c',(int)$t) 处理)+移除 V2.9.49 误加的 $type['create_time'=>'integer'](与时间字段机制冲突)+32 处模板日期改 is_numeric 兼容 int/datetime 两种形态 |
 | **V2.9.49** | 2026-08 | **详情页解析错误根治·列表页TypeError修复·模板引擎安全性增强**: 21 个模板 {description} 块的 `|default=$var|msubstr=` 链式语法(ThinkPHP 8.1 不支持)编译报 ParseError 全部改为 `{:msubstr(...)}` 安全写法+移动端 index.html V2.9.31 残留原生 PHP 包装清除(隐藏 bug)+模板编译验证脚本 |
