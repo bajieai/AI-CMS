@@ -22,7 +22,7 @@
             <span><i class="bi bi-clock"></i> {$mf.formatted|raw}</span>
             {/if}
             {/volist}
-            {if condition="$info.create_time"}<span><i class="bi bi-calendar"></i> {:date('Y-m-d', (int)$info.create_time)}</span>{/if}
+            {if condition="$info.create_time"}<span><i class="bi bi-calendar"></i> {:date('Y-m-d', is_numeric($info.create_time) ? (int)$info.create_time : strtotime($info.create_time))}</span>{/if}
             <span><i class="bi bi-eye"></i> {$info.views|default=0}</span>
         </div>
         {/if}

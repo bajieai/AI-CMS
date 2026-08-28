@@ -44,12 +44,11 @@ class Content extends Model
         'views' => 'integer',
         'play_count' => 'integer',
         'download_count' => 'integer',
-        // V2.9.49: 时间字段强制 int 转换，避免部分历史数据/导入数据 create_time 是字符串，
-        // 模板里 date('Y-m-d', $vo.create_time) 报 TypeError（PHP 8 严格类型）。
-        // autoWriteTimestamp='int' 只控制写入，读取仍按数据库原值。
+        // V2.9.50: publish_time 强制 int（非 ThinkPHP 时间字段，类型转换安全有效）。
+        // 注意：create_time / update_time 是 ThinkPHP 时间字段（受 $createTime/$updateTime 注册），
+        // ThinkPHP 会自动将其格式化为 'Y-m-d H:i:s' 字符串输出，此处声明 integer 会被覆盖且冲突，
+        // 故不在此声明。模板中已改为兼容 int/datetime 两种形态的写法（见 detail_info.html 等）。
         'publish_time' => 'integer',
-        'create_time' => 'integer',
-        'update_time' => 'integer',
         'hotness' => 'integer',
         'is_recommend' => 'integer',
         'like_count' => 'integer',
@@ -69,6 +68,35 @@ class Content extends Model
         'translation_of' => 'integer',
         'model_id' => 'integer',
     ];
+
+    /**
+     * V2.9.50: create_time 获取器 — 强制返回 int 时间戳
+     *
+     * 背景（重要）：本项目 $autoWriteTimestamp='int' 且 $createTime='create_time'，
+     * ThinkPHP 会把 create_time / update_time 注册为「时间字段」，读取时自动格式化成
+     * 'Y-m-d H:i:s' 字符串（如 '2026-04-23 19:48:15'），而非返回数据库里的 int 时间戳。
+     *
+     * 但全项目代码约定是「create_time 为 int 时间戳」：
+     *   - SeoService::buildJsonLd():  date('c', (int)$data['create_time'])
+     *   - SchemaService::generateContent(): 同样按 int 处理
+     *   - 模板：date('Y-m-d', $vo.create_time)
+     * 传入格式化字符串会导致 (int) 强转得到 2026 → date() 输出 1970-01-01。
+     *
+     * 此处用获取器覆盖 ThinkPHP 的自动格式化，统一返回 int 时间戳（原始值），
+     * 一处修复全局生效。原始值通过 getData() 获取，已是 int。
+     */
+    public function getCreateTimeAttr($value): int
+    {
+        return (int) ($this->getData('create_time') ?? 0);
+    }
+
+    /**
+     * V2.9.50: update_time 获取器 — 强制返回 int 时间戳（同上）
+     */
+    public function getUpdateTimeAttr($value): int
+    {
+        return (int) ($this->getData('update_time') ?? 0);
+    }
 
     /**
      * 获取URL（模型获取器）

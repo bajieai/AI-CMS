@@ -16,7 +16,7 @@
             <div class="col-lg-8">
                 <h1 class="mb-3">{$info.title}</h1>
                 <div class="text-muted small mb-3">
-                    <span><i class="bi bi-clock me-1"></i>{:date('Y-m-d', (int)$info.create_time)}</span>
+                    <span><i class="bi bi-clock me-1"></i>{:date('Y-m-d', is_numeric($info.create_time) ? (int)$info.create_time : strtotime($info.create_time))}</span>
                     <span class="ms-3"><i class="bi bi-eye me-1"></i>{$info.views|default=0}</span>
                     {if condition="isset($info.ext.data.photographer) && $info.ext.data.photographer"}<span class="ms-3"><i class="bi bi-camera me-1"></i>{$info.ext.data.photographer}</span>{/if}
                 </div>
@@ -32,7 +32,7 @@
                     {/foreach}
                 </div>
                 {/if}
-                <div class="article-content">{$safe_content|raw}</div>
+                <div class="article-content">{if condition="$safe_content.is_paid_content && !$safe_content.is_unlocked"}<div class="i8j-paywall-preview">{$safe_content.preview}</div><div class="i8j-paywall-box text-center py-4 my-3 rounded" style="background:var(--i8j-bg-secondary,#f8fafc);border:1px dashed #cbd5e1;"><i class="bi bi-lock-fill text-warning fs-2 mb-2 d-block"></i><p class="text-secondary mb-2">此内容为付费内容，解锁后可阅读全文</p><p class="fw-bold text-primary mb-3">{if $safe_content.price > 0}{if $safe_content.paid_type == 'points'}{$safe_content.price} 积分{else /}&yen;{$safe_content.price}{/if}{else /}免费{/if}</p>{if $isMemberLogin}<button type="button" class="btn btn-primary" onclick="unlockContent({$info.id})"><i class="bi bi-unlock me-1"></i>立即解锁</button>{else /}<a href="/member/login?redirect={:urlencode($Request.url)}" class="btn btn-primary" style="color:#fff"><i class="bi bi-box-arrow-in-right me-1"></i>登录后解锁</a>{/if}</div>{else /}{$safe_content.full|raw}{/if}</div>
                 {if condition="isset($info.ext.data.image_description) && $info.ext.data.image_description"}
                 <blockquote class="blockquote text-muted small mt-3"><p>{$info.ext.data.image_description}</p></blockquote>
                 {/if}
