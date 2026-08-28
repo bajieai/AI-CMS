@@ -1,16 +1,20 @@
-# 八界AI-CMS V2.9.50
+# 八界AI-CMS V2.9.51
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.50-blue)
+![Version](https://img.shields.io/badge/version-2.9.51-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.50 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.51 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.51 — 复查深挖：详情页侧栏 Undefined variable 根治·分类树渲染下沉服务层
+- **详情页侧栏 500 根治（复查发现的第四个先天 bug）** — `detail_info.html`（default+corporate × pc+mobile 共 4 个）侧栏引用 `{$cate_tree_html|raw}`，但该变量**只有列表页控制器（CateController）传递**，详情页控制器（ContentController）从未传递 → 走模型专属详情模板时 `Undefined variable` ErrorException 直接 500。与 V2.9.50 修的 Array to string conversion 同属"预置模型专属模板从未被真实路由验证过"的先天缺陷。**修复**：`renderCateTree` 逻辑从 CateController 迁移到 `CateService::renderTreeHtml()`（公共化），`ContentController::detail()` 注入真实分类树（try-catch 包裹，失败侧栏留空），侧栏分类树在详情页真正可用
+- **真实路由链路验证方法论确立** — 本地默认分类配置为空时 Fallback 到 `detail.html` 兜底，与线上配置了模型专属模板的环境不同构，**HTTP 请求通过 ≠ 模型专属模板无错**。本次验证采用"临时设置分类 `detail_template='detail_info'` + 清编译缓存 + 请求后比对编译缓存头确认真实渲染模板 + 断言内容 + 恢复配置"的完整闭环，成功抓出本 bug 并验证修复
 
 ### V2.9.50 — 详情页 Array to string conversion 根治·时间字段语义统一
 - **详情页 "Array to string conversion" 500 根治** — `PaidService::getSafeContent()` 自 V2.9.5 起返回**数组**（`['full'=>..,'is_paid_content'=>..,'is_unlocked'=>..,'price'=>..]`），但 20 个**模型专属详情模板**（detail_info / detail_video / detail_product / detail_image / detail_download × default+corporate × pc+mobile）仍用旧写法 `{$safe_content|raw}` 把数组当字符串 raw 输出 → 详情页必崩。本地不报错是因为走 `detail.html` 兜底模板（其第 142 行正确写 `{$safe_content.full|raw}`）。本次 20 处全部改为带付费墙判断的正确结构（与 `detail.html` 一致：未解锁显示预览+付费墙，已解锁/免费显示 `{$safe_content.full|raw}`）
@@ -95,6 +99,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.51** | 2026-08 | **复查深挖:详情页侧栏Undefined variable根治·分类树渲染下沉服务层**: 4 个 detail_info.html(default+corporate × pc+mobile)侧栏引用 `{$cate_tree_html|raw}` 但详情页控制器从未传递该变量(仅列表页传)走模型专属详情模板时 Undefined variable 直接 500(renderCateTree 从 CateController 迁移到 CateService::renderTreeHtml 公共化+ContentController::detail() 注入真实分类树)+确立"临时设置分类 detail_template+清缓存+编译缓存头比对"的真实路由链路验证方法论(本地空配置 Fallback 到 detail.html 与线上不同构,HTTP 通过≠模型专属模板无错) |
 | **V2.9.50** | 2026-08 | **详情页Array to string conversion根治·时间字段语义统一**: PaidService::getSafeContent() 自 V2.9.5 返回数组但 20 个模型专属详情模板(detail_info/video/product/image/download × default+corporate × pc+mobile)仍用 `{$safe_content|raw}` 把数组当字符串输出导致详情页必崩(本地走 detail.html 兜底未暴露)全部改为带付费墙判断的正确结构(未解锁显示预览+付费墙/已解锁显示 `{$safe_content.full|raw}`)+Content 模型新增 getCreateTimeAttr/getUpdateTimeAttr 获取器覆盖 ThinkPHP 时间字段自动格式化(其会把 create_time 转成 'Y-m-d H:i:s' 字符串)统一返回 int 时间戳根除详情页 JSON-LD datePublished/dateModified 显示 1970-01-01(因 SeoService 按 int 时间戳 date('c',(int)$t) 处理)+移除 V2.9.49 误加的 $type['create_time'=>'integer'](与时间字段机制冲突)+32 处模板日期改 is_numeric 兼容 int/datetime 两种形态 |
 | **V2.9.49** | 2026-08 | **详情页解析错误根治·列表页TypeError修复·模板引擎安全性增强**: 21 个模板 {description} 块的 `|default=$var|msubstr=` 链式语法(ThinkPHP 8.1 不支持)编译报 ParseError 全部改为 `{:msubstr(...)}` 安全写法+移动端 index.html V2.9.31 残留原生 PHP 包装清除(隐藏 bug)+模板编译验证脚本 |
 | **V2.9.47** | 2026-08 | **分类列表类型标识配色恢复·模型字段命名统一·信息模型字段优化**: 分类列表类型徽章恢复按类型着色(颜色映射集中ContentTypeMap)+install.sql模型扩展字段旧前缀命名统一为无前缀新命名(price/author/source等)+修正类型与字段错位+信息模型扩展字段"作者"改"发布者"+"联系方式"新增+前台详情页同步+系统设置页PJAX主题列表加载/红字报错/主题卡片样式恢复+分类模板按模型过滤+切换模型实时联动+单页模板修正+前台详情页上一页/下一页翻页 |

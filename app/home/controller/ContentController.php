@@ -22,6 +22,7 @@ use app\common\model\Member;
 use app\common\model\MemberLevel;
 use app\common\service\SeoService;
 use app\common\service\PaidService;
+use app\common\service\CateService;
 use app\common\service\SocialShareService;
 use app\common\service\LanguageService;
 use app\common\service\GeoService;
@@ -203,6 +204,18 @@ class ContentController extends FrontBaseController
             $typeUrl = '/' . $typeSlug;
         }
 
+        // V2.9.50: 详情页侧栏分类树（detail_info.html 等模型专属模板引用了 {$cate_tree_html|raw}，
+        // 此前只有列表页控制器传递该变量，详情页渲染时 Undefined variable 直接 500）
+        $cateTreeHtml = '';
+        try {
+            $cateService = new CateService();
+            $cateList = $cateService->getCatelist($typeSlug, 100, 0);
+            $cateTree = $cateService->getTree($cateList->toArray());
+            $cateTreeHtml = $cateService->renderTreeHtml($cateTree, $typeSlug, (int) ($info->cate_id ?? 0));
+        } catch (\Throwable $e) {
+            // 分类树非关键数据，失败时侧栏留空
+        }
+
         // V2.3 JSON-LD结构化数据
         $seoService = new SeoService();
         $jsonLd = $seoService->buildJsonLd([
@@ -316,6 +329,7 @@ class ContentController extends FrontBaseController
             'chapters'      => $chapters,
             'chapter_access'=> $chapterAccess,
             'type_url'      => $typeUrl,
+            'cate_tree_html'=> $cateTreeHtml,
             'jsonLd'        => $jsonLd,
             'can_download'  => $this->checkDownloadPermission(),
             'safe_content'  => $safeContent,
