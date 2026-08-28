@@ -20,7 +20,7 @@
                 <h1 class="display-6 mb-3">{$info.title}</h1>
                 <div class="article-meta d-flex align-items-center gap-3 text-muted">
                     {if condition="$info.user"}<span><i class="bi bi-person"></i> {$info.user.nickname|default='匿名'}</span>{/if}
-                    {if condition="$info.create_time"}<span><i class="bi bi-calendar3"></i> {:date('Y-m-d', (int)$info.create_time)}</span>{/if}
+                    {if condition="$info.create_time"}<span><i class="bi bi-calendar3"></i> {:date('Y-m-d', is_numeric($info.create_time) ? (int)$info.create_time : strtotime($info.create_time))}</span>{/if}
                     <span><i class="bi bi-eye"></i> {$info.views|default=0} 阅读</span>
                     {if condition="$model_fields && $model_fields|count > 0"}
                     {volist name="model_fields" id="mf"}

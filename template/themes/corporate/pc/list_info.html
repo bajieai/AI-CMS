@@ -37,7 +37,7 @@
                                     <h5 class="card-title"><a href="{$vo.url}" class="text-decoration-none">{$vo.title}</a></h5>
                                     <p class="card-text text-muted small">{$vo.excerpt|default=''|msubstr=0,120}</p>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="text-muted small"><i class="bi bi-clock me-1"></i>{:date('Y-m-d', (int)$vo.create_time)}</span>
+                                        <span class="text-muted small"><i class="bi bi-clock me-1"></i>{:date('Y-m-d', is_numeric($vo.create_time) ? (int)$vo.create_time : strtotime($vo.create_time))}</span>
                                         <span class="text-muted small"><i class="bi bi-eye me-1"></i>{$vo.views|default=0}</span>
                                     </div>
                                 </div>
