@@ -1,9 +1,9 @@
 {
-    "version": "2.9.51",
-    "tag": "v2.9.51",
-    "name": "AI-CMS V2.9.51 正式版",
-    "published_at": "2026-08-28T17:20:00+08:00",
-    "notes": "- 详情页侧栏 500 根治：4 个 detail_info.html 侧栏引用 {$cate_tree_html|raw} 但详情页控制器未传递，走模型专属详情模板时 Undefined variable 直接 500；分类树渲染迁移到 CateService::renderTreeHtml() 公共方法，详情页注入真实分类树\n- V2.9.50 修复了 20 个模型专属模板的 Array to string conversion 与时间字段 1970 问题\n- 如果站点详情页报 500，请务必升级到 V2.9.51",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.51/ai-cms-upgrade-2.9.51.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.51"
+    "version": "2.9.52",
+    "tag": "v2.9.52",
+    "name": "AI-CMS V2.9.52 正式版",
+    "published_at": "2026-08-28T18:10:00+08:00",
+    "notes": "- 升级检测 403 限流根治：双通道改造（raw 静态文件 version.json 优先 + API 回退），未配置 token 的用户实例不再受 Gitee API 限流影响\n- 失败缓存自愈：检测失败仅缓存 60 秒（旧版缓存 30 分钟），限流恢复后快速恢复\n- 从 V2.9.48 及更早版本升级请按 49 → 50 → 51 → 52 逐级升级",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.52/ai-cms-upgrade-2.9.52.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.52"
 }
