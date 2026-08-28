@@ -117,87 +117,148 @@ class UpgradeService
     }
 
     /**
-     * 检查最新版本（带30分钟缓存）
+     * 检查最新版本（带缓存）
+     *
+     * V2.9.52 双通道改造（根治 403 Rate Limit Exceeded）：
+     *   通道1（默认）：仓库 raw 静态文件 version.json —— 走 Gitee CDN，不占 API 匿名配额，
+     *                 所有用户实例检测升级不再互相争抢限流额度；
+     *   通道2（回退）：Gitee API releases/latest（保留，供 raw 不可用时兜底，配置了
+     *                 gitee_token 的环境会自动带上认证提高配额）。
+     *
+     * V2.9.52 缓存策略修复：旧版 Cache::remember 会把失败结果也缓存 30 分钟，
+     * 导致限流恢复后仍显示"检查版本失败"。现改为：成功缓存 30 分钟，失败仅缓存 60 秒，
+     * 防止限流期间雪崩重试的同时保证恢复后尽快自愈。
      */
     public function checkLatest(): array
     {
-        return Cache::remember('upgrade_latest_check', function () {
-            $config = Config::get('upgrade');
-            $owner = $config['gitee_owner'] ?? 'bajieai';
-            $repo = $config['gitee_repo'] ?? 'ai-cms';
-            // 优先读取 i8j_config 中的 token，未设置则回退到 config/upgrade.php
-            $token = ConfigService::get('gitee_token', $config['gitee_token'] ?? '');
+        $cached = Cache::get('upgrade_latest_check');
+        if (!empty($cached) && is_array($cached)) {
+            return $cached;
+        }
 
-            $url = "https://gitee.com/api/v5/repos/{$owner}/{$repo}/releases/latest";
-            $query = [];
-            if (!empty($token)) {
-                $query['access_token'] = $token;
+        $result = $this->doCheckLatest();
+
+        // 成功缓存 30 分钟；失败仅缓存 60 秒（限流恢复后快速自愈）
+        Cache::set('upgrade_latest_check', $result, !empty($result['success']) ? 1800 : 60);
+
+        return $result;
+    }
+
+    /**
+     * 执行实际的版本检测（raw 静态通道 → API 回退）
+     */
+    protected function doCheckLatest(): array
+    {
+        $config = Config::get('upgrade');
+        $owner = $config['gitee_owner'] ?? 'bajieai';
+        $repo = $config['gitee_repo'] ?? 'ai-cms';
+        // 优先读取 i8j_config 中的 token，未设置则回退到 config/upgrade.php
+        $token = ConfigService::get('gitee_token', $config['gitee_token'] ?? '');
+
+        // 通道1：raw 静态文件 version.json（CDN，不占 API 配额）
+        // 兼容 main / master 两种默认分支命名；加时间戳参数穿透 CDN 缓存
+        $rawUrls = [
+            "https://gitee.com/{$owner}/{$repo}/raw/main/version.json?_t=" . time(),
+            "https://gitee.com/{$owner}/{$repo}/raw/master/version.json?_t=" . time(),
+        ];
+        foreach ($rawUrls as $rawUrl) {
+            try {
+                $response = $this->httpClient->get($rawUrl, ['timeout' => 15]);
+                $raw = json_decode((string) $response->getBody(), true);
+                if (!empty($raw) && !empty($raw['version'])) {
+                    return $this->buildCheckResult($raw, 'raw');
+                }
+            } catch (\Throwable $e) {
+                Log::info('[Upgrade] raw 通道(' . basename(dirname($rawUrl)) . ')检测失败: ' . $e->getMessage());
+            }
+        }
+        Log::info('[Upgrade] raw 通道不可用，回退 API');
+
+        // 通道2：Gitee API releases/latest（回退）
+        $url = "https://gitee.com/api/v5/repos/{$owner}/{$repo}/releases/latest";
+        $query = [];
+        if (!empty($token)) {
+            $query['access_token'] = $token;
+        }
+
+        try {
+            $response = $this->httpClient->get($url, ['query' => $query]);
+            $body = json_decode((string) $response->getBody(), true);
+
+            if (empty($body) || !isset($body['tag_name'])) {
+                return [
+                    'success' => false,
+                    'msg' => '未获取到最新版本信息',
+                    'data' => null,
+                ];
             }
 
-            try {
-                $response = $this->httpClient->get($url, ['query' => $query]);
-                $body = json_decode((string) $response->getBody(), true);
+            return $this->buildCheckResult([
+                'version' => $this->normalizeVersion($body['tag_name']),
+                'tag' => $body['tag_name'],
+                'name' => $body['name'] ?? '',
+                'published_at' => $body['published_at'] ?? '',
+                'notes' => $body['body'] ?? '',
+            ], 'api', $body);
+        } catch (\Throwable $e) {
+            Log::error('[Upgrade] 检查版本失败: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'msg' => '检查版本失败: ' . $e->getMessage(),
+                'data' => null,
+            ];
+        }
+    }
 
-                if (empty($body) || !isset($body['tag_name'])) {
-                    return [
-                        'success' => false,
-                        'msg' => '未获取到最新版本信息',
-                        'data' => null,
-                    ];
+    /**
+     * V2.9.52: 统一构建检测结果（raw 与 API 两通道共用）
+     */
+    protected function buildCheckResult(array $info, string $channel, array $apiBody = []): array
+    {
+        $latestVersion = $this->normalizeVersion($info['version'] ?? '');
+        $currentVersion = $this->getCurrentVersion();
+        $hasUpdate = version_compare($latestVersion, $currentVersion, '>');
+
+        // 升级包地址：raw 通道直接取 version.json 里的固定格式 URL；
+        // API 回退通道从 assets 里找（优先 ai-cms-upgrade-*.zip）
+        $downloadUrl = $info['upgrade_package'] ?? '';
+        $asset = null;
+        if ($downloadUrl === '' && !empty($apiBody['assets'])) {
+            foreach ($apiBody['assets'] as $item) {
+                $name = $item['name'] ?? '';
+                if (str_starts_with($name, 'ai-cms-upgrade-') && str_ends_with($name, '.zip')) {
+                    $asset = $item;
+                    break;
                 }
-
-                $latestVersion = $this->normalizeVersion($body['tag_name']);
-                $currentVersion = $this->getCurrentVersion();
-                $hasUpdate = version_compare($latestVersion, $currentVersion, '>');
-
-                // 查找升级包资源（优先匹配 ai-cms-upgrade-*.zip）
-                $asset = null;
-                $assets = $body['assets'] ?? [];
-                foreach ($assets as $item) {
-                    $name = $item['name'] ?? '';
-                    if (str_starts_with($name, 'ai-cms-upgrade-') && str_ends_with($name, '.zip')) {
+            }
+            // 回退：任意 zip
+            if (!$asset) {
+                foreach ($apiBody['assets'] as $item) {
+                    if (str_ends_with($item['name'] ?? '', '.zip')) {
                         $asset = $item;
                         break;
                     }
                 }
-
-                // 回退：任意 zip
-                if (!$asset) {
-                    foreach ($assets as $item) {
-                        if (str_ends_with($item['name'] ?? '', '.zip')) {
-                            $asset = $item;
-                            break;
-                        }
-                    }
-                }
-
-                // V2.9.47: 最新版本/检查时间仅作为内存缓存（1800s），不再写 i8j_config，
-                // 避免污染「系统设置」页出现英文配置项。getDashboardNotice() 直接读 Cache，无需入库。
-
-                return [
-                    'success' => true,
-                    'msg' => '获取成功',
-                    'data' => [
-                        'current_version' => $currentVersion,
-                        'latest_version' => $latestVersion,
-                        'has_update' => $hasUpdate,
-                        'tag_name' => $body['tag_name'],
-                        'name' => $body['name'] ?? '',
-                        'body' => $body['body'] ?? '',
-                        'published_at' => $body['published_at'] ?? '',
-                        'asset' => $asset,
-                        'download_url' => $asset['browser_download_url'] ?? ($asset['url'] ?? ''),
-                    ],
-                ];
-            } catch (\Throwable $e) {
-                Log::error('[Upgrade] 检查版本失败: ' . $e->getMessage());
-                return [
-                    'success' => false,
-                    'msg' => '检查版本失败: ' . $e->getMessage(),
-                    'data' => null,
-                ];
             }
-        }, 1800);
+            $downloadUrl = $asset['browser_download_url'] ?? ($asset['url'] ?? '');
+        }
+
+        return [
+            'success' => true,
+            'msg' => '获取成功',
+            'data' => [
+                'current_version' => $currentVersion,
+                'latest_version' => $latestVersion,
+                'has_update' => $hasUpdate,
+                'tag_name' => $info['tag'] ?? ('v' . $latestVersion),
+                'name' => $info['name'] ?? '',
+                'body' => $info['notes'] ?? '',
+                'published_at' => $info['published_at'] ?? '',
+                'channel' => $channel,
+                'asset' => $asset,
+                'download_url' => $downloadUrl,
+            ],
+        ];
     }
 
     /**
