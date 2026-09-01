@@ -1,9 +1,9 @@
 {
-    "version": "2.9.52",
-    "tag": "v2.9.52",
-    "name": "AI-CMS V2.9.52 正式版",
-    "published_at": "2026-08-28T18:10:00+08:00",
-    "notes": "- 升级检测 403 限流根治：双通道改造（raw 静态文件 version.json 优先 + API 回退），未配置 token 的用户实例不再受 Gitee API 限流影响\n- 失败缓存自愈：检测失败仅缓存 60 秒（旧版缓存 30 分钟），限流恢复后快速恢复\n- 从 V2.9.48 及更早版本升级请按 49 → 50 → 51 → 52 逐级升级",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.52/ai-cms-upgrade-2.9.52.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.52"
+    "version": "2.9.53",
+    "tag": "v2.9.53",
+    "name": "AI-CMS V2.9.53 正式版",
+    "published_at": "2026-09-01T11:30:00+08:00",
+    "notes": "- 前台整页缓存设备隔离：修复整页缓存键缺少设备维度导致手机用户先访问后 PC 用户命中缓存看到手机版页面（首页内容全部不见）的故障，PC/手机/平板缓存完全隔离\n- 升级后建议登录后台清理缓存（或删除 runtime/cache），清掉可能被污染的旧整页缓存\n- 从 V2.9.48 及更早版本升级请使用 full-upgrade 合并包或逐级升级",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.53/ai-cms-upgrade-2.9.53.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.53"
 }
