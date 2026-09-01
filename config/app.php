@@ -14,7 +14,7 @@
 
 return [
     // 应用版本号（全局唯一，安装页面/README/页脚统一引用）
-    'app_version' => '2.9.52',
+    'app_version' => '2.9.53',
     
     // 应用名称
     'app_name' => env('APP_NAME', 'AI-CMS'),
