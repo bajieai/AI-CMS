@@ -77,13 +77,18 @@ abstract class FrontBaseController extends \think\BaseController
             // LanguageService 依赖可能未就绪，降级使用默认值
         }
 
-        // T1: 整页缓存命中检查（缓存key包含主题名+语言，确保不同主题/语言缓存隔离）
+        // T1: 整页缓存命中检查（缓存key包含主题名+设备类型+语言，确保不同主题/设备/语言缓存隔离）
+        // V2.9.53 修复：缓存键此前缺少设备维度——手机用户先访问首页会把"手机版HTML"写入缓存，
+        // 之后1小时内所有PC用户访问同一URL会命中缓存直出手机版页面（用户实测故障：
+        // PC端首页内容全部不见、显示成手机端页面）。getFrontendPath()/getDeviceType()
+        // 都基于UA实时判断，渲染输出是设备相关的，缓存键必须包含设备维度。
         if ($this->enablePageCache
             && !$this->app->isDebug()
             && $this->request->isGet()
             && !Cookie::has('member_token')
         ) {
-            $cacheKey = 'page_html_' . $activeTheme . '_' . $currentLang . '_' . md5($this->request->url(true));
+            $deviceType = TemplateService::getDeviceType();
+            $cacheKey = 'page_html_' . $activeTheme . '_' . $deviceType . '_' . $currentLang . '_' . md5($this->request->url(true));
             $cached = Cache::get($cacheKey);
             if ($cached !== null) {
                 $this->pageCacheKey = null; // 命中后不再写入

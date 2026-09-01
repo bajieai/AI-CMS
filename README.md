@@ -1,16 +1,20 @@
-# 八界AI-CMS V2.9.52
+# 八界AI-CMS V2.9.53
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.52-blue)
+![Version](https://img.shields.io/badge/version-2.9.53-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.52 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.53 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.53 — 前台整页缓存设备隔离（PC 用户看到手机版页面根治）
+- **整页缓存键缺设备维度导致 PC 端显示手机版页面** — `FrontBaseController` 整页缓存键此前只有"主题名+语言+URL"（`page_html_{theme}_{lang}_{md5(url)}`），但渲染输出是设备相关的（`getFrontendPath()`/`getDeviceType()` 基于UA选 pc/mobile 模板目录）。**故障链**：手机用户先访问首页 → 手机版 HTML 写入缓存 1 小时 → 期间所有 PC 用户访问同一 URL 命中缓存直接 exit 输出手机版 → "首页内容全部不见，显示成手机端页面"。修复：缓存键加入设备类型维度（`page_html_{theme}_{device}_{lang}_{md5(url)}`），PC/手机/平板缓存完全隔离互不污染。**验证**：临时关闭 debug 激活整页缓存，手机 UA 先访问再 PC UA 访问同 URL，4 轮交叉断言（mobile/pc 特征串）全部正确
+- **附加说明** — 缓存命中直出响应带 `Cache-Control: public, max-age=3600`，此前被浏览器/CDN 缓存的错误版本需等 1 小时自然过期或手动清理缓存
 
 ### V2.9.52 — 升级检测 403 限流根治·raw 静态通道·失败缓存自愈
 - **升级检测 "403 Forbidden (Rate Limit Exceeded)" 根治** — 旧版检测调 Gitee `releases/latest` API，未配置 token 的用户实例全部走匿名请求，受 Gitee 限流（Rate Limit）影响随机 403，导致后台无法检测升级。**双通道改造**：通道1（默认）改为请求仓库 **raw 静态文件 `version.json`**（走 Gitee CDN，不占 API 配额，带时间戳参数穿透 CDN 缓存）；通道2（回退）保留 Gitee API。所有用户实例从此不再依赖 API 配额
@@ -104,6 +108,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.53** | 2026-09 | **前台整页缓存设备隔离(PC用户看到手机版页面根治)**: FrontBaseController 整页缓存键此前只有主题名+语言+URL 缺少设备维度,渲染输出是设备相关的(getFrontendPath/getDeviceType 基于UA选 pc/mobile 模板目录),手机用户先访问首页会把手机版 HTML 写入缓存1小时,期间所有 PC 用户访问同 URL 命中缓存直出手机版(线上实测:首页内容全部不见显示成手机端页面)→ 缓存键加入设备类型维度 page_html_{theme}_{device}_{lang}_{md5(url)} PC/手机缓存完全隔离+验证:关闭debug激活整页缓存,手机UA先访问再PC UA访问同URL,4轮交叉断言全部正确 |
 | **V2.9.52** | 2026-08 | **升级检测403限流根治·raw静态通道·失败缓存自愈**: 升级检测双通道改造——通道1(默认)请求仓库 raw 静态文件 version.json(走 Gitee CDN 不占 API 匿名配额,时间戳参数穿透 CDN 缓存)通道2(回退)保留 releases/latest API,根治未配 token 用户实例随机 403 Rate Limit Exceeded 导致无法检测升级+修复失败结果被缓存 30 分钟的 bug(限流恢复后仍显示失败)改为成功缓存30分钟/失败仅缓存60秒快速自愈+发版流程新增 version.json 维护 |
 | **V2.9.51** | 2026-08 | **复查深挖:详情页侧栏Undefined variable根治·分类树渲染下沉服务层**: 4 个 detail_info.html(default+corporate × pc+mobile)侧栏引用 `{$cate_tree_html|raw}` 但详情页控制器从未传递该变量(仅列表页传)走模型专属详情模板时 Undefined variable 直接 500(renderCateTree 从 CateController 迁移到 CateService::renderTreeHtml 公共化+ContentController::detail() 注入真实分类树)+确立"临时设置分类 detail_template+清缓存+编译缓存头比对"的真实路由链路验证方法论(本地空配置 Fallback 到 detail.html 与线上不同构,HTTP 通过≠模型专属模板无错) |
 | **V2.9.50** | 2026-08 | **详情页Array to string conversion根治·时间字段语义统一**: PaidService::getSafeContent() 自 V2.9.5 返回数组但 20 个模型专属详情模板(detail_info/video/product/image/download × default+corporate × pc+mobile)仍用 `{$safe_content|raw}` 把数组当字符串输出导致详情页必崩(本地走 detail.html 兜底未暴露)全部改为带付费墙判断的正确结构(未解锁显示预览+付费墙/已解锁显示 `{$safe_content.full|raw}`)+Content 模型新增 getCreateTimeAttr/getUpdateTimeAttr 获取器覆盖 ThinkPHP 时间字段自动格式化(其会把 create_time 转成 'Y-m-d H:i:s' 字符串)统一返回 int 时间戳根除详情页 JSON-LD datePublished/dateModified 显示 1970-01-01(因 SeoService 按 int 时间戳 date('c',(int)$t) 处理)+移除 V2.9.49 误加的 $type['create_time'=>'integer'](与时间字段机制冲突)+32 处模板日期改 is_numeric 兼容 int/datetime 两种形态 |
