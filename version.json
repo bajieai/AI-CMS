@@ -1,9 +1,9 @@
 {
-    "version": "2.9.57",
-    "tag": "v2.9.57",
-    "name": "AI-CMS V2.9.57 正式版",
-    "published_at": "2026-09-18T21:00:00+08:00",
-    "notes": "- 修复：后台\"启用手机号验证码注册\"等开关项显示为文本输入框而非开关控件（配置记录被 ConfigService::set 先创建时 type 写死 text，ensureConfigExists 跳过）\n- ensureConfigExists 增加元数据同步：记录存在但 type 与代码声明不一致时自动修正（value 永不覆盖）\n- 升级后访问一次系统设置页即可自动修正已有脏数据",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.57/ai-cms-upgrade-2.9.57.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.57"
+    "version": "2.9.58",
+    "tag": "v2.9.58",
+    "name": "AI-CMS V2.9.58 正式版",
+    "published_at": "2026-09-18T21:30:00+08:00",
+    "notes": "- 修复：后台保存配置后前台 1 小时才生效（configSave 保存后 Cache::clear，含前台整页缓存）——此前开启\"手机号验证码注册\"等开关后前台注册页不显示\n- 修复：右上角\"一键清除全部缓存\"在其他页面点击无反应（函数定义上移到 layout 全局内联脚本）+ 成功后自动刷新页面",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.58/ai-cms-upgrade-2.9.58.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.58"
 }
