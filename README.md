@@ -1,16 +1,23 @@
-# 八界AI-CMS V2.9.53
+# 八界AI-CMS V2.9.54
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.53-blue)
+![Version](https://img.shields.io/badge/version-2.9.54-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.53 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.54 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.54 — 手机号+短信验证码注册（真实手机核验）
+- **手机号注册方式（后台可开关）** — 注册页新增"手机号+短信验证码"注册方式，与原有"用户名+邮箱"注册并存（Tab 切换）；后台"系统设置→业务设置→会员"新增开关 `member_register_phone_enabled`（默认关闭），关闭时前台不显示该方式且发码接口拒绝。短信通道复用 V2.9.38 短信服务（阿里云/腾讯云/七牛三适配器+故障自动切换）
+- **三层防刷** — ①发码前图形验证码（复用注册表单图形验证码配置，防脚本刷短信）；②60秒/手机号频率限制 + 单IP每日10次（SmsService 内置）；③验证码 5 分钟有效且一次性（验后即删，register 专用键隔离）
+- **手机号全站唯一** — member 表新增 `mobile` 字段（NULL 默认 + `uk_mobile` 唯一索引）：代码层查询给友好提示，唯一索引兜底防并发竞态（重复注册捕获 1062 转友好提示）；username=手机号（登录接口 username/email 双查天然兼容手机号+密码登录），nickname 默认脱敏（138****1234）；默认等级/注册积分/邀请奖励等后置流程与原有注册一致
+- **双轨数据库迁移** — `install.sql` 种子更新（新装）+ `database/v2.9.54_add_member_mobile.sql` 幂等升级补丁（存量在线升级自动执行，重复执行报 1060/1061 自动跳过）
+- **顺带修复** — ①`SmsService::sendVerifyCode` 发送失败时删除已写入的验证码缓存（防止用未送达的码注册）；②后台系统设置 switch 类型渲染补 hidden 0 兜底（此前勾选后无法关闭，原生前生表单未勾选的 checkbox 不提交）；③`FrontCsrfMiddleware` 豁免注册发码接口（注册流程一部分，与 register 豁免一致）
 
 ### V2.9.53 — 前台整页缓存设备隔离（PC 用户看到手机版页面根治）
 - **整页缓存键缺设备维度导致 PC 端显示手机版页面** — `FrontBaseController` 整页缓存键此前只有"主题名+语言+URL"（`page_html_{theme}_{lang}_{md5(url)}`），但渲染输出是设备相关的（`getFrontendPath()`/`getDeviceType()` 基于UA选 pc/mobile 模板目录）。**故障链**：手机用户先访问首页 → 手机版 HTML 写入缓存 1 小时 → 期间所有 PC 用户访问同一 URL 命中缓存直接 exit 输出手机版 → "首页内容全部不见，显示成手机端页面"。修复：缓存键加入设备类型维度（`page_html_{theme}_{device}_{lang}_{md5(url)}`），PC/手机/平板缓存完全隔离互不污染。**验证**：临时关闭 debug 激活整页缓存，手机 UA 先访问再 PC UA 访问同 URL，4 轮交叉断言（mobile/pc 特征串）全部正确
@@ -108,6 +115,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.54** | 2026-09 | **手机号+短信验证码注册(真实手机核验)**: 注册页新增手机号+短信验证码方式与用户名+邮箱并存(Tab切换)后台开关 member_register_phone_enabled 默认关闭+三层防刷(发码前图形验证码防脚本刷短信/60秒频率+单IP日限10次/验证码5分钟一次性)+手机号全站唯一(member 表加 mobile 字段 NULL默认+uk_mobile 唯一索引,代码层友好提示+索引兜底防并发1062转提示)+username=手机号登录兼容+nickname默认脱敏138****1234+默认等级/积分/邀请奖励流程复用+双轨数据库迁移(install.sql种子+v2.9.54_add_member_mobile.sql幂等补丁)+顺带修复:发码失败删缓存验证码/后台switch勾选后关不掉(hidden 0兜底)/FrontCsrf豁免发码接口；验证:CLI 16项+HTTP 18项全场景断言全绿 |
 | **V2.9.53** | 2026-09 | **前台整页缓存设备隔离(PC用户看到手机版页面根治)**: FrontBaseController 整页缓存键此前只有主题名+语言+URL 缺少设备维度,渲染输出是设备相关的(getFrontendPath/getDeviceType 基于UA选 pc/mobile 模板目录),手机用户先访问首页会把手机版 HTML 写入缓存1小时,期间所有 PC 用户访问同 URL 命中缓存直出手机版(线上实测:首页内容全部不见显示成手机端页面)→ 缓存键加入设备类型维度 page_html_{theme}_{device}_{lang}_{md5(url)} PC/手机缓存完全隔离+验证:关闭debug激活整页缓存,手机UA先访问再PC UA访问同URL,4轮交叉断言全部正确 |
 | **V2.9.52** | 2026-08 | **升级检测403限流根治·raw静态通道·失败缓存自愈**: 升级检测双通道改造——通道1(默认)请求仓库 raw 静态文件 version.json(走 Gitee CDN 不占 API 匿名配额,时间戳参数穿透 CDN 缓存)通道2(回退)保留 releases/latest API,根治未配 token 用户实例随机 403 Rate Limit Exceeded 导致无法检测升级+修复失败结果被缓存 30 分钟的 bug(限流恢复后仍显示失败)改为成功缓存30分钟/失败仅缓存60秒快速自愈+发版流程新增 version.json 维护 |
 | **V2.9.51** | 2026-08 | **复查深挖:详情页侧栏Undefined variable根治·分类树渲染下沉服务层**: 4 个 detail_info.html(default+corporate × pc+mobile)侧栏引用 `{$cate_tree_html|raw}` 但详情页控制器从未传递该变量(仅列表页传)走模型专属详情模板时 Undefined variable 直接 500(renderCateTree 从 CateController 迁移到 CateService::renderTreeHtml 公共化+ContentController::detail() 注入真实分类树)+确立"临时设置分类 detail_template+清缓存+编译缓存头比对"的真实路由链路验证方法论(本地空配置 Fallback 到 detail.html 与线上不同构,HTTP 通过≠模型专属模板无错) |

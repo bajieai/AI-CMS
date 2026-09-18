@@ -139,6 +139,7 @@ Route::post('member/uploadAvatar$', '\app\home\controller\MemberController@uploa
 
 // V2.9.9: 注册验证码
 Route::get('member/captcha$', '\app\home\controller\MemberController@captcha');
+Route::post('member/sendSmsCode$', '\app\home\controller\MemberController@sendSmsCode');
 
 // V3.1: 社交分享统计
 Route::post('content/share$', '\app\home\controller\ContentController@share');

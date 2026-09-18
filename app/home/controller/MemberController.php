@@ -46,7 +46,18 @@ class MemberController extends FrontBaseController
     {
         if ($request->isPost()) {
             $data = $request->post();
-            // V2.9.9: 验证码校验
+
+            // V2.9.54: 手机号+短信验证码注册分支（与用户名+邮箱注册并存，后台开关控制）
+            $isPhoneRegister = !empty($data['mobile'])
+                || ($data['register_type'] ?? '') === 'phone'
+                || (!empty($data['sms_code']) && empty($data['username']));
+            if ($isPhoneRegister) {
+                // 手机号注册的防刷已在发码接口完成（图形验证码+频率限制），此处只做短信验证码校验
+                $result = $this->service->registerByPhone($data);
+                return json($result);
+            }
+
+            // V2.9.9: 验证码校验（用户名+邮箱注册）
             if (CaptchaService::isFormCaptchaRequired('register')) {
                 $captchaKey = $data['captcha_key'] ?? '';
                 $captchaAnswer = $data['captcha_answer'] ?? '';
@@ -60,7 +71,53 @@ class MemberController extends FrontBaseController
             $result = $this->service->register($data);
             return json($result);
         }
+        // V2.9.54: 注册页模板变量（图形验证码按后台配置动态显示；手机号注册开关全局已assign）
+        $this->assign('captcha_required', CaptchaService::isFormCaptchaRequired('register'));
         return $this->view('/member_register');
+    }
+
+    /**
+     * V2.9.54: 发送注册短信验证码
+     * 防刷三层：后台开关 → 图形验证码（复用注册表单开关）→ SmsService 内置（60s频率/单IP日限10次/验证码5分钟）
+     */
+    public function sendSmsCode(Request $request)
+    {
+        // 后台开关校验
+        if (!(int) \app\common\service\ConfigService::get('member_register_phone_enabled', 0)) {
+            return json(['success' => false, 'msg' => '手机号注册未启用']);
+        }
+
+        $data = $request->post();
+
+        // 图形验证码防刷（与注册表单共用 captcha_register 配置，防止脚本刷短信造成费用损失）
+        if (CaptchaService::isFormCaptchaRequired('register')) {
+            $captchaKey = (string) ($data['captcha_key'] ?? '');
+            $captchaAnswer = (string) ($data['captcha_answer'] ?? '');
+            if ($captchaKey === '' || $captchaAnswer === '' || !CaptchaService::verify($captchaKey, $captchaAnswer)) {
+                return json(['success' => false, 'msg' => '请先完成图形验证码验证', 'refresh_captcha' => true]);
+            }
+        }
+
+        // 手机号格式校验
+        $mobile = trim((string) ($data['mobile'] ?? ''));
+        if (!preg_match('/^1[3-9]\d{9}$/', $mobile)) {
+            return json(['success' => false, 'msg' => '请输入正确的手机号']);
+        }
+
+        // 手机号唯一性预检（友好提示）
+        if (\app\common\model\Member::where('mobile', $mobile)->find()) {
+            return json(['success' => false, 'msg' => '该手机号已注册，请直接登录']);
+        }
+
+        // 发送（SmsService 内置：60秒/手机号频率限制、单IP每日10次、验证码5分钟有效）
+        try {
+            (new \app\common\service\system\SmsService())->sendVerifyCode($mobile, 'register');
+        } catch (\Throwable $e) {
+            // 常见：短信通道未配置、发送频率限制、通道故障
+            return json(['success' => false, 'msg' => '短信发送失败：' . $e->getMessage()]);
+        }
+
+        return json(['success' => true, 'msg' => '验证码已发送，5分钟内有效']);
     }
 
     /**
