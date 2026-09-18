@@ -105,6 +105,7 @@ Route::rule('user/profile$', '\app\admin\controller\UserController@profile', 'GE
 
 // V2.9.23 A-4: 模板缓存管理
 Route::rule('system/config$', '\app\admin\controller\SystemController@config', 'GET|POST');
+Route::post('system/clearSystemCache$', '\app\admin\controller\SystemController@clearSystemCache');
 Route::rule('system/cache$', '\app\admin\controller\SystemController@cache', 'GET|POST');
 Route::post('system/checkTemplateCache$', '\app\admin\controller\SystemController@checkTemplateCache');
 Route::post('system/clearTemplateCache$', '\app\admin\controller\SystemController@clearTemplateCacheAjax');

@@ -260,6 +260,26 @@
         }
     }
 
+    // ========== V2.9.55: 清除系统缓存（内联 onclick 全局查找，必须暴露 window） ==========
+    function clearCacheByType(type, label) {
+        if (!confirm('确定清除' + (label || '缓存') + '吗？前台数据更新未生效时可使用。')) return;
+        $.post('/admin/system/clearSystemCache', { type: type }, function(res) {
+            if (res.code === 0 || res.code === 200 || res.success) {
+                showToast(res.msg || '缓存已清除', 'success');
+            } else {
+                showToast(res.msg || '清除失败', 'error');
+            }
+        }).fail(function() { showToast('请求失败，请重试', 'error'); });
+    }
+
+    // ========== V2.9.55: 暴露到全局作用域 ==========
+    // 模板内联 onclick 在全局作用域查找函数，IIFE 内函数必须显式挂到 window，
+    // 否则报 "Uncaught ReferenceError: xxx is not defined"
+    window.previewLogo = previewLogo;
+    window.uploadLogo = uploadLogo;
+    window.openMediaBrowser = openMediaBrowser;
+    window.clearCacheByType = clearCacheByType;
+
     if (typeof jQuery !== 'undefined') {
         if (document.readyState === 'loading') {
             $(document).ready(initPage);

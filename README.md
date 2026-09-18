@@ -1,16 +1,21 @@
-# 八界AI-CMS V2.9.55
+# 八界AI-CMS V2.9.56
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.55-blue)
+![Version](https://img.shields.io/badge/version-2.9.56-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.55 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.56 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.56 — 后台系统设置页按钮失效修复（IIFE 函数未暴露全局）
+- **Logo 预览/媒体库/清缓存按钮 "Uncaught ReferenceError: xxx is not defined" 根治** — V2.9.47 将系统设置页内联脚本迁移为外部 JS（system-config.js / system-config-corporate.js）时，函数包进了 IIFE（立即执行函数）成为**局部函数**，而模板按钮的内联 `onclick="previewLogo()"` 在**全局作用域**查找函数 → 报未定义。修复：IIFE 内显式挂载 `window.previewLogo / uploadLogo / openMediaBrowser / clearCacheByType`（双主题 JS 同步）
+- **"清除缓存"按钮从未可用（死按钮）补全** — `clearCacheByType` 在迁移时整个丢失（全部 JS 无定义），补全前后端：`SystemController::clearSystemCache()`（清应用缓存 + 各端模板编译缓存 + 操作日志）+ `POST /admin/system/clearSystemCache` 路由 + 双 JS 实现（confirm 确认 + toast 反馈）
+- **corporate 主题 JS 缓存刷新** — 两个模板的 JS 引用版本参数更新为 `?v=2.9.55`，强制浏览器加载新版
 
 ### V2.9.55 — 短信宝通道接入（首个真实发短信的通道，低成本起步）
 - **短信宝适配器（真实 HTTP 调用）** — 新增 `SmsbaoSmsAdapter`，真实调用短信宝 API（`api.smsbao.com/sms`），是当前**唯一真实发短信的通道**（V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳，仅写日志未实现 SDK 调用）。短信宝特点：个人注册即可用、按条计费、无需模板报备，适合低成本起步与真实短信测试
@@ -121,6 +126,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.56** | 2026-09 | **后台系统设置页按钮失效修复(IIFE函数未暴露全局)**: V2.9.47 内联脚本迁移外部 JS 时函数包进 IIFE 成为局部函数,模板按钮内联 onclick 在全局作用域查找报 "previewLogo is not defined"→IIFE 内显式挂载 window.previewLogo/uploadLogo/openMediaBrowser/clearCacheByType(双主题 JS 同步)+clearCacheByType 迁移时整个丢失(死按钮)补全前后端(SystemController::clearSystemCache 清应用缓存+各端模板编译缓存+POST system/clearSystemCache 路由+双JS实现)+JS引用版本参数刷新? v=2.9.55；验证:11项断言全绿 |
 | **V2.9.55** | 2026-09 | **短信宝通道接入(首个真实发短信通道·低成本起步)**: 新增 SmsbaoSmsAdapter 真实调用 api.smsbao.com/sms(V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳仅写日志)——个人注册即可用/按条计费/无需模板报备,.env 配 SMS_SMSBAO_USERNAME/PASSWORD/SIGN_NAME 三项即自动装配且优先级置顶,状态码全映射中文错误(30密码错误/40账号不存在/41余额不足/43IP限制/50敏感词/51手机号错误),+getBalance() 余额查询容错,内容模板可配置({code}/{expire}占位)；验证:真实调用短信宝线上API(假账号→状态码30"密码错误"中文抛出)+空配置/缺签名/装配/优先级/余额容错 7项全绿 |
 | **V2.9.54** | 2026-09 | **手机号+短信验证码注册(真实手机核验)**: 注册页新增手机号+短信验证码方式与用户名+邮箱并存(Tab切换)后台开关 member_register_phone_enabled 默认关闭+三层防刷(发码前图形验证码防脚本刷短信/60秒频率+单IP日限10次/验证码5分钟一次性)+手机号全站唯一(member 表加 mobile 字段 NULL默认+uk_mobile 唯一索引,代码层友好提示+索引兜底防并发1062转提示)+username=手机号登录兼容+nickname默认脱敏138****1234+默认等级/积分/邀请奖励流程复用+双轨数据库迁移(install.sql种子+v2.9.54_add_member_mobile.sql幂等补丁)+顺带修复:发码失败删缓存验证码/后台switch勾选后关不掉(hidden 0兜底)/FrontCsrf豁免发码接口；验证:CLI 16项+HTTP 18项全场景断言全绿 |
 | **V2.9.53** | 2026-09 | **前台整页缓存设备隔离(PC用户看到手机版页面根治)**: FrontBaseController 整页缓存键此前只有主题名+语言+URL 缺少设备维度,渲染输出是设备相关的(getFrontendPath/getDeviceType 基于UA选 pc/mobile 模板目录),手机用户先访问首页会把手机版 HTML 写入缓存1小时,期间所有 PC 用户访问同 URL 命中缓存直出手机版(线上实测:首页内容全部不见显示成手机端页面)→ 缓存键加入设备类型维度 page_html_{theme}_{device}_{lang}_{md5(url)} PC/手机缓存完全隔离+验证:关闭debug激活整页缓存,手机UA先访问再PC UA访问同URL,4轮交叉断言全部正确 |
