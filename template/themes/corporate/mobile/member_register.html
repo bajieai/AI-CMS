@@ -49,7 +49,17 @@
             <div class="tab-pane fade" id="cpane-username" role="tabpanel">
                 <form id="usernameForm" method="post">
                     <div class="cm-fg"><input type="text" name="username" class="cm-input" placeholder="用户名（必填）" required></div>
-                    <div class="cm-fg"><input type="email" name="email" class="cm-input" placeholder="邮箱（必填）" required></div>
+                    <div class="cm-fg">
+                        <div style="display:flex;gap:8px;">
+                            <input type="email" name="email" id="regEmail" class="cm-input" placeholder="邮箱（必填）" required style="flex:1;">
+                            {if condition="$member_register_email_code_enabled"}
+                            <button type="button" id="sendEmailBtn" class="cm-btn cm-btn-pri" style="min-width:105px;flex-shrink:0;font-size:13px;">发送验证码</button>
+                            {/if}
+                        </div>
+                    </div>
+                    {if condition="$member_register_email_code_enabled"}
+                    <div class="cm-fg"><input type="text" name="email_code" class="cm-input" placeholder="邮箱验证码（必填）" required maxlength="6" autocomplete="off"></div>
+                    {/if}
                     <div class="cm-fg"><input type="password" name="password" class="cm-input" placeholder="密码（必填）" required></div>
                     <div class="cm-fg"><input type="text" name="nickname" class="cm-input" placeholder="昵称（选填）"></div>
                     {if condition="$captcha_required"}
@@ -71,7 +81,17 @@
         <!-- 手机号注册未启用：仅用户名注册 -->
         <form id="usernameForm" method="post">
             <div class="cm-fg"><input type="text" name="username" class="cm-input" placeholder="用户名（必填）" required></div>
-            <div class="cm-fg"><input type="email" name="email" class="cm-input" placeholder="邮箱（必填）" required></div>
+            <div class="cm-fg">
+                <div style="display:flex;gap:8px;">
+                    <input type="email" name="email" id="regEmail" class="cm-input" placeholder="邮箱（必填）" required style="flex:1;">
+                    {if condition="$member_register_email_code_enabled"}
+                    <button type="button" id="sendEmailBtn" class="cm-btn cm-btn-pri" style="min-width:105px;flex-shrink:0;font-size:13px;">发送验证码</button>
+                    {/if}
+                </div>
+            </div>
+            {if condition="$member_register_email_code_enabled"}
+            <div class="cm-fg"><input type="text" name="email_code" class="cm-input" placeholder="邮箱验证码（必填）" required maxlength="6" autocomplete="off"></div>
+            {/if}
             <div class="cm-fg"><input type="password" name="password" class="cm-input" placeholder="密码（必填）" required></div>
             <div class="cm-fg"><input type="text" name="nickname" class="cm-input" placeholder="昵称（选填）"></div>
             {if condition="$captcha_required"}
@@ -168,6 +188,31 @@ $(function() {
             if (r.success) { showToast(r.msg || '注册成功', 'success'); setTimeout(function() { location.href = '/member/login'; }, 1200); }
             else showToast(r.msg || '注册失败', 'danger');
         });
+    });
+
+    // V2.9.59: 发送邮箱验证码（60秒倒计时，开关启用时存在）
+    $('#sendEmailBtn').on('click', function() {
+        var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+        var email = $.trim($('#regEmail').val() || '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('请输入正确的邮箱地址', 'danger'); return; }
+
+        $btn.prop('disabled', true).text('发送中...');
+        $.post('/member/sendEmailCode', { email: email }, function(res) {
+            if (res.success) {
+                showToast(res.msg || '验证码已发送', 'success');
+                var seconds = 60;
+                var timer = setInterval(function() {
+                    seconds--;
+                    $btn.text(seconds + 's');
+                    if (seconds <= 0) { clearInterval(timer); $btn.prop('disabled', false).text('发送验证码'); }
+                }, 1000);
+            } else {
+                showToast(res.msg || '发送失败', 'danger');
+                $btn.prop('disabled', false).text('发送验证码');
+                if (res.refresh_captcha && needUserCaptcha) { loadCaptcha('userCaptchaBox', 'userCaptchaKey'); $('#userCaptchaAnswer').val(''); }
+            }
+        }).fail(function() { showToast('网络错误，请稍后重试', 'danger'); $btn.prop('disabled', false).text('发送验证码'); });
     });
 
     // 用户名注册提交（原有逻辑）

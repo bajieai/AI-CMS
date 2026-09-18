@@ -252,6 +252,9 @@ class SystemController extends AdminBaseController
             // V2.9.54: 手机号验证码注册开关（会员组，前台注册页联动）
             $this->ensureConfigExists('member_register_phone_enabled', 'member', '0', 'switch', '启用手机号验证码注册(开启后注册页新增手机号+短信验证码方式，需先在短信管理配置短信通道；手机号全站唯一)');
 
+            // V2.9.59: 邮箱验证码开关（用户名注册方式的邮箱真实性核验）
+            $this->ensureConfigExists('member_register_email_code_enabled', 'member', '0', 'switch', '启用邮箱验证码核验(开启后用户名注册需先获取邮箱验证码，验证邮箱真实性；需先在邮件设置配置SMTP)');
+
             // V2.9.9-R4: 确保AI配图配置项存在
             $this->ensureConfigExists('ai_image_default_size', 'ai', '1024x1024', 'select', 'AI配图默认尺寸',
                 '<option value="1024x1024">1:1 正方形 (1024x1024)</option><option value="1024x576">16:9 宽屏 (1024x576)</option><option value="1024x768">4:3 标准 (1024x768)</option><option value="768x1024">3:4 竖屏 (768x1024)</option>');

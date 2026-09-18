@@ -74,8 +74,18 @@
                             <div class="col-sm-6"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">昵称</label>
                                 <input type="text" name="nickname" class="form-control" placeholder="昵称" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
                         </div>
-                        <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">邮箱</label>
-                            <input type="email" name="email" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">邮箱 {if condition="$member_register_email_code_enabled"}<small style="text-transform:none;">(将发送验证码核验)</small>{/if}</label>
+                            <div class="{if condition="$member_register_email_code_enabled"}d-flex gap-2{/if}">
+                                <input type="email" name="email" id="regEmail" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);{if condition="$member_register_email_code_enabled"}flex:1;{/if}">
+                                {if condition="$member_register_email_code_enabled"}
+                                <button type="button" id="sendEmailBtn" class="btn btn-outline-primary text-nowrap" style="min-width:115px;border-radius:10px;">发送验证码</button>
+                                {/if}
+                            </div>
+                        </div>
+                        {if condition="$member_register_email_code_enabled"}
+                        <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">邮箱验证码</label>
+                            <input type="text" name="email_code" class="form-control" required maxlength="6" placeholder="6位邮箱验证码" autocomplete="off" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        {/if}
                         <div class="mb-4"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">密码</label>
                             <input type="password" name="password" class="form-control" required placeholder="至少6位密码" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
                         {if condition="$captcha_required"}
@@ -105,8 +115,18 @@
                     <div class="col-sm-6"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">昵称</label>
                         <input type="text" name="nickname" class="form-control" placeholder="昵称" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
                 </div>
-                <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">邮箱</label>
-                    <input type="email" name="email" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">邮箱 {if condition="$member_register_email_code_enabled"}<small style="text-transform:none;">(将发送验证码核验)</small>{/if}</label>
+                    <div class="{if condition="$member_register_email_code_enabled"}d-flex gap-2{/if}">
+                        <input type="email" name="email" id="regEmail" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);{if condition="$member_register_email_code_enabled"}flex:1;{/if}">
+                        {if condition="$member_register_email_code_enabled"}
+                        <button type="button" id="sendEmailBtn" class="btn btn-outline-primary text-nowrap" style="min-width:115px;border-radius:10px;">发送验证码</button>
+                        {/if}
+                    </div>
+                </div>
+                {if condition="$member_register_email_code_enabled"}
+                <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">邮箱验证码</label>
+                    <input type="text" name="email_code" class="form-control" required maxlength="6" placeholder="6位邮箱验证码" autocomplete="off" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                {/if}
                 <div class="mb-4"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">密码</label>
                     <input type="password" name="password" class="form-control" required placeholder="至少6位密码" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
                 {if condition="$captcha_required"}
@@ -212,6 +232,44 @@ $(function() {
         $.post('/member/register', $(this).serialize(), function(res) {
             if (res.success) { alert(res.msg || '注册成功，请登录'); location.href = '/member/login'; }
             else { alert(res.msg); }
+        });
+    });
+
+    // ═══ V2.9.59: 发送邮箱验证码（60秒倒计时，开关启用时存在） ═══
+    $('#sendEmailBtn').on('click', function() {
+        var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+
+        var email = $.trim($('#regEmail').val() || '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            alert('请输入正确的邮箱地址');
+            return;
+        }
+
+        $btn.prop('disabled', true).text('发送中...');
+        $.post('/member/sendEmailCode', { email: email }, function(res) {
+            if (res.success) {
+                alert(res.msg || '验证码已发送');
+                var seconds = 60;
+                var timer = setInterval(function() {
+                    seconds--;
+                    $btn.text(seconds + 's 后重发');
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        $btn.prop('disabled', false).text('发送验证码');
+                    }
+                }, 1000);
+            } else {
+                alert(res.msg || '发送失败');
+                $btn.prop('disabled', false).text('发送验证码');
+                if (res.refresh_captcha && needUserCaptcha) {
+                    loadCaptcha('userCaptchaBox', 'userCaptchaKey');
+                    $('#userCaptchaAnswer').val('');
+                }
+            }
+        }).fail(function() {
+            alert('网络错误，请稍后重试');
+            $btn.prop('disabled', false).text('发送验证码');
         });
     });
 

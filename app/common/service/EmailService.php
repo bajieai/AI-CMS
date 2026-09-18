@@ -188,7 +188,11 @@ class EmailService
             $hostName = $_SERVER['HTTP_HOST'] ?? 'localhost';
             self::smtpCommand($socket, 'EHLO ' . $hostName, 250);
 
-            if ($ssl || $port === 587) {
+            // V2.9.59 修复 STARTTLS 逻辑：
+            //   ssl://host:465 = 隐式 TLS（连接即加密），**不应**再发 STARTTLS
+            //   （此前 $ssl=true 时也发 STARTTLS，126 等服务器报 454 Command not permitted when TLS active）
+            //   明文连接（如 587 端口）才需要 STARTTLS 升级加密
+            if (!$ssl && $port === 587) {
                 self::smtpCommand($socket, 'STARTTLS', 220);
                 stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
                 self::smtpCommand($socket, 'EHLO ' . $hostName, 250);

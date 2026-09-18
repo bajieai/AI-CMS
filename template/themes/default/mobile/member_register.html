@@ -58,8 +58,18 @@
                         <input type="text" name="username" class="m-form-control" placeholder="用户名（必填）" required>
                     </div>
                     <div class="m-form-group">
-                        <input type="email" name="email" class="m-form-control" placeholder="邮箱地址（必填）" required>
+                        <div style="display:flex;gap:8px;">
+                            <input type="email" name="email" id="regEmail" class="m-form-control" placeholder="邮箱地址（必填）" required style="flex:1;">
+                            {if condition="$member_register_email_code_enabled"}
+                            <button type="button" id="sendEmailBtn" class="m-btn m-btn-primary" style="min-width:105px;flex-shrink:0;font-size:13px;">发送验证码</button>
+                            {/if}
+                        </div>
                     </div>
+                    {if condition="$member_register_email_code_enabled"}
+                    <div class="m-form-group">
+                        <input type="text" name="email_code" class="m-form-control" placeholder="邮箱验证码（必填）" required maxlength="6" autocomplete="off">
+                    </div>
+                    {/if}
                     <div class="m-form-group">
                         <input type="password" name="password" class="m-form-control" placeholder="设置密码（必填）" required>
                     </div>
@@ -88,8 +98,18 @@
                 <input type="text" name="username" class="m-form-control" placeholder="用户名（必填）" required>
             </div>
             <div class="m-form-group">
-                <input type="email" name="email" class="m-form-control" placeholder="邮箱地址（必填）" required>
+                <div style="display:flex;gap:8px;">
+                    <input type="email" name="email" id="regEmail" class="m-form-control" placeholder="邮箱地址（必填）" required style="flex:1;">
+                    {if condition="$member_register_email_code_enabled"}
+                    <button type="button" id="sendEmailBtn" class="m-btn m-btn-primary" style="min-width:105px;flex-shrink:0;font-size:13px;">发送验证码</button>
+                    {/if}
+                </div>
             </div>
+            {if condition="$member_register_email_code_enabled"}
+            <div class="m-form-group">
+                <input type="text" name="email_code" class="m-form-control" placeholder="邮箱验证码（必填）" required maxlength="6" autocomplete="off">
+            </div>
+            {/if}
             <div class="m-form-group">
                 <input type="password" name="password" class="m-form-control" placeholder="设置密码（必填）" required>
             </div>
@@ -190,6 +210,31 @@ $(function() {
             if (r.success) { showToast(r.msg || '注册成功', 'success'); setTimeout(function() { location.href = '/member/login'; }, 1200); }
             else showToast(r.msg || '注册失败', 'danger');
         });
+    });
+
+    // V2.9.59: 发送邮箱验证码（60秒倒计时，开关启用时存在）
+    $('#sendEmailBtn').on('click', function() {
+        var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+        var email = $.trim($('#regEmail').val() || '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('请输入正确的邮箱地址', 'danger'); return; }
+
+        $btn.prop('disabled', true).text('发送中...');
+        $.post('/member/sendEmailCode', { email: email }, function(res) {
+            if (res.success) {
+                showToast(res.msg || '验证码已发送', 'success');
+                var seconds = 60;
+                var timer = setInterval(function() {
+                    seconds--;
+                    $btn.text(seconds + 's');
+                    if (seconds <= 0) { clearInterval(timer); $btn.prop('disabled', false).text('发送验证码'); }
+                }, 1000);
+            } else {
+                showToast(res.msg || '发送失败', 'danger');
+                $btn.prop('disabled', false).text('发送验证码');
+                if (res.refresh_captcha && needUserCaptcha) { loadCaptcha('userCaptchaBox', 'userCaptchaKey'); $('#userCaptchaAnswer').val(''); }
+            }
+        }).fail(function() { showToast('网络错误，请稍后重试', 'danger'); $btn.prop('disabled', false).text('发送验证码'); });
     });
 
     // 用户名注册提交（原有逻辑）

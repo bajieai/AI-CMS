@@ -212,6 +212,8 @@ abstract class FrontBaseController extends \think\BaseController
             'points_shop_enabled' => (bool) ($configs['points_shop_enabled'] ?? true),
             // V2.9.54: 手机号验证码注册开关（控制注册页是否显示手机号注册方式）
             'member_register_phone_enabled' => (bool) (int) ($configs['member_register_phone_enabled'] ?? 0),
+            // V2.9.59: 邮箱验证码核验开关（控制用户名注册是否需要邮箱验证码）
+            'member_register_email_code_enabled' => (bool) (int) ($configs['member_register_email_code_enabled'] ?? 0),
             // V2.9.42: 前台Logo改为从自定义变量front_logo读取（与后台site_logo分离）
             // 用户可在后台"自定义变量"中添加 front_logo 变量设置前台Logo
             'front_logo'       => $configs['front_logo'] ?? '',
