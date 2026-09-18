@@ -16,11 +16,14 @@ use think\facade\Log;
 class SmsService
 {
     protected array $adapters = [];
-    protected array $adapterPriority = ['aliyun', 'tencent', 'qiniu'];
+    // V2.9.55: smsbao 置顶（唯一真实发短信的适配器，配置了即优先使用；空壳占位适配器排后兜底顺序不变）
+    protected array $adapterPriority = ['smsbao', 'aliyun', 'tencent', 'qiniu'];
 
     public function __construct()
     {
         $config = Config::get('sms', []);
+        // V2.9.55: 短信宝（真实HTTP调用，低成本起步）
+        if (!empty($config['smsbao']['username']) && !empty($config['smsbao']['password'])) $this->adapters['smsbao'] = new SmsbaoSmsAdapter($config['smsbao']);
         if (!empty($config['aliyun']['access_key'])) $this->adapters['aliyun'] = new AliyunSmsAdapter($config['aliyun']);
         if (!empty($config['tencent']['secret_id'])) $this->adapters['tencent'] = new TencentSmsAdapter($config['tencent']);
         if (!empty($config['qiniu']['access_key'])) $this->adapters['qiniu'] = new QiniuSmsAdapter($config['qiniu']);

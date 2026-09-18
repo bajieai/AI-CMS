@@ -1,16 +1,22 @@
-# 八界AI-CMS V2.9.54
+# 八界AI-CMS V2.9.55
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.54-blue)
+![Version](https://img.shields.io/badge/version-2.9.55-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.54 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.55 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.55 — 短信宝通道接入（首个真实发短信的通道，低成本起步）
+- **短信宝适配器（真实 HTTP 调用）** — 新增 `SmsbaoSmsAdapter`，真实调用短信宝 API（`api.smsbao.com/sms`），是当前**唯一真实发短信的通道**（V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳，仅写日志未实现 SDK 调用）。短信宝特点：个人注册即可用、按条计费、无需模板报备，适合低成本起步与真实短信测试
+- **配置即用** — `.env` 配置 `SMS_SMSBAO_USERNAME`（账号）/ `SMS_SMSBAO_PASSWORD`（密码）/ `SMS_SMSBAO_SIGN_NAME`（签名，短信宝后台申请，不含【】括号）三项即自动装配，适配器优先级置顶；`SMS_SMSBAO_CONTENT_TEMPLATE` 可选自定义验证码文案（{code}/{expire} 占位符）
+- **完整错误映射** — 短信宝状态码（30 密码错误/40 账号不存在/41 余额不足/43 IP限制/50 敏感词/51 手机号错误等）映射为中文提示，异常抛出由上层转友好提示；新增 `getBalance()` 余额查询（容错返回 -1）
+- **验证** — 真实调用短信宝线上 API（假账号 → 状态码 30 "密码错误"中文错误抛出）+ 空配置/缺签名校验分支 + 装配/优先级 + 余额容错，7 项断言全绿
 
 ### V2.9.54 — 手机号+短信验证码注册（真实手机核验）
 - **手机号注册方式（后台可开关）** — 注册页新增"手机号+短信验证码"注册方式，与原有"用户名+邮箱"注册并存（Tab 切换）；后台"系统设置→业务设置→会员"新增开关 `member_register_phone_enabled`（默认关闭），关闭时前台不显示该方式且发码接口拒绝。短信通道复用 V2.9.38 短信服务（阿里云/腾讯云/七牛三适配器+故障自动切换）
@@ -115,6 +121,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.55** | 2026-09 | **短信宝通道接入(首个真实发短信通道·低成本起步)**: 新增 SmsbaoSmsAdapter 真实调用 api.smsbao.com/sms(V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳仅写日志)——个人注册即可用/按条计费/无需模板报备,.env 配 SMS_SMSBAO_USERNAME/PASSWORD/SIGN_NAME 三项即自动装配且优先级置顶,状态码全映射中文错误(30密码错误/40账号不存在/41余额不足/43IP限制/50敏感词/51手机号错误),+getBalance() 余额查询容错,内容模板可配置({code}/{expire}占位)；验证:真实调用短信宝线上API(假账号→状态码30"密码错误"中文抛出)+空配置/缺签名/装配/优先级/余额容错 7项全绿 |
 | **V2.9.54** | 2026-09 | **手机号+短信验证码注册(真实手机核验)**: 注册页新增手机号+短信验证码方式与用户名+邮箱并存(Tab切换)后台开关 member_register_phone_enabled 默认关闭+三层防刷(发码前图形验证码防脚本刷短信/60秒频率+单IP日限10次/验证码5分钟一次性)+手机号全站唯一(member 表加 mobile 字段 NULL默认+uk_mobile 唯一索引,代码层友好提示+索引兜底防并发1062转提示)+username=手机号登录兼容+nickname默认脱敏138****1234+默认等级/积分/邀请奖励流程复用+双轨数据库迁移(install.sql种子+v2.9.54_add_member_mobile.sql幂等补丁)+顺带修复:发码失败删缓存验证码/后台switch勾选后关不掉(hidden 0兜底)/FrontCsrf豁免发码接口；验证:CLI 16项+HTTP 18项全场景断言全绿 |
 | **V2.9.53** | 2026-09 | **前台整页缓存设备隔离(PC用户看到手机版页面根治)**: FrontBaseController 整页缓存键此前只有主题名+语言+URL 缺少设备维度,渲染输出是设备相关的(getFrontendPath/getDeviceType 基于UA选 pc/mobile 模板目录),手机用户先访问首页会把手机版 HTML 写入缓存1小时,期间所有 PC 用户访问同 URL 命中缓存直出手机版(线上实测:首页内容全部不见显示成手机端页面)→ 缓存键加入设备类型维度 page_html_{theme}_{device}_{lang}_{md5(url)} PC/手机缓存完全隔离+验证:关闭debug激活整页缓存,手机UA先访问再PC UA访问同URL,4轮交叉断言全部正确 |
 | **V2.9.52** | 2026-08 | **升级检测403限流根治·raw静态通道·失败缓存自愈**: 升级检测双通道改造——通道1(默认)请求仓库 raw 静态文件 version.json(走 Gitee CDN 不占 API 匿名配额,时间戳参数穿透 CDN 缓存)通道2(回退)保留 releases/latest API,根治未配 token 用户实例随机 403 Rate Limit Exceeded 导致无法检测升级+修复失败结果被缓存 30 分钟的 bug(限流恢复后仍显示失败)改为成功缓存30分钟/失败仅缓存60秒快速自愈+发版流程新增 version.json 维护 |
