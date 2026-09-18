@@ -191,6 +191,8 @@ return [
             ['id' => 58, 'name' => '验证码配置', 'url' => '/admin/captcha/config', 'permission' => 'captcha.*', 'active' => 'captcha', 'icon' => 'bi bi-shield-check'],
             // V2.6 CDN集成
             ['id' => 59, 'name' => '存储配置', 'url' => '/admin/storage/config', 'permission' => 'storage.*', 'active' => 'storage_config', 'icon' => 'bi bi-hdd-network'],
+            // V2.9.62: 短信通道可视化配置（短信宝/阿里云/腾讯云/七牛云凭据）
+            ['id' => 436, 'name' => '短信配置', 'url' => '/admin/sms/config', 'permission' => 'sms.*', 'active' => 'sms_config', 'icon' => 'bi bi-chat-dots'],
             // V2.9.10 菜单管理（数据库驱动）
             ['id' => 70, 'name' => '菜单管理', 'url' => '/admin/menu_manager/index', 'permission' => 'menu_manager.*', 'active' => 'menu_manager', 'icon' => 'bi bi-list-nested'],
             // V2.9.18: 内容推送

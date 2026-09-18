@@ -1,0 +1,142 @@
+{extend name="/layout" /}
+{block name="title"}短信配置 - AI-CMS{/block}
+{block name="content"}
+<div class="container-fluid py-4">
+    <h4 class="mb-4"><i class="bi bi-chat-dots"></i> 短信通道配置</h4>
+
+    <ul class="nav nav-tabs mb-3" id="smsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-smsbao" type="button">短信宝</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-aliyun" type="button">阿里云</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tencent" type="button">腾讯云</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-qiniu" type="button">七牛云</button>
+        </li>
+    </ul>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="smsConfigForm">
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">默认短信通道</label>
+                    <div class="col-sm-9">
+                        <select class="form-select" name="sms_default">
+                            <option value="" {if $config.sms_default==''}selected{/if}>自动（按优先级：短信宝→阿里云→腾讯云→七牛云）</option>
+                            <option value="smsbao" {if $config.sms_default=='smsbao'}selected{/if}>短信宝</option>
+                            <option value="aliyun" {if $config.sms_default=='aliyun'}selected{/if}>阿里云</option>
+                            <option value="tencent" {if $config.sms_default=='tencent'}selected{/if}>腾讯云</option>
+                            <option value="qiniu" {if $config.sms_default=='qiniu'}selected{/if}>七牛云</option>
+                        </select>
+                        <div class="form-text">留空则按上方优先级自动选择已配置的通道</div>
+                    </div>
+                </div>
+
+                <div class="tab-content border p-3 rounded-bottom">
+                    <!-- 短信宝 -->
+                    <div class="tab-pane fade show active" id="tab-smsbao" role="tabpanel">
+                        <h6 class="border-bottom pb-2 mb-3">短信宝 <span class="badge bg-success">已实装真实发信</span></h6>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">账号</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_smsbao_username" value="{$config.sms_smsbao_username??''}"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">密码</label>
+                            <div class="col-sm-9">
+                                <input type="password" class="form-control" name="sms_smsbao_password" placeholder="留空表示不修改" autocomplete="new-password">
+                                <div class="form-text">短信宝登录密码（明文，系统会按接口要求处理）</div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">签名</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_smsbao_sign_name" value="{$config.sms_smsbao_sign_name??''}" placeholder="如：八界智能"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">验证码模板</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="sms_smsbao_content_template" value="{$config.sms_smsbao_content_template??''}" placeholder="留空用默认：您的验证码是{code}，{expire}分钟内有效">
+                                <div class="form-text">可用变量：{code}=验证码，{expire}=有效分钟数</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 阿里云 -->
+                    <div class="tab-pane fade" id="tab-aliyun" role="tabpanel">
+                        <h6 class="border-bottom pb-2 mb-3">阿里云短信 <span class="badge bg-secondary">占位（待接入真实API）</span></h6>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">AccessKey ID</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_aliyun_access_key" value="{$config.sms_aliyun_access_key??''}"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">AccessKey Secret</label>
+                            <div class="col-sm-9"><input type="password" class="form-control" name="sms_aliyun_access_secret" placeholder="留空表示不修改" autocomplete="new-password"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">签名</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_aliyun_sign_name" value="{$config.sms_aliyun_sign_name??''}"></div>
+                        </div>
+                    </div>
+
+                    <!-- 腾讯云 -->
+                    <div class="tab-pane fade" id="tab-tencent" role="tabpanel">
+                        <h6 class="border-bottom pb-2 mb-3">腾讯云短信 <span class="badge bg-secondary">占位（待接入真实API）</span></h6>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">SecretId</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_tencent_secret_id" value="{$config.sms_tencent_secret_id??''}"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">SecretKey</label>
+                            <div class="col-sm-9"><input type="password" class="form-control" name="sms_tencent_secret_key" placeholder="留空表示不修改" autocomplete="new-password"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">SDK AppID</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_tencent_sdk_app_id" value="{$config.sms_tencent_sdk_app_id??''}"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">签名</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_tencent_sign_name" value="{$config.sms_tencent_sign_name??''}"></div>
+                        </div>
+                    </div>
+
+                    <!-- 七牛云 -->
+                    <div class="tab-pane fade" id="tab-qiniu" role="tabpanel">
+                        <h6 class="border-bottom pb-2 mb-3">七牛云短信 <span class="badge bg-secondary">占位（待接入真实API）</span></h6>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">AccessKey</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_qiniu_access_key" value="{$config.sms_qiniu_access_key??''}"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">SecretKey</label>
+                            <div class="col-sm-9"><input type="password" class="form-control" name="sms_qiniu_secret_key" placeholder="留空表示不修改" autocomplete="new-password"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">签名</label>
+                            <div class="col-sm-9"><input type="text" class="form-control" name="sms_qiniu_sign_name" value="{$config.sms_qiniu_sign_name??''}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-3">
+                    <a href="{:url('/admin/sms/index')}" class="btn btn-outline-secondary me-2"><i class="bi bi-arrow-left"></i> 返回</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存配置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+$('#smsConfigForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    $.post('/admin/sms/config', data, function(res) {
+        alert(res.msg);
+    });
+});
+</script>
+{/block}

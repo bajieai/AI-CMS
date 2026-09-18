@@ -1,9 +1,9 @@
 {
-    "version": "2.9.61",
-    "tag": "v2.9.61",
-    "name": "AI-CMS V2.9.61 正式版",
-    "published_at": "2026-09-18T23:10:00+08:00",
-    "notes": "- 修复：前台登出报 TypeError 500（logout 移除未使用的严格类型参数）\n- 修复：后台 PJAX 内联脚本拼接陷阱——layout 全局块被误当页面 JS 拼接执行，致 SEO诊断页误弹清缓存确认框 + (intermediate value) is not a function（中间件排除标记补全 + 拼接分号防护）",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.61/ai-cms-upgrade-2.9.61.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.61"
+    "version": "2.9.62",
+    "tag": "v2.9.62",
+    "name": "AI-CMS V2.9.62 正式版",
+    "published_at": "2026-09-18T23:30:00+08:00",
+    "notes": "- 新增：后台短信通道可视化配置（/admin/sms/config，双皮肤同步）——配置短信宝/阿里云/腾讯云/七牛云四通道凭据 + 默认通道选择，存入 i8j_config 即时生效\n- 修复：think\\facade\\Json 门面缺失导致 16+ 后台 AJAX 接口 500（Class \"think\\facade\\Json\" does not exist）——新增 app/common/facade/Json.php 并全局 class_alias 映射，调用方零改动恢复",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.62/ai-cms-upgrade-2.9.62.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.62"
 }

@@ -425,6 +425,21 @@ class MemberService
             return ['success' => false, 'msg' => '邮箱已被注册'];
         }
 
+        // 手机号（可选，用于手机号验证码注册/登录；留空=未绑定）
+        $mobile = trim((string) ($data['mobile'] ?? ''));
+        if ($mobile !== '') {
+            if (!preg_match('/^1[3-9]\d{9}$/', $mobile)) {
+                return ['success' => false, 'msg' => '手机号格式不正确'];
+            }
+            $mobileCheck = MemberModel::where('mobile', $mobile);
+            if (!$isNew) {
+                $mobileCheck->where('id', '<>', $id);
+            }
+            if ($mobileCheck->find()) {
+                return ['success' => false, 'msg' => '该手机号已被其他会员绑定'];
+            }
+        }
+
         if ($isNew) {
             if (empty($data['password'])) {
                 return ['success' => false, 'msg' => '密码不能为空'];
@@ -434,6 +449,7 @@ class MemberService
                 'username' => $data['username'],
                 'email'    => $data['email'],
                 'password' => $data['password'],
+                'mobile'   => $mobile !== '' ? $mobile : null,
                 'nickname' => $data['nickname'] ?? $data['username'],
                 'avatar'   => $data['avatar'] ?? '',
                 'status'   => isset($data['status']) ? (int) $data['status'] : 1,
@@ -462,6 +478,10 @@ class MemberService
                 'status'   => isset($data['status']) ? (int) $data['status'] : $member->status,
                 'level_id' => isset($data['level_id']) ? (int) $data['level_id'] : $member->level_id,
             ];
+            // 手机号：填了则更新（已校验唯一），留空保留原值（不清除已绑定号码）
+            if ($mobile !== '') {
+                $update['mobile'] = $mobile;
+            }
             if (!empty($data['password'])) {
                 $update['password'] = $data['password'];
             }

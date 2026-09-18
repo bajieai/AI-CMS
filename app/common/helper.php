@@ -140,6 +140,13 @@ if (!function_exists('i8j_cache')) {
     }
 }
 
+// V2.9.62: 补全缺失的 think\facade\Json 门面
+// 当前框架未提供 think\facade\Json，而大量后台控制器依赖 Json::success()，
+// 缺失会导致这些 AJAX 接口直接 500。仅在框架确实未提供（或缺少 success 方法）时映射。
+if (!class_exists('think\facade\Json') || !method_exists('think\facade\Json', 'success')) {
+    class_alias(\app\common\facade\Json::class, 'think\facade\Json');
+}
+
 // V2.5 多语言辅助函数
 if (!function_exists('__')) {
     /**

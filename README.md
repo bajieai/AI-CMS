@@ -1,16 +1,20 @@
-# 八界AI-CMS V2.9.61
+# 八界AI-CMS V2.9.62
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.61-blue)
+![Version](https://img.shields.io/badge/version-2.9.62-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.61 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.62 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.62 — 后台短信通道配置·Json门面缺失500根治
+- **后台短信通道可视化配置** — 新增 `/admin/sms/config`（双皮肤同步：default + corporate），可视化配置短信宝/阿里云/腾讯云/七牛云四通道凭据（账号/密码/密钥/签名/验证码模板）+ 默认通道选择，保存至 i8j_config 的 sms_* 扁平键，经 load_cms_configs 即时注入 Config 的 sms 组覆盖 config/sms.php 的 .env 配置（即时生效）；密码/密钥类字段留空保留原值；SmsService 新增 loadDbSmsConfig 从 DB 映射回嵌套结构 + selectAdapter 优先使用后台配置的默认通道；config/menu.php 新增「短信配置」后台菜单入口；短信宝为真实发信通道，阿里云/腾讯云/七牛云为占位待接入
+- **think\facade\Json 门面缺失 500 根治** — 当前框架未提供 think\facade\Json，而 16+ 后台控制器依赖 Json::success()/error() 返回 AJAX 结果，缺失导致这些接口全部 500（Class "think\facade\Json" does not exist）→ 新增 app/common/facade/Json.php 补全 success/error 方法，并在 app/common/helper.php 全局注册 class_alias 映射到 think\facade\Json（仅当框架确实未提供时），已有调用方零改动恢复
 
 ### V2.9.61 — 前台登出 500 修复·PJAX 内联脚本拼接陷阱根治
 - **前台登出 TypeError 根治** — `/member/logout` 报 `MemberService::logout(): Argument #1 ($memberId) must be of type int, string given`：登录态的 `memberInfo['id']` 来自缓存反序列化是 string，而 `logout(int $memberId)` 严格类型拒绝。**关键发现**：方法体**根本未使用该参数**（只清 token cookie/cache）——直接移除无用参数，调用方同步
@@ -148,6 +152,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.62** | 2026-09 | **后台短信通道配置·Json门面缺失500根治**: 新增 /admin/sms/config 可视化配置四通道(短信宝/阿里云/腾讯云/七牛云)凭据+默认通道选择,存入 i8j_config sms_* 扁平键经 load_cms_configs 即时注入 Config sms 组覆盖 .env 即时生效;SmsService 新增 loadDbSmsConfig 映射+selectAdapter 优先用后台默认通道;菜单新增短信配置入口;短信宝真实发信其余占位;根治 think\facade\Json 缺失致16+后台AJAX接口500——新增 app/common/facade/Json.php(success/error)+helper.php 全局 class_alias 映射,调用方零改动恢复 |
 | **V2.9.61** | 2026-09 | **前台登出500修复·PJAX内联脚本拼接陷阱根治**: /member/logout 报 logout(): Argument #1 must be of type int, string given——登录态 memberInfo['id'] 来自缓存反序列化是 string 而方法签名严格 int,且方法体根本未使用该参数(只清token)→直接移除无用参数；后台PJAX内联脚本拼接陷阱——V2.9.58 layout 全局块(clearCacheByType/openMediaSelect)被 isLayoutGlobalScript 排除标记遗漏,PJAX切页时误当页面JS与页面块拼接,全局块结尾赋值表达式(无分号)紧跟页面块开头 ( 导致连成调用表达式→全局函数被误执行(SEO诊断页误弹清缓存确认框)→返回值undefined再被调→(intermediate value) is not a function——双层修复:isLayoutGlobalScript 补3个全局块标记+executeInlineScript 内容末尾统一补分号防未来拼接陷阱 |
 | **V2.9.60** | 2026-09 | **会员中心菜单404修复(控制器与模板早已存在,路由从未注册)**: 会员中心侧栏5个菜单页全部404(我的订单/我的评论/我的邀请/优惠券/已购内容)——MemberController::orders/comments/invite/coupon+PaidController::purchased 方法、Order/Comment/CouponService/InviteRewardService/PaidService 服务层、四主题渲染模板全部存在,唯独 home 路由从未注册→注册5条GET路由(未登录302跳登录)+补齐3个缺失模板 member_invite.html(default/mobile+corporate/pc+corporate/mobile)+全站链接审计:提取全部模板34个唯一链接对照108条路由逐一匹配0个未覆盖 |
 | **V2.9.59** | 2026-09 | **邮箱验证码核验注册+SMTP STARTTLS历史性Bug修复**: 用户名注册新增邮箱验证码核验(后台开关 member_register_email_code_enabled 默认关,与手机号注册对称)——发码接口 sendEmailCode(60秒/邮箱频率+单IP日限20+邮箱唯一预检+失败删缓存)+验证码5分钟一次性+四模板用户名表单邮箱旁发码按钮/验证码输入框(开关控制)+CSRF豁免 sendemailcode；**SMTP STARTTLS 历史性Bug修复**: EmailService::send 此前 if($ssl||$port===587) 把隐式TLS(ssl://465连接即加密)与明文+STARTTLS(587)混为一谈,465 SSL连接上又发STARTTLS致126等服务器报454 Command not permitted when TLS active,自8月7日起全部邮件发送失败(含密码找回)→修复为仅明文连接(非ssl且587)才发STARTTLS,实测126 SMTP真实发信成功；验证:CLI 14项(格式/缺用户名/密码/缺码/错码/正常/落库/一次性/重复/开关关/回归)+HTTP 11项 |
