@@ -1,9 +1,9 @@
 {
-    "version": "2.9.54",
-    "tag": "v2.9.54",
-    "name": "AI-CMS V2.9.54 正式版",
-    "published_at": "2026-09-18T11:20:00+08:00",
-    "notes": "- 新功能：手机号+短信验证码注册（真实手机核验），与用户名+邮箱注册并存，后台开关控制（默认关闭，开启前请先配置短信通道）\n- 手机号全站唯一，username=手机号可直接登录，昵称默认脱敏\n- 三层防刷：图形验证码+60秒频率+单IP日限10次；验证码5分钟一次性\n- 含 member 表 SQL 迁移补丁（在线升级自动执行，存量会员不受影响）\n- 顺带修复：发码失败缓存残留、后台开关勾选后关不掉、前台CSRF豁免发码接口",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.54/ai-cms-upgrade-2.9.54.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.54"
+    "version": "2.9.55",
+    "tag": "v2.9.55",
+    "name": "AI-CMS V2.9.55 正式版",
+    "published_at": "2026-09-18T19:30:00+08:00",
+    "notes": "- 新功能：短信宝通道接入——首个真实发短信的通道（个人注册即可用、按条计费、无需模板报备，适合低成本起步与真实短信测试）\n- .env 配置 SMS_SMSBAO_USERNAME / SMS_SMSBAO_PASSWORD / SMS_SMSBAO_SIGN_NAME 三项即自动启用（优先级置顶）\n- 说明：V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳（未实现真实调用）\n- 工具修复：升级包生成前清空临时目录，防止历史版本残留文件混入",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.55/ai-cms-upgrade-2.9.55.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.55"
 }
