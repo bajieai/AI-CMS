@@ -1,9 +1,9 @@
 {
-    "version": "2.9.56",
-    "tag": "v2.9.56",
-    "name": "AI-CMS V2.9.56 正式版",
-    "published_at": "2026-09-18T20:10:00+08:00",
-    "notes": "- 修复：后台系统设置页 Logo 预览/媒体库/清缓存按钮报 xxx is not defined（V2.9.47 迁移外部 JS 时函数包进 IIFE 未暴露全局）\n- 补全：清除缓存按钮前后端实现（此前为从未可用的死按钮），清应用缓存+各端模板编译缓存\n- 双主题 JS 引用版本参数刷新，强制浏览器加载新版",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.56/ai-cms-upgrade-2.9.56.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.56"
+    "version": "2.9.57",
+    "tag": "v2.9.57",
+    "name": "AI-CMS V2.9.57 正式版",
+    "published_at": "2026-09-18T21:00:00+08:00",
+    "notes": "- 修复：后台\"启用手机号验证码注册\"等开关项显示为文本输入框而非开关控件（配置记录被 ConfigService::set 先创建时 type 写死 text，ensureConfigExists 跳过）\n- ensureConfigExists 增加元数据同步：记录存在但 type 与代码声明不一致时自动修正（value 永不覆盖）\n- 升级后访问一次系统设置页即可自动修正已有脏数据",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.57/ai-cms-upgrade-2.9.57.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.57"
 }
