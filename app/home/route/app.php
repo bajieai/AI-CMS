@@ -139,6 +139,13 @@ Route::post('member/uploadAvatar$', '\app\home\controller\MemberController@uploa
 
 // V2.9.9: 注册验证码
 Route::get('member/captcha$', '\app\home\controller\MemberController@captcha');
+// V2.9.59: 会员中心菜单页路由（控制器方法与模板早已存在，此前从未注册路由——
+// 菜单点击全部 404：/member/orders /comments /invite /coupon /paid/purchased）
+Route::get('member/orders$', '\app\home\controller\MemberController@orders');
+Route::get('member/comments$', '\app\home\controller\MemberController@comments');
+Route::get('member/invite$', '\app\home\controller\MemberController@invite');
+Route::get('member/coupon$', '\app\home\controller\MemberController@coupon');
+Route::get('paid/purchased$', '\app\home\controller\PaidController@purchased');
 Route::post('member/sendSmsCode$', '\app\home\controller\MemberController@sendSmsCode');
 Route::post('member/sendEmailCode$', '\app\home\controller\MemberController@sendEmailCode');
 
