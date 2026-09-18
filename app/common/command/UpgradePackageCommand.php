@@ -215,6 +215,19 @@ class UpgradePackageCommand extends Command
         $tagFrom = 'v' . $fromVersion;
         $tagTo = 'v' . $toVersion;
 
+        // V2.9.55: 导出前清空临时目录，防止历史版本残留文件混入升级包
+        // （缺陷案例：2.9.55 包误收 2.9.54 的 SQL 补丁——sourceDir 固定且从不清理，
+        //   上次导出的 database/v2.9.54_add_member_mobile.sql 被本次 SQL 扫描捡到）
+        if (is_dir($sourceDir)) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($sourceDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($iterator as $item) {
+                $item->isDir() ? @rmdir($item->getPathname()) : @unlink($item->getPathname());
+            }
+        }
+
         // 获取变更文件列表
         $cmd = 'cd ' . escapeshellarg($rootPath) . ' && git diff --name-only ' . escapeshellarg($tagFrom) . ' ' . escapeshellarg($tagTo) . ' 2>&1';
         exec($cmd, $diffOutput, $returnVar);
