@@ -1,9 +1,9 @@
 {
-    "version": "2.9.55",
-    "tag": "v2.9.55",
-    "name": "AI-CMS V2.9.55 正式版",
-    "published_at": "2026-09-18T19:30:00+08:00",
-    "notes": "- 新功能：短信宝通道接入——首个真实发短信的通道（个人注册即可用、按条计费、无需模板报备，适合低成本起步与真实短信测试）\n- .env 配置 SMS_SMSBAO_USERNAME / SMS_SMSBAO_PASSWORD / SMS_SMSBAO_SIGN_NAME 三项即自动启用（优先级置顶）\n- 说明：V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳（未实现真实调用）\n- 工具修复：升级包生成前清空临时目录，防止历史版本残留文件混入",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.55/ai-cms-upgrade-2.9.55.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.55"
+    "version": "2.9.56",
+    "tag": "v2.9.56",
+    "name": "AI-CMS V2.9.56 正式版",
+    "published_at": "2026-09-18T20:10:00+08:00",
+    "notes": "- 修复：后台系统设置页 Logo 预览/媒体库/清缓存按钮报 xxx is not defined（V2.9.47 迁移外部 JS 时函数包进 IIFE 未暴露全局）\n- 补全：清除缓存按钮前后端实现（此前为从未可用的死按钮），清应用缓存+各端模板编译缓存\n- 双主题 JS 引用版本参数刷新，强制浏览器加载新版",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.56/ai-cms-upgrade-2.9.56.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.56"
 }
