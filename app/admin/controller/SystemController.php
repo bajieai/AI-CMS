@@ -543,6 +543,35 @@ class SystemController extends AdminBaseController
     }
 
     /**
+     * V2.9.55: 清除系统缓存（系统设置页"清除缓存"按钮，前台数据更新未生效时使用）
+     * 清 ThinkPHP 应用缓存 + 各端模板编译缓存
+     */
+    public function clearSystemCache()
+    {
+        try {
+            // 应用缓存（含 site_configs/custom_vars/enabled_modules 等数据缓存）
+            \think\facade\Cache::clear();
+
+            // 各端模板编译缓存（后台/前台/API）
+            $runtime = runtime_path();
+            $count = 0;
+            foreach (['admin/temp', 'home/temp', 'api/temp', 'temp'] as $dir) {
+                $path = $runtime . $dir;
+                if (!is_dir($path)) continue;
+                foreach (glob($path . DIRECTORY_SEPARATOR . '*.php') ?: [] as $f) {
+                    @unlink($f);
+                    $count++;
+                }
+            }
+
+            $this->recordLog('清除系统缓存', '', ['tpl_files' => $count]);
+            return json(['code' => 0, 'msg' => "缓存已清除（模板编译文件 {$count} 个）"]);
+        } catch (\Throwable $e) {
+            return json(['code' => 1, 'msg' => '清除失败: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * 确保配置项存在（不存在时自动创建）
      * V2.9.9-R4: 增加$options参数支持select类型
      */
