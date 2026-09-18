@@ -1421,6 +1421,8 @@ Route::post('api_doc/addChangelog$', '\app\admin\controller\ApiDocController@add
 Route::get('oauth_user/index$', '\app\admin\controller\OauthUserController@index');
 Route::get('oauth_user/stats$', '\app\admin\controller\OauthUserController@stats');
 Route::get('sms/index$', '\app\admin\controller\SmsController@index');
+Route::get('sms/config$', '\app\admin\controller\SmsController@config');
+Route::post('sms/config$', '\app\admin\controller\SmsController@config');
 Route::get('sms/templates$', '\app\admin\controller\SmsController@templates');
 Route::get('sms/logs$', '\app\admin\controller\SmsController@logs');
 Route::post('sms/send$', '\app\admin\controller\SmsController@send');
