@@ -1,6 +1,6 @@
 -- ============================================
 -- AI-CMS Install SQL
--- Version: V2.9.53
+-- Version: V2.9.54
 -- Prefix: {prefix}
 -- ============================================
 
@@ -2294,6 +2294,7 @@ CREATE TABLE `{prefix}member` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名',
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '邮箱',
+  `mobile` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号（唯一，手机号验证码注册；NULL=未绑定）',
   `wechat_openid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '微信openid',
   `wechat_unionid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '微信unionid',
   `wechat_nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '微信昵称',
@@ -2320,6 +2321,7 @@ CREATE TABLE `{prefix}member` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`),
   UNIQUE KEY `uk_email` (`email`),
+  UNIQUE KEY `uk_mobile` (`mobile`),
   UNIQUE KEY `uk_invite_code` (`invite_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='前台会员表';
 

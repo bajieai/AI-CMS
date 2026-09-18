@@ -72,10 +72,18 @@ class SmsService
         // 生成验证码
         $code = str_pad((string)rand(0, 999999), 6, '0', STR_PAD_LEFT);
         Cache::set('sms_code_' . $type . '_' . $mobile, $code, 300); // 5分钟有效
-        
-        $result = $this->send($mobile, 'verify_code', ['code' => $code]);
+
+        try {
+            $result = $this->send($mobile, 'verify_code', ['code' => $code]);
+        } catch (\Throwable $e) {
+            // V2.9.54: 发送失败删除已写入的验证码缓存，防止用户拿到未送达的码注册
+            Cache::delete('sms_code_' . $type . '_' . $mobile);
+            // 保留 60 秒频率限制（防止异常态下快速重试轰炸适配器），重新抛出由调用方给出友好提示
+            Cache::set($key, time(), 60);
+            throw $e;
+        }
         Cache::set($key, time(), 60);
-        
+
         return $result;
     }
 

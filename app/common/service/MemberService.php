@@ -84,6 +84,102 @@ class MemberService
     }
 
     /**
+     * V2.9.54: 手机号+短信验证码注册
+     *
+     * 与 register() 并行的注册方式（后台开关 member_register_phone_enabled 控制）：
+     * - 手机号全站唯一（代码层校验 + member.uk_mobile 唯一索引兜底防并发）
+     * - 短信验证码复用 SmsService::verifyCode（5分钟有效、一次性、register 专用键）
+     * - username=手机号（登录接口 username/email 双查，天然兼容手机号+密码登录）
+     * - nickname 默认脱敏（138****1234）
+     * - 默认等级/注册积分/邀请奖励等后置流程与用户名注册一致
+     */
+    public function registerByPhone(array $data): array
+    {
+        try {
+            // 开关校验（防绕过前端直接POST）
+            if (!(int) ConfigService::get('member_register_phone_enabled', 0)) {
+                return ['success' => false, 'msg' => '手机号注册未启用'];
+            }
+
+            $mobile = trim((string) ($data['mobile'] ?? ''));
+            if (!preg_match('/^1[3-9]\d{9}$/', $mobile)) {
+                return ['success' => false, 'msg' => '请输入正确的手机号'];
+            }
+
+            $password = (string) ($data['password'] ?? '');
+            if (strlen($password) < 6) {
+                return ['success' => false, 'msg' => '密码至少6位'];
+            }
+
+            $code = trim((string) ($data['sms_code'] ?? ''));
+            if ($code === '') {
+                return ['success' => false, 'msg' => '请输入短信验证码'];
+            }
+
+            // 手机号唯一（代码层校验给友好提示；并发竞态由 member.uk_mobile 唯一索引兜底）
+            if (MemberModel::where('mobile', $mobile)->find()) {
+                return ['success' => false, 'msg' => '该手机号已注册，请直接登录'];
+            }
+
+            // 短信验证码校验（一次性，验后即删）
+            $sms = new \app\common\service\system\SmsService();
+            if (!$sms->verifyCode($mobile, $code, 'register')) {
+                return ['success' => false, 'msg' => '短信验证码错误或已过期，请重新获取'];
+            }
+
+            $needAudit = (int) ConfigService::get('member_register_audit', 0);
+
+            $member = new MemberModel;
+            $member->save([
+                'username'    => $mobile, // 手机号注册用户以手机号作为用户名（登录兼容）
+                'email'       => '',
+                'mobile'      => $mobile,
+                'password'    => $password,
+                'nickname'    => trim((string) ($data['nickname'] ?? '')) ?: substr_replace($mobile, '****', 3, 4),
+                'status'      => $needAudit ? 2 : 1,
+                'invite_code' => $this->generateInviteCode(),
+            ]);
+
+            // 默认等级
+            $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->find();
+            if ($defaultLevel) {
+                $member->level_id = $defaultLevel->id;
+                $member->save();
+            }
+
+            // 注册奖励积分
+            $registerPoints = (int) ConfigService::get('points_register', 50);
+            if ($registerPoints > 0 && !$needAudit) {
+                try {
+                    PointsService::add($member->id, $registerPoints, 'register', 0, '注册奖励');
+                } catch (\Throwable) {
+                    // 积分添加失败不影响注册流程
+                }
+            }
+
+            // 邀请返积分
+            if (!empty($data['invite_code']) && !$needAudit) {
+                try {
+                    $this->processInviteReward($member->id, $data['invite_code'], request()->ip() ?? '0.0.0.0');
+                    InviteRewardService::onMemberEvent($member->id, 'register');
+                } catch (\Throwable) {
+                    // 邀请处理失败不影响注册流程
+                }
+            }
+
+            $msg = $needAudit ? '注册成功，请等待管理员审核' : '注册成功';
+            return ['success' => true, 'msg' => $msg, 'data' => ['id' => $member->id]];
+        } catch (\Throwable $e) {
+            // 唯一索引兜底：并发下同手机号重复注册时 MySQL 报 1062 Duplicate entry
+            $msg = $e->getMessage();
+            if (stripos($msg, 'duplicate') !== false || stripos($msg, '1062') !== false) {
+                return ['success' => false, 'msg' => '该手机号已注册，请直接登录'];
+            }
+            return ['success' => false, 'msg' => '注册失败: ' . $msg];
+        }
+    }
+
+    /**
      * 会员登录
      */
     public function login(string $username, string $password): array

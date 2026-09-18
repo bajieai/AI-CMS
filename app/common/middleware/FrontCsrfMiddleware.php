@@ -36,6 +36,7 @@ class FrontCsrfMiddleware
         'login',
         'logout',
         'register',
+        'sendsmscode', // V2.9.54: 注册短信发码接口（注册流程一部分，防刷由图形验证码+频率限制承担）
         'oauth',
         'callback',
         'notify',

@@ -17,9 +17,88 @@
                 <p class="mb-0 opacity-75" style="color:rgba(255,255,255,.7);font-size:.88rem;">加入我们，开启智慧之旅</p>
             </div>
         </div>
-        <!-- 表单区?-->
+        <!-- 表单区 -->
         <div style="padding:2.25rem 2.5rem 2.5rem;">
-            <form id="registerForm" method="post">
+
+            {if condition="$member_register_phone_enabled"}
+            <!-- V2.9.54: 注册方式切换 -->
+            <ul class="nav nav-pills nav-justified mb-4" role="tablist" style="font-size:.9rem;">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="ctab-username" data-bs-toggle="pill" data-bs-target="#cpane-username" type="button" role="tab">用户名注册</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="ctab-phone" data-bs-toggle="pill" data-bs-target="#cpane-phone" type="button" role="tab">手机号注册</button>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <!-- 手机号注册 -->
+                <div class="tab-pane fade show active" id="cpane-phone" role="tabpanel">
+                    <form id="phoneForm" method="post">
+                        <input type="hidden" name="register_type" value="phone">
+                        <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">手机号</label>
+                            <input type="tel" name="mobile" id="phoneMobile" class="form-control" required maxlength="11" placeholder="请输入11位手机号" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        {if condition="$captcha_required"}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">图形验证码</label>
+                            <div class="d-flex gap-2">
+                                <input type="text" name="captcha_answer" id="phoneCaptchaAnswer" class="form-control" style="flex:1;border-radius:10px;border-color:var(--i8j-border,#e2e8f0);" placeholder="请输入验证码" autocomplete="off">
+                                <input type="hidden" name="captcha_key" id="phoneCaptchaKey">
+                                <div id="phoneCaptchaBox" class="d-flex align-items-center justify-content-center" style="width:120px;min-height:46px;background:#f0fdf4;border:1px solid var(--i8j-border,#e2e8f0);border-radius:10px;cursor:pointer;overflow:hidden;">
+                                    <span class="text-muted small">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                        {/if}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">短信验证码</label>
+                            <div class="d-flex gap-2">
+                                <input type="text" name="sms_code" class="form-control" style="flex:1;border-radius:10px;border-color:var(--i8j-border,#e2e8f0);" required maxlength="6" placeholder="6位短信验证码" autocomplete="off">
+                                <button type="button" id="sendSmsBtn" class="btn btn-outline-primary text-nowrap" style="min-width:115px;border-radius:10px;">发送验证码</button>
+                            </div>
+                        </div>
+                        <div class="mb-4"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">密码</label>
+                            <input type="password" name="password" class="form-control" required minlength="6" placeholder="至少6位密码" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">昵称 <small style="text-transform:none;">(选填)</small></label>
+                            <input type="text" name="nickname" class="form-control" maxlength="20" placeholder="昵称" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        <button type="submit" class="btn btn-lg w-100" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-radius:10px;font-weight:700;border:none;box-shadow:0 4px 18px rgba(34,197,94,.28);">
+                            立即注册
+                        </button>
+                    </form>
+                </div>
+                <!-- 用户名注册（原有方式） -->
+                <div class="tab-pane fade" id="cpane-username" role="tabpanel">
+                    <form id="usernameForm" method="post">
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">用户名</label>
+                                <input type="text" name="username" class="form-control" required placeholder="用户名" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                            <div class="col-sm-6"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">昵称</label>
+                                <input type="text" name="nickname" class="form-control" placeholder="昵称" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">邮箱</label>
+                            <input type="email" name="email" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        <div class="mb-4"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">密码</label>
+                            <input type="password" name="password" class="form-control" required placeholder="至少6位密码" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
+                        {if condition="$captcha_required"}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">验证码</label>
+                            <div class="d-flex gap-2">
+                                <input type="text" name="captcha_answer" id="userCaptchaAnswer" class="form-control" style="flex:1;border-radius:10px;border-color:var(--i8j-border,#e2e8f0);" required placeholder="请输入验证码" autocomplete="off">
+                                <input type="hidden" name="captcha_key" id="userCaptchaKey">
+                                <div id="userCaptchaBox" class="d-flex align-items-center justify-content-center" style="width:120px;min-height:46px;background:#f0fdf4;border:1px solid var(--i8j-border,#e2e8f0);border-radius:10px;cursor:pointer;overflow:hidden;">
+                                    <span class="text-muted small">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                        {/if}
+                        <button type="submit" class="btn btn-lg w-100" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-radius:10px;font-weight:700;border:none;box-shadow:0 4px 18px rgba(34,197,94,.28);">
+                            立即注册
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {else /}
+            <!-- 手机号注册未启用：仅用户名注册（原有表单） -->
+            <form id="usernameForm" method="post">
                 <div class="row g-3 mb-3">
                     <div class="col-sm-6"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">用户名</label>
                         <input type="text" name="username" class="form-control" required placeholder="用户名" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
@@ -30,21 +109,24 @@
                     <input type="email" name="email" class="form-control" required placeholder="email@example.com" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
                 <div class="mb-4"><label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">密码</label>
                     <input type="password" name="password" class="form-control" required placeholder="至少6位密码" style="border-radius:10px;border-color:var(--i8j-border,#e2e8f0);"></div>
-                <!-- V2.9.9 注册验证码 -->
+                {if condition="$captcha_required"}
                 <div class="mb-4">
                     <label class="form-label fw-semibold small text-uppercase" style="color:var(--i8j-text-secondary,#64748b);">验证码</label>
                     <div class="d-flex gap-2">
-                        <input type="text" name="captcha_answer" class="form-control" style="flex:1;border-radius:10px;border-color:var(--i8j-border,#e2e8f0);" required placeholder="请输入验证码" autocomplete="off">
-                        <input type="hidden" name="captcha_key" id="captchaKey">
-                        <div id="captchaBox" class="d-flex align-items-center justify-content-center" style="width:120px;min-height:46px;background:#f0fdf4;border:1px solid var(--i8j-border,#e2e8f0);border-radius:10px;cursor:pointer;overflow:hidden;">
+                        <input type="text" name="captcha_answer" id="userCaptchaAnswer" class="form-control" style="flex:1;border-radius:10px;border-color:var(--i8j-border,#e2e8f0);" required placeholder="请输入验证码" autocomplete="off">
+                        <input type="hidden" name="captcha_key" id="userCaptchaKey">
+                        <div id="userCaptchaBox" class="d-flex align-items-center justify-content-center" style="width:120px;min-height:46px;background:#f0fdf4;border:1px solid var(--i8j-border,#e2e8f0);border-radius:10px;cursor:pointer;overflow:hidden;">
                             <span class="text-muted small">加载中...</span>
                         </div>
                     </div>
                 </div>
+                {/if}
                 <button type="submit" class="btn btn-lg w-100" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-radius:10px;font-weight:700;border:none;box-shadow:0 4px 18px rgba(34,197,94,.28);">
                     立即注册
                 </button>
             </form>
+            {/if}
+
             <div class="text-center mt-4 pt-3" style="border-top:1px solid #f1f5f9;">
                 <span class="text-muted small">已有账号）</span> <a href="/member/login" class="small fw-bold" style="color:var(--i8j-primary,#3b82f6);text-decoration:none;">立即登录</a>
             </div>
@@ -57,28 +139,88 @@
 {block name="js"}
 <script>
 $(function() {
-    function loadCaptcha() {
+    var captchaRequired = {if condition="$captcha_required"}true{else /}false{/if};
+
+    // ═══ 图形验证码加载（独立实例） ═══
+    function loadCaptcha(boxId, keyId) {
+        if (!captchaRequired) return;
         $.get('/member/captcha', function(res) {
             if (res.success && res.data) {
-                var $box = $('#captchaBox');
+                var $box = $('#' + boxId);
                 $box.empty();
                 if (res.data.mode === 'image' && res.data.image) {
                     $box.html('<img src="' + res.data.image + '" style="max-width:100%;height:auto;display:block;margin:0 auto;" alt="验证码">');
                 } else {
                     $box.html('<span class="fw-bold" style="font-size:1rem;">' + (res.data.text || '验证码') + '</span>');
                 }
-                $('#captchaKey').val(res.data.key);
+                $('#' + keyId).val(res.data.key);
             }
         });
     }
-    loadCaptcha();
-    $('#captchaBox').on('click', function() { loadCaptcha(); });
 
-    $('#registerForm').on('submit', function(e) {
+    var needUserCaptcha = $('#userCaptchaBox').length > 0;
+    var needPhoneCaptcha = $('#phoneCaptchaBox').length > 0;
+    if (needUserCaptcha) {
+        loadCaptcha('userCaptchaBox', 'userCaptchaKey');
+        $('#userCaptchaBox').on('click', function() { loadCaptcha('userCaptchaBox', 'userCaptchaKey'); });
+    }
+    if (needPhoneCaptcha) {
+        loadCaptcha('phoneCaptchaBox', 'phoneCaptchaKey');
+        $('#phoneCaptchaBox').on('click', function() { loadCaptcha('phoneCaptchaBox', 'phoneCaptchaKey'); });
+    }
+
+    // ═══ V2.9.54: 发送短信验证码（60秒倒计时） ═══
+    $('#sendSmsBtn').on('click', function() {
+        var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+
+        var mobile = $.trim($('#phoneMobile').val() || '');
+        if (!/^1[3-9]\d{9}$/.test(mobile)) { alert('请输入正确的11位手机号'); return; }
+
+        var payload = { mobile: mobile };
+        if (needPhoneCaptcha) {
+            payload.captcha_key = $.trim($('#phoneCaptchaKey').val() || '');
+            payload.captcha_answer = $.trim($('#phoneCaptchaAnswer').val() || '');
+            if (!payload.captcha_key || !payload.captcha_answer) { alert('请先输入图形验证码'); return; }
+        }
+
+        $btn.prop('disabled', true).text('发送中...');
+        $.post('/member/sendSmsCode', payload, function(res) {
+            if (res.success) {
+                alert(res.msg || '验证码已发送');
+                var seconds = 60;
+                var timer = setInterval(function() {
+                    seconds--;
+                    $btn.text(seconds + 's 后重发');
+                    if (seconds <= 0) { clearInterval(timer); $btn.prop('disabled', false).text('发送验证码'); }
+                }, 1000);
+            } else {
+                alert(res.msg || '发送失败');
+                $btn.prop('disabled', false).text('发送验证码');
+                if (res.refresh_captcha && needPhoneCaptcha) { loadCaptcha('phoneCaptchaBox', 'phoneCaptchaKey'); $('#phoneCaptchaAnswer').val(''); }
+            }
+        }).fail(function() { alert('网络错误，请稍后重试'); $btn.prop('disabled', false).text('发送验证码'); });
+    });
+
+    // ═══ 手机号注册提交 ═══
+    $('#phoneForm').on('submit', function(e) {
+        e.preventDefault();
+        var smsCode = $.trim($(this).find('[name="sms_code"]').val() || '');
+        if (!smsCode) { alert('请输入短信验证码'); return; }
+        var pwd = $(this).find('[name="password"]').val() || '';
+        if (pwd.length < 6) { alert('密码至少6位'); return; }
+        $.post('/member/register', $(this).serialize(), function(res) {
+            if (res.success) { alert(res.msg || '注册成功，请登录'); location.href = '/member/login'; }
+            else { alert(res.msg); }
+        });
+    });
+
+    // ═══ 用户名注册提交（原有逻辑） ═══
+    $('#usernameForm').on('submit', function(e) {
         e.preventDefault();
         $.post('/member/register', $(this).serialize(), function(res) {
             if (res.success) { alert('注册成功，请登录'); location.href = '/member/login'; }
-            else { alert(res.msg); loadCaptcha(); }
+            else { alert(res.msg); if (needUserCaptcha) { loadCaptcha('userCaptchaBox', 'userCaptchaKey'); } }
         });
     });
 });
