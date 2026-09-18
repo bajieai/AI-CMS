@@ -133,8 +133,14 @@
         try {
             // 将 function xxx() 转为 window.xxx = function xxx() 确保全局可访问
             var wrapped = jsText.replace(/^function\s+(\w+)\s*\(/gm, 'window.$1 = function $1(');
+            // V2.9.60: 防拼接陷阱——多个内联块拼接时，若上一块以赋值表达式结尾（无分号）
+            // 且下一块以 ( 开头，JS 会把两者连成"调用表达式"：上一块定义的函数被误执行
+            // （曾致 SEO诊断页误弹清缓存确认框 + "(intermediate value) is not a function"）。
+            // 内容末尾统一补分号（已有 ; 时 ;; 无害），确保 IIFE 包装边界安全。
+            var trimmed = wrapped.replace(/\s+$/, '');
+            if (trimmed.slice(-1) !== ';') trimmed += ';';
             var s = document.createElement('script');
-            s.textContent = '(function(){\n' + wrapped + '\n})();';
+            s.textContent = '(function(){\n' + trimmed + '\n})();';
             document.head.appendChild(s);
             document.head.removeChild(s);
         } catch (e) {

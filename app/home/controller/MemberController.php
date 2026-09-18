@@ -264,7 +264,7 @@ class MemberController extends FrontBaseController
     public function logout()
     {
         if ($this->memberInfo) {
-            $this->service->logout($this->memberInfo['id']);
+            $this->service->logout();
         }
         return redirect('/');
     }
