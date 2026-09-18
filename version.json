@@ -1,9 +1,9 @@
 {
-    "version": "2.9.58",
-    "tag": "v2.9.58",
-    "name": "AI-CMS V2.9.58 正式版",
-    "published_at": "2026-09-18T21:30:00+08:00",
-    "notes": "- 修复：后台保存配置后前台 1 小时才生效（configSave 保存后 Cache::clear，含前台整页缓存）——此前开启\"手机号验证码注册\"等开关后前台注册页不显示\n- 修复：右上角\"一键清除全部缓存\"在其他页面点击无反应（函数定义上移到 layout 全局内联脚本）+ 成功后自动刷新页面",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.58/ai-cms-upgrade-2.9.58.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.58"
+    "version": "2.9.59",
+    "tag": "v2.9.59",
+    "name": "AI-CMS V2.9.59 正式版",
+    "published_at": "2026-09-18T22:10:00+08:00",
+    "notes": "- 新功能：用户名注册支持邮箱验证码核验（后台开关默认关闭，与手机号注册对称）——邮箱旁发码按钮+验证码输入框，防假邮箱\n- 重要修复：SMTP STARTTLS 历史性 Bug（自8月7日起全部邮件发送失败，含密码找回）——隐式TLS(465)误发STARTTLS，修复为仅明文连接(587)升级加密\n- 已实测 126 SMTP 真实发信成功",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.59/ai-cms-upgrade-2.9.59.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.59"
 }
