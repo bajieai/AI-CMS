@@ -1,9 +1,9 @@
 {
-    "version": "2.9.53",
-    "tag": "v2.9.53",
-    "name": "AI-CMS V2.9.53 正式版",
-    "published_at": "2026-09-01T11:30:00+08:00",
-    "notes": "- 前台整页缓存设备隔离：修复整页缓存键缺少设备维度导致手机用户先访问后 PC 用户命中缓存看到手机版页面（首页内容全部不见）的故障，PC/手机/平板缓存完全隔离\n- 升级后建议登录后台清理缓存（或删除 runtime/cache），清掉可能被污染的旧整页缓存\n- 从 V2.9.48 及更早版本升级请使用 full-upgrade 合并包或逐级升级",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.53/ai-cms-upgrade-2.9.53.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.53"
+    "version": "2.9.54",
+    "tag": "v2.9.54",
+    "name": "AI-CMS V2.9.54 正式版",
+    "published_at": "2026-09-18T11:20:00+08:00",
+    "notes": "- 新功能：手机号+短信验证码注册（真实手机核验），与用户名+邮箱注册并存，后台开关控制（默认关闭，开启前请先配置短信通道）\n- 手机号全站唯一，username=手机号可直接登录，昵称默认脱敏\n- 三层防刷：图形验证码+60秒频率+单IP日限10次；验证码5分钟一次性\n- 含 member 表 SQL 迁移补丁（在线升级自动执行，存量会员不受影响）\n- 顺带修复：发码失败缓存残留、后台开关勾选后关不掉、前台CSRF豁免发码接口",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.54/ai-cms-upgrade-2.9.54.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.54"
 }
