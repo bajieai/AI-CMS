@@ -1,16 +1,21 @@
-# 八界AI-CMS V2.9.58
+# 八界AI-CMS V2.9.59
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.58-blue)
+![Version](https://img.shields.io/badge/version-2.9.59-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.58 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.59 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.59 — 邮箱验证码核验注册 + SMTP STARTTLS 历史性 Bug 修复
+- **用户名注册支持邮箱验证码核验（后台可开关）** — 与手机号验证码注册对称：后台"业务设置→会员"新增开关 `member_register_email_code_enabled`（默认关闭），开启后用户名注册的邮箱需先获取验证码核验真实性（防假邮箱）。发码接口 `POST /member/sendEmailCode`（60秒/邮箱频率 + 单IP每日20次 + 邮箱唯一预检 + 发送失败删缓存），验证码 5 分钟一次性；CSRF 豁免 sendemailcode（注册流程一部分）
+- **SMTP STARTTLS 历史性 Bug 修复** — `EmailService::send` 此前 `if ($ssl || $port === 587)` 把**隐式 TLS**（ssl://host:465，连接即加密）与明文+STARTTLS（587）混为一谈——465 SSL 连接上又发 STARTTLS，126 等服务器报 `454 Command not permitted when TLS active`。**此 bug 自 8 月 7 日起导致全部邮件发送失败**（含密码找回）。修复：仅明文连接（非 ssl 且 587 端口）才发 STARTTLS 升级。已实测真实发信成功（126 SMTP）
+- **四模板注册 UI** — 用户名注册表单邮箱字段旁新增"发送验证码"按钮（60 秒倒计时）+ 邮箱验证码输入框（开关启用时显示；default/corporate × pc/mobile 双 Tab 版与单表单版均覆盖）
 
 ### V2.9.58 — 后台配置改动前台立即生效 + 右上角清缓存按钮全局可用
 - **后台保存配置后前台 1 小时才生效的问题根治** — 后台开关（如"启用手机号验证码注册"）保存走 `configSave` 直接更新 ConfigModel，但前台 `FrontBaseController` 读的 `site_configs`/`site_configs_all` 各有 **1 小时 Cache::remember 缓存** → 保存后前台最长 1 小时读旧值（实测：开启手机号注册后前台注册页不显示手机号方式）。修复：`configSave` 保存成功后执行 `Cache::clear()`（与 `ConfigService::set` 行为一致），同时清掉前台整页缓存 page_html_*（含旧开关状态的 HTML 快照）
@@ -134,6 +139,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.59** | 2026-09 | **邮箱验证码核验注册+SMTP STARTTLS历史性Bug修复**: 用户名注册新增邮箱验证码核验(后台开关 member_register_email_code_enabled 默认关,与手机号注册对称)——发码接口 sendEmailCode(60秒/邮箱频率+单IP日限20+邮箱唯一预检+失败删缓存)+验证码5分钟一次性+四模板用户名表单邮箱旁发码按钮/验证码输入框(开关控制)+CSRF豁免 sendemailcode；**SMTP STARTTLS 历史性Bug修复**: EmailService::send 此前 if($ssl||$port===587) 把隐式TLS(ssl://465连接即加密)与明文+STARTTLS(587)混为一谈,465 SSL连接上又发STARTTLS致126等服务器报454 Command not permitted when TLS active,自8月7日起全部邮件发送失败(含密码找回)→修复为仅明文连接(非ssl且587)才发STARTTLS,实测126 SMTP真实发信成功；验证:CLI 14项(格式/缺用户名/密码/缺码/错码/正常/落库/一次性/重复/开关关/回归)+HTTP 11项 |
 | **V2.9.58** | 2026-09 | **后台配置改动前台立即生效+右上角清缓存按钮全局可用**: configSave 保存走 ConfigModel 直更但前台 site_configs/site_configs_all 各有1小时 Cache::remember 缓存→后台开启"手机号验证码注册"等开关后前台最长1小时读旧值(实测:开启后前台注册页不显示手机号方式)→configSave 保存成功后 Cache::clear(与 ConfigService::set 一致,同清前台整页缓存 page_html_*)+右上角"一键清除全部缓存"按钮(全局下拉菜单所有页面可见)的 clearCacheByType 此前定义在 system-config.js 仅系统设置页加载且未暴露全局→其他页面点击无反应→函数定义上移到双主题 layout.html 全局内联脚本(与全局媒体选择器同模式)+新增成功后 location.reload() 反馈+system-config 两 JS 移除重复定义 |
 | **V2.9.57** | 2026-09 | **系统配置开关渲染为文本输入框修复(ensureConfigExists元数据同步)**: "启用手机号验证码注册"后台显示为文本输入框而非开关控件——根因:配置记录先被 ConfigService::set() 创建(其create分支type写死'text'),之后 ensureConfigExists(...,'switch',..) 见记录已存在即跳过,type永远停留text→模板按type渲染成文本框→ensureConfigExists 增加元数据同步(记录已存在但type与代码声明不一致时自动修正,value永不覆盖保持管理员设置值)；验证:CLI造脏数据(type=text)→反射调ensureConfigExists→DB type自动修正为switch+value保持+模板渲染断言 5项全绿 |
 | **V2.9.56** | 2026-09 | **后台系统设置页按钮失效修复(IIFE函数未暴露全局)**: V2.9.47 内联脚本迁移外部 JS 时函数包进 IIFE 成为局部函数,模板按钮内联 onclick 在全局作用域查找报 "previewLogo is not defined"→IIFE 内显式挂载 window.previewLogo/uploadLogo/openMediaBrowser/clearCacheByType(双主题 JS 同步)+clearCacheByType 迁移时整个丢失(死按钮)补全前后端(SystemController::clearSystemCache 清应用缓存+各端模板编译缓存+POST system/clearSystemCache 路由+双JS实现)+JS引用版本参数刷新? v=2.9.55；验证:11项断言全绿 |

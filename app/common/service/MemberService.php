@@ -180,6 +180,105 @@ class MemberService
     }
 
     /**
+     * V2.9.59: 用户名+邮箱验证码注册
+     *
+     * 与 registerByPhone 对称：后台开关 member_register_email_code_enabled 控制，
+     * 开启后用户名注册的邮箱需先获取验证码核验真实性（防假邮箱）。
+     * - 邮箱全站唯一（register() 原有校验 + 代码层预检）
+     * - 验证码复用 Cache（email_code_register_{email}，5分钟有效、一次性、专用键）
+     * - username/nickname 由用户填写（原有方式保留），邮箱字段不变
+     */
+    public function registerByEmailCode(array $data): array
+    {
+        try {
+            // 开关校验（防绕过前端直接POST）
+            if (!(int) ConfigService::get('member_register_email_code_enabled', 0)) {
+                return ['success' => false, 'msg' => '邮箱验证码核验未启用'];
+            }
+
+            $email = trim((string) ($data['email'] ?? ''));
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return ['success' => false, 'msg' => '请输入正确的邮箱地址'];
+            }
+
+            $username = trim((string) ($data['username'] ?? ''));
+            if ($username === '') {
+                return ['success' => false, 'msg' => '请输入用户名'];
+            }
+
+            $password = (string) ($data['password'] ?? '');
+            if (strlen($password) < 6) {
+                return ['success' => false, 'msg' => '密码至少6位'];
+            }
+
+            $code = trim((string) ($data['email_code'] ?? ''));
+            if ($code === '') {
+                return ['success' => false, 'msg' => '请输入邮箱验证码'];
+            }
+
+            // 唯一性（邮箱 + 用户名）
+            if (MemberModel::where('email', $email)->find()) {
+                return ['success' => false, 'msg' => '该邮箱已被注册'];
+            }
+            if (MemberModel::where('username', $username)->find()) {
+                return ['success' => false, 'msg' => '用户名已存在'];
+            }
+
+            // 邮箱验证码校验（一次性，验后即删）
+            $cacheKey = 'email_code_register_' . $email;
+            $cached = Cache::get($cacheKey);
+            if (!$cached || $cached !== $code) {
+                return ['success' => false, 'msg' => '邮箱验证码错误或已过期，请重新获取'];
+            }
+            Cache::delete($cacheKey);
+
+            $needAudit = (int) ConfigService::get('member_register_audit', 0);
+
+            $member = new MemberModel;
+            $member->save([
+                'username'    => $username,
+                'email'       => $email,
+                'password'    => $password,
+                'nickname'    => trim((string) ($data['nickname'] ?? '')) ?: explode('@', $email)[0],
+                'status'      => $needAudit ? 2 : 1,
+                'invite_code' => $this->generateInviteCode(),
+            ]);
+
+            // 默认等级
+            $defaultLevel = \app\common\model\MemberLevel::where('is_default', 1)->find();
+            if ($defaultLevel) {
+                $member->level_id = $defaultLevel->id;
+                $member->save();
+            }
+
+            // 注册奖励积分
+            $registerPoints = (int) ConfigService::get('points_register', 50);
+            if ($registerPoints > 0 && !$needAudit) {
+                try {
+                    PointsService::add($member->id, $registerPoints, 'register', 0, '注册奖励');
+                } catch (\Throwable) {
+                    // 积分添加失败不影响注册流程
+                }
+            }
+
+            // 邀请返积分
+            if (!empty($data['invite_code']) && !$needAudit) {
+                try {
+                    $this->processInviteReward($member->id, $data['invite_code'], request()->ip() ?? '0.0.0.0');
+                    InviteRewardService::onMemberEvent($member->id, 'register');
+                } catch (\Throwable) {
+                    // 邀请处理失败不影响注册流程
+                }
+            }
+
+            $msg = $needAudit ? '注册成功，请等待管理员审核' : '注册成功';
+            return ['success' => true, 'msg' => $msg, 'data' => ['id' => $member->id]];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'msg' => '注册失败: ' . $e->getMessage()];
+        }
+    }
+
+    /**
      * 会员登录
      */
     public function login(string $username, string $password): array

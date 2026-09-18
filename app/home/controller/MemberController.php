@@ -57,6 +57,13 @@ class MemberController extends FrontBaseController
                 return json($result);
             }
 
+            // V2.9.59: 邮箱验证码核验分支（用户名注册 + 邮箱验证码，后台开关控制）
+            if (!empty($data['email_code'])
+                && (int) \app\common\service\ConfigService::get('member_register_email_code_enabled', 0)) {
+                $result = $this->service->registerByEmailCode($data);
+                return json($result);
+            }
+
             // V2.9.9: 验证码校验（用户名+邮箱注册）
             if (CaptchaService::isFormCaptchaRequired('register')) {
                 $captchaKey = $data['captcha_key'] ?? '';
@@ -118,6 +125,77 @@ class MemberController extends FrontBaseController
         }
 
         return json(['success' => true, 'msg' => '验证码已发送，5分钟内有效']);
+    }
+
+    /**
+     * V2.9.59: 发送注册邮箱验证码（用户名注册方式的邮箱真实性核验）
+     * 防刷：后台开关 → 图形验证码（复用注册表单配置）→ 60秒/邮箱频率 + 单IP每日20次
+     */
+    public function sendEmailCode(Request $request)
+    {
+        // 后台开关校验
+        if (!(int) \app\common\service\ConfigService::get('member_register_email_code_enabled', 0)) {
+            return json(['success' => false, 'msg' => '邮箱验证码核验未启用']);
+        }
+
+        $data = $request->post();
+        $email = strtolower(trim((string) ($data['email'] ?? '')));
+
+        // 邮箱格式校验
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return json(['success' => false, 'msg' => '请输入正确的邮箱地址']);
+        }
+
+        // 图形验证码防刷（与注册表单共用 captcha_register 配置，防止脚本刷邮件）
+        if (CaptchaService::isFormCaptchaRequired('register')) {
+            $captchaKey = (string) ($data['captcha_key'] ?? '');
+            $captchaAnswer = (string) ($data['captcha_answer'] ?? '');
+            if ($captchaKey === '' || $captchaAnswer === '' || !CaptchaService::verify($captchaKey, $captchaAnswer)) {
+                return json(['success' => false, 'msg' => '请先完成图形验证码验证', 'refresh_captcha' => true]);
+            }
+        }
+
+        // 邮箱唯一性预检（友好提示）
+        if (\app\common\model\Member::where('email', $email)->find()) {
+            return json(['success' => false, 'msg' => '该邮箱已被注册，请直接登录']);
+        }
+
+        // 频率限制：60秒/邮箱（防止单邮箱被骚扰）
+        $freqKey = 'email_freq_' . md5($email);
+        $lastSend = \think\facade\Cache::get($freqKey);
+        if ($lastSend && (time() - (int) $lastSend) < 60) {
+            return json(['success' => false, 'msg' => '发送过于频繁，请60秒后再试']);
+        }
+
+        // IP 每日上限 20 次（防批量刷邮件，邮件配额比短信宽松）
+        $ipKey = 'email_ip_' . ($request->ip() ?? '0.0.0.0');
+        $ipCount = (int) \think\facade\Cache::get($ipKey, 0);
+        if ($ipCount >= 20) {
+            return json(['success' => false, 'msg' => '该IP今日发送次数已达上限']);
+        }
+
+        // 生成验证码（5分钟有效）
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $cacheKey = 'email_code_register_' . $email;
+        \think\facade\Cache::set($cacheKey, $code, 300);
+
+        // 发送邮件（EmailService：与密码找回同链路，SMTP 未配置时返回 false）
+        $siteName = \app\common\service\ConfigService::get('site_name', 'AI-CMS');
+        $subject = '【' . $siteName . '】邮箱验证码';
+        $body = "<p>您的验证码是：<strong style='font-size:24px;letter-spacing:4px'>{$code}</strong></p><p>有效期5分钟，请勿泄露给他人。</p>";
+        $sent = \app\common\service\EmailService::send($email, $subject, $body);
+
+        if (!$sent) {
+            // V2.9.59: 发送失败删除验证码缓存（防止用未送达的码注册，与 SmsService 同修复）
+            \think\facade\Cache::delete($cacheKey);
+            \think\facade\Cache::set($freqKey, time(), 60);
+            return json(['success' => false, 'msg' => '邮件发送失败，请联系管理员检查邮件配置']);
+        }
+
+        \think\facade\Cache::set($freqKey, time(), 60);
+        \think\facade\Cache::set($ipKey, $ipCount + 1, 86400);
+
+        return json(['success' => true, 'msg' => '验证码已发送到您的邮箱，5分钟内有效']);
     }
 
     /**
