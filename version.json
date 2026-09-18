@@ -1,9 +1,9 @@
 {
-    "version": "2.9.60",
-    "tag": "v2.9.60",
-    "name": "AI-CMS V2.9.60 正式版",
-    "published_at": "2026-09-18T22:40:00+08:00",
-    "notes": "- 修复：会员中心侧栏 5 个菜单页全部 404（我的订单/我的评论/我的邀请/优惠券/已购内容）——控制器方法、服务层、四主题渲染模板全部存在，唯独前台路由从未注册\n- 补齐 3 个缺失模板 member_invite.html（default/mobile + corporate/pc + corporate/mobile）\n- 全站链接审计：34 个唯一链接对照 108 条路由，0 死链",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.60/ai-cms-upgrade-2.9.60.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.60"
+    "version": "2.9.61",
+    "tag": "v2.9.61",
+    "name": "AI-CMS V2.9.61 正式版",
+    "published_at": "2026-09-18T23:10:00+08:00",
+    "notes": "- 修复：前台登出报 TypeError 500（logout 移除未使用的严格类型参数）\n- 修复：后台 PJAX 内联脚本拼接陷阱——layout 全局块被误当页面 JS 拼接执行，致 SEO诊断页误弹清缓存确认框 + (intermediate value) is not a function（中间件排除标记补全 + 拼接分号防护）",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.61/ai-cms-upgrade-2.9.61.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.61"
 }
