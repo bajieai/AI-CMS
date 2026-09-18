@@ -1,16 +1,20 @@
-# 八界AI-CMS V2.9.57
+# 八界AI-CMS V2.9.58
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.57-blue)
+![Version](https://img.shields.io/badge/version-2.9.58-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.57 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.58 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.58 — 后台配置改动前台立即生效 + 右上角清缓存按钮全局可用
+- **后台保存配置后前台 1 小时才生效的问题根治** — 后台开关（如"启用手机号验证码注册"）保存走 `configSave` 直接更新 ConfigModel，但前台 `FrontBaseController` 读的 `site_configs`/`site_configs_all` 各有 **1 小时 Cache::remember 缓存** → 保存后前台最长 1 小时读旧值（实测：开启手机号注册后前台注册页不显示手机号方式）。修复：`configSave` 保存成功后执行 `Cache::clear()`（与 `ConfigService::set` 行为一致），同时清掉前台整页缓存 page_html_*（含旧开关状态的 HTML 快照）
+- **右上角"一键清除全部缓存"按钮全局可用 + 操作反馈** — 该按钮在 admin layout 全局下拉菜单（所有页面可见），但 `clearCacheByType` 此前定义在 system-config.js（仅系统设置页加载）且未暴露全局 → 其他页面点击无反应。修复：函数定义**上移到双主题 layout.html 全局内联脚本**（与"全局媒体选择器"同模式，所有页面可用），并新增成功后 `location.reload()` 反馈（清缓存后页面数据立即更新，不再"像没反应"）；system-config 两 JS 移除重复定义改用全局版
 
 ### V2.9.57 — 系统配置开关渲染为文本输入框修复（ensureConfigExists 元数据同步）
 - **"启用手机号验证码注册"在后台显示为文本输入框而非开关控件** — 根因：配置记录先被 `ConfigService::set()` 创建（其 create 分支 **type 写死 'text'**），之后 `ensureConfigExists(..., 'switch', ...)` 检查记录已存在即跳过 → type 永远停留在 text → 模板按 type 渲染成文本框。修复：`ensureConfigExists` 增加**元数据同步**——记录已存在但 `type` 与代码声明不一致时自动修正（value 永不覆盖，保持管理员设置值）；type/remark 属代码定义的渲染元数据，同步安全
@@ -130,6 +134,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.58** | 2026-09 | **后台配置改动前台立即生效+右上角清缓存按钮全局可用**: configSave 保存走 ConfigModel 直更但前台 site_configs/site_configs_all 各有1小时 Cache::remember 缓存→后台开启"手机号验证码注册"等开关后前台最长1小时读旧值(实测:开启后前台注册页不显示手机号方式)→configSave 保存成功后 Cache::clear(与 ConfigService::set 一致,同清前台整页缓存 page_html_*)+右上角"一键清除全部缓存"按钮(全局下拉菜单所有页面可见)的 clearCacheByType 此前定义在 system-config.js 仅系统设置页加载且未暴露全局→其他页面点击无反应→函数定义上移到双主题 layout.html 全局内联脚本(与全局媒体选择器同模式)+新增成功后 location.reload() 反馈+system-config 两 JS 移除重复定义 |
 | **V2.9.57** | 2026-09 | **系统配置开关渲染为文本输入框修复(ensureConfigExists元数据同步)**: "启用手机号验证码注册"后台显示为文本输入框而非开关控件——根因:配置记录先被 ConfigService::set() 创建(其create分支type写死'text'),之后 ensureConfigExists(...,'switch',..) 见记录已存在即跳过,type永远停留text→模板按type渲染成文本框→ensureConfigExists 增加元数据同步(记录已存在但type与代码声明不一致时自动修正,value永不覆盖保持管理员设置值)；验证:CLI造脏数据(type=text)→反射调ensureConfigExists→DB type自动修正为switch+value保持+模板渲染断言 5项全绿 |
 | **V2.9.56** | 2026-09 | **后台系统设置页按钮失效修复(IIFE函数未暴露全局)**: V2.9.47 内联脚本迁移外部 JS 时函数包进 IIFE 成为局部函数,模板按钮内联 onclick 在全局作用域查找报 "previewLogo is not defined"→IIFE 内显式挂载 window.previewLogo/uploadLogo/openMediaBrowser/clearCacheByType(双主题 JS 同步)+clearCacheByType 迁移时整个丢失(死按钮)补全前后端(SystemController::clearSystemCache 清应用缓存+各端模板编译缓存+POST system/clearSystemCache 路由+双JS实现)+JS引用版本参数刷新? v=2.9.55；验证:11项断言全绿 |
 | **V2.9.55** | 2026-09 | **短信宝通道接入(首个真实发短信通道·低成本起步)**: 新增 SmsbaoSmsAdapter 真实调用 api.smsbao.com/sms(V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳仅写日志)——个人注册即可用/按条计费/无需模板报备,.env 配 SMS_SMSBAO_USERNAME/PASSWORD/SIGN_NAME 三项即自动装配且优先级置顶,状态码全映射中文错误(30密码错误/40账号不存在/41余额不足/43IP限制/50敏感词/51手机号错误),+getBalance() 余额查询容错,内容模板可配置({code}/{expire}占位)；验证:真实调用短信宝线上API(假账号→状态码30"密码错误"中文抛出)+空配置/缺签名/装配/优先级/余额容错 7项全绿 |

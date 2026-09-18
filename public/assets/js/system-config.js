@@ -238,18 +238,8 @@
     }
 
     // ========== V2.9.55: 清除系统缓存 ==========
-    // 按钮为内联 onclick="clearCacheByType(...)"（全局作用域查找），
-    // V2.9.47 迁移外部 JS 时函数包进 IIFE 未暴露 window，导致 not defined
-    function clearCacheByType(type, label) {
-        if (!confirm('确定清除' + (label || '缓存') + '吗？前台数据更新未生效时可使用。')) return;
-        $.post('/admin/system/clearSystemCache', { type: type }, function(res) {
-            if (res.code === 0 || res.code === 200 || res.success) {
-                showToast(res.msg || '缓存已清除', 'success');
-            } else {
-                showToast(res.msg || '清除失败', 'error');
-            }
-        }).fail(function() { showToast('请求失败，请重试', 'error'); });
-    }
+    // clearCacheByType 已定义在 admin layout.html 全局内联脚本（右上角菜单共用同一实现，
+    // 所有页面可用且成功后自动 location.reload），此处不再重复定义。
 
     // ========== V2.9.55: 暴露到全局作用域 ==========
     // 模板内联 onclick 在全局作用域查找函数，IIFE 内函数必须显式挂到 window，
@@ -257,7 +247,6 @@
     window.previewLogo = previewLogo;
     window.uploadLogo = uploadLogo;
     window.openMediaBrowser = openMediaBrowser;
-    window.clearCacheByType = clearCacheByType;
 
     if (typeof jQuery !== 'undefined') {
         if (document.readyState === 'loading') {
