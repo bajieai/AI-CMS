@@ -1,16 +1,20 @@
-# 八界AI-CMS V2.9.56
+# 八界AI-CMS V2.9.57
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.56-blue)
+![Version](https://img.shields.io/badge/version-2.9.57-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.56 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.57 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.57 — 系统配置开关渲染为文本输入框修复（ensureConfigExists 元数据同步）
+- **"启用手机号验证码注册"在后台显示为文本输入框而非开关控件** — 根因：配置记录先被 `ConfigService::set()` 创建（其 create 分支 **type 写死 'text'**），之后 `ensureConfigExists(..., 'switch', ...)` 检查记录已存在即跳过 → type 永远停留在 text → 模板按 type 渲染成文本框。修复：`ensureConfigExists` 增加**元数据同步**——记录已存在但 `type` 与代码声明不一致时自动修正（value 永不覆盖，保持管理员设置值）；type/remark 属代码定义的渲染元数据，同步安全
+- **验证** — CLI 造脏数据（type=text）→ 反射调 ensureConfigExists → DB type 自动修正为 switch + value 保持 '0' + 模板渲染逻辑断言，5 项全绿
 
 ### V2.9.56 — 后台系统设置页按钮失效修复（IIFE 函数未暴露全局）
 - **Logo 预览/媒体库/清缓存按钮 "Uncaught ReferenceError: xxx is not defined" 根治** — V2.9.47 将系统设置页内联脚本迁移为外部 JS（system-config.js / system-config-corporate.js）时，函数包进了 IIFE（立即执行函数）成为**局部函数**，而模板按钮的内联 `onclick="previewLogo()"` 在**全局作用域**查找函数 → 报未定义。修复：IIFE 内显式挂载 `window.previewLogo / uploadLogo / openMediaBrowser / clearCacheByType`（双主题 JS 同步）
@@ -126,6 +130,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.57** | 2026-09 | **系统配置开关渲染为文本输入框修复(ensureConfigExists元数据同步)**: "启用手机号验证码注册"后台显示为文本输入框而非开关控件——根因:配置记录先被 ConfigService::set() 创建(其create分支type写死'text'),之后 ensureConfigExists(...,'switch',..) 见记录已存在即跳过,type永远停留text→模板按type渲染成文本框→ensureConfigExists 增加元数据同步(记录已存在但type与代码声明不一致时自动修正,value永不覆盖保持管理员设置值)；验证:CLI造脏数据(type=text)→反射调ensureConfigExists→DB type自动修正为switch+value保持+模板渲染断言 5项全绿 |
 | **V2.9.56** | 2026-09 | **后台系统设置页按钮失效修复(IIFE函数未暴露全局)**: V2.9.47 内联脚本迁移外部 JS 时函数包进 IIFE 成为局部函数,模板按钮内联 onclick 在全局作用域查找报 "previewLogo is not defined"→IIFE 内显式挂载 window.previewLogo/uploadLogo/openMediaBrowser/clearCacheByType(双主题 JS 同步)+clearCacheByType 迁移时整个丢失(死按钮)补全前后端(SystemController::clearSystemCache 清应用缓存+各端模板编译缓存+POST system/clearSystemCache 路由+双JS实现)+JS引用版本参数刷新? v=2.9.55；验证:11项断言全绿 |
 | **V2.9.55** | 2026-09 | **短信宝通道接入(首个真实发短信通道·低成本起步)**: 新增 SmsbaoSmsAdapter 真实调用 api.smsbao.com/sms(V2.9.38 的阿里云/腾讯云/七牛适配器为占位空壳仅写日志)——个人注册即可用/按条计费/无需模板报备,.env 配 SMS_SMSBAO_USERNAME/PASSWORD/SIGN_NAME 三项即自动装配且优先级置顶,状态码全映射中文错误(30密码错误/40账号不存在/41余额不足/43IP限制/50敏感词/51手机号错误),+getBalance() 余额查询容错,内容模板可配置({code}/{expire}占位)；验证:真实调用短信宝线上API(假账号→状态码30"密码错误"中文抛出)+空配置/缺签名/装配/优先级/余额容错 7项全绿 |
 | **V2.9.54** | 2026-09 | **手机号+短信验证码注册(真实手机核验)**: 注册页新增手机号+短信验证码方式与用户名+邮箱并存(Tab切换)后台开关 member_register_phone_enabled 默认关闭+三层防刷(发码前图形验证码防脚本刷短信/60秒频率+单IP日限10次/验证码5分钟一次性)+手机号全站唯一(member 表加 mobile 字段 NULL默认+uk_mobile 唯一索引,代码层友好提示+索引兜底防并发1062转提示)+username=手机号登录兼容+nickname默认脱敏138****1234+默认等级/积分/邀请奖励流程复用+双轨数据库迁移(install.sql种子+v2.9.54_add_member_mobile.sql幂等补丁)+顺带修复:发码失败删缓存验证码/后台switch勾选后关不掉(hidden 0兜底)/FrontCsrf豁免发码接口；验证:CLI 16项+HTTP 18项全场景断言全绿 |

@@ -574,10 +574,15 @@ class SystemController extends AdminBaseController
     /**
      * 确保配置项存在（不存在时自动创建）
      * V2.9.9-R4: 增加$options参数支持select类型
+     * V2.9.57: 记录已存在但 type 不一致时同步修正——实际案例：开关项先被
+     * ConfigService::set() 创建（其 create 分支 type 写死 'text'），导致
+     * ensureConfigExists 跳过后渲染成文本输入框而非开关控件。type/remark 是
+     * 代码定义的渲染元数据（非用户数据），存在时同步；value 永不覆盖。
      */
     protected function ensureConfigExists(string $name, string $group, string $value, string $type, string $remark, string $options = ''): void
     {
-        if (!ConfigModel::where('name', $name)->find()) {
+        $existing = ConfigModel::where('name', $name)->find();
+        if (!$existing) {
             // 编码根治：强制校验中文内容UTF-8合法性
             $remark = mb_convert_encoding($remark, 'UTF-8', 'UTF-8');
             $value  = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
@@ -594,6 +599,9 @@ class SystemController extends AdminBaseController
                 $data['options'] = $options;
             }
             ConfigModel::create($data);
+        } elseif ($existing->type !== $type) {
+            // type 是代码定义的渲染元数据，与代码声明不一致时修正（value 不动）
+            ConfigModel::where('name', $name)->update(['type' => $type]);
         }
     }
 
