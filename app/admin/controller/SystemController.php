@@ -523,6 +523,12 @@ class SystemController extends AdminBaseController
             }
 
             $this->recordLog('保存系统配置', '', $data);
+
+            // V2.9.57: 保存后清除配置相关缓存，让改动立即对前台生效
+            // （此前前台 FrontBaseController 读 site_configs/site_configs_all 各有 1 小时
+            //   Cache::remember 缓存——后台开启"手机号验证码注册"等开关后，前台最长 1 小时
+            //   才能看到；同时清理前台整页缓存 page_html_*（含旧开关状态的 HTML 快照））
+            \think\facade\Cache::clear();
         } catch (\Throwable $e) {
             \think\facade\Log::error('[config保存异常] ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return json([

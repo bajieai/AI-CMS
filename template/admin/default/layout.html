@@ -171,6 +171,20 @@
         // 各页面自行重写此回调
     }
     </script>
+    <!-- V2.9.55: 全局清除缓存函数（右上角下拉菜单，所有页面可用；成功后刷新页面让数据立即生效） -->
+    <script>
+    function clearCacheByType(type, label) {
+        if (!confirm('确定清除' + (label || '缓存') + '吗？前台数据更新未生效时可使用。')) return;
+        $.post('/admin/system/clearSystemCache', { type: type }, function(res) {
+            if (res.code === 0 || res.code === 200 || res.success) {
+                showToast(res.msg || '缓存已清除，页面即将刷新', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            } else {
+                showToast(res.msg || '清除失败', 'error');
+            }
+        }).fail(function() { showToast('请求失败，请重试', 'error'); });
+    }
+    </script>
     {block name="js"}{/block}
 </body>
 </html>
