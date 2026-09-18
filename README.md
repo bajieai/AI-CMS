@@ -1,16 +1,20 @@
-# 八界AI-CMS V2.9.60
+# 八界AI-CMS V2.9.61
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.60-blue)
+![Version](https://img.shields.io/badge/version-2.9.61-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.60 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.61 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.61 — 前台登出 500 修复·PJAX 内联脚本拼接陷阱根治
+- **前台登出 TypeError 根治** — `/member/logout` 报 `MemberService::logout(): Argument #1 ($memberId) must be of type int, string given`：登录态的 `memberInfo['id']` 来自缓存反序列化是 string，而 `logout(int $memberId)` 严格类型拒绝。**关键发现**：方法体**根本未使用该参数**（只清 token cookie/cache）——直接移除无用参数，调用方同步
+- **后台 PJAX 内联脚本拼接陷阱根治** — V2.9.58 在 layout 加的全局块（clearCacheByType/openMediaSelect）被 `PjaxMiddleware::isLayoutGlobalScript` 的排除标记列表**遗漏**，PJAX 切页时被误当页面级 JS 与页面内联块拼接执行。**拼接陷阱**：全局块结尾的赋值表达式 `window.clearCacheByType = function(){...}`（无分号）紧跟页面块开头的 `(function(){...})()`，JS 把两者连成调用表达式 → 全局函数被误执行（SEO诊断页误弹"确定清除缓存吗"）→ 返回值 undefined 再被调 → `(intermediate value)(...) is not a function`。**双层修复**：①`isLayoutGlobalScript` 补 3 个全局块标记（layout 全局脚本不再进 PJAX 拼接）；②`pjax.js executeInlineScript` 内容末尾统一补分号（防御未来任何拼接陷阱）
 
 ### V2.9.60 — 会员中心菜单 404 修复（控制器与模板早已存在，路由从未注册）
 - **会员中心侧栏 5 个菜单页全部 404 根治** — 我的订单/我的评论/我的邀请/优惠券/已购内容（`/member/orders` `/member/comments` `/member/invite` `/member/coupon` `/paid/purchased`）：控制器方法（MemberController::orders/comments/invite/coupon + PaidController::purchased）、服务层（Order/Comment/CouponService/InviteRewardService/PaidService）、四主题渲染模板全部存在，**唯独 `app/home/route/app.php` 从未注册路由** → 点击全 404。修复：注册 5 条 GET 路由（未登录自动跳登录页）
@@ -144,6 +148,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.61** | 2026-09 | **前台登出500修复·PJAX内联脚本拼接陷阱根治**: /member/logout 报 logout(): Argument #1 must be of type int, string given——登录态 memberInfo['id'] 来自缓存反序列化是 string 而方法签名严格 int,且方法体根本未使用该参数(只清token)→直接移除无用参数；后台PJAX内联脚本拼接陷阱——V2.9.58 layout 全局块(clearCacheByType/openMediaSelect)被 isLayoutGlobalScript 排除标记遗漏,PJAX切页时误当页面JS与页面块拼接,全局块结尾赋值表达式(无分号)紧跟页面块开头 ( 导致连成调用表达式→全局函数被误执行(SEO诊断页误弹清缓存确认框)→返回值undefined再被调→(intermediate value) is not a function——双层修复:isLayoutGlobalScript 补3个全局块标记+executeInlineScript 内容末尾统一补分号防未来拼接陷阱 |
 | **V2.9.60** | 2026-09 | **会员中心菜单404修复(控制器与模板早已存在,路由从未注册)**: 会员中心侧栏5个菜单页全部404(我的订单/我的评论/我的邀请/优惠券/已购内容)——MemberController::orders/comments/invite/coupon+PaidController::purchased 方法、Order/Comment/CouponService/InviteRewardService/PaidService 服务层、四主题渲染模板全部存在,唯独 home 路由从未注册→注册5条GET路由(未登录302跳登录)+补齐3个缺失模板 member_invite.html(default/mobile+corporate/pc+corporate/mobile)+全站链接审计:提取全部模板34个唯一链接对照108条路由逐一匹配0个未覆盖 |
 | **V2.9.59** | 2026-09 | **邮箱验证码核验注册+SMTP STARTTLS历史性Bug修复**: 用户名注册新增邮箱验证码核验(后台开关 member_register_email_code_enabled 默认关,与手机号注册对称)——发码接口 sendEmailCode(60秒/邮箱频率+单IP日限20+邮箱唯一预检+失败删缓存)+验证码5分钟一次性+四模板用户名表单邮箱旁发码按钮/验证码输入框(开关控制)+CSRF豁免 sendemailcode；**SMTP STARTTLS 历史性Bug修复**: EmailService::send 此前 if($ssl||$port===587) 把隐式TLS(ssl://465连接即加密)与明文+STARTTLS(587)混为一谈,465 SSL连接上又发STARTTLS致126等服务器报454 Command not permitted when TLS active,自8月7日起全部邮件发送失败(含密码找回)→修复为仅明文连接(非ssl且587)才发STARTTLS,实测126 SMTP真实发信成功；验证:CLI 14项(格式/缺用户名/密码/缺码/错码/正常/落库/一次性/重复/开关关/回归)+HTTP 11项 |
 | **V2.9.58** | 2026-09 | **后台配置改动前台立即生效+右上角清缓存按钮全局可用**: configSave 保存走 ConfigModel 直更但前台 site_configs/site_configs_all 各有1小时 Cache::remember 缓存→后台开启"手机号验证码注册"等开关后前台最长1小时读旧值(实测:开启后前台注册页不显示手机号方式)→configSave 保存成功后 Cache::clear(与 ConfigService::set 一致,同清前台整页缓存 page_html_*)+右上角"一键清除全部缓存"按钮(全局下拉菜单所有页面可见)的 clearCacheByType 此前定义在 system-config.js 仅系统设置页加载且未暴露全局→其他页面点击无反应→函数定义上移到双主题 layout.html 全局内联脚本(与全局媒体选择器同模式)+新增成功后 location.reload() 反馈+system-config 两 JS 移除重复定义 |

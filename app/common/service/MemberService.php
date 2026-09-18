@@ -338,8 +338,10 @@ class MemberService
 
     /**
      * 会员退出
+     * V2.9.60: 移除未使用的 $memberId 参数（方法体只清 token，此前调用方传缓存里的
+     * string id 会因严格类型 TypeError 导致登出 500）
      */
-    public function logout(int $memberId): void
+    public function logout(): void
     {
         $token = Cookie::get('member_token');
         if ($token) {

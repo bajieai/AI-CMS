@@ -298,6 +298,9 @@ class PjaxMiddleware
             'fetchUnread',                 // 未读消息轮询
             'showPageLoader',              // 页面加载进度条
             'hidePageLoader',              // 页面加载进度条
+            'function openMediaSelect',    // V2.9.60: 全局媒体选择器（layout全局块）
+            'function mediaSelectCallback', // V2.9.60: 媒体选择回调占位（同上）
+            'function clearCacheByType',   // V2.9.60: 全局清除缓存（右上角菜单，layout全局块）
         ];
 
         foreach ($layoutMarkers as $marker) {
