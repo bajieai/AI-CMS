@@ -170,7 +170,10 @@
 {block name="js"}
 <script>
 $(function() {
-    var captchaRequired = {if condition="$captcha_required"}true{else /}false{/if};
+    // 注意：此处禁止使用 ThinkPHP 的 if/else 裸标签——编辑器格式化会把它当成 JS 对象字面量重排，
+    // 导致模板编译出孤立的 else 标签（ParseError: unexpected token "else"）。
+    // 正确做法：把变量放进字符串字面量内输出（true→"1"，false→""），格式化器不会改动字符串内容。
+    var captchaRequired = "{$captcha_required}" === "1";
 
     // ═══ 图形验证码加载（独立实例，key 互不干扰） ═══
     function loadCaptcha(boxId, keyId) {
