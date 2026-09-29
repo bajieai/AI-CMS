@@ -183,7 +183,9 @@ class ContentService
         $data['publish_time'] = isset($data['publish_time']) && $data['publish_time'] ? strtotime($data['publish_time']) : 0;
 
         // 设置时间戳
-        $data['create_time'] = time();
+        // 「发布时间」即前台展示的 create_time：允许超级管理员在新增时指定；
+        // 未提供或非法则回退当前时间（非超管提交值已由 ContentController::guardCreateTime 剥离）。
+        $data['create_time'] = $this->normalizeCreateTime($data['create_time'] ?? null) ?? time();
         $data['update_time'] = time();
         $data['user_id'] = session('user_id') ?: 0;
 
@@ -236,6 +238,40 @@ class ContentService
         PluginService::fire('content.afterCreate', $content);
 
         return true;
+    }
+
+    /**
+     * 归一化「发布时间」（create_time）输入
+     *
+     * 接受 datetime-local 字符串（如 2026-09-29T14:30）、'Y-m-d H:i:s' 字符串或时间戳。
+     * 返回 null 表示「未提供或非法」，由调用方决定回退策略：
+     *   - create(): 回退当前时间
+     *   - update(): 保持原值不变（不写入该字段）
+     *
+     * 注意：create_time 是 ThinkPHP 时间字段（由 $createTime 注册），不能声明 integer 类型转换
+     * （会被自动格式化覆盖并冲突），故此处自行转为 int 时间戳，与 publish_time 的处理方式保持一致。
+     *
+     * @param mixed $value 表单提交值
+     * @return int|null 合法时间戳；未提供或非法返回 null
+     */
+    private function normalizeCreateTime($value): ?int
+    {
+        if ($value === null || $value === '' || $value === false || is_array($value)) {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            $ts = (int) $value;
+        } else {
+            $ts = strtotime((string) $value);
+        }
+
+        // 合法性护栏：1970-01-02 ~ 2100-12-31 之外视为非法，避免写入 0/负值/误解析值
+        if ($ts === false || $ts < 86400 || $ts > 4102444800) {
+            return null;
+        }
+
+        return $ts;
     }
 
     /**
@@ -295,6 +331,17 @@ class ContentService
         // 处理定时发布
         if (isset($data['publish_time'])) {
             $data['publish_time'] = $data['publish_time'] ? strtotime($data['publish_time']) : 0;
+        }
+
+        // 「发布时间」即前台展示的 create_time（非超管提交值已由 ContentController::guardCreateTime 剥离）。
+        // 仅「合法值」才更新；未提供或非法（含误清空）则 unset，保持原值不被静默重置。
+        if (array_key_exists('create_time', $data)) {
+            $createTime = $this->normalizeCreateTime($data['create_time']);
+            if ($createTime !== null) {
+                $data['create_time'] = $createTime;
+            } else {
+                unset($data['create_time']);
+            }
         }
 
         $data['update_time'] = time();

@@ -188,6 +188,8 @@ class ContentController extends AdminBaseController
         }
 
         $data = $this->request->post();
+        // 「发布时间」为超级管理员特权字段，非超管提交值一律剥离（防构造 POST 越权）
+        $data = $this->guardCreateTime($data);
 
         // V2.9.42: 分类必须选择（cate_id=0 会导致前台列表页无内容显示）
         if (empty($data['cate_id']) || (int) $data['cate_id'] <= 0) {
@@ -306,6 +308,8 @@ class ContentController extends AdminBaseController
         }
 
         $data = $this->request->post();
+        // 「发布时间」为超级管理员特权字段，非超管提交值一律剥离（防构造 POST 越权）
+        $data = $this->guardCreateTime($data);
 
         // V2.9.42: 分类必须选择（cate_id=0 会导致前台列表页无内容显示）
         if (empty($data['cate_id']) || (int) $data['cate_id'] <= 0) {
@@ -330,6 +334,23 @@ class ContentController extends AdminBaseController
             return $this->success('更新成功');
         }
         return $this->error('更新失败');
+    }
+
+    /**
+     * 「发布时间」特权守卫：仅超级管理员（role_id=1）可修改前台展示的发布时间（create_time）
+     *
+     * 非超管提交的 create_time 一律剔除，防止绕过页面隐藏字段、构造 POST 越权篡改。
+     * 页面是否渲染该字段由模板的 $is_super_admin 控制，此处是后端最终防线。
+     *
+     * @param array $data 原始 POST 数据
+     * @return array 已按角色处理的数据
+     */
+    protected function guardCreateTime(array $data): array
+    {
+        if ((int) session('role_id') !== 1) {
+            unset($data['create_time']);
+        }
+        return $data;
     }
 
     /**

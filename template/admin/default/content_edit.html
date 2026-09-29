@@ -303,9 +303,24 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">定时发布</label>
-                        <input type="datetime-local" name="publish_time" class="form-control" value="{$info.publish_time ? date('Y-m-d\TH:i', $info.publish_time) : ''}" placeholder="留空表示立即发布">
+                        {if condition="$info && $info.publish_time"}
+                        <input type="datetime-local" name="publish_time" class="form-control" value="{:date('Y-m-d', $info.publish_time)}T{:date('H:i', $info.publish_time)}" placeholder="留空表示立即发布">
+                        {else /}
+                        <input type="datetime-local" name="publish_time" class="form-control" value="" placeholder="留空表示立即发布">
+                        {/if}
                         <div class="form-text">留空表示立即发布，设置后内容将在指定时间自动发布</div>
                     </div>
+                    {if condition="$is_super_admin"}
+                    <div class="mb-3">
+                        <label class="form-label">发布时间</label>
+                        {if condition="$info && $info.create_time"}
+                        <input type="datetime-local" name="create_time" class="form-control" value="{:date('Y-m-d', $info.create_time)}T{:date('H:i', $info.create_time)}">
+                        {else /}
+                        <input type="datetime-local" name="create_time" class="form-control" value="">
+                        {/if}
+                        <div class="form-text">前台展示的发布时间，仅超级管理员可修改。新增时留空默认当前时间，编辑时留空保持原值。</div>
+                    </div>
+                    {/if}
                     <div class="mb-3">
                         <label class="form-label">排序</label>
                         <input type="number" name="sort" class="form-control" value="{$info.sort ?? 0}">
