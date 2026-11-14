@@ -5,7 +5,6 @@ namespace app\common\service\ai;
 
 use app\common\model\AiTaskQueue;
 use think\facade\Log;
-use think\facade\Container;
 
 /**
  * AI智能体执行器
@@ -33,7 +32,9 @@ class AiAgentExecutor
         if (!$taskRecord) throw new \RuntimeException('Task not found');
 
         $sessionId = $taskRecord->agent_session_id ?: 'sess_' . uniqid();
-        $taskRecord->save(['status' => 'running', 'started_at' => date('Y-m-d H:i:s')]);
+        // S0-T1 附修：i8j_ai_task_queue.status 为 tinyint（0 pending / 1 running / 2 completed / 3 failed），
+        //            started_at / completed_at 为 int 时间戳，原代码写字符串 'running' 与 datetime 会被截断成 0/2026
+        $taskRecord->save(['status' => 1, 'started_at' => time()]);
 
         // 初始化记忆
         $this->memory->initSession($sessionId, $agentConfig);
@@ -94,20 +95,21 @@ class AiAgentExecutor
                 'report' => $report,
             ]);
 
-            // 更新任务记录
+            // 更新任务记录（status=2 即 completed；completed_at 为 int 时间戳）
             $taskRecord->save([
-                'status' => 'completed',
-                'completed_at' => date('Y-m-d H:i:s'),
+                'status' => 2,
+                'completed_at' => time(),
                 'agent_memory' => json_encode($this->memory->getSessionMemory($sessionId), JSON_UNESCAPED_UNICODE),
                 'result' => json_encode($report, JSON_UNESCAPED_UNICODE),
             ]);
 
         } catch (\Throwable $e) {
             Log::error("Agent execution failed: " . $e->getMessage());
+            // S0-T4 附修：i8j_ai_task_queue 实际字段为 error_msg（无 error_message），原代码写错字段名
             $taskRecord->save([
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-                'completed_at' => date('Y-m-d H:i:s'),
+                'status' => 3,
+                'error_msg' => $e->getMessage(),
+                'completed_at' => time(),
             ]);
             throw $e;
         }
@@ -118,9 +120,6 @@ class AiAgentExecutor
      */
     protected function plan(string $task, array $agentConfig, array $context): array
     {
-        // 使用AI服务拆分任务
-        $aiService = Container::getInstance()->make(\app\common\service\ai\AiConversationService::class);
-        
         $prompt = sprintf(
             "你是一个%s。任务: %s\n请将此任务拆分为可执行的子任务步骤，每个步骤包含: action(动作类型), params(参数), tool(使用的工具)。\n角色描述: %s\n能力: %s\n规则: %s\n上下文: %s",
             $agentConfig['name'] ?? '智能体',
@@ -131,15 +130,31 @@ class AiAgentExecutor
             json_encode($context, JSON_UNESCAPED_UNICODE)
         );
 
-        $aiResult = $aiService->chat($prompt, ['temperature' => 0.3]);
-        
-        // 解析AI返回的子任务列表
-        $subtasks = $this->parsePlan($aiResult);
-        
+        // S0-T4：原调 AiConversationService::chat($prompt, ['temperature'=>0.3]) 签名错配
+        //        （真实签名 chat(string $sessionId, int $userId, string $message, int $contentId=0)，
+        //          第 2 个 array 撞 int $userId，strict_types 下必抛 TypeError）
+        //        改为 Provider 单次生成；并加零 key / 零本地模型降级，不让缺 Provider 掐断整条链
+        try {
+            $provider = AiProviderFactory::getDefault();
+            $aiResult = $provider->write($prompt, ['temperature' => 0.3]);
+            $subtasks = $this->parsePlan((string)$aiResult);
+            $degraded = false;
+        } catch (\Throwable $e) {
+            Log::warning('Agent plan degraded (no available AI provider): ' . $e->getMessage());
+            $subtasks = [[
+                'action'      => 'execute',
+                'description' => '执行任务',
+                'tool'        => 'ai_write',
+                'params'      => [],
+            ]];
+            $degraded = true;
+        }
+
         return [
-            'task' => $task,
-            'subtasks' => $subtasks,
+            'task'              => $task,
+            'subtasks'          => $subtasks,
             'estimated_actions' => count($subtasks),
+            'degraded'          => $degraded,
         ];
     }
 
@@ -182,26 +197,47 @@ class AiAgentExecutor
         try {
             switch ($tool) {
                 case 'ai_write':
-                    $service = Container::getInstance()->make(\app\common\service\ai\AiWriteService::class);
-                    return ['success' => true, 'output' => $service->write($params)];
+                    // S0-T5：原 AiWriteService 不存在，改映射到 AiWritingAssistService::continueWriting()
+                    $service = app(AiWritingAssistService::class);
+                    return ['success' => true, 'output' => $service->continueWriting(
+                        (string)($params['text'] ?? ''),
+                        (int)($params['length'] ?? 500),
+                        (array)($params['options'] ?? [])
+                    )];
                 case 'ai_image':
-                    $service = Container::getInstance()->make(\app\common\service\ai\AiImageService::class);
-                    return ['success' => true, 'output' => $service->generate($params)];
+                    // S0-T5：原传 array 给 int $contentId（TypeError），按真实签名改
+                    $service = app(AiImageService::class);
+                    return ['success' => true, 'output' => $service->generate(
+                        (int)($params['content_id'] ?? 0),
+                        (string)($params['style'] ?? 'auto'),
+                        (int)($params['count'] ?? 1)
+                    )];
                 case 'ai_translate':
-                    $service = Container::getInstance()->make(\app\common\service\ai\AiTranslationService::class);
-                    return ['success' => true, 'output' => $service->translate($params['text'] ?? '', $params['lang'] ?? 'en')];
+                    // S0-T5：原 AiTranslationService 不存在，改映射到 AiTranslateService::translateField()
+                    $service = app(AiTranslateService::class);
+                    return ['success' => true, 'output' => $service->translateField(
+                        (string)($params['text'] ?? ''),
+                        (string)($params['lang'] ?? 'en'),
+                        (array)($params['options'] ?? [])
+                    )];
                 case 'ai_qa':
-                    $service = Container::getInstance()->make(\app\common\service\ai\ContentQualityScoreService::class);
+                    $service = app(ContentQualityScoreService::class);
                     return ['success' => true, 'output' => $service->score((int)($params['content_id'] ?? 0))];
                 case 'ai_seo':
-                    $service = Container::getInstance()->make(\app\common\service\ai\AiSeoService::class);
-                    return ['success' => true, 'output' => $service->optimize((int)($params['content_id'] ?? 0), $params)];
+                    // S0-T5：原 AiSeoService 不存在，改映射到 AiSeoDiagnosisService::diagnose()
+                    $service = app(AiSeoDiagnosisService::class);
+                    return ['success' => true, 'output' => $service->diagnose((int)($params['content_id'] ?? 0))];
                 case 'ai_summary':
-                    $service = Container::getInstance()->make(\app\common\service\ai\AiSummaryService::class);
-                    return ['success' => true, 'output' => $service->summarize($params['text'] ?? '')];
+                    // S0-T5：原 summarize() 方法不存在，改映射到 generate(int $contentId)
+                    $service = app(AiSummaryService::class);
+                    return ['success' => true, 'output' => $service->generate((int)($params['content_id'] ?? 0))];
                 case 'ai_recommend':
-                    $service = Container::getInstance()->make(\app\common\service\ai\AiRecommendService::class);
-                    return ['success' => true, 'output' => $service->recommend($params)];
+                    // S0-T5：原 recommend() 方法不存在，改映射到 recommendByContent(int, int)
+                    $service = app(AiRecommendService::class);
+                    return ['success' => true, 'output' => $service->recommendByContent(
+                        (int)($params['content_id'] ?? 0),
+                        (int)($params['limit'] ?? 10)
+                    )];
                 default:
                     return ['success' => false, 'error' => "Unknown tool: {$tool}"];
             }
@@ -305,6 +341,7 @@ class AiAgentExecutor
                 'params' => [],
             ];
         }
-        return $subtasks ?: [['action' => 'execute', 'description' => $task ?? '执行任务', 'tool' => 'ai_write', 'params' => []];
+        // S0-T1：补齐缺失的闭合括号；$task 在本作用域未定义（本方法仅接收 $aiResult），改为固定文案
+        return $subtasks ?: [['action' => 'execute', 'description' => '执行任务', 'tool' => 'ai_write', 'params' => []]];
     }
 }

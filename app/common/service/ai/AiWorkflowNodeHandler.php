@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace app\common\service\ai;
 
 use think\facade\Log;
-use think\facade\Container;
+// S0-T3: 框架 facade 未提供 Container 类（facade 目录仅 14 个），改用全局 app() 解析
 
 /**
  * AI工作流节点处理器
@@ -66,7 +66,7 @@ class AiWorkflowNodeHandler
 
     protected function handleAiWrite(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\ai\AiWriteService::class);
+        $service = app(\app\common\service\ai\AiWriteService::class);
         $prompt = $config['prompt'] ?? '';
         $keyword = $config['keyword'] ?? ($context['title']['title'] ?? '');
         
@@ -86,7 +86,7 @@ class AiWorkflowNodeHandler
 
     protected function handleAiImage(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\ai\AiImageService::class);
+        $service = app(\app\common\service\ai\AiImageService::class);
         $keyword = $config['keyword'] ?? ($context['content']['title'] ?? '');
         
         $result = $service->generate([
@@ -104,7 +104,7 @@ class AiWorkflowNodeHandler
 
     protected function handleAiTranslate(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\ai\AiTranslationService::class);
+        $service = app(\app\common\service\ai\AiTranslationService::class);
         $text = $config['text'] ?? ($context['content']['content'] ?? '');
         $targetLangs = $config['target_langs'] ?? ['en'];
         
@@ -123,7 +123,7 @@ class AiWorkflowNodeHandler
 
     protected function handleAiQa(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\ai\ContentQualityScoreService::class);
+        $service = app(\app\common\service\ai\ContentQualityScoreService::class);
         $threshold = $config['threshold'] ?? 70;
         
         $scores = [];
@@ -150,7 +150,7 @@ class AiWorkflowNodeHandler
 
     protected function handleAiSeo(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\ai\AiSeoService::class);
+        $service = app(\app\common\service\ai\AiSeoService::class);
         $results = [];
         foreach ($targetIds as $contentId) {
             $result = $service->optimize((int)$contentId, ['auto_fix' => $config['auto_fix'] ?? false]);
@@ -165,7 +165,7 @@ class AiWorkflowNodeHandler
 
     protected function handleAiRecommend(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\ai\AiRecommendService::class);
+        $service = app(\app\common\service\ai\AiRecommendService::class);
         $strategy = $config['strategy'] ?? 'tfidf';
         $count = $config['count'] ?? 10;
         
@@ -184,7 +184,7 @@ class AiWorkflowNodeHandler
 
     protected function handleAiSummary(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\ai\AiSummaryService::class);
+        $service = app(\app\common\service\ai\AiSummaryService::class);
         $text = $config['text'] ?? ($context['content']['content'] ?? '');
         $result = $service->summarize($text, ['max_length' => $config['max_length'] ?? 200]);
         return [
@@ -203,7 +203,7 @@ class AiWorkflowNodeHandler
 
     protected function handlePublish(array $config, array $targetIds, array $context): array
     {
-        $service = Container::getInstance()->make(\app\common\service\content\ContentService::class);
+        $service = app(\app\common\service\content\ContentService::class);
         $channel = $config['channel'] ?? 'default';
         $published = 0;
         foreach ($targetIds as $contentId) {

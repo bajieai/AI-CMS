@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace app\common\service\ai;
 
-use app\common\provider\AiProviderFactory;
+use app\common\service\ai\AiProviderFactory;
 use think\facade\Cache;
 
 /**
@@ -58,15 +58,15 @@ class AiEditorTranslateService
 
         try {
             $provider = $this->factory->getDefault();
-            $response = $provider->chat([
-                ['role' => 'system', 'content' => $systemPrompt],
-                ['role' => 'user', 'content' => $text],
-            ], [
+            // S0-T3 附修：AiProviderInterface 无 chat() 方法，改用单次 write()
+            $translated = (string) $provider->write($systemPrompt . "\n\n" . $text, [
                 'temperature' => 0.3,
                 'max_tokens' => 2000,
             ]);
 
-            $translated = $response['content'] ?? $text;
+            if ($translated === '') {
+                $translated = $text;
+            }
 
             // 缓存翻译结果（1小时）
             Cache::set($cacheKey, $translated, 3600);

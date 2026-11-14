@@ -514,7 +514,9 @@ class AiQualityCheckService
             $msg = $issue['message'] ?? '';
             switch ($dim) {
                 case 'completeness':
-                    $suggestions[] = "补充完善 {$issue['field'] ?? '缺失'} 字段内容。";
+                    // S0-T2: PHP 复杂字符串插值 {$...} 内不接受 ?? 运算符（只接受 -> / ?-> / [），需先求值再插值
+                    $fieldLabel = $issue['field'] ?? '缺失';
+                    $suggestions[] = "补充完善 {$fieldLabel} 字段内容。";
                     break;
                 case 'coherence':
                     $suggestions[] = "增加过渡词和段落分隔，提升内容结构连贯性。";

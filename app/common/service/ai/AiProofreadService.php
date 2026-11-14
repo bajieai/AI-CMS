@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace app\common\service\ai;
 
-use app\common\provider\AiProviderFactory;
+use app\common\service\ai\AiProviderFactory;
 
 /**
  * AI错别字/语病检测服务 — V2.9.28 A-1
@@ -85,14 +85,13 @@ class AiProofreadService
     {
         try {
             $provider = $this->factory->getDefault();
-            $response = $provider->chat([
-                ['role' => 'system', 'content' => $systemPrompt],
-                ['role' => 'user', 'content' => $userText],
-            ], [
+            // S0-T3 附修：AiProviderInterface 无 chat() 方法（原调用必抛 undefined method，
+            //            被 catch 静默吞成「返回原文」），改用单次 write()
+            $result = (string) $provider->write($systemPrompt . "\n\n" . $userText, [
                 'temperature' => 0.3,
                 'max_tokens' => 2000,
             ]);
-            return $response['content'] ?? $userText;
+            return $result !== '' ? $result : $userText;
         } catch (\Throwable $e) {
             return $userText;
         }

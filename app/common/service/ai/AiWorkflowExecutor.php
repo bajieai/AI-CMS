@@ -6,7 +6,7 @@ namespace app\common\service\ai;
 use app\common\model\AiWorkflow;
 use app\common\model\AiWorkflowExec;
 use think\facade\Log;
-use think\facade\Container;
+// S0-T3: 框架 facade 未提供 Container 类（facade 目录仅 14 个）
 
 /**
  * AI工作流执行器

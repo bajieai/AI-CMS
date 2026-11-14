@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace app\common\service\ai;
 
-use think\facade\Container;
+// S0-T3: 框架 facade 未提供 Container 类（facade 目录仅 14 个），改用全局 app() 解析
 use think\facade\Log;
 
 /**
@@ -42,7 +42,7 @@ class AiContentEnhanceV2Service
      */
     public function extractInfo(string $content): array
     {
-        $aiService = Container::getInstance()->make(\app\common\service\ai\AiConversationService::class);
+        $aiService = app(\app\common\service\ai\AiConversationService::class);
         $prompt = "请从以下内容中提取关键信息(标题、作者、日期、关键词、摘要)，以JSON格式返回:\n\n" . $content;
         $result = $aiService->chat($prompt, ['temperature' => 0.1]);
         $decoded = json_decode($result, true);
@@ -54,7 +54,7 @@ class AiContentEnhanceV2Service
      */
     public function generateOutline(string $content, int $maxLevel = 3): array
     {
-        $aiService = Container::getInstance()->make(\app\common\service\ai\AiConversationService::class);
+        $aiService = app(\app\common\service\ai\AiConversationService::class);
         $prompt = "请为以下内容生成一个层级不超过{$maxLevel}级的大纲，以JSON数组格式返回(每个元素含title,level,children):\n\n" . mb_substr($content, 0, 2000);
         $result = $aiService->chat($prompt, ['temperature' => 0.2]);
         $decoded = json_decode($result, true);
@@ -89,7 +89,7 @@ class AiContentEnhanceV2Service
      */
     public function structuredOutput(string $content, string $format = 'markdown'): string
     {
-        $aiService = Container::getInstance()->make(\app\common\service\ai\AiConversationService::class);
+        $aiService = app(\app\common\service\ai\AiConversationService::class);
         $prompt = "请将以下内容重新整理为{$format}格式的结构化文档:\n\n" . $content;
         return $aiService->chat($prompt);
     }
@@ -111,7 +111,7 @@ class AiContentEnhanceV2Service
         ];
         
         $prompt = $formatPrompts[$targetFormat] ?? '转换内容格式';
-        $aiService = Container::getInstance()->make(\app\common\service\ai\AiConversationService::class);
+        $aiService = app(\app\common\service\ai\AiConversationService::class);
         $result = $aiService->chat($prompt . ":\n\n" . $content);
         
         return [
@@ -133,7 +133,7 @@ class AiContentEnhanceV2Service
         $levelMap = ['short' => '一句话摘要', 'medium' => '段落摘要', 'detailed' => '详细摘要'];
         $levelText = $levelMap[$level] ?? '段落摘要';
         
-        $aiService = Container::getInstance()->make(\app\common\service\ai\AiSummaryService::class);
+        $aiService = app(\app\common\service\ai\AiSummaryService::class);
         $summary = $aiService->summarize($content, [
             'max_length' => $maxLength,
             'style' => $style,
@@ -160,11 +160,11 @@ class AiContentEnhanceV2Service
     {
         // 复用AiGeoService::extractEntities()
         try {
-            $geoService = Container::getInstance()->make(\app\common\service\ai\AiGeoService::class);
+            $geoService = app(\app\common\service\ai\AiGeoService::class);
             return $geoService->extractEntities($content);
         } catch (\Throwable $e) {
             // 降级: 使用AI对话提取
-            $aiService = Container::getInstance()->make(\app\common\service\ai\AiConversationService::class);
+            $aiService = app(\app\common\service\ai\AiConversationService::class);
             $prompt = "请从以下内容中提取实体(人名、地名、组织、日期、数字等)，以JSON格式返回:\n\n" . $content;
             $result = $aiService->chat($prompt, ['temperature' => 0.1]);
             return json_decode($result, true) ?: ['raw' => $result];
@@ -176,7 +176,7 @@ class AiContentEnhanceV2Service
      */
     public function extractRelations(string $content): array
     {
-        $aiService = Container::getInstance()->make(\app\common\service\ai\AiConversationService::class);
+        $aiService = app(\app\common\service\ai\AiConversationService::class);
         $prompt = "请从以下内容中提取实体之间的关系，以JSON数组格式返回(每个元素含subject, relation, object):\n\n" . $content;
         $result = $aiService->chat($prompt, ['temperature' => 0.1]);
         return json_decode($result, true) ?: [];

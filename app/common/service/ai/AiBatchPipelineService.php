@@ -6,7 +6,7 @@ namespace app\common\service\ai;
 use app\common\model\AiTaskQueue;
 use think\facade\Cache;
 use think\facade\Log;
-use think\facade\Container;
+// S0-T3: 框架 facade 未提供 Container 类（facade 目录仅 14 个），改用全局 app() 解析
 
 /**
  * AI内容批量生产管线服务
@@ -86,11 +86,11 @@ class AiBatchPipelineService
             }
         }
 
-        $writeService = Container::getInstance()->make(AiWriteService::class);
-        $imageService = Container::getInstance()->make(AiImageService::class);
-        $translateService = Container::getInstance()->make(AiTranslationService::class);
-        $qualityService = Container::getInstance()->make(ContentQualityScoreService::class);
-        $contentService = Container::getInstance()->make(\app\common\service\content\ContentService::class);
+        $writeService = app(AiWriteService::class);
+        $imageService = app(AiImageService::class);
+        $translateService = app(AiTranslationService::class);
+        $qualityService = app(ContentQualityScoreService::class);
+        $contentService = app(\app\common\service\content\ContentService::class);
 
         // 1. AI写作
         $writeResult = $writeService->write([

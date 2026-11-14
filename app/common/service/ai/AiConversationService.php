@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace app\common\service\ai;
 
 use app\common\model\AiEditorConversation;
-use app\common\provider\AiProviderFactory;
+use app\common\service\ai\AiProviderFactory;
 use think\facade\Cache;
 
 /**
@@ -64,14 +64,26 @@ class AiConversationService
         try {
             $provider = $this->factory->getDefault();
             $systemPrompt = '你是一个专业的内容编辑助手。请根据用户的指令帮助编辑和优化内容。保持回复简洁有用。';
-            array_unshift($messages, ['role' => 'system', 'content' => $systemPrompt]);
 
-            $response = $provider->chat($messages, [
+            // S0-T3 附修：AiProviderInterface 只有单次 write()，无 chat() 方法。
+            //            原调 $provider->chat($messages, [...]) 会抛 "Call to undefined method"，
+            //            被下方 catch 吞成「AI服务异常」，功能静默失效。此处将多轮消息压平为单次提示。
+            $lines = [];
+            foreach ($messages as $m) {
+                $role = $m['role'] ?? 'user';
+                $label = $role === 'user' ? '用户' : ($role === 'assistant' ? '助手' : '');
+                $lines[] = ($label !== '' ? $label . ': ' : '') . ($m['content'] ?? '');
+            }
+            $flatPrompt = $systemPrompt . "\n\n" . implode("\n", $lines);
+
+            $aiReply = (string) $provider->write($flatPrompt, [
                 'temperature' => 0.7,
                 'max_tokens' => 2000,
             ]);
 
-            $aiReply = $response['content'] ?? '抱歉，我无法处理您的请求。';
+            if ($aiReply === '') {
+                $aiReply = '抱歉，我无法处理您的请求。';
+            }
             $replyTokens = $this->estimateTokens($aiReply);
 
             // 保存AI回复

@@ -175,16 +175,24 @@ class AiAgentService
         }
 
         // 创建任务记录(复用i8j_ai_task_queue)
+        // S0-T1 附修：三处字段错（① 'task_data' 字段不存在，实际为 payload；
+        //            ② agent_id 是 int 字段而 $agentId 为字符串 key；③ status 是 tinyint 而传入 'pending'）
         $taskRecord = new AiTaskQueue();
         $taskRecord->save([
             'task_type' => 'agent',
-            'agent_id' => $agentId,
+            'agent_id' => 0,
             'agent_session_id' => 'sess_' . uniqid(),
-            'task_data' => json_encode(['task' => $task, 'context' => $context]),
+            'payload' => json_encode([
+                'agent_key' => $agentId,
+                'task'      => $task,
+                'context'   => $context,
+            ], JSON_UNESCAPED_UNICODE),
             'agent_plan' => null,
             'agent_memory' => null,
-            'status' => 'pending',
+            'status' => 0,
             'priority' => 0,
+            'create_time' => time(),
+            'update_time' => time(),
         ]);
         $taskId = (int) $taskRecord->id;
 
@@ -202,7 +210,8 @@ class AiAgentService
             }
         } catch (\Throwable $e) {
             Log::error("Agent {$agentId} execution failed: " . $e->getMessage());
-            $taskRecord->save(['status' => 'failed', 'error_message' => $e->getMessage()]);
+            // S0-T4 附修：error_message 字段不存在（实际为 error_msg）；status 为 tinyint(3=failed)
+            $taskRecord->save(['status' => 3, 'error_msg' => $e->getMessage()]);
             
             $agents = $this->getAllAgents();
             if (isset($agents[$agentId])) {
