@@ -276,6 +276,16 @@ abstract class AdminBaseController extends \think\BaseController
                 $menus = $this->removeDisabledMenus($menus, $hiddenMenuIds);
             }
 
+            // 1.1 AI-THEME 适配器：开关关闭时隐藏入口。失败按原菜单返回，后台导航不受影响。
+            try {
+                $themeGeneratorHiddenIds = $this->themeGeneratorHiddenMenuIds();
+                if (!empty($themeGeneratorHiddenIds)) {
+                    $menus = $this->removeDisabledMenus($menus, $themeGeneratorHiddenIds);
+                }
+            } catch (\Throwable) {
+                // 过滤器故障时保持原菜单
+            }
+
             // 2. 权限过滤 — 仅对非超管生效
             if ($roleId !== 1) {
                 $permissions = Config::get('permission.roles.' . $roleId . '.permissions', []);
@@ -286,6 +296,16 @@ abstract class AdminBaseController extends \think\BaseController
 
             return $menus;
         }, 3600);
+    }
+
+    /**
+     * AI-THEME 适配器入口的菜单 id（开关关闭时隐藏；独立成方法便于测试覆盖）
+     *
+     * @return int[]
+     */
+    protected function themeGeneratorHiddenMenuIds(): array
+    {
+        return \app\common\service\theme_generator\MenuSwitchFilter::hiddenMenuIds();
     }
 
     /**

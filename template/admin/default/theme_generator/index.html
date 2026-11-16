@@ -1,0 +1,131 @@
+{extend name="layout" /}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item"><a href="/admin">首页</a></li>
+<li class="breadcrumb-item active">AI 主题安装（BTPKG）</li>
+{/block}
+
+{block name="content"}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>AI 主题安装（BTPKG）</h5>
+    <span class="badge bg-secondary">落点 public/skin/themes · 不接管前台</span>
+</div>
+
+<div class="alert alert-light border small mb-3">
+    本页只做四件事：读包（契约 7 字段）、验包（sha256 + 逐项路径/扩展名）、落盘并登记（source=ai-theme / task_id / installed_at / package_sha256）、预览与回滚。
+    安装不会修改 <code>i8j_config.frontend_theme</code>，也不会写入 <code>template/themes/</code>。
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">装包（POST /admin/theme_generator/install）</div>
+    <div class="card-body">
+        <form id="tg-install-form" class="row g-2">
+            <div class="col-md-5">
+                <label class="form-label small">包路径（服务器本地）</label>
+                <input type="text" class="form-control form-control-sm" name="package_path"
+                       value="D:\AI-Project\AI-THEME\deliverables\product-strategy\证据快照-real-A1-50e4628e-2026-11-15\artifacts\packages\50e4628e-40a8-4501-b370-0478b4595ae4\ai-cms-theme-1.0.0.btpkg">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">整包 sha256</label>
+                <input type="text" class="form-control form-control-sm" name="package_sha256"
+                       value="c9c383d93166540fe443ba53bf8d296f8cd987216951c4f1ca63c964ad6eab07">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">task_id</label>
+                <input type="text" class="form-control form-control-sm" name="task_id"
+                       value="50e4628e-40a8-4501-b370-0478b4595ae4">
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm w-100">装包</button>
+            </div>
+        </form>
+        <pre id="tg-result" class="small bg-light border rounded p-2 mt-3 mb-0" style="max-height:260px;overflow:auto;display:none;"></pre>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">已登记（i8j_theme_info，source=ai-theme）</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>code</th>
+                    <th>名称</th>
+                    <th>版本</th>
+                    <th>source</th>
+                    <th>task_id</th>
+                    <th>installed_at</th>
+                    <th>package_sha256</th>
+                    <th class="text-end">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {if empty($list)}
+                <tr><td colspan="8" class="text-center text-muted py-4">当前无数据</td></tr>
+                {/if}
+                {volist name="list" id="item"}
+                <tr>
+                    <td class="mono">{$item.code}</td>
+                    <td>{$item.name}</td>
+                    <td>{$item.version}</td>
+                    <td>{$item.source}</td>
+                    <td class="mono small">{$item.task_id}</td>
+                    <td>{$item.installed_at}</td>
+                    <td class="mono small">{$item.package_sha256}</td>
+                    <td class="text-end">
+                        <a class="btn btn-outline-primary btn-sm" href="/admin/theme_generator/preview?slug={$item.code}" target="_blank">预览</a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm tg-rollback" data-slug="{$item.code}">回滚</button>
+                    </td>
+                </tr>
+                {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var form = document.getElementById('tg-install-form');
+    var out = document.getElementById('tg-result');
+
+    function show(data) {
+        out.style.display = 'block';
+        out.textContent = JSON.stringify(data, null, 2);
+    }
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var body = new URLSearchParams(new FormData(form));
+        fetch('/admin/theme_generator/install', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: body.toString()
+        }).then(function (res) { return res.json(); }).then(function (data) {
+            show(data);
+            if (data.code === 0) {
+                setTimeout(function () { location.reload(); }, 900);
+            }
+        }).catch(function (err) { show({code: -1, msg: String(err)}); });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('.tg-rollback'), function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('确认回滚 ' + btn.getAttribute('data-slug') + ' 到上一版？')) { return; }
+            var body = new URLSearchParams({slug: btn.getAttribute('data-slug')});
+            fetch('/admin/theme_generator/rollback', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: body.toString()
+            }).then(function (res) { return res.json(); }).then(function (data) {
+                show(data);
+                if (data.code === 0) {
+                    setTimeout(function () { location.reload(); }, 900);
+                }
+            }).catch(function (err) { show({code: -1, msg: String(err)}); });
+        });
+    });
+})();
+</script>
+{/block}
