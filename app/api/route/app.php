@@ -212,3 +212,16 @@ Route::group('h5/share', function () {
     Route::post('log', '\app\api\controller\h5\ShareController@log');
     Route::get('stats/:contentId', '\app\api\controller\h5\ShareController@stats');
 });
+
+// ===== V2.9.63 S2: AI 助手 Agent 对外通道（ACP-06 能力发现 / ACP-07 动作调用）=====
+// A-1 能力发现：仅返回动作元数据（input_schema / scope / risk_level），不含任何密钥
+Route::get('agent/v1/actions$', '\app\api\controller\AgentController@actions');
+
+// S-1 机器身份独立：invoke / 结果反查 / 批量 一律走 i8j_api_key 鉴权（AgentAuth）
+Route::group('agent/v1', function () {
+    Route::post('invoke$', '\app\api\controller\AgentController@invoke');
+    Route::get('invoke/:id$', '\app\api\controller\AgentController@result');
+    Route::post('batch$', '\app\api\controller\AgentController@batch');
+})->middleware([
+    \app\api\middleware\AgentAuth::class,
+]);

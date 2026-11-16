@@ -93,6 +93,10 @@ class PjaxMiddleware
      */
     private function extractMainContent(string $content): string
     {
+        // V2.9.63 S3-T5（同改①）：AI 助手悬浮窗挂载在 PJAX 容器之外，切页后必须原样回挂，
+        // 否则悬浮窗消失；前端以 id 幂等替换，故不会重复。
+        $assistantBlock = $this->extractAssistantBlock($content);
+
         // 方案1：注释边界标记（优先级最高）
         $startMark = '<!-- PJAX-CONTAINER-START -->';
         $endMark   = '<!-- PJAX-CONTAINER-END -->';
@@ -103,7 +107,8 @@ class PjaxMiddleware
                 $inner = substr($content, $startPos + strlen($startMark), $endPos - $startPos - strlen($startMark));
                 // 清除 \r\n，HTML 中换行由块级元素控制，\r\n 会导致 PJAX JSON 响应中显示为可见字符
                 $inner = str_replace("\r\n", '', $inner);
-                return trim($inner, "\r\n\t ");
+                $main = trim($inner, "\r\n\t ");
+                return $assistantBlock !== '' ? $main . "\n" . $assistantBlock : $main;
             }
         }
 
@@ -118,12 +123,27 @@ class PjaxMiddleware
                     $inner = substr($content, $bodyStart, $mainEnd - $bodyStart);
                     // 清除 \r\n，HTML 中换行由块级元素控制，\r\n 会导致 PJAX JSON 响应中显示为可见字符
                     $inner = str_replace("\r\n", '', $inner);
-                    return trim($inner, "\r\n\t ");
+                    $main = trim($inner, "\r\n\t ");
+                    return $assistantBlock !== '' ? $main . "\n" . $assistantBlock : $main;
                 }
             }
         }
 
         // 都找不到，返回空字符串触发前端降级
+        return '';
+    }
+
+    /**
+     * 提取 AI 助手悬浮窗片段（AI-ASSISTANT-START / END 标记之间，含 style 与 DOM）
+     *
+     * V2.9.63 S3-T5：悬浮窗在 layout 中位于 PJAX 容器之外，PJAX 切页时由本方法
+     * 原样回挂到主内容之后；前端 agent-window.js 以 id 幂等替换（不重复、不消失）。
+     */
+    private function extractAssistantBlock(string $content): string
+    {
+        if (preg_match('/<!--\s*AI-ASSISTANT-START\s*-->(.*?)<!--\s*AI-ASSISTANT-END\s*-->/is', $content, $m)) {
+            return trim($m[0]);
+        }
         return '';
     }
 
@@ -211,7 +231,26 @@ class PjaxMiddleware
             }
         }
 
+        // V2.9.63 S3-T5（同改③ + JS 补分号）：块间拼接前补语句终止符。
+        // 历史 commit af214c7 曾因裸表达式与后块直接相连产生语法错误；此处防御性兜底，
+        // AI 助手脚本（agent-window.js）同样以分号收尾的 IIFE 结构交付。
+        $jsBlocks = array_map([$this, 'ensureJsTerminator'], $jsBlocks);
+
         return implode("\n\n", $jsBlocks);
+    }
+
+    /** 确保语句块以终止符收尾（避免与其他块拼接时产生语法错误） */
+    private function ensureJsTerminator(string $js): string
+    {
+        $js = trim($js);
+        if ($js === '') {
+            return $js;
+        }
+        $lastChar = substr($js, -1);
+        if ($lastChar === ';' || $lastChar === '}') {
+            return $js;
+        }
+        return $js . ';';
     }
 
     /**
@@ -273,6 +312,7 @@ class PjaxMiddleware
             'sidebar-wrapper',
             'sidebar-l1',
             'sidebar-l2',
+            'ai-assistant-root', // V2.9.63 S3-T5（同改②）：AI 助手悬浮窗全局样式，不随切页重复注入
         ];
         foreach ($markers as $marker) {
             if (strpos($css, $marker) !== false) {
@@ -301,6 +341,8 @@ class PjaxMiddleware
             'function openMediaSelect',    // V2.9.60: 全局媒体选择器（layout全局块）
             'function mediaSelectCallback', // V2.9.60: 媒体选择回调占位（同上）
             'function clearCacheByType',   // V2.9.60: 全局清除缓存（右上角菜单，layout全局块）
+            'AI-ASSISTANT-START',          // V2.9.63 S3-T5（同改②）：AI 助手片段若被内联拼接，按全局脚本跳过
+            'window.AI_ASSISTANT_WINDOW_BOOTED', // V2.9.63 S3-T5：AI 助手重复执行守卫标记
         ];
 
         foreach ($layoutMarkers as $marker) {

@@ -64,7 +64,9 @@ class BaseController extends ThinkController
             $msg = func_num_args() > 1 && is_string(func_get_arg(1)) ? func_get_arg(1) : 'success';
         }
 
-        return json(['code' => $code, 'msg' => $msg, 'data' => $data], 200, [], $flags);
+        // 注：TP8 的 json() 第 4 参为 options 数组（非 json_encode flags 整数），
+        // 传整数会触发 Response::options(): Argument #1 must be of type array 直接 500
+        return json(['code' => $code, 'msg' => $msg, 'data' => $data], 200, [], ['json_encode_param' => $flags]);
     }
 
     /**
@@ -73,6 +75,6 @@ class BaseController extends ThinkController
     protected function error(string $msg = 'error', int $code = 1, mixed $data = []): \think\Response
     {
         $flags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
-        return json(['code' => $code, 'msg' => $msg, 'data' => $data], 200, [], $flags);
+        return json(['code' => $code, 'msg' => $msg, 'data' => $data], 200, [], ['json_encode_param' => $flags]);
     }
 }

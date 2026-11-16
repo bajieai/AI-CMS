@@ -14,37 +14,34 @@ declare(strict_types=1);
 
 namespace app\common\traits;
 
+use app\common\service\agent\ScopeMatcher;
+
 /**
  * API Scope校验Trait
  * 在API控制器中use此trait，调用requireScope()进行权限校验
- * 
- * Scope定义：模块级 resource:action 格式
- * - content:read   内容读取（列表/详情/搜索）
- * - content:write  内容写入（创建/编辑/删除）
- * - member:read    会员读取
- * - member:write   会员写入
- * - media:read     媒体读取
- * - media:write    媒体上传
- * - cate:read      分类读取
- * - admin:all      管理员全权限（通配）
+ *
+ * Scope定义（V2.9.63 R-4 起统一为三段式，旧两段仍兼容）：
+ * - aicms:content:read   内容读取（列表/详情/搜索）
+ * - aicms:content:write  内容写入（创建/编辑/删除）
+ * - aicms:member:read    会员读取
+ * - aicms:media:read     媒体读取
+ * - aicms:theme:*        主题域全部（仅后缀通配合法）
+ * - admin:all            兼容别名（等价全权限）
+ *
+ * 判定统一走 ScopeMatcher::allows()，禁止在本 trait 内自写匹配逻辑（R-4 硬要求）
  */
 trait ApiScopeCheck
 {
     /**
      * 校验当前请求是否具备指定Scope
-     * @param string $required 需要的Scope，如 'content:read'
+     * @param string $required 需要的Scope，如 'aicms:content:read'（旧格式 'content:read' 亦可）
      * @throws \think\exception\HttpException
      */
     protected function requireScope(string $required): void
     {
         $userScopes = $this->request->apiScopes ?? [];
 
-        // admin:all 通配权限
-        if (in_array('admin:all', $userScopes)) {
-            return;
-        }
-
-        if (!in_array($required, $userScopes)) {
+        if (!ScopeMatcher::allows($userScopes, $required)) {
             throw new \think\exception\HttpException(403, "Missing required scope: {$required}");
         }
     }

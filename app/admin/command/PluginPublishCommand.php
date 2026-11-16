@@ -5,6 +5,8 @@ namespace app\admin\command;
 
 use think\console\Command;
 use think\console\Input;
+use think\console\input\Argument;
+use think\console\input\Option;
 use think\console\Output;
 use think\facade\Db;
 use think\facade\Log;
@@ -21,8 +23,8 @@ class PluginPublishCommand extends Command
     {
         $this->setName('plugin:publish')
             ->setDescription('发布插件到市场')
-            ->addArgument('plugin_name', '插件名称')
-            ->addOption('channel', 'c', '发布渠道(stable/beta)', 'stable');
+            ->addArgument('plugin_name', Argument::REQUIRED, '插件名称')
+            ->addOption('channel', 'c', Option::VALUE_OPTIONAL, '发布渠道(stable/beta)', 'stable');
     }
 
     protected function execute(Input $input, Output $output)

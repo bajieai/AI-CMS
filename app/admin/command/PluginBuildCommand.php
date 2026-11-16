@@ -5,6 +5,7 @@ namespace app\admin\command;
 
 use think\console\Command;
 use think\console\Input;
+use think\console\input\Argument;
 use think\console\Output;
 use think\facade\Db;
 use think\facade\Log;
@@ -21,7 +22,7 @@ class PluginBuildCommand extends Command
     {
         $this->setName('plugin:build')
             ->setDescription('打包插件为可分发ZIP文件')
-            ->addArgument('plugin_name', '插件名称');
+            ->addArgument('plugin_name', Argument::REQUIRED, '插件名称');
     }
 
     protected function execute(Input $input, Output $output)

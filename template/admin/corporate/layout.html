@@ -145,6 +145,9 @@
         </main>
     </div>
 
+    <!-- V2.9.63 S3: AI 助手对话悬浮窗（ACP-15；挂载点在 PJAX 容器之外，切页由 PjaxMiddleware 回挂） -->
+    {include file="common/ai_assistant" /}
+
     <!-- 页面加载指示器 -->
     <div id="pageLoader" style="position:fixed;top:0;left:0;width:100%;height:3px;background:transparent;z-index:9999;opacity:0;transition:opacity .2s;">
         <div style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary-light));transition:width .3s ease;"></div>
@@ -185,6 +188,8 @@
         }).fail(function() { showToast('请求失败，请重试', 'error'); });
     }
     </script>
+    <!-- V2.9.63 S3: AI 助手悬浮窗交互（外部文件 + pjax.js 按 src 去重，PJAX 切页不重复加载；JS 以分号收尾防拼接陷阱） -->
+    <script src="/assets/js/agent-window.js?v=2.9.63.3"></script>
     {block name="js"}{/block}
 </body>
 </html>

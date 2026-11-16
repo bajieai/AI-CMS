@@ -1,6 +1,6 @@
 -- =====================================================================
 -- V2.9.63 AI 助手 · 动作底座迁移（S1-T1）
--- 依据: codearts-task-ai-control-plane-2026-11-10.md v1.2
+-- 依据: 动作层规格说明书 v1.2
 --       §4.1 i8j_agent_action / §4.6 i8j_agent_audit + i8j_agent_idempotency
 --       §4.9 i8j_agent_action_alias (字段 alias_id,action_id,pattern,priority,params_rule,enabled)
 -- 基线: R-1~R-6 v1.2 默认值（架构师可改写枚举/正则/配置，不动表结构）

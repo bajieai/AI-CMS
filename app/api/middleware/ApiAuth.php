@@ -109,7 +109,8 @@ class ApiAuth
 
         // 将Token信息注入请求
         $request->apiToken = $tokenModel;
-        $request->apiScopes = explode(',', $tokenModel->scopes);
+        // V2.9.63 R-4：统一走 ScopeMatcher::parse（原 explode(',') 与 ApiAuthService 的 json_decode 格式不一致）
+        $request->apiScopes = \app\common\service\agent\ScopeMatcher::parse($tokenModel->scopes);
 
         return $next($request);
     }

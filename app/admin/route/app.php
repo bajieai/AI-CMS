@@ -1426,6 +1426,17 @@ Route::post('sms/config$', '\app\admin\controller\SmsController@config');
 Route::get('sms/templates$', '\app\admin\controller\SmsController@templates');
 Route::get('sms/logs$', '\app\admin\controller\SmsController@logs');
 Route::post('sms/send$', '\app\admin\controller\SmsController@send');
+
+// 问题反馈（提交 / 记录 / 处理 / 通道设置）
+Route::get('feedback/index$', '\app\admin\controller\FeedbackController@index');
+Route::post('feedback/submit$', '\app\admin\controller\FeedbackController@submit');
+Route::get('feedback/detail$', '\app\admin\controller\FeedbackController@detail');
+Route::post('feedback/reply$', '\app\admin\controller\FeedbackController@reply');
+Route::post('feedback/status$', '\app\admin\controller\FeedbackController@status');
+Route::post('feedback/retry$', '\app\admin\controller\FeedbackController@retry');
+Route::get('feedback/config$', '\app\admin\controller\FeedbackController@config');
+Route::post('feedback/saveConfig$', '\app\admin\controller\FeedbackController@saveConfig');
+Route::post('feedback/testNotify$', '\app\admin\controller\FeedbackController@testNotify');
 Route::get('notify_center/index$', '\app\admin\controller\NotifyCenterController@index');
 Route::get('notify_center/templates$', '\app\admin\controller\NotifyCenterController@templates');
 Route::get('notify_center/channels$', '\app\admin\controller\NotifyCenterController@channels');
@@ -1645,3 +1656,14 @@ Route::get('online_upgrade/progress$', '\app\admin\controller\OnlineUpgradeContr
 Route::get('online_upgrade/history$', '\app\admin\controller\OnlineUpgradeController@history');
 Route::post('online_upgrade/rollback$', '\app\admin\controller\OnlineUpgradeController@rollback');
 Route::post('online_upgrade/clearCache$', '\app\admin\controller\OnlineUpgradeController@clearCache');
+
+// ===== V2.9.63 S3: AI 助手对话悬浮窗（ACP-15；R-6 白名单第一，零模型）=====
+Route::post('ai_assistant/ask$', '\app\admin\controller\AiAssistantController@ask');
+Route::get('ai_assistant/csrf$', '\app\admin\controller\AiAssistantController@csrf');
+Route::get('ai_assistant/history$', '\app\admin\controller\AiAssistantController@history');
+
+// ===== AI-THEME 适配器（落 public/skin/themes，不接管前台；开关关闭时控制器统一 404）=====
+Route::get('theme_generator/index$', '\app\admin\controller\ThemeGeneratorController@index');
+Route::post('theme_generator/install$', '\app\admin\controller\ThemeGeneratorController@install');
+Route::post('theme_generator/rollback$', '\app\admin\controller\ThemeGeneratorController@rollback');
+Route::get('theme_generator/preview$', '\app\admin\controller\ThemeGeneratorController@preview');

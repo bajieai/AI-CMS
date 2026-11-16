@@ -12,6 +12,18 @@
 
 ## 新增特性
 
+### V2.9.63 — AI 助手动作底座·Agent 对外通道
+- **AI 助手动作层（ACP-03/04）** — 统一 Action Registry 注册 24 个只读动作（内容/模板/主题/会员/配置/系统/日志/统计/报表/页面上下文/模拟数据），代码定义 schema 为唯一权威 + DB 仅覆盖 enabled/timeout/rate_limit/remark；统一执行入口（安全黑名单/注入扫描/幂等/限流/审计）供 API / CLI / MCP / 对话窗四通道共用
+- **Agent 对外通道（ACP-05~08）** — 机器身份独立可吊销（`i8j_api_key`，签发/吊销/scope/IP 白名单/限流）；`GET /api/agent/v1/actions` 能力发现、`POST /invoke`（dry-run 零落库 + 幂等键 + 越权 403）、`GET /invoke/:id` 结果反查、`POST /batch` 批量；CLI `agent:actions` / `agent:run` / `agent:batch --generate=N` 一键灌模拟数据
+- **scope 统一判定（R-4）** — 三段冒号 `aicms:<domain>:<verb>`、仅后缀通配合法、`aicms:*:read` 为默认读类聚合授；判定统一收敛到 `ScopeMatcher::allows()`（5 处调用方全部替换）。**兼容层说明**：旧两段格式（`content:read`）与 JSON 数组存储的解析兼容层**保留至 V2.9.65，届时移除**（见 `app/common/service/agent/ScopeMatcher.php` 头注释）
+- **AI 助手对话悬浮窗（ACP-15）** — 后台全站右下角悬浮窗（双皮肤同步，layout 挂载 + PJAX 切页不重复不消失）；问法经 `IntentRouter` 七步确定性路由命中 20 条白名单（零模型、可直接查库作答），未命中/写意图按固定话术拒答并引导 CLI；结构化卡片带 `data_origin` 水印，会话落库复用 `i8j_ai_dialog`
+- **MCP Server（ACP-14）** — `php think agent:mcp` 以 stdio JSON-RPC 2.0 对外提供全部动作（工具名 = FQN 的 `.` 换 `_`，如 `aicms_content_article_list`），`tools/list` 与 `GET /api/agent/v1/actions` 同源一致，执行复用同一 ActionExecutor。客户端配置：
+  ```json
+  {"mcpServers":{"ai-cms":{"command":"php","args":["<站点绝对路径>/think","agent:mcp"]}}}
+  ```
+  自测：`echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | php think agent:mcp`
+- **模拟数据灌数（ACP-11）** — `php think agent:batch --generate=100` 一键灌 100 条（只写 `i8j_mock_content` / `i8j_mock_template` 物理隔离表，真实表零改动）；同幂等键重复执行自动重放、零新增脏数据；`--dry-run` 只报计划不落库
+
 ### V2.9.62 — 后台短信通道配置·Json门面缺失500根治
 - **后台短信通道可视化配置** — 新增 `/admin/sms/config`（双皮肤同步：default + corporate），可视化配置短信宝/阿里云/腾讯云/七牛云四通道凭据（账号/密码/密钥/签名/验证码模板）+ 默认通道选择，保存至 i8j_config 的 sms_* 扁平键，经 load_cms_configs 即时注入 Config 的 sms 组覆盖 config/sms.php 的 .env 配置（即时生效）；密码/密钥类字段留空保留原值；SmsService 新增 loadDbSmsConfig 从 DB 映射回嵌套结构 + selectAdapter 优先使用后台配置的默认通道；config/menu.php 新增「短信配置」后台菜单入口；短信宝为真实发信通道，阿里云/腾讯云/七牛云为占位待接入
 - **think\facade\Json 门面缺失 500 根治** — 当前框架未提供 think\facade\Json，而 16+ 后台控制器依赖 Json::success()/error() 返回 AJAX 结果，缺失导致这些接口全部 500（Class "think\facade\Json" does not exist）→ 新增 app/common/facade/Json.php 补全 success/error 方法，并在 app/common/helper.php 全局注册 class_alias 映射到 think\facade\Json（仅当框架确实未提供时），已有调用方零改动恢复
@@ -78,6 +90,7 @@
 - **详情页 ParseError 根治** — `description` 块用 ThinkPHP 8.1 模板引擎**不支持**的 `|default=$var|msubstr=` 链式语法（如 `{$info.seo_description ?: ($info.excerpt|default=$info.title|msubstr=0,120)}`），编译后拼成 `...|default=$info['title']|msubstr=0,120` 非法 PHP 报 "unexpected token default"。V2.9.42 修复过 `detail.html` 兜底模板但**未同步**到模型专属模板（detail_info / detail_video / detail_product / detail_image / detail_download / content/info_magazine / index / mobile / corporate 共 21 个模板），本次批量改为 `{:msubstr(strip_tags(...), 0, 120)}` 全局函数安全写法（与 `detail.html` 风格一致）
 - **列表页 TypeError 修复** — `date('Y-m-d', $vo.create_time)` 当数据库字段是历史字符串（外部导入/老版本迁移）时，PHP 8 严格类型检查报 "Argument #2 must be of type ?int, string given"。**根因**：`Content` 模型的 `protected $type` 数组只控制 `views/status` 等业务字段类型转换，**没有** `create_time`/`update_time`/`publish_time`，`$autoWriteTimestamp='int'` 只控制**写入**而不控制**读取**。**根解**：`Content::$type` 补三个时间字段为 `integer`（模型访问器层强制转换，所有路由生效），并对模板里 `date()` 调用加 `(int)` 双保险
 - **移动端 index.html 隐藏 bug 清除** — V2.9.31 创建的 `default/mobile/index.html` 和 `corporate/mobile/index.html` 第 1 行有**残留的 `<?php` 包装**，导致 ThinkPHP 模板标签 `{extend}` 解析时 PHP 引擎处于打开状态并报 "unexpected token <"（这个 bug 一直没触发是因为首页走的是 layout 兜底路径，但 V2.9.49 起的 4 套主题对应模板会显式 include，触发概率上升）
+- **模板编译验证脚本** — 开发期本地验证脚本 用 ThinkPHP 模板编译器（反射调 `parse` 方法）+ PHP `php -l` lint 验证 21 个真实可渲染模板全部通过编译，剩余 `template_store/` 下的 5 个文件是模板编辑器源码展示文件（含 `<?php` 是有意的），不影响运行
 
 ### V2.9.47 — 分类列表类型标识配色恢复·模型字段命名统一·信息模型字段优化
 - **分类列表类型标识恢复彩色** — 类型徽章从统一灰色恢复为按类型着色（信息=绿/单页=深/产品=蓝/案例=青/下载=黄/招聘=灰/图集=红/视频=青），颜色映射集中到 ContentTypeMap

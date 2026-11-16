@@ -95,18 +95,16 @@ class ActionExecutor
     {
         $requestId = $this->newRequestId();
         $startedAt = microtime(true);
-        $auditBase = [
-            'action_id'      => $actionId,
-            'channel'        => (string)($ctx['channel'] ?? 'api'),
-            'actor_type'     => (string)($ctx['actor_type'] ?? 'agent'),
-            'actor_id'       => (string)($ctx['actor_id'] ?? ''),
-            'agent_name'     => (string)($ctx['agent_name'] ?? ''),
-            'q_id'           => (string)($ctx['q_id'] ?? ''),
-            'idempotency_key' => (string)($ctx['idempotency_key'] ?? ''),
-            'params'         => $params,
-        ];
-        $idemKey = $auditBase['idempotency_key'];
         $dryRun = !empty($ctx['dry_run']);
+
+        // R-5 / A-4：dry_run=true 必须零落库。写类 handler 以 params.dry_run 判定，
+        // 故顶层 dry_run 在进入执行链前即透传进 params（否则 mockdata.* 会真实插入）。
+        if ($dryRun) {
+            $params['dry_run'] = true;
+        }
+
+        $auditBase = $this->buildAuditBase($actionId, $params, $ctx);
+        $idemKey = $auditBase['idempotency_key'];
 
         // ① S-3 黑名单
         foreach (self::BLACKLIST_PATTERNS as $pattern) {
@@ -131,11 +129,14 @@ class ActionExecutor
         if ($idemKey !== '') {
             $hit = $this->findIdempotent($actionId, $idemKey);
             if ($hit !== null) {
-                $this->writeAudit($requestId, $def, $params, $auditBase, 'success', 0, 'idempotent-replay');
                 $replay = json_decode((string)$hit['response_json'], true);
                 if (is_array($replay)) {
+                    // A-4：同一幂等键重复调用只执行一次 —— 重放不产生新执行，
+                    // 故不重复写 success 审计行（审计仅保留首次执行的 1 行 success）；
+                    // 首次 request_id 以 meta.replay_of_request_id 暴露，便于审计反查。
                     $replay['request_id'] = $requestId;
                     $replay['meta']['idempotent_replay'] = true;
+                    $replay['meta']['replay_of_request_id'] = (string)($hit['request_id'] ?? '');
                     return $replay;
                 }
             }
@@ -185,18 +186,53 @@ class ActionExecutor
                 'risk_level' => (string)($def['risk_level'] ?? 'read'),
                 'channel' => $auditBase['channel'],
                 'dry_run' => $dryRun,
+                // R-5：W1 dry-run 仅接口占位，diff 由 handler 给出文本摘要（真 diff 归 W3）
+                'diff_summary' => (string)($result['data']['diff_summary'] ?? ''),
+                'idempotent_replay' => false,
+                'replay_of_request_id' => '',
             ],
         ];
 
         // ⑧ 审计
-        $this->writeAudit($requestId, $def, $params, $auditBase, 'success', $elapsed, '');
+        $this->writeAudit($requestId, $def, $params, $auditBase, 'success', $elapsed, (string)($result['data']['diff_summary'] ?? ''));
 
-        // ⑨ 幂等落库
-        if ($idemKey !== '') {
+        // ⑨ 幂等落库（dry_run 不落库：避免后续真实调用命中 dry-run 缓存）
+        if ($idemKey !== '' && !$dryRun) {
             $this->saveIdempotent($actionId, $idemKey, $requestId, $response);
         }
 
         return $response;
+    }
+
+    /**
+     * 通道层前置拒绝（scope 越权 / high_risk 待确认等）
+     *
+     * 由 AgentInvokeService 在进入 handler 前调用：拒绝同样必须留审计（S-5 无漏记、A-3 判据）。
+     *
+     * @param string $result 审计 result 枚举：failed / rejected
+     * @return array 与 invoke() 同构的响应
+     */
+    public function deny(string $actionId, array $params, array $ctx, int $code, string $message, string $result = 'failed'): array
+    {
+        $requestId = $this->newRequestId();
+        $auditBase = $this->buildAuditBase($actionId, $params, $ctx);
+
+        return $this->fail($requestId, $code, $message, $auditBase, microtime(true), $result);
+    }
+
+    /** 组装审计基础字段（invoke 与 deny 共用，避免两套口径） */
+    private function buildAuditBase(string $actionId, array $params, array $ctx): array
+    {
+        return [
+            'action_id'      => $actionId,
+            'channel'        => (string)($ctx['channel'] ?? 'api'),
+            'actor_type'     => (string)($ctx['actor_type'] ?? 'agent'),
+            'actor_id'       => (string)($ctx['actor_id'] ?? ''),
+            'agent_name'     => (string)($ctx['agent_name'] ?? ''),
+            'q_id'           => (string)($ctx['q_id'] ?? ''),
+            'idempotency_key' => (string)($ctx['idempotency_key'] ?? ''),
+            'params'         => $params,
+        ];
     }
 
     // ==================== 内部：安全 ====================
@@ -338,7 +374,7 @@ class ActionExecutor
 
     // ==================== 内部：失败响应 ====================
 
-    private function fail(string $requestId, int $code, string $message, array $base, float $startedAt): array
+    private function fail(string $requestId, int $code, string $message, array $base, float $startedAt, string $result = 'failed'): array
     {
         $elapsed = (int)round((microtime(true) - $startedAt) * 1000);
         try {
@@ -357,7 +393,7 @@ class ActionExecutor
                 'diff_summary' => '',
                 'prompt_digest' => '',
                 'model_name' => '',
-                'result' => 'failed',
+                'result' => $result,
                 'error_msg' => mb_substr($message, 0, 500),
                 'duration_ms' => $elapsed,
                 'confirm_actor' => '',

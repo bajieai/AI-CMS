@@ -93,6 +93,12 @@ return [
         'ab_test:check'         => 'app\common\command\AbTestCheckCommand',
         // V2.9.38 AI-PLUS-3: 智能体定时执行
         'agent:scheduled'       => 'app\common\command\AgentScheduledCommand',
+        // V2.9.63 S2-T6: AI 助手动作层 CLI（与 /api/agent/v1/* 同源）
+        'agent:actions'         => 'app\common\command\AgentActionsCommand',
+        'agent:run'             => 'app\common\command\AgentRunCommand',
+        'agent:batch'           => 'app\common\command\AgentBatchCommand',
+        // V2.9.63 S4-T3: MCP Server（stdio JSON-RPC，供外部 AI 工具挂载）
+        'agent:mcp'             => 'app\common\command\AgentMcpCommand',
         // V2.9.38 AI-PLUS-1: 工作流定时执行
         'workflow:cron'         => 'app\common\command\WorkflowCronCommand',
         // V2.9.38 QA-3: 一键升级

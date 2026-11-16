@@ -10,7 +10,7 @@ use think\facade\Log;
  * AI 助手动作注册表（ACP-03 / V2.9.63）
  *
  * 依据：
- *  - codearts-task-ai-control-plane-2026-11-10.md v1.2 §4.1 / §4.2 / §4.12（R-1 默认基线）
+ *  - 动作层规格说明书 v1.2 §4.1 / §4.2 / §4.12（R-1 默认基线）
  *  - V2.9.63-AI助手-开发计划-v1.1 §五 A-4（代码注册为主 + DB 覆盖为辅，合并规则写死）
  *
  * A-4 合并规则（裁定件强制）：
@@ -43,7 +43,7 @@ class ActionRegistry
     /** R-1 两段 ID 仅允许的 domain */
     public const TWO_SEGMENT_DOMAINS = ['system', 'member', 'config', 'stat', 'page'];
 
-    /** RD-4 冻结的 24 个 action_id（codearts-task §4.2 全集，一个不改） */
+    /** RD-4 冻结的 24 个 action_id（动作层规格 v1.2 §4.2 全集，一个不改） */
     public const FROZEN_IDS = [
         'content.article.list', 'content.article.read', 'content.category.tree',
         'template.store.list', 'template.store.detail', 'template.install.list', 'template.license.list',

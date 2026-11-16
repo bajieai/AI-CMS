@@ -53,10 +53,7 @@ class ApiToken extends Model
      */
     public function hasScope(string $required): bool
     {
-        $scopes = explode(',', $this->scopes);
-        if (in_array('*', $scopes)) {
-            return true;
-        }
-        return in_array($required, $scopes);
+        // V2.9.63 R-4：统一走 ScopeMatcher（双格式兼容 + 通配规则 + high_risk 排除）
+        return \app\common\service\agent\ScopeMatcher::allows($this->scopes, $required);
     }
 }

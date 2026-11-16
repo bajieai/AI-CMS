@@ -657,7 +657,7 @@ CREATE TABLE `{prefix}api_key` (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '密钥名称',
   `api_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'API密钥',
   `api_secret` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'API密钥密钥',
-  `scopes` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '权限范围(JSON数组)',
+  `scopes` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '权限范围(逗号分隔,三段式 aicms:domain:verb)',
   `ip_whitelist` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'IP白名单(逗号分隔)',
   `rate_limit` int(10) unsigned NOT NULL DEFAULT '100' COMMENT '每分钟限制次数',
   `is_active` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '是否启用',
@@ -1929,6 +1929,35 @@ CREATE TABLE `{prefix}feature_registry` (
 ) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='功能点注册表';
 
 INSERT INTO `{prefix}feature_registry` VALUES (1,'R','R-1','皮肤&模板补全修复','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(2,'R','R-2','代码架构修复','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(3,'R','R-3','插件&API修复','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(4,'R','R-4','模板&市场修复','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(5,'R','R-5','其他零散修复回归','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(6,'Q','Q-1','功能验收脚本框架','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(7,'Q','Q-2','运行时功能看板','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(8,'Q','Q-3','V2.9.29全量功能回归测试脚本','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(9,'Q','Q-4','持续集成验收流水线','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(10,'Q','Q-5','验收报告自动生成','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(11,'Q','Q-6','模板质量自动检测增强','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(12,'T2','T2-1','模板商店个人中心','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(13,'T2','T2-2','模板收藏夹增强','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(14,'T2','T2-3','模板批量管理工具','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(15,'T2','T2-4','模板商店搜索增强','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(16,'T2','T2-5','模板分类管理增强','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(17,'AI2','AI2-1','AI批量内容改写','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(18,'AI2','AI2-2','AI SEO预览与优化','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(19,'AI2','AI2-3','AI智能配图基础版','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(20,'AI2','AI2-4','AI多风格写作扩展','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(21,'UX','UX-1','移动端体验增强','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(22,'UX','UX-2','页面加载性能优化','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(23,'UX','UX-3','后台交互体验优化','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(24,'DOC','DOC-1','系统配置文档','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(25,'DOC','DOC-2','API开放文档完善','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01'),(26,'DOC','DOC-3','部署运维文档','','',1,'','2026-07-09 17:06:01','2026-07-09 17:06:01');
+DROP TABLE IF EXISTS `{prefix}feedback`;
+CREATE TABLE `{prefix}feedback` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'bug' COMMENT '类型:bug程序缺陷/enhancement功能建议/question使用疑问',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '反馈标题',
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '问题描述',
+  `contact_email` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '回信邮箱',
+  `contact_mobile` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '联系电话',
+  `admin_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '提交人后台用户ID',
+  `admin_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '提交人名称',
+  `attachments` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '截图路径JSON数组',
+  `env` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '环境信息JSON',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '状态:0待处理1处理中2已解决3已答复4忽略',
+  `reply_content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '官方答复内容',
+  `reply_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '答复时间',
+  `gateway_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中心网关受理编号',
+  `gateway_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '上报状态:0待上报1已上报2失败',
+  `gateway_error` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '上报失败原因',
+  `notify_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '通知状态:0未通知1已通知2失败',
+  `site_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '站点地址',
+  `app_version` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '提交时程序版本',
+  `create_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `update_time` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_gateway_status` (`gateway_status`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='后台问题反馈表';
+
 DROP TABLE IF EXISTS `{prefix}form`;
 CREATE TABLE `{prefix}form` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -5073,6 +5102,10 @@ CREATE TABLE `{prefix}theme_info` (
   `install_count` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '安装次数(S15)',
   `screenshots` json DEFAULT NULL COMMENT '截图URL数组(S15)',
   `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '来源商店模板ID，0表示非商店模板(V2.9.12)',
+  `source` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '来源(source=ai-theme 表示 AI-THEME 适配器安装)',
+  `task_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT 'AI-THEME 任务 ID',
+  `installed_at` datetime DEFAULT NULL COMMENT '安装时间',
+  `package_sha256` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '整包 sha256',
   `create_time` int(10) unsigned NOT NULL DEFAULT '0',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),

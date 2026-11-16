@@ -38,7 +38,8 @@ class ApiAuthService
         // 频率限制检查
         if (!$this->checkRateLimit($key->id, $key->rate_limit)) return false;
 
-        $scopes = json_decode($key->scopes, true) ?: [];
+        // V2.9.63 R-4：统一走 ScopeMatcher::parse（逗号分隔优先，JSON 兜底）
+        $scopes = \app\common\service\agent\ScopeMatcher::parse($key->scopes);
 
         // 记录调用日志
         ApiLog::create([

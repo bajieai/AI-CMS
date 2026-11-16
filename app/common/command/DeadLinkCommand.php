@@ -17,6 +17,7 @@ namespace app\common\command;
 use app\common\service\SeoService;
 use think\console\Command;
 use think\console\Input;
+use think\console\input\Option;
 use think\console\Output;
 
 /**
@@ -31,7 +32,7 @@ class DeadLinkCommand extends Command
             ->setDescription('检测内容中的死链并生成报告')
             ->addOption('notify', 'n', null, '检测完成后发送通知')
             ->addOption('fix', 'f', null, '自动将死链标记为nofollow')
-            ->addOption('limit', 'l', null, '限制检测的内容数量，默认全部', 0);
+            ->addOption('limit', 'l', Option::VALUE_OPTIONAL, '限制检测的内容数量，默认全部', 0);
     }
 
     protected function execute(Input $input, Output $output): int

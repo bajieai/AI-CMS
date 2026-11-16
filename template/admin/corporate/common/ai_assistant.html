@@ -1,0 +1,120 @@
+<!-- AI 助手对话悬浮窗（ACP-15 · V2.9.63 S3）
+     挂载：layout.html 在 PJAX 容器之外 include 本片段；
+     PJAX 切页由 PjaxMiddleware 以 AI-ASSISTANT-START/END 标记原样回挂，前端以 id 幂等替换（不重复、不消失）。
+     W1 约束：白名单第一（R-6）、只读问答零模型（P-2）、不携带 Cookie/会话凭证（S-8，仅上送 current_path）。 -->
+<!-- AI-ASSISTANT-START -->
+<style id="ai-assistant-style">
+    #ai-assistant-root .ai-assistant-fab {
+        position: fixed; right: 22px; bottom: 26px; z-index: 10900;
+        width: 46px; height: 46px; border: none; border-radius: 50%;
+        background: #4f6ef2; color: #fff; font-size: 13px; font-weight: 600;
+        cursor: pointer; box-shadow: 0 6px 18px rgba(79,110,242,.38);
+        letter-spacing: -1px;
+    }
+    #ai-assistant-root .ai-assistant-fab:hover { background: #3d5be0; }
+    #ai-assistant-root .ai-assistant-window {
+        position: fixed; right: 22px; bottom: 82px; z-index: 10900;
+        width: 340px; max-width: calc(100vw - 44px); height: 440px; max-height: calc(100vh - 130px);
+        background: #fff; border-radius: 12px; overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0,0,0,.22);
+        display: flex; flex-direction: column;
+    }
+    #ai-assistant-root .ai-assistant-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 14px; background: #4f6ef2; color: #fff; font-size: 13px;
+        flex: 0 0 auto;
+    }
+    #ai-assistant-root .ai-assistant-head button {
+        border: none; background: transparent; color: #fff; font-size: 18px;
+        cursor: pointer; line-height: 1; padding: 2px 6px;
+    }
+    #ai-assistant-root .ai-assistant-body {
+        flex: 1 1 auto; overflow-y: auto; padding: 12px;
+        background: #f5f7fb; font-size: 13px; line-height: 1.6;
+    }
+    #ai-assistant-root .ai-assistant-msg {
+        max-width: 88%; padding: 8px 11px; border-radius: 10px;
+        margin-bottom: 10px; word-break: break-word; white-space: pre-wrap;
+    }
+    #ai-assistant-root .ai-assistant-msg.user {
+        margin-left: auto; background: #4f6ef2; color: #fff; border-bottom-right-radius: 3px;
+    }
+    #ai-assistant-root .ai-assistant-msg.bot {
+        margin-right: auto; background: #fff; color: #2b3144;
+        border: 1px solid #e6eaf2; border-bottom-left-radius: 3px;
+    }
+    #ai-assistant-root .ai-assistant-card {
+        background: #fff; border: 1px solid #e6eaf2; border-radius: 10px;
+        padding: 10px 12px; margin-bottom: 10px; font-size: 13px;
+    }
+    #ai-assistant-root .ai-assistant-card .ai-card-kv { margin: 0; }
+    #ai-assistant-root .ai-assistant-card .ai-card-kv dt { color: #8891a8; font-size: 12px; }
+    #ai-assistant-root .ai-assistant-card .ai-card-kv dd { margin: 0 0 6px; color: #2b3144; }
+    #ai-assistant-root .ai-assistant-card table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #ai-assistant-root .ai-assistant-card th, #ai-assistant-root .ai-assistant-card td {
+        border-bottom: 1px solid #eef1f6; padding: 4px 6px; text-align: left;
+        max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    #ai-assistant-root .ai-assistant-card th { color: #8891a8; font-weight: 500; }
+    #ai-assistant-root .ai-assistant-total { font-size: 24px; font-weight: 700; color: #2b3144; margin: 2px 0 8px; }
+    #ai-assistant-root .ai-assistant-wm {
+        margin-top: 8px; padding-top: 6px; border-top: 1px dashed #e6eaf2;
+        color: #a2aabd; font-size: 11px;
+    }
+    #ai-assistant-root .ai-assistant-foot {
+        flex: 0 0 auto; display: flex; gap: 8px; padding: 10px 12px;
+        background: #fff; border-top: 1px solid #eef1f6;
+    }
+    #ai-assistant-root .ai-assistant-foot input {
+        flex: 1 1 auto; border: 1px solid #dfe4ee; border-radius: 8px;
+        padding: 7px 10px; font-size: 13px; outline: none;
+    }
+    #ai-assistant-root .ai-assistant-foot input:focus { border-color: #4f6ef2; }
+    #ai-assistant-root .ai-assistant-foot button {
+        flex: 0 0 auto; border: none; border-radius: 8px; padding: 7px 14px;
+        background: #4f6ef2; color: #fff; font-size: 13px; cursor: pointer;
+    }
+    #ai-assistant-root .ai-assistant-foot button:disabled { opacity: .5; cursor: not-allowed; }
+    #ai-assistant-root .ai-assistant-chip {
+        display: inline-block; margin: 3px 4px 3px 0; padding: 3px 9px;
+        background: #eef1ff; color: #4f6ef2; border-radius: 12px;
+        font-size: 12px; cursor: pointer; border: none;
+    }
+    #ai-assistant-root .ai-assistant-loading::after {
+        content: '…'; animation: ai-assistant-blink 1s infinite;
+    }
+    @keyframes ai-assistant-blink { 50% { opacity: .3; } }
+</style>
+
+<div id="ai-assistant-root" data-module="ai-assistant-window">
+    <button id="ai-assistant-fab" class="ai-assistant-fab" type="button" aria-label="AI 助手">AI</button>
+
+    <div id="ai-assistant-window" class="ai-assistant-window" hidden>
+        <div class="ai-assistant-head">
+            <span>AI 助手 · 只读问答（W1 白名单）</span>
+            <button type="button" id="ai-assistant-close" aria-label="关闭">×</button>
+        </div>
+
+        <div class="ai-assistant-body" id="ai-assistant-msgs">
+            <div class="ai-assistant-card">
+                W1 只开放只读查询，不执行任何写操作。<br>
+                可以试试：
+                <div style="margin-top:6px">
+                    <button type="button" class="ai-assistant-chip" data-q="有多少文章">有多少文章？</button>
+                    <button type="button" class="ai-assistant-chip" data-q="系统是什么版本">系统是什么版本？</button>
+                    <button type="button" class="ai-assistant-chip" data-q="最近 AI 调用日志">最近 AI 调用日志</button>
+                    <button type="button" class="ai-assistant-chip" data-q="数据概览">数据概览</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-assistant-foot">
+            <input id="ai-assistant-input" type="text" maxlength="200" autocomplete="off"
+                   placeholder="试试：有多少文章？">
+            <button id="ai-assistant-send" type="button">发送</button>
+        </div>
+
+        <input type="hidden" name="__token__" id="ai-assistant-csrf" value="{:token()}">
+    </div>
+</div>
+<!-- AI-ASSISTANT-END -->
