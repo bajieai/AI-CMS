@@ -40,6 +40,7 @@ class UpgradePackageCommand extends Command
             ->addArgument('from_version', Argument::OPTIONAL, '起始版本号', '')
             ->addArgument('to_version', Argument::OPTIONAL, '目标版本号', '')
             ->addOption('diff', 'd', Option::VALUE_NONE, '基于 git diff 自动生成变更文件清单')
+            ->addOption('force', 'f', Option::VALUE_NONE, '跳过本地开发痕迹内容检查（谨慎使用）')
             ->addOption('source', 's', Option::VALUE_OPTIONAL, '源文件目录', '')
             ->addOption('output', 'o', Option::VALUE_OPTIONAL, '输出目录', '')
             ->setDescription('生成 AI-CMS 在线升级包');
@@ -50,6 +51,7 @@ class UpgradePackageCommand extends Command
         $fromVersion = trim($input->getArgument('from_version'));
         $toVersion = trim($input->getArgument('to_version'));
         $isDiff = $input->hasOption('diff') && $input->getOption('diff');
+        $force = $input->hasOption('force') && $input->getOption('force');
         $sourceDir = trim($input->getOption('source') ?: '');
         $outputDir = trim($input->getOption('output') ?: '');
 
@@ -94,6 +96,19 @@ class UpgradePackageCommand extends Command
             return 0;
         }
 
+        // V2.9.64: 打包前拦截本地开发痕迹（隐藏目录路径引用等），防止泄漏进发布资产
+        if (!$force) {
+            $traces = $this->findLocalTraceHits($files);
+            if (!empty($traces)) {
+                $output->error('检测到本地开发痕迹，已中止打包（共 ' . count($traces) . ' 处）：');
+                foreach ($traces as $trace) {
+                    $output->error('  - ' . $trace);
+                }
+                $output->warning('如确属正常内容，可加 --force 跳过此检查');
+                return 1;
+            }
+        }
+
         // 生成 manifest
         $manifest = [
             'from_version' => $fromVersion,
@@ -117,6 +132,9 @@ class UpgradePackageCommand extends Command
                 if ($file->isFile() && str_ends_with($file->getFilename(), '.sql')
                     && $file->getFilename() !== 'install.sql') {
                     $relative = $this->getRelativePath($sourceDir, $file->getPathname());
+                    if ($this->isLocalOnlyPath($relative)) {
+                        continue;
+                    }
                     $manifest['sql_patches'][] = $relative;
                 }
             }
@@ -186,11 +204,11 @@ class UpgradePackageCommand extends Command
                 continue;
             }
             $fileName = $file->getFilename();
-            // 跳过 manifest.json 本身和隐藏文件
-            if ($fileName === 'manifest.json' || str_starts_with($fileName, '.')) {
+            $relative = $this->getRelativePath($sourceDir, $file->getPathname());
+            // 跳过 manifest.json 本身、隐藏文件与本地开发专用目录
+            if ($fileName === 'manifest.json' || $this->isLocalOnlyPath($relative)) {
                 continue;
             }
-            $relative = $this->getRelativePath($sourceDir, $file->getPathname());
             $files[$relative] = $file->getPathname();
         }
 
@@ -245,6 +263,10 @@ class UpgradePackageCommand extends Command
             if (!file_exists($sourcePath)) {
                 continue; // 删除的文件不加入 files
             }
+            // V2.9.64: 隐藏文件与本地开发专用目录一律不进升级包
+            if ($this->isLocalOnlyPath($relativePath)) {
+                continue;
+            }
             $targetPath = $sourceDir . $relativePath;
             $targetDir = dirname($targetPath);
             if (!is_dir($targetDir)) {
@@ -256,6 +278,102 @@ class UpgradePackageCommand extends Command
 
         $output->info('基于 git diff 收集到 ' . count($files) . ' 个文件');
         return $files;
+    }
+
+    /**
+     * 本地开发专用目录（不进升级包，避免本地开发产物随发布资产外泄）
+     *
+     * @var string[]
+     */
+    protected const LOCAL_ONLY_DIRS = [
+        'docs', 'bin', 'tools', 'tests', 'build', 'deploy',
+        '产品文档', 'node_modules', 'runtime', '_v1_archive', 'h5-frontend/node_modules',
+    ];
+
+    /**
+     * 本地开发专用文件（不进升级包）
+     *
+     * @var string[]
+     */
+    protected const LOCAL_ONLY_FILES = [
+        'CHANGELOG.md', 'docker-php.bat', 'phpunit.xml', '.phpunit.result.cache',
+    ];
+
+    /**
+     * 判断相对路径是否属于"仅本地、不发布"的内容
+     *
+     * 规则：
+     *   1. 任一路径段以 . 开头（隐藏文件/目录，如 .gitignore、本地工作区、IDE 配置）
+     *   2. 首层目录命中 LOCAL_ONLY_DIRS
+     *   3. 文件名命中 LOCAL_ONLY_FILES
+     */
+    protected function isLocalOnlyPath(string $relativePath): bool
+    {
+        $relativePath = str_replace('\\', '/', trim($relativePath));
+        $relativePath = ltrim($relativePath, '/');
+        if ($relativePath === '') {
+            return true;
+        }
+
+        $segments = array_values(array_filter(explode('/', $relativePath), static fn ($s) => $s !== ''));
+        foreach ($segments as $segment) {
+            if (str_starts_with($segment, '.')) {
+                return true;
+            }
+        }
+
+        $first = $segments[0] ?? '';
+        if (in_array($first, self::LOCAL_ONLY_DIRS, true)) {
+            return true;
+        }
+        // 支持 "h5-frontend/node_modules/xxx" 这类二级目录规则
+        if (count($segments) >= 2 && in_array($first . '/' . $segments[1], self::LOCAL_ONLY_DIRS, true)) {
+            return true;
+        }
+
+        $baseName = $segments[count($segments) - 1];
+        if (in_array($baseName, self::LOCAL_ONLY_FILES, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 扫描待打包文件中是否引用了本地隐藏目录（如 IDE/工具工作区路径）
+     *
+     * 说明：仅按"以点开头的目录路径"这一通用特征识别，不内置任何具体工具名，
+     *       目的是让本地开发痕迹无法随升级包发布出去。
+     *
+     * @param  array<string,string> $files 相对路径 => 绝对路径
+     * @return string[] 命中描述列表，空数组表示干净
+     */
+    protected function findLocalTraceHits(array $files): array
+    {
+        $extensions = [
+            'md', 'txt', 'php', 'sql', 'json', 'html', 'htm', 'js', 'css',
+            'htaccess', 'yml', 'yaml', 'bat', 'sh', 'ini', 'env', 'xml', 'conf',
+        ];
+        $pattern = '/(?<![A-Za-z0-9_-])\.[A-Za-z0-9_-]{2,}\//';
+        $hits = [];
+
+        foreach ($files as $relativePath => $absolutePath) {
+            $ext = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+            if (!in_array($ext, $extensions, true)) {
+                continue;
+            }
+            if (!is_file($absolutePath) || filesize($absolutePath) > 2 * 1024 * 1024) {
+                continue;
+            }
+            $content = (string) file_get_contents($absolutePath);
+            if ($content === '' || preg_match_all($pattern, $content, $matches) === 0) {
+                continue;
+            }
+            $samples = array_values(array_unique($matches[0]));
+            $hits[] = $relativePath . ' => ' . implode(', ', array_slice($samples, 0, 5));
+        }
+
+        return $hits;
     }
 
     /**
