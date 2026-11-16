@@ -144,16 +144,33 @@ class ThemeGeneratorController extends AdminBaseController
                     throw new ThemeGeneratorException('E-TG-018', '无法落盘皮肤资源：' . $skinTarget . DIRECTORY_SEPARATOR . 'assets');
                 }
 
-                // 契约补齐：与引擎 ai_cms.py::install() 同源同规则（default → <slug>，只补缺、不覆盖）
-                // 模板侧补 <slug>/pc/，皮肤侧补 public/skin/themes/<slug>/pc/（layout 的 {$skin}css/... 依赖后者）。
-                $filledTemplates = $this->copyMissing(
-                    $this->templateThemesRoot() . DIRECTORY_SEPARATOR . self::DEFAULT_THEME . DIRECTORY_SEPARATOR . 'pc',
-                    $templateTarget . DIRECTORY_SEPARATOR . 'pc'
-                );
-                $filledSkins = $this->copyMissing(
-                    $this->skinThemesRoot() . DIRECTORY_SEPARATOR . self::DEFAULT_THEME . DIRECTORY_SEPARATOR . 'pc',
-                    $skinTarget . DIRECTORY_SEPARATOR . 'pc'
-                );
+                // 自包含包：皮肤设备目录一并落盘，落点与 CMS `$skin`（/skin/themes/<slug>/<device>/）一致。
+                if (
+                    is_dir($packageSkin . DIRECTORY_SEPARATOR . 'pc')
+                    && !rename($packageSkin . DIRECTORY_SEPARATOR . 'pc', $skinTarget . DIRECTORY_SEPARATOR . 'pc')
+                ) {
+                    throw new ThemeGeneratorException(
+                        'E-TG-018',
+                        '无法落盘皮肤设备目录：' . $skinTarget . DIRECTORY_SEPARATOR . 'pc'
+                    );
+                }
+
+                // 契约补齐（仅旧包）：与引擎 ai_cms.py::install() 同源同规则（default → <slug>，只补缺、不覆盖）。
+                // 自包含包自带 pc/layout.html 与皮肤 pc/，安装期零补齐。
+                $filledTemplates = [];
+                $filledSkins = [];
+                if (!is_file($templateTarget . DIRECTORY_SEPARATOR . 'pc' . DIRECTORY_SEPARATOR . 'layout.html')) {
+                    $filledTemplates = $this->copyMissing(
+                        $this->templateThemesRoot() . DIRECTORY_SEPARATOR . self::DEFAULT_THEME . DIRECTORY_SEPARATOR . 'pc',
+                        $templateTarget . DIRECTORY_SEPARATOR . 'pc'
+                    );
+                }
+                if (!is_dir($skinTarget . DIRECTORY_SEPARATOR . 'pc')) {
+                    $filledSkins = $this->copyMissing(
+                        $this->skinThemesRoot() . DIRECTORY_SEPARATOR . self::DEFAULT_THEME . DIRECTORY_SEPARATOR . 'pc',
+                        $skinTarget . DIRECTORY_SEPARATOR . 'pc'
+                    );
+                }
             } catch (\Throwable $e) {
                 if (is_dir($templateTarget)) {
                     $this->removeDirectory($templateTarget);

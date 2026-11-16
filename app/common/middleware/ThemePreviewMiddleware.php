@@ -79,7 +79,7 @@ class ThemePreviewMiddleware
 
         // 添加响应头标记（调试用）
         if ($response instanceof \think\Response) {
-            $response->header('X-Preview-Theme', $themeName);
+            $response->header(['X-Preview-Theme' => $themeName]);
         }
 
         return $response;
