@@ -13,6 +13,9 @@ namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
 use app\common\middleware\ThemePreviewMiddleware;
+use app\common\model\Config as ConfigModel;
+use app\common\service\TemplateService;
+use app\common\service\theme\ThemeReviewService;
 use app\common\service\theme_generator\BtpkgAdapterService;
 use app\common\service\theme_generator\ThemeBundleValidator;
 use app\common\service\theme_generator\ThemeGeneratorException;
@@ -45,10 +48,40 @@ class ThemeGeneratorController extends AdminBaseController
     {
         $this->guard();
 
-        $repository = new ThemeOriginRepository();
+        // V2.9.64 T-5: 列表口径从「source=ai-theme 的登记行」扩为「前台主题目录全集 + 验收状态」，
+        // 这样 AI 生成、商店安装、手工落盘的主题都能在同一页验收/驳回/卸载
+        $registered = [];
+        foreach ((new ThemeOriginRepository())->listInstalled() as $row) {
+            $registered[(string) $row['code']] = $row;
+        }
+
+        $statusMap     = ThemeReviewService::statusMap();
+        $activeTheme   = (string) (ConfigModel::where('name', 'frontend_theme')->value('value') ?: self::DEFAULT_THEME);
+        $list          = [];
+
+        foreach (TemplateService::scanThemes(false) as $theme) {
+            $code   = (string) $theme['name'];
+            $row    = $registered[$code] ?? [];
+            $status = isset($statusMap[$code]) ? (int) $statusMap[$code] : ThemeReviewService::STATUS_APPROVED;
+
+            $list[] = [
+                'code'           => $code,
+                'name'           => (string) ($row['name'] ?? $theme['label']),
+                'version'        => (string) ($row['version'] ?? $theme['version']),
+                'source'         => (string) ($row['source'] ?? 'directory'),
+                'task_id'        => (string) ($row['task_id'] ?? ''),
+                'installed_at'   => (string) ($row['installed_at'] ?? ''),
+                'package_sha256' => (string) ($row['package_sha256'] ?? ''),
+                'review_status'  => $status,
+                'review_text'    => ThemeReviewService::statusText($status),
+                'review_remark'  => (string) ($row['review_remark'] ?? ''),
+                'is_default'     => $code === self::DEFAULT_THEME,
+                'is_active'      => $code === $activeTheme,
+            ];
+        }
 
         $this->app->view->assign([
-            'list' => $repository->listInstalled(),
+            'list' => $list,
         ]);
 
         return $this->app->view->fetch('theme_generator/index');
@@ -310,6 +343,117 @@ class ThemeGeneratorController extends AdminBaseController
         } catch (\Throwable $e) {
             Log::error('theme_generator rollback failed: ' . $e->getMessage());
             return $this->fail('E-TG-019', '回滚失败：' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 验收通过：主题进入前台可选列表（V2.9.64 T-4）
+     */
+    public function accept(): \think\Response
+    {
+        $this->guard();
+
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $slug = trim((string) $this->request->post('slug', ''));
+        if (!preg_match(self::SLUG_PATTERN, $slug)) {
+            return $this->error('主题标识非法');
+        }
+
+        $result = ThemeReviewService::accept($slug, (int) session('user_id'));
+        if (!$result['success']) {
+            return $this->error($result['message']);
+        }
+
+        Log::info("[theme_review] accept slug={$slug} by=" . (int) session('user_id'));
+
+        return $this->success($result['message'], ['slug' => $slug, 'review_status' => 1]);
+    }
+
+    /**
+     * 验收驳回：保持前台不可选，必须填写原因（V2.9.64 T-4）
+     */
+    public function reject(): \think\Response
+    {
+        $this->guard();
+
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $slug   = trim((string) $this->request->post('slug', ''));
+        $remark = trim((string) $this->request->post('remark', ''));
+
+        if (!preg_match(self::SLUG_PATTERN, $slug)) {
+            return $this->error('主题标识非法');
+        }
+
+        $result = ThemeReviewService::reject($slug, (int) session('user_id'), $remark);
+        if (!$result['success']) {
+            return $this->error($result['message']);
+        }
+
+        Log::info("[theme_review] reject slug={$slug} by=" . (int) session('user_id') . " remark={$remark}");
+
+        return $this->success($result['message'], ['slug' => $slug, 'review_status' => 2]);
+    }
+
+    /**
+     * 卸载：删模板目录、皮肤目录、@prev 备份与登记行（V2.9.64 T-4）
+     * 保护：default 主题、当前前台使用中的主题一律不可卸载
+     */
+    public function uninstall(): \think\Response
+    {
+        $this->guard();
+
+        if (!$this->request->isPost()) {
+            return $this->error('请求方式错误');
+        }
+
+        $slug = trim((string) $this->request->post('slug', ''));
+        if (!preg_match(self::SLUG_PATTERN, $slug)) {
+            return $this->error('主题标识非法');
+        }
+
+        if ($slug === self::DEFAULT_THEME) {
+            return $this->error('默认主题不可卸载');
+        }
+
+        $active = (string) ConfigModel::where('name', 'frontend_theme')->value('value');
+        if ($active !== '' && $active === $slug) {
+            return $this->error('该主题正在前台使用，请先切换到其他主题再卸载');
+        }
+
+        $templateDir = $this->templateThemesRoot() . DIRECTORY_SEPARATOR . $slug;
+        $skinDir     = $this->skinThemesRoot() . DIRECTORY_SEPARATOR . $slug;
+
+        if (!is_dir($templateDir) && !is_dir($skinDir)) {
+            return $this->error('主题目录不存在：' . $slug);
+        }
+
+        try {
+            foreach ([$templateDir . '@prev', $skinDir . '@prev'] as $backup) {
+                if (is_dir($backup)) {
+                    $this->removeDirectory($backup);
+                }
+            }
+            if (is_dir($templateDir)) {
+                $this->removeDirectory($templateDir);
+            }
+            if (is_dir($skinDir)) {
+                $this->removeDirectory($skinDir);
+            }
+
+            ThemeReviewService::forget($slug);
+            Log::info("[theme_review] uninstall slug={$slug} by=" . (int) session('user_id'));
+
+            return $this->success('已卸载', ['slug' => $slug]);
+        } catch (\Throwable $e) {
+            Log::error('theme_generator uninstall failed: ' . $e->getMessage());
+
+            return $this->fail('E-TG-020', '卸载失败：' . $e->getMessage());
         }
     }
 

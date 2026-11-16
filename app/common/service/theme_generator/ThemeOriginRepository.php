@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace app\common\service\theme_generator;
 
+use app\common\service\theme\ThemeReviewService;
 use think\facade\Db;
 
 /**
@@ -80,8 +81,17 @@ class ThemeOriginRepository
 
         $existing = $this->findBySlug($slug);
 
+        // V2.9.64 T-3: 安装 / 升级 / 同版本重装 一律回到「待验收」，验收通过前不进前台可选列表
+        $reviewMeta = [
+            'name'        => (string) $manifest['name'],
+            'version'     => (string) $manifest['version'],
+            'description' => (string) ($manifest['description'] ?? ''),
+        ];
+
         if ($existing) {
             Db::name('theme_info')->where('id', (int) $existing['id'])->update($payload);
+            ThemeReviewService::markPending($slug, $reviewMeta);
+
             return $this->findBySlug($slug) ?? $existing;
         }
 
@@ -89,6 +99,8 @@ class ThemeOriginRepository
         $payload['type'] = self::TYPE;
         $payload['create_time'] = $now;
         $id = Db::name('theme_info')->insertGetId($payload);
+
+        ThemeReviewService::markPending($slug, $reviewMeta);
 
         return $this->findBySlug($slug) ?? ['id' => (int) $id] + $payload;
     }

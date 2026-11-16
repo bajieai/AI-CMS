@@ -16,6 +16,7 @@ namespace app\common\service;
 
 use think\facade\Cache;
 use app\common\model\Config as ConfigModel;
+use app\common\service\theme\ThemeReviewService;
 
 /**
  * 模板路径解析服务
@@ -204,8 +205,11 @@ class TemplateService
 
     /**
      * 扫描所有可用前台主题
+     *
+     * @param bool $onlyApproved true（默认）= 只返回已验收主题，供前台/皮肤选择使用；
+     *                           false = 返回全部（含待验收/已驳回），供后台治理列表使用
      */
-    public static function scanThemes(): array
+    public static function scanThemes(bool $onlyApproved = true): array
     {
         $themesDir = root_path() . self::THEME_ROOT;
         if (!is_dir($themesDir)) {
@@ -214,6 +218,9 @@ class TemplateService
 
         // 需要排除的非主题目录
         $excludeDirs = ['shared'];
+
+        // V2.9.64 T-2: 验收状态白名单（读库异常返回空数组时不过滤，避免误伤线上可用主题）
+        $statusMap = $onlyApproved ? ThemeReviewService::statusMap() : [];
 
         $themes = [];
         $dirs = glob($themesDir . '*', GLOB_ONLYDIR);
@@ -225,7 +232,17 @@ class TemplateService
                 continue;
             }
 
-            $configFile = $dir . DIRECTORY_SEPARATOR . 'theme.json';
+            // V2.9.64 T-2: 安装/回滚产生的备份目录（<slug>@prev、<slug>@reinstall-xxxx）不是合法主题
+            if (str_contains($name, '@')) {
+                continue;
+            }
+
+            // V2.9.64 T-2: 有登记行且未验收 → 不进前台可选列表；无登记行的历史目录保持可用
+            if ($onlyApproved && $name !== self::DEFAULT_THEME && isset($statusMap[$name])
+                && (int) $statusMap[$name] !== ThemeReviewService::STATUS_APPROVED) {
+                continue;
+            }
+
             $configFile = $dir . DIRECTORY_SEPARATOR . 'theme.json';
             $config = [];
             if (is_file($configFile)) {

@@ -157,6 +157,11 @@ class AiThemeGenerateService
             // 6. 更新记录状态
             if ($validateResult['passed']) {
                 AiThemeRecord::markPendingReview($recordId, $writeResult['files_tree']);
+                // V2.9.64 T-3: 落盘即登记为「待验收」，验收通过前不进前台可选列表
+                \app\common\service\theme\ThemeReviewService::markPending($themeName, [
+                    'name'    => $themeName,
+                    'version' => '1.0.0',
+                ]);
                 Log::info("[AiThemeGenerate] 生成完成待审核: record_id={$recordId}, files={$writeResult['written_count']}");
                 // V2.9.12: 触发质量校验事件
                 $this->fireQualityCheckEvent($themeName);
@@ -264,6 +269,11 @@ class AiThemeGenerateService
             $filesTree = $this->scanFilesTree($baseDir);
             if ($validateResult['passed']) {
                 AiThemeRecord::markPendingReview($recordId, $filesTree);
+                // V2.9.64 T-3: 同上，骨架模式生成后同样进入待验收
+                \app\common\service\theme\ThemeReviewService::markPending($themeName, [
+                    'name'    => $themeName,
+                    'version' => '1.0.0',
+                ]);
                 Log::info("[AiThemeGenerate] 骨架模式生成完成: record_id={$recordId}");
                 // V2.9.12: 触发质量校验事件
                 $this->fireQualityCheckEvent($themeName);

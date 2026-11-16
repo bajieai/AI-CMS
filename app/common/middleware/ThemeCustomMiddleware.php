@@ -111,7 +111,8 @@ class ThemeCustomMiddleware
     public static function clearAllCache(): void
     {
         // 扫描所有主题清除缓存
-        $themes = TemplateService::scanThemes();
+        // V2.9.64: 含待验收主题，避免其定制缓存残留
+        $themes = TemplateService::scanThemes(false);
         foreach ($themes as $theme) {
             $name = $theme['dirname'] ?? $theme['name'] ?? '';
             if ($name) {

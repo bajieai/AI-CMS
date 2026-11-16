@@ -107,6 +107,8 @@ return [
             ['id' => 761, 'name' => '翻译语言管理', 'url' => '/admin/translate/languages', 'permission' => 'ai_translation.*', 'active' => 'translate_language', 'icon' => 'bi bi-globe2'],
             // V2.9.10: AI配置中心
             ['id' => 77, 'name' => 'AI配置', 'url' => '/admin/system/aiConfig', 'permission' => 'ai_config.*', 'active' => 'ai_config', 'icon' => 'bi bi-sliders'],
+            // V2.9.63/V2.9.64: AI 主题安装（BTPKG 装包 + 验收闭环，与存量库 936 一致）
+            ['id' => 936, 'name' => 'AI主题安装', 'url' => '/admin/theme_generator/index', 'permission' => 'theme_generator.*', 'active' => 'theme_generator', 'icon' => 'bi bi-box-seam'],
         ],
     ],
     [

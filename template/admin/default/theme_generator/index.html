@@ -6,6 +6,11 @@
 {/block}
 
 {block name="content"}
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="/admin/theme_generator/index"><i class="bi bi-box-seam me-1"></i>安装与验收</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/ai_theme/index"><i class="bi bi-stars me-1"></i>AI 生成主题</a></li>
+</ul>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>AI 主题安装（BTPKG）</h5>
     <span class="badge bg-secondary">落点 template/themes + public/skin/themes</span>
@@ -53,6 +58,7 @@
                     <th>code</th>
                     <th>名称</th>
                     <th>版本</th>
+                    <th>验收状态</th>
                     <th>source</th>
                     <th>task_id</th>
                     <th>installed_at</th>
@@ -62,20 +68,41 @@
                 </thead>
                 <tbody>
                 {if empty($list)}
-                <tr><td colspan="8" class="text-center text-muted py-4">当前无数据</td></tr>
+                <tr><td colspan="9" class="text-center text-muted py-4">当前无数据</td></tr>
                 {/if}
                 {volist name="list" id="item"}
                 <tr>
-                    <td class="mono">{$item.code}</td>
+                    <td class="mono">{$item.code}{if $item.is_active} <span class="badge bg-success">前台使用中</span>{/if}</td>
                     <td>{$item.name}</td>
                     <td>{$item.version}</td>
+                    <td>
+                        {if condition="$item.review_status == 1"}
+                        <span class="badge bg-success">{$item.review_text}</span>
+                        {else /}
+                        {if condition="$item.review_status == 2"}
+                        <span class="badge bg-danger">{$item.review_text}</span>
+                        {if condition="$item.review_remark != ''"}<div class="small text-muted">{$item.review_remark}</div>{/if}
+                        {else /}
+                        <span class="badge bg-warning text-dark">{$item.review_text}</span>
+                        {/if}
+                        {/if}
+                    </td>
                     <td>{$item.source}</td>
                     <td class="mono small">{$item.task_id}</td>
                     <td>{$item.installed_at}</td>
                     <td class="mono small">{$item.package_sha256}</td>
                     <td class="text-end">
                         <a class="btn btn-outline-primary btn-sm" href="/admin/theme_generator/preview?slug={$item.code}" target="_blank">预览</a>
+                        {if condition="$item.review_status != 1"}
+                        <button type="button" class="btn btn-outline-success btn-sm tg-accept" data-slug="{$item.code}">验收</button>
+                        {/if}
+                        {if condition="$item.review_status != 2"}
+                        <button type="button" class="btn btn-outline-warning btn-sm tg-reject" data-slug="{$item.code}">驳回</button>
+                        {/if}
                         <button type="button" class="btn btn-outline-secondary btn-sm tg-rollback" data-slug="{$item.code}">回滚</button>
+                        {if condition="!$item.is_default && !$item.is_active"}
+                        <button type="button" class="btn btn-outline-danger btn-sm tg-uninstall" data-slug="{$item.code}">卸载</button>
+                        {/if}
                     </td>
                 </tr>
                 {/volist}
@@ -123,18 +150,62 @@
         }).catch(function (err) { show({code: -1, msg: String(err)}); });
     });
 
+    function postAction(url, payload) {
+        return fetch(url, {
+            method: 'POST',
+            headers: buildHeaders(),
+            body: new URLSearchParams(payload).toString()
+        }).then(function (res) { return res.json(); });
+    }
+
     Array.prototype.forEach.call(document.querySelectorAll('.tg-rollback'), function (btn) {
         btn.addEventListener('click', function () {
             if (!confirm('确认回滚 ' + btn.getAttribute('data-slug') + ' 到上一版？')) { return; }
-            var body = new URLSearchParams({slug: btn.getAttribute('data-slug')});
-            fetch('/admin/theme_generator/rollback', {
-                method: 'POST',
-                headers: buildHeaders(),
-                body: body.toString()
-            }).then(function (res) { return res.json(); }).then(function (data) {
+            postAction('/admin/theme_generator/rollback', {slug: btn.getAttribute('data-slug')}).then(function (data) {
                 show(data);
                 if (data.code === 0) {
                     setTimeout(function () { location.reload(); }, 900);
+                }
+            }).catch(function (err) { show({code: -1, msg: String(err)}); });
+        });
+    });
+
+    // V2.9.64: 验收 / 驳回 / 卸载
+    Array.prototype.forEach.call(document.querySelectorAll('.tg-accept'), function (btn) {
+        btn.addEventListener('click', function () {
+            var slug = btn.getAttribute('data-slug');
+            if (!confirm('确认验收 ' + slug + '？验收后该主题才会出现在前台可选列表。')) { return; }
+            postAction('/admin/theme_generator/accept', {slug: slug}).then(function (data) {
+                show(data);
+                if (data.code === 0) {
+                    setTimeout(function () { location.reload(); }, 800);
+                }
+            }).catch(function (err) { show({code: -1, msg: String(err)}); });
+        });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('.tg-reject'), function (btn) {
+        btn.addEventListener('click', function () {
+            var slug = btn.getAttribute('data-slug');
+            var remark = prompt('请填写驳回原因（必填）', '');
+            if (remark === null || remark.trim() === '') { return; }
+            postAction('/admin/theme_generator/reject', {slug: slug, remark: remark}).then(function (data) {
+                show(data);
+                if (data.code === 0) {
+                    setTimeout(function () { location.reload(); }, 800);
+                }
+            }).catch(function (err) { show({code: -1, msg: String(err)}); });
+        });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('.tg-uninstall'), function (btn) {
+        btn.addEventListener('click', function () {
+            var slug = btn.getAttribute('data-slug');
+            if (!confirm('确认卸载 ' + slug + '？模板目录、皮肤资源与登记信息都会被删除，不可恢复。')) { return; }
+            postAction('/admin/theme_generator/uninstall', {slug: slug}).then(function (data) {
+                show(data);
+                if (data.code === 0) {
+                    setTimeout(function () { location.reload(); }, 800);
                 }
             }).catch(function (err) { show({code: -1, msg: String(err)}); });
         });

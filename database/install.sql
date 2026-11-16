@@ -404,6 +404,7 @@ CREATE TABLE `{prefix}ai_task_queue` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '任务ID',
   `task_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '任务类型：ai_image_generate / batch_seo_optimize / single_seo_optimize',
   `agent_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '智能体ID',
+  `agent_key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '智能体标识(key,如content_writer,V2.9.64)',
   `agent_session_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '智能体会话ID',
   `agent_plan` json DEFAULT NULL COMMENT '智能体执行计划',
   `agent_memory` json DEFAULT NULL COMMENT '智能体记忆上下文',
@@ -425,6 +426,7 @@ CREATE TABLE `{prefix}ai_task_queue` (
   PRIMARY KEY (`id`),
   KEY `idx_biz` (`biz_id`,`task_type`),
   KEY `idx_biz_key` (`biz_key`),
+  KEY `idx_agent_key` (`agent_key`),
   KEY `idx_status` (`status`,`priority`,`scheduled_at`),
   KEY `idx_type_status` (`task_type`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI任务队列表';
@@ -2500,7 +2502,7 @@ INSERT INTO `{prefix}menu_item` VALUES (11,1,1,'信息管理','/admin/content/in
 
 INSERT IGNORE INTO `{prefix}menu_item` (`id`,`group_id`,`parent_id`,`name`,`url`,`permission`,`active`,`icon`,`sort`,`status`,`module`,`create_time`,`update_time`) VALUES (950,4,0,'问题反馈','/admin/feedback/index','feedback.*','feedback','bi bi-chat-left-dots',97,1,NULL,0,0),(951,4,0,'反馈设置','/admin/feedback/config','feedback.*','feedback_config','bi bi-sliders',98,1,NULL,0,0);
 
-INSERT IGNORE INTO `{prefix}menu_item` (`id`,`group_id`,`parent_id`,`name`,`url`,`permission`,`active`,`icon`,`sort`,`status`,`module`,`create_time`,`update_time`) VALUES (952,7,0,'AI主题安装','/admin/theme_generator/index','theme_generator.*','theme_generator','bi bi-box-seam',790,1,NULL,0,0);
+INSERT IGNORE INTO `{prefix}menu_item` (`id`,`group_id`,`parent_id`,`name`,`url`,`permission`,`active`,`icon`,`sort`,`status`,`module`,`create_time`,`update_time`) VALUES (936,7,0,'AI主题安装','/admin/theme_generator/index','theme_generator.*','theme_generator','bi bi-box-seam',790,1,NULL,0,0);
 DROP TABLE IF EXISTS `{prefix}message`;
 CREATE TABLE `{prefix}message` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -5096,6 +5098,10 @@ CREATE TABLE `{prefix}theme_info` (
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '描述',
   `thumbnail` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '缩略图',
   `is_installed` tinyint(4) DEFAULT '1' COMMENT '是否已安装',
+  `review_status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '验收状态:0待验收,1已验收,2已驳回(V2.9.64)',
+  `review_by` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '验收人ID(V2.9.64)',
+  `review_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '验收时间(V2.9.64)',
+  `review_remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '驳回原因(V2.9.64)',
   `installed_version` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '1.0.0' COMMENT '已安装版本',
   `update_available` tinyint(4) DEFAULT '0' COMMENT '有可用更新',
   `industry` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '行业类型(S15)',

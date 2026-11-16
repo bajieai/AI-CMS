@@ -1667,3 +1667,7 @@ Route::get('theme_generator/index$', '\app\admin\controller\ThemeGeneratorContro
 Route::post('theme_generator/install$', '\app\admin\controller\ThemeGeneratorController@install');
 Route::post('theme_generator/rollback$', '\app\admin\controller\ThemeGeneratorController@rollback');
 Route::get('theme_generator/preview$', '\app\admin\controller\ThemeGeneratorController@preview');
+// V2.9.64: 主题验收闭环
+Route::post('theme_generator/accept$', '\app\admin\controller\ThemeGeneratorController@accept');
+Route::post('theme_generator/reject$', '\app\admin\controller\ThemeGeneratorController@reject');
+Route::post('theme_generator/uninstall$', '\app\admin\controller\ThemeGeneratorController@uninstall');
