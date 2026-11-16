@@ -1,0 +1,129 @@
+{extend name="layout" /}
+
+{block name="title"}反馈设置{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统</li>
+<li class="breadcrumb-item"><a href="/admin/feedback/index">问题反馈</a></li>
+<li class="breadcrumb-item active">反馈设置</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">中心网关（可选）</div>
+            <div class="card-body">
+                <div class="alert alert-light border small mb-3">
+                    未配置网关时，反馈仅保存在本站数据库中，不对外发送任何数据；配置后提交将自动上报并记录受理编号。
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">网关地址</label>
+                    <input type="text" id="gatewayUrl" class="form-control" value="{$config.gateway_url}"
+                           placeholder="https://gateway.example.com">
+                    <div class="form-text">留空表示不启用；仅支持 http/https，保存时自动去掉末尾斜杠。</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">网关令牌</label>
+                    <input type="password" id="gatewayToken" class="form-control" value="{$config.gateway_token}"
+                           placeholder="Bearer Token，留空表示不携带">
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="autoReport" {if condition="$config.auto_report == 1"}checked{/if}>
+                    <label class="form-check-label" for="autoReport">提交后自动上报中心</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">邮件通知（可选）</div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="notifyEnabled" {if condition="$config.notify_enabled == 1"}checked{/if}>
+                    <label class="form-check-label" for="notifyEnabled">提交后发送邮件通知</label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">接收邮箱</label>
+                    <div class="input-group">
+                        <input type="email" id="notifyEmail" class="form-control" value="{$config.notify_email}"
+                               placeholder="feedback@example.com">
+                        <button class="btn btn-outline-secondary" type="button" onclick="testNotify(this)">发送测试</button>
+                    </div>
+                    <div class="form-text">依赖「系统设置 → 邮件配置」中已启用的 SMTP 通道。</div>
+                </div>
+            </div>
+            <div class="card-footer bg-white d-flex justify-content-end">
+                <button type="button" class="btn btn-primary" onclick="saveConfig(this)">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">上报协议</div>
+            <div class="card-body small text-muted">
+                <p class="mb-2">POST <code>{网关地址}/api/feedback</code></p>
+                <p class="mb-2">Header: <code>Authorization: Bearer {令牌}</code></p>
+                <p class="mb-2">Body（JSON）：站点地址、程序版本、反馈类型、标题、描述、联系方式、环境信息、提交时间</p>
+                <p class="mb-0">返回：<code>{"code":0,"data":{"ticket_no":"..."}}</code></p>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header">本地留存</div>
+            <div class="card-body small text-muted">
+                所有反馈都会先写入本站 <code>feedback</code> 表；上报失败不影响提交，可在列表页点「重试」再次上报。
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+function token() {
+    return $('input[name="__token__"]').val();
+}
+
+function payload() {
+    return {
+        __token__: token(),
+        gateway_url: $.trim($('#gatewayUrl').val()),
+        gateway_token: $.trim($('#gatewayToken').val()),
+        auto_report: $('#autoReport').is(':checked') ? 1 : 0,
+        notify_enabled: $('#notifyEnabled').is(':checked') ? 1 : 0,
+        notify_email: $.trim($('#notifyEmail').val())
+    };
+}
+
+function saveConfig(btn) {
+    btn.disabled = true;
+    $.ajax({
+        url: '/admin/feedback/saveConfig',
+        type: 'POST',
+        data: payload(),
+        success: function (res) {
+            btn.disabled = false;
+            alert(res.msg || '已保存');
+        },
+        error: function () {
+            btn.disabled = false;
+            alert('网络异常，请重试');
+        }
+    });
+}
+
+function testNotify(btn) {
+    btn.disabled = true;
+    $.post('/admin/feedback/testNotify', {
+        __token__: token(),
+        notify_email: $.trim($('#notifyEmail').val())
+    }, function (res) {
+        btn.disabled = false;
+        alert(res.msg || '已处理');
+    }).fail(function () {
+        btn.disabled = false;
+        alert('网络异常，请重试');
+    });
+}
+</script>
+{/block}

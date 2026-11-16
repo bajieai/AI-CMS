@@ -1,0 +1,331 @@
+{extend name="layout" /}
+
+{block name="title"}问题反馈{/block}
+
+{block name="breadcrumb"}
+<li class="breadcrumb-item">系统</li>
+<li class="breadcrumb-item active">问题反馈</li>
+{/block}
+
+{block name="content"}
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="card h-100"><div class="card-body py-3">
+            <div class="text-muted small">反馈总数</div>
+            <div class="fs-4 fw-semibold">{$stats.total}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100"><div class="card-body py-3">
+            <div class="text-muted small">待处理</div>
+            <div class="fs-4 fw-semibold text-warning">{$stats.pending}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100"><div class="card-body py-3">
+            <div class="text-muted small">已解决</div>
+            <div class="fs-4 fw-semibold text-success">{$stats.solved}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100"><div class="card-body py-3">
+            <div class="text-muted small">中心网关</div>
+            <div class="fs-6 fw-semibold">
+                {if condition="$config.gateway_url"}
+                <span class="badge bg-success">已配置</span>
+                {else /}
+                <span class="badge bg-secondary">未配置</span>
+                {/if}
+                <a href="/admin/feedback/config" class="ms-1 small">设置</a>
+            </div>
+        </div></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <span>反馈列表</span>
+        <div class="d-flex gap-2">
+            <form class="d-flex gap-2" method="get" action="/admin/feedback/index">
+                <select name="type" class="form-select form-select-sm" style="width:auto">
+                    <option value="">全部类型</option>
+                    {foreach name="typeMap" item="label" key="key"}
+                    <option value="{$key}" {if condition="$filters.type == $key"}selected{/if}>{$label}</option>
+                    {/foreach}
+                </select>
+                <select name="status" class="form-select form-select-sm" style="width:auto">
+                    <option value="">全部状态</option>
+                    {foreach name="statusMap" item="label" key="key"}
+                    <option value="{$key}" {if condition="$filters.status == $key"}selected{/if}>{$label}</option>
+                    {/foreach}
+                </select>
+                <input type="text" name="keyword" class="form-control form-control-sm" style="width:170px"
+                       placeholder="标题/内容关键字" value="{$filters.keyword}">
+                <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="bi bi-search"></i></button>
+            </form>
+            <button type="button" class="btn btn-primary btn-sm" onclick="openSubmit()">
+                <i class="bi bi-plus-lg me-1"></i>提交反馈
+            </button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:64px">ID</th>
+                    <th style="width:96px">类型</th>
+                    <th>标题</th>
+                    <th style="width:110px">提交人</th>
+                    <th style="width:90px">状态</th>
+                    <th style="width:96px">上报</th>
+                    <th style="width:96px">通知</th>
+                    <th style="width:140px">提交时间</th>
+                    <th class="text-end" style="width:170px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+                    <td><span class="badge bg-light text-dark border">{$vo.type_text}</span></td>
+                    <td class="text-truncate" style="max-width:320px">{$vo.title}</td>
+                    <td>{$vo.admin_name|default='—'}</td>
+                    <td>
+                        {switch name="vo.status"}
+                        {case value="0"}<span class="badge bg-warning">待处理</span>{/case}
+                        {case value="1"}<span class="badge bg-info">处理中</span>{/case}
+                        {case value="2"}<span class="badge bg-success">已解决</span>{/case}
+                        {case value="3"}<span class="badge bg-primary">已答复</span>{/case}
+                        {default /}<span class="badge bg-secondary">已忽略</span>
+                        {/switch}
+                    </td>
+                    <td class="small">
+                        {if condition="$vo.gateway_status == 1"}
+                        <span class="text-success" title="{$vo.gateway_no}">已上报</span>
+                        {elseif condition="$vo.gateway_status == 2" /}
+                        <span class="text-danger" title="{$vo.gateway_error}">失败</span>
+                        {else /}
+                        <span class="text-muted">待上报</span>
+                        {/if}
+                    </td>
+                    <td class="small">
+                        {if condition="$vo.notify_status == 1"}
+                        <span class="text-success">已通知</span>
+                        {elseif condition="$vo.notify_status == 2" /}
+                        <span class="text-danger">失败</span>
+                        {else /}
+                        <span class="text-muted">未通知</span>
+                        {/if}
+                    </td>
+                    <td class="small text-muted">{$vo.create_time|date='Y-m-d H:i'}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-outline-primary btn-sm me-1" onclick="openDetail({$vo.id})">详情</button>
+                        {if condition="$vo.gateway_status == 2"}
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="retryReport({$vo.id})">重试</button>
+                        {/if}
+                    </td>
+                </tr>
+                {/volist}
+                {empty name="list"}
+                <tr><td colspan="9" class="text-center text-muted py-4">暂无反馈记录</td></tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if condition="is_object($list) && method_exists($list, 'hasPages') && $list->hasPages()"}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">共 {$list->total()} 条</small>
+            {$list->render()|raw}
+        </div>
+    </div>
+    {/if}
+</div>
+
+<div class="modal fade" id="submitModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">提交问题反馈</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">类型</label>
+                    <select id="fbType" class="form-select">
+                        {foreach name="typeMap" item="label" key="key"}
+                        <option value="{$key}">{$label}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">标题 <span class="text-danger">*</span></label>
+                    <input type="text" id="fbTitle" class="form-control" maxlength="200" placeholder="一句话描述问题">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">问题描述 <span class="text-danger">*</span></label>
+                    <textarea id="fbContent" class="form-control" rows="6" placeholder="复现步骤、期望结果、实际结果（5~5000 字）"></textarea>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label">回信邮箱</label>
+                        <input type="email" id="fbEmail" class="form-control" placeholder="选填">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">联系电话</label>
+                        <input type="text" id="fbMobile" class="form-control" placeholder="选填">
+                    </div>
+                </div>
+                <div class="form-text mt-2">提交时会自动附带运行环境（PHP/数据库版本、扩展、站点地址），便于定位问题。</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitFeedback(this)">提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">反馈详情 <span id="dtNo" class="text-muted small"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2"><span class="text-muted">标题：</span><strong id="dtTitle"></strong></div>
+                <div class="mb-2"><span class="text-muted">类型：</span><span id="dtType"></span>
+                    <span class="text-muted ms-3">状态：</span><span id="dtStatus"></span></div>
+                <div class="mb-2"><span class="text-muted">提交人：</span><span id="dtAdmin"></span>
+                    <span class="text-muted ms-3">时间：</span><span id="dtTime"></span></div>
+                <div class="mb-2"><span class="text-muted">站点/版本：</span><span id="dtSite"></span></div>
+                <div class="mb-2"><span class="text-muted">上报：</span><span id="dtGateway"></span></div>
+                <hr>
+                <pre id="dtContent" class="bg-light p-2 rounded" style="white-space:pre-wrap"></pre>
+                <div class="mb-2"><span class="text-muted">环境：</span><code id="dtEnv" class="small"></code></div>
+                <hr>
+                <div class="mb-2">
+                    <label class="form-label">官方答复</label>
+                    <textarea id="dtReply" class="form-control" rows="4" placeholder="填写答复内容后保存，状态将变为「已答复」"></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">处理状态</label>
+                    <select id="dtStatusSelect" class="form-select" style="width:auto">
+                        {foreach name="statusMap" item="label" key="key"}
+                        <option value="{$key}">{$label}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div id="dtReplyTime" class="text-muted small"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-outline-primary" onclick="saveStatus()">保存状态</button>
+                <button type="button" class="btn btn-primary" onclick="saveReply()">保存答复</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+var currentId = 0;
+
+function token() {
+    return $('input[name="__token__"]').val();
+}
+
+function openSubmit() {
+    $('#fbTitle').val('');
+    $('#fbContent').val('');
+    $('#fbEmail').val('');
+    $('#fbMobile').val('');
+    new bootstrap.Modal(document.getElementById('submitModal')).show();
+}
+
+function submitFeedback(btn) {
+    var payload = {
+        __token__: token(),
+        type: $('#fbType').val(),
+        title: $.trim($('#fbTitle').val()),
+        content: $.trim($('#fbContent').val()),
+        contact_email: $.trim($('#fbEmail').val()),
+        contact_mobile: $.trim($('#fbMobile').val())
+    };
+    if (!payload.title || payload.content.length < 5) {
+        alert('请填写标题，且问题描述不少于 5 个字');
+        return;
+    }
+    btn.disabled = true;
+    $.ajax({
+        url: '/admin/feedback/submit',
+        type: 'POST',
+        data: payload,
+        success: function (res) {
+            btn.disabled = false;
+            if (res.code === 0) {
+                alert(res.msg || '提交成功');
+                location.reload();
+            } else {
+                alert(res.msg || '提交失败');
+            }
+        },
+        error: function () {
+            btn.disabled = false;
+            alert('网络异常，请重试');
+        }
+    });
+}
+
+function openDetail(id) {
+    currentId = id;
+    $.get('/admin/feedback/detail', {id: id}, function (res) {
+        if (res.code !== 0) {
+            alert(res.msg || '加载失败');
+            return;
+        }
+        var d = res.data;
+        $('#dtNo').text('#' + d.id);
+        $('#dtTitle').text(d.title);
+        $('#dtType').text(d.type_text);
+        $('#dtStatus').text(d.status_text);
+        $('#dtAdmin').text(d.admin_name || '—');
+        $('#dtTime').text(d.create_time || '—');
+        $('#dtSite').text((d.site_url || '—') + ' / ' + (d.app_version || '—'));
+        $('#dtGateway').text(d.gateway_text + (d.gateway_no ? '（' + d.gateway_no + '）' : '') + (d.gateway_error ? ' ' + d.gateway_error : ''));
+        $('#dtContent').text(d.content || '');
+        $('#dtEnv').text(JSON.stringify(d.env || {}));
+        $('#dtReply').val(d.reply_content || '');
+        $('#dtStatusSelect').val(String(d.status));
+        $('#dtReplyTime').text(d.reply_time ? '答复时间：' + d.reply_time : '');
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    });
+}
+
+function saveReply() {
+    if (!currentId) { return; }
+    $.post('/admin/feedback/reply', {__token__: token(), id: currentId, reply_content: $('#dtReply').val()}, function (res) {
+        alert(res.msg || '已保存');
+        if (res.code === 0) { location.reload(); }
+    });
+}
+
+function saveStatus() {
+    if (!currentId) { return; }
+    $.post('/admin/feedback/status', {__token__: token(), id: currentId, status: $('#dtStatusSelect').val()}, function (res) {
+        alert(res.msg || '已保存');
+        if (res.code === 0) { location.reload(); }
+    });
+}
+
+function retryReport(id) {
+    if (!confirm('重新上报到中心网关？')) { return; }
+    $.post('/admin/feedback/retry', {__token__: token(), id: id}, function (res) {
+        alert(res.msg || '已处理');
+        if (res.code === 0) { location.reload(); }
+    });
+}
+</script>
+{/block}

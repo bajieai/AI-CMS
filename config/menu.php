@@ -205,8 +205,8 @@ return [
             ['id' => 934, 'name' => '在线升级', 'url' => '/admin/online_upgrade/index', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade', 'icon' => 'bi bi-cloud-arrow-up'],
             ['id' => 935, 'name' => '升级配置', 'url' => '/admin/online_upgrade/config', 'permission' => 'online_upgrade.*', 'active' => 'online_upgrade_config', 'icon' => 'bi bi-gear'],
             // V2.9.63: 问题反馈（后台提交反馈 → 中心网关上报 → Gitee 入库 → 邮件通知）
-            ['id' => 936, 'name' => '问题反馈', 'url' => '/admin/feedback/index', 'permission' => 'feedback.*', 'active' => 'feedback', 'icon' => 'bi bi-chat-left-dots'],
-            ['id' => 937, 'name' => '反馈设置', 'url' => '/admin/feedback/config', 'permission' => 'feedback.*', 'active' => 'feedback_config', 'icon' => 'bi bi-sliders'],
+            ['id' => 950, 'name' => '问题反馈', 'url' => '/admin/feedback/index', 'permission' => 'feedback.*', 'active' => 'feedback', 'icon' => 'bi bi-chat-left-dots'],
+            ['id' => 951, 'name' => '反馈设置', 'url' => '/admin/feedback/config', 'permission' => 'feedback.*', 'active' => 'feedback_config', 'icon' => 'bi bi-sliders'],
         ],
     ],
 ];
