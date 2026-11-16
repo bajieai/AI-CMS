@@ -1,9 +1,9 @@
 {
-    "version": "2.9.62",
-    "tag": "v2.9.62",
-    "name": "AI-CMS V2.9.62 正式版",
-    "published_at": "2026-09-18T23:30:00+08:00",
-    "notes": "- 新增：后台短信通道可视化配置（/admin/sms/config，双皮肤同步）——配置短信宝/阿里云/腾讯云/七牛云四通道凭据 + 默认通道选择，存入 i8j_config 即时生效\n- 修复：think\\facade\\Json 门面缺失导致 16+ 后台 AJAX 接口 500（Class \"think\\facade\\Json\" does not exist）——新增 app/common/facade/Json.php 并全局 class_alias 映射，调用方零改动恢复",
-    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.62/ai-cms-upgrade-2.9.62.zip",
-    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.62"
+    "version": "2.9.63",
+    "tag": "v2.9.63",
+    "name": "AI-CMS V2.9.63 正式版",
+    "published_at": "2026-11-16T20:00:00+08:00",
+    "notes": "- 新增：AI 助手动作底座（24 个只读动作，统一注册/执行/审计/幂等/限流）+ Agent 四通道对外（API / CLI / MCP / 后台对话悬浮窗）\n- 新增：后台「问题反馈」闭环（/admin/feedback/index）——环境自动采集、本地落库优先、可选中心网关上报（受理编号+失败重试）与邮件通知（含测试发送），官方答复与状态流转，双皮肤同步\n- 新增：MCP Server（php think agent:mcp，stdio JSON-RPC 2.0，tools/list 与 API 能力同源）；模拟数据灌数只写隔离表且同幂等键自动重放\n- 修复：升级包生成器不再打包隐藏文件与 docs/bin/tools/tests 等本地专用目录，并在打包前拦截本地痕迹引用\n- 修复：Apache 伪静态补齐 install/api 两条入口规则，与 nginx 版四入口对齐",
+    "upgrade_package": "https://gitee.com/bajieai/ai-cms/releases/download/v2.9.63/ai-cms-upgrade-2.9.63.zip",
+    "release_url": "https://gitee.com/bajieai/ai-cms/releases/tag/v2.9.63"
 }

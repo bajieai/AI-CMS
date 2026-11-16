@@ -1,14 +1,14 @@
-# 八界AI-CMS V2.9.62
+# 八界AI-CMS V2.9.63
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.62-blue)
+![Version](https://img.shields.io/badge/version-2.9.63-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.62 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.63 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
 
@@ -23,6 +23,8 @@
   ```
   自测：`echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | php think agent:mcp`
 - **模拟数据灌数（ACP-11）** — `php think agent:batch --generate=100` 一键灌 100 条（只写 `i8j_mock_content` / `i8j_mock_template` 物理隔离表，真实表零改动）；同幂等键重复执行自动重放、零新增脏数据；`--dry-run` 只报计划不落库
+- **问题反馈（后台闭环）** — 新增 `/admin/feedback/index` 与 `/admin/feedback/config`（双皮肤同步）：提交反馈自动附带运行环境（PHP/数据库版本、扩展、站点地址、程序版本），本地落库优先、上报失败不影响提交；中心网关上报（可配地址+令牌，返回受理编号，失败可一键重试）与邮件通知（可配接收邮箱+发送测试）均为可选开关，未配置时纯粹本地留存、不对外发送任何数据；列表支持类型/状态/关键字筛选与官方答复、状态流转
+- **发布合规加固** — 升级包生成器新增本地开发痕迹拦截：隐藏文件/目录与 `docs`/`bin`/`tools`/`tests` 等本地专用目录一律不进包，打包前扫描「隐藏目录路径引用」命中即中止（`--force` 可跳过）；补齐 Apache 伪静态 `install`/`api` 两条入口规则，与 nginx 版四入口对齐
 
 ### V2.9.62 — 后台短信通道配置·Json门面缺失500根治
 - **后台短信通道可视化配置** — 新增 `/admin/sms/config`（双皮肤同步：default + corporate），可视化配置短信宝/阿里云/腾讯云/七牛云四通道凭据（账号/密码/密钥/签名/验证码模板）+ 默认通道选择，保存至 i8j_config 的 sms_* 扁平键，经 load_cms_configs 即时注入 Config 的 sms 组覆盖 config/sms.php 的 .env 配置（即时生效）；密码/密钥类字段留空保留原值；SmsService 新增 loadDbSmsConfig 从 DB 映射回嵌套结构 + selectAdapter 优先使用后台配置的默认通道；config/menu.php 新增「短信配置」后台菜单入口；短信宝为真实发信通道，阿里云/腾讯云/七牛云为占位待接入
@@ -164,6 +166,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.63** | 2026-11 | **AI助手动作底座·Agent四通道·问题反馈·发布合规加固**: 统一 Action Registry 24 个只读动作(代码 schema 唯一权威+DB仅覆盖4字段)+统一执行入口(安全黑名单/注入扫描/幂等/限流/审计)供 API/CLI/MCP/对话窗四通道共用;Agent 对外通道=机器身份独立吊销(i8j_api_key)+GET actions/POST invoke(dry-run零落库+幂等+越权403)/GET invoke:id/POST batch + CLI agent:actions/run/batch/mcp;scope 判定收敛 ScopeMatcher::allows()(三段 aicms:domain:verb,旧两段兼容至V2.9.65);后台全站悬浮窗(PJAX不重复不消失,IntentRouter七步零模型路由20条白名单,未命中固定话术拒答);MCP Server stdio JSON-RPC 2.0(tools/list 与 API 同源);灌数只写 mock_content/mock_template 隔离表同幂等键自动重放;新增问题反馈后台闭环(环境自动采集+本地落库+可选网关上报/邮件通知+答复与状态流转,双皮肤);升级包生成器拦截本地开发痕迹(隐藏文件与 docs/bin/tools/tests 不入包+打包前痕迹扫描中止)+Apache 伪静态补齐 install/api 入口 |
 | **V2.9.62** | 2026-09 | **后台短信通道配置·Json门面缺失500根治**: 新增 /admin/sms/config 可视化配置四通道(短信宝/阿里云/腾讯云/七牛云)凭据+默认通道选择,存入 i8j_config sms_* 扁平键经 load_cms_configs 即时注入 Config sms 组覆盖 .env 即时生效;SmsService 新增 loadDbSmsConfig 映射+selectAdapter 优先用后台默认通道;菜单新增短信配置入口;短信宝真实发信其余占位;根治 think\facade\Json 缺失致16+后台AJAX接口500——新增 app/common/facade/Json.php(success/error)+helper.php 全局 class_alias 映射,调用方零改动恢复 |
 | **V2.9.61** | 2026-09 | **前台登出500修复·PJAX内联脚本拼接陷阱根治**: /member/logout 报 logout(): Argument #1 must be of type int, string given——登录态 memberInfo['id'] 来自缓存反序列化是 string 而方法签名严格 int,且方法体根本未使用该参数(只清token)→直接移除无用参数；后台PJAX内联脚本拼接陷阱——V2.9.58 layout 全局块(clearCacheByType/openMediaSelect)被 isLayoutGlobalScript 排除标记遗漏,PJAX切页时误当页面JS与页面块拼接,全局块结尾赋值表达式(无分号)紧跟页面块开头 ( 导致连成调用表达式→全局函数被误执行(SEO诊断页误弹清缓存确认框)→返回值undefined再被调→(intermediate value) is not a function——双层修复:isLayoutGlobalScript 补3个全局块标记+executeInlineScript 内容末尾统一补分号防未来拼接陷阱 |
 | **V2.9.60** | 2026-09 | **会员中心菜单404修复(控制器与模板早已存在,路由从未注册)**: 会员中心侧栏5个菜单页全部404(我的订单/我的评论/我的邀请/优惠券/已购内容)——MemberController::orders/comments/invite/coupon+PaidController::purchased 方法、Order/Comment/CouponService/InviteRewardService/PaidService 服务层、四主题渲染模板全部存在,唯独 home 路由从未注册→注册5条GET路由(未登录302跳登录)+补齐3个缺失模板 member_invite.html(default/mobile+corporate/pc+corporate/mobile)+全站链接审计:提取全部模板34个唯一链接对照108条路由逐一匹配0个未覆盖 |
