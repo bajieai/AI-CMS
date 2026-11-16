@@ -26,7 +26,8 @@ class AiRecommendService
         $content = Content::find($contentId);
         if (!$content) return [];
         $query = Content::where('id', '<>', $contentId)
-            ->where('status', 1);
+            // V2.9.64 R-5: 仅已发布内容参与推荐（原 status=1 为待审，导致推荐位恒空）
+            ->where('status', 2);
         // 同分类优先
         if ($content['cate_id']) {
             $query->whereOr('cate_id', $content['cate_id']);
@@ -74,7 +75,7 @@ class AiRecommendService
             ->column('content_id');
         if (empty($recommendedIds)) return [];
         return Content::whereIn('id', $recommendedIds)
-            ->where('status', 1)
+            ->where('status', 2) // V2.9.64 R-5: 仅已发布内容参与推荐（原 status=1 为待审，导致推荐位恒空）
             ->limit($limit)
             ->select()->toArray();
     }
@@ -84,7 +85,7 @@ class AiRecommendService
      */
     public function recommendHot(int $limit = 10): array
     {
-        return Content::where('status', 1)
+        return Content::where('status', 2)
             ->where('create_time', '>=', date('Y-m-d H:i:s', strtotime('-30 days')))
             ->order('views', 'desc')
             ->order('recommend_weight', 'desc')
@@ -97,7 +98,7 @@ class AiRecommendService
      */
     public function recommendLatest(int $limit = 10): array
     {
-        return Content::where('status', 1)
+        return Content::where('status', 2)
             ->order('create_time', 'desc')
             ->limit($limit)
             ->select()->toArray();
@@ -164,7 +165,7 @@ class AiRecommendService
      */
     public function forSearch(string $keyword, int $memberId = 0): array
     {
-        return Content::where('status', 1)
+        return Content::where('status', 2)
             ->where('title|content', 'like', '%' . $keyword . '%')
             ->order('views', 'desc')
             ->limit(5)

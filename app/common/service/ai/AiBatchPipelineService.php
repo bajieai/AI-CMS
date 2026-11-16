@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace app\common\service\ai;
 
 use app\common\model\AiTaskQueue;
+use app\common\service\AiService;
+use app\common\service\ContentService;
 use think\facade\Cache;
 use think\facade\Log;
 // S0-T3: 框架 facade 未提供 Container 类（facade 目录仅 14 个），改用全局 app() 解析
@@ -33,7 +35,8 @@ class AiBatchPipelineService
                 'dedup' => $params['dedup'] ?? true,
                 'quality_threshold' => $params['quality_threshold'] ?? 70,
                 'publish_strategy' => $params['publish_strategy'] ?? 'manual',
-                'category_id' => $params['category_id'] ?? 0,
+                'category_id' => $params['category_id'] ?? ($params['cate_id'] ?? 0),
+                'translate_to' => $params['translate_to'] ?? [],
             ]),
             'status' => 'pending',
             'priority' => $params['priority'] ?? 0,
@@ -86,55 +89,65 @@ class AiBatchPipelineService
             }
         }
 
-        $writeService = app(AiWriteService::class);
-        $imageService = app(AiImageService::class);
-        $translateService = app(AiTranslationService::class);
+        // V2.9.64 R-2: 原 AiWriteService / AiTranslationService 不存在、AiImageService::generate 只接受内容 ID，
+        // 统一改走 AiService；ContentService 命名空间修正为 app\common\service\ContentService
+        $ai = new AiService();
         $qualityService = app(ContentQualityScoreService::class);
-        $contentService = app(\app\common\service\content\ContentService::class);
+        $contentService = app(ContentService::class);
 
         // 1. AI写作
-        $writeResult = $writeService->write([
-            'prompt' => $config['template'] ?? '',
-            'keyword' => $itemData['keyword'] ?? '',
-            'variables' => array_merge($config['variables'] ?? [], $itemData['variables'] ?? []),
-        ]);
+        $keyword = (string) ($itemData['keyword'] ?? '');
+        $prompt  = (string) ($config['template'] ?? '');
+        $prompt  = $prompt !== ''
+            ? strtr($prompt, array_merge($config['variables'] ?? [], $itemData['variables'] ?? []))
+            : "请围绕「{$keyword}」撰写一篇完整的文章，直接输出正文。";
+        $writeResult = $ai->generate($prompt, 'continue', ['style' => 'professional']);
 
-        // 2. AI配图
-        $imageResult = $imageService->generate([
-            'prompt' => $writeResult['title'] ?? '',
-            'style' => 'auto',
-            'count' => 1,
-        ]);
+        // 2. AI配图（提示词出图，不依赖内容 ID）
+        $imageUrl    = '';
+        $imageResult = $ai->generateImage((string) ($writeResult['content'] !== '' ? mb_substr((string) $writeResult['content'], 0, 200) : $keyword), ['style' => 'natural']);
+        if (!empty($imageResult['url'])) {
+            $imageUrl = (string) $imageResult['url'];
+        }
 
         // 3. AI翻译(可选)
         $translations = [];
         if (!empty($config['translate_to'])) {
-            foreach ($config['translate_to'] as $lang) {
-                $translations[$lang] = $translateService->translate($writeResult['content'] ?? '', $lang);
+            foreach ((array) $config['translate_to'] as $lang) {
+                $translations[(string) $lang] = $ai->translate((string) ($writeResult['content'] ?? ''), 'zh', (string) $lang);
             }
         }
 
-        // 4. 创建内容
-        $contentId = $contentService->create([
-            'title' => $writeResult['title'] ?? '',
+        // 4. 创建内容（ContentService::create 返回 bool，需经 getLastCreatedId 取新 ID）
+        $created = $contentService->create([
+            'title' => $writeResult['title'] ?? $keyword,
             'content' => $writeResult['content'] ?? '',
-            'cover_image' => $imageResult['images'][0] ?? '',
-            'cate_id' => $config['cate_id'] ?? 0,
+            'cover_image' => $imageUrl,
+            'cate_id' => $config['category_id'] ?? ($config['cate_id'] ?? 0),
         ]);
+        $contentId = $contentService->getLastCreatedId();
+        if (!$created || !$contentId) {
+            throw new \RuntimeException('批量管线入库失败：内容创建未返回 ID');
+        }
 
-        // 5. 质量检测
+        // 5. 质量检测（V2.9.64 R-6: score() 的得分在 scores.total，原读 total_score 恒为 0）
         $qualityScore = $qualityService->score($contentId);
-        $passed = ($qualityScore['total_score'] ?? 0) >= ($config['quality_threshold'] ?? 70);
+        $qualityTotal = (int) ($qualityScore['scores']['total'] ?? ($qualityScore['total_score'] ?? 0));
+        $passed = $qualityTotal >= (int) ($config['quality_threshold'] ?? 70);
 
-        // 6. 发布策略
+        // 6. 发布策略（内容状态：0 草稿 / 1 待审 / 2 已发布）
         if (($config['publish_strategy'] ?? 'manual') === 'auto' && $passed) {
-            $contentService->publish($contentId);
+            $content = \app\common\model\Content::find($contentId);
+            if ($content) {
+                $content->status = 2;
+                $content->save();
+            }
         }
 
         return [
             'status' => 'success',
             'content_id' => $contentId,
-            'quality_score' => $qualityScore['total_score'] ?? 0,
+            'quality_score' => $qualityTotal,
             'quality_passed' => $passed,
             'translations' => $translations,
         ];

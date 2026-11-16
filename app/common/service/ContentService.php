@@ -29,6 +29,20 @@ use think\facade\Config;
 class ContentService
 {
     /**
+     * 最近一次 create() 成功写入的内容 ID
+     * V2.9.64 R-2: create() 返回 bool，调用方（如 AI 批量管线）需要新内容 ID 才能做质检/配图/发布
+     */
+    protected ?int $lastCreatedId = null;
+
+    /**
+     * 获取最近一次 create() 写入的内容 ID（未成功创建时返回 null）
+     */
+    public function getLastCreatedId(): ?int
+    {
+        return $this->lastCreatedId;
+    }
+
+    /**
      * 获取内容列表（后台分页）
      */
     public function getList(array $params = [], int $pageSize = 20)
@@ -192,6 +206,7 @@ class ContentService
         if (!$content->save($data)) {
             return false;
         }
+        $this->lastCreatedId = (int) $content->id;
 
         // 保存扩展数据
         if (!empty($extData)) {

@@ -270,7 +270,22 @@ class ContentQualityScoreService
      */
     private function scoreTagAccuracy(Content $content): int
     {
+        // V2.9.64 R-4: $content->tags 是关联集合（模型对象），直接 explode 会抛 TypeError
         $tags = $content->tags ?? '';
+        if (is_object($tags)) {
+            if (method_exists($tags, 'column')) {
+                $tags = implode(',', (array) $tags->column('name'));
+            } elseif (method_exists($tags, 'toArray')) {
+                $names = [];
+                foreach ((array) $tags->toArray() as $item) {
+                    $names[] = is_array($item) ? (string) ($item['name'] ?? '') : (string) $item;
+                }
+                $tags = implode(',', $names);
+            } else {
+                $tags = '';
+            }
+        }
+        $tags = is_string($tags) ? $tags : '';
         if (empty($tags)) return 30; // 无标签给基础分
 
         $tagArr = array_filter(explode(',', $tags));
