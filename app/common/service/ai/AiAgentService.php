@@ -181,6 +181,8 @@ class AiAgentService
         $taskRecord->save([
             'task_type' => 'agent',
             'agent_id' => 0,
+            // V2.9.64 O-1: 智能体 key 落独立列，监控/定时回写按它索引
+            'agent_key' => $agentId,
             'agent_session_id' => 'sess_' . uniqid(),
             'payload' => json_encode([
                 'agent_key' => $agentId,
@@ -253,7 +255,8 @@ class AiAgentService
             if ($agentId && $id !== $agentId) continue;
             $execCount = $agent['exec_count'] ?? 0;
             $successCount = $agent['success_count'] ?? 0;
-            $recentExecs = AiTaskQueue::where('agent_id', $id)->order('id', 'desc')->limit(10)->select()->toArray();
+            // V2.9.64 O-1: agent 标识是字符串 key，agent_id 为 int 列查不到；改按 agent_key 查
+            $recentExecs = AiTaskQueue::where('agent_key', (string) $id)->order('id', 'desc')->limit(10)->select()->toArray();
             $data[] = [
                 'agent_id' => $id,
                 'name' => $agent['name'] ?? '',

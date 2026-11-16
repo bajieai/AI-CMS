@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace app\common\service\ai;
 
+use app\common\service\AiService;
 use think\facade\Db;
 use think\facade\Cache;
 use think\facade\Log;
@@ -120,12 +121,12 @@ class AiDialogService
 
         // 调用AI
         try {
-            $provider = AiProviderFactory::getDefault();
-
-            $aiReply = $provider->write($fullPrompt, [
+            // V2.9.64 O-3: 改走统一 AiService（配额 / 计费 / ai_log 调用日志），
+            // 原来直连 Provider 的对话消耗在日志与配额里完全不可见
+            $aiReply = (string) ((new AiService())->generate($fullPrompt, 'continue', [
                 'temperature' => $options['temperature'] ?? 0.7,
                 'max_tokens'  => $options['max_tokens'] ?? 2000,
-            ]);
+            ])['content'] ?? '');
 
             // 保存AI回复
             $this->memoryService->addShortTermMemory($dialogId, 'assistant', $aiReply, [
@@ -458,11 +459,11 @@ class AiDialogService
         try {
             $prompt = "请为以下用户消息生成一个简洁的对话标题（不超过" . self::TITLE_MAX_LENGTH . "字，不要加引号和标点）：\n\n" . mb_substr($firstMessage, 0, 200);
 
-            $provider = AiProviderFactory::getDefault();
-            $title = $provider->write($prompt, [
+            // V2.9.64 O-3: 同上，标题生成也走统一 AiService，避免漏记调用日志
+            $title = (string) ((new AiService())->generate($prompt, 'continue', [
                 'temperature' => 0.3,
                 'max_tokens'  => 50,
-            ]);
+            ])['content'] ?? '');
 
             // 清理标题
             $title = trim($title);

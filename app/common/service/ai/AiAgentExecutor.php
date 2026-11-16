@@ -74,9 +74,13 @@ class AiAgentExecutor
             $evaluation = $this->evaluate($results, $task, $agentConfig);
             $this->memory->addShortTerm($sessionId, 'evaluation', $evaluation);
 
-            // 4. 自我纠正(如果需要)
+            // 4. 自我纠正(如果需要)：V2.9.64 O-2 落地真实重试（最多 1 次），失败项重跑并重新评估
             if (!$evaluation['all_passed']) {
-                $corrections = $this->selfCorrect($evaluation, $agentConfig, $sessionId);
+                $corrections = $this->selfCorrect($results, $agentConfig, $sessionId, 1);
+                if (!empty($corrections['retried'])) {
+                    $results    = array_merge($results, $corrections['retried']);
+                    $evaluation = $this->evaluate($results, $task, $agentConfig);
+                }
                 $this->memory->addShortTerm($sessionId, 'corrections', $corrections);
             }
 
@@ -266,12 +270,55 @@ class AiAgentExecutor
 
     /**
      * 自我纠正
+     *
+     * V2.9.64 O-2：原为空实现（只返回空数组），方法名与文档承诺的重试从未发生。
+     * 现按「失败子任务重跑、最多 $maxRetries 次、成功即停」执行，并把每次尝试记录进审计。
+     * 不对 pending_human_confirmation / skipped 项重试（前者等人、后者是超限保护）。
      */
-    protected function selfCorrect(array $evaluation, array $agentConfig, string $sessionId): array
+    protected function selfCorrect(array $results, array $agentConfig, string $sessionId, int $maxRetries = 1): array
     {
-        $corrections = [];
-        // 对失败的子任务进行重试
-        return $corrections;
+        $retried  = [];
+        $attempts = [];
+
+        foreach ($results as $index => $result) {
+            $status = (string) ($result['status'] ?? '');
+            if ($status === 'success' || $status === 'pending_human_confirmation' || $status === 'skipped') {
+                continue;
+            }
+
+            $subtask = $result['subtask'] ?? null;
+            if (!is_array($subtask)) {
+                continue;
+            }
+
+            $limit = max(1, $maxRetries);
+            for ($try = 1; $try <= $limit; $try++) {
+                $retryResult = $this->executeSubTask($subtask, $agentConfig, $sessionId, $results);
+                $retryResult['retried_from_index'] = $index;
+                $retryResult['retry_attempt']      = $try;
+
+                $attempts[] = [
+                    'index'   => $index,
+                    'attempt' => $try,
+                    'status'  => (string) ($retryResult['status'] ?? 'unknown'),
+                ];
+
+                if (($retryResult['status'] ?? '') === 'success') {
+                    $retried[] = $retryResult;
+                    break;
+                }
+
+                if ($try >= max(1, $maxRetries)) {
+                    $retried[] = $retryResult;
+                }
+            }
+        }
+
+        return [
+            'retried'     => $retried,
+            'attempts'    => $attempts,
+            'max_retries' => max(1, $maxRetries),
+        ];
     }
 
     /**
