@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace app\common\service\compliance;
 
 use think\facade\Cache;
-use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Log;
 
