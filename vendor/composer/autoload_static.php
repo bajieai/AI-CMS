@@ -3834,7 +3834,6 @@ class ComposerStaticInited4da5284bc209f53f54d1afe441feb9
         'app\\common\\service\\theme_generator\\ThemeBundleValidator' => __DIR__ . '/../..' . '/app/common/service/theme_generator/ThemeBundleValidator.php',
         'app\\common\\service\\theme_generator\\ThemeGeneratorException' => __DIR__ . '/../..' . '/app/common/service/theme_generator/ThemeGeneratorException.php',
         'app\\common\\service\\theme_generator\\ThemeOriginRepository' => __DIR__ . '/../..' . '/app/common/service/theme_generator/ThemeOriginRepository.php',
-        'app\\common\\service\\theme_generator\\ThemePreviewRenderer' => __DIR__ . '/../..' . '/app/common/service/theme_generator/ThemePreviewRenderer.php',
         'app\\common\\service\\webhook\\WebhookDispatcher' => __DIR__ . '/../..' . '/app/common/service/webhook/WebhookDispatcher.php',
         'app\\common\\service\\webhook\\WebhookSigner' => __DIR__ . '/../..' . '/app/common/service/webhook/WebhookSigner.php',
         'app\\common\\support\\ContentTypeMap' => __DIR__ . '/../..' . '/app/common/support/ContentTypeMap.php',

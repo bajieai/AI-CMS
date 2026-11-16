@@ -3606,7 +3606,6 @@ return array(
     'app\\common\\service\\theme_generator\\ThemeBundleValidator' => $baseDir . '/app/common/service/theme_generator/ThemeBundleValidator.php',
     'app\\common\\service\\theme_generator\\ThemeGeneratorException' => $baseDir . '/app/common/service/theme_generator/ThemeGeneratorException.php',
     'app\\common\\service\\theme_generator\\ThemeOriginRepository' => $baseDir . '/app/common/service/theme_generator/ThemeOriginRepository.php',
-    'app\\common\\service\\theme_generator\\ThemePreviewRenderer' => $baseDir . '/app/common/service/theme_generator/ThemePreviewRenderer.php',
     'app\\common\\service\\webhook\\WebhookDispatcher' => $baseDir . '/app/common/service/webhook/WebhookDispatcher.php',
     'app\\common\\service\\webhook\\WebhookSigner' => $baseDir . '/app/common/service/webhook/WebhookSigner.php',
     'app\\common\\support\\ContentTypeMap' => $baseDir . '/app/common/support/ContentTypeMap.php',
