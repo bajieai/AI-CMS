@@ -1,16 +1,24 @@
-# 八界AI-CMS V2.9.63
+# 八界AI-CMS V2.9.64
 
 > 智能内容管理系统 (AI-Powered Content Management System)
 
-![Version](https://img.shields.io/badge/version-2.9.63-blue)
+![Version](https://img.shields.io/badge/version-2.9.64-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-purple)
 ![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.1-green)
 
 ## 项目简介
 
-八界AI-CMS V2.9.63 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
+八界AI-CMS V2.9.64 是基于 ThinkPHP 8.1 多应用模式构建的企业智能内容管理系统，集成 DeepSeek / OpenAI / Qwen / GLM / ERNIE 多模型AI接口，为内容创作提供智能辅助。
 
 ## 新增特性
+
+### V2.9.64 — AI 链路断链修复·主题安装验收闭环·菜单入口治理
+- **AI 工作流整链修复** — `ai_write` / `ai_translate` 原引用不存在的 `AiWriteService` / `AiTranslationService`（节点一执行即 ClassNotFoundException），统一改走 `AiService`（含配额/计费/调用日志）；配图、SEO、推荐、摘要、发布 5 处方法签名错配按真实签名对接（`generateImage(prompt)`、`autoFillSeo(id)`/`seoOptimize()`、`recommendHot/Latest/ByContent`、`summarize(text,length)`、发布改为内容状态置 2）
+- **AI 数据正确性修复** — 推荐服务 5 处按 `status=1`（待审）过滤导致前台推荐位恒空，改 `status=2`（已发布）；质检得分键错配（`total_score` → `scores.total`）导致得分恒 0、自动发布永不触发；质检标签对关联集合直接 `explode()` 的 TypeError 一并修复
+- **AI 批量管线修复** — 坏类引用、`ContentService::create()` 返回 bool 却被当内容 ID 使用（新增 `getLastCreatedId()`）、配图需内容 ID 的调用顺序问题一并解决，写作→配图→翻译→入库→质检→自动发布整链可跑
+- **AI 主体可观测性** — `i8j_ai_task_queue` 新增 `agent_key` + 索引，智能体执行记录可按 key 追溯（修复前 `agent_id` 硬写 0、监控恒空）；`selfCorrect()` 由空实现改为「失败子任务重跑、最多 1 次、成功即停」并跳过人工确认项；对话回复与标题生成不再直连 Provider，配额/计费/`ai_log` 完整记账
+- **主题安装验收闭环** — `i8j_theme_info` 新增 `review_status`(0待验收/1已验收/2已驳回)/`review_by`/`review_time`/`review_remark`；`TemplateService::scanThemes()` 加验收白名单过滤并排除 `@prev`/`@reinstall-*` 备份目录，一次性封堵「生成即落盘、安装即生效、假主题」三条前台泄漏路径；BTPKG 安装（含同版本重装）与 AI 生成（full + 骨架）落盘后统一置待验收；后台治理页新增状态列与验收/驳回/卸载（驳回必填原因、卸载保护 default 与当前前台主题），双皮肤同步
+- **菜单入口治理** — 「AI主题安装」菜单 936 在 `config/menu.php`、`install.sql`、迁移 SQL 与存量库四方对齐（消除 952/936 双源不一致，迁移脚本幂等）；936 页面新增「安装与验收 / AI 生成主题」双 tab，`/admin/ai_theme/index` 不再无入口
 
 ### V2.9.63 — AI 助手动作底座·Agent 对外通道
 - **AI 助手动作层（ACP-03/04）** — 统一 Action Registry 注册 24 个只读动作（内容/模板/主题/会员/配置/系统/日志/统计/报表/页面上下文/模拟数据），代码定义 schema 为唯一权威 + DB 仅覆盖 enabled/timeout/rate_limit/remark；统一执行入口（安全黑名单/注入扫描/幂等/限流/审计）供 API / CLI / MCP / 对话窗四通道共用
@@ -166,6 +174,7 @@
 
 | 版本 | 时间 | 核心功能 |
 |------|------|----------|
+| **V2.9.64** | 2026-11 | **AI链路断链修复·主题安装验收闭环·菜单入口治理**: AI工作流三节点引用不存在类(AiWriteService/AiTranslationService)改走AiService统一链路+5处方法签名错配按真实签名对接(配图/SEO/推荐/摘要/发布);数据正确性三修=推荐5处status=1(待审)致推荐位恒空改status=2(已发布)、质检得分键错配(total_score→scores.total)致得分恒0且自动发布永不触发、质检标签对关联集合explode的TypeError;批量管线修复坏类引用+create()返回bool被当内容ID(新增getLastCreatedId())+写作→配图→翻译→入库→质检→发布整链跑通;可观测性=i8j_ai_task_queue新增agent_key+索引(原agent_id硬写0监控恒空)+selfCorrect由空实现改为失败子任务重跑最多1次+对话/标题不再直连Provider计入配额计费日志;主题验收闭环=i8j_theme_info新增review_status/review_by/review_time/review_remark(默认1存量不隐藏)+scanThemes验收白名单过滤并排除@prev/@reinstall-*备份目录(一封堵生成即落盘/安装即生效/假主题三条前台泄漏路径)+安装与AI生成(full+骨架)落盘统一置待验收+治理页状态列与验收/驳回/卸载(驳回必填、卸载保护default与当前前台主题,双皮肤);菜单治理=AI主题安装936在config/install/迁移/存量库四方对齐(消除952双源)+936页新增安装验收/AI生成双tab使/admin/ai_theme/index有入口;数据库3个迁移(theme_info 4列/ai_task_queue agent_key/menu对齐) |
 | **V2.9.63** | 2026-11 | **AI助手动作底座·Agent四通道·问题反馈·发布合规加固**: 统一 Action Registry 24 个只读动作(代码 schema 唯一权威+DB仅覆盖4字段)+统一执行入口(安全黑名单/注入扫描/幂等/限流/审计)供 API/CLI/MCP/对话窗四通道共用;Agent 对外通道=机器身份独立吊销(i8j_api_key)+GET actions/POST invoke(dry-run零落库+幂等+越权403)/GET invoke:id/POST batch + CLI agent:actions/run/batch/mcp;scope 判定收敛 ScopeMatcher::allows()(三段 aicms:domain:verb,旧两段兼容至V2.9.65);后台全站悬浮窗(PJAX不重复不消失,IntentRouter七步零模型路由20条白名单,未命中固定话术拒答);MCP Server stdio JSON-RPC 2.0(tools/list 与 API 同源);灌数只写 mock_content/mock_template 隔离表同幂等键自动重放;新增问题反馈后台闭环(环境自动采集+本地落库+可选网关上报/邮件通知+答复与状态流转,双皮肤);升级包生成器拦截本地开发痕迹(隐藏文件与 docs/bin/tools/tests 不入包+打包前痕迹扫描中止)+Apache 伪静态补齐 install/api 入口 |
 | **V2.9.62** | 2026-09 | **后台短信通道配置·Json门面缺失500根治**: 新增 /admin/sms/config 可视化配置四通道(短信宝/阿里云/腾讯云/七牛云)凭据+默认通道选择,存入 i8j_config sms_* 扁平键经 load_cms_configs 即时注入 Config sms 组覆盖 .env 即时生效;SmsService 新增 loadDbSmsConfig 映射+selectAdapter 优先用后台默认通道;菜单新增短信配置入口;短信宝真实发信其余占位;根治 think\facade\Json 缺失致16+后台AJAX接口500——新增 app/common/facade/Json.php(success/error)+helper.php 全局 class_alias 映射,调用方零改动恢复 |
 | **V2.9.61** | 2026-09 | **前台登出500修复·PJAX内联脚本拼接陷阱根治**: /member/logout 报 logout(): Argument #1 must be of type int, string given——登录态 memberInfo['id'] 来自缓存反序列化是 string 而方法签名严格 int,且方法体根本未使用该参数(只清token)→直接移除无用参数；后台PJAX内联脚本拼接陷阱——V2.9.58 layout 全局块(clearCacheByType/openMediaSelect)被 isLayoutGlobalScript 排除标记遗漏,PJAX切页时误当页面JS与页面块拼接,全局块结尾赋值表达式(无分号)紧跟页面块开头 ( 导致连成调用表达式→全局函数被误执行(SEO诊断页误弹清缓存确认框)→返回值undefined再被调→(intermediate value) is not a function——双层修复:isLayoutGlobalScript 补3个全局块标记+executeInlineScript 内容末尾统一补分号防未来拼接陷阱 |
