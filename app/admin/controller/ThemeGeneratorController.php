@@ -12,19 +12,21 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\common\controller\AdminBaseController;
+use app\common\middleware\ThemePreviewMiddleware;
 use app\common\service\theme_generator\BtpkgAdapterService;
 use app\common\service\theme_generator\ThemeBundleValidator;
 use app\common\service\theme_generator\ThemeGeneratorException;
 use app\common\service\theme_generator\ThemeOriginRepository;
-use app\common\service\theme_generator\ThemePreviewRenderer;
 use think\facade\Config;
 use think\facade\Log;
 
 /**
  * AI-THEME 适配器后台控制器
  *
- * 只做四件事：读包并验包、落盘到 public/skin/themes/<slug>、登记 i8j_theme_info、预览与回滚。
- * 不接管前台：不写 template/themes/，不改 frontend_theme。
+ * 只做四件事：读包并验包、按 CMS 原生形态落盘、登记 i8j_theme_info、预览与回滚。
+ * 落点：模板与 theme.json 进 template/themes/<slug>/，静态资源进 public/skin/themes/<slug>/assets/。
+ * 补齐：与引擎 ai_cms.py::install() 同源同规则，从 default 主题补 <slug>/pc/ 与 skin/<slug>/pc/（只补缺）。
+ * 预览交给 CMS 前台按 X-Preview-Theme 通路渲染；适配器不自行解释模板。不改 frontend_theme。
  * 总开关见 config/theme_generator.php，关闭时所有动作 404。
  */
 class ThemeGeneratorController extends AdminBaseController
@@ -32,6 +34,9 @@ class ThemeGeneratorController extends AdminBaseController
     private const SLUG_PATTERN = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
 
     private const RECEIPT_FILE = '.ai-theme-install.json';
+
+    /** 补齐来源：与引擎 ai_cms.py::install(default_theme) 同一源 */
+    private const DEFAULT_THEME = 'default';
 
     /**
      * 列表页
@@ -87,26 +92,92 @@ class ThemeGeneratorController extends AdminBaseController
             }
 
             $slug = (string) $manifest['slug'];
-            $target = $this->themesRoot() . DIRECTORY_SEPARATOR . $slug;
-            $previous = $target . '@prev';
 
             $staging = runtime_path() . 'temp' . DIRECTORY_SEPARATOR . 'tg-' . bin2hex(random_bytes(6));
             $adapter->extractTo($packagePath, $staging);
 
-            if (!is_dir($this->themesRoot()) && !mkdir($this->themesRoot(), 0755, true) && !is_dir($this->themesRoot())) {
-                throw new ThemeGeneratorException('E-TG-018', '无法创建主题目录：' . $this->themesRoot());
+            $packageTemplate = $staging . DIRECTORY_SEPARATOR . 'template' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $slug;
+            $packageSkin     = $staging . DIRECTORY_SEPARATOR . 'skin' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $slug;
+            $this->assertPackageLayout($packageTemplate, $packageSkin, $slug);
+
+            $templateTarget = $this->templateThemesRoot() . DIRECTORY_SEPARATOR . $slug;
+            $templatePrev   = $templateTarget . '@prev';
+            $skinTarget     = $this->skinThemesRoot() . DIRECTORY_SEPARATOR . $slug;
+            $skinPrev       = $skinTarget . '@prev';
+
+            $this->ensureDirectory($this->templateThemesRoot());
+            $this->ensureDirectory($this->skinThemesRoot());
+
+            // 同版本重装不得顶掉真正的上一版：@prev 保持不动，用临时名换出当前版本。
+            $currentVersion = $this->installedVersion($templateTarget, $skinTarget);
+            $sameVersion    = $currentVersion !== '' && $currentVersion === (string) $manifest['version'];
+            $swapSuffix     = $sameVersion ? '@reinstall-' . bin2hex(random_bytes(4)) : '@prev';
+            $templateSwap   = $templateTarget . $swapSuffix;
+            $skinSwap       = $skinTarget . $swapSuffix;
+
+            if (!$sameVersion) {
+                if (is_dir($templatePrev)) {
+                    $this->removeDirectory($templatePrev);
+                }
+                if (is_dir($skinPrev)) {
+                    $this->removeDirectory($skinPrev);
+                }
             }
 
-            if (is_dir($previous)) {
-                $this->removeDirectory($previous);
+            $templateBackedUp = is_dir($templateTarget) && rename($templateTarget, $templateSwap);
+            if (is_dir($templateTarget)) {
+                throw new ThemeGeneratorException('E-TG-018', '无法备份现有模板目录：' . $templateTarget);
             }
 
-            if (is_dir($target) && !rename($target, $previous)) {
-                throw new ThemeGeneratorException('E-TG-018', '无法备份现有主题目录：' . $target);
+            $skinBackedUp = is_dir($skinTarget) && rename($skinTarget, $skinSwap);
+            if (is_dir($skinTarget)) {
+                throw new ThemeGeneratorException('E-TG-018', '无法备份现有皮肤目录：' . $skinTarget);
             }
 
-            if (!rename($staging, $target)) {
-                throw new ThemeGeneratorException('E-TG-018', '无法落盘主题目录：' . $target);
+            try {
+                if (!rename($packageTemplate, $templateTarget)) {
+                    throw new ThemeGeneratorException('E-TG-018', '无法落盘模板目录：' . $templateTarget);
+                }
+
+                $this->ensureDirectory($skinTarget);
+                if (!rename($packageSkin . DIRECTORY_SEPARATOR . 'assets', $skinTarget . DIRECTORY_SEPARATOR . 'assets')) {
+                    throw new ThemeGeneratorException('E-TG-018', '无法落盘皮肤资源：' . $skinTarget . DIRECTORY_SEPARATOR . 'assets');
+                }
+
+                // 契约补齐：与引擎 ai_cms.py::install() 同源同规则（default → <slug>，只补缺、不覆盖）
+                // 模板侧补 <slug>/pc/，皮肤侧补 public/skin/themes/<slug>/pc/（layout 的 {$skin}css/... 依赖后者）。
+                $filledTemplates = $this->copyMissing(
+                    $this->templateThemesRoot() . DIRECTORY_SEPARATOR . self::DEFAULT_THEME . DIRECTORY_SEPARATOR . 'pc',
+                    $templateTarget . DIRECTORY_SEPARATOR . 'pc'
+                );
+                $filledSkins = $this->copyMissing(
+                    $this->skinThemesRoot() . DIRECTORY_SEPARATOR . self::DEFAULT_THEME . DIRECTORY_SEPARATOR . 'pc',
+                    $skinTarget . DIRECTORY_SEPARATOR . 'pc'
+                );
+            } catch (\Throwable $e) {
+                if (is_dir($templateTarget)) {
+                    $this->removeDirectory($templateTarget);
+                }
+                if ($templateBackedUp && is_dir($templateSwap)) {
+                    rename($templateSwap, $templateTarget);
+                }
+                if (is_dir($skinTarget)) {
+                    $this->removeDirectory($skinTarget);
+                }
+                if ($skinBackedUp && is_dir($skinSwap)) {
+                    rename($skinSwap, $skinTarget);
+                }
+                throw $e;
+            }
+
+            // 同版本重装：临时换出的旧目录用完即删，@prev 未被触碰
+            if ($sameVersion) {
+                if (is_dir($templateSwap)) {
+                    $this->removeDirectory($templateSwap);
+                }
+                if (is_dir($skinSwap)) {
+                    $this->removeDirectory($skinSwap);
+                }
             }
             $staging = '';
 
@@ -121,7 +192,7 @@ class ThemeGeneratorController extends AdminBaseController
             ];
 
             file_put_contents(
-                $target . DIRECTORY_SEPARATOR . self::RECEIPT_FILE,
+                $skinTarget . DIRECTORY_SEPARATOR . self::RECEIPT_FILE,
                 (string) json_encode($receipt, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
             );
 
@@ -138,8 +209,12 @@ class ThemeGeneratorController extends AdminBaseController
                 'sha256'       => $sha256,
                 'task_id'      => $taskId,
                 'installed_at' => $installedAt,
-                'target'       => $target,
-                'prev'         => is_dir($previous) ? $previous : null,
+                'template_dir' => 'template/themes/' . $slug,
+                'skin_dir'     => 'public/skin/themes/' . $slug,
+                'prev'         => is_dir($templatePrev) ? 'template/themes/' . $slug . '@prev' : null,
+                'same_version_reinstall'    => $sameVersion,
+                'filled_from_default'       => $filledTemplates,
+                'skin_filled_from_default'  => $filledSkins,
                 'theme_id'     => (int) ($row['id'] ?? 0),
             ]);
         } catch (ThemeGeneratorException $e) {
@@ -170,60 +245,59 @@ class ThemeGeneratorController extends AdminBaseController
             return $this->fail('E-TG-007', '主题标识非法');
         }
 
-        $target = $this->themesRoot() . DIRECTORY_SEPARATOR . $slug;
-        $previous = $target . '@prev';
+        $templateTarget = $this->templateThemesRoot() . DIRECTORY_SEPARATOR . $slug;
+        $templatePrev   = $templateTarget . '@prev';
+        $skinTarget     = $this->skinThemesRoot() . DIRECTORY_SEPARATOR . $slug;
+        $skinPrev       = $skinTarget . '@prev';
 
-        if (!is_dir($previous)) {
+        if (!is_dir($templatePrev) || !is_dir($skinPrev)) {
             return $this->fail('E-TG-016', '没有可回滚的上一版本：' . $slug);
         }
 
-        if (!is_dir($target)) {
-            return $this->fail('E-TG-016', '当前主题目录不存在：' . $slug);
+        if (!is_dir($templateTarget) || !is_dir($skinTarget)) {
+            return $this->fail('E-TG-016', '当前主题目录不完整：' . $slug);
         }
 
-        $snapshot = $this->readReceipt($previous);
-
-        $swap = $target . '@rollback-' . bin2hex(random_bytes(4));
+        $snapshot = $this->readReceipt($skinPrev);
 
         try {
-            if (!rename($target, $swap)) {
-                throw new ThemeGeneratorException('E-TG-018', '回滚失败：无法移出当前版本');
+            $this->swapWithPrev($templateTarget, $templatePrev);
+
+            try {
+                $this->swapWithPrev($skinTarget, $skinPrev);
+            } catch (\Throwable $e) {
+                $this->swapWithPrev($templateTarget, $templatePrev);
+                throw $e;
             }
 
-            if (!rename($previous, $target)) {
-                rename($swap, $target);
-                throw new ThemeGeneratorException('E-TG-018', '回滚失败：无法切回上一版本');
+            // 回执里主题名在 manifest.name 下；取不到时保留当前登记值，不能把 name 清空
+            $restore = $snapshot + ['source' => ThemeOriginRepository::SOURCE];
+            $restoreName = (string) ($snapshot['manifest']['name'] ?? $snapshot['name'] ?? '');
+            if ($restoreName === '') {
+                $current = (new ThemeOriginRepository())->findBySlug($slug);
+                $restoreName = (string) ($current['name'] ?? $slug);
             }
+            $restore['name'] = $restoreName;
 
-            if (!rename($swap, $previous)) {
-                throw new ThemeGeneratorException('E-TG-018', '回滚失败：无法保留回滚前的版本');
-            }
-
-            (new ThemeOriginRepository())->restore($slug, $snapshot + [
-                'source' => ThemeOriginRepository::SOURCE,
-            ]);
+            (new ThemeOriginRepository())->restore($slug, $restore);
 
             return $this->success('回滚完成', [
-                'slug'    => $slug,
-                'version' => (string) ($snapshot['version'] ?? ''),
-                'prev'    => $previous,
+                'slug'         => $slug,
+                'version'      => (string) ($snapshot['version'] ?? ''),
+                'template_dir' => 'template/themes/' . $slug,
+                'skin_dir'     => 'public/skin/themes/' . $slug,
+                'prev'         => 'template/themes/' . $slug . '@prev',
             ]);
         } catch (ThemeGeneratorException $e) {
-            if (is_dir($swap) && !is_dir($target)) {
-                rename($swap, $target);
-            }
             return $this->fail($e->errorCode(), $e->getMessage());
         } catch (\Throwable $e) {
             Log::error('theme_generator rollback failed: ' . $e->getMessage());
-            if (is_dir($swap) && !is_dir($target)) {
-                rename($swap, $target);
-            }
             return $this->fail('E-TG-019', '回滚失败：' . $e->getMessage());
         }
     }
 
     /**
-     * 预览：沙箱 iframe 渲染包内真实 HTML
+     * 预览：交由 CMS 前台按 X-Preview-Theme 通路渲染已安装主题
      */
     public function preview()
     {
@@ -234,30 +308,41 @@ class ThemeGeneratorController extends AdminBaseController
             abort(404, '主题标识非法');
         }
 
-        $themeDir = $this->themesRoot() . DIRECTORY_SEPARATOR . $slug;
+        $themeDir = $this->templateThemesRoot() . DIRECTORY_SEPARATOR . $slug;
         if (!is_dir($themeDir)) {
             abort(404, '主题未安装：' . $slug);
         }
 
-        try {
-            $manifest = (new BtpkgAdapterService())->readManifestFromDir($themeDir);
-            $srcdoc = (new ThemePreviewRenderer())->render($themeDir, $slug, $manifest);
-        } catch (ThemeGeneratorException $e) {
-            abort(404, $e->getMessage());
+        $configFile = $themeDir . DIRECTORY_SEPARATOR . 'theme.json';
+        if (!is_file($configFile)) {
+            abort(404, '主题缺少 theme.json：' . $slug);
         }
 
-        $receipt = $this->readReceipt($themeDir);
+        $themeConfig = json_decode((string) file_get_contents($configFile), true);
+        $themeConfig = is_array($themeConfig) ? $themeConfig : [];
+
+        $receipt = $this->readReceipt($this->skinThemesRoot() . DIRECTORY_SEPARATOR . $slug);
+
+        $manifest = [
+            'name'        => (string) ($themeConfig['name'] ?? ($receipt['manifest']['name'] ?? $slug)),
+            'slug'        => $slug,
+            'version'     => (string) ($themeConfig['version'] ?? ($receipt['version'] ?? '')),
+            'description' => (string) ($themeConfig['description'] ?? ''),
+        ];
+
+        $hash = ThemePreviewMiddleware::generateHash($slug);
 
         $this->app->view->assign([
-            'slug'           => $slug,
-            'manifest'       => $manifest,
-            'receipt'        => [
+            'slug'        => $slug,
+            'manifest'    => $manifest,
+            'receipt'     => [
                 'source'         => (string) ($receipt['source'] ?? ThemeOriginRepository::SOURCE),
                 'task_id'        => (string) ($receipt['task_id'] ?? ''),
                 'installed_at'   => (string) ($receipt['installed_at'] ?? ''),
                 'package_sha256' => (string) ($receipt['package_sha256'] ?? ''),
             ],
-            'preview_srcdoc' => $srcdoc,
+            'preview_url' => (string) url('/') . '?preview=' . $hash,
+            'preview_hash' => $hash,
         ]);
 
         return $this->app->view->fetch('theme_generator/preview');
@@ -274,11 +359,131 @@ class ThemeGeneratorController extends AdminBaseController
     }
 
     /**
-     * 主题落盘根目录：public/skin/themes
+     * CMS 模板落盘根目录：template/themes
      */
-    private function themesRoot(): string
+    private function templateThemesRoot(): string
+    {
+        return root_path() . 'template' . DIRECTORY_SEPARATOR . 'themes';
+    }
+
+    /**
+     * CMS 皮肤落盘根目录：public/skin/themes
+     */
+    private function skinThemesRoot(): string
     {
         return public_path() . 'skin' . DIRECTORY_SEPARATOR . 'themes';
+    }
+
+    /**
+     * 当前已安装版本：优先读皮肤目录回执，其次读模板 theme.json
+     */
+    private function installedVersion(string $templateTarget, string $skinTarget): string
+    {
+        $receipt = $this->readReceipt($skinTarget);
+        if (!empty($receipt['version'])) {
+            return (string) $receipt['version'];
+        }
+
+        $configFile = $templateTarget . DIRECTORY_SEPARATOR . 'theme.json';
+        if (is_file($configFile)) {
+            $config = json_decode((string) file_get_contents($configFile), true);
+            if (is_array($config) && !empty($config['version'])) {
+                return (string) $config['version'];
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * 补齐缺失文件：与引擎 ai_cms.py::_copy_missing 同一规则——只补缺、不覆盖，目录按需创建
+     *
+     * @return string[] 实际补齐的相对路径
+     */
+    private function copyMissing(string $source, string $target): array
+    {
+        if (!is_dir($source)) {
+            return [];
+        }
+
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($source, \FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $files[] = $file->getPathname();
+            }
+        }
+        sort($files, SORT_STRING);
+
+        $copied = [];
+        foreach ($files as $from) {
+            $relative = str_replace('\\', '/', substr($from, strlen($source) + 1));
+            $to = $target . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+
+            if (file_exists($to)) {
+                continue;
+            }
+
+            $this->ensureDirectory(dirname($to));
+            if (!@copy($from, $to)) {
+                throw new ThemeGeneratorException('E-TG-018', '补齐文件失败：' . $relative);
+            }
+            @touch($to, (int) filemtime($from));
+            $copied[] = $relative;
+        }
+
+        return $copied;
+    }
+
+    /**
+     * 校验包内是否为 CMS 原生形态：template/themes/<slug>/theme.json + pc/index.html + skin/themes/<slug>/assets
+     */
+    private function assertPackageLayout(string $packageTemplate, string $packageSkin, string $slug): void
+    {
+        if (!is_dir($packageTemplate) || !is_file($packageTemplate . DIRECTORY_SEPARATOR . 'theme.json')) {
+            throw new ThemeGeneratorException('E-TG-015', '包内缺少 template/themes/' . $slug . '/theme.json');
+        }
+
+        if (!is_dir($packageTemplate . DIRECTORY_SEPARATOR . 'pc') || !is_file($packageTemplate . DIRECTORY_SEPARATOR . 'pc' . DIRECTORY_SEPARATOR . 'index.html')) {
+            throw new ThemeGeneratorException('E-TG-015', '包内缺少 template/themes/' . $slug . '/pc/index.html');
+        }
+
+        if (!is_dir($packageSkin . DIRECTORY_SEPARATOR . 'assets')) {
+            throw new ThemeGeneratorException('E-TG-015', '包内缺少 skin/themes/' . $slug . '/assets/');
+        }
+    }
+
+    /**
+     * 目录不存在则创建；失败报 E-TG-018
+     */
+    private function ensureDirectory(string $dir): void
+    {
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new ThemeGeneratorException('E-TG-018', '无法创建目录：' . $dir);
+        }
+    }
+
+    /**
+     * 回滚用目录对换：target ↔ prev，中间态保留一份完整目录
+     */
+    private function swapWithPrev(string $target, string $prev): void
+    {
+        $swap = $target . '@rollback-' . bin2hex(random_bytes(4));
+
+        if (!rename($target, $swap)) {
+            throw new ThemeGeneratorException('E-TG-018', '回滚失败：无法移出当前版本');
+        }
+
+        if (!rename($prev, $target)) {
+            rename($swap, $target);
+            throw new ThemeGeneratorException('E-TG-018', '回滚失败：无法切回上一版本');
+        }
+
+        if (!rename($swap, $prev)) {
+            throw new ThemeGeneratorException('E-TG-018', '回滚失败：无法保留回滚前的版本');
+        }
     }
 
     /**

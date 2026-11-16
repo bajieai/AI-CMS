@@ -8,12 +8,12 @@
 {block name="content"}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>AI 主题安装（BTPKG）</h5>
-    <span class="badge bg-secondary">落点 public/skin/themes · 不接管前台</span>
+    <span class="badge bg-secondary">落点 template/themes + public/skin/themes</span>
 </div>
 
 <div class="alert alert-light border small mb-3">
-    本页只做四件事：读包（契约 7 字段）、验包（sha256 + 逐项路径/扩展名）、落盘并登记（source=ai-theme / task_id / installed_at / package_sha256）、预览与回滚。
-    安装不会修改 <code>i8j_config.frontend_theme</code>，也不会写入 <code>template/themes/</code>。
+    本页只做四件事：读包（契约 8 字段）、验包（sha256 + 逐项路径/扩展名）、按 CMS 原生形态落盘并登记（source=ai-theme / task_id / installed_at / package_sha256）、预览与回滚。
+    模板与 <code>theme.json</code> 进 <code>template/themes/&lt;slug&gt;/</code>，静态资源进 <code>public/skin/themes/&lt;slug&gt;/assets/</code>；安装不会修改 <code>i8j_config.frontend_theme</code>。
 </div>
 
 <div class="card mb-3">
@@ -90,6 +90,19 @@
     var form = document.getElementById('tg-install-form');
     var out = document.getElementById('tg-result');
 
+    // CSRF Token：以页面最后生成的 __token__ 为准（layout 头部与 ai_assistant 各渲染一次，后者才是最末写入 Session 的值）
+    function csrfToken() {
+        var list = document.querySelectorAll('input[name="__token__"]');
+        return list.length ? list[list.length - 1].value : '';
+    }
+
+    function buildHeaders() {
+        return {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': csrfToken()
+        };
+    }
+
     function show(data) {
         out.style.display = 'block';
         out.textContent = JSON.stringify(data, null, 2);
@@ -100,7 +113,7 @@
         var body = new URLSearchParams(new FormData(form));
         fetch('/admin/theme_generator/install', {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            headers: buildHeaders(),
             body: body.toString()
         }).then(function (res) { return res.json(); }).then(function (data) {
             show(data);
@@ -116,7 +129,7 @@
             var body = new URLSearchParams({slug: btn.getAttribute('data-slug')});
             fetch('/admin/theme_generator/rollback', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                headers: buildHeaders(),
                 body: body.toString()
             }).then(function (res) { return res.json(); }).then(function (data) {
                 show(data);
