@@ -100,9 +100,17 @@ class MenuSyncCommand extends Command
             'status'     => 1,
         ];
 
+        // V2.9.64：迁移脚本可能以自增 id 写入同一条菜单（同一 url 在不同站点 id 不同），
+        // 若只按 id 判重，sync 会插入重复行；若该 id 恰好被别的菜单占用，还会覆盖掉别人。
+        // 因此：id 命中直接用；id 未命中时再按 url 兜底认领，认领后沿用库中真实 id。
         $exists = MenuItem::find($id);
 
+        if (!$exists && ($data['url'] ?? '') !== '') {
+            $exists = MenuItem::where('url', $data['url'])->find();
+        }
+
         if ($exists) {
+            $data['id'] = (int) $exists->getKey();
             if (!$dryRun) {
                 $exists->save($data);
             }
