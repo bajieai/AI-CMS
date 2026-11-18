@@ -38,7 +38,7 @@ use think\facade\Log;
  *   "mcpServers": {
  *     "ai-cms": {
  *       "command": "php",
- *       "args": ["D:/AI-Project/AI-CMS/think", "agent:mcp"]
+ *       "args": ["/path/to/ai-cms/think", "agent:mcp"]
  *     }
  *   }
  * }
